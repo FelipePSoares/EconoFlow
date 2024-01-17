@@ -1,0 +1,6 @@
+@EasyFinance.Server_HostAddress = http://localhost:5056
+
+GET {{EasyFinance.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

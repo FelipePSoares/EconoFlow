@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34330.188
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyFinance.Server", "EasyFinance.Server\EasyFinance.Server.csproj", "{4D4CC4E5-D93C-4DD9-A94B-C09AB67F393D}"
+EndProject
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "easyfinance.client", "easyfinance.client\easyfinance.client.esproj", "{99DFCCC5-B56A-45F2-83AB-2F87CAEBBB30}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4D4CC4E5-D93C-4DD9-A94B-C09AB67F393D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D4CC4E5-D93C-4DD9-A94B-C09AB67F393D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D4CC4E5-D93C-4DD9-A94B-C09AB67F393D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D4CC4E5-D93C-4DD9-A94B-C09AB67F393D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99DFCCC5-B56A-45F2-83AB-2F87CAEBBB30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99DFCCC5-B56A-45F2-83AB-2F87CAEBBB30}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99DFCCC5-B56A-45F2-83AB-2F87CAEBBB30}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{99DFCCC5-B56A-45F2-83AB-2F87CAEBBB30}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99DFCCC5-B56A-45F2-83AB-2F87CAEBBB30}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99DFCCC5-B56A-45F2-83AB-2F87CAEBBB30}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E13FF7F6-9BCA-4F10-80BB-72D4A8A03038}
+	EndGlobalSection
+EndGlobal
