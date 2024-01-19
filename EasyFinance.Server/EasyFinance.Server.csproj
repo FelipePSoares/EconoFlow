@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
+    <Nullable>disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <InvariantGlobalization>true</InvariantGlobalization>
     <SpaRoot>..\easyfinance.client</SpaRoot>
@@ -18,9 +18,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\EasyFinance.Application\EasyFinance.Application.csproj" />
     <ProjectReference Include="..\easyfinance.client\easyfinance.client.esproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+    <ProjectReference Include="..\EasyFinance.Domain\EasyFinance.Domain.csproj" />
+    <ProjectReference Include="..\EasyFinance.Infrastructure\EasyFinance.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
