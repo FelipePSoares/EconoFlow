@@ -2,9 +2,9 @@
 
 namespace EasyFinance.Server.Extensions
 {
-    public static class ServerServiceExtensions
+    public static class SwaggerServiceExtensions
     {
-        public static IServiceCollection AddServerServiceExtensions(this IServiceCollection services)
+        public static IServiceCollection AddSwagger(this IServiceCollection services)
         {
             services.AddSwaggerGen(options =>
             {
