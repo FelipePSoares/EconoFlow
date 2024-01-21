@@ -27,6 +27,9 @@
         </div>
       </div>
       <button class="w-100 btn btn-lg btn-warning" type="submit" [disabled]="loginForm.invalid">Sign in</button>
+      <div *ngIf="httpErrors">
+        <p class="mt-5 mb-3 text-danger text-center">{{errors.statusText}}</p>
+      </div>
       <p class="mt-5 mb-3 text-muted">©2024</p>
     </form>
 </div>
