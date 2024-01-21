@@ -7,13 +7,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasyFinance.Server", "EasyF
 EndProject
 Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "easyfinance.client", "easyfinance.client\easyfinance.client.esproj", "{99DFCCC5-B56A-45F2-83AB-2F87CAEBBB30}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyFinance.Application", "EasyFinance.Application\EasyFinance.Application.csproj", "{41F8619D-C206-4FC1-99CD-23007014A94A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasyFinance.Application", "EasyFinance.Application\EasyFinance.Application.csproj", "{41F8619D-C206-4FC1-99CD-23007014A94A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyFinance.Domain", "EasyFinance.Domain\EasyFinance.Domain.csproj", "{F55D3663-085F-4FC5-9935-4D58693D65CD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasyFinance.Domain", "EasyFinance.Domain\EasyFinance.Domain.csproj", "{F55D3663-085F-4FC5-9935-4D58693D65CD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyFinance.Infrastructure", "EasyFinance.Infrastructure\EasyFinance.Infrastructure.csproj", "{446D29F8-8D7A-46AB-88F6-95FFDEBA1596}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasyFinance.Infrastructure", "EasyFinance.Infrastructure\EasyFinance.Infrastructure.csproj", "{446D29F8-8D7A-46AB-88F6-95FFDEBA1596}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyFinance.Persistence", "EasyFinance.Persistence\EasyFinance.Persistence.csproj", "{66E6EF5F-D94D-4C69-9533-8402A03DC15D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasyFinance.Persistence", "EasyFinance.Persistence\EasyFinance.Persistence.csproj", "{66E6EF5F-D94D-4C69-9533-8402A03DC15D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{D1065F30-A332-4151-A76C-541B2F095A16}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyFinance.Domain.Tests", "EasyFinance.Domain.Tests\EasyFinance.Domain.Tests.csproj", "{087A7B8F-4C71-4407-8F64-046758BCB1D0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyFinance.Common.Tests", "EasyFinance.Common.Tests\EasyFinance.Common.Tests.csproj", "{D3F45983-CB7D-436A-905F-07779A41B1F6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,9 +53,21 @@ Global
 		{66E6EF5F-D94D-4C69-9533-8402A03DC15D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{66E6EF5F-D94D-4C69-9533-8402A03DC15D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{66E6EF5F-D94D-4C69-9533-8402A03DC15D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{087A7B8F-4C71-4407-8F64-046758BCB1D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{087A7B8F-4C71-4407-8F64-046758BCB1D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{087A7B8F-4C71-4407-8F64-046758BCB1D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{087A7B8F-4C71-4407-8F64-046758BCB1D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3F45983-CB7D-436A-905F-07779A41B1F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3F45983-CB7D-436A-905F-07779A41B1F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3F45983-CB7D-436A-905F-07779A41B1F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3F45983-CB7D-436A-905F-07779A41B1F6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{087A7B8F-4C71-4407-8F64-046758BCB1D0} = {D1065F30-A332-4151-A76C-541B2F095A16}
+		{D3F45983-CB7D-436A-905F-07779A41B1F6} = {D1065F30-A332-4151-A76C-541B2F095A16}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E13FF7F6-9BCA-4F10-80BB-72D4A8A03038}
