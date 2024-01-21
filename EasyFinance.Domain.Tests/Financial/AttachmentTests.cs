@@ -10,7 +10,7 @@ namespace EasyFinance.Domain.Tests.Financial
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void ValidateNameNullOrEmpty(string name)
+        public void AddName_SendNullAndEmpty_ShouldThrowException(string name)
         {
             var action = () => new AttachmentBuilder().AddName(name).Build();
 
@@ -20,7 +20,7 @@ namespace EasyFinance.Domain.Tests.Financial
         }
 
         [Fact]
-        public void ValidateCreatedByNull()
+        public void AddCreatedBy_SendNull_ShouldThrowException()
         {
             var action = () => new AttachmentBuilder().AddCreatedBy(null).Build();
 

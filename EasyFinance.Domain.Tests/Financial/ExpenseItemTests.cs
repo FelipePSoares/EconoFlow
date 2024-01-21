@@ -10,7 +10,7 @@ namespace EasyFinance.Domain.Tests.Financial
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void ValidateNameNullOrEmpty(string name)
+        public void AddName_SendNullAndEmpty_ShouldThrowException(string name)
         {
             var action = () => new ExpenseItemBuilder().AddName(name).Build();
 
@@ -21,7 +21,7 @@ namespace EasyFinance.Domain.Tests.Financial
 
         [Theory]
         [MemberData(nameof(InvalidDates))]
-        public void ValidateInvalidDate(DateTime date)
+        public void AddDate_SendInvalidDate_ShouldThrowException(DateTime date)
         {
             var action = () => new ExpenseItemBuilder().AddDate(date).Build();
 
@@ -33,7 +33,7 @@ namespace EasyFinance.Domain.Tests.Financial
         [Theory]
         [InlineData(-1)]
         [InlineData(-250)]
-        public void ValidateAmountNegative(decimal amount)
+        public void AddAmount_SendNegative_ShouldThrowException(decimal amount)
         {
             var action = () => new ExpenseItemBuilder().AddAmount(amount).Build();
 
@@ -43,7 +43,7 @@ namespace EasyFinance.Domain.Tests.Financial
         }
 
         [Fact]
-        public void ValidateCreatedByNull()
+        public void AddCreatedBy_SendNull_ShouldThrowException()
         {
             var action = () => new ExpenseItemBuilder().AddCreatedBy(null).Build();
 
@@ -53,7 +53,7 @@ namespace EasyFinance.Domain.Tests.Financial
         }
 
         [Fact]
-        public void ValidateAttachmentsNull()
+        public void AddAttachments_SendNull_ShouldThrowException()
         {
             var action = () => new ExpenseItemBuilder().AddAttachments(null).Build();
 
@@ -63,7 +63,7 @@ namespace EasyFinance.Domain.Tests.Financial
         }
 
         [Fact]
-        public void ValidateItemsNull()
+        public void AddItems_SendNull_ShouldThrowException()
         {
             var action = () => new ExpenseItemBuilder().AddItems(null).Build();
 

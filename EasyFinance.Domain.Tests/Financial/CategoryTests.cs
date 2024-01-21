@@ -11,7 +11,7 @@ namespace EasyFinance.Domain.Tests.Financial
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void ValidateNameNullOrEmpty(string name)
+        public void AddName_SendNullAndEmpty_ShouldThrowException(string name)
         {
             var action = () => new CategoryBuilder().AddName(name).Build();
 
@@ -23,7 +23,7 @@ namespace EasyFinance.Domain.Tests.Financial
         [Theory]
         [InlineData(-1)]
         [InlineData(-250)]
-        public void ValidateGoalNegative(decimal goal)
+        public void AddGoal_SendNegative_ShouldThrowException(decimal goal)
         {
             var action = () => new CategoryBuilder().AddGoal(goal).Build();
 
@@ -33,7 +33,7 @@ namespace EasyFinance.Domain.Tests.Financial
         }
 
         [Fact]
-        public void ValidateExpensesNull()
+        public void AddExpenses_SendNull_ShouldThrowException()
         {
             var action = () => new CategoryBuilder().AddExpenses(null).Build();
 
@@ -43,7 +43,7 @@ namespace EasyFinance.Domain.Tests.Financial
         }
 
         [Fact]
-        public void ValidateAddNewCategoryGoalLessThanTheSumExpensesGoal()
+        public void AddGoal_SetLessGoalThanTheSumOfTheExpenses_ShouldThrowException()
         {
             var expense = new ExpenseBuilder().AddGoal(100).Build();
             var category = new CategoryBuilder().AddGoal(200).AddExpenses(new List<Expense>() { expense });
@@ -56,7 +56,7 @@ namespace EasyFinance.Domain.Tests.Financial
         }
 
         [Fact]
-        public void ValidateNewExpensesGoalGreaterThanCategoryGoal()
+        public void AddExpenses_GoalExpenseGreaterThanCategoryGoal_ShouldThrowException()
         {
             var expense = new ExpenseBuilder().AddGoal(100).Build();
 

@@ -10,7 +10,7 @@ namespace EasyFinance.Domain.Tests.AccessControl
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void ValidateFirstNameNullOrEmpty(string firstName)
+        public void AddFirstName_SendNullAndEmpty_ShouldThrowException(string firstName)
         {
             var action = () => new UserBuilder().AddFirstName(firstName).Build();
 
@@ -22,7 +22,7 @@ namespace EasyFinance.Domain.Tests.AccessControl
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void ValidateLastNameNullOrEmpty(string lastName)
+        public void AddLastName_SendNullAndEmpty_ShouldThrowException(string lastName)
         {
             var action = () => new UserBuilder().AddLastName(lastName).Build();
 

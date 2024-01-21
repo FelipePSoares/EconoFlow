@@ -1,6 +1,4 @@
 ﻿using EasyFinance.Common.Tests.AccessControl;
-using EasyFinance.Common.Tests.Financial;
-using EasyFinance.Domain.Models.AccessControl;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.Exceptions;
 using FluentAssertions;
@@ -11,7 +9,7 @@ namespace EasyFinance.Domain.Tests.AccessControl
     {
 
         [Fact]
-        public void ValidateUserNull()
+        public void AddUser_SendNull_ShouldThrowException()
         {
             var action = () => new UserProjectBuilder().AddUser(null).Build();
 
@@ -21,7 +19,7 @@ namespace EasyFinance.Domain.Tests.AccessControl
         }
 
         [Fact]
-        public void ValidateProjectNull()
+        public void AddProject_SendNull_ShouldThrowException()
         {
             var action = () => new UserProjectBuilder().AddProject(null).Build();
 
