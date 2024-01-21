@@ -1,5 +1,6 @@
+import { HttpResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { LoginService } from 'src/app/Services/LoginService/login.service';
 
 @Component({
@@ -11,7 +12,8 @@ export class LoginComponent implements OnInit {
 
   loginForm!: FormGroup;
   loggedIn = false;
-
+  httpErrors = false;
+  errors : any;
   constructor(private formBuilder: FormBuilder, private loginService: LoginService){}
 
   ngOnInit(): void {
@@ -19,20 +21,21 @@ export class LoginComponent implements OnInit {
   }
 
   buildLoginForm(){
-    this.loginForm = this.formBuilder.group({
-      email:['', [Validators.required, Validators.email]],
-      password:['', Validators.required]
+    this.loginForm = new FormGroup({
+      email: new FormControl('',[Validators.email, Validators.required]),
+      password: new FormControl('',[Validators.required]),
     });
   }
 
   onSubmit(){
-    this.loginService.login(this.loginForm).subscribe({
+    this.loginService.login(this.loginForm.value).subscribe({
       next: response =>{
         this.loggedIn = true;
         console.log(response);
       },
       error: error =>{
-        console.log(error);
+        this.httpErrors = true;
+        this.errors = error;
       }
     });
   }

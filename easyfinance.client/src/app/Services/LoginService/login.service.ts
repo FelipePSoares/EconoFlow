@@ -9,7 +9,7 @@ export class LoginService {
   constructor(private httpClient: HttpClient) { }
 
   login(model: any){
-    return this.httpClient.post('/api/login', model);
+    return this.httpClient.post('/api/account/login', model);
   }
   
 }
