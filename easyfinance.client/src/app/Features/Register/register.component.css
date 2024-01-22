@@ -1,0 +1,10 @@
+.form-signin{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+form{
+    width: 50%;
+}

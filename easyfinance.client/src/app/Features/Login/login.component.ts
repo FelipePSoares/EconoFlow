@@ -1,6 +1,5 @@
-import { HttpResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { LoginService } from 'src/app/Services/LoginService/login.service';
 
 @Component({
@@ -14,7 +13,7 @@ export class LoginComponent implements OnInit {
   loggedIn = false;
   httpErrors = false;
   errors : any;
-  constructor(private formBuilder: FormBuilder, private loginService: LoginService){}
+  constructor(private loginService: LoginService){}
 
   ngOnInit(): void {
     this.buildLoginForm();
