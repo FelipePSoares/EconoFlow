@@ -1,0 +1,34 @@
+name: Release
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Build and Test
+        run: |
+          dotnet restore
+          dotnet build
+          dotnet test
+
+      - name: Publish
+        run: dotnet publish --configuration Release
+
+      - name: Deploy
+        uses: ChristopheLav/iis-deploy@v1
+        with:
+          website-name: 'felipesoares-001-site2'
+          msdeploy-service-url: ${{ secrets.FTP_SERVER }}
+          msdeploy-username: ${{ secrets.FTP_USERNAME }}
+          msdeploy-password: ${{ secrets.FTP_PASSWORD }}
+          source-path: ${{ github.workspace }}\EasyFinance.Server\bin\Release\net8.0\publish\
