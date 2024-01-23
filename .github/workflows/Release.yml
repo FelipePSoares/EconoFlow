@@ -36,5 +36,5 @@ jobs:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        local-dir: ./EasyFinance.Server/bin/Release/net8.0/publish/
-        server-dir: .
+        local-dir: /home/runner/work/EasyFinance/EasyFinance/EasyFinance.Server/bin/Release/net8.0/publish/
+        server-dir: ./easyfinance/
