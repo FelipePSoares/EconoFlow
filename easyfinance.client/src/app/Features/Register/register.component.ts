@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { passwordMatchValidator } from '../../Common/CustomValidators/passwordMatchValidator';
+import { RegisterService } from 'src/app/Services/RegisterService/register.service';
 
 @Component({
   selector: 'app-register',
@@ -10,7 +11,7 @@ import { passwordMatchValidator } from '../../Common/CustomValidators/passwordMa
 export class RegisterComponent implements OnInit{
   registerForm!: FormGroup;
 
-  constructor(){}
+  constructor(private registerService: RegisterService){}
 
   ngOnInit(){
     this.buildRegisterForm();
@@ -25,6 +26,6 @@ export class RegisterComponent implements OnInit{
   }
 
   onSubmit(){
-    console.log(this.registerForm)
+    this.registerService.register(this.registerForm.value);
   }
 }
