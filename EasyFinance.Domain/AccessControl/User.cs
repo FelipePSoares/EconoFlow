@@ -6,6 +6,8 @@ namespace EasyFinance.Domain.Models.AccessControl
 {
     public class User : IdentityUser
     {
+        public User() { }
+
         public User(string firstName = "Default", string lastName = "Default", bool enabled = default)
         {
             this.FirstName = firstName;
