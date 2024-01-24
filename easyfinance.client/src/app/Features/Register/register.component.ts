@@ -10,7 +10,7 @@ import { RegisterService } from 'src/app/Services/RegisterService/register.servi
 })
 export class RegisterComponent implements OnInit{
   registerForm!: FormGroup;
-
+  errors: any;
   constructor(private registerService: RegisterService){}
 
   ngOnInit(){
@@ -25,7 +25,14 @@ export class RegisterComponent implements OnInit{
     },{validators: passwordMatchValidator}); 
   }
 
-  onSubmit(){
-    this.registerService.register(this.registerForm.value);
+  onSubmit() {
+    this.registerService.register(this.registerForm.value).subscribe({
+      next: response => {
+        console.log(response);
+      },
+      error: error => {
+        this.errors = error;
+      }
+    })
   }
 }
