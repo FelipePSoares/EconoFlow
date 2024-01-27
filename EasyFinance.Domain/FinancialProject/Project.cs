@@ -7,6 +7,10 @@ namespace EasyFinance.Domain.Models.FinancialProject
 {
     public class Project : BaseEntity
     {
+        private Project()
+        {  
+        }
+
         public Project(string name = "default", ProjectType type = default, ICollection<Category> categories = default, ICollection<Income> incomes = default)
         {
             this.SetName(name);

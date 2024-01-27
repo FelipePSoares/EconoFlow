@@ -6,6 +6,10 @@ namespace EasyFinance.Domain.Models.Financial
 {
     public class Attachment : BaseEntity
     {
+        private Attachment()
+        {     
+        }
+
         public Attachment(string name = "default", User createdBy = default)
         {
             this.SetName(name);

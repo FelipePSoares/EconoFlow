@@ -1,8 +1,12 @@
+using EasyFinance.Application;
+using EasyFinance.Application.Mappers;
 using System.Net;
 using System.Security.Claims;
 using EasyFinance.Domain.Models.AccessControl;
+using EasyFinance.Persistence;
 using EasyFinance.Server.Context;
 using EasyFinance.Server.Extensions;
+using EasyFinance.Server.Mappers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.BearerToken;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -10,8 +14,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
+using EasyFinance.Server.MiddleWare;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddPersistenceServices(builder.Configuration);
+builder.Services.AddApplicationServices();
+builder.Services.AddAutoMapper(typeof(ApiAutoMapperProfiles), typeof(AutoMapperProfiles));
 
 // Add services to the container.
 builder.Services.AddControllers(config =>
@@ -102,6 +111,8 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.MapFallbackToFile("/index.html");
+
+app.UseMiddleware<ExceptionMiddleWare>();
 
 app.Run();
 

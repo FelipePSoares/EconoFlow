@@ -7,6 +7,9 @@ namespace EasyFinance.Domain.Models.Financial
 {
     public class Category : BaseEntity
     {
+        public Category()
+        {           
+        }
         public Category(string name = "default", decimal goal = default, ICollection<Expense> expenses = default)
         {
             this.SetName(name);

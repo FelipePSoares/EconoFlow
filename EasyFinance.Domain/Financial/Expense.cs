@@ -8,6 +8,10 @@ namespace EasyFinance.Domain.Models.Financial
 {
     public class Expense : BaseExpense
     {
+        private Expense()
+        {          
+        }
+
         public Expense(
             string name = "default",
             DateTime date = default,

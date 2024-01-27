@@ -12,7 +12,9 @@
 
   <ItemGroup>
     <PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="8.0.0" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="8.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.SpaProxy">
       <Version>8.*-*</Version>
     </PackageReference>
@@ -33,6 +35,7 @@
     </ProjectReference>
     <ProjectReference Include="..\EasyFinance.Domain\EasyFinance.Domain.csproj" />
     <ProjectReference Include="..\EasyFinance.Infrastructure\EasyFinance.Infrastructure.csproj" />
+    <ProjectReference Include="..\EasyFinance.Persistence\EasyFinance.Persistence.csproj" />
   </ItemGroup>
 
 </Project>
