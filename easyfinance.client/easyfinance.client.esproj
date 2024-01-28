@@ -7,4 +7,19 @@
     <!-- Folder where production build objects will be placed -->
     <PublishAssetsDirectory>$(MSBuildProjectDirectory)\dist\easyfinance.client\</PublishAssetsDirectory>
   </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="src\app\Models\" />
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptConfiguration Remove="src\app\Services\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="src\app\Services\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptConfiguration Remove="src\app\Common\Auth\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="src\app\Common\Auth\**" />
+  </ItemGroup>
 </Project>
