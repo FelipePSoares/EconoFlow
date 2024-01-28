@@ -10,8 +10,13 @@
         <li><a href="#"  routerLinkActive="active" class="nav-link px-2 text-white">Features</a></li>
       </ul>
       <div class="text-end">
-        <a [routerLink]="['/login']" routerLinkActive="active"><button type="button" class="btn btn-outline-light me-2">Login</button></a>
-        <a [routerLink]="['/register']" routerLinkActive="active"><button type="button" class="btn btn-warning">Sign-up</button></a>
+        <ng-container *ngIf="!(isSignedIn$ | async)">
+          <a [routerLink]="['/login']" routerLinkActive="active"><button type="button" class="btn btn-outline-light me-2">Login</button></a>
+          <a [routerLink]="['/register']" routerLinkActive="active"><button type="button" class="btn btn-warning">Sign-up</button></a>
+        </ng-container>
+        <ng-container *ngIf="isSignedIn$ | async">
+          <a [routerLink]="['/logout']" routerLinkActive="active"><button type="button" class="btn btn-warning">Logout</button></a>
+        </ng-container>
       </div>
     </div>
   </div>

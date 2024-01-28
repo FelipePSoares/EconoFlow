@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { passwordMatchValidator } from '../../Common/CustomValidators/passwordMatchValidator';
-import { RegisterService } from 'src/app/Services/RegisterService/register.service';
+import { AuthService } from '../../Identity/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-register',
@@ -11,7 +12,7 @@ import { RegisterService } from 'src/app/Services/RegisterService/register.servi
 export class RegisterComponent implements OnInit{
   registerForm!: FormGroup;
   errors: any;
-  constructor(private registerService: RegisterService){}
+  constructor(private authServie: AuthService, private router: Router) { }
 
   ngOnInit(){
     this.buildRegisterForm();
@@ -26,13 +27,18 @@ export class RegisterComponent implements OnInit{
   }
 
   onSubmit() {
-    this.registerService.register(this.registerForm.value).subscribe({
-      next: response => {
-        console.log(response);
-      },
-      error: error => {
-        this.errors = error;
-      }
-    })
+    if (this.registerForm.valid) {
+      const email = this.registerForm.get('email')?.value;
+      const password = this.registerForm.get('password')?.value;
+
+      this.authServie.register(email, password).subscribe({
+        next: response => {
+          this.router.navigate(['forecast']);
+        },
+        error: error => {
+          this.errors = error;
+        }
+      });
+    }
   }
 }

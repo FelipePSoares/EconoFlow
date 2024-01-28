@@ -8,13 +8,17 @@ import { NavBarComponent } from './components/nav-bar/nav-bar.component';
 import { AppRoutingModule } from './app-routing.module';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RegisterComponent } from './Features/Register/register.component';
+import { ForecastComponent } from './Features/Forecast/forecast.component';
+import { LogoutComponent } from './Features/logout/logout.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     LoginComponent,
     NavBarComponent,
-    RegisterComponent
+    RegisterComponent,
+    ForecastComponent,
+    LogoutComponent
   ],
   imports: [
     BrowserModule, 
