@@ -1,4 +1,4 @@
-import { HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
@@ -10,6 +10,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { RegisterComponent } from './Features/Register/register.component';
 import { ForecastComponent } from './Features/Forecast/forecast.component';
 import { LogoutComponent } from './Features/logout/logout.component';
+import { HttpRequestInterceptor } from './Identity/HttpRequestInterceptor';
 
 @NgModule({
   declarations: [
@@ -26,7 +27,11 @@ import { LogoutComponent } from './Features/logout/logout.component';
     AppRoutingModule,
     ReactiveFormsModule
   ],
-  providers: [],
+  providers: [
+    [
+      { provide: HTTP_INTERCEPTORS, useClass: HttpRequestInterceptor, multi: true }
+    ]
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

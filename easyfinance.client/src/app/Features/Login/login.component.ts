@@ -13,17 +13,31 @@ export class LoginComponent implements OnInit {
   loginForm!: FormGroup;
   httpErrors = false;
   errors: any;
-  constructor(private authService: AuthService, private router: Router) { }
+  constructor(private authService: AuthService, private router: Router) {
+    this.authService.isSignedIn$.subscribe(value => {
+      if (value) {
+        this.router.navigate(['/']);
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.buildLoginForm();
   }
 
-  buildLoginForm(){
+  buildLoginForm() {
     this.loginForm = new FormGroup({
-      email: new FormControl('teste@teste.com',[Validators.email, Validators.required]),
-      password: new FormControl('Passw0rd!',[Validators.required]),
+      email: new FormControl('teste@teste.com', [Validators.email, Validators.required]),
+      password: new FormControl('Passw0rd!', [Validators.required]),
     });
+  }
+
+  get email() {
+    return this.loginForm.get('email');
+  }
+  
+  get password() {
+    return this.loginForm.get('password');
   }
 
   onSubmit(): void {
