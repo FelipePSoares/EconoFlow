@@ -8,15 +8,11 @@ import { AuthService } from '../../Identity/auth.service';
   styleUrls: ['./nav-bar.component.css']
 })
 export class NavBarComponent implements OnInit {
-
-  @Input()
-  isSignedIn$: Observable<boolean> | undefined;
   
-  constructor(private authService: AuthService) {
+  constructor(public authService: AuthService) {
 
   }
 
   ngOnInit(): void {
-    this.isSignedIn$ = this.authService.isSignedIn();
   }
 }

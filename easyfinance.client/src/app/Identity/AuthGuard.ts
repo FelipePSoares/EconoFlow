@@ -14,7 +14,7 @@ export class AuthGuard {
   }
 
   isSignedIn(): Observable<boolean> {
-    return this.authService.isSignedIn().pipe(
+    return this.authService.isSignedIn$.pipe(
       map((isSignedIn) => {
         if (!isSignedIn){
           this.router.navigate(['login']);

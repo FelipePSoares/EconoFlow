@@ -1,19 +1,30 @@
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Subject, map } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, map } from 'rxjs';
+
+const AUTH_DATA = "auth_data";
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
+  private authStateChanged: Subject<boolean> = new BehaviorSubject<boolean>(false);
+  isSignedIn$ : Observable<boolean> = this.authStateChanged.asObservable();
+  isSignedOut$ : Observable<boolean>;
 
   constructor(private http: HttpClient) {
+    this.isSignedOut$ = this.isSignedIn$.pipe(map(loggedIn => !loggedIn));
+
+    const isSignedIn = localStorage.getItem(AUTH_DATA);
+
+    if (isSignedIn) {
+      this.authStateChanged.next(JSON.parse(isSignedIn));
+    }
   }
 
-  private authStateChanged: Subject<boolean> = new BehaviorSubject<boolean>(false);
-
-  public onStateChanged() {
-    return this.authStateChanged.asObservable();
+  private privateSignIn(result: boolean) {
+    this.authStateChanged.next(result);
+    localStorage.setItem(AUTH_DATA, JSON.stringify(result));
   }
 
   public signIn(email: string, password: string) {
@@ -25,13 +36,9 @@ export class AuthService {
       responseType: 'text'
     })
       .pipe<boolean>(map((res: HttpResponse<string>) => {
-        this.authStateChanged.next(res.ok);
+        this.privateSignIn(res.ok);
         return res.ok;
       }));
-  }
-
-  public isSignedIn() {
-    return this.authStateChanged.asObservable();
   }
 
   public register(email: string, password: string) {
@@ -43,12 +50,13 @@ export class AuthService {
       responseType: 'text'
     })
       .pipe<boolean>(map((res: HttpResponse<string>) => {
-        this.authStateChanged.next(res.ok);
+        this.privateSignIn(res.ok);
         return res.ok;
       }));
   }
 
   public logout() {
-    this.authStateChanged = new BehaviorSubject<boolean>(false);
+    this.authStateChanged.next(false);
+    localStorage.removeItem(AUTH_DATA);
   }
 }
