@@ -55,7 +55,7 @@ export class RegisterComponent implements OnInit{
         },
         error: response => {
           this.httpErrors = true;
-          this.errors = JSON.parse(response.error);
+          this.errors = JSON.parse(response.error)?.errors;
         }
       });
     }

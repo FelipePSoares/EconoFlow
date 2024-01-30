@@ -15,12 +15,6 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Build and Test
-        run: |
-          dotnet restore
-          dotnet build
-          dotnet test
-
       - name: Publish
         run: dotnet publish --configuration Release
 
