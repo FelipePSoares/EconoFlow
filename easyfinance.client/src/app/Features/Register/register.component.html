@@ -47,13 +47,17 @@
           </div>
         </div>
         <div *ngIf="registerForm.errors?.['passwordMismatch'] && (registerForm.touched || registerForm.dirty)">
-          <p class="mb-3 text-danger text-center"> Password must match</p>
+          <p class="mb-3 text-danger text-center">Password must match</p>
+        </div>
+        <div *ngIf="httpErrors">
+          <p class="mb-3 text-danger text-center" *ngIf="errors['DuplicateEmail']">{{errors['DuplicateEmail']}}</p>
+          <p class="mb-3 text-danger text-center" *ngIf="!errors['DuplicateEmail']">Error. Try again...</p>
         </div>
         <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="registerForm.invalid">Sign up</button>
       </form>
       <span class="register-footer">
         Already have an account? 
-        <a [routerLink]="['/login']" routerLinkActive="active">Log in</a>
+        <a [routerLink]="['/login']" routerLinkActive="active">Sign in</a>
       </span>
     </div>
   </div>
