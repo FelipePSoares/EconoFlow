@@ -17,10 +17,18 @@ builder.Services
     .AddAuthentication(IdentityConstants.ApplicationScheme)
     .AddIdentityCookies();
 
-builder.Services.AddAuthorizationBuilder(); 
+builder.Services.AddAuthorizationBuilder();
 
+#if DEBUG
 builder.Services.AddDbContext<AppDbContext>(
     options => options.UseInMemoryDatabase("AppDb"));
+#else
+builder.Services.AddHealthChecks()
+    .AddSqlServer(Environment.GetEnvironmentVariable("EasyFinanceDB"));
+
+builder.Services.AddDbContext<AppDbContext>(
+    options => options.UseSqlServer(Environment.GetEnvironmentVariable("EasyFinanceDB")));
+#endif
 
 builder.Services.AddIdentityCore<User>()
     .AddEntityFrameworkStores<AppDbContext>()
@@ -54,9 +62,19 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+#if (!DEBUG)
+using (var serviceScope = app.Services.CreateScope())
+{
+    var dbContext = serviceScope.ServiceProvider.GetRequiredService<AppDbContext>();
+    dbContext.Database.Migrate();
+}
+#endif
+
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+app.MapHealthChecks("/healthcheck/readness");
 
 app.MapControllers();
 
