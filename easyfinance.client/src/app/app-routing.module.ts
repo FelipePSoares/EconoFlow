@@ -7,7 +7,7 @@ import { RegisterComponent } from './Features/Register/register.component';
 import { LogoutComponent } from './Features/logout/logout.component';
 
 const routes: Routes = [
-  { path: '', redirectTo: '/', pathMatch: 'full' },
+  { path: '', redirectTo: 'forecast', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'logout', component: LogoutComponent, canActivate: mapToCanActivate([AuthGuard]) },

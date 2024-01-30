@@ -3,6 +3,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { passwordMatchValidator } from '../../Common/CustomValidators/passwordMatchValidator';
 import { AuthService } from '../../Identity/auth.service';
 import { Router } from '@angular/router';
+import { IDictionary } from '../../Common/Interfaces/IDictionary';
 
 @Component({
   selector: 'app-register',
@@ -11,8 +12,15 @@ import { Router } from '@angular/router';
 })
 export class RegisterComponent implements OnInit{
   registerForm!: FormGroup;
-  errors: any;
-  constructor(private authServie: AuthService, private router: Router) { }
+  httpErrors = false;
+  errors: IDictionary<string> = {};
+  constructor(private authService: AuthService, private router: Router) {
+    this.authService.isSignedIn$.subscribe(value => {
+      if (value) {
+        this.router.navigate(['/']);
+      }
+    });
+}
 
   ngOnInit(){
     this.buildRegisterForm();
@@ -20,10 +28,20 @@ export class RegisterComponent implements OnInit{
 
   buildRegisterForm(){
     this.registerForm = new FormGroup({
-      email: new FormControl('teste@teste.com',[Validators.required, Validators.email]),
-      password: new FormControl('Passw0rd!', [Validators.required]),
+      email: new FormControl('teste@teste.com', [Validators.required, Validators.email]),
+      password: new FormControl('Passw0rd!', [Validators.required, Validators.pattern("(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}")]),
       confirmPassword: new FormControl('Passw0rd!',[Validators.required])
     },{validators: passwordMatchValidator}); 
+  }
+
+  get email() {
+    return this.registerForm.get('email');
+  }
+  get password() {
+    return this.registerForm.get('password');
+  }
+  get confirmPassword() {
+    return this.registerForm.get('confirmPassword');
   }
 
   onSubmit() {
@@ -31,12 +49,13 @@ export class RegisterComponent implements OnInit{
       const email = this.registerForm.get('email')?.value;
       const password = this.registerForm.get('password')?.value;
 
-      this.authServie.register(email, password).subscribe({
+      this.authService.register(email, password).subscribe({
         next: response => {
           this.router.navigate(['forecast']);
         },
-        error: error => {
-          this.errors = error;
+        error: response => {
+          this.httpErrors = true;
+          this.errors = JSON.parse(response.error);
         }
       });
     }

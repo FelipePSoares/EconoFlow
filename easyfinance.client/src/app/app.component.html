@@ -1,7 +1,7 @@
-﻿
 <main>
-    <app-nav-bar></app-nav-bar>
+  <app-nav-bar *ngIf="authService.isSignedIn$ | async"></app-nav-bar>
 </main>
+
 <div class="container">
-    <router-outlet></router-outlet>
+  <router-outlet></router-outlet>
 </div>

@@ -18,9 +18,7 @@ export class ForecastComponent implements OnInit {
   }
 
   getForecasts() {
-    this.http.get<WeatherForecast[]>('/weatherforecast', {
-      withCredentials: true
-    }).forEach(
+    this.http.get<WeatherForecast[]>('/weatherforecast').forEach(
       (result) => {
         this.forecasts = result;
       }).catch(

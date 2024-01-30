@@ -8,6 +8,7 @@
     <PublishAssetsDirectory>$(MSBuildProjectDirectory)\dist\easyfinance.client\</PublishAssetsDirectory>
   </PropertyGroup>
   <ItemGroup>
+    <Folder Include="src\app\Common\Interfaces\" />
     <Folder Include="src\app\Models\" />
   </ItemGroup>
   <ItemGroup>
