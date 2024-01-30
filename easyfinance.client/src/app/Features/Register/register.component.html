@@ -1,7 +1,6 @@
 <div class="limiter">
   <div class="container-register">
     <div class="wrap-register">
-      <a [routerLink]="['/']" routerLinkActive="active"><button type="button" class="btn-close" aria-label="Close"></button></a>
       <span class="register-form-title mb-5">
         <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-cash-coin" style="height:50px" viewBox="0 0 16 16">
           <path fill-rule="evenodd" d="M11 15a4 4 0 1 0 0-8 4 4 0 0 0 0 8m5-4a5 5 0 1 1-10 0 5 5 0 0 1 10 0" />
@@ -52,6 +51,10 @@
         </div>
         <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="registerForm.invalid">Sign up</button>
       </form>
+      <span class="register-footer">
+        Already have an account? 
+        <a [routerLink]="['/login']" routerLinkActive="active">Log in</a>
+      </span>
     </div>
   </div>
 </div>
