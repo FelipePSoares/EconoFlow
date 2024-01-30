@@ -55,6 +55,10 @@
     font-size: 60px;
   }
 
-.btn-close{
-  float: right;
+/*------------------------------------------------------------------
+  [ Footer ]*/
+
+.register-footer {
+  display: block;
+  text-align: center;
 }
