@@ -1,21 +1,27 @@
+using System.Security.Claims;
 using EasyFinance.Domain.Models.AccessControl;
 using EasyFinance.Server.Context;
 using EasyFinance.Server.Extensions;
+using Microsoft.AspNetCore.Authentication.BearerToken;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddControllers(config =>
+{
+    var policy = new AuthorizationPolicyBuilder()
+                     .RequireAuthenticatedUser()
+                     .Build();
+    config.Filters.Add(new AuthorizeFilter(policy));
+});
 
-builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwagger();
-
-builder.Services
-    .AddAuthentication(IdentityConstants.ApplicationScheme)
-    .AddIdentityCookies();
 
 builder.Services.AddAuthorizationBuilder();
 
@@ -30,8 +36,13 @@ builder.Services.AddDbContext<AppDbContext>(
     options => options.UseSqlServer(Environment.GetEnvironmentVariable("EasyFinanceDB")));
 #endif
 
+builder.Services
+    .AddAuthentication(IdentityConstants.ApplicationScheme)
+    .AddIdentityCookies();
+
 builder.Services.AddIdentityCore<User>()
     .AddEntityFrameworkStores<AppDbContext>()
+    .AddClaimsPrincipalFactory<CustomClaimsPrincipalFactory>()
     .AddApiEndpoints();
 
 builder.Services.Configure<IdentityOptions>(options =>
@@ -52,7 +63,8 @@ var app = builder.Build();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
-app.MapGroup("/api/account").MapIdentityApi<User>()
+app.MapGroup("/api/account")
+    .MapIdentityApi<User>()
     .WithTags("AccessControl");
 
 // Configure the HTTP request pipeline.
@@ -68,13 +80,13 @@ using (var serviceScope = app.Services.CreateScope())
     var dbContext = serviceScope.ServiceProvider.GetRequiredService<AppDbContext>();
     dbContext.Database.Migrate();
 }
+
+app.MapHealthChecks("/healthcheck/readness");
 #endif
 
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
-
-app.MapHealthChecks("/healthcheck/readness");
 
 app.MapControllers();
 

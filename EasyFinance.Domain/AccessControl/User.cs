@@ -17,7 +17,7 @@ namespace EasyFinance.Domain.Models.AccessControl
 
         public string FirstName { get; private set; } = string.Empty;
         public string LastName { get; private set; } = string.Empty;
-        public bool Enabled { get; private set; }
+        public bool Enabled { get; private set; } = true;
 
         public void SetFirstName(string firstName)
         {

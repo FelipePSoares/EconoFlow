@@ -22,11 +22,6 @@ export class AuthService {
     }
   }
 
-  private privateSignIn(result: boolean) {
-    this.authStateChanged.next(result);
-    localStorage.setItem(AUTH_DATA, JSON.stringify(result));
-  }
-
   public signIn(email: string, password: string) {
     return this.http.post('/api/account/login?useCookies=true', {
       email: email,
@@ -36,7 +31,20 @@ export class AuthService {
       responseType: 'text'
     })
       .pipe<boolean>(map((res: HttpResponse<string>) => {
-        this.privateSignIn(res.ok);
+        this.authStateChanged.next(res.ok);
+        localStorage.setItem(AUTH_DATA, JSON.stringify(res.ok));
+        return res.ok;
+      }));
+  }
+
+  public signOut() {
+    return this.http.post('/api/account/logout', null, {
+      observe: 'response',
+      responseType: 'text'
+    })
+      .pipe<boolean>(map((res: HttpResponse<string>) => {
+        this.authStateChanged.next(false);
+        localStorage.removeItem(AUTH_DATA);
         return res.ok;
       }));
   }
@@ -48,15 +56,6 @@ export class AuthService {
     }, {
       observe: 'response',
       responseType: 'text'
-    })
-      .pipe<boolean>(map((res: HttpResponse<string>) => {
-        this.privateSignIn(res.ok);
-        return res.ok;
-      }));
-  }
-
-  public logout() {
-    this.authStateChanged.next(false);
-    localStorage.removeItem(AUTH_DATA);
+    }).pipe<boolean>(map((res: HttpResponse<string>) => res.ok));
   }
 }

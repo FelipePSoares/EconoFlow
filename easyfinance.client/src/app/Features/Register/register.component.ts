@@ -51,7 +51,7 @@ export class RegisterComponent implements OnInit{
 
       this.authService.register(email, password).subscribe({
         next: response => {
-          this.router.navigate(['forecast']);
+          this.router.navigate(['login']);
         },
         error: response => {
           this.httpErrors = true;
