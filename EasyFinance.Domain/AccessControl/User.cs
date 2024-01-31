@@ -1,10 +1,11 @@
-﻿using EasyFinance.Infrastructure;
+﻿using System;
+using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.Exceptions;
 using Microsoft.AspNetCore.Identity;
 
 namespace EasyFinance.Domain.Models.AccessControl
 {
-    public class User : IdentityUser
+    public class User : IdentityUser<Guid>
     {
         public User() { }
 
@@ -17,7 +18,8 @@ namespace EasyFinance.Domain.Models.AccessControl
 
         public string FirstName { get; private set; } = string.Empty;
         public string LastName { get; private set; } = string.Empty;
-        public bool Enabled { get; private set; } = true;
+        public bool Enabled { get; set; } = true;
+        public bool IsFirstLogin { get; set; } = true;
 
         public void SetFirstName(string firstName)
         {
@@ -33,11 +35,6 @@ namespace EasyFinance.Domain.Models.AccessControl
 
             if (string.IsNullOrEmpty(this.LastName))
                 throw new ValidationException(nameof(this.LastName), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(this.LastName)));
-        }
-
-        public void SetEnabled(bool enabled)
-        {
-            this.Enabled = enabled;
         }
     }
 }

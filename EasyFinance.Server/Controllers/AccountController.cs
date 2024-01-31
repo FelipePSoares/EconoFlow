@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using EasyFinance.Domain.Models.AccessControl;
+using EasyFinance.Server.DTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,6 +19,18 @@ namespace EasyFinance.Server.Controllers
             this.userManager = userManager;
             this.signInManager = signInManager;
         }
+        
+        [HttpGet]
+        public async Task<IActionResult> GetUserAsync()
+        {
+            var email = this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.Email);
+            var user = await this.userManager.FindByEmailAsync(email.Value);
+
+            if (user == null)
+                BadRequest("User not found!");
+
+            return Ok(new UserDTO(user));
+        }
 
         [HttpPut]
         public async Task<IActionResult> SetUserNameAsync(string firstName = "Default", string lastName = "Default")
@@ -30,11 +43,12 @@ namespace EasyFinance.Server.Controllers
 
             user.SetFirstName(firstName);
             user.SetLastName(lastName);
+            user.IsFirstLogin = false;
 
             await this.userManager.UpdateAsync(user);
             await this.signInManager.RefreshSignInAsync(user);
 
-            return Ok(user);
+            return Ok(new UserDTO(user));
         }
 
         [HttpPost("logout")]
@@ -54,12 +68,12 @@ namespace EasyFinance.Server.Controllers
             if (user == null)
                 BadRequest("User not found!");
 
-            user.SetEnabled(false);
+            user.Enabled = false;
 
             await this.userManager.UpdateAsync(user);
             await this.signInManager.SignOutAsync();
 
-            return Ok(user);
+            return Ok();
         }
 
         [HttpPost("activate")]
@@ -71,11 +85,11 @@ namespace EasyFinance.Server.Controllers
             if (user == null)
                 BadRequest("User not found!");
 
-            user.SetEnabled(true);
+            user.Enabled = true;
 
             await this.userManager.UpdateAsync(user);
 
-            return Ok(user);
+            return Ok();
         }
     }
 }
