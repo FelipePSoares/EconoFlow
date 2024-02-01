@@ -11,6 +11,7 @@ import { RegisterComponent } from './Features/Register/register.component';
 import { ForecastComponent } from './Features/Forecast/forecast.component';
 import { LogoutComponent } from './Features/logout/logout.component';
 import { HttpRequestInterceptor } from './Identity/HttpRequestInterceptor';
+import { FirstSignInComponent } from './Features/first-sign-in/first-sign-in.component';
 
 @NgModule({
   declarations: [
@@ -19,7 +20,8 @@ import { HttpRequestInterceptor } from './Identity/HttpRequestInterceptor';
     NavBarComponent,
     RegisterComponent,
     ForecastComponent,
-    LogoutComponent
+    LogoutComponent,
+    FirstSignInComponent
   ],
   imports: [
     BrowserModule, 

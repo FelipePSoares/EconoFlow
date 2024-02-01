@@ -2,9 +2,9 @@
 
 namespace EasyFinance.Server.DTOs
 {
-    public class UserDTO
+    public class UserResponseDTO
     {
-        public UserDTO(User user)
+        public UserResponseDTO(User user)
         {
             if (user != null)
             {

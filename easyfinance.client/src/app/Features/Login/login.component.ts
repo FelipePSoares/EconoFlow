@@ -47,7 +47,7 @@ export class LoginComponent implements OnInit {
 
       this.authService.signIn(email, password).subscribe({
         next: response => {
-          this.router.navigate(['forecast']);
+          this.router.navigate(['/']);
         },
         error: error => {
           this.httpErrors = true;
