@@ -1,25 +1,18 @@
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, Subject, map } from 'rxjs';
-
-const AUTH_DATA = "auth_data";
+import { Observable, concatMap, map } from 'rxjs';
+import { UserService } from '../Services/user.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private authStateChanged: Subject<boolean> = new BehaviorSubject<boolean>(false);
-  isSignedIn$ : Observable<boolean> = this.authStateChanged.asObservable();
+  isSignedIn$ : Observable<boolean>;
   isSignedOut$ : Observable<boolean>;
 
-  constructor(private http: HttpClient) {
-    this.isSignedOut$ = this.isSignedIn$.pipe(map(loggedIn => !loggedIn));
-
-    const isSignedIn = localStorage.getItem(AUTH_DATA);
-
-    if (isSignedIn) {
-      this.authStateChanged.next(JSON.parse(isSignedIn));
-    }
+  constructor(private http: HttpClient, private userService: UserService) {
+    this.isSignedIn$ = this.userService.loggedUser$.pipe(map(user => user.enabled));
+    this.isSignedOut$ = this.isSignedIn$.pipe(map(isLoggedIn => !isLoggedIn));
   }
 
   public signIn(email: string, password: string) {
@@ -30,23 +23,18 @@ export class AuthService {
       observe: 'response',
       responseType: 'text'
     })
-      .pipe<boolean>(map((res: HttpResponse<string>) => {
-        this.authStateChanged.next(res.ok);
-        localStorage.setItem(AUTH_DATA, JSON.stringify(res.ok));
-        return res.ok;
+      .pipe(concatMap((res: HttpResponse<string>) => {
+        return this.userService.refreshUserInfo();
       }));
   }
 
   public signOut() {
+    this.userService.removeUserInfo();
+
     return this.http.post('/api/account/logout', null, {
       observe: 'response',
       responseType: 'text'
-    })
-      .pipe<boolean>(map((res: HttpResponse<string>) => {
-        this.authStateChanged.next(false);
-        localStorage.removeItem(AUTH_DATA);
-        return res.ok;
-      }));
+    });
   }
 
   public register(email: string, password: string) {

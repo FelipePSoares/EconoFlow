@@ -1,8 +1,11 @@
+using System.Net;
 using System.Security.Claims;
 using EasyFinance.Domain.Models.AccessControl;
 using EasyFinance.Server.Context;
 using EasyFinance.Server.Extensions;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.BearerToken;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -40,6 +43,14 @@ builder.Services
     .AddAuthentication(IdentityConstants.ApplicationScheme)
     .AddIdentityCookies();
 
+builder.Services.ConfigureApplicationCookie(options =>
+    {
+        options.Cookie.SameSite = SameSiteMode.Strict;
+        options.Cookie.Name = "AuthCookie";
+        options.Events.OnRedirectToAccessDenied = UnAuthorizedResponse;
+        options.Events.OnRedirectToLogin = UnAuthorizedResponse;
+    });
+
 builder.Services.AddIdentityCore<User>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddClaimsPrincipalFactory<CustomClaimsPrincipalFactory>()
@@ -73,16 +84,16 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-#if (!DEBUG)
-using (var serviceScope = app.Services.CreateScope())
+else
 {
-    var dbContext = serviceScope.ServiceProvider.GetRequiredService<AppDbContext>();
-    dbContext.Database.Migrate();
-}
+    using (var serviceScope = app.Services.CreateScope())
+    {
+        var dbContext = serviceScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        dbContext.Database.Migrate();
+    }
 
-app.MapHealthChecks("/healthcheck/readness");
-#endif
+    app.MapHealthChecks("/healthcheck/readness");
+}
 
 app.UseHttpsRedirection();
 
@@ -93,3 +104,9 @@ app.MapControllers();
 app.MapFallbackToFile("/index.html");
 
 app.Run();
+
+static Task UnAuthorizedResponse(RedirectContext<CookieAuthenticationOptions> context)
+{
+    context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+    return Task.CompletedTask;
+}

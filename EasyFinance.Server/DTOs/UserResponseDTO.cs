@@ -2,18 +2,21 @@
 
 namespace EasyFinance.Server.DTOs
 {
-    public class UserDTO
+    public class UserResponseDTO
     {
-        public UserDTO(User user)
+        public UserResponseDTO(User user)
         {
-            this.Id = user.Id;
-            this.Email = user.Email;
-            this.FirstName = user.FirstName;
-            this.LastName = user.LastName;
-            this.Enabled = user.Enabled;
-            this.IsFirstLogin = user.IsFirstLogin;
-            this.EmailConfirmed = user.EmailConfirmed;
-            this.TwoFactorEnabled = user.TwoFactorEnabled;
+            if (user != null)
+            {
+                this.Id = user.Id;
+                this.Email = user.Email;
+                this.FirstName = user.FirstName;
+                this.LastName = user.LastName;
+                this.Enabled = user.Enabled;
+                this.IsFirstLogin = user.IsFirstLogin;
+                this.EmailConfirmed = user.EmailConfirmed;
+                this.TwoFactorEnabled = user.TwoFactorEnabled;
+            }
         }
 
         public Guid Id { get; set; }

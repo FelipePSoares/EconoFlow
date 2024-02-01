@@ -1,0 +1,38 @@
+<div class="modal-wrapper">
+    <div class="modal" tabindex="-1" role="dialog" style="display: block; padding-right: 17px;">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">We want to call you by your name</h5>
+          </div>
+          <div class="modal-body">
+            <form class="user-form" [formGroup]="userForm" (ngSubmit)="onSubmit()">
+              <div class="form-floating mb-1">
+                <p>Please tell us</p>
+              </div>
+              <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="firstName" placeholder="John" formControlName="firstName" [class.is-invalid]="firstName?.invalid && firstName?.touched">
+                <label for="firstName">First Name</label>
+                <div *ngIf="firstName?.invalid && firstName?.touched">
+                  <div *ngIf="firstName?.errors?.['required']" class="text-danger">First Name is required.</div>
+                </div>
+              </div>
+              <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="lastName" placeholder="" formControlName="lastName" [class.is-invalid]="lastName?.invalid && lastName?.touched">
+                <label for="lastName">Last Name</label>
+                <div *ngIf="lastName?.invalid && lastName?.touched">
+                  <div *ngIf="lastName?.errors?.['required']" class="text-danger">Last Name is required.</div>
+                </div>
+              </div>
+              <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="userForm.invalid">Save</button>
+              <div *ngIf="httpErrors">
+                <p class="mt-5 mb-3 text-danger text-center">{{errors.statusText}}</p>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <div class="modal-overlay" #overlay></div>
+</div>
