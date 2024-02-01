@@ -38,15 +38,13 @@ export class AuthService {
   }
 
   public signOut() {
-    return this.http.post('/api/account/logout', null, {
+    this.authStateChanged.next(false);
+    localStorage.removeItem(AUTH_DATA);
+
+    this.http.post('/api/account/logout', null, {
       observe: 'response',
       responseType: 'text'
-    })
-      .pipe<boolean>(map((res: HttpResponse<string>) => {
-        this.authStateChanged.next(false);
-        localStorage.removeItem(AUTH_DATA);
-        return res.ok;
-      }));
+    }).subscribe();
   }
 
   public register(email: string, password: string) {

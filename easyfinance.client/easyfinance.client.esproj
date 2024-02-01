@@ -10,7 +10,6 @@
   <ItemGroup>
     <Folder Include="src\app\Common\Interfaces\" />
     <Folder Include="src\app\Models\" />
-    <Folder Include="src\app\Services\" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptConfiguration Remove="src\app\Common\Auth\**" />
