@@ -1,12 +1,12 @@
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes, mapToCanActivate, mapToCanDeactivate } from '@angular/router';
-import { AuthGuard } from './Identity/AuthGuard';
-import { ForecastComponent } from './Features/Forecast/forecast.component';
-import { LoginComponent } from './Features/Login/login.component';
-import { RegisterComponent } from './Features/Register/register.component';
-import { LogoutComponent } from './Features/logout/logout.component';
-import { FirstSignInComponent } from './Features/first-sign-in/first-sign-in.component';
-import { FirstSignInGuard } from './Features/first-sign-in/FirstSignInGuard';
+import { RouterModule, Routes, mapToCanActivate } from '@angular/router';
+import { ForecastComponent } from './forecast/forecast.component';
+import { FirstSignInGuard } from '../core/guards/first-sign-in-guard';
+import { AuthGuard } from '../core/guards/auth-guard';
+import { LoginComponent } from './authentication/login/login.component';
+import { RegisterComponent } from './authentication/register/register.component';
+import { LogoutComponent } from './authentication/logout/logout.component';
+import { FirstSignInComponent } from './authentication/first-sign-in/first-sign-in.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'forecast', pathMatch: 'full' },

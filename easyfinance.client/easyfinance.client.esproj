@@ -8,13 +8,6 @@
     <PublishAssetsDirectory>$(MSBuildProjectDirectory)\dist\easyfinance.client\</PublishAssetsDirectory>
   </PropertyGroup>
   <ItemGroup>
-    <Folder Include="src\app\Common\Interfaces\" />
-    <Folder Include="src\app\Models\" />
-  </ItemGroup>
-  <ItemGroup>
-    <TypeScriptConfiguration Remove="src\app\Common\Auth\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Remove="src\app\Common\Auth\**" />
+    <Folder Include="src\app\core\interfaces\" />
   </ItemGroup>
 </Project>

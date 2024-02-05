@@ -1,7 +1,7 @@
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, concatMap, map } from 'rxjs';
-import { UserService } from '../Services/user.service';
+import { UserService } from '../services/user.service';
 
 @Injectable({
   providedIn: 'root',

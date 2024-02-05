@@ -5,7 +5,7 @@ import {
 
 import { Observable, catchError, map, of, throwError } from 'rxjs';
 import { Router } from '@angular/router';
-import { AuthService } from './auth.service';
+import { AuthService } from '../services/auth.service';
 
 @Injectable()
 export class HttpRequestInterceptor implements HttpInterceptor {
@@ -19,7 +19,7 @@ export class HttpRequestInterceptor implements HttpInterceptor {
       return of(err.message);
     }
 
-    return throwError(err);
+    return throwError(() => err);
   }
 
   intercept(req: HttpRequest<any>, next: HttpHandler):

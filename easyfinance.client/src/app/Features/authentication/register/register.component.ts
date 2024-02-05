@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { passwordMatchValidator } from '../../Common/CustomValidators/passwordMatchValidator';
-import { AuthService } from '../../Identity/auth.service';
 import { Router } from '@angular/router';
-import { IDictionary } from '../../Common/Interfaces/IDictionary';
+import { IDictionary } from '../../../core/interfaces/IDictionary';
+import { AuthService } from '../../../core/services/auth.service';
+import { passwordMatchValidator } from '../../../core/utils/custom-validators/password-match-validator';
 
 @Component({
   selector: 'app-register',
