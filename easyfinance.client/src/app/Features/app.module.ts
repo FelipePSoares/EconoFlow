@@ -3,15 +3,15 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppComponent } from './app.component';
-import { LoginComponent } from './Features/Login/login.component';
-import { NavBarComponent } from './components/nav-bar/nav-bar.component';
 import { AppRoutingModule } from './app-routing.module';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RegisterComponent } from './Features/Register/register.component';
-import { ForecastComponent } from './Features/Forecast/forecast.component';
-import { LogoutComponent } from './Features/logout/logout.component';
-import { HttpRequestInterceptor } from './Identity/HttpRequestInterceptor';
-import { FirstSignInComponent } from './Features/first-sign-in/first-sign-in.component';
+import { NavBarComponent } from '../core/components/nav-bar/nav-bar.component';
+import { HttpRequestInterceptor } from '../core/interceptor/http-request-interceptor';
+import { ForecastComponent } from './forecast/forecast.component';
+import { LoginComponent } from './authentication/login/login.component';
+import { RegisterComponent } from './authentication/register/register.component';
+import { LogoutComponent } from './authentication/logout/logout.component';
+import { FirstSignInComponent } from './authentication/first-sign-in/first-sign-in.component';
 
 @NgModule({
   declarations: [

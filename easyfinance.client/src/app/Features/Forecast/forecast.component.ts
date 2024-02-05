@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { WeatherForecast } from '../../Models/WeatherForecast';
+import { WeatherForecast } from '../../core/models/weather-forecast';
 
 @Component({
   selector: 'app-forecast',
