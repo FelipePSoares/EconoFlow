@@ -12,6 +12,8 @@ import { LoginComponent } from './authentication/login/login.component';
 import { RegisterComponent } from './authentication/register/register.component';
 import { LogoutComponent } from './authentication/logout/logout.component';
 import { FirstSignInComponent } from './authentication/first-sign-in/first-sign-in.component';
+import { SpinnerComponent } from '../core/components/spinner/spinner.component';
+import { LoadingInterceptor } from '../core/interceptor/loading.interceptor';
 
 @NgModule({
   declarations: [
@@ -21,7 +23,8 @@ import { FirstSignInComponent } from './authentication/first-sign-in/first-sign-
     RegisterComponent,
     ForecastComponent,
     LogoutComponent,
-    FirstSignInComponent
+    FirstSignInComponent,
+    SpinnerComponent
   ],
   imports: [
     BrowserModule, 
@@ -31,7 +34,8 @@ import { FirstSignInComponent } from './authentication/first-sign-in/first-sign-
   ],
   providers: [
     [
-      { provide: HTTP_INTERCEPTORS, useClass: HttpRequestInterceptor, multi: true }
+      { provide: HTTP_INTERCEPTORS, useClass: HttpRequestInterceptor, multi: true },
+      { provide: HTTP_INTERCEPTORS, useClass: LoadingInterceptor, multi: true }
     ]
   ],
   bootstrap: [AppComponent]
