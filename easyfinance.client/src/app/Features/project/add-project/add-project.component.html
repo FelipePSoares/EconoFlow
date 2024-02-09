@@ -1,0 +1,36 @@
+<div class="container">
+  <h1 class="text-center mt-5">Create Project</h1>
+  <form [formGroup]="projectForm" (ngSubmit)="saveProject()">
+    <div class="input justify-content-center">
+      <div class="col-md-4 mb-2 form-floating">
+        <input type="text" class="form-control" id="name" placeholder="Personal" formControlName="name" [class.is-invalid]="name?.invalid && name?.touched">
+        <label for="name">Project Name</label>
+        <div *ngIf="name?.invalid && name?.touched">
+          <div *ngIf="name?.errors?.['required']" class="text-danger">Project Name is required.</div>
+        </div>
+      </div>
+    </div>
+    <div class="input justify-content-center">
+      <div class="col-md-4 mb-2 form-floating">
+        <select id="type" class="form-select" formControlName="type" [class.is-invalid]="type?.invalid && type?.touched">
+          <option selected>Choose...</option>
+          @for (item of projectTypes; track $index) {
+            <option>{{projectType2LabelMapping[item]}}</option>
+          }
+        </select>
+        <label for="type" class="form-label">Type</label>
+        <div *ngIf="type?.invalid && type?.touched">
+          <div *ngIf="type?.errors?.['required']" class="text-danger">Project Type is required.</div>
+        </div>
+      </div>
+    </div>
+    <div class="input justify-content-center">
+      <div class="col-md-4 mb-2">
+        <button type="submit" class="btn btn-primary" (click)="saveProject()" [disabled]="projectForm.invalid">Create</button>
+      </div>
+      <div *ngIf="httpErrors">
+        <p class="mt-5 mb-3 text-danger text-center">{{errors.statusText}}</p>
+      </div>
+    </div>
+  </form>
+</div>
