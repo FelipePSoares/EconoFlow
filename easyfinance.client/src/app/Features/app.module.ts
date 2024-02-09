@@ -7,13 +7,14 @@ import { AppRoutingModule } from './app-routing.module';
 import { ReactiveFormsModule } from '@angular/forms';
 import { NavBarComponent } from '../core/components/nav-bar/nav-bar.component';
 import { HttpRequestInterceptor } from '../core/interceptor/http-request-interceptor';
-import { ForecastComponent } from './forecast/forecast.component';
 import { LoginComponent } from './authentication/login/login.component';
 import { RegisterComponent } from './authentication/register/register.component';
 import { LogoutComponent } from './authentication/logout/logout.component';
 import { FirstSignInComponent } from './authentication/first-sign-in/first-sign-in.component';
+import { ListProjectsComponent } from './project/list-projects/list-projects.component';
 import { SpinnerComponent } from '../core/components/spinner/spinner.component';
 import { LoadingInterceptor } from '../core/interceptor/loading.interceptor';
+import { AddProjectComponent } from './project/add-project/add-project.component';
 
 @NgModule({
   declarations: [
@@ -21,9 +22,10 @@ import { LoadingInterceptor } from '../core/interceptor/loading.interceptor';
     LoginComponent,
     NavBarComponent,
     RegisterComponent,
-    ForecastComponent,
     LogoutComponent,
     FirstSignInComponent,
+    ListProjectsComponent,
+    AddProjectComponent,
     SpinnerComponent
   ],
   imports: [

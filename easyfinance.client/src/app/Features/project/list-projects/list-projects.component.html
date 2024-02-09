@@ -1,0 +1,53 @@
+<div class="container">
+  <h1 class="text-center mt-5">Project Management</h1>
+  <div class="row project-list justify-content-center">
+    <div class="col-md-8">
+      <div class="list-group">
+        @for (project of (projects$ | async); track project.id){
+        <div class="list-group-item project-item">
+          <div *ngIf="project.id != this.editingProject.id else editForm">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h5 class="mb-1">{{ project.name }}</h5>
+                <p class="mb-1">{{ project.type }}</p>
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-secondary" (click)="editProject(project)">Edit</button>
+                <button class="btn btn-danger" (click)="removeProject(project.id)">Remove</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        }
+        @empty {
+          <div class="text-center">
+            No project created yet.
+          </div>
+        }
+      </div>     
+    </div>
+  </div>
+  <a class="btn btn-primary btn-add" (click)="addProject()">+</a>
+</div>
+
+<ng-template #editForm>
+  <form class="d-flex justify-content-between align-items-center my-1" [formGroup]="projectForm" (ngSubmit)="saveProject()">
+    <div class="col-lg-7 form-floating">
+      <input type="text" class="form-control" id="name" placeholder="Personal" formControlName="name" [class.is-invalid]="name?.invalid && name?.touched">
+      <label for="name">Project Name</label>
+      <div *ngIf="name?.invalid && name?.touched">
+        <div *ngIf="name?.errors?.['required']" class="text-danger">Project Name is required.</div>
+      </div>
+    </div>
+    <div class="col-lg-2 form-floating">
+      <input type="text" class="form-control-plaintext" readonly id="type" formControlName="type">
+      <label for="type">Project Type</label>
+    </div>
+    <div class="col-lg-1 btn-group">
+      <button class="btn btn-success" (click)="saveProject()" [disabled]="projectForm.invalid">Save</button>
+    </div>
+  </form>
+  <div *ngIf="httpErrors">
+    <p class="mt-5 mb-3 text-danger text-center">{{errors.statusText}}</p>
+  </div>
+</ng-template>
