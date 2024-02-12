@@ -1,20 +1,20 @@
-﻿using EasyFinance.Domain.Models.FinancialProject;
+﻿using EasyFinance.Domain.Models.AccessControl;
+using EasyFinance.Persistence.Mapping;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace EasyFinance.Persistence.DatabaseContext
 {
-    public class EasyFinanceDatabaseContext: IdentityDbContext
+    public class EasyFinanceDatabaseContext(DbContextOptions<EasyFinanceDatabaseContext> options) :
+        IdentityDbContext<User, IdentityRole<Guid>, Guid>(options)
     {
-        public EasyFinanceDatabaseContext(DbContextOptions<EasyFinanceDatabaseContext> options): base (options)
-        {
-        }
-
-        public DbSet<Project> Projects { get; set; }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(EasyFinanceDatabaseContext).Assembly);
+
+            modelBuilder.ApplyConfiguration(new UserProjectConfiguration());
+
             base.OnModelCreating(modelBuilder);
         }
     }

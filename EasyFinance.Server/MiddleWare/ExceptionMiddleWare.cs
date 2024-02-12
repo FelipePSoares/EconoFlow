@@ -1,14 +1,14 @@
 ﻿using System.Net;
 using System.Text.Json;
 
-namespace EasyFinance.Server.MiddleWare
+namespace EasyFinance.Server.Middleware
 {
-    public class ExceptionMiddleWare
+    public class ExceptionMiddleware
     {
         private readonly RequestDelegate _next;
         private readonly IHostEnvironment _environment;
 
-        public ExceptionMiddleWare(RequestDelegate next, IHostEnvironment environment)
+        public ExceptionMiddleware(RequestDelegate next, IHostEnvironment environment)
         {
             _next = next;
             _environment = environment;

@@ -1,5 +1,4 @@
-﻿using EasyFinance.Application.Contracts.Persistence;
-using EasyFinance.Application.Features.ProjectService;
+﻿using EasyFinance.Application.Features.ProjectService;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EasyFinance.Application

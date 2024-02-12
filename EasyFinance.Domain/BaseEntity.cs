@@ -6,6 +6,6 @@ namespace EasyFinance.Domain.Models
     {
         public Guid Id { get; private set; } = Guid.NewGuid();
         public DateTime CreatedDate { get; set; } = DateTime.Now;
-        public DateTime LastUpdatedDate { get; set; } = DateTime.Now;
+        public DateTime ModifiedAt { get; set; } = DateTime.Now;
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace EasyFinance.Server.MiddleWare
+﻿namespace EasyFinance.Server.Middleware
 {
     public class ApiException
     {
