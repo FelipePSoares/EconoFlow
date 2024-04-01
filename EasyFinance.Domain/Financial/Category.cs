@@ -9,7 +9,7 @@ namespace EasyFinance.Domain.Models.Financial
     {
         private Category() { }
 
-        public Category(string name = "default", decimal goal = default, ICollection<Expense> expenses = default)
+        public Category(string name = "default", int goal = default, ICollection<Expense> expenses = default)
         {
             this.SetName(name);
             this.SetGoal(goal);
@@ -17,7 +17,7 @@ namespace EasyFinance.Domain.Models.Financial
         }
 
         public string Name { get; private set; } = string.Empty;
-        public decimal Goal { get; private set; }
+        public int Goal { get; private set; }
         public ICollection<Expense> Expenses { get; private set; } = new List<Expense>();
 
         public void SetName(string name)
@@ -28,7 +28,7 @@ namespace EasyFinance.Domain.Models.Financial
             this.Name = name;
         }
 
-        public void SetGoal(decimal goal)
+        public void SetGoal(int goal)
         {
             this.Goal = goal;
 

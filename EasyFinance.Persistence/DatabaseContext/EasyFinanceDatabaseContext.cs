@@ -1,5 +1,5 @@
 ﻿using EasyFinance.Domain.Models.AccessControl;
-using EasyFinance.Persistence.Mapping.AccessControl;
+using EasyFinance.Persistence.Mapping.Financial;
 using EasyFinance.Persistence.Mapping.FinancialProject;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -12,9 +12,14 @@ namespace EasyFinance.Persistence.DatabaseContext
     {
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.ApplyConfigurationsFromAssembly(typeof(EasyFinanceDatabaseContext).Assembly);
+            // Financial
+            modelBuilder.ApplyConfiguration(new AttachmentConfiguration());
+            modelBuilder.ApplyConfiguration(new IncomeConfiguration());
+            modelBuilder.ApplyConfiguration(new ExpenseConfiguration());
+            modelBuilder.ApplyConfiguration(new ExpenseItemConfiguration());
+            modelBuilder.ApplyConfiguration(new CategoryConfiguration());
 
-            modelBuilder.ApplyConfiguration(new UserProjectConfiguration());
+            // FinancialProject
             modelBuilder.ApplyConfiguration(new ProjectConfiguration());
 
             base.OnModelCreating(modelBuilder);

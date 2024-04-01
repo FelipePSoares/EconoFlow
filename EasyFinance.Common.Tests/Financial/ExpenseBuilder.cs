@@ -8,7 +8,7 @@ namespace EasyFinance.Common.Tests.Financial
         {
         }
 
-        public ExpenseBuilder AddGoal(decimal goal)
+        public ExpenseBuilder AddGoal(int goal)
         {
             this.entity.SetGoal(goal);
             return this;

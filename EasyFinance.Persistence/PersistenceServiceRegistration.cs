@@ -16,11 +16,13 @@ namespace EasyFinance.Persistence
             services.AddDbContext<EasyFinanceDatabaseContext>(
                 options => options.UseInMemoryDatabase("AppDb"));
 #else
+            var connectionString = Environment.GetEnvironmentVariable("EasyFinanceDB") ?? string.Empty;
+
             services.AddDbContext<EasyFinanceDatabaseContext>(
-                options => options.UseSqlServer(Environment.GetEnvironmentVariable("EasyFinanceDB")));
+                options => options.UseSqlServer(connectionString));
 
             services.AddHealthChecks()
-                .AddSqlServer(Environment.GetEnvironmentVariable("EasyFinanceDB"));
+                .AddSqlServer(connectionString);
 #endif
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();

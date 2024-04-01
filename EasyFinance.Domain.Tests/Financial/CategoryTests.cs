@@ -23,7 +23,7 @@ namespace EasyFinance.Domain.Tests.Financial
         [Theory]
         [InlineData(-1)]
         [InlineData(-250)]
-        public void AddGoal_SendNegative_ShouldThrowException(decimal goal)
+        public void AddGoal_SendNegative_ShouldThrowException(int goal)
         {
             var action = () => new CategoryBuilder().AddGoal(goal).Build();
 

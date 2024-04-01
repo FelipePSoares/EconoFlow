@@ -1,7 +1,6 @@
 ﻿using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Server.DTOs;
 using EasyFinance.Server.Mappers;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,7 +8,6 @@ namespace EasyFinance.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [AllowAnonymous]
     public class ProjectController : ControllerBase
     {
         private readonly ProjectService _projectService;

@@ -18,7 +18,7 @@ namespace EasyFinance.Common.Tests.Financial
             return this;
         }
 
-        public CategoryBuilder AddGoal(decimal goal)
+        public CategoryBuilder AddGoal(int goal)
         {
             this.category.SetGoal(goal);
             return this;
