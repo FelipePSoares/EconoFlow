@@ -8,6 +8,8 @@ namespace EasyFinance.Domain.Models.Financial
 {
     public abstract class BaseFinancial : BaseEntity
     {
+        private BaseFinancial() { }
+
         public BaseFinancial(
             string name = "default", 
             DateTime date = default, 
@@ -30,45 +32,45 @@ namespace EasyFinance.Domain.Models.Financial
 
         public void SetName(string name)
         {
-            this.Name = name;
-
-            if (string.IsNullOrEmpty(this.Name))
+            if (string.IsNullOrEmpty(name))
                 throw new ValidationException(nameof(this.Name), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(this.Name)));
+
+            this.Name = name;
         }
 
         public void SetDate(DateTime date)
         {
+            if (date > DateTime.Today)
+                throw new ValidationException(nameof(this.Date), ValidationMessages.InvalidDate);
+
+            if (date < DateTime.Today.AddYears(-5))
+                throw new ValidationException(nameof(this.Date), ValidationMessages.InvalidDate);
+
             this.Date = date;
-
-            if (this.Date > DateTime.Today)
-                throw new ValidationException(nameof(this.Date), ValidationMessages.InvalidDate);
-
-            if (this.Date < DateTime.Today.AddYears(-5))
-                throw new ValidationException(nameof(this.Date), ValidationMessages.InvalidDate);
         }
 
         public void SetAmount(decimal amount)
         {
-            this.Amount = amount;
-
-            if (this.Amount < 0)
+            if (amount < 0)
                 throw new ValidationException(nameof(this.Amount), string.Format(ValidationMessages.PropertyCantBeLessThanZero, nameof(this.Amount)));
+
+            this.Amount = amount;
         }
 
         public void SetCreatedBy(User createdBy)
         {
-            this.CreatedBy = createdBy;
-
-            if (this.CreatedBy == default)
+            if (createdBy == default)
                 throw new ValidationException(nameof(this.CreatedBy), string.Format(ValidationMessages.PropertyCantBeNull, nameof(this.CreatedBy)));
+
+            this.CreatedBy = createdBy;
         }
 
         public void SetAttachments(ICollection<Attachment> attachments)
         {
-            this.Attachments = attachments;
-
-            if (this.Attachments == default)
+            if (attachments == default)
                 throw new ValidationException(nameof(this.Attachments), string.Format(ValidationMessages.PropertyCantBeNull, nameof(this.Attachments)));
+
+            this.Attachments = attachments;
         }
     }
 }

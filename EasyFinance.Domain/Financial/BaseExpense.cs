@@ -8,6 +8,8 @@ namespace EasyFinance.Domain.Models.Financial
 {
     public abstract class BaseExpense : BaseFinancial
     {
+        private BaseExpense() { }
+
         public BaseExpense(
             string name = "default", 
             DateTime date = default, 
@@ -24,10 +26,10 @@ namespace EasyFinance.Domain.Models.Financial
 
         public void SetItems(ICollection<ExpenseItem> expenseItems)
         {
-            this.Items = expenseItems;
-
-            if (this.Items == default)
+            if (expenseItems == default)
                 throw new ValidationException(nameof(this.Items), string.Format(ValidationMessages.PropertyCantBeNull, nameof(this.Items)));
+
+            this.Items = expenseItems;
         }
     }
 }

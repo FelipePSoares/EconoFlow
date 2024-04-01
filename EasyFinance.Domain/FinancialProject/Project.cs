@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using EasyFinance.Domain.Models.Financial;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.Exceptions;
@@ -7,7 +8,10 @@ namespace EasyFinance.Domain.Models.FinancialProject
 {
     public class Project : BaseEntity
     {
-        public Project(string name = "default", ProjectType type = default, ICollection<Category> categories = default, ICollection<Income> incomes = default)
+        private Project() { }
+
+        public Project(Guid id = default, string name = "default", ProjectType type = default, ICollection<Category> categories = default, ICollection<Income> incomes = default)
+            : base(id)
         {
             this.SetName(name);
             this.SetType(type);
@@ -22,26 +26,26 @@ namespace EasyFinance.Domain.Models.FinancialProject
 
         public void SetCategories(ICollection<Category> categories)
         {
-            this.Categories = categories;
-
-            if (this.Categories == default)
+            if (categories == default)
                 throw new ValidationException(nameof(this.Categories), string.Format(ValidationMessages.PropertyCantBeNull, nameof(this.Categories)));
+
+            this.Categories = categories;
         }
 
         public void SetIncomes(ICollection<Income> incomes)
         {
-            this.Incomes = incomes;
-
-            if (this.Incomes == default)
+            if (incomes == default)
                 throw new ValidationException(nameof(this.Incomes), string.Format(ValidationMessages.PropertyCantBeNull, nameof(this.Incomes)));
+
+            this.Incomes = incomes;
         }
 
         public void SetName(string name)
         {
-            this.Name = name;
-
-            if (string.IsNullOrEmpty(this.Name))
+            if (string.IsNullOrEmpty(name))
                 throw new ValidationException(nameof(this.Name), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(this.Name)));
+
+            this.Name = name;
         }
 
         public void SetType(ProjectType type)

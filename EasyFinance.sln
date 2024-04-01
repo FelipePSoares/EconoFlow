@@ -13,13 +13,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasyFinance.Domain", "EasyF
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasyFinance.Infrastructure", "EasyFinance.Infrastructure\EasyFinance.Infrastructure.csproj", "{446D29F8-8D7A-46AB-88F6-95FFDEBA1596}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasyFinance.Persistence", "EasyFinance.Persistence\EasyFinance.Persistence.csproj", "{66E6EF5F-D94D-4C69-9533-8402A03DC15D}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{D1065F30-A332-4151-A76C-541B2F095A16}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyFinance.Domain.Tests", "EasyFinance.Domain.Tests\EasyFinance.Domain.Tests.csproj", "{087A7B8F-4C71-4407-8F64-046758BCB1D0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasyFinance.Domain.Tests", "EasyFinance.Domain.Tests\EasyFinance.Domain.Tests.csproj", "{087A7B8F-4C71-4407-8F64-046758BCB1D0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyFinance.Common.Tests", "EasyFinance.Common.Tests\EasyFinance.Common.Tests.csproj", "{D3F45983-CB7D-436A-905F-07779A41B1F6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasyFinance.Common.Tests", "EasyFinance.Common.Tests\EasyFinance.Common.Tests.csproj", "{D3F45983-CB7D-436A-905F-07779A41B1F6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasyFinance.Persistence", "EasyFinance.Persistence\EasyFinance.Persistence.csproj", "{56449DC9-9501-4320-A2CE-4CB66534463D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -49,10 +49,6 @@ Global
 		{446D29F8-8D7A-46AB-88F6-95FFDEBA1596}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{446D29F8-8D7A-46AB-88F6-95FFDEBA1596}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{446D29F8-8D7A-46AB-88F6-95FFDEBA1596}.Release|Any CPU.Build.0 = Release|Any CPU
-		{66E6EF5F-D94D-4C69-9533-8402A03DC15D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{66E6EF5F-D94D-4C69-9533-8402A03DC15D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{66E6EF5F-D94D-4C69-9533-8402A03DC15D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{66E6EF5F-D94D-4C69-9533-8402A03DC15D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{087A7B8F-4C71-4407-8F64-046758BCB1D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{087A7B8F-4C71-4407-8F64-046758BCB1D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{087A7B8F-4C71-4407-8F64-046758BCB1D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -61,6 +57,10 @@ Global
 		{D3F45983-CB7D-436A-905F-07779A41B1F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D3F45983-CB7D-436A-905F-07779A41B1F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D3F45983-CB7D-436A-905F-07779A41B1F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{56449DC9-9501-4320-A2CE-4CB66534463D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56449DC9-9501-4320-A2CE-4CB66534463D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56449DC9-9501-4320-A2CE-4CB66534463D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56449DC9-9501-4320-A2CE-4CB66534463D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

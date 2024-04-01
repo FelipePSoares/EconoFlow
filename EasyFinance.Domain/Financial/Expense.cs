@@ -8,6 +8,8 @@ namespace EasyFinance.Domain.Models.Financial
 {
     public class Expense : BaseExpense
     {
+        private Expense() { }
+
         public Expense(
             string name = "default",
             DateTime date = default,
@@ -15,20 +17,20 @@ namespace EasyFinance.Domain.Models.Financial
             User createdBy = default,
             ICollection<Attachment> attachments = default,
             ICollection<ExpenseItem> items = default,
-            decimal Goal = default)
+            int Goal = default)
             : base(name, date, amount, createdBy, attachments, items)
         {
             this.SetGoal(Goal);
         }
 
-        public decimal Goal { get; private set; }
+        public int Goal { get; private set; }
 
-        public void SetGoal(decimal goal)
+        public void SetGoal(int goal)
         {
-            this.Goal = goal;
-
-            if (this.Goal < 0)
+            if (goal < 0)
                 throw new ValidationException(nameof(this.Goal), string.Format(ValidationMessages.PropertyCantBeLessThanZero, nameof(this.Goal)));
+
+            this.Goal = goal;
         }
     }
 }

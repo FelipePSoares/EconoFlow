@@ -1,17 +1,20 @@
 using System.Net;
-using System.Security.Claims;
+using EasyFinance.Application;
 using EasyFinance.Domain.Models.AccessControl;
-using EasyFinance.Server.Context;
+using EasyFinance.Persistence;
+using EasyFinance.Persistence.DatabaseContext;
 using EasyFinance.Server.Extensions;
+using EasyFinance.Server.Middleware;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.BearerToken;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddPersistenceServices(builder.Configuration);
+builder.Services.AddApplicationServices();
 
 // Add services to the container.
 builder.Services.AddControllers(config =>
@@ -28,17 +31,6 @@ builder.Services.AddSwagger();
 
 builder.Services.AddAuthorizationBuilder();
 
-#if DEBUG
-builder.Services.AddDbContext<AppDbContext>(
-    options => options.UseInMemoryDatabase("AppDb"));
-#else
-builder.Services.AddHealthChecks()
-    .AddSqlServer(Environment.GetEnvironmentVariable("EasyFinanceDB"));
-
-builder.Services.AddDbContext<AppDbContext>(
-    options => options.UseSqlServer(Environment.GetEnvironmentVariable("EasyFinanceDB")));
-#endif
-
 builder.Services
     .AddAuthentication(IdentityConstants.ApplicationScheme)
     .AddIdentityCookies();
@@ -52,7 +44,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     });
 
 builder.Services.AddIdentityCore<User>()
-    .AddEntityFrameworkStores<AppDbContext>()
+    .AddEntityFrameworkStores<EasyFinanceDatabaseContext>()
     .AddClaimsPrincipalFactory<CustomClaimsPrincipalFactory>()
     .AddApiEndpoints();
 
@@ -86,12 +78,7 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    using (var serviceScope = app.Services.CreateScope())
-    {
-        var dbContext = serviceScope.ServiceProvider.GetRequiredService<AppDbContext>();
-        dbContext.Database.Migrate();
-    }
-
+    app.UseMigration();
     app.MapHealthChecks("/healthcheck/readness");
 }
 
@@ -102,6 +89,8 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.MapFallbackToFile("/index.html");
+
+app.UseMiddleware<ExceptionMiddleware>();
 
 app.Run();
 
