@@ -1,5 +1,6 @@
 ﻿using EasyFinance.Domain.Models.AccessControl;
-using EasyFinance.Persistence.Mapping;
+using EasyFinance.Persistence.Mapping.AccessControl;
+using EasyFinance.Persistence.Mapping.FinancialProject;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +15,7 @@ namespace EasyFinance.Persistence.DatabaseContext
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(EasyFinanceDatabaseContext).Assembly);
 
             modelBuilder.ApplyConfiguration(new UserProjectConfiguration());
+            modelBuilder.ApplyConfiguration(new ProjectConfiguration());
 
             base.OnModelCreating(modelBuilder);
         }

@@ -1,10 +1,8 @@
-﻿using AutoMapper;
-using EasyFinance.Application.DTOs;
-using EasyFinance.Application.Features.ProjectService;
+﻿using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Server.DTOs;
+using EasyFinance.Server.Mappers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EasyFinance.Server.Controllers
@@ -15,19 +13,17 @@ namespace EasyFinance.Server.Controllers
     public class ProjectController : ControllerBase
     {
         private readonly ProjectService _projectService;
-        private IMapper _mapper;
 
-        public ProjectController(ProjectService projectService, IMapper mapper)
+        public ProjectController(ProjectService projectService)
         {
             _projectService = projectService;
-            _mapper = mapper;
         }
 
         [HttpGet]
         public IActionResult GetProjects()
         {
             var projects = _projectService.GetAllAsync();
-            return Ok(projects);
+            return Ok(projects.ToDTO());
         }
 
         [HttpGet("{id}")]
@@ -37,21 +33,21 @@ namespace EasyFinance.Server.Controllers
 
             if (project == null) return NotFound();
 
-            return Ok(project);
+            return Ok(project.ToDTO());
         }
 
         [HttpPost]
-        public IActionResult CreateProject([FromBody] ProjectDto projectDto)
+        public async Task<IActionResult> CreateProject([FromBody] ProjectRequestDTO projectDto)
         {
             if (projectDto == null) return BadRequest();
 
-            var createdProject = _projectService.CreateAsync(_mapper.Map<ProjectDtoApp>(projectDto));
+            var createdProject = (await _projectService.CreateAsync(projectDto.FromDTO())).ToDTO();
 
             return CreatedAtAction(nameof(GetProjectById), new { id = createdProject.Id }, createdProject);
         }
 
         [HttpPatch("{id}")]
-        public IActionResult UpdateProject(Guid id, [FromBody] JsonPatchDocument<ProjectDto> projectDto)
+        public async Task<IActionResult> UpdateProject(Guid id, [FromBody] JsonPatchDocument<ProjectRequestDTO> projectDto)
         {
             if (projectDto == null) return BadRequest();
             
@@ -59,13 +55,17 @@ namespace EasyFinance.Server.Controllers
 
             if (existingProject == null) return NotFound();
             
-            var dto = _mapper.Map<ProjectDto>(existingProject);
+            var dto = existingProject.ToRequestDTO();
 
             projectDto.ApplyTo(dto);
 
-            var updatedProject = _projectService.UpdateAsync(_mapper.Map<ProjectDtoApp>(dto));
+            var project = dto.FromDTO();
 
-            return Ok(updatedProject);
+            project.SetId(id);
+
+            await _projectService.UpdateAsync(project);
+
+            return Ok();
         }
 
         [HttpDelete("{id}")]

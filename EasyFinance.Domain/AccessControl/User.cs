@@ -23,18 +23,18 @@ namespace EasyFinance.Domain.Models.AccessControl
 
         public void SetFirstName(string firstName)
         {
-            this.FirstName = firstName;
-
-            if (string.IsNullOrEmpty(this.FirstName))
+            if (string.IsNullOrEmpty(firstName))
                 throw new ValidationException(nameof(this.FirstName), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(this.FirstName)));
+
+            this.FirstName = firstName;
         }
 
         public void SetLastName(string lastName)
         {
-            this.LastName = lastName;
-
-            if (string.IsNullOrEmpty(this.LastName))
+            if (string.IsNullOrEmpty(lastName))
                 throw new ValidationException(nameof(this.LastName), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(this.LastName)));
+
+            this.LastName = lastName;
         }
     }
 }

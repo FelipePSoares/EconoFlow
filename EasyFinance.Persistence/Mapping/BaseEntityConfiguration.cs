@@ -10,8 +10,8 @@ namespace EasyFinance.Persistence.Mapping
         public void Configure(EntityTypeBuilder<TEntity> builder)
         {
             builder.HasKey(p => p.Id);
-            builder.Property(p => p.CreatedDate).IsRequired(false);
-            builder.Property(p => p.ModifiedAt).IsRequired(false);
+            builder.Property(p => p.CreatedDate);
+            builder.Property(p => p.ModifiedAt);
             ConfigureEntity(builder);
         }
 

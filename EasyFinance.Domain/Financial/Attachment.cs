@@ -6,9 +6,7 @@ namespace EasyFinance.Domain.Models.Financial
 {
     public class Attachment : BaseEntity
     {
-        private Attachment()
-        {     
-        }
+        private Attachment() { }
 
         public Attachment(string name = "default", User createdBy = default)
         {
@@ -21,18 +19,18 @@ namespace EasyFinance.Domain.Models.Financial
 
         public void SetName(string name)
         {
-            this.Name = name;
-
-            if (string.IsNullOrEmpty(this.Name))
+            if (string.IsNullOrEmpty(name))
                 throw new ValidationException(nameof(this.Name), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(this.Name)));
+
+            this.Name = name;
         }
 
         public void SetCreatedBy(User createdBy)
         {
-            this.CreatedBy = createdBy;
-
-            if (this.CreatedBy == default)
+            if (createdBy == default)
                 throw new ValidationException(nameof(this.CreatedBy), string.Format(ValidationMessages.PropertyCantBeNull, nameof(this.CreatedBy)));
+
+            this.CreatedBy = createdBy;
         }
     }
 }

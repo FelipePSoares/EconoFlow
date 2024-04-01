@@ -19,7 +19,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasyFinance.Domain.Tests", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasyFinance.Common.Tests", "EasyFinance.Common.Tests\EasyFinance.Common.Tests.csproj", "{D3F45983-CB7D-436A-905F-07779A41B1F6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyFinance.Persistence", "EasyFinance.Persistence\EasyFinance.Persistence.csproj", "{56449DC9-9501-4320-A2CE-4CB66534463D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasyFinance.Persistence", "EasyFinance.Persistence\EasyFinance.Persistence.csproj", "{56449DC9-9501-4320-A2CE-4CB66534463D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

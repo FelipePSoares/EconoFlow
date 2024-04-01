@@ -1,14 +1,13 @@
-﻿using EasyFinance.Domain.Models.Financial;
+﻿using System.Text.Json.Serialization;
 using EasyFinance.Domain.Models.FinancialProject;
 
 namespace EasyFinance.Server.DTOs
 {
-    public class ProjectDto
+    public class ProjectResponseDTO
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public ProjectType Type { get; set; }
-        public ICollection<Category> Categories { get; set; } = new List<Category>();
-        public ICollection<Income> Incomes { get; set; } = new List<Income>();
     }
 }

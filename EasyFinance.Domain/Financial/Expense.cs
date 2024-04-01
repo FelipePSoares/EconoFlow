@@ -8,9 +8,7 @@ namespace EasyFinance.Domain.Models.Financial
 {
     public class Expense : BaseExpense
     {
-        private Expense()
-        {          
-        }
+        private Expense() { }
 
         public Expense(
             string name = "default",
@@ -29,10 +27,10 @@ namespace EasyFinance.Domain.Models.Financial
 
         public void SetGoal(decimal goal)
         {
-            this.Goal = goal;
-
-            if (this.Goal < 0)
+            if (goal < 0)
                 throw new ValidationException(nameof(this.Goal), string.Format(ValidationMessages.PropertyCantBeLessThanZero, nameof(this.Goal)));
+
+            this.Goal = goal;
         }
     }
 }

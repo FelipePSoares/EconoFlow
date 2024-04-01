@@ -6,9 +6,7 @@ namespace EasyFinance.Domain.Models.Financial
 {
     public class Income : BaseFinancial
     {
-        private Income()
-        { 
-        }
+        private Income() { }
 
         public Income(
             string name = "default",

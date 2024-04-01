@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace EasyFinance.Persistence.Mapping
+namespace EasyFinance.Persistence.Mapping.AccessControl
 {
     public class UserProjectConfiguration : BaseEntityConfiguration<UserProject>
     {
@@ -13,10 +13,12 @@ namespace EasyFinance.Persistence.Mapping
             builder.Property(p => p.Role).IsRequired();
 
             builder.HasOne(p => p.User)
-                .WithMany();
+                .WithMany()
+                .IsRequired();
 
             builder.HasOne(p => p.Project)
-                .WithMany();
+                .WithMany()
+                .IsRequired();
         }
     }
 }

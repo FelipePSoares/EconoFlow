@@ -7,6 +7,8 @@ namespace EasyFinance.Domain.Models.AccessControl
 {
     public class UserProject : BaseEntity
     {
+        private UserProject() { }
+
         public UserProject(User user = default, Project project = default, Role role = default) 
         {
             this.SetUser(user ?? new User());
@@ -20,18 +22,18 @@ namespace EasyFinance.Domain.Models.AccessControl
 
         public void SetUser(User user)
         {
-            this.User = user;
-
-            if (this.User == default)
+            if (user == default)
                 throw new ValidationException(nameof(this.User), string.Format(ValidationMessages.PropertyCantBeNull, nameof(this.User)));
+
+            this.User = user;
         }
 
         public void SetProject(Project project)
         {
-            this.Project = project;
-
-            if (this.Project == default)
+            if (project == default)
                 throw new ValidationException(nameof(this.Project), string.Format(ValidationMessages.PropertyCantBeNull, nameof(this.Project)));
+
+            this.Project = project;
         }
 
         public void SetRole(Role role)

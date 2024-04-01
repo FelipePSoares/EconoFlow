@@ -1,24 +1,20 @@
 using System.Net;
 using EasyFinance.Application;
-using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.Models.AccessControl;
 using EasyFinance.Persistence;
 using EasyFinance.Persistence.DatabaseContext;
 using EasyFinance.Server.Extensions;
-using EasyFinance.Server.Mappers;
 using EasyFinance.Server.Middleware;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddApplicationServices();
-builder.Services.AddAutoMapper(typeof(ApiAutoMapperProfiles), typeof(AutoMapperProfiles));
 
 // Add services to the container.
 builder.Services.AddControllers(config =>

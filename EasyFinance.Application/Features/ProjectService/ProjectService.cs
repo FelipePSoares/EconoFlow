@@ -1,23 +1,19 @@
-﻿using AutoMapper;
-using EasyFinance.Application.Contracts.Persistence;
-using EasyFinance.Application.DTOs;
-using EasyFinance.Domain.Models.FinancialProject;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using EasyFinance.Application.Contracts.Persistence;
+using EasyFinance.Domain.Models.FinancialProject;
 
 namespace EasyFinance.Application.Features.ProjectService
 {
     public class ProjectService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
 
-        public ProjectService(IUnitOfWork unitOfWork, IMapper mapper)
+        public ProjectService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
         }
 
         public ICollection<Project> GetAllAsync()
@@ -33,22 +29,26 @@ namespace EasyFinance.Application.Features.ProjectService
             return _unitOfWork.ProjectRepository.NoTrackable().FirstOrDefault(product => product.Id == id);
         }
 
-        public async Task CreateAsync(ProjectDtoApp project)
+        public async Task<Project> CreateAsync(Project project)
         {
             if (project == null)
                 throw new ArgumentNullException("The Project you are trying to save is not valid");
 
-            _unitOfWork.ProjectRepository.InsertOrUpdate(_mapper.Map<Project>(project));
+            _unitOfWork.ProjectRepository.InsertOrUpdate(project);
             await _unitOfWork.CommitAsync();
+
+            return project;
         }
 
-        public async Task UpdateAsync(ProjectDtoApp project)
+        public async Task<Project> UpdateAsync(Project project)
         {
             if (project == null)
                 throw new ArgumentNullException("The project you are trying to update is not valid");
 
-            _unitOfWork.ProjectRepository.InsertOrUpdate(_mapper.Map<Project>(project));
+            _unitOfWork.ProjectRepository.InsertOrUpdate(project);
             await _unitOfWork.CommitAsync();
+
+            return project;
         }
 
         public async Task DeleteAsync(Guid id)
