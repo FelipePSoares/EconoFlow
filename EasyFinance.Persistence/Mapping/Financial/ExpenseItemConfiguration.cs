@@ -24,11 +24,13 @@ namespace EasyFinance.Persistence.Mapping.Financial
 
             builder.HasMany(p => p.Attachments)
                 .WithOne()
-                .IsRequired();
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany(p => p.Items)
                 .WithOne()
-                .IsRequired();
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

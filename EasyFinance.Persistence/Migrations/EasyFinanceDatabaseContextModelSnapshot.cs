@@ -464,19 +464,19 @@ namespace EasyFinance.Persistence.Migrations
                     b.HasOne("EasyFinance.Domain.Models.Financial.Expense", null)
                         .WithMany("Attachments")
                         .HasForeignKey("ExpenseId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("EasyFinance.Domain.Models.Financial.ExpenseItem", null)
                         .WithMany("Attachments")
                         .HasForeignKey("ExpenseItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("EasyFinance.Domain.Models.Financial.Income", null)
                         .WithMany("Attachments")
                         .HasForeignKey("IncomeId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("CreatedBy");
@@ -517,13 +517,13 @@ namespace EasyFinance.Persistence.Migrations
                     b.HasOne("EasyFinance.Domain.Models.Financial.Expense", null)
                         .WithMany("Items")
                         .HasForeignKey("ExpenseId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("EasyFinance.Domain.Models.Financial.ExpenseItem", null)
                         .WithMany("Items")
                         .HasForeignKey("ExpenseItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("CreatedBy");

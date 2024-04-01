@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EasyFinance.Persistence.Migrations
 {
     [DbContext(typeof(EasyFinanceDatabaseContext))]
-    [Migration("20240401165719_Initial")]
+    [Migration("20240401231734_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -467,19 +467,19 @@ namespace EasyFinance.Persistence.Migrations
                     b.HasOne("EasyFinance.Domain.Models.Financial.Expense", null)
                         .WithMany("Attachments")
                         .HasForeignKey("ExpenseId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("EasyFinance.Domain.Models.Financial.ExpenseItem", null)
                         .WithMany("Attachments")
                         .HasForeignKey("ExpenseItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("EasyFinance.Domain.Models.Financial.Income", null)
                         .WithMany("Attachments")
                         .HasForeignKey("IncomeId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("CreatedBy");
@@ -520,13 +520,13 @@ namespace EasyFinance.Persistence.Migrations
                     b.HasOne("EasyFinance.Domain.Models.Financial.Expense", null)
                         .WithMany("Items")
                         .HasForeignKey("ExpenseId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("EasyFinance.Domain.Models.Financial.ExpenseItem", null)
                         .WithMany("Items")
                         .HasForeignKey("ExpenseItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("CreatedBy");

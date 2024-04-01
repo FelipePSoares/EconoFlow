@@ -285,13 +285,13 @@ namespace EasyFinance.Persistence.Migrations
                         column: x => x.ExpenseItemId,
                         principalTable: "ExpenseItems",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_ExpenseItems_Expenses_ExpenseId",
                         column: x => x.ExpenseId,
                         principalTable: "Expenses",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -321,19 +321,19 @@ namespace EasyFinance.Persistence.Migrations
                         column: x => x.ExpenseItemId,
                         principalTable: "ExpenseItems",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Attachments_Expenses_ExpenseId",
                         column: x => x.ExpenseId,
                         principalTable: "Expenses",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Attachments_Incomes_IncomeId",
                         column: x => x.IncomeId,
                         principalTable: "Incomes",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(

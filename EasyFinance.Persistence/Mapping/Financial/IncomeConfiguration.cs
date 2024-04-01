@@ -24,7 +24,8 @@ namespace EasyFinance.Persistence.Mapping.Financial
 
             builder.HasMany(p => p.Attachments)
                 .WithOne()
-                .IsRequired();
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
