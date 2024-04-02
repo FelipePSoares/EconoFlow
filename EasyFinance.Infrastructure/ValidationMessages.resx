@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Forbidden" xml:space="preserve">
+    <value>You don't have access to do this action</value>
+  </data>
   <data name="GoalDefinedCantBeLessThanExpensesGoal" xml:space="preserve">
     <value>Goal defined can't be less than expenses goal</value>
   </data>

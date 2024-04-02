@@ -23,8 +23,8 @@ namespace EasyFinance.Server.Controllers
         [HttpGet]
         public async Task<IActionResult> GetUserAsync()
         {
-            var email = this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.Email);
-            var user = await this.userManager.FindByEmailAsync(email.Value);
+            var id = this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier);
+            var user = await this.userManager.FindByIdAsync(id.Value);
 
             if (user == null)
                 BadRequest("User not found!");
@@ -35,8 +35,8 @@ namespace EasyFinance.Server.Controllers
         [HttpPut]
         public async Task<IActionResult> SetUserNameAsync([FromBody]UserRequestDTO userDTO)
         {
-            var email = this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.Email);
-            var user = await this.userManager.FindByEmailAsync(email.Value);
+            var id = this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier);
+            var user = await this.userManager.FindByIdAsync(id.Value);
 
             if (user == null)
                 BadRequest("User not found!");
@@ -62,8 +62,8 @@ namespace EasyFinance.Server.Controllers
         [HttpPut("deactivate")]
         public async Task<IActionResult> DeactivateUserAsync()
         {
-            var email = this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.Email);
-            var user = await this.userManager.FindByEmailAsync(email.Value);
+            var id = this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier);
+            var user = await this.userManager.FindByIdAsync(id.Value);
 
             if (user == null)
                 BadRequest("User not found!");
@@ -79,8 +79,8 @@ namespace EasyFinance.Server.Controllers
         [HttpPost("activate")]
         public async Task<IActionResult> ActivateUserAsync()
         {
-            var email = this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.Email);
-            var user = await this.userManager.FindByEmailAsync(email.Value);
+            var id = this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier);
+            var user = await this.userManager.FindByIdAsync(id.Value);
 
             if (user == null)
                 BadRequest("User not found!");
