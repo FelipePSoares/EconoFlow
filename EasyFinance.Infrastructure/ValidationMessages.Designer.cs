@@ -61,6 +61,15 @@ namespace EasyFinance.Infrastructure {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You don&apos;t have access to do this action.
+        /// </summary>
+        public static string Forbidden {
+            get {
+                return ResourceManager.GetString("Forbidden", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Goal defined can&apos;t be less than expenses goal.
         /// </summary>
         public static string GoalDefinedCantBeLessThanExpensesGoal {

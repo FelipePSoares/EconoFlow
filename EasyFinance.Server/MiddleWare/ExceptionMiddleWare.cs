@@ -1,5 +1,7 @@
 ﻿using System.Net;
 using System.Text.Json;
+using EasyFinance.Infrastructure.Exceptions;
+using Serilog;
 
 namespace EasyFinance.Server.Middleware
 {
@@ -20,21 +22,54 @@ namespace EasyFinance.Server.Middleware
             {
                 await _next(httpContext);
             }
-            catch (Exception exp)
+            catch (ForbiddenException ex)
             {
-                await HandleExceptionAsync(httpContext, exp);
+                Log.Error(ex, ex.Message);
+
+                httpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+            }
+            catch (ValidationException ex)
+            {
+                Log.Error(ex, ex.Message);
+
+                await HandleValidationExceptionAsync(httpContext, ex);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, ex.Message);
+
+                await HandleExceptionAsync(httpContext, ex);
             }
         }
 
-        private async Task HandleExceptionAsync(HttpContext httpContext, Exception exp)
+        private async Task HandleValidationExceptionAsync(HttpContext httpContext, ValidationException ex)
         {
+            httpContext.Response.ContentType = "application/json";
+            httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
 
+            var response = new
+            {
+                Property = ex.Property,
+                Message = ex.Message,
+                StackTrace = _environment.IsDevelopment() ? ex.StackTrace?.ToString() : "Internal Server Error"
+            };
+
+            var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+            var json = JsonSerializer.Serialize(response, options);
+
+            await httpContext.Response.WriteAsync(json);
+        }
+
+        private async Task HandleExceptionAsync(HttpContext httpContext, Exception ex)
+        {
             httpContext.Response.ContentType = "application/json";
             httpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
-            var response = _environment.IsDevelopment()
-                ? new ApiException(httpContext.Response.StatusCode, exp.Message, exp.StackTrace?.ToString())
-                : new ApiException(httpContext.Response.StatusCode, exp.Message, "Internal Server Error");
+            var response = new
+            {
+                Message = ex.Message,
+                StackTrace = _environment.IsDevelopment() ? ex.StackTrace?.ToString() : "Internal Server Error"
+            };
 
             var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
             var json = JsonSerializer.Serialize(response, options);
