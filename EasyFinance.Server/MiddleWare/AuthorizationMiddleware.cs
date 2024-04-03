@@ -2,7 +2,6 @@
 using System.Security.Claims;
 using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Domain.Models.AccessControl;
-using EasyFinance.Domain.Models.FinancialProject;
 
 namespace EasyFinance.Server.MiddleWare
 {
@@ -17,8 +16,14 @@ namespace EasyFinance.Server.MiddleWare
 
         public async Task InvokeAsync(HttpContext httpContext, IAccessControlService accessControlService)
         {
-            if (httpContext.Request.RouteValues.TryGetValue("projectId", out var projectIdValue))
+            if (httpContext?.Request?.RouteValues != null && httpContext.Request.RouteValues.TryGetValue("projectId", out var projectIdValue))
             {
+                if (httpContext.User == null)
+                {
+                    httpContext.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    return;
+                }
+
                 var userId = new Guid(httpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier).Value);
                 var projectId = new Guid(projectIdValue.ToString());
                 var accessNeeded = httpContext.Request.Method == "GET" ? Role.Viewer : Role.Manager;

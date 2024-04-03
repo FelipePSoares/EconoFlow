@@ -18,7 +18,7 @@ namespace EasyFinance.Application.Features.AccessControlService
         {
             var access = this.unitOfWork.UserProjectRepository.NoTrackable().FirstOrDefault(up => up.User.Id == userId && up.Project.Id == projectId);
 
-            return access != null && access.Role > accessNeeded;
+            return access != null && access.Role >= accessNeeded;
         }
     }
 }
