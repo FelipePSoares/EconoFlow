@@ -2,19 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using EasyFinance.Application.Contracts.Application;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Domain.Models.AccessControl;
 using EasyFinance.Domain.Models.FinancialProject;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.Exceptions;
 
 namespace EasyFinance.Application.Features.ProjectService
 {
     public class ProjectService : IProjectService
     {
-        private static Role[] RolesThatCanEdit = { Role.Manager, Role.Admin };
-
         private readonly IUnitOfWork _unitOfWork;
 
         public ProjectService(IUnitOfWork unitOfWork)
@@ -27,9 +23,9 @@ namespace EasyFinance.Application.Features.ProjectService
             return _unitOfWork.UserProjectRepository.NoTrackable().Where(up => up.User.Id == userId).Select(p => p.Project).ToList();
         }
 
-        public Project GetById(Guid userId, Guid id)
+        public Project GetById(Guid id)
         {
-            return _unitOfWork.UserProjectRepository.NoTrackable().FirstOrDefault(up => up.User.Id == userId && up.Project.Id == id)?.Project;
+            return _unitOfWork.ProjectRepository.NoTrackable().FirstOrDefault(up => up.Id == id);
         }
 
         public async Task<Project> CreateAsync(User user, Project project)
@@ -47,18 +43,10 @@ namespace EasyFinance.Application.Features.ProjectService
             return project;
         }
 
-        public async Task<Project> UpdateAsync(Guid userId, Project project)
+        public async Task<Project> UpdateAsync(Project project)
         {
             if (project == default)
                 throw new ArgumentNullException(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(project)));
-
-            if (userId == default)
-                throw new ArgumentNullException(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(userId)));
-
-            var userProject = _unitOfWork.UserProjectRepository.NoTrackable().FirstOrDefault(up => up.User.Id == userId && up.Project.Id == project.Id);
-
-            if (userProject == default || !RolesThatCanEdit.Contains(userProject.Role))
-                throw new ForbiddenException();
 
             _unitOfWork.ProjectRepository.InsertOrUpdate(project);
             await _unitOfWork.CommitAsync();
@@ -66,13 +54,15 @@ namespace EasyFinance.Application.Features.ProjectService
             return project;
         }
 
-        public async Task DeleteAsync(Guid userId, Guid id)
+        public async Task DeleteAsync(Guid id)
         {
             if (id == null || id == Guid.Empty)
                 throw new ArgumentNullException("The id is not valid");
 
-            var project = _unitOfWork.ProjectRepository.Trackable().FirstOrDefault(product => product.Id == id) 
-                ?? throw new InvalidOperationException("The project you are trying to delete dosen`t exist");
+            var project = _unitOfWork.ProjectRepository.Trackable().FirstOrDefault(product => product.Id == id);
+
+            if (project == null)
+                return;
 
             _unitOfWork.ProjectRepository.Delete(project);
             await _unitOfWork.CommitAsync();

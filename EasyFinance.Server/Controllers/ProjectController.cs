@@ -13,10 +13,10 @@ namespace EasyFinance.Server.Controllers
     [Route("api/[controller]")]
     public class ProjectController : ControllerBase
     {
-        private readonly ProjectService _projectService;
+        private readonly IProjectService _projectService;
         private readonly UserManager<User> userManager;
 
-        public ProjectController(ProjectService projectService, UserManager<User> userManager)
+        public ProjectController(IProjectService projectService, UserManager<User> userManager)
         {
             _projectService = projectService;
             this.userManager = userManager;
@@ -31,12 +31,10 @@ namespace EasyFinance.Server.Controllers
             return Ok(projects.ToDTO());
         }
 
-        [HttpGet("{id}")]
-        public IActionResult GetProjectById(Guid id)
+        [HttpGet("{projectId}")]
+        public IActionResult GetProjectById(Guid projectId)
         {
-            var userId = new Guid(this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier).Value);
-
-            var project = _projectService.GetById(userId, id);
+            var project = _projectService.GetById(projectId);
 
             if (project == null) return NotFound();
 
@@ -53,17 +51,15 @@ namespace EasyFinance.Server.Controllers
 
             var createdProject = (await _projectService.CreateAsync(user, projectDto.FromDTO())).ToDTO();
 
-            return CreatedAtAction(nameof(GetProjectById), new { id = createdProject.Id }, createdProject);
+            return CreatedAtAction(nameof(GetProjectById), new { projectId = createdProject.Id }, createdProject);
         }
 
-        [HttpPatch("{id}")]
-        public async Task<IActionResult> UpdateProject(Guid id, [FromBody] JsonPatchDocument<ProjectRequestDTO> projectDto)
+        [HttpPatch("{projectId}")]
+        public async Task<IActionResult> UpdateProject(Guid projectId, [FromBody] JsonPatchDocument<ProjectRequestDTO> projectDto)
         {
             if (projectDto == null) return BadRequest();
 
-            var userId = new Guid(this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier).Value);
-
-            var existingProject = _projectService.GetById(userId, id);
+            var existingProject = _projectService.GetById(projectId);
 
             if (existingProject == null) return NotFound();
 
@@ -72,21 +68,17 @@ namespace EasyFinance.Server.Controllers
             projectDto.ApplyTo(dto);
 
             var project = dto.FromDTO();
-            project.SetId(id);
+            project.SetId(projectId);
 
-            await _projectService.UpdateAsync(userId, project);
+            await _projectService.UpdateAsync(project);
 
             return Ok();
         }
 
-        [HttpDelete("{id}")]
-        public IActionResult DeleteProject(Guid id)
+        [HttpDelete("{projectId}")]
+        public async Task<IActionResult> DeleteProjectAsync(Guid projectId)
         {
-            var userId = new Guid(this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier).Value);
-
-            var deletedProject = _projectService.DeleteAsync(userId, id);
-
-            if (deletedProject == null) return NotFound();
+            await _projectService.DeleteAsync(projectId);
 
             return NoContent();
         }

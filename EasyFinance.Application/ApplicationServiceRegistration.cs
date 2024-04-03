@@ -1,4 +1,5 @@
-﻿using EasyFinance.Application.Features.ProjectService;
+﻿using EasyFinance.Application.Features.AccessControlService;
+using EasyFinance.Application.Features.ProjectService;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EasyFinance.Application
@@ -7,7 +8,8 @@ namespace EasyFinance.Application
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
-            services.AddScoped<ProjectService>();
+            services.AddScoped<IProjectService, ProjectService>();
+            services.AddScoped<IAccessControlService, AccessControlService>();
 
             return services;
         }

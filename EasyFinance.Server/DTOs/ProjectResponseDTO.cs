@@ -7,7 +7,6 @@ namespace EasyFinance.Server.DTOs
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        [JsonConverter(typeof(JsonStringEnumConverter))]
         public ProjectType Type { get; set; }
     }
 }
