@@ -11,6 +11,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Serilog;
+using EasyFinance.Application.Features.AccessControlService;
+using EasyFinance.Server.MiddleWare;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,7 +27,9 @@ builder.Services.AddControllers(config =>
                      .RequireAuthenticatedUser()
                      .Build();
     config.Filters.Add(new AuthorizeFilter(policy));
-});
+})
+.AddJsonOptions(options =>
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -91,12 +96,13 @@ else
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+app.UseProjectAuthorization();
 
 app.MapControllers();
 
 app.MapFallbackToFile("/index.html");
 
-app.UseMiddleware<ExceptionMiddleware>();
+app.UseCustomExceptionHandler();
 
 app.Run();
 
