@@ -44,7 +44,7 @@
       <label for="type">Project Type</label>
     </div>
     <div class="col-lg-1 btn-group">
-      <button class="btn btn-success" (click)="saveProject()" [disabled]="projectForm.invalid">Save</button>
+      <button class="btn btn-success" [disabled]="projectForm.invalid">Save</button>
     </div>
   </form>
   <div *ngIf="httpErrors">
