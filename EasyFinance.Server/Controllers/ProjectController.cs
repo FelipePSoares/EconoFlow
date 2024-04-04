@@ -72,7 +72,7 @@ namespace EasyFinance.Server.Controllers
 
             await _projectService.UpdateAsync(project);
 
-            return Ok();
+            return Ok(project);
         }
 
         [HttpDelete("{projectId}")]

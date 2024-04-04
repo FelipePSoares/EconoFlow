@@ -26,7 +26,7 @@
     </div>
     <div class="input justify-content-center">
       <div class="col-md-4 mb-2">
-        <button type="submit" class="btn btn-primary" (click)="saveProject()" [disabled]="projectForm.invalid">Create</button>
+        <button type="submit" class="btn btn-primary" [disabled]="projectForm.invalid">Create</button>
       </div>
       <div *ngIf="httpErrors">
         <p class="mt-5 mb-3 text-danger text-center">{{errors.statusText}}</p>

@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Project } from '../models/project';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable, catchError, map, of } from 'rxjs';
 import { Operation } from 'fast-json-patch';
-import { ProjectType } from '../enums/project-type';
 
 @Injectable({
   providedIn: 'root'
@@ -12,30 +11,30 @@ export class ProjectService {
   constructor(private http: HttpClient) {
   }
 
-  getProjects(): Observable<Project[]> {
-    return of([
-        <Project>({
-          id: "23836aa6-e6f3-4bbf-81ab-27256eb611a9",
-          name: "First Personal Project",
-          type: ProjectType.Personal,
-        }),
-        <Project>({
-          id: "dd4c24ee-1b3b-47d0-b6eb-1bd9b5e8a40e",
-          name: "First Company Project",
-          type: ProjectType.Company,
-        })
-      ]);
+  getProjects() {
+    return this.http.get<Project[]>('/api/project/', {
+      observe: 'body',
+      responseType: 'json'
+    });
   }
 
-  addProject(project: Project): Observable<Project>{
-    return of(<Project>({ name: "teste update", type: ProjectType.Company }));
+  addProject(project: Project): Observable<Project> {
+    return this.http.post<Project>('/api/project/', project, {
+      observe: 'body',
+      responseType: 'json'
+    });
   }
 
-  updateProject(patch: Operation[]): Observable<Project> {
-    return of(<Project>({ name: "teste update", type: ProjectType.Company }));
+  updateProject(id: string, patch: Operation[]): Observable<Project> {
+    return this.http.patch<Project>('/api/project/' + id, patch, {
+      observe: 'body',
+      responseType: 'json'
+    });
   }
 
-  removeProject(id: string): Observable<boolean>{
-    return of(true);
+  removeProject(id: string): Observable<boolean> {
+    return this.http.delete('/api/project/' + id, {
+      observe: 'response'
+    }).pipe(map(res => res.ok));
   }
 }

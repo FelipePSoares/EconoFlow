@@ -21,7 +21,10 @@ export class ListProjectsComponent implements OnInit {
   httpErrors = false;
   errors: any;
 
-  constructor(public projectService: ProjectService, private router: Router) { }
+  constructor(public projectService: ProjectService, private router: Router)
+  {
+    this.editProject(new Project());
+  }
 
   ngOnInit(): void {
     this.projectService.getProjects()
@@ -53,10 +56,10 @@ export class ListProjectsComponent implements OnInit {
       })
       var patch = compare(this.editingProject, newProject);
 
-      this.projectService.updateProject(patch).subscribe({
+      this.projectService.updateProject(id, patch).subscribe({
         next: response => {
           this.editingProject.name = response.name;
-          this.editingProject = new ProjectDto();
+          this.editingProject = new Project();
         },
         error: error => {
           this.httpErrors = true;

@@ -1,6 +1,6 @@
-import { HttpClient, HttpResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, Subject, map } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, concatMap, map } from 'rxjs';
 import { User } from '../models/User';
 
 const USER_DATA = "user_data";
@@ -19,8 +19,8 @@ export class UserService {
       this.loggedUser.next(JSON.parse(user));
     }
   }
-  
-  public refreshUserInfo() {
+
+  public refreshUserInfo(): Observable<User> {
     return this.http.get<User>('/api/account/', {
       observe: 'body',
       responseType: 'json'
@@ -36,17 +36,12 @@ export class UserService {
     localStorage.removeItem(USER_DATA);
   }
 
-  public setUserInfo(firstName: string, lastName: string) {
+  public setUserInfo(firstName: string, lastName: string): Observable<User> {
     return this.http.put('/api/account/', {
       firstName: firstName,
       lastName: lastName
-    }, {
-      observe: 'response',
-      responseType: 'text'
-    })
-      .pipe<boolean>(map((res: HttpResponse<string>) => {
-        this.refreshUserInfo().subscribe();
-        return res.ok;
+    }).pipe(concatMap(res => {
+        return this.refreshUserInfo();
       }));
   }
 }
