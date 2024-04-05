@@ -1,5 +1,5 @@
 ﻿using EasyFinance.Domain.Models.FinancialProject;
-using EasyFinance.Server.DTOs;
+using EasyFinance.Server.DTOs.FinancialProject;
 
 namespace EasyFinance.Server.Mappers
 {

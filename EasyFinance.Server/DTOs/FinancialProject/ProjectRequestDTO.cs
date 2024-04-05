@@ -1,7 +1,6 @@
-﻿using System.Text.Json.Serialization;
-using EasyFinance.Domain.Models.FinancialProject;
+﻿using EasyFinance.Domain.Models.FinancialProject;
 
-namespace EasyFinance.Server.DTOs
+namespace EasyFinance.Server.DTOs.FinancialProject
 {
     public class ProjectRequestDTO
     {

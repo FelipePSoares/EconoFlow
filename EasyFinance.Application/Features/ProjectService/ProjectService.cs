@@ -11,21 +11,21 @@ namespace EasyFinance.Application.Features.ProjectService
 {
     public class ProjectService : IProjectService
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IUnitOfWork unitOfWork;
 
         public ProjectService(IUnitOfWork unitOfWork)
         {
-            _unitOfWork = unitOfWork;
+            this.unitOfWork = unitOfWork;
         }
 
         public ICollection<Project> GetAll(Guid userId)
         {
-            return _unitOfWork.UserProjectRepository.NoTrackable().Where(up => up.User.Id == userId).Select(p => p.Project).ToList();
+            return unitOfWork.UserProjectRepository.NoTrackable().Where(up => up.User.Id == userId).Select(p => p.Project).ToList();
         }
 
         public Project GetById(Guid id)
         {
-            return _unitOfWork.ProjectRepository.NoTrackable().FirstOrDefault(up => up.Id == id);
+            return unitOfWork.ProjectRepository.Trackable().FirstOrDefault(up => up.Id == id);
         }
 
         public async Task<Project> CreateAsync(User user, Project project)
@@ -36,9 +36,9 @@ namespace EasyFinance.Application.Features.ProjectService
             if (user == default)
                 throw new ArgumentNullException(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(user)));
 
-            _unitOfWork.ProjectRepository.InsertOrUpdate(project);
-            _unitOfWork.UserProjectRepository.InsertOrUpdate(new UserProject(user, project, Role.Admin));
-            await _unitOfWork.CommitAsync();
+            unitOfWork.ProjectRepository.InsertOrUpdate(project);
+            unitOfWork.UserProjectRepository.InsertOrUpdate(new UserProject(user, project, Role.Admin));
+            await unitOfWork.CommitAsync();
 
             return project;
         }
@@ -48,8 +48,8 @@ namespace EasyFinance.Application.Features.ProjectService
             if (project == default)
                 throw new ArgumentNullException(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(project)));
 
-            _unitOfWork.ProjectRepository.InsertOrUpdate(project);
-            await _unitOfWork.CommitAsync();
+            unitOfWork.ProjectRepository.InsertOrUpdate(project);
+            await unitOfWork.CommitAsync();
 
             return project;
         }
@@ -59,13 +59,13 @@ namespace EasyFinance.Application.Features.ProjectService
             if (id == null || id == Guid.Empty)
                 throw new ArgumentNullException("The id is not valid");
 
-            var project = _unitOfWork.ProjectRepository.Trackable().FirstOrDefault(product => product.Id == id);
+            var project = unitOfWork.ProjectRepository.Trackable().FirstOrDefault(product => product.Id == id);
 
             if (project == null)
                 return;
 
-            _unitOfWork.ProjectRepository.Delete(project);
-            await _unitOfWork.CommitAsync();
+            unitOfWork.ProjectRepository.Delete(project);
+            await unitOfWork.CommitAsync();
         }
     }
 }

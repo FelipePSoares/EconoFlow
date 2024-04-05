@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using EasyFinance.Domain.Models.AccessControl;
 using EasyFinance.Server.DTOs;
+using EasyFinance.Server.DTOs.AccessControl;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 

@@ -1,4 +1,4 @@
-﻿namespace EasyFinance.Server.DTOs
+﻿namespace EasyFinance.Server.DTOs.AccessControl
 {
     public class UserRequestDTO
     {
