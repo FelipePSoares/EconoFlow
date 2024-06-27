@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <EmbeddedResource Update="ValidationMessages.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
+      <Generator>PublicResXFileCodeGenerator</Generator>  
       <LastGenOutput>ValidationMessages.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>

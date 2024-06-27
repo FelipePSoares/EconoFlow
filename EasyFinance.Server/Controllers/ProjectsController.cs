@@ -67,12 +67,11 @@ namespace EasyFinance.Server.Controllers
 
             projectDto.ApplyTo(dto);
 
-            var project = dto.FromDTO();
-            project.SetId(projectId);
+            dto.FromDTO(existingProject);
 
-            await projectService.UpdateAsync(project);
+            await projectService.UpdateAsync(existingProject);
 
-            return Ok(project);
+            return Ok(existingProject);
         }
 
         [HttpDelete("{projectId}")]

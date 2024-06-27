@@ -1,5 +1,4 @@
 using System.Net;
-using System.Text.Json.Serialization;
 using EasyFinance.Application;
 using EasyFinance.Domain.Models.AccessControl;
 using EasyFinance.Persistence;
