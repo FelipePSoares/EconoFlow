@@ -13,7 +13,7 @@ namespace EasyFinance.Server.DTOs.AccessControl
                 FirstName = user.FirstName;
                 LastName = user.LastName;
                 Enabled = user.Enabled;
-                IsFirstLogin = user.IsFirstLogin;
+                IsFirstLogin = user.HasIncompletedInformation;
                 EmailConfirmed = user.EmailConfirmed;
                 TwoFactorEnabled = user.TwoFactorEnabled;
             }

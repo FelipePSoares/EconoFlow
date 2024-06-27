@@ -43,7 +43,6 @@ namespace EasyFinance.Server.Controllers
 
             user.SetFirstName(userDTO.FirstName);
             user.SetLastName(userDTO.LastName);
-            user.IsFirstLogin = false;
 
             await this.userManager.UpdateAsync(user);
             await this.signInManager.RefreshSignInAsync(user);

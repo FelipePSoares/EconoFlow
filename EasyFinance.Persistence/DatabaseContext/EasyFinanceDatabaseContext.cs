@@ -14,6 +14,7 @@ namespace EasyFinance.Persistence.DatabaseContext
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Access Control
+            modelBuilder.ApplyConfiguration(new UserConfiguration());
             modelBuilder.ApplyConfiguration(new UserProjectConfiguration());
 
             // Financial

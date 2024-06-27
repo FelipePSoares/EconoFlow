@@ -4,6 +4,7 @@ using EasyFinance.Persistence.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EasyFinance.Persistence.Migrations
 {
     [DbContext(typeof(EasyFinanceDatabaseContext))]
-    partial class EasyFinanceDatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20240627141755_UpdateUserInfo")]
+    partial class UpdateUserInfo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -43,6 +46,7 @@ namespace EasyFinance.Persistence.Migrations
                         .HasColumnType("bit");
 
                     b.Property<bool>("Enabled")
+                        .HasMaxLength(256)
                         .HasColumnType("bit");
 
                     b.Property<string>("FirstName")
