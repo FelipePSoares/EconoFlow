@@ -1,0 +1,58 @@
+<div class="container">
+  <h1 class="text-center mt-5">Income Management</h1>
+  <div class="row income-list justify-content-center">
+    <div class="col-md-8">
+      <div class="list-group">
+        @for (income of (incomes$ | async); track income.id){
+        <div class="list-group-item income-item">
+          <div *ngIf="income.id != this.editingIncome.id else editForm">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h5 class="mb-1">{{ income.name }}</h5>
+                <p class="mb-1">{{ income.date }}</p>
+                <p class="mb-1">{{ income.amount }}</p>
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-secondary" (click)="editIncome(income)">Edit</button>
+                <button class="btn btn-danger" (click)="removeIncome(income.id)">Remove</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        }
+        @empty {
+        <div class="text-center">
+          No income created yet.
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+  <a class="btn btn-primary btn-add" (click)="addIncome()">+</a>
+</div>
+
+<ng-template #editForm>
+  <form class="d-flex justify-content-between align-items-center my-1" [formGroup]="incomeForm" (ngSubmit)="saveIncome()">
+    <div class="col-lg-7 form-floating">
+      <input type="text" class="form-control" id="name" placeholder="Personal" formControlName="name" [class.is-invalid]="name?.invalid && name?.touched">
+      <label for="name">Income Name</label>
+      <div *ngIf="name?.invalid && name?.touched">
+        <div *ngIf="name?.errors?.['required']" class="text-danger">Income Name is required.</div>
+      </div>
+    </div>
+    <div class="col-lg-2 form-floating">
+      <input type="text" class="form-control-plaintext" readonly id="date" formControlName="date">
+      <label for="type">Income Date</label>
+    </div>
+    <div class="col-lg-2 form-floating">
+      <input type="text" class="form-control-plaintext" readonly id="amount" formControlName="amount">
+      <label for="type">Income Amount</label>
+    </div>
+    <div class="col-lg-1 btn-group">
+      <button class="btn btn-success" [disabled]="incomeForm.invalid">Save</button>
+    </div>
+  </form>
+  <div *ngIf="httpErrors">
+    <p class="mt-5 mb-3 text-danger text-center">{{errors.statusText}}</p>
+  </div>
+</ng-template>

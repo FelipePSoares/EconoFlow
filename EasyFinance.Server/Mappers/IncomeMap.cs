@@ -34,9 +34,16 @@ namespace EasyFinance.Server.Mappers
 
         public static IEnumerable<Income> FromDTO(this ICollection<IncomeRequestDTO> incomes) => incomes.Select(p => p.FromDTO());
 
-        public static Income FromDTO(this IncomeRequestDTO incomeDTO)
+        public static Income FromDTO(this IncomeRequestDTO incomeDTO, Income income = null)
         {
             ArgumentNullException.ThrowIfNull(incomeDTO);
+
+            if (income != null)
+            {
+                income.SetName(incomeDTO.Name);
+                income.SetAmount(incomeDTO.Amount);
+                income.SetDate(incomeDTO.Date);
+            }
 
             return new Income(name: incomeDTO.Name, amount: incomeDTO.Amount, date: incomeDTO.Date);
         }

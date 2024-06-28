@@ -65,12 +65,11 @@ namespace EasyFinance.Server.Controllers
 
             incomeDto.ApplyTo(dto);
 
-            var income = dto.FromDTO();
-            income.SetId(incomeId);
+            var income = dto.FromDTO(existingIncome);
 
-            await incomeService.UpdateAsync(income);
+            await incomeService.UpdateAsync(existingIncome);
 
-            return Ok(income);
+            return Ok(existingIncome);
         }
 
         [HttpDelete("{incomeId}")]

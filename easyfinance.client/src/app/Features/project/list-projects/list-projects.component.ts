@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ProjectService } from '../../../core/services/project.service';
-import { BehaviorSubject, Observable, Subject, map } from 'rxjs';
+import { BehaviorSubject, Observable, map } from 'rxjs';
 import { ProjectDto } from '../models/project-dto';
 import { mapper } from 'src/app/core/utils/mappings/mapper';
 import { Project } from 'src/app/core/models/project';
