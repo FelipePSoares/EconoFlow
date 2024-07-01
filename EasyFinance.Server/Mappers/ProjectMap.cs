@@ -1,5 +1,5 @@
 ﻿using EasyFinance.Domain.Models.FinancialProject;
-using EasyFinance.Server.DTOs;
+using EasyFinance.Server.DTOs.FinancialProject;
 
 namespace EasyFinance.Server.Mappers
 {
@@ -32,9 +32,16 @@ namespace EasyFinance.Server.Mappers
 
         public static IEnumerable<Project> FromDTO(this ICollection<ProjectRequestDTO> projects) => projects.Select(p => p.FromDTO());
 
-        public static Project FromDTO(this ProjectRequestDTO projectDTO)
+        public static Project FromDTO(this ProjectRequestDTO projectDTO, Project existingProject = null)
         {
             ArgumentNullException.ThrowIfNull(projectDTO);
+
+            if (existingProject != null)
+            {
+                existingProject.SetName(projectDTO.Name);
+                existingProject.SetType(projectDTO.Type);
+                return existingProject;
+            }
 
             return new Project(name: projectDTO.Name, type: projectDTO.Type);
         }

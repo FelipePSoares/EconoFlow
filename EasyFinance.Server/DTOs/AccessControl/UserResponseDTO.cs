@@ -1,6 +1,6 @@
 ﻿using EasyFinance.Domain.Models.AccessControl;
 
-namespace EasyFinance.Server.DTOs
+namespace EasyFinance.Server.DTOs.AccessControl
 {
     public class UserResponseDTO
     {
@@ -8,14 +8,14 @@ namespace EasyFinance.Server.DTOs
         {
             if (user != null)
             {
-                this.Id = user.Id;
-                this.Email = user.Email;
-                this.FirstName = user.FirstName;
-                this.LastName = user.LastName;
-                this.Enabled = user.Enabled;
-                this.IsFirstLogin = user.IsFirstLogin;
-                this.EmailConfirmed = user.EmailConfirmed;
-                this.TwoFactorEnabled = user.TwoFactorEnabled;
+                Id = user.Id;
+                Email = user.Email;
+                FirstName = user.FirstName;
+                LastName = user.LastName;
+                Enabled = user.Enabled;
+                IsFirstLogin = user.HasIncompletedInformation;
+                EmailConfirmed = user.EmailConfirmed;
+                TwoFactorEnabled = user.TwoFactorEnabled;
             }
         }
 

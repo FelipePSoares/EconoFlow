@@ -19,7 +19,7 @@ namespace EasyFinance.Domain.Models.AccessControl
         public string FirstName { get; private set; } = string.Empty;
         public string LastName { get; private set; } = string.Empty;
         public bool Enabled { get; set; } = true;
-        public bool IsFirstLogin { get; set; } = true;
+        public bool HasIncompletedInformation => string.IsNullOrEmpty(this.FirstName) && string.IsNullOrEmpty(this.LastName);
 
         public void SetFirstName(string firstName)
         {

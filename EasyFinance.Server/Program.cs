@@ -1,7 +1,8 @@
 using System.Net;
-using System.Text.Json.Serialization;
 using EasyFinance.Application;
+using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Domain.Models.AccessControl;
+using EasyFinance.Domain.Models.FinancialProject;
 using EasyFinance.Persistence;
 using EasyFinance.Persistence.DatabaseContext;
 using EasyFinance.Server.Extensions;
@@ -28,7 +29,7 @@ builder.Services.AddControllers(config =>
                      .Build();
     config.Filters.Add(new AuthorizeFilter(policy));
 })
-    .AddNewtonsoftJson(setup => 
+    .AddNewtonsoftJson(setup =>
         setup.SerializerSettings.Converters.Add(new StringEnumConverter()));
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -86,6 +87,25 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+
+    using var serviceScope = app.Services.CreateScope();
+    var unitOfWork = serviceScope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+    var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<User>>();
+
+    var user = new User("Teste", "Admin", true)
+    {
+        UserName = "teste@teste.com",
+        Email = "teste@teste.com"
+    };
+    userManager.CreateAsync(user, "Passw0rd!").GetAwaiter().GetResult();
+
+    var project = new Project(name: "Família", type: ProjectType.Personal);
+    unitOfWork.ProjectRepository.InsertOrUpdate(project);
+
+    var userProject = new UserProject(user, project, Role.Admin);
+    unitOfWork.UserProjectRepository.InsertOrUpdate(userProject);
+
+    unitOfWork.CommitAsync().GetAwaiter().GetResult();
 }
 else
 {

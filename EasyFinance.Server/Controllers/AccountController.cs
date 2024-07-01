@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 using EasyFinance.Domain.Models.AccessControl;
-using EasyFinance.Server.DTOs;
+using EasyFinance.Server.DTOs.AccessControl;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -43,7 +43,6 @@ namespace EasyFinance.Server.Controllers
 
             user.SetFirstName(userDTO.FirstName);
             user.SetLastName(userDTO.LastName);
-            user.IsFirstLogin = false;
 
             await this.userManager.UpdateAsync(user);
             await this.signInManager.RefreshSignInAsync(user);

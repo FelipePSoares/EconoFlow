@@ -12,28 +12,28 @@ export class ProjectService {
   }
 
   getProjects() {
-    return this.http.get<Project[]>('/api/project/', {
+    return this.http.get<Project[]>('/api/projects/', {
       observe: 'body',
       responseType: 'json'
     });
   }
 
   addProject(project: Project): Observable<Project> {
-    return this.http.post<Project>('/api/project/', project, {
+    return this.http.post<Project>('/api/projects/', project, {
       observe: 'body',
       responseType: 'json'
     });
   }
 
   updateProject(id: string, patch: Operation[]): Observable<Project> {
-    return this.http.patch<Project>('/api/project/' + id, patch, {
+    return this.http.patch<Project>('/api/projects/' + id, patch, {
       observe: 'body',
       responseType: 'json'
     });
   }
 
   removeProject(id: string): Observable<boolean> {
-    return this.http.delete('/api/project/' + id, {
+    return this.http.delete('/api/projects/' + id, {
       observe: 'response'
     }).pipe(map(res => res.ok));
   }

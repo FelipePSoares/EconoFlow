@@ -1,6 +1,7 @@
 ﻿using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Domain.Models;
 using EasyFinance.Domain.Models.AccessControl;
+using EasyFinance.Domain.Models.Financial;
 using EasyFinance.Domain.Models.FinancialProject;
 using EasyFinance.Persistence.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
@@ -13,16 +14,20 @@ namespace EasyFinance.Persistence.Repositories
         private readonly EasyFinanceDatabaseContext context;
         private readonly Lazy<IGenericRepository<Project>> projectRepository;
         private readonly Lazy<IGenericRepository<UserProject>> userProjectRepository;
+        private readonly Lazy<IGenericRepository<Income>> incomeRepository;
 
         public UnitOfWork(EasyFinanceDatabaseContext dbContext)
         {
             this.context = dbContext;
             this.projectRepository = new Lazy<IGenericRepository<Project>>(() => new GenericRepository<Project>(this.context));
             this.userProjectRepository = new Lazy<IGenericRepository<UserProject>>(() => new GenericRepository<UserProject>(this.context));
+            this.incomeRepository = new Lazy<IGenericRepository<Income>>(() => new GenericRepository<Income>(this.context));
         }
 
         public IGenericRepository<Project> ProjectRepository => this.projectRepository.Value;
         public IGenericRepository<UserProject> UserProjectRepository => this.userProjectRepository.Value;
+
+        public IGenericRepository<Income> IncomeRepository => this.incomeRepository.Value;
 
         public async Task CommitAsync()
         {

@@ -1,7 +1,7 @@
 ﻿using System.Security.Claims;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Domain.Models.AccessControl;
-using EasyFinance.Server.DTOs;
+using EasyFinance.Server.DTOs.FinancialProject;
 using EasyFinance.Server.Mappers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
@@ -11,14 +11,14 @@ namespace EasyFinance.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ProjectController : ControllerBase
+    public class ProjectsController : ControllerBase
     {
-        private readonly IProjectService _projectService;
+        private readonly IProjectService projectService;
         private readonly UserManager<User> userManager;
 
-        public ProjectController(IProjectService projectService, UserManager<User> userManager)
+        public ProjectsController(IProjectService projectService, UserManager<User> userManager)
         {
-            _projectService = projectService;
+            this.projectService = projectService;
             this.userManager = userManager;
         }
 
@@ -27,14 +27,14 @@ namespace EasyFinance.Server.Controllers
         {
             var userId = new Guid(this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier).Value);
 
-            var projects = _projectService.GetAll(userId);
+            var projects = projectService.GetAll(userId);
             return Ok(projects.ToDTO());
         }
 
         [HttpGet("{projectId}")]
         public IActionResult GetProjectById(Guid projectId)
         {
-            var project = _projectService.GetById(projectId);
+            var project = projectService.GetById(projectId);
 
             if (project == null) return NotFound();
 
@@ -49,7 +49,7 @@ namespace EasyFinance.Server.Controllers
             var id = this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier);
             var user = await this.userManager.FindByIdAsync(id.Value);
 
-            var createdProject = (await _projectService.CreateAsync(user, projectDto.FromDTO())).ToDTO();
+            var createdProject = (await projectService.CreateAsync(user, projectDto.FromDTO())).ToDTO();
 
             return CreatedAtAction(nameof(GetProjectById), new { projectId = createdProject.Id }, createdProject);
         }
@@ -59,7 +59,7 @@ namespace EasyFinance.Server.Controllers
         {
             if (projectDto == null) return BadRequest();
 
-            var existingProject = _projectService.GetById(projectId);
+            var existingProject = projectService.GetById(projectId);
 
             if (existingProject == null) return NotFound();
 
@@ -67,18 +67,17 @@ namespace EasyFinance.Server.Controllers
 
             projectDto.ApplyTo(dto);
 
-            var project = dto.FromDTO();
-            project.SetId(projectId);
+            dto.FromDTO(existingProject);
 
-            await _projectService.UpdateAsync(project);
+            await projectService.UpdateAsync(existingProject);
 
-            return Ok(project);
+            return Ok(existingProject);
         }
 
         [HttpDelete("{projectId}")]
         public async Task<IActionResult> DeleteProjectAsync(Guid projectId)
         {
-            await _projectService.DeleteAsync(projectId);
+            await projectService.DeleteAsync(projectId);
 
             return NoContent();
         }
