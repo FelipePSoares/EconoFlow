@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ProjectService } from '../../../core/services/project.service';
 import { ProjectType, ProjectType2LabelMapping } from 'src/app/core/enums/project-type';
 import { comboRequiredValidator } from 'src/app/core/utils/custom-validators/combo-required-validator';
@@ -8,6 +8,8 @@ import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-add-project',
+  standalone: true,
+  imports: [FormsModule, ReactiveFormsModule],
   templateUrl: './add-project.component.html',
   styleUrl: './add-project.component.css'
 })

@@ -21,7 +21,7 @@ import { compare } from 'fast-json-patch';
   styleUrl: './list-incomes.component.css'
 })
 
-export class ListIncomesComponent implements OnInit {
+export class ListIncomesComponent {
   private incomes: BehaviorSubject<IncomeDto[]> = new BehaviorSubject<IncomeDto[]>([new IncomeDto()]);
   incomes$: Observable<IncomeDto[]> = this.incomes.asObservable();
   incomeForm!: FormGroup;
@@ -29,20 +29,19 @@ export class ListIncomesComponent implements OnInit {
   httpErrors = false;
   errors: any;
 
-  @Input({ required: true }) projectId = '';
-
-  constructor(public incomeService: IncomeService, private router: Router)
-  {
-    this.editIncome(new IncomeDto());
-  }
-
-  ngOnInit(): void {
-    this.incomeService.get(this.projectId)
+  @Input({ required: true })
+  set projectId(projectId: string) {
+    this.incomeService.get(projectId)
       .pipe(map(incomes => mapper.mapArray(incomes, Income, IncomeDto)))
       .subscribe(
         {
           next: res => { this.incomes.next(res); }
         });
+  }
+
+  constructor(public incomeService: IncomeService, private router: Router)
+  {
+    this.editIncome(new IncomeDto());
   }
 
   get id() {

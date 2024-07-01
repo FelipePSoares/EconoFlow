@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ProjectService } from '../../../core/services/project.service';
 import { BehaviorSubject, Observable, map } from 'rxjs';
 import { ProjectDto } from '../models/project-dto';
@@ -7,9 +7,12 @@ import { mapper } from 'src/app/core/utils/mappings/mapper';
 import { Project } from 'src/app/core/models/project';
 import { compare } from 'fast-json-patch';
 import { Router } from '@angular/router';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
   selector: 'app-list-projects',
+  standalone: true,
+  imports: [FormsModule, ReactiveFormsModule, AsyncPipe],
   templateUrl: './list-projects.component.html',
   styleUrls: ['./list-projects.component.css']
 })
@@ -41,6 +44,10 @@ export class ListProjectsComponent implements OnInit {
 
   addProject(): void {
     this.router.navigate(['/add-project']);
+  }
+
+  selectProject(id: string): void {
+    this.router.navigate(['/projects/' + id + '/incomes']);
   }
 
   saveProject(): void {

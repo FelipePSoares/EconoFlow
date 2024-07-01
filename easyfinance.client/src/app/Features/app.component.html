@@ -1,5 +1,7 @@
 <main>
-  <app-nav-bar *ngIf="authService.isSignedIn$ | async"></app-nav-bar>
+  @if(authService.isSignedIn$ | async){
+  <app-nav-bar></app-nav-bar>
+  }
 </main>
 
 <router-outlet></router-outlet>
