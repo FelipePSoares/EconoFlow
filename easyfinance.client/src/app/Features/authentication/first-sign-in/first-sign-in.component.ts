@@ -1,10 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { UserService } from '../../../core/services/user.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-first-sign-in',
+  standalone: true,
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './first-sign-in.component.html',
   styleUrls: ['./first-sign-in.component.css']
 })

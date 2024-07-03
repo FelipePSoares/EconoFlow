@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, map } from 'rxjs';
 import { Income } from 'src/app/core/models/income';
@@ -8,6 +8,8 @@ import { mapper } from 'src/app/core/utils/mappings/mapper';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { compare } from 'fast-json-patch';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-list-incomes',
@@ -15,34 +17,40 @@ import { compare } from 'fast-json-patch';
   imports: [
     CommonModule,
     AsyncPipe,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    FontAwesomeModule
   ],
   templateUrl: './list-incomes.component.html',
   styleUrl: './list-incomes.component.css'
 })
 
-export class ListIncomesComponent implements OnInit {
+export class ListIncomesComponent {
+  private _projectId!: string;
   private incomes: BehaviorSubject<IncomeDto[]> = new BehaviorSubject<IncomeDto[]>([new IncomeDto()]);
   incomes$: Observable<IncomeDto[]> = this.incomes.asObservable();
   incomeForm!: FormGroup;
   editingIncome: IncomeDto = new IncomeDto();
   httpErrors = false;
   errors: any;
-
-  @Input({ required: true }) projectId = '';
-
-  constructor(public incomeService: IncomeService, private router: Router)
-  {
-    this.editIncome(new IncomeDto());
+  faPlus = faPlus;
+  
+  get projectId(): string {
+    return this._projectId;
   }
-
-  ngOnInit(): void {
-    this.incomeService.get(this.projectId)
+  @Input({ required: true })
+  set projectId(projectId: string) {
+    this._projectId = projectId;
+    this.incomeService.get(projectId)
       .pipe(map(incomes => mapper.mapArray(incomes, Income, IncomeDto)))
       .subscribe(
         {
           next: res => { this.incomes.next(res); }
         });
+  }
+
+  constructor(public incomeService: IncomeService, private router: Router)
+  {
+    this.edit(new IncomeDto());
   }
 
   get id() {
@@ -58,11 +66,11 @@ export class ListIncomesComponent implements OnInit {
     return this.incomeForm.get('amount');
   }
 
-  addIncome(): void {
-    this.router.navigate(['/add-income']);
+  add(): void {
+    this.router.navigate(['projects/' + this.projectId + '/add-income']);
   }
 
-  saveIncome(): void {
+  save(): void {
     if (this.incomeForm.valid) {
       const id = this.id?.value;
       const name = this.name?.value;
@@ -90,7 +98,7 @@ export class ListIncomesComponent implements OnInit {
     }
   }
 
-  editIncome(income: IncomeDto): void {
+  edit(income: IncomeDto): void {
     this.editingIncome = income;
     this.incomeForm = new FormGroup({
       id: new FormControl(income.id),
@@ -100,7 +108,11 @@ export class ListIncomesComponent implements OnInit {
     });
   }
 
-  removeIncome(id: string): void {
+  cancelEdit(): void {
+    this.editingIncome = new IncomeDto();
+  }
+
+  remove(id: string): void {
     this.incomeService.remove(this.projectId, id).subscribe({
       next: response => {
         const incomesNewArray: IncomeDto[] = this.incomes.getValue();

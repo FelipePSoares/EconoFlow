@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ProjectService } from '../../../core/services/project.service';
 import { BehaviorSubject, Observable, map } from 'rxjs';
 import { ProjectDto } from '../models/project-dto';
@@ -7,9 +7,14 @@ import { mapper } from 'src/app/core/utils/mappings/mapper';
 import { Project } from 'src/app/core/models/project';
 import { compare } from 'fast-json-patch';
 import { Router } from '@angular/router';
+import { AsyncPipe } from '@angular/common';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-list-projects',
+  standalone: true,
+  imports: [FormsModule, ReactiveFormsModule, AsyncPipe, FontAwesomeModule],
   templateUrl: './list-projects.component.html',
   styleUrls: ['./list-projects.component.css']
 })
@@ -20,10 +25,11 @@ export class ListProjectsComponent implements OnInit {
   editingProject: ProjectDto = new ProjectDto();
   httpErrors = false;
   errors: any;
+  faPlus = faPlus;
 
   constructor(public projectService: ProjectService, private router: Router)
   {
-    this.editProject(new Project());
+    this.edit(new Project());
   }
 
   ngOnInit(): void {
@@ -39,11 +45,15 @@ export class ListProjectsComponent implements OnInit {
     return this.projectForm.get('name');
   }
 
-  addProject(): void {
+  add(): void {
     this.router.navigate(['/add-project']);
   }
 
-  saveProject(): void {
+  select(id: string): void {
+    this.router.navigate(['/projects/' + id + '/incomes']);
+  }
+
+  save(): void {
     if (this.projectForm.valid) {
       const id = this.projectForm.get('id')?.value;
       const name = this.projectForm.get('name')?.value;
@@ -69,7 +79,7 @@ export class ListProjectsComponent implements OnInit {
     }
   }
   
-  editProject(project: ProjectDto): void {
+  edit(project: ProjectDto): void {
     this.editingProject = project;
     this.projectForm = new FormGroup({
       id: new FormControl(project.id),
@@ -78,7 +88,11 @@ export class ListProjectsComponent implements OnInit {
     });
   }
 
-  removeProject(id: string): void{
+  cancelEdit(): void {
+    this.editingProject = new ProjectDto();
+  }
+
+  remove(id: string): void{
     this.projectService.removeProject(id).subscribe({
       next: response => {
         const projectsNewArray: ProjectDto[] = this.projects.getValue();
