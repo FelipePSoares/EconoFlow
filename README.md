@@ -4,7 +4,7 @@ An easy system to help you control your personal or company finance.
 
 ## Live Demo
 
-- [Live Demo](www.felipesoares-001-site2.itempurl.com)
+- [Live Demo](http://felipesoares-001-site2.itempurl.com)
 
 ## Author
 
