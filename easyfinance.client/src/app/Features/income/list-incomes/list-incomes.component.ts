@@ -25,6 +25,7 @@ import { faPlus } from '@fortawesome/free-solid-svg-icons';
 })
 
 export class ListIncomesComponent {
+  private _projectId!: string;
   private incomes: BehaviorSubject<IncomeDto[]> = new BehaviorSubject<IncomeDto[]>([new IncomeDto()]);
   incomes$: Observable<IncomeDto[]> = this.incomes.asObservable();
   incomeForm!: FormGroup;
@@ -32,9 +33,13 @@ export class ListIncomesComponent {
   httpErrors = false;
   errors: any;
   faPlus = faPlus;
-
+  
+  get projectId(): string {
+    return this._projectId;
+  }
   @Input({ required: true })
   set projectId(projectId: string) {
+    this._projectId = projectId;
     this.incomeService.get(projectId)
       .pipe(map(incomes => mapper.mapArray(incomes, Income, IncomeDto)))
       .subscribe(
@@ -62,7 +67,7 @@ export class ListIncomesComponent {
   }
 
   addIncome(): void {
-    this.router.navigate(['/add-income']);
+    this.router.navigate(['projects/' + this.projectId + '/add-income']);
   }
 
   saveIncome(): void {
