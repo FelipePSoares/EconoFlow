@@ -50,7 +50,7 @@ export class ListIncomesComponent {
 
   constructor(public incomeService: IncomeService, private router: Router)
   {
-    this.editIncome(new IncomeDto());
+    this.edit(new IncomeDto());
   }
 
   get id() {
@@ -66,11 +66,11 @@ export class ListIncomesComponent {
     return this.incomeForm.get('amount');
   }
 
-  addIncome(): void {
+  add(): void {
     this.router.navigate(['projects/' + this.projectId + '/add-income']);
   }
 
-  saveIncome(): void {
+  save(): void {
     if (this.incomeForm.valid) {
       const id = this.id?.value;
       const name = this.name?.value;
@@ -98,7 +98,7 @@ export class ListIncomesComponent {
     }
   }
 
-  editIncome(income: IncomeDto): void {
+  edit(income: IncomeDto): void {
     this.editingIncome = income;
     this.incomeForm = new FormGroup({
       id: new FormControl(income.id),
@@ -108,7 +108,11 @@ export class ListIncomesComponent {
     });
   }
 
-  removeIncome(id: string): void {
+  cancelEdit(): void {
+    this.editingIncome = new IncomeDto();
+  }
+
+  remove(id: string): void {
     this.incomeService.remove(this.projectId, id).subscribe({
       next: response => {
         const incomesNewArray: IncomeDto[] = this.incomes.getValue();

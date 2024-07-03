@@ -49,7 +49,7 @@ namespace EasyFinance.Server.Controllers
 
             var createdIncome = (await incomeService.CreateAsync(user, projectId, incomeDto.FromDTO())).ToDTO();
 
-            return CreatedAtAction(nameof(GetIncomeById), new { projectId = createdIncome.Id }, createdIncome);
+            return CreatedAtAction(nameof(GetIncomeById), new { projectId, incomeId = createdIncome.Id }, createdIncome);
         }
 
         [HttpPatch("{incomeId}")]

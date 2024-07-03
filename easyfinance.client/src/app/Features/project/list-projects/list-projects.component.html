@@ -8,19 +8,19 @@
           @if(project.id != this.editingProject.id) {
           <div>
             <div class="d-flex justify-content-between align-items-center">
-              <div class="btn" (click)="selectProject(project.id)">
+              <div class="btn" (click)="select(project.id)">
                 <h5 class="mb-1">{{ project.name }}</h5>
                 <p class="mb-1">{{ project.type }}</p>
               </div>
               <div class="btn-group">
-                <button class="btn btn-secondary" (click)="editProject(project)">Edit</button>
-                <button class="btn btn-danger" (click)="removeProject(project.id)">Remove</button>
+                <button class="btn btn-secondary" (click)="edit(project)">Edit</button>
+                <button class="btn btn-danger" (click)="remove(project.id)">Remove</button>
               </div>
             </div>
           </div>
           } @else {
           <div>
-            <form class="d-flex justify-content-between align-items-center my-1" [formGroup]="projectForm" (ngSubmit)="saveProject()">
+            <form class="d-flex justify-content-between align-items-center my-1" [formGroup]="projectForm" (ngSubmit)="save()">
               <div class="col-lg-7 form-floating">
                 <input type="text" class="form-control" id="name" placeholder="Personal" formControlName="name" [class.is-invalid]="name?.invalid && name?.touched">
                 <label for="name">Project Name</label>
@@ -37,7 +37,11 @@
                 <label for="type">Project Type</label>
               </div>
               <div class="col-lg-1 btn-group">
-                <button class="btn btn-success" [disabled]="projectForm.invalid">Save</button>
+
+                <div class="btn-group">
+                  <button class="btn btn-secondary" (click)="cancelEdit()">Cancel</button>
+                  <button class="btn btn-success" [disabled]="projectForm.invalid">Save</button>
+                </div>
               </div>
             </form>
             @if (httpErrors){
@@ -57,7 +61,7 @@
       </div>     
     </div>
   </div>
-  <a class="btn btn-primary btn-add" (click)="addProject()">
+  <a class="btn btn-primary btn-add" (click)="add()">
     <fa-icon [icon]="faPlus"></fa-icon>
   </a>
 </div>

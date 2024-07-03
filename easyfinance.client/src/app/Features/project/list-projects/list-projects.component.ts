@@ -29,7 +29,7 @@ export class ListProjectsComponent implements OnInit {
 
   constructor(public projectService: ProjectService, private router: Router)
   {
-    this.editProject(new Project());
+    this.edit(new Project());
   }
 
   ngOnInit(): void {
@@ -45,15 +45,15 @@ export class ListProjectsComponent implements OnInit {
     return this.projectForm.get('name');
   }
 
-  addProject(): void {
+  add(): void {
     this.router.navigate(['/add-project']);
   }
 
-  selectProject(id: string): void {
+  select(id: string): void {
     this.router.navigate(['/projects/' + id + '/incomes']);
   }
 
-  saveProject(): void {
+  save(): void {
     if (this.projectForm.valid) {
       const id = this.projectForm.get('id')?.value;
       const name = this.projectForm.get('name')?.value;
@@ -79,7 +79,7 @@ export class ListProjectsComponent implements OnInit {
     }
   }
   
-  editProject(project: ProjectDto): void {
+  edit(project: ProjectDto): void {
     this.editingProject = project;
     this.projectForm = new FormGroup({
       id: new FormControl(project.id),
@@ -88,7 +88,11 @@ export class ListProjectsComponent implements OnInit {
     });
   }
 
-  removeProject(id: string): void{
+  cancelEdit(): void {
+    this.editingProject = new ProjectDto();
+  }
+
+  remove(id: string): void{
     this.projectService.removeProject(id).subscribe({
       next: response => {
         const projectsNewArray: ProjectDto[] = this.projects.getValue();
