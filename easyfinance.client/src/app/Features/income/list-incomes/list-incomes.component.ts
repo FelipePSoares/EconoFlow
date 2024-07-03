@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, map } from 'rxjs';
 import { Income } from 'src/app/core/models/income';
@@ -8,6 +8,8 @@ import { mapper } from 'src/app/core/utils/mappings/mapper';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { compare } from 'fast-json-patch';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-list-incomes',
@@ -15,7 +17,8 @@ import { compare } from 'fast-json-patch';
   imports: [
     CommonModule,
     AsyncPipe,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    FontAwesomeModule
   ],
   templateUrl: './list-incomes.component.html',
   styleUrl: './list-incomes.component.css'
@@ -28,6 +31,7 @@ export class ListIncomesComponent {
   editingIncome: IncomeDto = new IncomeDto();
   httpErrors = false;
   errors: any;
+  faPlus = faPlus;
 
   @Input({ required: true })
   set projectId(projectId: string) {

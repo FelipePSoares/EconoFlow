@@ -8,11 +8,13 @@ import { Project } from 'src/app/core/models/project';
 import { compare } from 'fast-json-patch';
 import { Router } from '@angular/router';
 import { AsyncPipe } from '@angular/common';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-list-projects',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, AsyncPipe],
+  imports: [FormsModule, ReactiveFormsModule, AsyncPipe, FontAwesomeModule],
   templateUrl: './list-projects.component.html',
   styleUrls: ['./list-projects.component.css']
 })
@@ -23,6 +25,7 @@ export class ListProjectsComponent implements OnInit {
   editingProject: ProjectDto = new ProjectDto();
   httpErrors = false;
   errors: any;
+  faPlus = faPlus;
 
   constructor(public projectService: ProjectService, private router: Router)
   {
