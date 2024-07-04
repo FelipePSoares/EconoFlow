@@ -1,0 +1,16 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using EasyFinance.Domain.Models.Financial;
+
+namespace EasyFinance.Application.Features.CategoryService
+{
+    public interface ICategoryService
+    {
+        Task<ICollection<Category>> GetAllAsync(Guid projectId);
+        Task<Category> GetByIdAsync(Guid categoryId);
+        Task<Category> CreateAsync(Guid projectId, Category category);
+        Task<Category> UpdateAsync(Category category);
+        Task DeleteAsync(Guid categoryId);
+    }
+}
