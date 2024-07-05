@@ -67,7 +67,7 @@ export class ListIncomesComponent {
   }
 
   add(): void {
-    this.router.navigate(['projects/' + this.projectId + '/add-income']);
+    this.router.navigate(['projects/', this.projectId, '/add-income']);
   }
 
   save(): void {

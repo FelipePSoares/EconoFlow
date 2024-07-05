@@ -43,7 +43,7 @@ export class AddIncomeComponent implements OnInit {
 
       this.incomeService.add(this.projectId, newIncome).subscribe({
         next: response => {
-          this.router.navigate(['/projects/' + this.projectId + '/incomes']);
+          this.router.navigate(['/projects/', this.projectId, '/incomes']);
         },
         error: error => {
           this.httpErrors = true;
