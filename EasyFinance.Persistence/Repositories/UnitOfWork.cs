@@ -16,6 +16,7 @@ namespace EasyFinance.Persistence.Repositories
         private readonly Lazy<IGenericRepository<UserProject>> userProjectRepository;
         private readonly Lazy<IGenericRepository<Income>> incomeRepository;
         private readonly Lazy<IGenericRepository<Category>> categoryRepository;
+        private readonly Lazy<IGenericRepository<Expense>> expenseRepository;
 
         public UnitOfWork(EasyFinanceDatabaseContext dbContext)
         {
@@ -24,6 +25,7 @@ namespace EasyFinance.Persistence.Repositories
             this.userProjectRepository = new Lazy<IGenericRepository<UserProject>>(() => new GenericRepository<UserProject>(this.context));
             this.incomeRepository = new Lazy<IGenericRepository<Income>>(() => new GenericRepository<Income>(this.context));
             this.categoryRepository = new Lazy<IGenericRepository<Category>>(() => new GenericRepository<Category>(this.context));
+            this.expenseRepository = new Lazy<IGenericRepository<Expense>>(() => new GenericRepository<Expense>(this.context));
         }
 
         public IGenericRepository<Project> ProjectRepository => this.projectRepository.Value;
@@ -31,6 +33,7 @@ namespace EasyFinance.Persistence.Repositories
 
         public IGenericRepository<Income> IncomeRepository => this.incomeRepository.Value;
         public IGenericRepository<Category> CategoryRepository => this.categoryRepository.Value;
+        public IGenericRepository<Expense> ExpenseRepository => this.expenseRepository.Value;
 
         public async Task CommitAsync()
         {

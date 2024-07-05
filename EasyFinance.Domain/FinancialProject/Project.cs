@@ -24,12 +24,28 @@ namespace EasyFinance.Domain.Models.FinancialProject
         public ICollection<Category> Categories { get; private set; } = new List<Category>();
         public ICollection<Income> Incomes { get; private set; } = new List<Income>();
 
+        public void AddCategory(Category category)
+        {
+            if (category == default)
+                throw new ValidationException(nameof(category), string.Format(ValidationMessages.PropertyCantBeNull, nameof(category)));
+
+            this.Categories.Add(category);
+        }
+
         public void SetCategories(ICollection<Category> categories)
         {
             if (categories == default)
                 throw new ValidationException(nameof(this.Categories), string.Format(ValidationMessages.PropertyCantBeNull, nameof(this.Categories)));
 
             this.Categories = categories;
+        }
+
+        public void AddIncome(Income income)
+        {
+            if (income == default)
+                throw new ValidationException(nameof(income), string.Format(ValidationMessages.PropertyCantBeNull, nameof(income)));
+
+            this.Incomes.Add(income);
         }
 
         public void SetIncomes(ICollection<Income> incomes)

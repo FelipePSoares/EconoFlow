@@ -10,6 +10,9 @@ import { AddProjectComponent } from './project/add-project/add-project.component
 import { ListIncomesComponent } from './income/list-incomes/list-incomes.component';
 import { AddIncomeComponent } from './income/add-income/add-income.component';
 import { DetailProjectComponent } from './project/detail-project/detail-project.component';
+import { ListCategoriesComponent } from './category/list-categories/list-categories.component';
+import { AddCategoryComponent } from './category/add-category/add-category.component';
+import { DetailCategoryComponent } from './category/detail-category/detail-category.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'projects', pathMatch: 'full' },
@@ -22,4 +25,7 @@ export const routes: Routes = [
   { path: 'projects/:projectId', component: DetailProjectComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
   { path: 'projects/:projectId/incomes', component: ListIncomesComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
   { path: 'projects/:projectId/add-income', component: AddIncomeComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
+  { path: 'projects/:projectId/categories', component: ListCategoriesComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
+  { path: 'projects/:projectId/add-category', component: AddCategoryComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
+  { path: 'projects/:projectId/categories/:categoryId', component: DetailCategoryComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
 ];

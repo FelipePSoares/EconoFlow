@@ -21,7 +21,7 @@
           } @else {
           <div>
             <form class="d-flex justify-content-between align-items-center my-1" [formGroup]="projectForm" (ngSubmit)="save()">
-              <div class="col-lg-7 form-floating">
+              <div class="form-floating">
                 <input type="text" class="form-control" id="name" placeholder="Personal" formControlName="name" [class.is-invalid]="name?.invalid && name?.touched">
                 <label for="name">Project Name</label>
                 @if(name?.invalid && name?.touched){
@@ -32,16 +32,13 @@
                 </div>
                 }
               </div>
-              <div class="col-lg-2 form-floating">
+              <div class="form-floating">
                 <input type="text" class="form-control-plaintext" readonly id="type" formControlName="type">
                 <label for="type">Project Type</label>
               </div>
-              <div class="col-lg-1 btn-group">
-
-                <div class="btn-group">
-                  <button class="btn btn-secondary" (click)="cancelEdit()">Cancel</button>
-                  <button class="btn btn-success" [disabled]="projectForm.invalid">Save</button>
-                </div>
+              <div class="btn-group">
+                <button class="btn btn-secondary" (click)="cancelEdit()">Cancel</button>
+                <button class="btn btn-success" [disabled]="projectForm.invalid">Save</button>
               </div>
             </form>
             @if (httpErrors){

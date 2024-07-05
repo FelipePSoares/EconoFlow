@@ -2,6 +2,7 @@ using System.Net;
 using EasyFinance.Application;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Domain.Models.AccessControl;
+using EasyFinance.Domain.Models.Financial;
 using EasyFinance.Domain.Models.FinancialProject;
 using EasyFinance.Persistence;
 using EasyFinance.Persistence.DatabaseContext;
@@ -99,7 +100,23 @@ if (app.Environment.IsDevelopment())
     };
     userManager.CreateAsync(user, "Passw0rd!").GetAwaiter().GetResult();
 
+    var income = new Income("Salário", DateTime.Now, 3000, user);
+    unitOfWork.IncomeRepository.InsertOrUpdate(income);
+
+    var income2 = new Income("Salário", DateTime.Now.AddMonths(-1), 3000, user);
+    unitOfWork.IncomeRepository.InsertOrUpdate(income2);
+
+    var expense = new Expense("Aluguel", DateTime.Now, 700, user, Goal: 700);
+    unitOfWork.ExpenseRepository.InsertOrUpdate(expense);
+
+    var category = new Category("Custos Fixos", 1000);
+    category.AddExpense(expense);
+    unitOfWork.CategoryRepository.InsertOrUpdate(category);
+
     var project = new Project(name: "Família", type: ProjectType.Personal);
+    project.AddIncome(income);
+    project.AddIncome(income2);
+    project.AddCategory(category);
     unitOfWork.ProjectRepository.InsertOrUpdate(project);
 
     var userProject = new UserProject(user, project, Role.Admin);

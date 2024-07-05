@@ -10,6 +10,7 @@ namespace EasyFinance.Application.Contracts.Persistence
         IGenericRepository<Project> ProjectRepository { get; }
         IGenericRepository<UserProject> UserProjectRepository { get; }
         IGenericRepository<Income> IncomeRepository { get; }
+        IGenericRepository<Expense> ExpenseRepository { get; }
         IGenericRepository<Category> CategoryRepository { get; }
 
         Task CommitAsync();

@@ -18,9 +18,9 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll(Guid projectId)
+        public async Task<IActionResult> Get(Guid projectId, DateTime filterDate)
         {
-            var categories = await this.categoryService.GetAllAsync(projectId);
+            var categories = await this.categoryService.GetAsync(projectId, filterDate);
             return Ok(categories.ToDTO());
         }
 
@@ -53,7 +53,7 @@ namespace EasyFinance.Server.Controllers
             var dto = existingCategory.ToRequestDTO();
             categoryDto.ApplyTo(dto);
 
-            var income = dto.FromDTO(existingCategory);
+            dto.FromDTO(existingCategory);
 
             await categoryService.UpdateAsync(existingCategory);
 
