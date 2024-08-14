@@ -25,7 +25,7 @@ import { faPlus } from '@fortawesome/free-solid-svg-icons';
 })
 
 export class ListIncomesComponent {
-  private _projectId!: string;
+  private _filterDate!: Date;
   private incomes: BehaviorSubject<IncomeDto[]> = new BehaviorSubject<IncomeDto[]>([new IncomeDto()]);
   incomes$: Observable<IncomeDto[]> = this.incomes.asObservable();
   incomeForm!: FormGroup;
@@ -34,19 +34,22 @@ export class ListIncomesComponent {
   errors: any;
   faPlus = faPlus;
   
-  get projectId(): string {
-    return this._projectId;
+  get filterDate(): Date {
+    return this._filterDate;
   }
   @Input({ required: true })
-  set projectId(projectId: string) {
-    this._projectId = projectId;
-    this.incomeService.get(projectId)
+  set filterDate(filterDate: Date) {
+    this._filterDate = filterDate;
+    this.incomeService.get(this.projectId, this._filterDate)
       .pipe(map(incomes => mapper.mapArray(incomes, Income, IncomeDto)))
       .subscribe(
         {
           next: res => { this.incomes.next(res); }
         });
   }
+  
+  @Input({ required: true })
+  projectId!: string;
 
   constructor(public incomeService: IncomeService, private router: Router)
   {
@@ -67,7 +70,7 @@ export class ListIncomesComponent {
   }
 
   add(): void {
-    this.router.navigate(['projects/', this.projectId, '/add-income']);
+    this.router.navigate(['projects', this.projectId, 'add-income']);
   }
 
   save(): void {
@@ -88,7 +91,7 @@ export class ListIncomesComponent {
       this.incomeService.update(this.projectId, id, patch).subscribe({
         next: response => {
           this.editingIncome.name = response.name;
-          this.editingIncome = new Income();
+          this.editingIncome = new IncomeDto();
         },
         error: error => {
           this.httpErrors = true;

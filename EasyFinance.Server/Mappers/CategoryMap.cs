@@ -17,6 +17,7 @@ namespace EasyFinance.Server.Mappers
                 Id = category.Id,
                 Name = category.Name,
                 Goal = category.Goal,
+                Expenses = category.Expenses
             };
         }
 

@@ -23,9 +23,9 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetIncomes(Guid projectId)
+        public IActionResult GetIncomes(Guid projectId, DateTime filterDate)
         {
-            var incomes = incomeService.GetAll(projectId);
+            var incomes = incomeService.Get(projectId, filterDate);
             return Ok(incomes.ToDTO());
         }
 
@@ -65,7 +65,7 @@ namespace EasyFinance.Server.Controllers
 
             incomeDto.ApplyTo(dto);
 
-            var income = dto.FromDTO(existingIncome);
+            dto.FromDTO(existingIncome);
 
             await incomeService.UpdateAsync(existingIncome);
 

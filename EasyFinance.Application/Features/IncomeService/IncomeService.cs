@@ -24,6 +24,13 @@ namespace EasyFinance.Application.Features.IncomeService
             return this.unitOfWork.ProjectRepository.NoTrackable().Include(p => p.Incomes).FirstOrDefault(p => p.Id == projectId).Incomes;
         }
 
+        public ICollection<Income> Get(Guid projectId, DateTime filterDate)
+        {
+            return this.unitOfWork.ProjectRepository.NoTrackable()
+                .Include(p => p.Incomes.Where(i => i.Date.Year == filterDate.Year && i.Date.Month == filterDate.Month))
+                .FirstOrDefault(p => p.Id == projectId).Incomes;
+        }
+
         public Income GetById(Guid incomeId)
         {
             return this.unitOfWork.IncomeRepository.Trackable().FirstOrDefault(p => p.Id == incomeId);

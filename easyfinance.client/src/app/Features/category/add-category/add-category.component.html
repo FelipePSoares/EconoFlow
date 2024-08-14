@@ -1,0 +1,41 @@
+<div class="container">
+  <h1 class="text-center mt-5">Create Category</h1>
+  <form [formGroup]="categoryForm" (ngSubmit)="save()">
+    <div class="input justify-content-center">
+      <div class="col-md-4 mb-2 form-floating">
+        <input type="text" class="form-control" id="name" placeholder="Supermarket" formControlName="name" [class.is-invalid]="name?.invalid && name?.touched">
+        <label for="name">Name</label>
+        @if(name?.invalid && name?.touched){
+        <div>
+          @if(name?.errors?.['required']){
+          <div class="text-danger">Name is required.</div>
+          }
+        </div>
+        }
+      </div>
+    </div>
+    <div class="input justify-content-center">
+      <div class="col-md-12 mb-2 form-floating">
+        <input type="text" class="form-control" id="goal" formControlName="goal" [class.is-invalid]="goal?.invalid && goal?.touched">
+        <label for="goal">Goal</label>
+        @if(goal?.invalid && goal?.touched){
+        <div>
+          @if(goal?.errors?.['pattern']){
+          <div class="text-danger">Only numbers is valid.</div>
+          }
+        </div>
+        }
+      </div>
+    </div>
+    <div class="input justify-content-center">
+      <div class="col-md-4 mb-2">
+        <button type="submit" class="btn btn-primary" [disabled]="categoryForm.invalid">Create</button>
+      </div>
+      @if(httpErrors){
+      <div>
+        <p class="mt-5 mb-3 text-danger text-center">{{errors.statusText}}</p>
+      </div>
+      }
+    </div>
+  </form>
+</div>

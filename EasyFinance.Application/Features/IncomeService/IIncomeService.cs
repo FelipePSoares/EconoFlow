@@ -9,6 +9,7 @@ namespace EasyFinance.Application.Features.IncomeService
     public interface IIncomeService
     {
         ICollection<Income> GetAll(Guid projectId);
+        ICollection<Income> Get(Guid projectId, DateTime filterDate);
         Income GetById(Guid incomeId);
         Task<Income> CreateAsync(User user, Guid projectId, Income income);
         Task<Income> UpdateAsync(Income income);

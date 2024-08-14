@@ -11,10 +11,16 @@ import { LoadingInterceptor } from './app/core/interceptor/loading.interceptor';
 import { AppComponent } from './app/features/app.component';
 import { createMap } from '@automapper/core';
 import { mapper } from './app/core/utils/mappings/mapper';
+
 import { Project } from './app/core/models/project';
-import { ProjectDto } from './app/features/project/models/project-dto';
 import { Income } from './app/core/models/income';
+import { Category } from './app/core/models/category';
+import { Expense } from './app/core/models/expense';
+
+import { ProjectDto } from './app/features/project/models/project-dto';
 import { IncomeDto } from './app/features/income/models/income-dto';
+import { CategoryDto } from './app/features/category/models/category-dto';
+import { ExpenseDto } from './app/features/expense/models/expense-dto';
 
 bootstrapApplication(AppComponent, {
   providers: [
@@ -26,3 +32,5 @@ bootstrapApplication(AppComponent, {
 
 createMap(mapper, Project, ProjectDto);
 createMap(mapper, Income, IncomeDto);
+createMap(mapper, Category, CategoryDto);
+createMap(mapper, Expense, ExpenseDto);

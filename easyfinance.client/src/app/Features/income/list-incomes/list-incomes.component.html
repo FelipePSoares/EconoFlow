@@ -22,26 +22,24 @@
           } @else {
           <div>
             <form class="d-flex justify-content-between align-items-center my-1" [formGroup]="incomeForm" (ngSubmit)="save()">
-              <div class="col-lg-7 form-floating">
+              <div class="form-floating">
                 <input type="text" class="form-control" id="name" placeholder="Personal" formControlName="name" [class.is-invalid]="name?.invalid && name?.touched">
                 <label for="name">Income Name</label>
                 <div *ngIf="name?.invalid && name?.touched">
                   <div *ngIf="name?.errors?.['required']" class="text-danger">Income Name is required.</div>
                 </div>
               </div>
-              <div class="col-lg-2 form-floating">
+              <div class="form-floating">
                 <input type="text" class="form-control-plaintext" readonly id="date" formControlName="date">
                 <label for="type">Income Date</label>
               </div>
-              <div class="col-lg-2 form-floating">
+              <div class="form-floating">
                 <input type="text" class="form-control-plaintext" readonly id="amount" formControlName="amount">
                 <label for="type">Income Amount</label>
               </div>
-              <div class="col-lg-1 btn-group">
-                <div class="btn-group">
-                  <button class="btn btn-secondary" (click)="cancelEdit()">Cancel</button>
-                  <button class="btn btn-success" [disabled]="incomeForm.invalid">Save</button>
-                </div>
+              <div class="btn-group">
+                <button class="btn btn-secondary" (click)="cancelEdit()">Cancel</button>
+                <button class="btn btn-success" [disabled]="incomeForm.invalid">Save</button>
               </div>
             </form>
             <div *ngIf="httpErrors">

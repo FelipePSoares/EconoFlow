@@ -50,7 +50,7 @@ export class ListProjectsComponent implements OnInit {
   }
 
   select(id: string): void {
-    this.router.navigate(['/projects/', id]);
+    this.router.navigate(['/projects', id]);
   }
 
   save(): void {
