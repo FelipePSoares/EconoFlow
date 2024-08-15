@@ -1,8 +1,8 @@
 ﻿namespace EasyFinance.Server.DTOs.Financial
 {
-    public class CategoryRequestDTO
+    public class ExpenseResponseDTO : BaseExpenseResponseDTO
     {
-        public string Name { get; set; }
+        public Guid Id { get; set; }
         public int Goal { get; set; }
     }
 }
