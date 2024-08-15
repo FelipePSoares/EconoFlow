@@ -60,7 +60,7 @@ namespace EasyFinance.Application.Features.IncomeService
         public async Task<Income> UpdateAsync(Income income)
         {
             if (income == default)
-                throw new ArgumentNullException(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(income)));
+                throw new ArgumentNullException(nameof(income), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(income)));
 
             unitOfWork.IncomeRepository.InsertOrUpdate(income);
             await unitOfWork.CommitAsync();
@@ -70,10 +70,10 @@ namespace EasyFinance.Application.Features.IncomeService
 
         public async Task DeleteAsync(Guid incomeId)
         {
-            if (incomeId == null || incomeId == Guid.Empty)
-                throw new ArgumentNullException("The id is not valid");
+            if (incomeId == Guid.Empty)
+                throw new ArgumentNullException(nameof(incomeId) , "The id is not valid");
 
-            var income = unitOfWork.IncomeRepository.Trackable().FirstOrDefault(income => income.Id == incomeId);
+            var income = unitOfWork.IncomeRepository.Trackable().FirstOrDefault(i => i.Id == incomeId);
 
             if (income == null)
                 return;
