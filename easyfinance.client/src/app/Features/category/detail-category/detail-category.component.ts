@@ -12,9 +12,13 @@ import { ListExpensesComponent } from '../../expense/list-expenses/list-expenses
 })
 
 export class DetailCategoryComponent implements OnInit {
+  filterDate!: Date;
+
   @Input({ required: true })
   categoryId!: string;
-  filterDate!: Date;
+
+  @Input({ required: true })
+  projectId!: string;
 
   constructor(private route: ActivatedRoute) {
   }
