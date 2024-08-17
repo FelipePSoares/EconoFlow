@@ -1,7 +1,6 @@
 import { AutoMap } from "@automapper/classes";
-import { ExpenseItemDto } from "./expense-item-dto";
 
-export class ExpenseDto {
+export class ExpenseItemDto {
   @AutoMap()
   id!: string;
   @AutoMap()
@@ -10,8 +9,6 @@ export class ExpenseDto {
   date!: Date;
   @AutoMap()
   amount!: number;
-  @AutoMap()
-  goal!: number;
   @AutoMap(() => [ExpenseItemDto])
   items!: ExpenseItemDto[];
 

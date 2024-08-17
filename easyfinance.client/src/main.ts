@@ -16,11 +16,13 @@ import { Project } from './app/core/models/project';
 import { Income } from './app/core/models/income';
 import { Category } from './app/core/models/category';
 import { Expense } from './app/core/models/expense';
+import { ExpenseItem } from './app/core/models/expense-item';
 
 import { ProjectDto } from './app/features/project/models/project-dto';
 import { IncomeDto } from './app/features/income/models/income-dto';
 import { CategoryDto } from './app/features/category/models/category-dto';
 import { ExpenseDto } from './app/features/expense/models/expense-dto';
+import { ExpenseItemDto } from './app/features/expense/models/expense-item-dto';
 
 bootstrapApplication(AppComponent, {
   providers: [
@@ -34,3 +36,4 @@ createMap(mapper, Project, ProjectDto);
 createMap(mapper, Income, IncomeDto);
 createMap(mapper, Category, CategoryDto);
 createMap(mapper, Expense, ExpenseDto);
+createMap(mapper, ExpenseItem, ExpenseItemDto);
