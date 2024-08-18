@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { IncomeService } from '../../../core/services/income.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { IncomeDto } from '../models/income-dto';
 
 @Component({
@@ -12,6 +12,7 @@ import { IncomeDto } from '../models/income-dto';
   styleUrl: './add-income.component.css'
 })
 export class AddIncomeComponent implements OnInit {
+  private currentDate!: Date;
   incomeForm!: FormGroup;
   httpErrors = false;
   errors: any;
@@ -19,13 +20,15 @@ export class AddIncomeComponent implements OnInit {
   @Input({ required: true })
     projectId!: string;
 
-  constructor(private incomeService: IncomeService, private router: Router) { }
+  constructor(private incomeService: IncomeService, private router: Router, private route: ActivatedRoute) { }
 
   ngOnInit(): void {
+    this.currentDate = new Date(this.route.snapshot.paramMap.get('currentDate')!);
+
     this.incomeForm = new FormGroup({
       name: new FormControl('', [Validators.required]),
-      date: new FormControl(new Date(), [Validators.required]),
-      amount: new FormControl('', [Validators.required])
+      date: new FormControl(this.currentDate.getFullYear() + '-' + String(this.currentDate.getMonth() + 1).padStart(2, '0') + '-' + String(this.currentDate.getDate()).padStart(2, '0'), [Validators.required, Validators.pattern('^\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])$')]),
+      amount: new FormControl('', [Validators.required, Validators.pattern('(\\d+)?(\\,\\d{1,2})?')])
     });
   }
 

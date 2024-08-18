@@ -70,7 +70,7 @@ export class ListIncomesComponent {
   }
 
   add(): void {
-    this.router.navigate(['projects', this.projectId, 'add-income']);
+    this.router.navigate(['projects', this.projectId, 'add-income', { currentDate: this.filterDate.toISOString().substring(0, 10) }]);
   }
 
   save(): void {
