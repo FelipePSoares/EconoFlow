@@ -4,6 +4,7 @@ import { Income } from '../models/income';
 import { Observable, map } from 'rxjs';
 import { Operation } from 'fast-json-patch';
 import { Expense } from '../models/expense';
+import { ExpenseItem } from '../models/expense-item';
 
 @Injectable({
   providedIn: 'root'
@@ -24,6 +25,13 @@ export class ExpenseService {
       observe: 'body',
       responseType: 'json',
       params: queryParams
+    });
+  }
+
+  getById(projectId: string, categoryId: string, expenseId: string) {
+    return this.http.get<Expense>('/api/projects/' + projectId + '/categories/' + categoryId + '/expenses/' + expenseId, {
+      observe: 'body',
+      responseType: 'json'
     });
   }
 

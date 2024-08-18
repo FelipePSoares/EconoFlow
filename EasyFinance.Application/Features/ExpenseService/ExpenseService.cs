@@ -24,14 +24,14 @@ namespace EasyFinance.Application.Features.ExpenseService
         {
             return (await this.unitOfWork.CategoryRepository.NoTrackable()
                 .Include(p => p.Expenses.Where(e => e.Date.ToUniversalTime() >= from && e.Date.ToUniversalTime() <= to))
-                    .ThenInclude(e => e.Items.Where(i => i.Date.ToUniversalTime() >= from && i.Date.ToUniversalTime() <= to))
+                    .ThenInclude(e => e.Items.Where(i => i.Date.ToUniversalTime() >= from && i.Date.ToUniversalTime() <= to).OrderBy(item => item.Date))
                 .FirstOrDefaultAsync(p => p.Id == categoryId)).Expenses;
         }
 
         public async Task<Expense> GetByIdAsync(Guid expenseId)
         {
             return await this.unitOfWork.ExpenseRepository.NoTrackable()
-                .Include(e => e.Items)
+                .Include(e => e.Items.OrderBy(item => item.Date))
                 .FirstOrDefaultAsync(p => p.Id == expenseId);
         }
 

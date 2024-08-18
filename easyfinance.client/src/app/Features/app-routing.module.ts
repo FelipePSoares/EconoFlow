@@ -18,6 +18,7 @@ import { AddCategoryComponent } from './category/add-category/add-category.compo
 import { DetailCategoryComponent } from './category/detail-category/detail-category.component';
 
 import { AddExpenseComponent } from './expense/add-expense/add-expense.component';
+import { DetailExpenseComponent } from './expense/detail-expense/detail-expense.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'projects', pathMatch: 'full' },
@@ -34,4 +35,5 @@ export const routes: Routes = [
   { path: 'projects/:projectId/add-category', component: AddCategoryComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
   { path: 'projects/:projectId/categories/:categoryId', component: DetailCategoryComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
   { path: 'projects/:projectId/categories/:categoryId/add-expense', component: AddExpenseComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
+  { path: 'projects/:projectId/categories/:categoryId/expenses/:expenseId', component: DetailExpenseComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
 ];

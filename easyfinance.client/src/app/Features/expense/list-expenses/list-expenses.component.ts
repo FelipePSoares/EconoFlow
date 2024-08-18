@@ -78,7 +78,6 @@ export class ListExpensesComponent {
     this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, 'expenses', id, { filterDate: this.filterDate.toJSON() }]);
   }
 
-
   save(): void {
     if (this.expenseForm.valid) {
       let id = this.id?.value;
@@ -119,7 +118,7 @@ export class ListExpensesComponent {
       id: new FormControl(expense.id),
       name: new FormControl(expense.name, [Validators.required]),
       date: new FormControl(expense.date, [Validators.required]),
-      amount: new FormControl(expense.amount),
+      amount: new FormControl(expense.amount, [Validators.pattern('[0-9]*')]),
       goal: new FormControl(expense.goal, [Validators.pattern('[0-9]*')]),
     });
   }

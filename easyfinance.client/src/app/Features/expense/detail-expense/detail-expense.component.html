@@ -1,0 +1,4 @@
+<div class="container">
+  <h3>{{filterDate | date: 'MMM yyyy'}}</h3>
+  <app-list-expense-items [projectId]="projectId" [categoryId]="categoryId" [expenseId]="expenseId" [filterDate]="filterDate"></app-list-expense-items>
+</div>
