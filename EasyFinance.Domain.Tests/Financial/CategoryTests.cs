@@ -51,7 +51,7 @@ namespace EasyFinance.Domain.Tests.Financial
             var action = () => category.AddGoal(50).Build();
 
             action.Should().Throw<ValidationException>()
-                .WithMessage(ValidationMessages.GoalDefinedCantBeLessThanExpensesGoal)
+                .WithMessage(string.Format(ValidationMessages.GoalDefinedCantBeLessThanExpensesGoal, 50, 100))
                 .And.Property.Should().Be("Goal");
         }
 
@@ -63,7 +63,7 @@ namespace EasyFinance.Domain.Tests.Financial
             var action = () => new CategoryBuilder().AddExpenses(new List<Expense>() { expense }).Build();
 
             action.Should().Throw<ValidationException>()
-                .WithMessage(ValidationMessages.GoalDefinedCantBeLessThanExpensesGoal)
+                .WithMessage(string.Format(ValidationMessages.GoalDefinedCantBeLessThanExpensesGoal, 0, 100))
                 .And.Property.Should().Be("Goal");
         }
 
