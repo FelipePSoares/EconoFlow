@@ -54,4 +54,10 @@ export class ExpenseService {
       observe: 'response'
     }).pipe(map(res => res.ok));
   }
+
+  removeItem(projectId: string, categoryId: string, expenseId: string, expenseItemId: string): Observable<boolean> {
+    return this.http.delete('/api/projects/' + projectId + '/categories/' + categoryId + '/expenses/' + expenseId + '/expenseItems/' + expenseItemId, {
+      observe: 'response'
+    }).pipe(map(res => res.ok));
+  }
 }

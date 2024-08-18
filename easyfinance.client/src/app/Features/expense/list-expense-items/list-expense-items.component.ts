@@ -136,26 +136,15 @@ export class ListExpenseItemsComponent {
   }
 
   remove(id: string): void {
-    let expense = this.expense.getValue();
-    let expenseItemsNewArray: ExpenseItemDto[] = JSON.parse(JSON.stringify(expense.items));
-    var newExpense = <ExpenseDto>({
-      id: expense.id,
-      name: expense.name,
-      date: expense.date,
-      amount: expense.amount,
-      goal: expense.goal,
-      items: expenseItemsNewArray.filter(item => item.id != id)
-    })
-
-    var patch = compare(expense, newExpense);
-
-    this.expenseService.update(this.projectId, this.categoryId, this.expenseId, patch).subscribe({
+    this.expenseService.removeItem(this.projectId, this.categoryId, this.expenseId, id).subscribe({
       next: response => {
-        this.expense.next(mapper.map(response, Expense, ExpenseDto));
-      },
-      error: error => {
-        this.httpErrors = true;
-        this.errors = error;
+        let expenseUpdated: ExpenseDto = this.expense.getValue();
+
+        expenseUpdated.items.forEach((item, index) => {
+          if (item.id === id) { expenseUpdated.items.splice(index, 1); }
+        });
+
+        this.expense.next(expenseUpdated);
       }
     });
   }

@@ -1,5 +1,6 @@
 ﻿using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Application.Features.CategoryService;
+using EasyFinance.Application.Features.ExpenseItemService;
 using EasyFinance.Application.Features.ExpenseService;
 using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Application.Features.ProjectService;
@@ -16,6 +17,7 @@ namespace EasyFinance.Application
             services.AddScoped<IIncomeService, IncomeService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IExpenseService, ExpenseService>();
+            services.AddScoped<IExpenseItemService, ExpenseItemService>();
 
             return services;
         }
