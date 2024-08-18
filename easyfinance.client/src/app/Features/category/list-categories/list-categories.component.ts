@@ -69,7 +69,7 @@ export class ListCategoriesComponent {
   }
 
   select(id: string): void {
-    this.router.navigate(['/projects', this.projectId, 'categories', id, { filterDate: this.filterDate.toISOString() }]);
+    this.router.navigate(['/projects', this.projectId, 'categories', id, { filterDate: this.filterDate.toISOString().substring(0, 10) }]);
   }
 
   save(): void {

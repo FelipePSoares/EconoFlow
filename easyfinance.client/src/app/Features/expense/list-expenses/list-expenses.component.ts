@@ -75,7 +75,7 @@ export class ListExpensesComponent {
   }
 
   select(id: string): void {
-    this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, 'expenses', id, { filterDate: this.filterDate.toJSON() }]);
+    this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, 'expenses', id, { filterDate: this.filterDate.toISOString().substring(0, 10) }]);
   }
 
   save(): void {
@@ -128,7 +128,7 @@ export class ListExpensesComponent {
   }
 
   add(): void {
-    this.router.navigate(['projects', this.projectId, 'categories', this.categoryId, 'add-expense', { currentDate: this.filterDate.toJSON() }]);
+    this.router.navigate(['projects', this.projectId, 'categories', this.categoryId, 'add-expense', { currentDate: this.filterDate.toISOString().substring(0, 10) }]);
   }
 
   remove(id: string): void {
