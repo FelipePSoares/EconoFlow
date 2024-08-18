@@ -36,9 +36,15 @@ namespace EasyFinance.Server.Mappers
             };
         }
 
-        public static ICollection<ExpenseItem> FromDTO(this ICollection<ExpenseItemRequestDTO> expenseItems) => expenseItems.Select(p => p.FromDTO()).ToList();
+        public static ICollection<ExpenseItem> FromDTO(this ICollection<ExpenseItemRequestDTO> expenseItemsDTO, IList<ExpenseItem> expenseItems = null) 
+            => expenseItemsDTO.Select((expenseItemDTO, index) => {
+                if (index < expenseItems?.Count)
+                    return expenseItemDTO.FromDTO(expenseItems[index]);
 
-        public static ExpenseItem FromDTO(this ExpenseItemRequestDTO expenseItemDTO, Expense expenseItem = null)
+                return expenseItemDTO.FromDTO();
+                }).ToList();
+
+        public static ExpenseItem FromDTO(this ExpenseItemRequestDTO expenseItemDTO, ExpenseItem expenseItem = null)
         {
             ArgumentNullException.ThrowIfNull(expenseItemDTO);
 
@@ -47,7 +53,8 @@ namespace EasyFinance.Server.Mappers
                 expenseItem.SetName(expenseItemDTO.Name);
                 expenseItem.SetDate(expenseItemDTO.Date);
                 expenseItem.SetAmount(expenseItemDTO.Amount);
-                expenseItem.SetItems(expenseItemDTO.Items.FromDTO());
+                expenseItem.SetItems(expenseItemDTO.Items.FromDTO(expenseItem.Items.ToList()));
+                return expenseItem;
             }
 
             return new ExpenseItem(expenseItemDTO.Name, expenseItemDTO.Date, expenseItemDTO.Amount, items: expenseItemDTO.Items.FromDTO());

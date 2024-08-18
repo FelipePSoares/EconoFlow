@@ -121,7 +121,7 @@
     <value>You don't have access to do this action</value>
   </data>
   <data name="GoalDefinedCantBeLessThanExpensesGoal" xml:space="preserve">
-    <value>Goal defined can't be less than expenses goal</value>
+    <value>Goal defined to category ({0}) can't be less than the sum of the expenses goal ({1})</value>
   </data>
   <data name="InvalidDate" xml:space="preserve">
     <value>Invalid date</value>

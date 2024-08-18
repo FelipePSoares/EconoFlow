@@ -1,7 +1,6 @@
 import { AutoMap } from "@automapper/classes";
-import { ExpenseItem } from "./expense-item";
 
-export class Expense {
+export class ExpenseItem {
   @AutoMap()
   id!: string;
   @AutoMap()
@@ -10,8 +9,6 @@ export class Expense {
   date!: Date;
   @AutoMap()
   amount!: number;
-  @AutoMap()
-  goal!: number;
   @AutoMap(() => [ExpenseItem])
   items!: ExpenseItem[];
 }

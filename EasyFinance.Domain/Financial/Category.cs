@@ -63,7 +63,7 @@ namespace EasyFinance.Domain.Models.Financial
             var expensesGoal = this.Expenses.Sum(x => x.Goal);
 
             if (this.Goal < expensesGoal)
-                throw new ValidationException(nameof(this.Goal), ValidationMessages.GoalDefinedCantBeLessThanExpensesGoal);
+                throw new ValidationException(nameof(this.Goal), string.Format(ValidationMessages.GoalDefinedCantBeLessThanExpensesGoal, this.Goal, expensesGoal));
         }
     }
 }

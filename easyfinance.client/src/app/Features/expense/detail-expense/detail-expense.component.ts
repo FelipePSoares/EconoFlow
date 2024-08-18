@@ -1,17 +1,16 @@
 import { DatePipe } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { ListExpensesComponent } from '../../expense/list-expenses/list-expenses.component';
+import { ListExpenseItemsComponent } from '../list-expense-items/list-expense-items.component';
 
 @Component({
-  selector: 'app-detail-category',
+  selector: 'app-detail-expense',
   standalone: true,
-  imports: [DatePipe, ListExpensesComponent],
-  templateUrl: './detail-category.component.html',
-  styleUrl: './detail-category.component.css'
+  imports: [DatePipe, ListExpenseItemsComponent],
+  templateUrl: './detail-expense.component.html',
+  styleUrl: './detail-expense.component.css'
 })
-
-export class DetailCategoryComponent implements OnInit {
+export class DetailExpenseComponent implements OnInit {
   filterDate!: Date;
 
   @Input({ required: true })
@@ -19,6 +18,9 @@ export class DetailCategoryComponent implements OnInit {
 
   @Input({ required: true })
   projectId!: string;
+
+  @Input({ required: true })
+  expenseId!: string;
 
   constructor(private route: ActivatedRoute) {
   }

@@ -1,0 +1,57 @@
+<div class="container">
+  <h1 class="text-center mt-5">Create Expense</h1>
+  <form [formGroup]="expenseItemForm" (ngSubmit)="save()">
+    <div class="input justify-content-center">
+      <div class="col-md-4 mb-2 form-floating">
+        <input type="text" class="form-control" id="name" placeholder="Supermarket" formControlName="name" [class.is-invalid]="name?.invalid && name?.touched">
+        <label for="name">Name</label>
+        @if(name?.invalid && name?.touched){
+        <div>
+          @if(name?.errors?.['required']){
+          <div class="text-danger">Name is required.</div>
+          }
+        </div>
+        }
+      </div>
+    </div>
+    <div class="input justify-content-center">
+      <div class="col-md-12 mb-2 form-floating">
+        <input type="text" class="form-control" id="date" formControlName="date" [class.is-invalid]="date?.invalid && date?.touched">
+        <label for="date">Date</label>
+        @if(date?.invalid && date?.touched){
+        <div>
+          @if(date?.errors?.['required']){
+          <div class="text-danger">Date is required.</div>
+          }
+          @if(date?.errors?.['pattern']){
+          <div class="text-danger">Invalid Date format. (yyyy-MM-dd).</div>
+          }
+        </div>
+        }
+      </div>
+    </div>
+    <div class="input justify-content-center">
+      <div class="col-md-12 mb-2 form-floating">
+        <input type="text" class="form-control" id="amount" formControlName="amount" [class.is-invalid]="amount?.invalid && amount?.touched">
+        <label for="amount">Amount</label>
+        @if(amount?.invalid && amount?.touched){
+        <div>
+          @if(amount?.errors?.['pattern']){
+          <div class="text-danger">Invalid amount format. (0000,00)</div>
+          }
+        </div>
+        }
+      </div>
+    </div>
+    <div class="input justify-content-center">
+      <div class="col-md-4 mb-2">
+        <button type="submit" class="btn btn-primary" [disabled]="expenseItemForm.invalid">Create</button>
+      </div>
+      @if(httpErrors){
+      <div>
+        <p class="mt-5 mb-3 text-danger text-center">{{errors.statusText}}</p>
+      </div>
+      }
+    </div>
+  </form>
+</div>

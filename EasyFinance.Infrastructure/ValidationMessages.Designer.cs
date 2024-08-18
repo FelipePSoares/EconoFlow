@@ -70,7 +70,7 @@ namespace EasyFinance.Infrastructure {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Goal defined can&apos;t be less than expenses goal.
+        ///   Looks up a localized string similar to Goal defined to category ({0}) can&apos;t be less than the sum of the expenses goal ({1}).
         /// </summary>
         public static string GoalDefinedCantBeLessThanExpensesGoal {
             get {

@@ -42,6 +42,7 @@ namespace EasyFinance.Server.Mappers
             {
                 category.SetName(categoryDTO.Name);
                 category.SetGoal(categoryDTO.Goal);
+                return category;
             }
 
             return new Category(name: categoryDTO.Name, goal: categoryDTO.Goal);
