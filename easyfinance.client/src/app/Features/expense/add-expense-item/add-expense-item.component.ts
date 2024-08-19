@@ -83,7 +83,7 @@ export class AddExpenseItemComponent implements OnInit {
 
               this.expenseService.update(this.projectId, this.categoryId, this.expenseId, patch).subscribe({
                 next: response => {
-                  this.router.navigate(['projects', this.projectId, 'categories', this.categoryId, 'expenses', this.expenseId, { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
+                  this.router.navigate(['projects', this.projectId, 'categories', this.categoryId, 'expenses', this.expenseId, { currentDate: date }]);
                 },
                 error: error => {
                   this.httpErrors = true;

@@ -60,10 +60,11 @@ namespace EasyFinance.Domain.Models.Financial
             if (this.Goal < 0)
                 throw new ValidationException(nameof(this.Goal), string.Format(ValidationMessages.PropertyCantBeLessThanZero, nameof(this.Goal)));
 
-            var expensesGoal = this.Expenses.Sum(x => x.Goal);
+            var expensesGoal = this.Expenses.GroupBy(e => new { e.Date.Year, e.Date.Month }).Select(g => new { g.Key, goal = g.Sum(e => e.Goal) });
 
-            if (this.Goal < expensesGoal)
-                throw new ValidationException(nameof(this.Goal), string.Format(ValidationMessages.GoalDefinedCantBeLessThanExpensesGoal, this.Goal, expensesGoal));
+            var group = expensesGoal.FirstOrDefault(e => e.goal > this.Goal);
+            if (group != null)
+                throw new ValidationException(nameof(this.Goal), string.Format(ValidationMessages.GoalDefinedCantBeLessThanExpensesGoal, this.Goal, group.goal));
         }
     }
 }

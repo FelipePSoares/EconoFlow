@@ -138,4 +138,10 @@
   <data name="PropertyCantBeNullOrEmpty" xml:space="preserve">
     <value>{0} can't be null or empty</value>
   </data>
+  <data name="CantAddFutureExpense" xml:space="preserve">
+    <value>You can't add future expense</value>
+  </data>
+  <data name="CantAddExpenseOlderThanYears" xml:space="preserve">
+    <value>You can't add expense older than {0} years</value>
+  </data>
 </root>

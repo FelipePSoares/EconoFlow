@@ -64,7 +64,7 @@ export class AddExpenseComponent implements OnInit {
 
       this.expenseService.add(this.projectId, this.categoryId, newExpense).subscribe({
         next: response => {
-          this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
+          this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, { currentDate: date }]);
         },
         error: error => {
           this.httpErrors = true;
