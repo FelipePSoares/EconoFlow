@@ -25,7 +25,7 @@ import { faPlus } from '@fortawesome/free-solid-svg-icons';
 })
 
 export class ListIncomesComponent {
-  private _filterDate!: Date;
+  private _currentDate!: Date;
   private incomes: BehaviorSubject<IncomeDto[]> = new BehaviorSubject<IncomeDto[]>([new IncomeDto()]);
   incomes$: Observable<IncomeDto[]> = this.incomes.asObservable();
   incomeForm!: FormGroup;
@@ -34,13 +34,13 @@ export class ListIncomesComponent {
   errors: any;
   faPlus = faPlus;
   
-  get filterDate(): Date {
-    return this._filterDate;
+  get currentDate(): Date {
+    return this._currentDate;
   }
   @Input({ required: true })
-  set filterDate(filterDate: Date) {
-    this._filterDate = filterDate;
-    this.incomeService.get(this.projectId, this._filterDate)
+  set currentDate(currentDate: Date) {
+    this._currentDate = currentDate;
+    this.incomeService.get(this.projectId, this._currentDate)
       .pipe(map(incomes => mapper.mapArray(incomes, Income, IncomeDto)))
       .subscribe(
         {
@@ -70,7 +70,7 @@ export class ListIncomesComponent {
   }
 
   add(): void {
-    this.router.navigate(['projects', this.projectId, 'add-income', { currentDate: this.filterDate.toISOString().substring(0, 10) }]);
+    this.router.navigate(['projects', this.projectId, 'add-income', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
   }
 
   save(): void {

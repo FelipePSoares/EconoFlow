@@ -56,7 +56,7 @@ export class ListExpenseItemsComponent {
   }
 
   @Input({ required: true })
-  filterDate!: Date;
+  currentDate!: Date;
 
   constructor(public expenseService: ExpenseService, private router: Router) {
     this.edit(new ExpenseItemDto());
@@ -132,7 +132,7 @@ export class ListExpenseItemsComponent {
   }
 
   add(): void {
-    this.router.navigate(['projects', this.projectId, 'categories', this.categoryId, 'expenses', this.expenseId, 'add-expense-item', { currentDate: this.filterDate.toJSON() }]);
+    this.router.navigate(['projects', this.projectId, 'categories', this.categoryId, 'expenses', this.expenseId, 'add-expense-item', { currentDate: this.currentDate.toJSON() }]);
   }
 
   remove(id: string): void {

@@ -1,0 +1,13 @@
+.current-date {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+  .current-date * {
+    margin: 5px;
+  }
+
+  .current-date h3 {
+    display: inline-block;
+  }

@@ -1,0 +1,5 @@
+<div class="current-date">
+  <fa-icon [icon]="faArrowLeft" class="btn" (click)="previous()"></fa-icon>
+  <h3>{{ currentDate | date: 'MMM yyyy'}}</h3>
+  <fa-icon [icon]="faArrowRight" class="btn" (click)="next()"></fa-icon>
+</div>

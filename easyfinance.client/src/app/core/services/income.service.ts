@@ -11,9 +11,9 @@ export class IncomeService {
 
   constructor(private http: HttpClient) { }
   
-  get(projectId: string, filterDate: Date) {
+  get(projectId: string, currentDate: Date) {
     let queryParams = new HttpParams();
-    queryParams = queryParams.append("filterDate", filterDate.toISOString());
+    queryParams = queryParams.append("currentDate", currentDate.toISOString().substring(0, 10));
 
     return this.http.get<Income[]>('/api/projects/' + projectId + '/incomes', {
       observe: 'body',
