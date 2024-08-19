@@ -25,7 +25,7 @@ import { compare } from 'fast-json-patch';
   styleUrl: './list-expenses.component.css'
 })
 export class ListExpensesComponent {
-  private _filterDate!: Date;
+  private _currentDate!: Date;
   private expenses: BehaviorSubject<ExpenseDto[]> = new BehaviorSubject<ExpenseDto[]>([new ExpenseDto()]);
   expenses$: Observable<ExpenseDto[]> = this.expenses.asObservable();
   expenseForm!: FormGroup;
@@ -40,13 +40,13 @@ export class ListExpensesComponent {
   @Input({ required: true })
   categoryId!: string;
 
-  get filterDate(): Date {
-    return this._filterDate;
+  get currentDate(): Date {
+    return this._currentDate;
   }
   @Input({ required: true })
-  set filterDate(filterDate: Date) {
-    this._filterDate = filterDate;
-    this.expenseService.get(this.projectId, this.categoryId, this._filterDate)
+  set currentDate(currentDate: Date) {
+    this._currentDate = currentDate;
+    this.expenseService.get(this.projectId, this.categoryId, this._currentDate)
       .pipe(map(expenses => mapper.mapArray(expenses, Expense, ExpenseDto)))
       .subscribe(
         {
@@ -75,7 +75,7 @@ export class ListExpensesComponent {
   }
 
   select(id: string): void {
-    this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, 'expenses', id, { filterDate: this.filterDate.toISOString().substring(0, 10) }]);
+    this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, 'expenses', id, { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
   }
 
   save(): void {
@@ -128,7 +128,7 @@ export class ListExpensesComponent {
   }
 
   add(): void {
-    this.router.navigate(['projects', this.projectId, 'categories', this.categoryId, 'add-expense', { currentDate: this.filterDate.toISOString().substring(0, 10) }]);
+    this.router.navigate(['projects', this.projectId, 'categories', this.categoryId, 'add-expense', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
   }
 
   remove(id: string): void {

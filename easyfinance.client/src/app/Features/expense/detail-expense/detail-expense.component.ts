@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ListExpenseItemsComponent } from '../list-expense-items/list-expense-items.component';
@@ -6,12 +5,12 @@ import { ListExpenseItemsComponent } from '../list-expense-items/list-expense-it
 @Component({
   selector: 'app-detail-expense',
   standalone: true,
-  imports: [DatePipe, ListExpenseItemsComponent],
+  imports: [ListExpenseItemsComponent],
   templateUrl: './detail-expense.component.html',
   styleUrl: './detail-expense.component.css'
 })
 export class DetailExpenseComponent implements OnInit {
-  filterDate!: Date;
+  currentDate!: Date;
 
   @Input({ required: true })
   categoryId!: string;
@@ -26,7 +25,7 @@ export class DetailExpenseComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    var date = this.route.snapshot.paramMap.get('filterDate');
-    this.filterDate = new Date(date!);
+    var date = this.route.snapshot.paramMap.get('currentDate');
+    this.currentDate = new Date(date!);
   }
 }

@@ -18,9 +18,9 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get(Guid projectId, DateTime filterDate)
+        public async Task<IActionResult> Get(Guid projectId, DateTime currentDate)
         {
-            var categories = await this.categoryService.GetAsync(projectId, filterDate);
+            var categories = await this.categoryService.GetAsync(projectId, currentDate);
             return Ok(categories.ToDTO());
         }
 

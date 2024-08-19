@@ -23,9 +23,9 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetIncomes(Guid projectId, DateTime filterDate)
+        public IActionResult GetIncomes(Guid projectId, DateTime currentDate)
         {
-            var incomes = incomeService.Get(projectId, filterDate);
+            var incomes = incomeService.Get(projectId, currentDate);
             return Ok(incomes.ToDTO());
         }
 

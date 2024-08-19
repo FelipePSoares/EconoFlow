@@ -24,7 +24,7 @@ import { compare } from 'fast-json-patch';
   styleUrl: './list-categories.component.css'
 })
 export class ListCategoriesComponent {
-  private _filterDate!: Date;
+  private _currentDate!: Date;
   private categories: BehaviorSubject<CategoryDto[]> = new BehaviorSubject<CategoryDto[]>([new CategoryDto()]);
   categories$: Observable<CategoryDto[]> = this.categories.asObservable();
   categoryForm!: FormGroup;
@@ -33,13 +33,13 @@ export class ListCategoriesComponent {
   errors: any;
   faPlus = faPlus;
   
-  get filterDate(): Date {
-    return this._filterDate;
+  get currentDate(): Date {
+    return this._currentDate;
   }
   @Input({ required: true })
-  set filterDate(filterDate: Date) {
-    this._filterDate = filterDate;
-    this.categoryService.get(this.projectId, this._filterDate)
+  set currentDate(currentDate: Date) {
+    this._currentDate = currentDate;
+    this.categoryService.get(this.projectId, this._currentDate)
       .pipe(map(categories => mapper.mapArray(categories, Category, CategoryDto)))
       .subscribe(
         {
@@ -69,7 +69,7 @@ export class ListCategoriesComponent {
   }
 
   select(id: string): void {
-    this.router.navigate(['/projects', this.projectId, 'categories', id, { filterDate: this.filterDate.toISOString().substring(0, 10) }]);
+    this.router.navigate(['/projects', this.projectId, 'categories', id, { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
   }
 
   save(): void {

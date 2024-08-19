@@ -1,18 +1,18 @@
-import { DatePipe } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ListExpensesComponent } from '../../expense/list-expenses/list-expenses.component';
+import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 
 @Component({
   selector: 'app-detail-category',
   standalone: true,
-  imports: [DatePipe, ListExpensesComponent],
+  imports: [ListExpensesComponent, CurrentDateComponent],
   templateUrl: './detail-category.component.html',
   styleUrl: './detail-category.component.css'
 })
 
 export class DetailCategoryComponent implements OnInit {
-  filterDate!: Date;
+  currentDate!: Date;
 
   @Input({ required: true })
   categoryId!: string;
@@ -24,7 +24,11 @@ export class DetailCategoryComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    var date = this.route.snapshot.paramMap.get('filterDate');
-    this.filterDate = new Date(date!);
+    var date = this.route.snapshot.paramMap.get('currentDate');
+    this.currentDate = new Date(date!);
+  }
+
+  updateDate(newDate: Date) {
+    this.currentDate = newDate;
   }
 }
