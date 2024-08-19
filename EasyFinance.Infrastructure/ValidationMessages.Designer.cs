@@ -61,6 +61,24 @@ namespace EasyFinance.Infrastructure {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You can&apos;t add expense older than {0} years.
+        /// </summary>
+        public static string CantAddExpenseOlderThanYears {
+            get {
+                return ResourceManager.GetString("CantAddExpenseOlderThanYears", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You can&apos;t add future expense.
+        /// </summary>
+        public static string CantAddFutureExpense {
+            get {
+                return ResourceManager.GetString("CantAddFutureExpense", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You don&apos;t have access to do this action.
         /// </summary>
         public static string Forbidden {

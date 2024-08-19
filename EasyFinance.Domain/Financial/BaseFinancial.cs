@@ -41,10 +41,10 @@ namespace EasyFinance.Domain.Models.Financial
         public void SetDate(DateTime date)
         {
             if (date > DateTime.Today.AddDays(1))
-                throw new ValidationException(nameof(this.Date), ValidationMessages.InvalidDate);
+                throw new ValidationException(nameof(this.Date), ValidationMessages.CantAddFutureExpense);
 
             if (date < DateTime.Today.AddYears(-5))
-                throw new ValidationException(nameof(this.Date), ValidationMessages.InvalidDate);
+                throw new ValidationException(nameof(this.Date), string.Format(ValidationMessages.CantAddExpenseOlderThanYears, 5));
 
             this.Date = date;
         }

@@ -32,13 +32,24 @@ namespace EasyFinance.Domain.Tests.Financial
         }
 
         [Theory]
-        [MemberData(nameof(InvalidDates))]
-        public void AddDate_SendInvalidDate_ShouldThrowException(DateTime date)
+        [MemberData(nameof(OlderDates))]
+        public void AddDate_SendTooOldDate_ShouldThrowException(DateTime date)
         {
             var action = () => new ExpenseBuilder().AddDate(date).Build();
 
             action.Should().Throw<ValidationException>()
-                .WithMessage(ValidationMessages.InvalidDate)
+                .WithMessage(string.Format(ValidationMessages.CantAddExpenseOlderThanYears, 5))
+                .And.Property.Should().Be("Date");
+        }
+
+        [Theory]
+        [MemberData(nameof(FutureDates))]
+        public void AddDate_SendFutureDate_ShouldThrowException(DateTime date)
+        {
+            var action = () => new ExpenseBuilder().AddDate(date).Build();
+
+            action.Should().Throw<ValidationException>()
+                .WithMessage(ValidationMessages.CantAddFutureExpense)
                 .And.Property.Should().Be("Date");
         }
 
@@ -84,11 +95,18 @@ namespace EasyFinance.Domain.Tests.Financial
                 .And.Property.Should().Be("Items");
         }
 
-        public static IEnumerable<object[]> InvalidDates =>
+        public static IEnumerable<object[]> OlderDates =>
             new List<object[]>
             {
-            new object[] { DateTime.Now.AddDays(1) },
-            new object[] { DateTime.Now.AddYears(-200) }
+                new object[] { DateTime.Now.AddYears(-5).AddDays(-1) },
+                new object[] { DateTime.Now.AddYears(-15) },
+                new object[] { DateTime.Now.AddYears(-200) }
+            };
+        public static IEnumerable<object[]> FutureDates =>
+            new List<object[]>
+            {
+                new object[] { DateTime.Now.AddDays(1) },
+                new object[] { DateTime.Now.AddDays(5) },
             };
     }
 }
