@@ -68,7 +68,6 @@ namespace EasyFinance.Server.Controllers
 
             dto.FromDTO(existingExpense);
 
-
             await this.expenseService.UpdateAsync(existingExpense);
 
             return Ok(existingExpense);
