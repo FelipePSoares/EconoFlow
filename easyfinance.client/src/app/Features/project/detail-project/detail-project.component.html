@@ -1,5 +1,8 @@
 <div class="container">
-  <app-current-date [currentDate]="currentDate" (dateUpdatedEvent)="updateDate($event)"></app-current-date>
-  <app-list-incomes [projectId]="projectId" [currentDate]="currentDate"></app-list-incomes>
-  <app-list-categories [projectId]="projectId" [currentDate]="currentDate"></app-list-categories>
+  <div class="row justify-content-center">
+    <app-current-date [currentDate]="currentDate" (dateUpdatedEvent)="updateDate($event)"></app-current-date>
+    <app-list-incomes [projectId]="projectId" [currentDate]="currentDate"></app-list-incomes>
+    <app-list-categories [projectId]="projectId" [currentDate]="currentDate"></app-list-categories>
+    <app-add-button (incomeEvent)="addIncome()" (categoryEvent)="addCategory()"></app-add-button>
+  </div>
 </div>
