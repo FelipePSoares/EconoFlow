@@ -32,13 +32,5 @@ namespace EasyFinance.Domain.Models.Financial
 
             this.Goal = goal;
         }
-
-        public void AddExpenseItem(ExpenseItem expenseItem)
-        {
-            if (expenseItem == default)
-                throw new ValidationException(nameof(expenseItem), string.Format(ValidationMessages.PropertyCantBeNull, nameof(expenseItem)));
-
-            this.Items.Add(expenseItem);
-        }
     }
 }

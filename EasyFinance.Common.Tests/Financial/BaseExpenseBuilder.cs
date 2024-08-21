@@ -10,9 +10,15 @@ namespace EasyFinance.Common.Tests.Financial
         {
         }
 
-        public BaseExpenseBuilder<TEntity> AddItems(ICollection<ExpenseItem> Items)
+        public BaseExpenseBuilder<TEntity> SetItems(ICollection<ExpenseItem> Items)
         {
             this.entity.SetItems(Items);
+            return this;
+        }
+
+        public BaseExpenseBuilder<TEntity> AddItem(ExpenseItem Item)
+        {
+            this.entity.AddItem(Item);
             return this;
         }
     }

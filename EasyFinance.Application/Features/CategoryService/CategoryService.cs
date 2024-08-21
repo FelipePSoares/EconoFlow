@@ -55,10 +55,10 @@ namespace EasyFinance.Application.Features.CategoryService
         public async Task<ICollection<Category>> GetAllAsync(Guid projectId)
             => (await this.unitOfWork.ProjectRepository.NoTrackable().Include(p => p.Categories).FirstOrDefaultAsync(p => p.Id == projectId))?.Categories;
 
-        public async Task<ICollection<Category>> GetAsync(Guid projectId, DateTime currentDate)
+        public async Task<ICollection<Category>> GetAsync(Guid projectId, DateTime from, DateTime to)
             => (await this.unitOfWork.ProjectRepository.NoTrackable()
             .Include(p => p.Categories)
-                .ThenInclude(c => c.Expenses.Where(e => e.Date.Year == currentDate.Year && e.Date.Month == currentDate.Month))
+                .ThenInclude(c => c.Expenses.Where(e => e.Date >= from && e.Date <= to))
             .FirstOrDefaultAsync(p => p.Id == projectId))?
             .Categories;
 

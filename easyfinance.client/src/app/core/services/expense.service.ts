@@ -5,6 +5,7 @@ import { Observable, map } from 'rxjs';
 import { Operation } from 'fast-json-patch';
 import { Expense } from '../models/expense';
 import { ExpenseItem } from '../models/expense-item';
+import { formatDate } from '../utils/date/date';
 
 @Injectable({
   providedIn: 'root'
@@ -18,8 +19,8 @@ export class ExpenseService {
     var month = currentDate.getMonth();
 
     let queryParams = new HttpParams();
-    queryParams = queryParams.append("from", new Date(year, month).toISOString().substring(0, 10));
-    queryParams = queryParams.append("to", new Date(year, month + 1).toISOString().substring(0, 10));
+    queryParams = queryParams.append("from", formatDate(new Date(year, month)).substring(0, 10));
+    queryParams = queryParams.append("to", formatDate(new Date(year, month + 1)).substring(0, 10));
 
     return this.http.get<Expense[]>('/api/projects/' + projectId + '/categories/' + categoryId + '/expenses', {
       observe: 'body',

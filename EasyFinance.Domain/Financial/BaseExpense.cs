@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using EasyFinance.Domain.Models.AccessControl;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.Exceptions;
@@ -29,7 +30,19 @@ namespace EasyFinance.Domain.Models.Financial
             if (expenseItems == default)
                 throw new ValidationException(nameof(this.Items), string.Format(ValidationMessages.PropertyCantBeNull, nameof(this.Items)));
 
+            this.SetAmount(expenseItems.Sum(e => e.Amount));
+
             this.Items = expenseItems;
+        }
+
+        public void AddItem(ExpenseItem item)
+        {
+            if (item == default)
+                throw new ValidationException(nameof(item), string.Format(ValidationMessages.PropertyCantBeNull, nameof(item)));
+
+            this.SetAmount(this.Amount + item.Amount);
+
+            this.Items.Add(item);
         }
     }
 }

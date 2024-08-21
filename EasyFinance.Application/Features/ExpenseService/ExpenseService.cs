@@ -1,7 +1,6 @@
 ﻿using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Domain.Models.AccessControl;
 using EasyFinance.Domain.Models.Financial;
-using EasyFinance.Domain.Models.FinancialProject;
 using EasyFinance.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using System;
