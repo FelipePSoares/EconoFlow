@@ -76,7 +76,7 @@ namespace EasyFinance.Domain.Tests.Financial
         [Fact]
         public void AddItems_SendNull_ShouldThrowException()
         {
-            var action = () => new ExpenseItemBuilder().AddItems(null).Build();
+            var action = () => new ExpenseItemBuilder().SetItems(null).Build();
 
             action.Should().Throw<ValidationException>()
                 .WithMessage(string.Format(ValidationMessages.PropertyCantBeNull, "Items"))

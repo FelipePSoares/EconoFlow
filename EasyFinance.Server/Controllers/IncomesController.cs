@@ -23,14 +23,14 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetIncomes(Guid projectId, DateTime currentDate)
+        public IActionResult Get(Guid projectId, DateTime from, DateTime to)
         {
-            var incomes = incomeService.Get(projectId, currentDate);
+            var incomes = incomeService.Get(projectId, from, to);
             return Ok(incomes.ToDTO());
         }
 
         [HttpGet("{incomeId}")]
-        public IActionResult GetIncomeById(Guid incomeId) 
+        public IActionResult GetById(Guid incomeId) 
         {
             var income = incomeService.GetById(incomeId);
 
@@ -40,7 +40,7 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateIncome(Guid projectId, [FromBody] IncomeRequestDTO incomeDto)
+        public async Task<IActionResult> Create(Guid projectId, [FromBody] IncomeRequestDTO incomeDto)
         {
             if (incomeDto == null) return BadRequest();
 
@@ -49,11 +49,11 @@ namespace EasyFinance.Server.Controllers
 
             var createdIncome = (await incomeService.CreateAsync(user, projectId, incomeDto.FromDTO())).ToDTO();
 
-            return CreatedAtAction(nameof(GetIncomeById), new { projectId, incomeId = createdIncome.Id }, createdIncome);
+            return CreatedAtAction(nameof(GetById), new { projectId, incomeId = createdIncome.Id }, createdIncome);
         }
 
         [HttpPatch("{incomeId}")]
-        public async Task<IActionResult> UpdateIncome(Guid projectId, Guid incomeId, [FromBody] JsonPatchDocument<IncomeRequestDTO> incomeDto)
+        public async Task<IActionResult> Update(Guid projectId, Guid incomeId, [FromBody] JsonPatchDocument<IncomeRequestDTO> incomeDto)
         {
             if (incomeDto == null) return BadRequest();
 
@@ -73,7 +73,7 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpDelete("{incomeId}")]
-        public async Task<IActionResult> DeleteIncomeAsync(Guid incomeId)
+        public async Task<IActionResult> DeleteAsync(Guid incomeId)
         {
             await incomeService.DeleteAsync(incomeId);
 

@@ -112,8 +112,8 @@ if (app.Environment.IsDevelopment())
     var expense2 = new Expense("Mercado", DateTime.Now, 0, user, Goal: 450);
     var expenseItem = new ExpenseItem("Pingo Doce", DateTime.Now, 100, user);
     var expenseItem2 = new ExpenseItem("Continente", DateTime.Now, 150, user);
-    expense2.AddExpenseItem(expenseItem);
-    expense2.AddExpenseItem(expenseItem2);
+    expense2.AddItem(expenseItem);
+    expense2.AddItem(expenseItem2);
     unitOfWork.ExpenseRepository.InsertOrUpdate(expense2);
 
     var category = new Category("Custos Fixos", 1150);
