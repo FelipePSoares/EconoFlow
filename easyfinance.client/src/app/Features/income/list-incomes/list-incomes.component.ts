@@ -51,7 +51,7 @@ export class ListIncomesComponent {
   @Input({ required: true })
   projectId!: string;
 
-  constructor(public incomeService: IncomeService, private router: Router)
+  constructor(public incomeService: IncomeService)
   {
     this.edit(new IncomeDto());
   }
@@ -67,10 +67,6 @@ export class ListIncomesComponent {
   }
   get amount() {
     return this.incomeForm.get('amount');
-  }
-
-  add(): void {
-    this.router.navigate(['projects', this.projectId, 'add-income', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
   }
 
   save(): void {

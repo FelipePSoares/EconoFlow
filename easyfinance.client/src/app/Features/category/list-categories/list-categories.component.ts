@@ -63,10 +63,6 @@ export class ListCategoriesComponent {
   get goal() {
     return this.categoryForm.get('goal');
   }
-  
-  add(): void {
-    this.router.navigate(['projects', this.projectId, 'add-category']);
-  }
 
   select(id: string): void {
     this.router.navigate(['/projects', this.projectId, 'categories', id, { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
