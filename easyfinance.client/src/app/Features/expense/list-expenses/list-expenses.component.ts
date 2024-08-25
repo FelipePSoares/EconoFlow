@@ -9,9 +9,9 @@ import { Observable } from 'rxjs/internal/Observable';
 import { ExpenseService } from '../../../core/services/expense.service';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { compare } from 'fast-json-patch';
+import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
+import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 
 @Component({
   selector: 'app-list-expenses',
@@ -20,7 +20,8 @@ import { compare } from 'fast-json-patch';
     CommonModule,
     AsyncPipe,
     ReactiveFormsModule,
-    FontAwesomeModule],
+    AddButtonComponent
+  ],
   templateUrl: './list-expenses.component.html',
   styleUrl: './list-expenses.component.css'
 })
@@ -32,7 +33,6 @@ export class ListExpensesComponent {
   editingExpense: ExpenseDto = new ExpenseDto();
   httpErrors = false;
   errors: any;
-  faPlus = faPlus;
 
   @Input({ required: true })
   projectId!: string;
@@ -125,10 +125,6 @@ export class ListExpensesComponent {
 
   cancelEdit(): void {
     this.editingExpense = new ExpenseDto();
-  }
-
-  add(): void {
-    this.router.navigate(['projects', this.projectId, 'categories', this.categoryId, 'add-expense', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
   }
 
   remove(id: string): void {

@@ -1,5 +1,5 @@
 <div class="container">
-  <h1 class="text-center mt-5">Project Management</h1>
+  <h1 class="text-center mt-5">Projects</h1>
   <div class="row project-list justify-content-center">
     <div class="col-md-8">
       <div class="list-group">
@@ -51,14 +51,12 @@
         </div>
         }
         @empty {
-          <div class="text-center">
-            No project created yet.
-          </div>
+        <div class="text-center">
+          No project created yet.
+        </div>
         }
-      </div>     
+      </div>
     </div>
   </div>
-  <a class="btn btn-primary btn-add" (click)="add()">
-    <fa-icon [icon]="faPlus"></fa-icon>
-  </a>
+  <app-add-button (clickedEvent)="add()"></app-add-button>
 </div>

@@ -1,4 +1,5 @@
 <div class="container">
+  <app-return-button (returnButtonEvent)="previous()"></app-return-button>
   <h1 class="text-center mt-5">Create Income</h1>
   <form [formGroup]="incomeForm" (ngSubmit)="saveIncome()">
     <div class="input justify-content-center">

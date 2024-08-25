@@ -1,8 +1,10 @@
-<button class="btn btn-primary btn-add dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+<button class="btn btn-primary btn-add" type="button" aria-expanded="false" (click)="clicked('default')" [class.dropdown-toggle]="buttons" [attr.data-bs-toggle]="buttons ? 'dropdown' : null">
   <fa-icon [icon]="faPlus"></fa-icon>
 </button>
+@if(buttons){
 <ul class="dropdown-menu">
-  <li><a class="dropdown-item" (click)="income()">Income</a></li>
-  <li><hr class="dropdown-divider"></li>
-  <li><a class="dropdown-item" (click)="category()">Category</a></li>
+  @for (button of buttons; track $index) {
+    <li><a class="btn dropdown-item" (click)="clicked(button)">{{button}}</a></li>
+  }
 </ul>
+}

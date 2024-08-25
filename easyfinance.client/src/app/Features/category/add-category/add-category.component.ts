@@ -3,11 +3,12 @@ import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } 
 import { CategoryService } from '../../../core/services/category.service';
 import { Router } from '@angular/router';
 import { CategoryDto } from '../models/category-dto';
+import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 
 @Component({
   selector: 'app-add-category',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule],
+  imports: [FormsModule, ReactiveFormsModule, ReturnButtonComponent],
   templateUrl: './add-category.component.html',
   styleUrl: './add-category.component.css'
 })
@@ -40,7 +41,7 @@ export class AddCategoryComponent implements OnInit {
 
       this.categoryService.add(this.projectId, newCategory).subscribe({
         next: response => {
-          this.router.navigate(['/projects', this.projectId]);
+          this.previous();
         },
         error: error => {
           this.httpErrors = true;
@@ -55,5 +56,9 @@ export class AddCategoryComponent implements OnInit {
   }
   get goal() {
     return this.categoryForm.get('goal');
+  }
+
+  previous() {
+    this.router.navigate(['/projects', this.projectId]);
   }
 }

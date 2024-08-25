@@ -3,15 +3,15 @@ import { BehaviorSubject, Observable, map } from 'rxjs';
 import { ExpenseItemDto } from '../models/expense-item-dto';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { ExpenseService } from '../../../core/services/expense.service';
 import { ExpenseItem } from '../../../core/models/expense-item';
 import { mapper } from '../../../core/utils/mappings/mapper';
 import { Expense } from '../../../core/models/expense';
 import { ExpenseDto } from '../models/expense-dto';
 import { Router } from '@angular/router';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { compare } from 'fast-json-patch';
+import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
+import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 
 @Component({
   selector: 'app-list-expense-items',
@@ -20,7 +20,8 @@ import { compare } from 'fast-json-patch';
     CommonModule,
     AsyncPipe,
     ReactiveFormsModule,
-    FontAwesomeModule
+    AddButtonComponent,
+    ReturnButtonComponent
   ],
   templateUrl: './list-expense-items.component.html',
   styleUrl: './list-expense-items.component.css'
@@ -33,7 +34,6 @@ export class ListExpenseItemsComponent {
   editingExpenseItem: ExpenseItemDto = new ExpenseItemDto();
   httpErrors = false;
   errors: any;
-  faPlus = faPlus;
 
   @Input({ required: true })
   categoryId!: string;
@@ -147,5 +147,9 @@ export class ListExpenseItemsComponent {
         this.expense.next(expenseUpdated);
       }
     });
+  }
+
+  previous() {
+    this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
   }
 }
