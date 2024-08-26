@@ -8,11 +8,12 @@ import { Expense } from '../../../core/models/expense';
 import { mapper } from '../../../core/utils/mappings/mapper';
 import { ExpenseDto } from '../models/expense-dto';
 import { compare } from 'fast-json-patch';
+import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 
 @Component({
   selector: 'app-add-expense-item',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule],
+  imports: [FormsModule, ReactiveFormsModule, ReturnButtonComponent],
   templateUrl: './add-expense-item.component.html',
   styleUrl: './add-expense-item.component.css'
 })
@@ -50,6 +51,7 @@ export class AddExpenseItemComponent implements OnInit {
           next: res => this.expense = res
         });
   }
+
   get name() {
     return this.expenseItemForm.get('name');
   }
@@ -93,5 +95,9 @@ export class AddExpenseItemComponent implements OnInit {
             }
           });
     }
+  }
+
+  previous() {
+    this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, 'expenses', this.expenseId, { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
   }
 }
