@@ -3,11 +3,12 @@ import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } 
 import { ExpenseService } from '../../../core/services/expense.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExpenseDto } from '../models/expense-dto';
+import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 
 @Component({
   selector: 'app-add-expense',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule],
+  imports: [FormsModule, ReactiveFormsModule, ReturnButtonComponent],
   templateUrl: './add-expense.component.html',
   styleUrl: './add-expense.component.css'
 })
@@ -72,5 +73,9 @@ export class AddExpenseComponent implements OnInit {
         }
       });
     }
+  }
+
+  previous() {
+    this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
   }
 }

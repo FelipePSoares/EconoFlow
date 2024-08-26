@@ -56,7 +56,7 @@ namespace EasyFinance.Application.Features.ProjectService
 
         public async Task DeleteAsync(Guid id)
         {
-            if (id == null || id == Guid.Empty)
+            if (id == Guid.Empty)
                 throw new ArgumentNullException("The id is not valid");
 
             var project = unitOfWork.ProjectRepository.Trackable().FirstOrDefault(product => product.Id == id);

@@ -3,11 +3,12 @@ import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } 
 import { IncomeService } from '../../../core/services/income.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IncomeDto } from '../models/income-dto';
+import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 
 @Component({
   selector: 'app-add-income',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule],
+  imports: [FormsModule, ReactiveFormsModule, ReturnButtonComponent],
   templateUrl: './add-income.component.html',
   styleUrl: './add-income.component.css'
 })
@@ -46,7 +47,7 @@ export class AddIncomeComponent implements OnInit {
 
       this.incomeService.add(this.projectId, newIncome).subscribe({
         next: response => {
-          this.router.navigate(['/projects', this.projectId]);
+          this.previous();
         },
         error: error => {
           this.httpErrors = true;
@@ -64,5 +65,9 @@ export class AddIncomeComponent implements OnInit {
   }
   get amount() {
     return this.incomeForm.get('amount');
+  }
+
+  previous() {
+    this.router.navigate(['/projects', this.projectId]);
   }
 }

@@ -5,11 +5,12 @@ import { ProjectType, ProjectType2LabelMapping } from 'src/app/core/enums/projec
 import { comboRequiredValidator } from 'src/app/core/utils/custom-validators/combo-required-validator';
 import { ProjectDto } from '../models/project-dto';
 import { Router } from '@angular/router';
+import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 
 @Component({
   selector: 'app-add-project',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule],
+  imports: [FormsModule, ReactiveFormsModule, ReturnButtonComponent],
   templateUrl: './add-project.component.html',
   styleUrl: './add-project.component.css'
 })
@@ -41,7 +42,7 @@ export class AddProjectComponent implements OnInit {
 
       this.projectService.addProject(newProject).subscribe({
         next: response => {
-          this.router.navigate(['/projects']);
+          this.previous();
         },
         error: error => {
           this.httpErrors = true;
@@ -57,5 +58,9 @@ export class AddProjectComponent implements OnInit {
 
   get type() {
     return this.projectForm.get('type');
+  }
+
+  previous() {
+    this.router.navigate(['projects']);
   }
 }

@@ -1,8 +1,9 @@
 <div class="container">
   <div class="row justify-content-center">
+    <app-return-button (returnButtonEvent)="previous()"></app-return-button>
     <app-current-date [currentDate]="currentDate" (dateUpdatedEvent)="updateDate($event)"></app-current-date>
     <app-list-incomes [projectId]="projectId" [currentDate]="currentDate"></app-list-incomes>
     <app-list-categories [projectId]="projectId" [currentDate]="currentDate"></app-list-categories>
-    <app-add-button (incomeEvent)="addIncome()" (categoryEvent)="addCategory()"></app-add-button>
+    <app-add-button (clickedEvent)="add($event)" [buttons]="buttons"></app-add-button>
   </div>
 </div>

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
@@ -12,14 +12,11 @@ import { faPlus } from '@fortawesome/free-solid-svg-icons';
 export class AddButtonComponent {
   faPlus = faPlus;
 
-  @Output() incomeEvent = new EventEmitter();
-  @Output() categoryEvent = new EventEmitter();
+  @Output() clickedEvent = new EventEmitter();
+  @Input()
+  buttons!: string[];
 
-  income(): void {
-    this.incomeEvent.emit();
-  }
-
-  category(): void {
-    this.categoryEvent.emit();
+  clicked(value: string): void {
+    this.clickedEvent.emit(value);
   }
 }
