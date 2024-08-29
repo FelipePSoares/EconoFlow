@@ -15,11 +15,11 @@ import { AddIncomeComponent } from './income/add-income/add-income.component';
 
 import { ListCategoriesComponent } from './category/list-categories/list-categories.component';
 import { AddCategoryComponent } from './category/add-category/add-category.component';
-import { DetailCategoryComponent } from './category/detail-category/detail-category.component';
 
 import { AddExpenseComponent } from './expense/add-expense/add-expense.component';
 import { DetailExpenseComponent } from './expense/detail-expense/detail-expense.component';
 import { AddExpenseItemComponent } from './expense/add-expense-item/add-expense-item.component';
+import { ListExpensesComponent } from './expense/list-expenses/list-expenses.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'projects', pathMatch: 'full' },
@@ -34,8 +34,8 @@ export const routes: Routes = [
   { path: 'projects/:projectId/add-income', component: AddIncomeComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
   { path: 'projects/:projectId/categories', component: ListCategoriesComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
   { path: 'projects/:projectId/add-category', component: AddCategoryComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
-  { path: 'projects/:projectId/categories/:categoryId', component: DetailCategoryComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
   { path: 'projects/:projectId/categories/:categoryId/add-expense', component: AddExpenseComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
+  { path: 'projects/:projectId/categories/:categoryId/expenses', component: ListExpensesComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
   { path: 'projects/:projectId/categories/:categoryId/expenses/:expenseId', component: DetailExpenseComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
   { path: 'projects/:projectId/categories/:categoryId/expenses/:expenseId/add-expense-item', component: AddExpenseItemComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
 ];

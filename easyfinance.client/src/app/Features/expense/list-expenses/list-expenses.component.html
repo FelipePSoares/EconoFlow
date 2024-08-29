@@ -1,3 +1,5 @@
+<app-return-button (returnButtonEvent)="previous()"></app-return-button>
+<app-current-date [currentDate]="currentDate" (dateUpdatedEvent)="updateDate($event)"></app-current-date>
 <div class="container">
   <h1 class="text-center mt-5">Expenses</h1>
   <div class="row expense-list justify-content-center">
@@ -11,6 +13,7 @@
               <div class="btn" (click)="select(expense.id)">
                 <h5 class="mb-1">{{ expense.name }}</h5>
                 <p class="mb-1">
+                  date: {{ expense.date | date: 'dd/MM/yyyy' }}
                   goal: {{ expense.goal }}
                   amount: {{ expense.getTotalAmount() }}
                 </p>
@@ -24,7 +27,7 @@
           } @else {
           <div>
             <form class="d-flex justify-content-between align-items-center my-1" [formGroup]="expenseForm" (ngSubmit)="save()">
-              <div class="mb-6 form-floating">
+              <div class="form-floating">
                 <input type="text" class="form-control" id="name" placeholder="Personal" formControlName="name" [class.is-invalid]="name?.invalid && name?.touched">
                 <label for="name">Expense Name</label>
                 @if(name?.invalid && name?.touched){
@@ -35,7 +38,32 @@
                 </div>
                 }
               </div>
-              <div class="mb-2 form-floating">
+              <div class="form-floating">
+                <input type="text" class="form-control" id="date" formControlName="date" [class.is-invalid]="date?.invalid && date?.touched">
+                <label for="date">Date</label>
+                @if(date?.invalid && date?.touched){
+                <div>
+                  @if(date?.errors?.['required']){
+                  <div class="text-danger">Date is required.</div>
+                  }
+                  @if(date?.errors?.['pattern']){
+                  <div class="text-danger">Invalid Date format. (yyyy-MM-dd).</div>
+                  }
+                </div>
+                }
+              </div>
+              <div class="form-floating">
+                <input type="text" class="form-control" id="amount" formControlName="amount" [class.is-invalid]="amount?.invalid && amount?.touched">
+                <label for="amount">Amount</label>
+                @if(amount?.invalid && amount?.touched){
+                <div>
+                  @if(amount?.errors?.['pattern']){
+                  <div class="text-danger">Invalid amount format. (0000,00)</div>
+                  }
+                </div>
+                }
+              </div>
+              <div class="form-floating">
                 <input type="text" class="form-control" id="goal" formControlName="goal" [class.is-invalid]="goal?.invalid && goal?.touched">
                 <label for="goal">Goal</label>
                 @if(goal?.invalid && goal?.touched){
@@ -46,7 +74,7 @@
                 </div>
                 }
               </div>
-              <div class="mb-2 btn-group">
+              <div class="btn-group">
                 <button class="btn btn-secondary" (click)="cancelEdit()">Cancel</button>
                 <button class="btn btn-success" [disabled]="expenseForm.invalid">Save</button>
               </div>
@@ -69,3 +97,4 @@
     </div>
   </div>
 </div>
+<app-add-button (clickedEvent)="add()"></app-add-button>
