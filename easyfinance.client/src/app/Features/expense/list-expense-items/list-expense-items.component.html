@@ -12,6 +12,7 @@
               <div>
                 <h5 class="mb-1">{{ expenseItem.name }}</h5>
                 <p class="mb-1">
+                  date: {{ expenseItem.date | date: 'dd/MM/yyyy' }}
                   amount: {{ expenseItem.getTotalAmount() }}
                 </p>
               </div>
@@ -24,7 +25,7 @@
           } @else {
           <div>
             <form class="d-flex justify-content-between align-items-center my-1" [formGroup]="expenseItemForm" (ngSubmit)="save()">
-              <div class="mb-6 form-floating">
+              <div class="form-floating">
                 <input type="text" class="form-control" id="name" placeholder="Personal" formControlName="name" [class.is-invalid]="name?.invalid && name?.touched">
                 <label for="name">Expense Name</label>
                 @if(name?.invalid && name?.touched){
@@ -35,7 +36,21 @@
                 </div>
                 }
               </div>
-              <div class="mb-2 form-floating">
+              <div class="form-floating">
+                <input type="text" class="form-control" id="date" formControlName="date" [class.is-invalid]="date?.invalid && date?.touched">
+                <label for="date">Date</label>
+                @if(date?.invalid && date?.touched){
+                <div>
+                  @if(date?.errors?.['required']){
+                  <div class="text-danger">Date is required.</div>
+                  }
+                  @if(date?.errors?.['pattern']){
+                  <div class="text-danger">Invalid Date format. (yyyy-MM-dd).</div>
+                  }
+                </div>
+                }
+              </div>
+              <div class="form-floating">
                 <input type="text" class="form-control" id="amount" formControlName="amount" [class.is-invalid]="amount?.invalid && amount?.touched">
                 <label for="amount">Amount</label>
                 @if(amount?.invalid && amount?.touched){

@@ -28,7 +28,7 @@ import { CurrentDateComponent } from '../../../core/components/current-date/curr
   templateUrl: './list-expenses.component.html',
   styleUrl: './list-expenses.component.css'
 })
-export class ListExpensesComponent implements OnInit {
+export class ListExpensesComponent {
   private _currentDate!: Date;
   private expenses: BehaviorSubject<ExpenseDto[]> = new BehaviorSubject<ExpenseDto[]>([new ExpenseDto()]);
   expenses$: Observable<ExpenseDto[]> = this.expenses.asObservable();
@@ -48,7 +48,7 @@ export class ListExpensesComponent implements OnInit {
   }
   @Input({ required: true })
   set currentDate(currentDate: Date) {
-    this._currentDate = currentDate;
+    this._currentDate = new Date(currentDate);
     this.expenseService.get(this.projectId, this.categoryId, this._currentDate)
       .pipe(map(expenses => mapper.mapArray(expenses, Expense, ExpenseDto)))
       .subscribe(
@@ -57,12 +57,7 @@ export class ListExpensesComponent implements OnInit {
         });
   }
 
-  ngOnInit(): void {
-    var date = this.route.snapshot.paramMap.get('currentDate');
-    this.currentDate = new Date(date!);
-  }
-
-  constructor(public expenseService: ExpenseService, private router: Router, private route: ActivatedRoute) {
+  constructor(public expenseService: ExpenseService, private router: Router) {
     this.edit(new ExpenseDto());
   }
 
