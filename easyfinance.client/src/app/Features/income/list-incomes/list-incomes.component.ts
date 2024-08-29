@@ -8,8 +8,6 @@ import { mapper } from 'src/app/core/utils/mappings/mapper';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { compare } from 'fast-json-patch';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-list-incomes',
@@ -17,8 +15,7 @@ import { faPlus } from '@fortawesome/free-solid-svg-icons';
   imports: [
     CommonModule,
     AsyncPipe,
-    ReactiveFormsModule,
-    FontAwesomeModule
+    ReactiveFormsModule
   ],
   templateUrl: './list-incomes.component.html',
   styleUrl: './list-incomes.component.css'
@@ -32,8 +29,7 @@ export class ListIncomesComponent {
   editingIncome: IncomeDto = new IncomeDto();
   httpErrors = false;
   errors: any;
-  faPlus = faPlus;
-  
+
   get currentDate(): Date {
     return this._currentDate;
   }
@@ -47,12 +43,11 @@ export class ListIncomesComponent {
           next: res => { this.incomes.next(res); }
         });
   }
-  
+
   @Input({ required: true })
   projectId!: string;
 
-  constructor(public incomeService: IncomeService)
-  {
+  constructor(public incomeService: IncomeService) {
     this.edit(new IncomeDto());
   }
 
@@ -80,7 +75,7 @@ export class ListIncomesComponent {
         id: id,
         name: name,
         amount: amount,
-        date: date
+        date: new Date(date)
       })
       var patch = compare(this.editingIncome, newIncome);
 
@@ -99,11 +94,12 @@ export class ListIncomesComponent {
 
   edit(income: IncomeDto): void {
     this.editingIncome = income;
+    let newDate = new Date(income.date);
     this.incomeForm = new FormGroup({
       id: new FormControl(income.id),
       name: new FormControl(income.name, [Validators.required]),
-      amount: new FormControl(income.amount, [Validators.required]),
-      date: new FormControl(income.date, [Validators.required])
+      date: new FormControl(newDate.getFullYear() + '-' + String(newDate.getMonth() + 1).padStart(2, '0') + '-' + String(newDate.getDate()).padStart(2, '0'), [Validators.required, Validators.pattern('^\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])$')]),
+      amount: new FormControl(income.amount, [Validators.required, Validators.pattern('(\\d+)?(\\,\\d{1,2})?')]),
     });
   }
 

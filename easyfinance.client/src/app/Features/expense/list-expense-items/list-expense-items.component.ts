@@ -119,11 +119,12 @@ export class ListExpenseItemsComponent {
 
   edit(expenseItem: ExpenseItemDto): void {
     this.editingExpenseItem = expenseItem;
+    let newDate = new Date(expenseItem.date);
     this.expenseItemForm = new FormGroup({
       id: new FormControl(expenseItem.id),
       name: new FormControl(expenseItem.name, [Validators.required]),
-      date: new FormControl(expenseItem.date, [Validators.required]),
-      amount: new FormControl(expenseItem.amount, [Validators.pattern('[0-9]*')]),
+      date: new FormControl(newDate.getFullYear() + '-' + String(newDate.getMonth() + 1).padStart(2, '0') + '-' + String(newDate.getDate()).padStart(2, '0'), [Validators.required, Validators.pattern('^\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])$')]),
+      amount: new FormControl(expenseItem.amount, [Validators.pattern('(\\d+)?(\\,\\d{1,2})?')]),
     });
   }
 
@@ -150,6 +151,6 @@ export class ListExpenseItemsComponent {
   }
 
   previous() {
-    this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
+    this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, 'expenses', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
   }
 }

@@ -24,7 +24,7 @@
           } @else {
           <div>
             <form class="d-flex justify-content-between align-items-center my-1" [formGroup]="categoryForm" (ngSubmit)="save()">
-              <div class="mb-6 form-floating">
+              <div class="ml-1 form-floating">
                 <input type="text" class="form-control" id="name" placeholder="Personal" formControlName="name" [class.is-invalid]="name?.invalid && name?.touched">
                 <label for="name">Category Name</label>
                 @if(name?.invalid && name?.touched){
@@ -35,7 +35,7 @@
                 </div>
                 }
               </div>
-              <div class="mb-2 form-floating">
+              <div class="ml-1 form-floating">
                 <input type="text" class="form-control" id="goal" formControlName="goal" [class.is-invalid]="goal?.invalid && goal?.touched">
                 <label for="goal">Goal</label>
                 @if(goal?.invalid && goal?.touched){
@@ -46,7 +46,7 @@
                 </div>
                 }
               </div>
-              <div class="mb-2 btn-group">
+              <div class="ml-1 btn-group">
                 <button class="btn btn-secondary" (click)="cancelEdit()">Cancel</button>
                 <button class="btn btn-success" [disabled]="categoryForm.invalid">Save</button>
               </div>

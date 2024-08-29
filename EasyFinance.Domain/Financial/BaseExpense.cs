@@ -30,7 +30,8 @@ namespace EasyFinance.Domain.Models.Financial
             if (expenseItems == default)
                 throw new ValidationException(nameof(this.Items), string.Format(ValidationMessages.PropertyCantBeNull, nameof(this.Items)));
 
-            this.SetAmount(expenseItems.Sum(e => e.Amount));
+            if (expenseItems.Count > 0)
+                this.SetAmount(expenseItems.Sum(e => e.Amount));
 
             this.Items = expenseItems;
         }

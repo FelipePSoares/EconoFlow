@@ -1,5 +1,5 @@
-import { Component, Input } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, Input, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ExpenseDto } from '../models/expense-dto';
 import { Expense } from '../../../core/models/expense';
 import { map } from 'rxjs/internal/operators/map';
@@ -12,6 +12,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { compare } from 'fast-json-patch';
 import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
+import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 
 @Component({
   selector: 'app-list-expenses',
@@ -20,7 +21,9 @@ import { ReturnButtonComponent } from '../../../core/components/return-button/re
     CommonModule,
     AsyncPipe,
     ReactiveFormsModule,
-    AddButtonComponent
+    CurrentDateComponent,
+    AddButtonComponent,
+    ReturnButtonComponent
   ],
   templateUrl: './list-expenses.component.html',
   styleUrl: './list-expenses.component.css'
@@ -45,7 +48,7 @@ export class ListExpensesComponent {
   }
   @Input({ required: true })
   set currentDate(currentDate: Date) {
-    this._currentDate = currentDate;
+    this._currentDate = new Date(currentDate);
     this.expenseService.get(this.projectId, this.categoryId, this._currentDate)
       .pipe(map(expenses => mapper.mapArray(expenses, Expense, ExpenseDto)))
       .subscribe(
@@ -89,20 +92,18 @@ export class ListExpensesComponent {
       var newExpense = <ExpenseDto>({
         id: id,
         name: name,
-        date: date,
+        date: new Date(date),
         amount: amount,
-        goal: goal
+        goal: goal,
+        items: this.editingExpense.items
       })
 
       var patch = compare(this.editingExpense, newExpense);
 
       this.expenseService.update(this.projectId, this.categoryId, id, patch).subscribe({
         next: response => {
-          this.editingExpense.name = response.name;
-          this.editingExpense.date = response.date;
-          this.editingExpense.amount = response.amount;
-          this.editingExpense.goal = response.goal;
           this.editingExpense = new ExpenseDto();
+          this.currentDate = new Date(response.date);
         },
         error: error => {
           this.httpErrors = true;
@@ -114,11 +115,12 @@ export class ListExpensesComponent {
 
   edit(expense: ExpenseDto): void {
     this.editingExpense = expense;
+    let newDate = new Date(expense.date);
     this.expenseForm = new FormGroup({
       id: new FormControl(expense.id),
       name: new FormControl(expense.name, [Validators.required]),
-      date: new FormControl(expense.date, [Validators.required]),
-      amount: new FormControl(expense.amount, [Validators.pattern('[0-9]*')]),
+      date: new FormControl(newDate.getFullYear() + '-' + String(newDate.getMonth() + 1).padStart(2, '0') + '-' + String(newDate.getDate()).padStart(2, '0'), [Validators.required, Validators.pattern('^\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])$')]),
+      amount: new FormControl(expense.amount, [Validators.pattern('(\\d+)?(\\,\\d{1,2})?')]),
       goal: new FormControl(expense.goal, [Validators.pattern('[0-9]*')]),
     });
   }
@@ -139,5 +141,17 @@ export class ListExpensesComponent {
         this.expenses.next(expensesNewArray);
       }
     })
+  }
+
+  updateDate(newDate: Date) {
+    this.currentDate = newDate;
+  }
+
+  add(): void {
+    this.router.navigate(['projects', this.projectId, 'categories', this.categoryId, 'add-expense', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
+  }
+
+  previous() {
+    this.router.navigate(['/projects', this.projectId, { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
   }
 }

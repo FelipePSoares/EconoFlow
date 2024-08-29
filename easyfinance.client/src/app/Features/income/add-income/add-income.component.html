@@ -24,6 +24,9 @@
           @if(date?.errors?.['required']){
           <div class="text-danger">Income Date is required.</div>
           }
+          @if(date?.errors?.['pattern']){
+          <div class="text-danger">Invalid Date format. (yyyy-MM-dd).</div>
+          }
         </div>
         }
       </div>

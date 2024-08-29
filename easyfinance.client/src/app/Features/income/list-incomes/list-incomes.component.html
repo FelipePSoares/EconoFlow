@@ -10,7 +10,7 @@
             <div class="d-flex justify-content-between align-items-center">
               <div>
                 <h5 class="mb-1">{{ income.name }}</h5>
-                <p class="mb-1">{{ income.date }}</p>
+                <p class="mb-1">{{ income.date | date: 'dd/MM/yyyy' }}</p>
                 <p class="mb-1">{{ income.amount }}</p>
               </div>
               <div class="btn-group">
@@ -23,19 +23,40 @@
           <div>
             <form class="d-flex justify-content-between align-items-center my-1" [formGroup]="incomeForm" (ngSubmit)="save()">
               <div class="form-floating">
-                <input type="text" class="form-control" id="name" placeholder="Personal" formControlName="name" [class.is-invalid]="name?.invalid && name?.touched">
+                <input type="text" class="form-control" id="name" placeholder="Supermarket" formControlName="name" [class.is-invalid]="name?.invalid && name?.touched">
                 <label for="name">Income Name</label>
-                <div *ngIf="name?.invalid && name?.touched">
-                  <div *ngIf="name?.errors?.['required']" class="text-danger">Income Name is required.</div>
+                @if(name?.invalid && name?.touched){
+                <div>
+                  @if(name?.errors?.['required']){
+                  <div class="text-danger">Income Name is required.</div>
+                  }
                 </div>
+                }
               </div>
               <div class="form-floating">
-                <input type="text" class="form-control-plaintext" readonly id="date" formControlName="date">
-                <label for="type">Income Date</label>
+                <input type="text" class="form-control" id="date" formControlName="date" [class.is-invalid]="date?.invalid && date?.touched">
+                <label for="date">Date</label>
+                @if(date?.invalid && date?.touched){
+                <div>
+                  @if(date?.errors?.['required']){
+                  <div class="text-danger">Income Date is required.</div>
+                  }
+                  @if(date?.errors?.['pattern']){
+                  <div class="text-danger">Invalid Date format. (yyyy-MM-dd).</div>
+                  }
+                </div>
+                }
               </div>
-              <div class="form-floating">
-                <input type="text" class="form-control-plaintext" readonly id="amount" formControlName="amount">
-                <label for="type">Income Amount</label>
+              <div class="ml-1 form-floating">
+                <input type="text" class="form-control" id="amount" formControlName="amount" [class.is-invalid]="amount?.invalid && amount?.touched">
+                <label for="amount">Amount</label>
+                @if(amount?.invalid && amount?.touched){
+                <div>
+                  @if(amount?.errors?.['required']){
+                  <div class="text-danger">Income Amount is required.</div>
+                  }
+                </div>
+                }
               </div>
               <div class="btn-group">
                 <button class="btn btn-secondary" (click)="cancelEdit()">Cancel</button>
