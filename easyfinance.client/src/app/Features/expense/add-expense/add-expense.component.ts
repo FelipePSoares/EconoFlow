@@ -60,12 +60,12 @@ export class AddExpenseComponent implements OnInit {
         name: name,
         date: date,
         amount: amount,
-        goal: goal
+        goal: goal ?? 0
       });
 
       this.expenseService.add(this.projectId, this.categoryId, newExpense).subscribe({
         next: response => {
-          this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, { currentDate: date }]);
+          this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, 'expenses', { currentDate: date }]);
         },
         error: error => {
           this.httpErrors = true;
