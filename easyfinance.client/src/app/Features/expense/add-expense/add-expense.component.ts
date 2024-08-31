@@ -76,6 +76,6 @@ export class AddExpenseComponent implements OnInit {
   }
 
   previous() {
-    this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
+    this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, 'expenses', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
   }
 }

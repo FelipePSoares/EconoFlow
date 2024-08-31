@@ -53,23 +53,23 @@
                 }
               </div>
               <div class="form-floating">
-                <input type="text" class="form-control" id="amount" formControlName="amount" [class.is-invalid]="amount?.invalid && amount?.touched">
-                <label for="amount">Amount</label>
-                @if(amount?.invalid && amount?.touched){
-                <div>
-                  @if(amount?.errors?.['pattern']){
-                  <div class="text-danger">Invalid amount format. (0000,00)</div>
-                  }
-                </div>
-                }
-              </div>
-              <div class="form-floating">
                 <input type="text" class="form-control" id="goal" formControlName="goal" [class.is-invalid]="goal?.invalid && goal?.touched">
                 <label for="goal">Goal</label>
                 @if(goal?.invalid && goal?.touched){
                 <div>
                   @if(goal?.errors?.['pattern']){
                   <div class="text-danger">Only numbers is valid.</div>
+                  }
+                </div>
+                }
+              </div>
+              <div class="form-floating">
+                <input type="text" class="form-control" id="amount" formControlName="amount" [class.is-invalid]="amount?.invalid && amount?.touched">
+                <label for="amount">Amount</label>
+                @if(amount?.invalid && amount?.touched){
+                <div>
+                  @if(amount?.errors?.['pattern']){
+                  <div class="text-danger">Invalid amount format. (0000,00)</div>
                   }
                 </div>
                 }
