@@ -19,6 +19,7 @@ import { AddButtonComponent } from '../../../core/components/add-button/add-butt
   styleUrls: ['./list-projects.component.css']
 })
 export class ListProjectsComponent implements OnInit {
+  static firstAccess = true;
   private projects: BehaviorSubject<ProjectDto[]> = new BehaviorSubject<ProjectDto[]>([new ProjectDto()]);
   projects$: Observable<ProjectDto[]> = this.projects.asObservable();
   projectForm!: FormGroup;
@@ -37,7 +38,8 @@ export class ListProjectsComponent implements OnInit {
       .subscribe(
         {
           next: res => {
-            if (res.length == 1) {
+            if (ListProjectsComponent.firstAccess && res.length == 1) {
+              ListProjectsComponent.firstAccess = false;
               this.select(res[0].id);
             }
             this.projects.next(res);
