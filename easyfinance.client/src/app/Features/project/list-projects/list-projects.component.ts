@@ -36,7 +36,12 @@ export class ListProjectsComponent implements OnInit {
       .pipe(map(projects => mapper.mapArray(projects, Project, ProjectDto)))
       .subscribe(
         {
-          next: res => { this.projects.next(res); }
+          next: res => {
+            if (res.length == 1) {
+              this.select(res[0].id);
+            }
+            this.projects.next(res);
+          }
         });
   }
 
