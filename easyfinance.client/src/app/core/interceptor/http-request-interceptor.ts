@@ -5,18 +5,19 @@ import { AuthService } from '../services/auth.service';
 import { inject } from '@angular/core';
 
 export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
+  var router = inject(Router);
+  var authService = inject(AuthService);
+
   req = req.clone({
     withCredentials: true
   });
 
-  return next(req).pipe(catchError(x => handleAuthError(x)));
+  return next(req).pipe(catchError(err => handleAuthError(err, router, authService)));
 }
 
-function handleAuthError(err: HttpErrorResponse): Observable<any> {
-  var router = inject(Router);
-  var authService = inject(AuthService);
-
+function handleAuthError(err: HttpErrorResponse, router: Router, authService: AuthService): Observable<any> {
   if ((err.status === 401 || err.status === 403) && !err.url?.includes('logout')) {
+    console.log('authInterceptor 401 or 403');
     authService.signOut();
     router.navigate(['login']);
 
