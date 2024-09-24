@@ -80,7 +80,7 @@ export class ListExpenseItemsComponent {
       let id = this.id?.value;
       let name = this.name?.value;
       let date = this.date?.value;
-      let amount = this.amount?.value;
+      let amount = this.amount?.value.replace('.', '').replace(',', '.');
 
       let expense = this.expense.getValue();
       let expenseItemsNewArray: ExpenseItemDto[] = JSON.parse(JSON.stringify(expense.items));
@@ -124,7 +124,7 @@ export class ListExpenseItemsComponent {
       id: new FormControl(expenseItem.id),
       name: new FormControl(expenseItem.name, [Validators.required]),
       date: new FormControl(newDate.getFullYear() + '-' + String(newDate.getMonth() + 1).padStart(2, '0') + '-' + String(newDate.getDate()).padStart(2, '0'), [Validators.required, Validators.pattern('^\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])$')]),
-      amount: new FormControl(expenseItem.amount, [Validators.pattern('(\\d+)?(\\,\\d{1,2})?')]),
+      amount: new FormControl(expenseItem.amount.toString().replace('.', ','), [Validators.pattern('(\\d+)?(\\,\\d{1,2})?')]),
     });
   }
 

@@ -29,7 +29,7 @@ export class AddIncomeComponent implements OnInit {
     this.incomeForm = new FormGroup({
       name: new FormControl('', [Validators.required]),
       date: new FormControl(this.currentDate.getFullYear() + '-' + String(this.currentDate.getMonth() + 1).padStart(2, '0') + '-' + String(this.currentDate.getDate()).padStart(2, '0'), [Validators.required, Validators.pattern('^\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])$')]),
-      amount: new FormControl('', [Validators.required, Validators.pattern('(\\d+)?(\\,\\d{1,2})?')])
+      amount: new FormControl('0', [Validators.required, Validators.pattern('(\\d+)?(\\,\\d{1,2})?')])
     });
   }
 
