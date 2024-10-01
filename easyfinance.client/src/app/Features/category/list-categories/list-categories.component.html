@@ -11,8 +11,8 @@
               <div class="btn" (click)="select(category.id)">
                 <h5 class="mb-1">{{ category.name }}</h5>
                 <p class="mb-1">
-                  goal: {{ category.goal }}
-                  waste: {{ category.getTotalWaste() }}
+                  goal: {{ category.goal | currency }}
+                  waste: {{ category.getTotalWaste() | currency }}
                 </p>
               </div>
               <div class="btn-group">

@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CategoryService } from '../../../core/services/category.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CategoryDto } from '../models/category-dto';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 
@@ -13,6 +13,7 @@ import { ReturnButtonComponent } from '../../../core/components/return-button/re
   styleUrl: './add-category.component.css'
 })
 export class AddCategoryComponent implements OnInit {
+  private currentDate!: Date;
   categoryForm!: FormGroup;
   httpErrors = false;
   errors: any;
@@ -20,9 +21,11 @@ export class AddCategoryComponent implements OnInit {
   @Input({ required: true })
   projectId!: string;
 
-  constructor(private categoryService: CategoryService, private router: Router) { }
+  constructor(private categoryService: CategoryService, private router: Router, private route: ActivatedRoute) { }
 
   ngOnInit(): void {
+    this.currentDate = new Date(this.route.snapshot.paramMap.get('currentDate')!);
+
     this.categoryForm = new FormGroup({
       name: new FormControl('', [Validators.required]),
       goal: new FormControl('0', [Validators.pattern('[0-9]*')])
@@ -59,6 +62,6 @@ export class AddCategoryComponent implements OnInit {
   }
 
   previous() {
-    this.router.navigate(['/projects', this.projectId]);
+    this.router.navigate(['/projects', this.projectId, { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
   }
 }

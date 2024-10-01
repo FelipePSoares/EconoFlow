@@ -11,7 +11,7 @@
               <div>
                 <h5 class="mb-1">{{ income.name }}</h5>
                 <p class="mb-1">{{ income.date | date: 'dd/MM/yyyy' }}</p>
-                <p class="mb-1">{{ income.amount }}</p>
+                <p class="mb-1">{{ income.amount | currency }}</p>
               </div>
               <div class="btn-group">
                 <button class="btn btn-secondary" (click)="edit(income)">Edit</button>

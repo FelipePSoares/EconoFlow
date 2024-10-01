@@ -14,8 +14,8 @@
                 <h5 class="mb-1">{{ expense.name }}</h5>
                 <p class="mb-1">
                   date: {{ expense.date | date: 'dd/MM/yyyy' }}
-                  goal: {{ expense.goal }}
-                  amount: {{ expense.getTotalAmount() }}
+                  goal: {{ expense.goal | currency }}
+                  amount: {{ expense.getTotalAmount() | currency }}
                 </p>
               </div>
               <div class="btn-group">

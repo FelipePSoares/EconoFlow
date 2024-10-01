@@ -39,7 +39,7 @@ export class DetailProjectComponent implements OnInit {
       this.router.navigate(['projects', this.projectId, 'add-income', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
     }
     else if (value == this.btnCategory) {
-      this.router.navigate(['projects', this.projectId, 'add-category']);
+      this.router.navigate(['projects', this.projectId, 'add-category', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
     }
   }
 
