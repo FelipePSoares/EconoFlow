@@ -37,7 +37,7 @@ export class AddIncomeComponent implements OnInit {
     if (this.incomeForm.valid) {
       const name = this.name?.value;
       const date = this.date?.value;
-      const amount = this.amount?.value;
+      const amount = this.amount?.value.replace('.', '').replace(',', '.');
 
       var newIncome = <IncomeDto>({
         name: name,
@@ -68,6 +68,6 @@ export class AddIncomeComponent implements OnInit {
   }
 
   previous() {
-    this.router.navigate(['/projects', this.projectId]);
+    this.router.navigate(['/projects', this.projectId, { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
   }
 }

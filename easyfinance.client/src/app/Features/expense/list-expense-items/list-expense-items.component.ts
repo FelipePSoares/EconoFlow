@@ -124,7 +124,7 @@ export class ListExpenseItemsComponent {
       id: new FormControl(expenseItem.id),
       name: new FormControl(expenseItem.name, [Validators.required]),
       date: new FormControl(newDate.getFullYear() + '-' + String(newDate.getMonth() + 1).padStart(2, '0') + '-' + String(newDate.getDate()).padStart(2, '0'), [Validators.required, Validators.pattern('^\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])$')]),
-      amount: new FormControl(expenseItem.amount.toString().replace('.', ','), [Validators.pattern('(\\d+)?(\\,\\d{1,2})?')]),
+      amount: new FormControl(expenseItem.amount?.toString().replace('.', ','), [Validators.pattern('(\\d+)?(\\,\\d{1,2})?')]),
     });
   }
 

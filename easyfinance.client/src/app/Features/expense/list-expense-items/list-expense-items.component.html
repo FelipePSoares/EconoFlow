@@ -13,7 +13,7 @@
                 <h5 class="mb-1">{{ expenseItem.name }}</h5>
                 <p class="mb-1">
                   date: {{ expenseItem.date | date: 'dd/MM/yyyy' }}
-                  amount: {{ expenseItem.getTotalAmount() }}
+                  amount: {{ expenseItem.getTotalAmount() | currency }}
                 </p>
               </div>
               <div class="btn-group">

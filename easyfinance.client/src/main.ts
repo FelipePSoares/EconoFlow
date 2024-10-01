@@ -7,6 +7,9 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { routes } from './app/features/app-routing.module';
 import { HttpRequestInterceptor } from './app/core/interceptor/http-request-interceptor';
 import { LoadingInterceptor } from './app/core/interceptor/loading.interceptor';
+import localePt from '@angular/common/locales/pt';
+import { registerLocaleData } from '@angular/common';
+import { LOCALE_ID, DEFAULT_CURRENCY_CODE } from '@angular/core';
 
 import { AppComponent } from './app/features/app.component';
 import { createMap } from '@automapper/core';
@@ -24,8 +27,18 @@ import { CategoryDto } from './app/features/category/models/category-dto';
 import { ExpenseDto } from './app/features/expense/models/expense-dto';
 import { ExpenseItemDto } from './app/features/expense/models/expense-item-dto';
 
+registerLocaleData(localePt, 'pt');
+
 bootstrapApplication(AppComponent, {
   providers: [
+    {
+      provide: LOCALE_ID,
+      useValue: 'pt'
+    },
+    {
+      provide: DEFAULT_CURRENCY_CODE,
+      useValue: 'EUR'
+    },
     provideAnimations(),
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(
