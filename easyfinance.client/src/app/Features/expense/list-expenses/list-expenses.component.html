@@ -14,7 +14,7 @@
                 <h5 class="mb-1">{{ expense.name }}</h5>
                 <p class="mb-1">
                   date: {{ expense.date | date: 'dd/MM/yyyy' }}
-                  goal: {{ expense.goal | currency }}
+                  budget: {{ expense.budget | currency }}
                   amount: {{ expense.getTotalAmount() | currency }}
                 </p>
               </div>
@@ -53,11 +53,11 @@
                 }
               </div>
               <div class="form-floating">
-                <input type="text" class="form-control" id="goal" formControlName="goal" [class.is-invalid]="goal?.invalid && goal?.touched">
-                <label for="goal">Goal</label>
-                @if(goal?.invalid && goal?.touched){
+                <input type="text" class="form-control" id="budget" formControlName="budget" [class.is-invalid]="budget?.invalid && budget?.touched">
+                <label for="budget">Budget</label>
+                @if(budget?.invalid && budget?.touched){
                 <div>
-                  @if(goal?.errors?.['pattern']){
+                  @if(budget?.errors?.['pattern']){
                   <div class="text-danger">Only numbers is valid.</div>
                   }
                 </div>

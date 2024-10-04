@@ -11,7 +11,7 @@ export class Expense {
   @AutoMap()
   amount!: number;
   @AutoMap()
-  goal!: number;
+  budget!: number;
   @AutoMap(() => [ExpenseItem])
   items!: ExpenseItem[];
 }

@@ -16,7 +16,6 @@ namespace EasyFinance.Server.Mappers
             {
                 Id = category.Id,
                 Name = category.Name,
-                Goal = category.Goal,
                 Expenses = category.Expenses
             };
         }
@@ -27,8 +26,7 @@ namespace EasyFinance.Server.Mappers
 
             return new CategoryRequestDTO()
             {
-                Name = category.Name,
-                Goal = category.Goal
+                Name = category.Name
             };
         }
 
@@ -41,11 +39,10 @@ namespace EasyFinance.Server.Mappers
             if (category != null)
             {
                 category.SetName(categoryDTO.Name);
-                category.SetGoal(categoryDTO.Goal);
                 return category;
             }
 
-            return new Category(name: categoryDTO.Name, goal: categoryDTO.Goal);
+            return new Category(name: categoryDTO.Name);
         }
     }
 }

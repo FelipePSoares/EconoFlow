@@ -33,7 +33,7 @@ export class AddExpenseComponent implements OnInit {
       name: new FormControl('', [Validators.required]),
       date: new FormControl(this.currentDate.getFullYear() + '-' + String(this.currentDate.getMonth() + 1).padStart(2, '0') + '-' + String(this.currentDate.getDate()).padStart(2, '0'), [Validators.required, Validators.pattern('^\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])$')]),
       amount: new FormControl('0', [Validators.pattern('(\\d+)?(\\,\\d{1,2})?')]),
-      goal: new FormControl('0', [Validators.pattern('[0-9]*')]),
+      budget: new FormControl('0', [Validators.pattern('[0-9]*')]),
     });
   }
   get name() {
@@ -45,8 +45,8 @@ export class AddExpenseComponent implements OnInit {
   get amount() {
     return this.expenseForm.get('amount');
   }
-  get goal() {
-    return this.expenseForm.get('goal');
+  get budget() {
+    return this.expenseForm.get('budget');
   }
 
   save() {
@@ -54,13 +54,13 @@ export class AddExpenseComponent implements OnInit {
       let name = this.name?.value;
       let date = this.date?.value;
       let amount = this.amount?.value.replace('.', '').replace(',', '.');
-      let goal = this.goal?.value;
+      let budget = this.budget?.value;
 
       var newExpense = <ExpenseDto>({
         name: name,
         date: date,
         amount: amount,
-        goal: goal ?? 0
+        budget: budget ?? 0
       });
 
       this.expenseService.add(this.projectId, this.categoryId, newExpense).subscribe({

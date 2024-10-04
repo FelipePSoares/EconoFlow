@@ -33,11 +33,11 @@
     </div>
     <div class="input justify-content-center">
       <div class="col-md-12 mb-2 form-floating">
-        <input type="text" class="form-control" id="goal" formControlName="goal" [class.is-invalid]="goal?.invalid && goal?.touched">
-        <label for="goal">Goal</label>
-        @if(goal?.invalid && goal?.touched){
+        <input type="text" class="form-control" id="budget" formControlName="budget" [class.is-invalid]="budget?.invalid && budget?.touched">
+        <label for="budget">Budget</label>
+        @if(budget?.invalid && budget?.touched){
         <div>
-          @if(goal?.errors?.['pattern']){
+          @if(budget?.errors?.['pattern']){
           <div class="text-danger">Only numbers is valid.</div>
           }
         </div>

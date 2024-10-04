@@ -18,12 +18,6 @@ namespace EasyFinance.Common.Tests.Financial
             return this;
         }
 
-        public CategoryBuilder AddGoal(int goal)
-        {
-            this.category.SetGoal(goal);
-            return this;
-        }
-
         public CategoryBuilder AddExpenses(ICollection<Expense> expenses)
         {
             this.category.SetExpenses(expenses);

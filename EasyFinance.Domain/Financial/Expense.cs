@@ -17,20 +17,20 @@ namespace EasyFinance.Domain.Models.Financial
             User createdBy = default,
             ICollection<Attachment> attachments = default,
             ICollection<ExpenseItem> items = default,
-            int Goal = default)
+            int budget = default)
             : base(name, date, amount, createdBy, attachments, items)
         {
-            this.SetGoal(Goal);
+            this.SetBudget(budget);
         }
 
-        public int Goal { get; private set; }
+        public int Budget { get; private set; }
 
-        public void SetGoal(int goal)
+        public void SetBudget(int budget)
         {
-            if (goal < 0)
-                throw new ValidationException(nameof(this.Goal), string.Format(ValidationMessages.PropertyCantBeLessThanZero, nameof(this.Goal)));
+            if (budget < 0)
+                throw new ValidationException(nameof(this.Budget), string.Format(ValidationMessages.PropertyCantBeLessThanZero, nameof(this.Budget)));
 
-            this.Goal = goal;
+            this.Budget = budget;
         }
     }
 }

@@ -18,13 +18,13 @@ namespace EasyFinance.Domain.Tests.Financial
         [Theory]
         [InlineData(-1)]
         [InlineData(-250)]
-        public void AddGoal_SendNegativeGoal_ShouldThrowException(int goal)
+        public void SetBudget_SendNegativeGoal_ShouldThrowException(int budget)
         {
-            var action = () => new ExpenseBuilder().AddGoal(goal).Build();
+            var action = () => new ExpenseBuilder().SetBudget(budget).Build();
 
             action.Should().Throw<ValidationException>()
-                .WithMessage(string.Format(ValidationMessages.PropertyCantBeLessThanZero, "Goal"))
-                .And.Property.Should().Be("Goal");
+                .WithMessage(string.Format(ValidationMessages.PropertyCantBeLessThanZero, "Budget"))
+                .And.Property.Should().Be("Budget");
         }
 
         [Theory]

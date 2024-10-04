@@ -6,12 +6,15 @@ export class CategoryDto {
   id!: string;
   @AutoMap()
   name!: string;
-  @AutoMap()
-  goal!: number;
   @AutoMap(() => [ExpenseDto])
   expenses!: ExpenseDto[];
-  
+
+
   public getTotalWaste(): number {
     return this.expenses.reduce((sum, current) => sum + current.amount, 0);
+  }
+
+  public getTotalBudget(): number {
+    return this.expenses.reduce((sum, current) => sum + current.budget, 0);
   }
 }

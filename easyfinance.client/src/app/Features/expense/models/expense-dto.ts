@@ -11,7 +11,7 @@ export class ExpenseDto {
   @AutoMap()
   amount!: number;
   @AutoMap()
-  goal!: number;
+  budget!: number;
   @AutoMap(() => [ExpenseItemDto])
   items!: ExpenseItemDto[];
 

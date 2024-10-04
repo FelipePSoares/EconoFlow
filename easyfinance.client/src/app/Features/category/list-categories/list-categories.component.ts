@@ -60,9 +60,6 @@ export class ListCategoriesComponent {
   get name() {
     return this.categoryForm.get('name');
   }
-  get goal() {
-    return this.categoryForm.get('goal');
-  }
 
   select(id: string): void {
     this.router.navigate(['/projects', this.projectId, 'categories', id, 'expenses', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
@@ -72,12 +69,10 @@ export class ListCategoriesComponent {
     if (this.categoryForm.valid) {
       const id = this.id?.value;
       const name = this.name?.value;
-      const goal = this.goal?.value;
 
       var newCategory = <CategoryDto>({
         id: id,
         name: name,
-        goal: goal,
         expenses: this.editingCategory.expenses
       })
       var patch = compare(this.editingCategory, newCategory);
@@ -85,7 +80,6 @@ export class ListCategoriesComponent {
       this.categoryService.update(this.projectId, id, patch).subscribe({
         next: response => {
           this.editingCategory.name = response.name;
-          this.editingCategory.goal = response.goal;
           this.editingCategory = new CategoryDto();
         },
         error: error => {
@@ -100,8 +94,7 @@ export class ListCategoriesComponent {
     this.editingCategory = category;
     this.categoryForm = new FormGroup({
       id: new FormControl(category.id),
-      name: new FormControl(category.name, [Validators.required]),
-      goal: new FormControl(category.goal, [Validators.pattern('[0-9]*')])
+      name: new FormControl(category.name, [Validators.required])
     });
   }
 
