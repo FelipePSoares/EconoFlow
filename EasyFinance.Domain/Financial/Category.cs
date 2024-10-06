@@ -1,7 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using EasyFinance.Infrastructure;
+﻿using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.Exceptions;
+using System.Collections.Generic;
 
 namespace EasyFinance.Domain.Models.Financial
 {
@@ -9,15 +8,13 @@ namespace EasyFinance.Domain.Models.Financial
     {
         private Category() { }
 
-        public Category(string name = "default", int goal = default, ICollection<Expense> expenses = default)
+        public Category(string name = "default", ICollection<Expense> expenses = default)
         {
             this.SetName(name);
-            this.SetGoal(goal);
             this.SetExpenses(expenses ?? new List<Expense>());
         }
 
         public string Name { get; private set; } = string.Empty;
-        public int Goal { get; private set; }
         public ICollection<Expense> Expenses { get; private set; } = new List<Expense>();
 
         public void SetName(string name)
@@ -28,21 +25,12 @@ namespace EasyFinance.Domain.Models.Financial
             this.Name = name;
         }
 
-        public void SetGoal(int goal)
-        {
-            this.Goal = goal;
-
-            ValidateGoal();
-        }
-
         public void SetExpenses(ICollection<Expense> expenses)
         {
             if (expenses == default)
                 throw new ValidationException(nameof(this.Expenses), string.Format(ValidationMessages.PropertyCantBeNull, nameof(this.Expenses)));
 
             this.Expenses = expenses;
-
-            ValidateGoal();
         }
 
         public void AddExpense(Expense expense)
@@ -51,20 +39,6 @@ namespace EasyFinance.Domain.Models.Financial
                 throw new ValidationException(nameof(expense), string.Format(ValidationMessages.PropertyCantBeNull, nameof(expense)));
 
             this.Expenses.Add(expense);
-
-            ValidateGoal();
-        }
-
-        private void ValidateGoal()
-        {
-            if (this.Goal < 0)
-                throw new ValidationException(nameof(this.Goal), string.Format(ValidationMessages.PropertyCantBeLessThanZero, nameof(this.Goal)));
-
-            var expensesGoal = this.Expenses.GroupBy(e => new { e.Date.Year, e.Date.Month }).Select(g => new { g.Key, goal = g.Sum(e => e.Goal) });
-
-            var group = expensesGoal.FirstOrDefault(e => e.goal > this.Goal);
-            if (group != null)
-                throw new ValidationException(nameof(this.Goal), string.Format(ValidationMessages.GoalDefinedCantBeLessThanExpensesGoal, this.Goal, group.goal));
         }
     }
 }

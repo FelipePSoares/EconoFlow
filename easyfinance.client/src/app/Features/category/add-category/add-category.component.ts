@@ -27,19 +27,16 @@ export class AddCategoryComponent implements OnInit {
     this.currentDate = new Date(this.route.snapshot.paramMap.get('currentDate')!);
 
     this.categoryForm = new FormGroup({
-      name: new FormControl('', [Validators.required]),
-      goal: new FormControl('0', [Validators.pattern('[0-9]*')])
+      name: new FormControl('', [Validators.required])
     });
   }
 
   save() {
     if (this.categoryForm.valid) {
       const name = this.name?.value;
-      const goal = this.goal?.value;
 
       var newCategory = <CategoryDto>({
-        name: name,
-        goal: goal
+        name: name
       });
 
       this.categoryService.add(this.projectId, newCategory).subscribe({
@@ -56,9 +53,6 @@ export class AddCategoryComponent implements OnInit {
 
   get name() {
     return this.categoryForm.get('name');
-  }
-  get goal() {
-    return this.categoryForm.get('goal');
   }
 
   previous() {

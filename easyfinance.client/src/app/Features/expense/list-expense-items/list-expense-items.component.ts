@@ -98,7 +98,7 @@ export class ListExpenseItemsComponent {
         name: expense.name,
         date: expense.date,
         amount: expense.amount,
-        goal: expense.goal,
+        budget: expense.budget,
         items: expenseItemsNewArray
       });
 

@@ -2,6 +2,6 @@
 {
     public class ExpenseRequestDTO : BaseExpenseRequestDTO
     {
-        public int Goal { get; set; }
+        public int Budget { get; set; }
     }
 }

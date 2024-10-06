@@ -10,7 +10,7 @@ namespace EasyFinance.Persistence.Mapping.Financial
         {
             builder.ToTable("Expenses");
 
-            builder.Property(p => p.Goal);
+            builder.Property(p => p.Budget);
 
             builder.Property(p => p.Name)
                 .HasMaxLength(150)

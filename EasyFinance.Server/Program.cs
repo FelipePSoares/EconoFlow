@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Converters;
 using Serilog;
 
@@ -106,17 +107,17 @@ if (app.Environment.IsDevelopment())
     var income2 = new Income("Salário", DateTime.Now.AddMonths(-1), 3000, user);
     unitOfWork.IncomeRepository.InsertOrUpdate(income2);
 
-    var expense = new Expense("Aluguel", DateTime.Now, 700, user, Goal: 700);
+    var expense = new Expense("Aluguel", DateTime.Now, 700, user, budget: 700);
     unitOfWork.ExpenseRepository.InsertOrUpdate(expense);
 
-    var expense2 = new Expense("Mercado", DateTime.Now, 0, user, Goal: 450);
+    var expense2 = new Expense("Mercado", DateTime.Now, 0, user, budget: 450);
     var expenseItem = new ExpenseItem("Pingo Doce", DateTime.Now, 100, user);
     var expenseItem2 = new ExpenseItem("Continente", DateTime.Now, 150, user);
     expense2.AddItem(expenseItem);
     expense2.AddItem(expenseItem2);
     unitOfWork.ExpenseRepository.InsertOrUpdate(expense2);
 
-    var category = new Category("Custos Fixos", 1150);
+    var category = new Category("Custos Fixos");
     category.AddExpense(expense);
     category.AddExpense(expense2);
     unitOfWork.CategoryRepository.InsertOrUpdate(category);

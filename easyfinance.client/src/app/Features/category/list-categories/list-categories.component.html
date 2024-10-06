@@ -11,7 +11,7 @@
               <div class="btn" (click)="select(category.id)">
                 <h5 class="mb-1">{{ category.name }}</h5>
                 <p class="mb-1">
-                  goal: {{ category.goal | currency }}
+                  budget: {{ category.getTotalBudget() | currency }}
                   waste: {{ category.getTotalWaste() | currency }}
                 </p>
               </div>
@@ -31,17 +31,6 @@
                 <div>
                   @if(name?.errors?.['required']) {
                   <div class="text-danger">Category Name is required.</div>
-                  }
-                </div>
-                }
-              </div>
-              <div class="ml-1 form-floating">
-                <input type="text" class="form-control" id="goal" formControlName="goal" [class.is-invalid]="goal?.invalid && goal?.touched">
-                <label for="goal">Goal</label>
-                @if(goal?.invalid && goal?.touched){
-                <div>
-                  @if(goal?.errors?.['pattern']){
-                  <div class="text-danger">Only numbers is valid.</div>
                   }
                 </div>
                 }

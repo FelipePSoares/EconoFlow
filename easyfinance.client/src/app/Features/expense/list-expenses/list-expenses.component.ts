@@ -73,8 +73,8 @@ export class ListExpensesComponent {
   get amount() {
     return this.expenseForm.get('amount');
   }
-  get goal() {
-    return this.expenseForm.get('goal');
+  get budget() {
+    return this.expenseForm.get('budget');
   }
 
   select(id: string): void {
@@ -87,14 +87,14 @@ export class ListExpensesComponent {
       let name = this.name?.value;
       let date = this.date?.value;
       let amount = this.amount?.value.replace('.', '').replace(',', '.');
-      let goal = this.goal?.value;
+      let budget = this.budget?.value;
 
       var newExpense = <ExpenseDto>({
         id: id,
         name: name,
         date: new Date(date),
         amount: amount,
-        goal: goal,
+        budget: budget,
         items: this.editingExpense.items
       })
 
@@ -121,7 +121,7 @@ export class ListExpensesComponent {
       name: new FormControl(expense.name, [Validators.required]),
       date: new FormControl(newDate.getFullYear() + '-' + String(newDate.getMonth() + 1).padStart(2, '0') + '-' + String(newDate.getDate()).padStart(2, '0'), [Validators.required, Validators.pattern('^\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])$')]),
       amount: new FormControl(expense.amount?.toString().replace('.', ',') ?? 0, [Validators.pattern('(\\d+)?(\\,\\d{1,2})?')]),
-      goal: new FormControl(expense.goal ?? 0, [Validators.pattern('[0-9]*')]),
+      budget: new FormControl(expense.budget ?? 0, [Validators.pattern('[0-9]*')]),
     });
   }
 

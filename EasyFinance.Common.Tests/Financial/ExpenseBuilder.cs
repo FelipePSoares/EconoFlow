@@ -8,9 +8,9 @@ namespace EasyFinance.Common.Tests.Financial
         {
         }
 
-        public ExpenseBuilder AddGoal(int goal)
+        public ExpenseBuilder SetBudget(int budget)
         {
-            this.entity.SetGoal(goal);
+            this.entity.SetBudget(budget);
             return this;
         }
     }

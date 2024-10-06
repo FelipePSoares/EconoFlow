@@ -1,5 +1,4 @@
 ﻿using EasyFinance.Common.Tests.Financial;
-using EasyFinance.Domain.Models.Financial;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.Exceptions;
 using FluentAssertions;
@@ -20,18 +19,6 @@ namespace EasyFinance.Domain.Tests.Financial
                 .And.Property.Should().Be("Name");
         }
 
-        [Theory]
-        [InlineData(-1)]
-        [InlineData(-250)]
-        public void AddGoal_SendNegative_ShouldThrowException(int goal)
-        {
-            var action = () => new CategoryBuilder().AddGoal(goal).Build();
-
-            action.Should().Throw<ValidationException>()
-                .WithMessage(string.Format(ValidationMessages.PropertyCantBeLessThanZero, "Goal"))
-                .And.Property.Should().Be("Goal");
-        }
-
         [Fact]
         public void AddExpenses_SendNull_ShouldThrowException()
         {
@@ -40,31 +27,6 @@ namespace EasyFinance.Domain.Tests.Financial
             action.Should().Throw<ValidationException>()
                 .WithMessage(string.Format(ValidationMessages.PropertyCantBeNull, "Expenses"))
                 .And.Property.Should().Be("Expenses");
-        }
-
-        [Fact]
-        public void AddGoal_SetLessGoalThanTheSumOfTheExpenses_ShouldThrowException()
-        {
-            var expense = new ExpenseBuilder().AddGoal(100).Build();
-            var category = new CategoryBuilder().AddGoal(200).AddExpenses(new List<Expense>() { expense });
-
-            var action = () => category.AddGoal(50).Build();
-
-            action.Should().Throw<ValidationException>()
-                .WithMessage(string.Format(ValidationMessages.GoalDefinedCantBeLessThanExpensesGoal, 50, 100))
-                .And.Property.Should().Be("Goal");
-        }
-
-        [Fact]
-        public void AddExpenses_GoalExpenseGreaterThanCategoryGoal_ShouldThrowException()
-        {
-            var expense = new ExpenseBuilder().AddGoal(100).Build();
-
-            var action = () => new CategoryBuilder().AddExpenses(new List<Expense>() { expense }).Build();
-
-            action.Should().Throw<ValidationException>()
-                .WithMessage(string.Format(ValidationMessages.GoalDefinedCantBeLessThanExpensesGoal, 0, 100))
-                .And.Property.Should().Be("Goal");
         }
 
         public static IEnumerable<object[]> InvalidDates =>

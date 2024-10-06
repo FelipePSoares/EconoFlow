@@ -6,8 +6,6 @@ export class Category {
   id!: string;
   @AutoMap()
   name!: string;
-  @AutoMap()
-  goal!: number;
   @AutoMap(() => [Expense])
   expenses!: Expense[];
 }

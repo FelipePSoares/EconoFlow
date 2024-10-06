@@ -17,7 +17,7 @@ namespace EasyFinance.Server.Mappers
                 Name = expense.Name,
                 Date = expense.Date,
                 Amount = expense.Amount,
-                Goal = expense.Goal,
+                Budget = expense.Budget,
                 Items = expense.Items.ToDTO(),
             };
         }
@@ -31,7 +31,7 @@ namespace EasyFinance.Server.Mappers
                 Name = expense.Name,
                 Date = expense.Date,
                 Amount = expense.Amount,
-                Goal = expense.Goal,
+                Budget = expense.Budget,
                 Items = expense.Items.ToRequestDTO(),
             };
         }
@@ -53,12 +53,12 @@ namespace EasyFinance.Server.Mappers
                 expense.SetName(expenseDTO.Name);
                 expense.SetDate(expenseDTO.Date);
                 expense.SetAmount(expenseDTO.Amount);
-                expense.SetGoal(expenseDTO.Goal);
+                expense.SetBudget(expenseDTO.Budget);
                 expense.SetItems(expenseDTO.Items.FromDTO(expense.Items.ToList()));
                 return expense;
             }
 
-            return new Expense(expenseDTO.Name, expenseDTO.Date, expenseDTO.Amount, Goal: expenseDTO.Goal, items: expenseDTO.Items.FromDTO());
+            return new Expense(expenseDTO.Name, expenseDTO.Date, expenseDTO.Amount, budget: expenseDTO.Budget, items: expenseDTO.Items.FromDTO());
         }
     }
 }
