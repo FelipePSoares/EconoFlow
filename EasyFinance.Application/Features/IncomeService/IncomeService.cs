@@ -27,7 +27,7 @@ namespace EasyFinance.Application.Features.IncomeService
         public ICollection<Income> Get(Guid projectId, DateTime from, DateTime to)
         {
             return this.unitOfWork.ProjectRepository.NoTrackable()
-                .Include(p => p.Incomes.Where(e => e.Date >= from && e.Date <= to))
+                .Include(p => p.Incomes.Where(e => e.Date >= from && e.Date < to))
                 .FirstOrDefault(p => p.Id == projectId).Incomes;
         }
 
