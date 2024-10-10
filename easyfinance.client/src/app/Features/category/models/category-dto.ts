@@ -17,4 +17,12 @@ export class CategoryDto {
   public getTotalBudget(): number {
     return this.expenses.reduce((sum, current) => sum + current.budget, 0);
   }
+
+  public getTotalRemaining(): number {
+    return this.getTotalBudget() - this.getTotalWaste();
+  }
+
+  public getPercentageWaste(): number {
+    return this.getTotalWaste() * 100 / this.getTotalBudget();
+  }
 }
