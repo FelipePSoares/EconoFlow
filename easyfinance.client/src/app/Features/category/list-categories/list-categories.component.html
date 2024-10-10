@@ -1,7 +1,7 @@
 <div class="container">
   <h1 class="text-center mt-5">Categories</h1>
   <div class="row category-list justify-content-center">
-    <div class="col-md-8">
+    <div class="col-lg-12">
       <div class="list-group">
         @for (category of (categories$ | async); track category.id){
         <div class="list-group-item category-item">
@@ -13,12 +13,23 @@
                 <p class="mb-1">
                   budget: {{ category.getTotalBudget() | currency }}
                   waste: {{ category.getTotalWaste() | currency }}
+                  Remaining: {{ category.getTotalRemaining() | currency }}
                 </p>
               </div>
               <div class="btn-group">
                 <button class="btn btn-secondary" (click)="edit(category)">Edit</button>
                 <button class="btn btn-danger" (click)="remove(category.id)">Remove</button>
               </div>
+            </div>
+            <div class="progress">
+              <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                   [ngClass]="{
+                    'bg-info' : category.getPercentageWaste() < 50,
+                    'bg-warning': category.getPercentageWaste() > 50 && category.getPercentageWaste() < 75,
+                    'bg-danger': category.getPercentageWaste() > 75
+                   }"
+                   [style.width.%]="category.getPercentageWaste()"
+                   [attr.aria-valuenow]="category.getPercentageWaste()"></div>
             </div>
           </div>
           } @else {
@@ -36,8 +47,8 @@
                 }
               </div>
               <div class="ml-1 btn-group">
-                <button class="btn btn-secondary" (click)="cancelEdit()">Cancel</button>
-                <button class="btn btn-success" [disabled]="categoryForm.invalid">Save</button>
+                <button class="btn btn-secondary" type="button" (click)="cancelEdit()">Cancel</button>
+                <button class="btn btn-success" type="submit" [disabled]="categoryForm.invalid">Save</button>
               </div>
             </form>
             @if (httpErrors){

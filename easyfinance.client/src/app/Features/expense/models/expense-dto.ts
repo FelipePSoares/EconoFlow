@@ -22,4 +22,8 @@ export class ExpenseDto {
 
     return this.amount;
   }
+
+  public getPercentageWaste(): number {
+    return this.getTotalAmount() * 100 / this.budget;
+  }
 }
