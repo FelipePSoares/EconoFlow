@@ -123,6 +123,10 @@ export class ListExpensesComponent {
       amount: new FormControl(expense.amount?.toString().replace('.', ',') ?? 0, [Validators.pattern('(\\d+)?(\\,\\d{1,2})?')]),
       budget: new FormControl(expense.budget ?? 0, [Validators.pattern('[0-9]*')]),
     });
+
+    if (this.editingExpense?.items?.length ?? 0 > 0) {
+      this.expenseForm.controls['amount'].disable();
+    }
   }
 
   cancelEdit(): void {
