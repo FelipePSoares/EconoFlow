@@ -17,8 +17,12 @@
                 </p>
               </div>
               <div class="btn-group">
-                <button class="btn btn-secondary" (click)="edit(expenseItem)">Edit</button>
-                <button class="btn btn-danger" (click)="remove(expenseItem.id)">Remove</button>
+                <button class="btn btn-secondary" (click)="edit(expenseItem)">
+                  <fa-icon [icon]="faPenToSquare"></fa-icon>
+                </button>
+                <button class="btn btn-danger" (click)="remove(expenseItem.id)">
+                  <fa-icon [icon]="faTrash"></fa-icon>
+                </button>
               </div>
             </div>
           </div>
@@ -63,7 +67,9 @@
               </div>
               <div class="mb-2 btn-group">
                 <button class="btn btn-secondary" type="button" (click)="cancelEdit()">Cancel</button>
-                <button class="btn btn-success" type="submit" [disabled]="expenseItemForm.invalid">Save</button>
+                <button class="btn btn-success" type="submit" [disabled]="expenseItemForm.invalid">
+                  <fa-icon [icon]="faFloppyDisk"></fa-icon>
+                </button>
               </div>
             </form>
             @if (httpErrors){

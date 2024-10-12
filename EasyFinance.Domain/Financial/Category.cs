@@ -15,6 +15,7 @@ namespace EasyFinance.Domain.Models.Financial
         }
 
         public string Name { get; private set; } = string.Empty;
+        public bool Archive { get; private set; }
         public ICollection<Expense> Expenses { get; private set; } = new List<Expense>();
 
         public void SetName(string name)
@@ -39,6 +40,11 @@ namespace EasyFinance.Domain.Models.Financial
                 throw new ValidationException(nameof(expense), string.Format(ValidationMessages.PropertyCantBeNull, nameof(expense)));
 
             this.Expenses.Add(expense);
+        }
+
+        public void SetArchive()
+        {
+            this.Archive = true;
         }
     }
 }

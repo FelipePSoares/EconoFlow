@@ -2,14 +2,14 @@ import { AsyncPipe, CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { BehaviorSubject, Observable, map } from 'rxjs';
 import { mapper } from '../../../core/utils/mappings/mapper';
 import { CategoryDto } from '../models/category-dto';
 import { Category } from '../../../core/models/category';
 import { CategoryService } from '../../../core/services/category.service';
 import { compare } from 'fast-json-patch';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faPenToSquare, faBoxArchive, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-list-categories',
@@ -24,6 +24,9 @@ import { compare } from 'fast-json-patch';
   styleUrls: ['./list-categories.component.css', '../../styles/shared.scss']
 })
 export class ListCategoriesComponent {
+  faPenToSquare = faPenToSquare;
+  faBoxArchive = faBoxArchive;
+  faFloppyDisk = faFloppyDisk;
   private _currentDate!: Date;
   private categories: BehaviorSubject<CategoryDto[]> = new BehaviorSubject<CategoryDto[]>([new CategoryDto()]);
   categories$: Observable<CategoryDto[]> = this.categories.asObservable();
@@ -31,7 +34,6 @@ export class ListCategoriesComponent {
   editingCategory: CategoryDto = new CategoryDto();
   httpErrors = false;
   errors: any;
-  faPlus = faPlus;
   
   get currentDate(): Date {
     return this._currentDate;

@@ -8,6 +8,8 @@ import { mapper } from 'src/app/core/utils/mappings/mapper';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { compare } from 'fast-json-patch';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faPenToSquare, faTrash, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-list-incomes',
@@ -15,13 +17,17 @@ import { compare } from 'fast-json-patch';
   imports: [
     CommonModule,
     AsyncPipe,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    FontAwesomeModule
   ],
   templateUrl: './list-incomes.component.html',
   styleUrls: ['./list-incomes.component.css', '../../styles/shared.scss']
 })
 
 export class ListIncomesComponent {
+  faPenToSquare = faPenToSquare;
+  faFloppyDisk = faFloppyDisk;
+  faTrash = faTrash;
   private _currentDate!: Date;
   private incomes: BehaviorSubject<IncomeDto[]> = new BehaviorSubject<IncomeDto[]>([new IncomeDto()]);
   incomes$: Observable<IncomeDto[]> = this.incomes.asObservable();

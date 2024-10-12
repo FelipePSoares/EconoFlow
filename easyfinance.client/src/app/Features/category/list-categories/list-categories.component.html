@@ -17,8 +17,12 @@
                 </p>
               </div>
               <div class="btn-group">
-                <button class="btn btn-secondary" (click)="edit(category)">Edit</button>
-                <button class="btn btn-danger" (click)="remove(category.id)">Remove</button>
+                <button class="btn btn-secondary" (click)="edit(category)">
+                  <fa-icon [icon]="faPenToSquare"></fa-icon>
+                </button>
+                <button class="btn btn-danger" (click)="remove(category.id)">
+                  <fa-icon [icon]="faBoxArchive"></fa-icon>
+                </button>
               </div>
             </div>
             <div class="progress">
@@ -48,7 +52,9 @@
               </div>
               <div class="ml-1 btn-group">
                 <button class="btn btn-secondary" type="button" (click)="cancelEdit()">Cancel</button>
-                <button class="btn btn-success" type="submit" [disabled]="categoryForm.invalid">Save</button>
+                <button class="btn btn-success" type="submit" [disabled]="categoryForm.invalid">
+                  <fa-icon [icon]="faFloppyDisk"></fa-icon>
+                </button>
               </div>
             </form>
             @if (httpErrors){

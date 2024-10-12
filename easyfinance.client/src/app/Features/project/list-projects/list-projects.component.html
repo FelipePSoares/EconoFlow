@@ -13,8 +13,12 @@
                 <p class="mb-1">{{ project.type }}</p>
               </div>
               <div class="btn-group">
-                <button class="btn btn-secondary" (click)="edit(project)">Edit</button>
-                <button class="btn btn-danger" (click)="remove(project.id)">Remove</button>
+                <button class="btn btn-secondary" (click)="edit(project)">
+                  <fa-icon [icon]="faPenToSquare"></fa-icon>
+                </button>
+                <button class="btn btn-danger" (click)="remove(project.id)">
+                  <fa-icon [icon]="faBoxArchive"></fa-icon>
+                </button>
               </div>
             </div>
           </div>
@@ -38,7 +42,9 @@
               </div>
               <div class="btn-group">
                 <button class="btn btn-secondary" (click)="cancelEdit()">Cancel</button>
-                <button class="btn btn-success" [disabled]="projectForm.invalid">Save</button>
+                <button class="btn btn-success" [disabled]="projectForm.invalid">
+                  <fa-icon [icon]="faFloppyDisk"></fa-icon>
+                </button>
               </div>
             </form>
             @if (httpErrors){
