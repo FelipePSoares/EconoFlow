@@ -2,7 +2,7 @@
   <app-return-button (returnButtonEvent)="previous()"></app-return-button>
   <div class="row justify-content-center">
     <div class="wrap col-lg-8">
-  <h1 class="text-center mt-5 mb-3">Expense Items</h1>
+      <h1 class="text-center mt-5 mb-3">Expense Items</h1>
       <div class="list-group">
         @for (expenseItem of (expense$ | async)?.items; track expenseItem.id){
         <div class="list-group-item expense-item">
@@ -20,7 +20,7 @@
                 <button class="btn btn-secondary" (click)="edit(expenseItem)">
                   <fa-icon [icon]="faPenToSquare"></fa-icon>
                 </button>
-                <button class="btn btn-danger" (click)="remove(expenseItem.id)">
+                <button class="btn btn-danger" (click)="triggerDelete(expenseItem.id)">
                   <fa-icon [icon]="faTrash"></fa-icon>
                 </button>
               </div>
@@ -91,3 +91,4 @@
   </div>
   <app-add-button (clickedEvent)="add()"></app-add-button>
 </div>
+<app-confirm-dialog (confirmed)="handleConfirmation($event)"></app-confirm-dialog>

@@ -17,7 +17,7 @@
                 <button class="btn btn-secondary" (click)="edit(income)">
                   <fa-icon [icon]="faPenToSquare"></fa-icon>
                 </button>
-                <button class="btn btn-danger" (click)="remove(income.id)">
+                <button class="btn btn-danger" (click)="triggerDelete(income.id)">
                   <fa-icon [icon]="faTrash"></fa-icon>
                 </button>
               </div>
@@ -85,3 +85,4 @@
     </div>
   </div>
 </div>
+<app-confirm-dialog (confirmed)="handleConfirmation($event)"></app-confirm-dialog>

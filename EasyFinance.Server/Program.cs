@@ -48,6 +48,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     {
         options.Cookie.SameSite = SameSiteMode.Strict;
         options.Cookie.Name = "AuthCookie";
+        options.ExpireTimeSpan = TimeSpan.FromDays(7);
         options.Events.OnRedirectToAccessDenied = UnAuthorizedResponse;
         options.Events.OnRedirectToLogin = UnAuthorizedResponse;
     });

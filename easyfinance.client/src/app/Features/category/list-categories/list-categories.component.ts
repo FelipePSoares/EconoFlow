@@ -1,5 +1,5 @@
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, Input, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, map } from 'rxjs';
@@ -10,6 +10,7 @@ import { CategoryService } from '../../../core/services/category.service';
 import { compare } from 'fast-json-patch';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPenToSquare, faBoxArchive, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
+import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-list-categories',
@@ -18,12 +19,14 @@ import { faPenToSquare, faBoxArchive, faFloppyDisk } from '@fortawesome/free-sol
     CommonModule,
     AsyncPipe,
     ReactiveFormsModule,
-    FontAwesomeModule
+    FontAwesomeModule,
+    ConfirmDialogComponent
   ],
   templateUrl: './list-categories.component.html',
   styleUrls: ['./list-categories.component.css', '../../styles/shared.scss']
 })
 export class ListCategoriesComponent {
+  @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
   faPenToSquare = faPenToSquare;
   faBoxArchive = faBoxArchive;
   faFloppyDisk = faFloppyDisk;
@@ -32,6 +35,7 @@ export class ListCategoriesComponent {
   categories$: Observable<CategoryDto[]> = this.categories.asObservable();
   categoryForm!: FormGroup;
   editingCategory: CategoryDto = new CategoryDto();
+  itemToDelete!: string;
   httpErrors = false;
   errors: any;
   
@@ -116,5 +120,16 @@ export class ListCategoriesComponent {
         this.categories.next(categoriesNewArray);
       }
     })
+  }
+
+  triggerDelete(itemId: string): void {
+    this.itemToDelete = itemId;
+    this.ConfirmDialog.openModal('Archive Item', 'Are you sure you want to archive this item?', 'Archive');
+  }
+
+  handleConfirmation(result: boolean): void {
+    if (result) {
+      this.remove(this.itemToDelete);
+    }
   }
 }
