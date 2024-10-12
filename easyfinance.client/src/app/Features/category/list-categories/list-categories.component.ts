@@ -33,6 +33,9 @@ export class ListCategoriesComponent {
   private _currentDate!: Date;
   private categories: BehaviorSubject<CategoryDto[]> = new BehaviorSubject<CategoryDto[]>([new CategoryDto()]);
   categories$: Observable<CategoryDto[]> = this.categories.asObservable();
+  totalBudget!: number;
+  totalWaste!: number;
+  totalRemaining!: number;
   categoryForm!: FormGroup;
   editingCategory: CategoryDto = new CategoryDto();
   itemToDelete!: string;
@@ -49,7 +52,13 @@ export class ListCategoriesComponent {
       .pipe(map(categories => mapper.mapArray(categories, Category, CategoryDto)))
       .subscribe(
         {
-          next: res => { this.categories.next(res); }
+          next: res => {
+            this.totalBudget = res.map(c => c.getTotalBudget()).reduce((acc, value) => acc + value, 0);
+            this.totalWaste = res.map(c => c.getTotalWaste()).reduce((acc, value) => acc + value, 0);
+            this.totalRemaining = res.map(c => c.getTotalRemaining()).reduce((acc, value) => acc + value, 0);
+
+            this.categories.next(res);
+          }
         });
   }
 
@@ -131,5 +140,9 @@ export class ListCategoriesComponent {
     if (result) {
       this.remove(this.itemToDelete);
     }
+  }
+
+  getPercentageWaste(): number {
+    return this.totalWaste * 100 / this.totalBudget;
   }
 }
