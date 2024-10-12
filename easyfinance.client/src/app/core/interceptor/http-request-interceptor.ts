@@ -3,6 +3,7 @@ import { Observable, catchError, of, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { inject } from '@angular/core';
+import { ApiErrorResponse } from '../models/error';
 
 export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
   var router = inject(Router);
@@ -23,6 +24,13 @@ function handleAuthError(err: HttpErrorResponse, router: Router, authService: Au
 
     return of(err.message);
   }
+  let apiErrorResponse: ApiErrorResponse = <ApiErrorResponse>{};
 
-  return throwError(() => err);
+  if (err.error) {
+    apiErrorResponse = err.error as ApiErrorResponse;
+  } else {
+    apiErrorResponse.errors['general'] = 'An unexpected error occurs, try again...';
+  }
+
+  return throwError(() => apiErrorResponse);
 }
