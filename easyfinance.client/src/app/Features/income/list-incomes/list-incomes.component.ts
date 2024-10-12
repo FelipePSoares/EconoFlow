@@ -18,7 +18,7 @@ import { compare } from 'fast-json-patch';
     ReactiveFormsModule
   ],
   templateUrl: './list-incomes.component.html',
-  styleUrl: './list-incomes.component.css'
+  styleUrls: ['./list-incomes.component.css', '../../styles/shared.scss']
 })
 
 export class ListIncomesComponent {

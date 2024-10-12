@@ -1,7 +1,7 @@
-<div class="container">
-  <h1 class="text-center mt-5">Categories</h1>
-  <div class="row category-list justify-content-center">
-    <div class="col-lg-12">
+<div class="container text-center">
+  <div class="row justify-content-center">
+    <div class="wrap">
+  <h1 class="text-center mt-5 mb-3">Categories</h1>
       <div class="list-group">
         @for (category of (categories$ | async); track category.id){
         <div class="list-group-item category-item">
@@ -24,7 +24,7 @@
             <div class="progress">
               <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
                    [ngClass]="{
-                    'bg-info' : category.getPercentageWaste() < 50,
+                   'bg-info' : category.getPercentageWaste() < 50,
                     'bg-warning': category.getPercentageWaste() > 50 && category.getPercentageWaste() < 75,
                     'bg-danger': category.getPercentageWaste() > 75
                    }"

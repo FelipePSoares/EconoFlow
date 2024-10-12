@@ -4,13 +4,15 @@ import { IncomeService } from '../../../core/services/income.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IncomeDto } from '../models/income-dto';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
+import { ApiErrorResponse } from '../../../core/models/error';
+import { ErrorMessageService } from '../../../core/services/error-message.service';
 
 @Component({
   selector: 'app-add-income',
   standalone: true,
   imports: [FormsModule, ReactiveFormsModule, ReturnButtonComponent],
   templateUrl: './add-income.component.html',
-  styleUrl: './add-income.component.css'
+  styleUrls: ['./add-income.component.css', '../../styles/shared.scss']
 })
 export class AddIncomeComponent implements OnInit {
   private currentDate!: Date;
@@ -21,7 +23,7 @@ export class AddIncomeComponent implements OnInit {
   @Input({ required: true })
     projectId!: string;
 
-  constructor(private incomeService: IncomeService, private router: Router, private route: ActivatedRoute) { }
+  constructor(private incomeService: IncomeService, private router: Router, private route: ActivatedRoute, private errorMessageService: ErrorMessageService) { }
 
   ngOnInit(): void {
     this.currentDate = new Date(this.route.snapshot.paramMap.get('currentDate')!);
@@ -49,12 +51,35 @@ export class AddIncomeComponent implements OnInit {
         next: response => {
           this.previous();
         },
-        error: error => {
+        error: (response: ApiErrorResponse) => {
           this.httpErrors = true;
-          this.errors = error;
+          this.errors = response.errors;
+
+          this.errorMessageService.setFormErrors(this.incomeForm, this.errors);
         }
       });
     }
+  }
+
+  getFormFieldErrors(fieldName: string): string[] {
+    const control = this.incomeForm.get(fieldName);
+    const errors: string[] = [];
+
+    if (control && control.errors) {
+      for (const key in control.errors) {
+        if (control.errors.hasOwnProperty(key)) {
+          switch (key) {
+            case 'required':
+              errors.push('This field is required.');
+              break;
+            default:
+              errors.push(control.errors[key]);
+          }
+        }
+      }
+    }
+
+    return errors;
   }
 
   get name() {

@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { IDictionary } from '../../../core/interfaces/IDictionary';
 import { AuthService } from '../../../core/services/auth.service';
 import { passwordMatchValidator } from '../../../core/utils/custom-validators/password-match-validator';
 import { CommonModule } from '@angular/common';
+import { ApiErrorResponse } from '../../../core/models/error';
 
 @Component({
   selector: 'app-register',
@@ -16,7 +17,9 @@ import { CommonModule } from '@angular/common';
 export class RegisterComponent implements OnInit{
   registerForm!: FormGroup;
   httpErrors = false;
-  errors: IDictionary<string> = {};
+  errors!: { [key: string]: string };
+;
+
   constructor(private authService: AuthService, private router: Router) {
     this.authService.isSignedIn$.subscribe(value => {
       if (value) {
@@ -56,11 +59,61 @@ export class RegisterComponent implements OnInit{
         next: response => {
           this.router.navigate(['login']);
         },
-        error: response => {
+        error: (response: ApiErrorResponse) => {
           this.httpErrors = true;
-          this.errors = JSON.parse(response.error)?.errors;
+          this.errors = response.errors;
+
+          this.setFormErrors(this.errors);
         }
       });
     }
+  }
+
+  setFormErrors(errors: { [key: string]: string }) {
+    for (let key in errors) {
+      if (key.indexOf("Password") > -1) {
+        const formControl = this.registerForm.get('password');
+        this.setErrorFormControl(formControl, { [key]: errors[key] });
+      }
+      if (key.indexOf("Email") > -1) {
+        const formControl = this.registerForm.get('email');
+        this.setErrorFormControl(formControl, { [key]: errors[key] });
+      }
+    }
+  }
+
+  setErrorFormControl(formControl: AbstractControl | null, errors: ValidationErrors) {
+    if (formControl) {
+      const currentErrors = formControl.errors || {};
+      const updatedErrors = { ...currentErrors, ...errors };
+      formControl.setErrors(updatedErrors);
+    }
+  }
+
+  getFormFieldErrors(fieldName: string): string[] {
+    const control = this.registerForm.get(fieldName);
+    const errors: string[] = [];
+
+    if (control && control.errors) {
+      for (const key in control.errors) {
+        if (control.errors.hasOwnProperty(key)) {
+          switch (key) {
+            case 'required':
+              errors.push('This field is required.');
+              break;
+            case 'email':
+              errors.push('Invalid email format.');
+              break;
+            case 'pattern':
+              errors.push('Password must have:<ul><li>One lowercase character</li><li>One uppercase character</li><li>One number</li><li>One special character</li><li>8 characters minimum</li></ul>');
+              break;
+            default:
+              errors.push(control.errors[key]);
+          }
+        }
+      }
+    }
+
+    return errors;
   }
 }

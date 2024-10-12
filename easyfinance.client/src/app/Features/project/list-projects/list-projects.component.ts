@@ -16,7 +16,7 @@ import { AddButtonComponent } from '../../../core/components/add-button/add-butt
   standalone: true,
   imports: [FormsModule, ReactiveFormsModule, AsyncPipe, AddButtonComponent],
   templateUrl: './list-projects.component.html',
-  styleUrls: ['./list-projects.component.css']
+  styleUrls: ['./list-projects.component.css', '../../styles/shared.scss']
 })
 export class ListProjectsComponent implements OnInit {
   static firstAccess = true;

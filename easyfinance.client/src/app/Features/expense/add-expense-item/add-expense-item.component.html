@@ -1,58 +1,62 @@
-<div class="container">
+<div class="container text-center">
   <app-return-button (returnButtonEvent)="previous()"></app-return-button>
-  <h1 class="text-center mt-5">Create Expense Item</h1>
-  <form [formGroup]="expenseItemForm" (ngSubmit)="save()">
-    <div class="input justify-content-center">
-      <div class="col-md-4 mb-2 form-floating">
-        <input type="text" class="form-control" id="name" placeholder="Supermarket" formControlName="name" [class.is-invalid]="name?.invalid && name?.touched">
-        <label for="name">Name</label>
-        @if(name?.invalid && name?.touched){
+  <div class="row justify-content-md-center">
+    <div class="wrap col-lg-8">
+      <h1 class="text-center mt-5 mb-3">Create Expense Item</h1>
+      <form [formGroup]="expenseItemForm" (ngSubmit)="save()">
+        <div class="input justify-content-center">
+          <div class="col-8 mb-2 form-floating">
+            <input type="text" class="form-control" id="name" placeholder="Supermarket" formControlName="name" [class.is-invalid]="name?.invalid && name?.touched">
+            <label for="name">Name</label>
+            @if(name?.invalid && name?.touched){
+            <div>
+              <ul>
+                @for (error of getFormFieldErrors('name'); track $index) {
+                <li class="text-danger" [innerHtml]="error"></li>
+                }
+              </ul>
+            </div>
+            }
+          </div>
+        </div>
+        <div class="input justify-content-center">
+          <div class="col-8 mb-2 form-floating">
+            <input type="text" class="form-control" id="date" formControlName="date" [class.is-invalid]="date?.invalid && date?.touched">
+            <label for="date">Date</label>
+            @if(date?.invalid && date?.touched){
+            <div>
+              <ul>
+                @for (error of getFormFieldErrors('date'); track $index) {
+                <li class="text-danger" [innerHtml]="error"></li>
+                }
+              </ul>
+            </div>
+            }
+          </div>
+        </div>
+        <div class="input justify-content-center">
+          <div class="col-8 mb-2 form-floating">
+            <input type="text" class="form-control" id="amount" formControlName="amount" [class.is-invalid]="amount?.invalid && amount?.touched">
+            <label for="amount">Amount</label>
+            @if(amount?.invalid && amount?.touched){
+            <div>
+              <ul>
+                @for (error of getFormFieldErrors('amount'); track $index) {
+                <li class="text-danger" [innerHtml]="error"></li>
+                }
+              </ul>
+            </div>
+            }
+          </div>
+        </div>
+        @if (httpErrors && errors['general']) {
         <div>
-          @if(name?.errors?.['required']){
-          <div class="text-danger">Name is required.</div>
-          }
+          <p class="mb-3 text-danger text-center">{{errors['general']}}</p>
         </div>
         }
-      </div>
-    </div>
-    <div class="input justify-content-center">
-      <div class="col-md-12 mb-2 form-floating">
-        <input type="text" class="form-control" id="date" formControlName="date" [class.is-invalid]="date?.invalid && date?.touched">
-        <label for="date">Date</label>
-        @if(date?.invalid && date?.touched){
-        <div>
-          @if(date?.errors?.['required']){
-          <div class="text-danger">Date is required.</div>
-          }
-          @if(date?.errors?.['pattern']){
-          <div class="text-danger">Invalid Date format. (yyyy-MM-dd).</div>
-          }
+        <div class="float-end">
+          <button type="submit" class="btn btn-primary" [disabled]="expenseItemForm.invalid">Create</button>
         </div>
-        }
-      </div>
-    </div>
-    <div class="input justify-content-center">
-      <div class="col-md-12 mb-2 form-floating">
-        <input type="text" class="form-control" id="amount" formControlName="amount" [class.is-invalid]="amount?.invalid && amount?.touched">
-        <label for="amount">Amount</label>
-        @if(amount?.invalid && amount?.touched){
-        <div>
-          @if(amount?.errors?.['pattern']){
-          <div class="text-danger">Invalid amount format. (0000,00)</div>
-          }
-        </div>
-        }
-      </div>
-    </div>
-    <div class="input justify-content-center">
-      <div class="col-md-4 mb-2">
-        <button type="submit" class="btn btn-primary" [disabled]="expenseItemForm.invalid">Create</button>
-      </div>
-      @if(httpErrors){
-      <div>
-        <p class="mt-5 mb-3 text-danger text-center">{{errors.statusText}}</p>
-      </div>
-      }
-    </div>
-  </form>
+    </form>
+  </div>
 </div>

@@ -1,47 +1,53 @@
-<div class="container">
+<div class="container text-center">
   <app-return-button (returnButtonEvent)="previous()"></app-return-button>
-  <h1 class="text-center mt-5">Create Project</h1>
-  <form [formGroup]="projectForm" (ngSubmit)="saveProject()">
-    <div class="input justify-content-center">
-      <div class="col-md-4 mb-2 form-floating">
-        <input type="text" class="form-control" id="name" placeholder="Personal" formControlName="name" [class.is-invalid]="name?.invalid && name?.touched">
-        <label for="name">Project Name</label>
-        @if(name?.invalid && name?.touched){
+  <div class="row justify-content-md-center">
+    <div class="wrap col-lg-8">
+      <h1 class="text-center mt-5 mb-3">Create Project</h1>
+      <form [formGroup]="projectForm" (ngSubmit)="saveProject()">
+        <div class="input justify-content-center">
+          <div class="col-8 mb-2 form-floating">
+            <input type="text" class="form-control" id="name" placeholder="Personal" formControlName="name" [class.is-invalid]="name?.invalid && name?.touched">
+            <label for="name">Project Name</label>
+            @if (name?.invalid && name?.touched) {
+            <div>
+              <ul>
+                @for (error of getFormFieldErrors('name'); track $index) {
+                <li class="text-danger" [innerHtml]="error"></li>
+                }
+              </ul>
+            </div>
+            }
+          </div>
+        </div>
+        <div class="input justify-content-center">
+          <div class="col-8 mb-2 form-floating">
+            <select id="type" class="form-select" formControlName="type" [class.is-invalid]="type?.invalid && type?.touched">
+              <option selected>Choose...</option>
+              @for (item of projectTypes; track $index) {
+              <option>{{projectType2LabelMapping[item]}}</option>
+              }
+            </select>
+            <label for="type" class="form-label">Type</label>
+            @if (type?.invalid && type?.touched) {
+            <div>
+              <ul>
+                @for (error of getFormFieldErrors('type'); track $index) {
+                <li class="text-danger" [innerHtml]="error"></li>
+                }
+              </ul>
+            </div>
+            }
+          </div>
+        </div>
+        @if (httpErrors && errors['general']) {
         <div>
-          @if(name?.errors?.['required']){
-          <div class="text-danger">Project Name is required.</div>
-          }
+          <p class="mb-3 text-danger text-center">{{errors['general']}}</p>
         </div>
         }
-      </div>
-    </div>
-    <div class="input justify-content-center">
-      <div class="col-md-4 mb-2 form-floating">
-        <select id="type" class="form-select" formControlName="type" [class.is-invalid]="type?.invalid && type?.touched">
-          <option selected>Choose...</option>
-          @for (item of projectTypes; track $index) {
-          <option>{{projectType2LabelMapping[item]}}</option>
-          }
-        </select>
-        <label for="type" class="form-label">Type</label>
-        @if(type?.invalid && type?.touched){
-        <div>
-          @if(type?.errors?.['required']){
-          <div class="text-danger">Project Type is required.</div>
-          }
+        <div class="col-md-4 mb-2 float-end">
+          <button type="submit" class="btn btn-primary" [disabled]="projectForm.invalid">Create</button>
         </div>
-        }
-      </div>
+      </form>
     </div>
-    <div class="input justify-content-center">
-      <div class="col-md-4 mb-2">
-        <button type="submit" class="btn btn-primary" [disabled]="projectForm.invalid">Create</button>
-      </div>
-      @if(httpErrors){
-      <div>
-        <p class="mt-5 mb-3 text-danger text-center">{{errors.statusText}}</p>
-      </div>
-      }
-    </div>
-  </form>
+  </div>
 </div>

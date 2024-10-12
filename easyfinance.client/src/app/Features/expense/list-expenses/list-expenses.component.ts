@@ -26,7 +26,7 @@ import { CurrentDateComponent } from '../../../core/components/current-date/curr
     ReturnButtonComponent
   ],
   templateUrl: './list-expenses.component.html',
-  styleUrl: './list-expenses.component.css'
+  styleUrls: ['./list-expenses.component.css', '../../styles/shared.scss']
 })
 export class ListExpensesComponent {
   private _currentDate!: Date;

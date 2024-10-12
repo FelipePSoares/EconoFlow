@@ -18,25 +18,18 @@
           <input type="email" class="form-control" id="email" placeholder="name@example.com" formControlName="email" [class.is-invalid]="email?.invalid && email?.touched">
           <label for="email">Email address</label>
           <div *ngIf="email?.invalid && email?.touched">
-            <div *ngIf="email?.errors?.['required']" class="text-danger">Email is required.</div>
-            <div *ngIf="email?.errors?.['email']" class="text-danger">Invalid email format.</div>
+            <ul>
+              <li *ngFor="let error of getFormFieldErrors('email')" class="text-danger" [innerHtml]="error"></li>
+            </ul>
           </div>
         </div>
         <div class="form-floating mb-3">
           <input type="password" class="form-control" id="password" placeholder="Password" formControlName="password" [class.is-invalid]="password?.invalid && password?.touched">
           <label for="password">Password</label>
           <div *ngIf="password?.invalid && password?.touched">
-            <div *ngIf="password?.errors?.['required']" class="text-danger">Password is required.</div>
-            <div *ngIf="password?.errors?.['pattern']" class="text-danger">
-              Password must have:
-              <ul>
-                <li>One lowercase character</li>
-                <li>One uppercase character</li>
-                <li>One number</li>
-                <li>One special character</li>
-                <li>8 characters minimum</li>
-              </ul>
-            </div>
+            <ul>
+              <li *ngFor="let error of getFormFieldErrors('password')" class="text-danger" [innerHtml]="error"></li>
+            </ul>
           </div>
         </div>
         <div class="form-floating mb-3">
@@ -49,9 +42,8 @@
         <div *ngIf="registerForm.errors?.['passwordMismatch'] && (registerForm.touched || registerForm.dirty)">
           <p class="mb-3 text-danger text-center">Password must match</p>
         </div>
-        <div *ngIf="httpErrors">
-          <p class="mb-3 text-danger text-center" *ngIf="errors['DuplicateEmail']">{{errors['DuplicateEmail']}}</p>
-          <p class="mb-3 text-danger text-center" *ngIf="!errors['DuplicateEmail']">Error. Try again...</p>
+        <div *ngIf="httpErrors && errors?.['general']">
+          <p class="mb-3 text-danger text-center">{{errors['general']}}</p>
         </div>
         <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="registerForm.invalid">Sign up</button>
       </form>
