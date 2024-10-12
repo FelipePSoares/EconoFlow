@@ -21,7 +21,7 @@ import { compare } from 'fast-json-patch';
     FontAwesomeModule
   ],
   templateUrl: './list-categories.component.html',
-  styleUrl: './list-categories.component.css'
+  styleUrls: ['./list-categories.component.css', '../../styles/shared.scss']
 })
 export class ListCategoriesComponent {
   private _currentDate!: Date;

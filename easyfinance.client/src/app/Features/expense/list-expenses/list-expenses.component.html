@@ -1,9 +1,9 @@
 <app-return-button (returnButtonEvent)="previous()"></app-return-button>
-<app-current-date [currentDate]="currentDate" (dateUpdatedEvent)="updateDate($event)"></app-current-date>
-<div class="container">
-  <h1 class="text-center mt-5">Expenses</h1>
-  <div class="row expense-list justify-content-center">
-    <div class="col-md-8">
+<div class="container text-center">
+  <app-current-date [currentDate]="currentDate" (dateUpdatedEvent)="updateDate($event)"></app-current-date>
+  <div class="row justify-content-center">
+    <div class="wrap col-lg-8">
+      <h1 class="text-center mt-5">Expenses</h1>
       <div class="list-group">
         @for (expense of (expenses$ | async); track expense.id){
         <div class="list-group-item expense-item">
@@ -26,7 +26,7 @@
             <div class="progress">
               <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
                    [ngClass]="{
-                      'bg-info': expense.getPercentageWaste() < 50,
+                   'bg-info' : expense.getPercentageWaste() < 50,
                       'bg-warning': expense.getPercentageWaste() > 50 && expense.getPercentageWaste() < 75,
                       'bg-danger': expense.getPercentageWaste() > 75
                    }"

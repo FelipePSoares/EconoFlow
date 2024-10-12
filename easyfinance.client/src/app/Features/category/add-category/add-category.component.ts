@@ -4,24 +4,26 @@ import { CategoryService } from '../../../core/services/category.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CategoryDto } from '../models/category-dto';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
+import { ErrorMessageService } from '../../../core/services/error-message.service';
+import { ApiErrorResponse } from '../../../core/models/error';
 
 @Component({
   selector: 'app-add-category',
   standalone: true,
   imports: [FormsModule, ReactiveFormsModule, ReturnButtonComponent],
   templateUrl: './add-category.component.html',
-  styleUrl: './add-category.component.css'
+  styleUrls: ['./add-category.component.css', '../../styles/shared.scss']
 })
 export class AddCategoryComponent implements OnInit {
   private currentDate!: Date;
   categoryForm!: FormGroup;
   httpErrors = false;
-  errors: any;
+  errors!: { [key: string]: string };
 
   @Input({ required: true })
   projectId!: string;
 
-  constructor(private categoryService: CategoryService, private router: Router, private route: ActivatedRoute) { }
+  constructor(private categoryService: CategoryService, private router: Router, private route: ActivatedRoute, private errorMessageService: ErrorMessageService) { }
 
   ngOnInit(): void {
     this.currentDate = new Date(this.route.snapshot.paramMap.get('currentDate')!);
@@ -43,12 +45,35 @@ export class AddCategoryComponent implements OnInit {
         next: response => {
           this.previous();
         },
-        error: error => {
+        error: (response: ApiErrorResponse) => {
           this.httpErrors = true;
-          this.errors = error;
+          this.errors = response.errors;
+
+          this.errorMessageService.setFormErrors(this.categoryForm, this.errors);
         }
       });
     }
+  }
+
+  getFormFieldErrors(fieldName: string): string[] {
+    const control = this.categoryForm.get(fieldName);
+    const errors: string[] = [];
+
+    if (control && control.errors) {
+      for (const key in control.errors) {
+        if (control.errors.hasOwnProperty(key)) {
+          switch (key) {
+            case 'required':
+              errors.push('This field is required.');
+              break;
+            default:
+              errors.push(control.errors[key]);
+          }
+        }
+      }
+    }
+
+    return errors;
   }
 
   get name() {

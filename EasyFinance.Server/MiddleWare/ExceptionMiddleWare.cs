@@ -1,7 +1,9 @@
-﻿using System.Net;
+﻿using System.Diagnostics;
+using System.Net;
 using System.Text.Json;
 using EasyFinance.Infrastructure.Exceptions;
 using EasyFinance.Server.MiddleWare;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Serilog;
 
 namespace EasyFinance.Server.Middleware
@@ -44,9 +46,10 @@ namespace EasyFinance.Server.Middleware
 
             var response = new
             {
-                Property = ex.Property,
-                Message = ex.Message,
-                StackTrace = this.environment.IsDevelopment() ? ex.StackTrace?.ToString() : "Internal Server Error"
+                Errors = new Dictionary<string, string>
+                {
+                    { ex.Property, ex.Message }
+                }
             };
 
             var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };

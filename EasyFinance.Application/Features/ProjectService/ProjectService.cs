@@ -4,8 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Domain.Models.AccessControl;
+using EasyFinance.Domain.Models.Financial;
 using EasyFinance.Domain.Models.FinancialProject;
 using EasyFinance.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 
 namespace EasyFinance.Application.Features.ProjectService
 {
@@ -35,6 +37,11 @@ namespace EasyFinance.Application.Features.ProjectService
 
             if (user == default)
                 throw new ArgumentNullException(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(user)));
+
+            var projectExistent = await unitOfWork.ProjectRepository.Trackable().FirstOrDefaultAsync(p => p.Name == project.Name);
+
+            if (projectExistent != default)
+                return projectExistent;
 
             unitOfWork.ProjectRepository.InsertOrUpdate(project);
             unitOfWork.UserProjectRepository.InsertOrUpdate(new UserProject(user, project, Role.Admin));

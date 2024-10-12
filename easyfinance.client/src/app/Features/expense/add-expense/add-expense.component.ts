@@ -4,19 +4,21 @@ import { ExpenseService } from '../../../core/services/expense.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExpenseDto } from '../models/expense-dto';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
+import { ErrorMessageService } from '../../../core/services/error-message.service';
+import { ApiErrorResponse } from '../../../core/models/error';
 
 @Component({
   selector: 'app-add-expense',
   standalone: true,
   imports: [FormsModule, ReactiveFormsModule, ReturnButtonComponent],
   templateUrl: './add-expense.component.html',
-  styleUrl: './add-expense.component.css'
+  styleUrls: ['./add-expense.component.css', '../../styles/shared.scss']
 })
 export class AddExpenseComponent implements OnInit {
   private currentDate!: Date;
   expenseForm!: FormGroup;
   httpErrors = false;
-  errors: any;
+  errors!: { [key: string]: string };
 
   @Input({ required: true })
   projectId!: string;
@@ -24,7 +26,7 @@ export class AddExpenseComponent implements OnInit {
   @Input({ required: true })
   categoryId!: string;
 
-  constructor(private expenseService: ExpenseService, private router: Router, private route: ActivatedRoute) { }
+  constructor(private expenseService: ExpenseService, private router: Router, private route: ActivatedRoute, private errorMessageService: ErrorMessageService) { }
 
   ngOnInit(): void {
     this.currentDate = new Date(this.route.snapshot.paramMap.get('currentDate')!);
@@ -67,12 +69,46 @@ export class AddExpenseComponent implements OnInit {
         next: response => {
           this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, 'expenses', { currentDate: date }]);
         },
-        error: error => {
+        error: (response: ApiErrorResponse) => {
           this.httpErrors = true;
-          this.errors = error;
+          this.errors = response.errors;
+
+          this.errorMessageService.setFormErrors(this.expenseForm, this.errors);
         }
       });
     }
+  }
+
+  getFormFieldErrors(fieldName: string): string[] {
+    const control = this.expenseForm.get(fieldName);
+    const errors: string[] = [];
+
+    if (control && control.errors) {
+      for (const key in control.errors) {
+        if (control.errors.hasOwnProperty(key)) {
+          switch (key) {
+            case 'required':
+              errors.push('This field is required.');
+              break;
+            case 'pattern':
+              if (fieldName === 'date') {
+                errors.push('Invalid Date format. (yyyy-MM-dd).');
+              }
+              if (fieldName === 'budget') {
+                errors.push('Only numbers is valid.');
+              }
+              if (fieldName === 'amount') {
+                errors.push('Invalid amount format. (0000,00)');
+              }
+              break;
+            default:
+              errors.push(control.errors[key]);
+          }
+        }
+      }
+    }
+
+    return errors;
   }
 
   previous() {

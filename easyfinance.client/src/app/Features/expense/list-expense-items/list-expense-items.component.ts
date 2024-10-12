@@ -24,7 +24,7 @@ import { ReturnButtonComponent } from '../../../core/components/return-button/re
     ReturnButtonComponent
   ],
   templateUrl: './list-expense-items.component.html',
-  styleUrl: './list-expense-items.component.css'
+  styleUrls: ['./list-expense-items.component.css', '../../styles/shared.scss']
 })
 export class ListExpenseItemsComponent {
   private _expenseId!: string;

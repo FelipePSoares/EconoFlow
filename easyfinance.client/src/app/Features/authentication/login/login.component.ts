@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { CommonModule } from '@angular/common';
+import { ApiErrorResponse } from '../../../core/models/error';
 
 @Component({
   selector: 'app-login',
@@ -15,7 +16,8 @@ export class LoginComponent implements OnInit {
 
   loginForm!: FormGroup;
   httpErrors = false;
-  errors: any;
+  errors!: { [key: string]: string };
+
   constructor(private authService: AuthService, private router: Router) {
     this.authService.isSignedIn$.subscribe(value => {
       if (value) {
@@ -52,11 +54,58 @@ export class LoginComponent implements OnInit {
         next: response => {
           this.router.navigate(['/']);
         },
-        error: error => {
+        error: (response: ApiErrorResponse) => {
           this.httpErrors = true;
-          this.errors = error;
+          this.errors = response.errors;
+
+          this.setFormErrors(this.errors);
         }
       });
     }
+  }
+
+  setFormErrors(errors: { [key: string]: string }) {
+    for (let key in errors) {
+      if (key.indexOf("Password") > -1) {
+        const formControl = this.loginForm.get('password');
+        this.setErrorFormControl(formControl, { [key]: errors[key] });
+      }
+      if (key.indexOf("Email") > -1) {
+        const formControl = this.loginForm.get('email');
+        this.setErrorFormControl(formControl, { [key]: errors[key] });
+      }
+    }
+  }
+
+  setErrorFormControl(formControl: AbstractControl | null, errors: ValidationErrors) {
+    if (formControl) {
+      const currentErrors = formControl.errors || {};
+      const updatedErrors = { ...currentErrors, ...errors };
+      formControl.setErrors(updatedErrors);
+    }
+  }
+
+  getFormFieldErrors(fieldName: string): string[] {
+    const control = this.loginForm.get(fieldName);
+    const errors: string[] = [];
+
+    if (control && control.errors) {
+      for (const key in control.errors) {
+        if (control.errors.hasOwnProperty(key)) {
+          switch (key) {
+            case 'required':
+              errors.push('This field is required.');
+              break;
+            case 'email':
+              errors.push('Invalid email format.');
+              break;
+            default:
+              errors.push(control.errors[key]);
+          }
+        }
+      }
+    }
+
+    return errors;
   }
 }

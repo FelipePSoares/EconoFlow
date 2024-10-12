@@ -18,20 +18,23 @@
           <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com" formControlName="email" [class.is-invalid]="email?.invalid && email?.touched">
           <label for="floatingInput">Email address</label>
           <div *ngIf="email?.invalid && email?.touched">
-            <div *ngIf="email?.errors?.['required']" class="text-danger">Email is required.</div>
-            <div *ngIf="email?.errors?.['email']" class="text-danger">Invalid email format.</div>
+            <ul>
+              <li *ngFor="let error of getFormFieldErrors('email')" class="text-danger" [innerHtml]="error"></li>
+            </ul>
           </div>
         </div>
         <div class="form-floating mb-3">
           <input type="password" class="form-control" id="floatingPassword" placeholder="Password" formControlName="password" [class.is-invalid]="password?.invalid && password?.touched">
           <label for="floatingPassword">Password</label>
           <div *ngIf="password?.invalid && password?.touched">
-            <div *ngIf="password?.errors?.['required']" class="text-danger">Password is required.</div>
+            <ul>
+              <li *ngFor="let error of getFormFieldErrors('password')" class="text-danger" [innerHtml]="error"></li>
+            </ul>
           </div>
         </div>
         <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="loginForm.invalid">Sign in</button>
-        <div *ngIf="httpErrors">
-          <p class="mt-5 mb-3 text-danger text-center">{{errors.statusText}}</p>
+        <div *ngIf="httpErrors && errors?.['general']">
+          <p class="mb-3 text-danger text-center">{{errors['general']}}</p>
         </div>
       </form>
       <span class="login-footer">
