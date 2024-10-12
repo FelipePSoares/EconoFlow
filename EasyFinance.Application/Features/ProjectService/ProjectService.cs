@@ -22,7 +22,7 @@ namespace EasyFinance.Application.Features.ProjectService
 
         public ICollection<Project> GetAll(Guid userId)
         {
-            return unitOfWork.UserProjectRepository.NoTrackable().Where(up => up.User.Id == userId).Select(p => p.Project).ToList();
+            return unitOfWork.UserProjectRepository.NoTrackable().Where(up => up.User.Id == userId && !up.Project.Archive).Select(p => p.Project).ToList();
         }
 
         public Project GetById(Guid id)
@@ -38,7 +38,7 @@ namespace EasyFinance.Application.Features.ProjectService
             if (user == default)
                 throw new ArgumentNullException(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(user)));
 
-            var projectExistent = await unitOfWork.ProjectRepository.Trackable().FirstOrDefaultAsync(p => p.Name == project.Name);
+            var projectExistent = await unitOfWork.ProjectRepository.Trackable().FirstOrDefaultAsync(p => p.Name == project.Name && !p.Archive);
 
             if (projectExistent != default)
                 return projectExistent;
@@ -71,7 +71,9 @@ namespace EasyFinance.Application.Features.ProjectService
             if (project == null)
                 return;
 
-            unitOfWork.ProjectRepository.Delete(project);
+            project.SetArchive();
+
+            unitOfWork.ProjectRepository.InsertOrUpdate(project);
             await unitOfWork.CommitAsync();
         }
     }

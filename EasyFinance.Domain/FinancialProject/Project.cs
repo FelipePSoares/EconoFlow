@@ -21,6 +21,7 @@ namespace EasyFinance.Domain.Models.FinancialProject
 
         public string Name { get; private set; } = string.Empty;
         public ProjectType Type { get; private set; }
+        public bool Archive { get; private set; }
         public ICollection<Category> Categories { get; private set; } = new List<Category>();
         public ICollection<Income> Incomes { get; private set; } = new List<Income>();
 
@@ -67,6 +68,11 @@ namespace EasyFinance.Domain.Models.FinancialProject
         public void SetType(ProjectType type)
         {
             this.Type = type;
+        }
+
+        public void SetArchive()
+        {
+            this.Archive = true;
         }
     }
 }

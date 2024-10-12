@@ -13,6 +13,8 @@ import { compare } from 'fast-json-patch';
 import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faPenToSquare, faTrash, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-list-expenses',
@@ -23,12 +25,16 @@ import { CurrentDateComponent } from '../../../core/components/current-date/curr
     ReactiveFormsModule,
     CurrentDateComponent,
     AddButtonComponent,
-    ReturnButtonComponent
+    ReturnButtonComponent,
+    FontAwesomeModule
   ],
   templateUrl: './list-expenses.component.html',
   styleUrls: ['./list-expenses.component.css', '../../styles/shared.scss']
 })
 export class ListExpensesComponent {
+  faPenToSquare = faPenToSquare;
+  faFloppyDisk = faFloppyDisk;
+  faTrash = faTrash;
   private _currentDate!: Date;
   private expenses: BehaviorSubject<ExpenseDto[]> = new BehaviorSubject<ExpenseDto[]>([new ExpenseDto()]);
   expenses$: Observable<ExpenseDto[]> = this.expenses.asObservable();

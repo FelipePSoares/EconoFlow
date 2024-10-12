@@ -25,7 +25,7 @@ namespace EasyFinance.Application.Features.CategoryService
 
             var project = await unitOfWork.ProjectRepository.Trackable().Include(p => p.Categories).FirstOrDefaultAsync(p => p.Id == projectId);
 
-            var categoryExistent = project.Categories.FirstOrDefault(c => c.Name == category.Name);
+            var categoryExistent = project.Categories.FirstOrDefault(c => c.Name == category.Name && !c.Archive);
             if (categoryExistent != default)
                 return categoryExistent;
 
@@ -48,19 +48,23 @@ namespace EasyFinance.Application.Features.CategoryService
             if (category == null)
                 return;
 
-            unitOfWork.CategoryRepository.Delete(category);
+            category.SetArchive();
+
+            unitOfWork.CategoryRepository.InsertOrUpdate(category);
             await unitOfWork.CommitAsync();
         }
 
         public async Task<ICollection<Category>> GetAllAsync(Guid projectId)
-            => (await this.unitOfWork.ProjectRepository.NoTrackable().Include(p => p.Categories).FirstOrDefaultAsync(p => p.Id == projectId))?.Categories;
+            => (await this.unitOfWork.ProjectRepository.NoTrackable().Include(p => p.Categories).FirstOrDefaultAsync(p => p.Id == projectId))?.Categories.Where(c => !c.Archive).ToList();
 
         public async Task<ICollection<Category>> GetAsync(Guid projectId, DateTime from, DateTime to)
             => (await this.unitOfWork.ProjectRepository.NoTrackable()
             .Include(p => p.Categories)
                 .ThenInclude(c => c.Expenses.Where(e => e.Date >= from && e.Date < to))
             .FirstOrDefaultAsync(p => p.Id == projectId))?
-            .Categories;
+            .Categories
+            .Where(c => !c.Archive)
+            .ToList();
 
         public async Task<Category> GetByIdAsync(Guid categoryId)
             => await this.unitOfWork.CategoryRepository.Trackable()

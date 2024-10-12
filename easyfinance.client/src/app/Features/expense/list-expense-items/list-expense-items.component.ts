@@ -12,6 +12,8 @@ import { Router } from '@angular/router';
 import { compare } from 'fast-json-patch';
 import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faPenToSquare, faTrash, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-list-expense-items',
@@ -21,12 +23,16 @@ import { ReturnButtonComponent } from '../../../core/components/return-button/re
     AsyncPipe,
     ReactiveFormsModule,
     AddButtonComponent,
-    ReturnButtonComponent
+    ReturnButtonComponent,
+    FontAwesomeModule
   ],
   templateUrl: './list-expense-items.component.html',
   styleUrls: ['./list-expense-items.component.css', '../../styles/shared.scss']
 })
 export class ListExpenseItemsComponent {
+  faPenToSquare = faPenToSquare;
+  faFloppyDisk = faFloppyDisk;
+  faTrash = faTrash;
   private _expenseId!: string;
   private expense: BehaviorSubject<ExpenseDto> = new BehaviorSubject<ExpenseDto>(new ExpenseDto());
   expense$: Observable<ExpenseDto> = this.expense.asObservable();
