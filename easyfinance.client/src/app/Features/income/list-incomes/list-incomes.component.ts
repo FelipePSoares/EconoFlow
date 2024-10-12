@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, map } from 'rxjs';
 import { Income } from 'src/app/core/models/income';
@@ -10,6 +10,7 @@ import { AsyncPipe, CommonModule } from '@angular/common';
 import { compare } from 'fast-json-patch';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPenToSquare, faTrash, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
+import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-list-incomes',
@@ -18,13 +19,15 @@ import { faPenToSquare, faTrash, faFloppyDisk } from '@fortawesome/free-solid-sv
     CommonModule,
     AsyncPipe,
     ReactiveFormsModule,
-    FontAwesomeModule
+    FontAwesomeModule,
+    ConfirmDialogComponent
   ],
   templateUrl: './list-incomes.component.html',
   styleUrls: ['./list-incomes.component.css', '../../styles/shared.scss']
 })
 
 export class ListIncomesComponent {
+  @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
   faPenToSquare = faPenToSquare;
   faFloppyDisk = faFloppyDisk;
   faTrash = faTrash;
@@ -33,6 +36,7 @@ export class ListIncomesComponent {
   incomes$: Observable<IncomeDto[]> = this.incomes.asObservable();
   incomeForm!: FormGroup;
   editingIncome: IncomeDto = new IncomeDto();
+  itemToDelete!: string;
   httpErrors = false;
   errors: any;
 
@@ -125,5 +129,16 @@ export class ListIncomesComponent {
         this.incomes.next(incomesNewArray);
       }
     })
+  }
+
+  triggerDelete(itemId: string): void {
+    this.itemToDelete = itemId;
+    this.ConfirmDialog.openModal('Delete Item', 'Are you sure you want to delete this item?', 'Delete');
+  }
+
+  handleConfirmation(result: boolean): void {
+    if (result) {
+      this.remove(this.itemToDelete);
+    }
   }
 }

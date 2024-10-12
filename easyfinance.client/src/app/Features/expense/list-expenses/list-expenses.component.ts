@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExpenseDto } from '../models/expense-dto';
 import { Expense } from '../../../core/models/expense';
@@ -15,6 +15,7 @@ import { ReturnButtonComponent } from '../../../core/components/return-button/re
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPenToSquare, faTrash, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
+import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-list-expenses',
@@ -26,12 +27,14 @@ import { faPenToSquare, faTrash, faFloppyDisk } from '@fortawesome/free-solid-sv
     CurrentDateComponent,
     AddButtonComponent,
     ReturnButtonComponent,
-    FontAwesomeModule
+    FontAwesomeModule,
+    ConfirmDialogComponent
   ],
   templateUrl: './list-expenses.component.html',
   styleUrls: ['./list-expenses.component.css', '../../styles/shared.scss']
 })
 export class ListExpensesComponent {
+  @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
   faPenToSquare = faPenToSquare;
   faFloppyDisk = faFloppyDisk;
   faTrash = faTrash;
@@ -40,6 +43,7 @@ export class ListExpensesComponent {
   expenses$: Observable<ExpenseDto[]> = this.expenses.asObservable();
   expenseForm!: FormGroup;
   editingExpense: ExpenseDto = new ExpenseDto();
+  itemToDelete!: string;
   httpErrors = false;
   errors: any;
 
@@ -163,5 +167,16 @@ export class ListExpensesComponent {
 
   previous() {
     this.router.navigate(['/projects', this.projectId, { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
+  }
+
+  triggerDelete(itemId: string): void {
+    this.itemToDelete = itemId;
+    this.ConfirmDialog.openModal('Delete Item', 'Are you sure you want to delete this item?', 'Delete');
+  }
+
+  handleConfirmation(result: boolean): void {
+    if (result) {
+      this.remove(this.itemToDelete);
+    }
   }
 }

@@ -22,7 +22,7 @@
                 <button class="btn btn-secondary" (click)="edit(expense)">
                   <fa-icon [icon]="faPenToSquare"></fa-icon>
                 </button>
-                <button class="btn btn-danger" (click)="remove(expense.id)">
+                <button class="btn btn-danger" (click)="triggerDelete(expense.id)">
                   <fa-icon [icon]="faTrash"></fa-icon>
                 </button>
               </div>
@@ -114,3 +114,4 @@
   </div>
 </div>
 <app-add-button (clickedEvent)="add()"></app-add-button>
+<app-confirm-dialog (confirmed)="handleConfirmation($event)"></app-confirm-dialog>

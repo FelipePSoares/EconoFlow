@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ProjectService } from '../../../core/services/project.service';
 import { BehaviorSubject, Observable, map } from 'rxjs';
@@ -12,15 +12,17 @@ import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPenToSquare, faBoxArchive, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
+import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-list-projects',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, AsyncPipe, AddButtonComponent, FontAwesomeModule],
+  imports: [FormsModule, ReactiveFormsModule, AsyncPipe, AddButtonComponent, FontAwesomeModule, ConfirmDialogComponent],
   templateUrl: './list-projects.component.html',
   styleUrls: ['./list-projects.component.css', '../../styles/shared.scss']
 })
 export class ListProjectsComponent implements OnInit {
+  @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
   faPenToSquare = faPenToSquare;
   faBoxArchive = faBoxArchive;
   faFloppyDisk = faFloppyDisk;
@@ -29,6 +31,7 @@ export class ListProjectsComponent implements OnInit {
   projects$: Observable<ProjectDto[]> = this.projects.asObservable();
   projectForm!: FormGroup;
   editingProject: ProjectDto = new ProjectDto();
+  itemToDelete!: string;
   httpErrors = false;
   errors: any;
 
@@ -115,5 +118,16 @@ export class ListProjectsComponent implements OnInit {
         this.projects.next(projectsNewArray);
       }
     })
+  }
+
+  triggerDelete(itemId: string): void {
+    this.itemToDelete = itemId;
+    this.ConfirmDialog.openModal('Archive Item', 'Are you sure you want to archive this item?', 'Archive');
+  }
+
+  handleConfirmation(result: boolean): void {
+    if (result) {
+      this.remove(this.itemToDelete);
+    }
   }
 }

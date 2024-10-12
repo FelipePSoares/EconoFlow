@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ViewChild } from '@angular/core';
 import { BehaviorSubject, Observable, map } from 'rxjs';
 import { ExpenseItemDto } from '../models/expense-item-dto';
 import { AsyncPipe, CommonModule } from '@angular/common';
@@ -14,6 +14,7 @@ import { AddButtonComponent } from '../../../core/components/add-button/add-butt
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPenToSquare, faTrash, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
+import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-list-expense-items',
@@ -24,12 +25,14 @@ import { faPenToSquare, faTrash, faFloppyDisk } from '@fortawesome/free-solid-sv
     ReactiveFormsModule,
     AddButtonComponent,
     ReturnButtonComponent,
-    FontAwesomeModule
+    FontAwesomeModule,
+    ConfirmDialogComponent
   ],
   templateUrl: './list-expense-items.component.html',
   styleUrls: ['./list-expense-items.component.css', '../../styles/shared.scss']
 })
 export class ListExpenseItemsComponent {
+  @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
   faPenToSquare = faPenToSquare;
   faFloppyDisk = faFloppyDisk;
   faTrash = faTrash;
@@ -38,6 +41,7 @@ export class ListExpenseItemsComponent {
   expense$: Observable<ExpenseDto> = this.expense.asObservable();
   expenseItemForm!: FormGroup;
   editingExpenseItem: ExpenseItemDto = new ExpenseItemDto();
+  itemToDelete!: string;
   httpErrors = false;
   errors: any;
 
@@ -158,5 +162,16 @@ export class ListExpenseItemsComponent {
 
   previous() {
     this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, 'expenses', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
+  }
+
+  triggerDelete(itemId: string): void {
+    this.itemToDelete = itemId;
+    this.ConfirmDialog.openModal('Delete Item', 'Are you sure you want to delete this item?', 'Delete');
+  }
+
+  handleConfirmation(result: boolean): void {
+    if (result) {
+      this.remove(this.itemToDelete);
+    }
   }
 }

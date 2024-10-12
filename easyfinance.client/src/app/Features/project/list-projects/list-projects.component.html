@@ -16,7 +16,7 @@
                 <button class="btn btn-secondary" (click)="edit(project)">
                   <fa-icon [icon]="faPenToSquare"></fa-icon>
                 </button>
-                <button class="btn btn-danger" (click)="remove(project.id)">
+                <button class="btn btn-danger" (click)="triggerDelete(project.id)">
                   <fa-icon [icon]="faBoxArchive"></fa-icon>
                 </button>
               </div>
@@ -66,3 +66,4 @@
   </div>
   <app-add-button (clickedEvent)="add()"></app-add-button>
 </div>
+<app-confirm-dialog (confirmed)="handleConfirmation($event)"></app-confirm-dialog>
