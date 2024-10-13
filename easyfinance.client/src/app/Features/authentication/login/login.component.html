@@ -23,7 +23,7 @@
             </ul>
           </div>
         </div>
-        <div class="form-floating mb-3">
+        <div class="form-floating">
           <input type="password" class="form-control" id="floatingPassword" placeholder="Password" formControlName="password" [class.is-invalid]="password?.invalid && password?.touched">
           <label for="floatingPassword">Password</label>
           <div *ngIf="password?.invalid && password?.touched">
@@ -32,9 +32,10 @@
             </ul>
           </div>
         </div>
+        <a [routerLink]="['/recovery']" class="float-end mb-2" routerLinkActive="active">Forgot password?</a>
         <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="loginForm.invalid">Sign in</button>
         <div *ngIf="httpErrors && errors?.['general']">
-          <p class="mb-3 text-danger text-center">{{errors['general']}}</p>
+          <p class="mt-5 mb-3 text-danger text-center">{{errors['general']}}</p>
         </div>
       </form>
       <span class="login-footer">

@@ -1,10 +1,12 @@
 import { Routes, mapToCanActivate } from '@angular/router';
 import { FirstSignInGuard } from '../core/guards/first-sign-in-guard';
 import { AuthGuard } from '../core/guards/auth-guard';
+
 import { LoginComponent } from './authentication/login/login.component';
 import { RegisterComponent } from './authentication/register/register.component';
 import { LogoutComponent } from './authentication/logout/logout.component';
 import { FirstSignInComponent } from './authentication/first-sign-in/first-sign-in.component';
+import { RecoveryComponent } from './authentication/recovery/recovery.component';
 
 import { ListProjectsComponent } from './project/list-projects/list-projects.component';
 import { AddProjectComponent } from './project/add-project/add-project.component';
@@ -24,6 +26,7 @@ import { ListExpensesComponent } from './expense/list-expenses/list-expenses.com
 export const routes: Routes = [
   { path: '', redirectTo: 'projects', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
+  { path: 'recovery', component: RecoveryComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'logout', component: LogoutComponent, canActivate: mapToCanActivate([AuthGuard]) },
   { path: 'first-signin', component: FirstSignInComponent, canActivate: mapToCanActivate([AuthGuard]) },

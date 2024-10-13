@@ -104,7 +104,9 @@ namespace EasyFinance.Server.Controllers
             var subject = "Test Email";
             var htmlContent = "<strong>This is my test email</strong>";
 
-            emailSender.SendEmailAsync(to, subject, htmlContent);
+            await emailSender.SendEmailAsync(to, subject, htmlContent);
         }
+
+
     }
 }
