@@ -3,6 +3,10 @@ using EasyFinance.Domain.Models.AccessControl;
 using EasyFinance.Server.DTOs.AccessControl;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using SendGrid.Helpers.Mail;
+using SendGrid;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using EasyFinance.Server.Config;
 
 namespace EasyFinance.Server.Controllers
 {
@@ -13,11 +17,13 @@ namespace EasyFinance.Server.Controllers
     {
         private readonly UserManager<User> userManager;
         private readonly SignInManager<User> signInManager;
+        private readonly IEmailSender emailSender;
 
-        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager)
+        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, IEmailSender emailSender)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
+            this.emailSender = emailSender;
         }
         
         [HttpGet]
@@ -89,6 +95,16 @@ namespace EasyFinance.Server.Controllers
             await this.userManager.UpdateAsync(user);
 
             return Ok();
+        }
+
+        [HttpPost("testEmail")]
+        public async Task TestEmail()
+        {
+            var to = "felipepsoares@outlook.com.br";
+            var subject = "Test Email";
+            var htmlContent = "<strong>This is my test email</strong>";
+
+            emailSender.SendEmailAsync(to, subject, htmlContent);
         }
     }
 }

@@ -1,4 +1,3 @@
-using System.Net;
 using EasyFinance.Application;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Domain.Models.AccessControl;
@@ -6,6 +5,7 @@ using EasyFinance.Domain.Models.Financial;
 using EasyFinance.Domain.Models.FinancialProject;
 using EasyFinance.Persistence;
 using EasyFinance.Persistence.DatabaseContext;
+using EasyFinance.Server.Config;
 using EasyFinance.Server.Extensions;
 using EasyFinance.Server.Middleware;
 using EasyFinance.Server.MiddleWare;
@@ -13,15 +13,18 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Converters;
+using SendGrid.Extensions.DependencyInjection;
 using Serilog;
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddApplicationServices();
+builder.Services.AddTransient<IEmailSender, EmailSender>();
 
 // Add services to the container.
 builder.Services.AddControllers(config =>
@@ -67,9 +70,13 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Password.RequireNonAlphanumeric = true;
     options.Password.RequiredLength = 8;
     // Default SignIn settings.
-    options.SignIn.RequireConfirmedEmail = false;
+    options.SignIn.RequireConfirmedEmail = true;
     options.User.RequireUniqueEmail = true;
 });
+
+builder.Services.AddSendGrid(options =>
+    options.ApiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY")
+);
 
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
@@ -98,7 +105,8 @@ if (app.Environment.IsDevelopment())
     var user = new User("Teste", "Admin", true)
     {
         UserName = "teste@teste.com",
-        Email = "teste@teste.com"
+        Email = "teste@teste.com",
+        EmailConfirmed = true
     };
     userManager.CreateAsync(user, "Passw0rd!").GetAwaiter().GetResult();
 
