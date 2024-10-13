@@ -13,7 +13,6 @@ import { ApiErrorResponse } from '../../../core/models/error';
   styleUrls: ['./login.component.css'],
 })
 export class LoginComponent implements OnInit {
-
   loginForm!: FormGroup;
   httpErrors = false;
   errors!: { [key: string]: string };

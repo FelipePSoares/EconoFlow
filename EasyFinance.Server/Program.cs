@@ -24,7 +24,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddApplicationServices();
+
 builder.Services.AddTransient<IEmailSender, EmailSender>();
+
 
 // Add services to the container.
 builder.Services.AddControllers(config =>
@@ -42,6 +44,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwagger();
 
 builder.Services.AddAuthorizationBuilder();
+builder.Services.AddHttpContextAccessor();
 
 builder.Services
     .AddAuthentication(IdentityConstants.ApplicationScheme)
@@ -63,14 +66,20 @@ builder.Services.AddIdentityCore<User>()
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
-    // Default Password settings.
+    // Password settings.
     options.Password.RequireDigit = true;
     options.Password.RequireLowercase = true;
     options.Password.RequireUppercase = true;
     options.Password.RequireNonAlphanumeric = true;
     options.Password.RequiredLength = 8;
+
+    // Lockout settings.
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.AllowedForNewUsers = true;
+
     // Default SignIn settings.
-    options.SignIn.RequireConfirmedEmail = true;
+    options.SignIn.RequireConfirmedEmail = false;
     options.User.RequireUniqueEmail = true;
 });
 

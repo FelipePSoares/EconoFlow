@@ -44,4 +44,22 @@ export class AuthService {
       observe: 'response'
     }).pipe<boolean>(map(res => res.ok));
   }
+
+  public forgotPassword(email: string): Observable<boolean> {
+    return this.http.post('/api/account/forgotPassword', {
+      email: email
+    }, {
+      observe: 'response'
+    }).pipe<boolean>(map(res => res.ok));
+  }
+
+  public resetPassword(email: string, resetCode: string, newPassword: string): Observable<boolean> {
+    return this.http.post('/api/account/resetPassword', {
+      email: email,
+      resetCode: resetCode,
+      newPassword: newPassword
+    }, {
+      observe: 'response'
+    }).pipe<boolean>(map(res => res.ok));
+  }
 }

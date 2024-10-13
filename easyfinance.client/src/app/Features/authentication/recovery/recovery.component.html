@@ -1,0 +1,64 @@
+<div class="limiter">
+  <div class="container-recovery">
+    <div class="wrap-recovery">
+      @if (!sent && !token) {
+      <form class="recovery-form" [formGroup]="recoveryForm" (ngSubmit)="onSubmit()">
+        <div class="form-floating mb-5">
+          <h3>Password reset</h3>
+          <p>Enter the email associated with your account and we'll send an email with instructions to reset your password.</p>
+        </div>
+        <div class="form-floating mb-3">
+          <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com" formControlName="email" [class.is-invalid]="email?.invalid && email?.touched">
+          <label for="floatingInput">Email address</label>
+          <div *ngIf="email?.invalid && email?.touched">
+            <ul>
+              <li *ngFor="let error of getFormFieldErrors('email')" class="text-danger" [innerHtml]="error"></li>
+            </ul>
+          </div>
+        </div>
+        <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="recoveryForm.invalid">Send Instructions</button>
+        <div *ngIf="httpErrors && errors?.['general']">
+          <p class="mb-3 text-danger text-center">{{errors['general']}}</p>
+        </div>
+      </form>
+      } @else if (token) {
+      <form class="recovery-form" [formGroup]="resetPasswordForm" (ngSubmit)="resetPassword()">
+        <div class="form-floating mb-5">
+          <h3>Create new password</h3>
+        </div>
+        <div class="form-floating mb-3">
+          <input type="password" class="form-control" id="password" placeholder="Password" formControlName="password" [class.is-invalid]="password?.invalid && password?.touched">
+          <label for="password">Password</label>
+          <div *ngIf="password?.invalid && password?.touched">
+            <ul>
+              <li *ngFor="let error of getFormFieldErrors('password')" class="text-danger" [innerHtml]="error"></li>
+            </ul>
+          </div>
+        </div>
+        <div class="form-floating mb-3">
+          <input type="password" class="form-control" id="confirmPassword" placeholder="Password" formControlName="confirmPassword" [class.is-invalid]="confirmPassword?.invalid && confirmPassword?.touched">
+          <label for="confirmPassword">Confirm Password</label>
+          <div *ngIf="confirmPassword?.invalid && confirmPassword?.touched">
+            <div *ngIf="confirmPassword?.errors?.['required']" class="text-danger">Password is required.</div>
+          </div>
+        </div>
+        <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="resetPasswordForm.invalid">Reset Password</button>
+        <div *ngIf="httpErrors && errors?.['general']">
+          <p class="mb-3 text-danger text-center">{{errors['general']}}</p>
+        </div>
+      </form>
+      } @else {
+      <div class="text-center">
+        <fa-icon class="fa-4x" [icon]="faEnvelopeOpenText"></fa-icon>
+        <h3>Check your email</h3>
+        <p>We have sent a password recover instructions to your email.</p>
+      </div>
+      <div class="footer text-center">
+        <p>Did not receive the email? Check your spam filter, or</p>
+        <a (click)="reset()">try another email address</a>
+
+      </div>
+      }
+    </div>
+  </div>
+</div>
