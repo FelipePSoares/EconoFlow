@@ -23,6 +23,8 @@ import { DetailExpenseComponent } from './expense/detail-expense/detail-expense.
 import { AddExpenseItemComponent } from './expense/add-expense-item/add-expense-item.component';
 import { ListExpensesComponent } from './expense/list-expenses/list-expenses.component';
 
+import { DetailUserComponent } from './user/detail-user/detail-user.component';
+
 export const routes: Routes = [
   { path: '', redirectTo: 'projects', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
@@ -30,6 +32,7 @@ export const routes: Routes = [
   { path: 'register', component: RegisterComponent },
   { path: 'logout', component: LogoutComponent, canActivate: mapToCanActivate([AuthGuard]) },
   { path: 'first-signin', component: FirstSignInComponent, canActivate: mapToCanActivate([AuthGuard]) },
+  { path: 'user', component: DetailUserComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
   { path: 'add-project', component: AddProjectComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
   { path: 'projects', component: ListProjectsComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
   { path: 'projects/:projectId', component: DetailProjectComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
