@@ -1,0 +1,64 @@
+<div class="container text-center">
+  <div class="row justify-content-center">
+    <div class="wrap col-lg-8">
+      <h1 class="text-center mt-5 mb-3">User</h1>
+      <form [formGroup]="userForm" (ngSubmit)="save()">
+        <div class="row g-2 mb-2">
+          <div class="col-md">
+            <div class="form-floating">
+              <input type="text" class="form-control" id="firstName" formControlName="firstName" [class.is-invalid]="firstName?.invalid && firstName?.touched">
+              <label for="firstName">First Name</label>
+              @if(firstName?.invalid && firstName?.touched){
+              <div>
+                <ul>
+                  @for (error of getFormFieldErrors('firstName'); track $index) {
+                  <li class="text-danger" [innerHtml]="error"></li>
+                  }
+                </ul>
+              </div>
+              }
+            </div>
+          </div>
+          <div class="col-md">
+            <div class="form-floating">
+              <input type="text" class="form-control" id="lastName" formControlName="lastName" [class.is-invalid]="lastName?.invalid && lastName?.touched">
+              <label for="lastName">Last Name</label>
+              @if(lastName?.invalid && lastName?.touched){
+              <div>
+                <ul>
+                  @for (error of getFormFieldErrors('lastName'); track $index) {
+                  <li class="text-danger" [innerHtml]="error"></li>
+                  }
+                </ul>
+              </div>
+              }
+            </div>
+          </div>
+        </div>
+        <div class="input-group mb-2">
+          <div class="form-floating">
+            <input type="text" class="form-control" id="email" formControlName="email" [class.is-invalid]="email?.invalid && email?.touched">
+            <label for="email">Email</label>
+          </div>
+          <ng-container *ngIf="user$ | async as user">
+            <fa-icon
+                      class="input-group-text"
+                      [icon]="user.emailConfirmed ? faCircleCheck : faCircleXmark"
+                      [style.color]="user.emailConfirmed ? '#2ecc71' : '#c0392b'">
+            </fa-icon>
+          </ng-container>
+          @if(email?.invalid && email?.touched){
+          <div>
+            <ul>
+              @for (error of getFormFieldErrors('email'); track $index) {
+              <li class="text-danger" [innerHtml]="error"></li>
+              }
+            </ul>
+          </div>
+          }
+        </div>
+        <!--<button type="submit" class="btn btn-primary">Save</button>-->
+      </form>
+    </div>
+  </div>
+</div>

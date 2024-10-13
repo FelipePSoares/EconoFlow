@@ -1,10 +1,10 @@
-<main>
-  @if(authService.isSignedIn$ | async){
-  <app-nav-bar></app-nav-bar>
-  }
-</main>
-
 <div class="main">
+  <main>
+    @if(authService.isSignedIn$ | async){
+    <app-nav-bar></app-nav-bar>
+    }
+  </main>
+
   <router-outlet></router-outlet>
 
   <app-spinner></app-spinner>
