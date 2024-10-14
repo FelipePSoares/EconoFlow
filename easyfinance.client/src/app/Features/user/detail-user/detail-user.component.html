@@ -1,7 +1,22 @@
-<div class="container text-center">
+<div class="container">
   <div class="row justify-content-center">
     <div class="wrap col-lg-8">
-      <h1 class="text-center mt-5 mb-3">User</h1>
+      @if (isEmailUpdated){
+      <div class="text-center">
+        <fa-icon class="fa-4x" [icon]="faEnvelopeOpenText"></fa-icon>
+        <h3>Check your email</h3>
+        <p>We have sent a confirmation to your email.</p>
+        <div class="footer text-center">
+          <p>Did not receive the email? Check your spam filter.</p>
+        </div>
+      </div>
+      } @else {
+      <h1 class="text-center mt-5 mb-3">My Profile</h1>
+      @if (this.userForm.disabled){
+      <button type="button" (click)="changeStatus()" class="btn btn-primary mb-2">
+        Edit
+      </button>
+      }
       <form [formGroup]="userForm" (ngSubmit)="save()">
         <div class="row g-2 mb-2">
           <div class="col-md">
@@ -41,10 +56,9 @@
             <label for="email">Email</label>
           </div>
           <ng-container *ngIf="user$ | async as user">
-            <fa-icon
-                      class="input-group-text"
-                      [icon]="user.emailConfirmed ? faCircleCheck : faCircleXmark"
-                      [style.color]="user.emailConfirmed ? '#2ecc71' : '#c0392b'">
+            <fa-icon class="input-group-text"
+                     [icon]="user.emailConfirmed ? faCircleCheck : faCircleXmark"
+                     [style.color]="user.emailConfirmed ? '#2ecc71' : '#c0392b'">
             </fa-icon>
           </ng-container>
           @if(email?.invalid && email?.touched){
@@ -57,8 +71,14 @@
           </div>
           }
         </div>
-        <!--<button type="submit" class="btn btn-primary">Save</button>-->
+        @if(this.userForm.enabled){
+        <div class="float-end">
+          <button type="button" (click)="reset()" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary ms-1">Save</button>
+        </div>
+        }
       </form>
+      }
     </div>
   </div>
 </div>

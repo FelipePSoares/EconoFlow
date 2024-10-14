@@ -1,7 +1,7 @@
-.article-img{
-    width: 45px;
+.dropdown-menu {
+  z-index: 1001;
 }
 
-.dropdown-menu {
-    z-index: 1001;
+.dropdown-toggle {
+  background-color: #f3f3f3;
 }
