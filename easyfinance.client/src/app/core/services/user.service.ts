@@ -44,4 +44,14 @@ export class UserService {
         return this.refreshUserInfo();
       }));
   }
+
+  public manageInfo(newEmail: string = '', newPassword: string = '', oldPassword: string = '') {
+    return this.http.post('/api/account/manage/info/', {
+      newEmail: newEmail,
+      newPassword: newPassword,
+      oldPassword: oldPassword
+    }).pipe(concatMap(res => {
+      return this.refreshUserInfo();
+    }));
+  }
 }

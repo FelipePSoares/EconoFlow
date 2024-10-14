@@ -1,11 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faCircleCheck, faCircleXmark } from '@fortawesome/free-solid-svg-icons';
+import { faCircleCheck, faCircleXmark, faFloppyDisk, faPenToSquare, faEnvelopeOpenText } from '@fortawesome/free-solid-svg-icons';
 import { UserService } from '../../../core/services/user.service';
 import { Observable } from 'rxjs';
 import { User } from '../../../core/models/User';
 import { AsyncPipe, CommonModule } from '@angular/common';
+import { ApiErrorResponse } from '../../../core/models/error';
+import { ErrorMessageService } from '../../../core/services/error-message.service';
 
 @Component({
   selector: 'app-detail-user',
@@ -21,17 +23,28 @@ import { AsyncPipe, CommonModule } from '@angular/common';
 })
 export class DetailUserComponent implements OnInit {
   user$: Observable<User>;
+  editingUser!: User;
+  isEmailUpdated: boolean = false;
+
   faCircleCheck = faCircleCheck;
   faCircleXmark = faCircleXmark;
+  faFloppyDisk = faFloppyDisk;
+  faPenToSquare = faPenToSquare;
+  faEnvelopeOpenText = faEnvelopeOpenText;
+
   userForm!: FormGroup;
   httpErrors = false;
   errors!: { [key: string]: string };
 
-  constructor(private userService: UserService) {
+  constructor(private userService: UserService, private errorMessageService: ErrorMessageService) {
     this.user$ = this.userService.loggedUser$;
   }
 
   ngOnInit(): void {
+    this.reset();
+  }
+
+  reset() {
     this.user$.subscribe(user => {
       this.userForm = new FormGroup({
         firstName: new FormControl(user.firstName, [Validators.required]),
@@ -39,12 +52,18 @@ export class DetailUserComponent implements OnInit {
         email: new FormControl(user.email, [Validators.required, Validators.email]),
       });
 
-      this.firstName?.disable();
-      this.lastName?.disable();
-      this.email?.disable();
-    });
+      this.editingUser = user;
 
+      this.userForm.disable();
+    });
   }
+
+  changeStatus() {
+    if (this.userForm.disabled) {
+      this.userForm.enable();
+    }
+  }
+
   get firstName() {
     return this.userForm.get('firstName');
   }
@@ -56,7 +75,41 @@ export class DetailUserComponent implements OnInit {
   }
 
   save() {
+    if (this.userForm.valid) {
+      const firstName = this.firstName?.value;
+      const lastName = this.lastName?.value;
+      const email = this.email?.value;
 
+      this.userForm.disable();
+
+      if (firstName !== this.editingUser.firstName || lastName !== this.editingUser.lastName) {
+        this.userService.setUserInfo(firstName, lastName).subscribe({
+          next: response => { },
+          error: (response: ApiErrorResponse) => {
+            this.userForm.enable(); 
+            this.httpErrors = true;
+            this.errors = response.errors;
+
+            this.errorMessageService.setFormErrors(this.userForm, this.errors);
+          }
+        });
+      }
+
+      if (email !== this.editingUser.email) {
+        this.userService.manageInfo(email).subscribe({
+          next: response => {
+            this.isEmailUpdated = true;
+          },
+          error: (response: ApiErrorResponse) => {
+            this.userForm.enable();
+            this.httpErrors = true;
+            this.errors = response.errors;
+
+            this.errorMessageService.setFormErrors(this.userForm, this.errors);
+          }
+        });
+      }
+    }
   }
 
   getFormFieldErrors(fieldName: string): string[] {

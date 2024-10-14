@@ -12,12 +12,14 @@ import { RouterLink } from '@angular/router';
   styleUrls: ['./nav-bar.component.css']
 })
 export class NavBarComponent implements OnInit {
+  initials$: Observable<string>;
   firstName$: Observable<string>;
   lastName$: Observable<string>;
 
   constructor(public userService: UserService) {
     this.firstName$ = userService.loggedUser$.pipe(map(user => user.firstName));
     this.lastName$ = userService.loggedUser$.pipe(map(user => user.lastName));
+    this.initials$ = userService.loggedUser$.pipe(map(user => user.firstName[0] + user.lastName[0]));
   }
 
   ngOnInit(): void {

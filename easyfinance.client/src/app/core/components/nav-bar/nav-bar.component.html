@@ -14,13 +14,14 @@
       </a>
     </span>
     <div class="dropdown">
-      <a class="dropdown-toggle" id="dropdownMenuProfile" data-bs-toggle="dropdown" aria-expanded="false">
-        <img class="rounded-circle img-fluid article-img" src="../../../../assets/images/default-user.jpg" id="img">
-      </a>
+      <button class="btn dropdown-toggle" type="button" id="dropdownMenuProfile" data-bs-toggle="dropdown" aria-expanded="false">
+        {{ initials$ | async }}
+      </button>
       <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuProfile">
-        <li><a class="dropdown-item" [routerLink]="['/user']">Profile</a></li>
+        <li><h6 class="dropdown-header">{{ firstName$ | async }} {{ lastName$ | async }}</h6></li>
+        <li><a class="dropdown-item" [routerLink]="['/user']">My Profile</a></li>
         <li><hr class="dropdown-divider"></li>
-        <li><a class="dropdown-item" [routerLink]="['/logout']">Logout</a></li>
+        <li><a class="dropdown-item" [routerLink]="['/logout']">Sign out</a></li>
       </ul>
     </div>
   </div>
