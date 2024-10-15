@@ -6,6 +6,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { passwordMatchValidator } from '../../../core/utils/custom-validators/password-match-validator';
 import { CommonModule } from '@angular/common';
 import { ApiErrorResponse } from '../../../core/models/error';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'app-register',
