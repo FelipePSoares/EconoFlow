@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { CommonModule } from '@angular/common';
 import { ApiErrorResponse } from '../../../core/models/error';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -18,7 +19,7 @@ export class LoginComponent implements OnInit {
   errors!: { [key: string]: string };
 
   constructor(private authService: AuthService, private router: Router) {
-    this.authService.isSignedIn$.subscribe(value => {
+    this.authService.isSignedIn$.pipe(take(1)).subscribe(value => {
       if (value) {
         this.router.navigate(['/']);
       }

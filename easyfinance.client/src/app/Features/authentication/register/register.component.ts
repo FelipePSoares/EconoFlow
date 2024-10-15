@@ -6,6 +6,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { passwordMatchValidator } from '../../../core/utils/custom-validators/password-match-validator';
 import { CommonModule } from '@angular/common';
 import { ApiErrorResponse } from '../../../core/models/error';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'app-register',
@@ -21,7 +22,7 @@ export class RegisterComponent implements OnInit{
 ;
 
   constructor(private authService: AuthService, private router: Router) {
-    this.authService.isSignedIn$.subscribe(value => {
+    this.authService.isSignedIn$.pipe(take(1)).subscribe(value => {
       if (value) {
         this.router.navigate(['/']);
       }
