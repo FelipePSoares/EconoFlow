@@ -49,7 +49,7 @@ export class LoginComponent implements OnInit {
       const email = this.loginForm.get('email')?.value;
       const password = this.loginForm.get('password')?.value;
 
-      this.authService.signIn(email, password).subscribe({
+      this.authService.signIn(email, password).pipe(take(1)).subscribe({
         next: response => {
           this.router.navigate(['/']);
         },

@@ -21,7 +21,7 @@ export class RegisterComponent implements OnInit{
 ;
 
   constructor(private authService: AuthService, private router: Router) {
-    this.authService.isSignedIn$.subscribe(value => {
+    this.authService.isSignedIn$.pipe(take(1)).subscribe(value => {
       if (value) {
         this.router.navigate(['/']);
       }

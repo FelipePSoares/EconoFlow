@@ -43,7 +43,7 @@ export class FirstSignInComponent implements OnInit {
       const firstName = this.userForm.get('firstName')?.value;
       const lastName = this.userForm.get('lastName')?.value;
 
-      this.userService.setUserInfo(firstName, lastName).subscribe({
+      this.userService.setUserInfo(firstName, lastName).pipe(take(1)).subscribe({
         next: response => {
           this.router.navigate(['/']);
         },
