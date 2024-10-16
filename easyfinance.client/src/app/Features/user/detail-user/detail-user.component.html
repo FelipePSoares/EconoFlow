@@ -26,7 +26,7 @@
               @if(firstName?.invalid && firstName?.touched){
               <div>
                 <ul>
-                  @for (error of getFormFieldErrors('firstName'); track $index) {
+                  @for (error of getFormFieldErrors(userForm, 'firstName'); track $index) {
                   <li class="text-danger" [innerHtml]="error"></li>
                   }
                 </ul>
@@ -41,7 +41,7 @@
               @if(lastName?.invalid && lastName?.touched){
               <div>
                 <ul>
-                  @for (error of getFormFieldErrors('lastName'); track $index) {
+                  @for (error of getFormFieldErrors(userForm, 'lastName'); track $index) {
                   <li class="text-danger" [innerHtml]="error"></li>
                   }
                 </ul>
@@ -61,23 +61,79 @@
                      [style.color]="user.emailConfirmed ? '#2ecc71' : '#c0392b'">
             </fa-icon>
           </ng-container>
-          @if(email?.invalid && email?.touched){
-          <div>
-            <ul>
-              @for (error of getFormFieldErrors('email'); track $index) {
-              <li class="text-danger" [innerHtml]="error"></li>
-              }
-            </ul>
-          </div>
-          }
         </div>
+        @if(email?.invalid && email?.touched){
+        <div>
+          <ul>
+            @for (error of getFormFieldErrors(userForm, 'email'); track $index) {
+            <li class="text-danger" [innerHtml]="error"></li>
+            }
+          </ul>
+        </div>
+        }
         @if(this.userForm.enabled){
-        <div class="float-end">
-          <button type="button" (click)="reset()" class="btn btn-secondary">Cancel</button>
-          <button type="submit" class="btn btn-primary ms-1">Save</button>
+        <div class="clearfix">
+          <div class="float-end">
+            <button type="button" (click)="reset()" class="btn btn-secondary">Cancel</button>
+            <button type="submit" class="btn btn-primary ms-1">Save</button>
+          </div>
         </div>
         }
       </form>
+      }
+      <hr class="solid" />
+      @if (isPasswordUpdated){
+      <div class="text-center">
+        <fa-icon class="fa-4x" [icon]="faCheck"></fa-icon>
+        <h3>Password Reset</h3>
+        <p>Your password has been reset successfully</p>
+      </div>
+      } @else {
+      @if (!passwordFormActive) {
+      <button class="btn btn-secondary" (click)="showPasswordForm()">Modify Password</button>
+      } @else {
+      <form [formGroup]="passwordForm" (ngSubmit)="savePassword()">
+        <div class="row g-2 mb-2">
+          <div class="col-md">
+            <div class="form-floating mb-3">
+              <input type="password" class="form-control" id="oldPassword" placeholder="Old Password" formControlName="oldPassword" [class.is-invalid]="oldPassword?.invalid && oldPassword?.touched">
+              <label for="oldPassword">Old Password</label>
+              <div *ngIf="oldPassword?.invalid && oldPassword?.touched">
+                <ul>
+                  <li *ngFor="let error of getFormFieldErrors(passwordForm, 'oldPassword')" class="text-danger" [innerHtml]="error"></li>
+                </ul>
+              </div>
+            </div>
+            <div class="form-floating mb-3">
+              <input type="password" class="form-control" id="password" placeholder="password" formControlName="password" [class.is-invalid]="password?.invalid && password?.touched">
+              <label for="password">New Password</label>
+              <div *ngIf="password?.invalid && password?.touched">
+                <ul>
+                  <li *ngFor="let error of getFormFieldErrors(passwordForm, 'password')" class="text-danger" [innerHtml]="error"></li>
+                </ul>
+              </div>
+            </div>
+            <div class="form-floating mb-3">
+              <input type="password" class="form-control" id="confirmPassword" placeholder="Password" formControlName="confirmPassword" [class.is-invalid]="confirmPassword?.invalid && confirmPassword?.touched">
+              <label for="confirmPassword">Confirm Password</label>
+              <div *ngIf="confirmPassword?.invalid && confirmPassword?.touched">
+                <div *ngIf="confirmPassword?.errors?.['required']" class="text-danger">Password is required.</div>
+              </div>
+            </div>
+            <div *ngIf="passwordForm.errors?.['passwordMismatch'] && (passwordForm.touched || passwordForm.dirty)">
+              <p class="mb-3 text-danger text-center">Password must match</p>
+            </div>
+            <div *ngIf="httpErrors && errors?.['general']">
+              <p class="mb-3 text-danger text-center">{{errors['general']}}</p>
+            </div>
+            <div class="float-end">
+              <button type="button" (click)="resetPasswordForm()" class="btn btn-secondary">Cancel</button>
+              <button class="btn btn-primary ms-1" type="submit" [disabled]="passwordForm.invalid">Save</button>
+            </div>
+          </div>
+        </div>
+      </form>
+      }
       }
     </div>
   </div>
