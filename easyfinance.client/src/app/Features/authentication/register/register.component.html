@@ -45,7 +45,7 @@
         <div *ngIf="httpErrors && errors?.['general']">
           <p class="mb-3 text-danger text-center">{{errors['general']}}</p>
         </div>
-        <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="registerForm.invalid">Sign up</button>
+        <button class="btn btn-primary" type="submit" [disabled]="registerForm.invalid">Sign up</button>
       </form>
       <span class="register-footer">
         Already have an account? 
