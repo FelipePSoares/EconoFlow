@@ -84,7 +84,7 @@ builder.Services.Configure<IdentityOptions>(options =>
 });
 
 builder.Services.AddSendGrid(options =>
-    options.ApiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY") ?? string.Empty
+    options.ApiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY") ?? "abc"
 );
 
 builder.Host.UseSerilog((context, configuration) =>
