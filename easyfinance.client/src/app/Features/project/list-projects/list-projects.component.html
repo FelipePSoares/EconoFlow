@@ -2,9 +2,12 @@
   <div class="row justify-content-center">
     <div class="wrap col-lg-8">
       <h1 class="text-center mt-3 mb-3">Projects</h1>
-      <div class="list-group">
+      <div class="list-group list-group-flush">
         @for (project of (projects$ | async); track project.id){
-        <div class="list-group-item project-item btn">
+        <button class="list-group-item" [ngClass]="{
+                'list-group-item-action': project.id != this.editingProject.id,
+                'btn-default': project.id != this.editingProject.id
+              }">
           @if(project.id != this.editingProject.id) {
           <div (click)="select(project.id)">
             <div class="d-flex justify-content-between align-items-center">
@@ -54,7 +57,7 @@
             }
           </div>
           }
-        </div>
+        </button>
         }
         @empty {
         <div class="text-center">

@@ -1,9 +1,5 @@
-.btn {
+.btn-default {
   margin: 0 -14px;
-}
-
-.btn:hover {
-    background-color: #f3f3f3 !important;
 }
 
 .warning {
