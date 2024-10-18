@@ -53,7 +53,7 @@ namespace EasyFinance.Server.Controllers
             var incomes = await this.incomeService.GetAsync(projectId, year);
             var categories = await this.categoryService.GetAsync(projectId, year);
 
-            var lastMonthData = categories.Where(c => c.TotalBudget != 0).Select(c => c.Expenses.LastOrDefault(e => e.Budget != 0)?.Date.Month).SingleOrDefault();
+            var lastMonthData = categories.Where(c => c.TotalBudget != 0).Select(c => c.Expenses.Where(e => e.Budget != 0)?.Max(e => e.Date.Month)).Max();
             var totalBudgetLastMonthData = categories.Sum(c => c.Expenses.Where(e => e.Date.Month == lastMonthData).Sum(e => e.Budget));
 
             var totalBudget = categories.Sum(c => c.TotalBudget) + (totalBudgetLastMonthData * (12 - lastMonthData ?? 0));
