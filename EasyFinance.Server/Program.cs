@@ -83,8 +83,9 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.User.RequireUniqueEmail = true;
 });
 
+var SENDGRID_API_KEY = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
 builder.Services.AddSendGrid(options =>
-    options.ApiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY")
+    options.ApiKey = !string.IsNullOrEmpty(SENDGRID_API_KEY) ? SENDGRID_API_KEY : "123456"
 );
 
 builder.Host.UseSerilog((context, configuration) =>

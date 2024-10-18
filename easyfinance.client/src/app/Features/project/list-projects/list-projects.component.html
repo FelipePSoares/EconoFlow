@@ -4,19 +4,19 @@
       <h1 class="text-center mt-5 mb-3">Projects</h1>
       <div class="list-group">
         @for (project of (projects$ | async); track project.id){
-        <div class="list-group-item project-item">
+        <div class="list-group-item project-item btn">
           @if(project.id != this.editingProject.id) {
-          <div>
+          <div (click)="select(project.id)">
             <div class="d-flex justify-content-between align-items-center">
-              <div class="btn" (click)="select(project.id)">
+              <div>
                 <h5 class="mb-1">{{ project.name }}</h5>
                 <p class="mb-1">{{ project.type }}</p>
               </div>
               <div class="btn-group">
-                <button class="btn btn-secondary" (click)="edit(project)">
+                <button class="btn btn-secondary" (click)="edit(project); $event.stopPropagation();">
                   <fa-icon [icon]="faPenToSquare"></fa-icon>
                 </button>
-                <button class="btn btn-danger" (click)="triggerDelete(project.id)">
+                <button class="btn btn-danger" (click)="triggerDelete(project.id); $event.stopPropagation();">
                   <fa-icon [icon]="faBoxArchive"></fa-icon>
                 </button>
               </div>
