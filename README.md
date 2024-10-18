@@ -15,6 +15,7 @@
 ## Table of Contents
 
 * [💡 Introduction](#-introduction)
+* [🗺️ Roadmap](#️-roadmap)
 * [🛠️ Development Guide](#️-development-guide)
 * [Contributors](#contributors)
 
@@ -25,6 +26,10 @@
 The objective with EconoFlow is create a simple system to track your expenses and incomes to stay in your budget. 
 
 Try and use it in our [live](https://www.econoflow.pt) project.
+
+## 🗺️ Roadmap
+
+* [EconoFlow development plan and progress](https://github.com/users/FelipePSoares/projects/1)
 
 ## 🛠️ Development Guide
 
