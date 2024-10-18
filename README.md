@@ -1,13 +1,13 @@
-# EasyFinance
-An easy system to help you control your personal or company finance. 
+# EconoFlow
+An easy system to help you control your personal or company budget.
 [![Release](https://github.com/FelipePSoares/EasyFinance/actions/workflows/Release.yml/badge.svg)](https://github.com/FelipePSoares/EasyFinance/actions/workflows/Release.yml)
 
-## Live Demo
+The objective with EconoFlow is create a simple system to track your expenses and incomes to stay in your budget. 
 
-- [Live Demo](https://www.econoflow.pt)
+## Live
+- [Live](https://www.econoflow.pt)
 
 ## Author
-
 Felipe Pires Soares
 
 [![Linkedin Badge](https://img.shields.io/badge/-Felipe-blue?style=flat-square&logo=Linkedin&logoColor=white&link=https://www.linkedin.com/in/felipepsoares/)](https://www.linkedin.com/in/felipepsoares/) 
