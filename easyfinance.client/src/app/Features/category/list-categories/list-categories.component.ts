@@ -39,9 +39,6 @@ export class ListCategoriesComponent {
   private _currentDate!: Date;
   private categories: BehaviorSubject<CategoryDto[]> = new BehaviorSubject<CategoryDto[]>([new CategoryDto()]);
   categories$: Observable<CategoryDto[]> = this.categories.asObservable();
-  totalBudget!: number;
-  totalWaste!: number;
-  totalRemaining!: number;
   categoryForm!: FormGroup;
   editingCategory: CategoryDto = new CategoryDto();
   itemToDelete!: string;
@@ -61,13 +58,7 @@ export class ListCategoriesComponent {
       .pipe(map(categories => mapper.mapArray(categories, Category, CategoryDto)))
       .subscribe(
         {
-          next: res => {
-            this.totalBudget = res.map(c => c.getTotalBudget()).reduce((acc, value) => acc + value, 0);
-            this.totalWaste = res.map(c => c.getTotalWaste()).reduce((acc, value) => acc + value, 0);
-            this.totalRemaining = res.map(c => c.getTotalRemaining()).reduce((acc, value) => acc + value, 0);
-
-            this.categories.next(res);
-          }
+          next: res => { this.categories.next(res); }
         });
   }
 
@@ -152,15 +143,45 @@ export class ListCategoriesComponent {
     }
   }
 
-  getPercentageWaste(): number {
-    return this.totalWaste * 100 / this.totalBudget;
-  }
-
   updateDate(newDate: Date) {
     this.currentDate = newDate;
   }
 
   previous() {
     this.router.navigate(['/projects', this.projectId, { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
+  }
+
+  getPercentageWaste(waste: number, budget: number): number {
+    return budget === 0 ? 0 : waste * 100 / budget;
+  }
+
+  getClassToProgressBar(percentage: number): string {
+    if (percentage <= 50) {
+      return 'bg-info';
+    } else if (percentage <= 100) {
+      return 'bg-warning';
+    }
+
+    return 'bg-danger';
+  }
+
+  getTextBasedOnPercentage(percentage: number): string {
+    if (percentage <= 50) {
+      return 'Expenses';
+    } else if (percentage <= 100) {
+      return 'Risk of overspend';
+    }
+
+    return 'Overspend';
+  }
+
+  getClassBasedOnPercentage(percentage: number): string {
+    if (percentage <= 50) {
+      return '';
+    } else if (percentage <= 100) {
+      return 'warning';
+    }
+
+    return 'danger';
   }
 }

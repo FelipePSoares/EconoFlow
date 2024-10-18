@@ -179,4 +179,38 @@ export class ListExpensesComponent {
       this.remove(this.itemToDelete);
     }
   }
+
+  getPercentageWaste(waste: number, budget: number): number {
+    return budget === 0 ? 0 : waste * 100 / budget;
+  }
+
+  getClassToProgressBar(percentage: number): string {
+    if (percentage <= 50) {
+      return 'bg-info';
+    } else if (percentage <= 100) {
+      return 'bg-warning';
+    }
+
+    return 'bg-danger';
+  }
+
+  getTextBasedOnPercentage(percentage: number): string {
+    if (percentage <= 50) {
+      return 'Expenses';
+    } else if (percentage <= 100) {
+      return 'Risk of overspend';
+    }
+
+    return 'Overspend';
+  }
+
+  getClassBasedOnPercentage(percentage: number): string {
+    if (percentage <= 50) {
+      return '';
+    } else if (percentage <= 100) {
+      return 'warning';
+    }
+
+    return 'danger';
+  }
 }

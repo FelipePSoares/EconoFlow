@@ -2,7 +2,7 @@
   <app-return-button (returnButtonEvent)="previous()"></app-return-button>
   <div class="row justify-content-center">
     <div class="wrap col-lg-8">
-      <h1 class="text-center mt-3 mb-3">Expense Items</h1>
+      <h2 class="text-center mt-3 mb-3">Expense Items</h2>
       <div class="list-group list-group-flush">
         @for (expenseItem of (expense$ | async)?.items; track expenseItem.id){
         <div class="list-group-item">

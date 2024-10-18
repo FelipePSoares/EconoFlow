@@ -40,7 +40,7 @@ namespace EasyFinance.Domain.Models.Financial
 
         public void SetDate(DateTime date)
         {
-            if (date > DateTime.Today.AddDays(1))
+            if (date > DateTime.Today.AddDays(1) && this.Amount > 0)
                 throw new ValidationException(nameof(this.Date), ValidationMessages.CantAddFutureExpense);
 
             if (date < DateTime.Today.AddYears(-5))
@@ -53,6 +53,9 @@ namespace EasyFinance.Domain.Models.Financial
         {
             if (amount < 0)
                 throw new ValidationException(nameof(this.Amount), string.Format(ValidationMessages.PropertyCantBeLessThanZero, nameof(this.Amount)));
+
+            if (this.Date > DateTime.Today.AddDays(1) && this.Amount > 0)
+                throw new ValidationException(nameof(this.Date), ValidationMessages.CantAddFutureExpense);
 
             this.Amount = amount;
         }

@@ -34,7 +34,7 @@ namespace EasyFinance.Domain.Tests.Financial
         [MemberData(nameof(FutureDates))]
         public void AddDate_SendFutureDate_ShouldThrowException(DateTime date)
         {
-            var action = () => new ExpenseItemBuilder().AddDate(date).Build();
+            var action = () => new ExpenseItemBuilder().AddAmount(1).AddDate(date).Build();
 
             action.Should().Throw<ValidationException>()
                 .WithMessage(ValidationMessages.CantAddFutureExpense)
