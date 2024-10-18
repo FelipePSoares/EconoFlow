@@ -8,7 +8,6 @@ import { Project } from 'src/app/core/models/project';
 import { compare } from 'fast-json-patch';
 import { Router } from '@angular/router';
 import { AsyncPipe } from '@angular/common';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPenToSquare, faBoxArchive, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
