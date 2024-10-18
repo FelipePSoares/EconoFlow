@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using EasyFinance.Application.Contracts.Persistence;
+using EasyFinance.Domain.Financial;
 using EasyFinance.Domain.Models.Financial;
 using EasyFinance.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -65,6 +66,26 @@ namespace EasyFinance.Application.Features.CategoryService
             .Categories
             .Where(c => !c.Archive)
             .ToList();
+
+        public async Task<ICollection<DefaultCategory>> GetDefaultCategoriesAsync(Guid projectId)
+        {
+            if (projectId == Guid.Empty)
+                throw new ArgumentNullException(nameof(projectId));
+
+            var project = await unitOfWork.ProjectRepository
+                .Trackable()
+                .Include(p => p.Categories)
+                .FirstOrDefaultAsync(p => p.Id == projectId);
+
+            // Extract the category names
+            var categoryNames = project.Categories.Select(c => c.Name).ToList();
+            var defaultCategories = DefaultCategory.GetAll();
+            var filteredCategories = defaultCategories
+                .Where(dc => !categoryNames.Contains(dc.Name))
+                .ToList();
+
+            return filteredCategories;
+        }
 
         public async Task<ICollection<Category>> GetAsync(Guid projectId, int year)
             => (await this.unitOfWork.ProjectRepository.NoTrackable()
