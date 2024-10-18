@@ -11,6 +11,9 @@ import { compare } from 'fast-json-patch';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPenToSquare, faBoxArchive, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
+import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
+import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
+import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 
 @Component({
   selector: 'app-list-categories',
@@ -20,10 +23,13 @@ import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/
     AsyncPipe,
     ReactiveFormsModule,
     FontAwesomeModule,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
+    AddButtonComponent,
+    ReturnButtonComponent,
+    CurrentDateComponent,
   ],
   templateUrl: './list-categories.component.html',
-  styleUrls: ['./list-categories.component.css', '../../styles/shared.scss']
+  styleUrl: './list-categories.component.css'
 })
 export class ListCategoriesComponent {
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
@@ -41,13 +47,16 @@ export class ListCategoriesComponent {
   itemToDelete!: string;
   httpErrors = false;
   errors: any;
-  
+
+  @Input({ required: true })
+  projectId!: string;
+
   get currentDate(): Date {
     return this._currentDate;
   }
   @Input({ required: true })
   set currentDate(currentDate: Date) {
-    this._currentDate = currentDate;
+    this._currentDate = new Date(currentDate);
     this.categoryService.get(this.projectId, this._currentDate)
       .pipe(map(categories => mapper.mapArray(categories, Category, CategoryDto)))
       .subscribe(
@@ -61,9 +70,6 @@ export class ListCategoriesComponent {
           }
         });
   }
-
-  @Input({ required: true })
-  projectId!: string;
 
   constructor(public categoryService: CategoryService, private router: Router) {
     this.edit(new CategoryDto());
@@ -105,6 +111,10 @@ export class ListCategoriesComponent {
     }
   }
 
+  add() {
+      this.router.navigate(['projects', this.projectId, 'add-category', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
+  }
+
   edit(category: CategoryDto): void {
     this.editingCategory = category;
     this.categoryForm = new FormGroup({
@@ -144,5 +154,13 @@ export class ListCategoriesComponent {
 
   getPercentageWaste(): number {
     return this.totalWaste * 100 / this.totalBudget;
+  }
+
+  updateDate(newDate: Date) {
+    this.currentDate = newDate;
+  }
+
+  previous() {
+    this.router.navigate(['/projects', this.projectId, { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
   }
 }

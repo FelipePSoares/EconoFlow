@@ -31,6 +31,13 @@ namespace EasyFinance.Application.Features.IncomeService
                 .FirstOrDefault(p => p.Id == projectId).Incomes;
         }
 
+        public async Task<ICollection<Income>> GetAsync(Guid projectId, int year)
+        {
+            return (await this.unitOfWork.ProjectRepository.NoTrackable()
+                .Include(p => p.Incomes.Where(e => e.Date.Year == year))
+                .FirstOrDefaultAsync(p => p.Id == projectId)).Incomes;
+        }
+
         public Income GetById(Guid incomeId)
         {
             return this.unitOfWork.IncomeRepository.Trackable().FirstOrDefault(p => p.Id == incomeId);

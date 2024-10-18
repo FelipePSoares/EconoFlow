@@ -20,7 +20,7 @@ import { passwordMatchValidator } from '../../../core/utils/custom-validators/pa
     ReactiveFormsModule,
     FontAwesomeModule],
   templateUrl: './detail-user.component.html',
-  styleUrls: ['./detail-user.component.css', '../../styles/shared.scss']
+  styleUrl: './detail-user.component.css'
 })
 export class DetailUserComponent implements OnInit {
   user$: Observable<User>;

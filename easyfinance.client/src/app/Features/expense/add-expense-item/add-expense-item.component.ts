@@ -17,7 +17,7 @@ import { ApiErrorResponse } from '../../../core/models/error';
   standalone: true,
   imports: [FormsModule, ReactiveFormsModule, ReturnButtonComponent],
   templateUrl: './add-expense-item.component.html',
-  styleUrls: ['./add-expense-item.component.css', '../../styles/shared.scss']
+  styleUrl: './add-expense-item.component.css'
 })
 export class AddExpenseItemComponent implements OnInit {
   private expense!: ExpenseDto;

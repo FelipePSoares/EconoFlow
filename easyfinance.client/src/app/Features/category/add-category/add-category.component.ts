@@ -12,7 +12,7 @@ import { ApiErrorResponse } from '../../../core/models/error';
   standalone: true,
   imports: [FormsModule, ReactiveFormsModule, ReturnButtonComponent],
   templateUrl: './add-category.component.html',
-  styleUrls: ['./add-category.component.css', '../../styles/shared.scss']
+  styleUrl: './add-category.component.css'
 })
 export class AddCategoryComponent implements OnInit {
   private currentDate!: Date;
@@ -81,6 +81,6 @@ export class AddCategoryComponent implements OnInit {
   }
 
   previous() {
-    this.router.navigate(['/projects', this.projectId, { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
+    this.router.navigate(['/projects', this.projectId, 'categories', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
   }
 }

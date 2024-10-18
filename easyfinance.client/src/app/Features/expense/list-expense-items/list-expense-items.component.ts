@@ -29,7 +29,7 @@ import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/
     ConfirmDialogComponent
   ],
   templateUrl: './list-expense-items.component.html',
-  styleUrls: ['./list-expense-items.component.css', '../../styles/shared.scss']
+  styleUrl: './list-expense-items.component.css'
 })
 export class ListExpenseItemsComponent {
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;

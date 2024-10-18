@@ -11,6 +11,9 @@ import { compare } from 'fast-json-patch';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPenToSquare, faTrash, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
+import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
+import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
+import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 
 @Component({
   selector: 'app-list-incomes',
@@ -20,10 +23,13 @@ import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/
     AsyncPipe,
     ReactiveFormsModule,
     FontAwesomeModule,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
+    AddButtonComponent,
+    ReturnButtonComponent,
+    CurrentDateComponent,
   ],
   templateUrl: './list-incomes.component.html',
-  styleUrls: ['./list-incomes.component.css', '../../styles/shared.scss']
+  styleUrl: './list-incomes.component.css'
 })
 
 export class ListIncomesComponent {
@@ -39,13 +45,16 @@ export class ListIncomesComponent {
   itemToDelete!: string;
   httpErrors = false;
   errors: any;
+  
+  @Input({ required: true })
+  projectId!: string;
 
   get currentDate(): Date {
     return this._currentDate;
   }
   @Input({ required: true })
   set currentDate(currentDate: Date) {
-    this._currentDate = currentDate;
+    this._currentDate = new Date(currentDate);
     this.incomeService.get(this.projectId, this._currentDate)
       .pipe(map(incomes => mapper.mapArray(incomes, Income, IncomeDto)))
       .subscribe(
@@ -54,10 +63,7 @@ export class ListIncomesComponent {
         });
   }
 
-  @Input({ required: true })
-  projectId!: string;
-
-  constructor(public incomeService: IncomeService) {
+  constructor(public incomeService: IncomeService, private router: Router) {
     this.edit(new IncomeDto());
   }
 
@@ -102,6 +108,10 @@ export class ListIncomesComponent {
     }
   }
 
+  add() {
+    this.router.navigate(['projects', this.projectId, 'add-income', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
+  }
+
   edit(income: IncomeDto): void {
     this.editingIncome = income;
     let newDate = new Date(income.date);
@@ -140,5 +150,13 @@ export class ListIncomesComponent {
     if (result) {
       this.remove(this.itemToDelete);
     }
+  }
+
+  updateDate(newDate: Date) {
+    this.currentDate = newDate;
+  }
+
+  previous() {
+    this.router.navigate(['/projects', this.projectId, { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
   }
 }
