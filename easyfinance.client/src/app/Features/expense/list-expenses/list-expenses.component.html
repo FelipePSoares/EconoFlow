@@ -4,13 +4,16 @@
   <div class="row justify-content-center">
     <div class="wrap col-lg-8">
       <h1 class="text-center mt-3 mb-3">Expenses</h1>
-      <div class="list-group">
+      <div class="list-group list-group-flush">
         @for (expense of (expenses$ | async); track expense.id){
-        <div class="list-group-item expense-item">
+        <button class="list-group-item" [ngClass]="{
+                'list-group-item-action': expense.id != this.editingExpense.id,
+                'btn-default': expense.id != this.editingExpense.id
+              }">
           @if(expense.id != this.editingExpense.id) {
-          <div>
+          <div (click)="select(expense.id)">
             <div class="d-flex justify-content-between align-items-center">
-              <div class="btn" (click)="select(expense.id)">
+              <div>
                 <h5 class="mb-1">{{ expense.name }}</h5>
                 <p class="mb-1">
                   date: {{ expense.date | date: 'dd/MM/yyyy' }}
@@ -19,10 +22,10 @@
                 </p>
               </div>
               <div class="btn-group">
-                <button class="btn btn-secondary" (click)="edit(expense)">
+                <button class="btn btn-secondary" (click)="edit(expense); $event.stopPropagation();">
                   <fa-icon [icon]="faPenToSquare"></fa-icon>
                 </button>
-                <button class="btn btn-danger" (click)="triggerDelete(expense.id)">
+                <button class="btn btn-danger" (click)="triggerDelete(expense.id); $event.stopPropagation();">
                   <fa-icon [icon]="faTrash"></fa-icon>
                 </button>
               </div>
@@ -102,7 +105,7 @@
             }
           </div>
           }
-        </div>
+        </button>
         }
         @empty {
         <div class="text-center">

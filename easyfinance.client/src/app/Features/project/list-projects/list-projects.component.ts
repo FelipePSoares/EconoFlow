@@ -7,7 +7,7 @@ import { mapper } from 'src/app/core/utils/mappings/mapper';
 import { Project } from 'src/app/core/models/project';
 import { compare } from 'fast-json-patch';
 import { Router } from '@angular/router';
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, CommonModule } from '@angular/common';
 import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPenToSquare, faBoxArchive, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
@@ -16,7 +16,15 @@ import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/
 @Component({
   selector: 'app-list-projects',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, AsyncPipe, AddButtonComponent, FontAwesomeModule, ConfirmDialogComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    AsyncPipe,
+    AddButtonComponent,
+    FontAwesomeModule,
+    ConfirmDialogComponent
+  ],
   templateUrl: './list-projects.component.html',
   styleUrl: './list-projects.component.css'
 })

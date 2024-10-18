@@ -4,9 +4,9 @@
   <div class="row justify-content-center">
     <div class="wrap col-lg-8">
       <h1 class="text-center mt-3 mb-3">Incomes</h1>
-      <div class="list-group">
+      <div class="list-group list-group-flush">
         @for (income of (incomes$ | async); track income.id){
-        <div class="list-group-item income-item">
+        <div class="list-group-item">
           @if (income.id != this.editingIncome.id) {
           <div>
             <div class="d-flex justify-content-between align-items-center">
