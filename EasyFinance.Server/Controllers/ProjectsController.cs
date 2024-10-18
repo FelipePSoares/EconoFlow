@@ -1,4 +1,6 @@
 ﻿using System.Security.Claims;
+using EasyFinance.Application.Features.CategoryService;
+using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Domain.Models.AccessControl;
 using EasyFinance.Server.DTOs.FinancialProject;
@@ -14,11 +16,15 @@ namespace EasyFinance.Server.Controllers
     public class ProjectsController : ControllerBase
     {
         private readonly IProjectService projectService;
+        private readonly ICategoryService categoryService;
+        private readonly IIncomeService incomeService;
         private readonly UserManager<User> userManager;
 
-        public ProjectsController(IProjectService projectService, UserManager<User> userManager)
+        public ProjectsController(IProjectService projectService, ICategoryService categoryService, IIncomeService incomeService, UserManager<User> userManager)
         {
             this.projectService = projectService;
+            this.categoryService = categoryService;
+            this.incomeService = incomeService;
             this.userManager = userManager;
         }
 
@@ -39,6 +45,27 @@ namespace EasyFinance.Server.Controllers
             if (project == null) return NotFound();
 
             return Ok(project.ToDTO());
+        }
+
+        [HttpGet("{projectId}/year-summary/{year}")]
+        public async Task<IActionResult> Get(Guid projectId, int year)
+        {
+            var incomes = await this.incomeService.GetAsync(projectId, year);
+            var categories = await this.categoryService.GetAsync(projectId, year);
+
+            var lastMonthData = categories.Where(c => c.TotalBudget != 0).Select(c => c.Expenses.LastOrDefault(e => e.Budget != 0)?.Date.Month).SingleOrDefault();
+            var totalBudgetLastMonthData = categories.Sum(c => c.Expenses.Where(e => e.Date.Month == lastMonthData).Sum(e => e.Budget));
+
+            var totalBudget = categories.Sum(c => c.TotalBudget) + (totalBudgetLastMonthData * (12 - lastMonthData ?? 0));
+            var totalWaste = categories.Sum(c => c.TotalWaste);
+
+            return Ok(new
+            {
+                TotalBudget = totalBudget,
+                TotalWaste = totalWaste,
+                TotalRemaining = totalBudget - totalWaste,
+                TotalEarned = incomes.Sum(i => i.Amount),
+            });
         }
 
         [HttpPost]

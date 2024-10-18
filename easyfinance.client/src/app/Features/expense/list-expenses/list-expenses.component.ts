@@ -31,7 +31,7 @@ import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/
     ConfirmDialogComponent
   ],
   templateUrl: './list-expenses.component.html',
-  styleUrls: ['./list-expenses.component.css', '../../styles/shared.scss']
+  styleUrl: './list-expenses.component.css'
 })
 export class ListExpensesComponent {
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
@@ -166,7 +166,7 @@ export class ListExpensesComponent {
   }
 
   previous() {
-    this.router.navigate(['/projects', this.projectId, { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
+    this.router.navigate(['/projects', this.projectId, 'categories', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
   }
 
   triggerDelete(itemId: string): void {

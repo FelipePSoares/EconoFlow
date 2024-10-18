@@ -4,6 +4,7 @@ import { Category } from '../models/category';
 import { Observable, map } from 'rxjs';
 import { Operation } from 'fast-json-patch';
 import { formatDate } from '../utils/date/date';
+import { YearExpensesSummaryDto } from '../../Features/project/models/year-expenses-summary-dto';
 
 @Injectable({
   providedIn: 'root'

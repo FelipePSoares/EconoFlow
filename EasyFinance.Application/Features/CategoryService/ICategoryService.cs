@@ -9,6 +9,7 @@ namespace EasyFinance.Application.Features.CategoryService
     {
         Task<ICollection<Category>> GetAllAsync(Guid projectId);
         Task<ICollection<Category>> GetAsync(Guid projectId, DateTime from, DateTime to);
+        Task<ICollection<Category>> GetAsync(Guid projectId, int year);
         Task<Category> GetByIdAsync(Guid categoryId);
         Task<Category> CreateAsync(Guid projectId, Category category);
         Task<Category> UpdateAsync(Category category);

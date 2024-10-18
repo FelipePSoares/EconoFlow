@@ -1,7 +1,9 @@
+<app-return-button (returnButtonEvent)="previous()"></app-return-button>
 <div class="container text-center">
+  <app-current-date [currentDate]="currentDate" (dateUpdatedEvent)="updateDate($event)"></app-current-date>
   <div class="row justify-content-center">
-    <div class="wrap">
-      <h1 class="text-center mt-5 mb-3">Incomes</h1>
+    <div class="wrap col-lg-8">
+      <h1 class="text-center mt-3 mb-3">Incomes</h1>
       <div class="list-group">
         @for (income of (incomes$ | async); track income.id){
         <div class="list-group-item income-item">
@@ -85,4 +87,5 @@
     </div>
   </div>
 </div>
+<app-add-button (clickedEvent)="add()"></app-add-button>
 <app-confirm-dialog (confirmed)="handleConfirmation($event)"></app-confirm-dialog>

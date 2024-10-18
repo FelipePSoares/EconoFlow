@@ -18,7 +18,7 @@ import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/
   standalone: true,
   imports: [FormsModule, ReactiveFormsModule, AsyncPipe, AddButtonComponent, FontAwesomeModule, ConfirmDialogComponent],
   templateUrl: './list-projects.component.html',
-  styleUrls: ['./list-projects.component.css', '../../styles/shared.scss']
+  styleUrl: './list-projects.component.css'
 })
 export class ListProjectsComponent implements OnInit {
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;

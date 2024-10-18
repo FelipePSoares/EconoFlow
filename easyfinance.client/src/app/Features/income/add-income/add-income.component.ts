@@ -12,7 +12,7 @@ import { ErrorMessageService } from '../../../core/services/error-message.servic
   standalone: true,
   imports: [FormsModule, ReactiveFormsModule, ReturnButtonComponent],
   templateUrl: './add-income.component.html',
-  styleUrls: ['./add-income.component.css', '../../styles/shared.scss']
+  styleUrl: './add-income.component.css'
 })
 export class AddIncomeComponent implements OnInit {
   private currentDate!: Date;
@@ -93,6 +93,6 @@ export class AddIncomeComponent implements OnInit {
   }
 
   previous() {
-    this.router.navigate(['/projects', this.projectId, { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
+    this.router.navigate(['/projects', this.projectId, 'incomes', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
   }
 }

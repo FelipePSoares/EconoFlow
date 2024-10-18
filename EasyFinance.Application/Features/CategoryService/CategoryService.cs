@@ -66,6 +66,15 @@ namespace EasyFinance.Application.Features.CategoryService
             .Where(c => !c.Archive)
             .ToList();
 
+        public async Task<ICollection<Category>> GetAsync(Guid projectId, int year)
+            => (await this.unitOfWork.ProjectRepository.NoTrackable()
+            .Include(p => p.Categories)
+                .ThenInclude(c => c.Expenses.Where(e => e.Date.Year == year))
+            .FirstOrDefaultAsync(p => p.Id == projectId))?
+            .Categories
+            .Where(c => !c.Archive)
+            .ToList();
+
         public async Task<Category> GetByIdAsync(Guid categoryId)
             => await this.unitOfWork.CategoryRepository.Trackable()
                 .Include(c => c.Expenses).FirstOrDefaultAsync(p => p.Id == categoryId);

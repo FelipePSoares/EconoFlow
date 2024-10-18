@@ -12,7 +12,7 @@ import { ApiErrorResponse } from '../../../core/models/error';
   standalone: true,
   imports: [FormsModule, ReactiveFormsModule, ReturnButtonComponent],
   templateUrl: './add-expense.component.html',
-  styleUrls: ['./add-expense.component.css', '../../styles/shared.scss']
+  styleUrl: './add-expense.component.css'
 })
 export class AddExpenseComponent implements OnInit {
   private currentDate!: Date;

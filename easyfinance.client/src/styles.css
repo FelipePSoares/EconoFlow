@@ -1,1 +1,16 @@
-/* You can add global styles to this file, and also import other style files */
+.wrap {
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 40px;
+  padding-bottom: 33px;
+  box-shadow: 0 5px 10px 0px rgba(0, 0, 0, 0.1);
+  -moz-box-shadow: 0 5px 10px 0px rgba(0, 0, 0, 0.1);
+  -webkit-box-shadow: 0 5px 10px 0px rgba(0, 0, 0, 0.1);
+  -o-box-shadow: 0 5px 10px 0px rgba(0, 0, 0, 0.1);
+  -ms-box-shadow: 0 5px 10px 0px rgba(0, 0, 0, 0.1);
+}
+
+.input {
+  display: flex;
+}

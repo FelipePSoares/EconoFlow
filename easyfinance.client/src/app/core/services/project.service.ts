@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Project } from '../models/project';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, catchError, map, of } from 'rxjs';
 import { Operation } from 'fast-json-patch';
+import { YearExpensesSummaryDto } from '../../Features/project/models/year-expenses-summary-dto';
 
 @Injectable({
   providedIn: 'root'
@@ -36,5 +37,12 @@ export class ProjectService {
     return this.http.delete('/api/projects/' + id, {
       observe: 'response'
     }).pipe(map(res => res.ok));
+  }
+
+  getYearlyInfo(id: string, year: number) {
+    return this.http.get<YearExpensesSummaryDto>('/api/projects/' + id + '/year-summary/' + year, {
+      observe: 'body',
+      responseType: 'json'
+    });
   }
 }

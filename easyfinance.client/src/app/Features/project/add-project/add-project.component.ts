@@ -14,7 +14,7 @@ import { ErrorMessageService } from '../../../core/services/error-message.servic
   standalone: true,
   imports: [FormsModule, ReactiveFormsModule, ReturnButtonComponent],
   templateUrl: './add-project.component.html',
-  styleUrls: ['./add-project.component.css', '../../styles/shared.scss']
+  styleUrl: './add-project.component.css'
 })
 export class AddProjectComponent implements OnInit {
   public projectType2LabelMapping = ProjectType2LabelMapping;
