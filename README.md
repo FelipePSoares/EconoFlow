@@ -1,13 +1,39 @@
-# EconoFlow
-An easy system to help you control your personal or company budget.
-[![Release](https://github.com/FelipePSoares/EasyFinance/actions/workflows/Release.yml/badge.svg)](https://github.com/FelipePSoares/EasyFinance/actions/workflows/Release.yml)
+<div align="center">
+<h1 align="center"><img alt="EconoFlow" width="35" src="https://econoflow.pt/assets/coin.ico"> EconoFlow</h1>
+<em>An easy system to help you control your personal or company budget.</em>
+<br><br>
+<a title="Build Status" target="_blank" href="https://github.com/FelipePSoares/EconoFlow/actions/workflows/Release.yml"><img src="https://img.shields.io/github/actions/workflow/status/FelipePSoares/EconoFlow/Release.yml?style=flat-square"></a>
+<a title="Code Size" target="_blank" href="https://github.com/FelipePSoares/EconoFlow"><img src="https://img.shields.io/github/languages/code-size/FelipePSoares/EconoFlow.svg?style=flat-square&color=yellow"></a>
+<a title="GitHub Pull Requests" target="_blank" href="https://github.com/FelipePSoares/EconoFlow/pulls"><img src="https://img.shields.io/github/issues-pr-closed/FelipePSoares/EconoFlow.svg?style=flat-square&color=FF9966"></a>
+<br>
+<a title="GitHub Commits" target="_blank" href="https://github.com/FelipePSoares/EconoFlow/commits/master"><img src="https://img.shields.io/github/commit-activity/m/FelipePSoares/EconoFlow.svg?style=flat-square"></a>
+<a title="Last Commit" target="_blank" href="https://github.com/FelipePSoares/EconoFlow/commits/master"><img src="https://img.shields.io/github/last-commit/FelipePSoares/EconoFlow.svg?style=flat-square&color=FF9900"></a>
+</div>
+
+---
+
+## Table of Contents
+
+* [💡 Introduction](#-introduction)
+* [🛠️ Development Guide](#️-development-guide)
+* [Contributors](#contributors)
+
+---
+
+## 💡 Introduction
 
 The objective with EconoFlow is create a simple system to track your expenses and incomes to stay in your budget. 
 
-## Live
-- [Live](https://www.econoflow.pt)
+Try and use it in our [live](https://www.econoflow.pt) project.
 
-## Author
-Felipe Pires Soares
+## 🛠️ Development Guide
 
-[![Linkedin Badge](https://img.shields.io/badge/-Felipe-blue?style=flat-square&logo=Linkedin&logoColor=white&link=https://www.linkedin.com/in/felipepsoares/)](https://www.linkedin.com/in/felipepsoares/) 
+See [Development Guide](https://github.com/FelipePSoares/EconoFlow/blob/master/.github/CONTRIBUTING.md).
+
+## Contributors
+
+Welcome to join us and contribute code to EconoFlow together.
+
+<a href="https://github.com/FelipePSoares/EconoFlow/graphs/contributors">
+   <img src="https://contrib.rocks/image?repo=FelipePSoares/EconoFlow" />
+</a>
