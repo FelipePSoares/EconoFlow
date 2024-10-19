@@ -15,8 +15,8 @@
           <p>Please sign in</p>
         </div>
         <div class="form-floating mb-3">
-          <input type="email" class="form-control" id="email" placeholder="name@example.com" formControlName="email" [class.is-invalid]="email?.invalid && email?.touched">
-          <label for="email">Email address</label>
+          <input type="email" class="form-control" id="username" placeholder="name@example.com" formControlName="email" [class.is-invalid]="email?.invalid && email?.touched">
+          <label for="username">Email address</label>
           <div *ngIf="email?.invalid && email?.touched">
             <ul>
               <li *ngFor="let error of getFormFieldErrors('email')" class="text-danger" [innerHtml]="error"></li>
