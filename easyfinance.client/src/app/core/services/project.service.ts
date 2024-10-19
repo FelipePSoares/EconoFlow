@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Project } from '../models/project';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, catchError, map, of } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
 import { Operation } from 'fast-json-patch';
-import { YearExpensesSummaryDto } from '../../Features/project/models/year-expenses-summary-dto';
+import { YearExpensesSummaryDto } from '../../features/project/models/year-expenses-summary-dto';
 
 @Injectable({
   providedIn: 'root'

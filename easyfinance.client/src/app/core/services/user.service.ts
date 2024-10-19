@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, Subject, concatMap, map } from 'rxjs';
-import { User } from '../models/User';
+import { User } from '../models/user';
 
 const USER_DATA = "user_data";
 
