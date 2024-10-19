@@ -4,7 +4,7 @@ import { Category } from '../models/category';
 import { Observable, map } from 'rxjs';
 import { Operation } from 'fast-json-patch';
 import { formatDate } from '../utils/date/date';
-import { YearExpensesSummaryDto } from '../../Features/project/models/year-expenses-summary-dto';
+
 
 @Injectable({
   providedIn: 'root'
@@ -25,6 +25,13 @@ export class CategoryService {
       observe: 'body',
       responseType: 'json',
       params: queryParams
+    });
+  }
+
+  getDefaultCategories(projectId: string) {
+    return this.http.get<string[]>('/api/projects/' + projectId + '/categories/DefaultCategories', {
+      observe: 'body',
+      responseType: 'json',
     });
   }
 
