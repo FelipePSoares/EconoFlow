@@ -1,8 +1,8 @@
-import { HttpClient, HttpResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, concatMap, map } from 'rxjs';
 import { UserService } from '../services/user.service';
-import { User } from '../models/User';
+import { User } from '../models/user';
 
 @Injectable({
   providedIn: 'root',
