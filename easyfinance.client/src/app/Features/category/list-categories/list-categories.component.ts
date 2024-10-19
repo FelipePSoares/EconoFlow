@@ -156,7 +156,7 @@ export class ListCategoriesComponent {
   }
 
   getClassToProgressBar(percentage: number): string {
-    if (percentage <= 50) {
+    if (percentage <= 75) {
       return 'bg-info';
     } else if (percentage <= 100) {
       return 'bg-warning';
@@ -166,7 +166,7 @@ export class ListCategoriesComponent {
   }
 
   getTextBasedOnPercentage(percentage: number): string {
-    if (percentage <= 50) {
+    if (percentage <= 75) {
       return 'Expenses';
     } else if (percentage <= 100) {
       return 'Risk of overspend';
@@ -176,7 +176,7 @@ export class ListCategoriesComponent {
   }
 
   getClassBasedOnPercentage(percentage: number): string {
-    if (percentage <= 50) {
+    if (percentage <= 75) {
       return '';
     } else if (percentage <= 100) {
       return 'warning';
