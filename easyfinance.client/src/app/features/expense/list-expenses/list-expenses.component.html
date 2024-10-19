@@ -30,7 +30,7 @@
                    [ngClass]="getClassToProgressBar(getPercentageWaste(expense.getTotalAmount(), expense.budget))"
                    [style.width.%]="getPercentageWaste(expense.getTotalAmount(), expense.budget)"
                    [attr.aria-valuenow]="getPercentageWaste(expense.getTotalAmount(), expense.budget)">
-                {{ getPercentageWaste(expense.getTotalAmount(), expense.budget) | number: '1.0-0' }}%
+                {{ expense.getTotalAmount() | currency }}
               </div>
             </div>
             <div class="clearfix">
