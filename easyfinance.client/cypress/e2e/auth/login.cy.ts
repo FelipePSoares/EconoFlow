@@ -1,5 +1,5 @@
-describe('template spec', () => {
-  it('passes', () => {
+describe('EconoFlow - Login Tests', () => {
+  it('should login with user credentials', () => {
     cy.fixture('users').then((users) => {
       const user = users.testUser;
 
