@@ -15,8 +15,8 @@
           <p>Please sign in</p>
         </div>
         <div class="form-floating mb-3">
-          <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com" formControlName="email" [class.is-invalid]="email?.invalid && email?.touched">
-          <label for="floatingInput">Email address</label>
+          <input type="email" class="form-control" id="email" placeholder="name@example.com" formControlName="email" [class.is-invalid]="email?.invalid && email?.touched">
+          <label for="email">Email address</label>
           <div *ngIf="email?.invalid && email?.touched">
             <ul>
               <li *ngFor="let error of getFormFieldErrors('email')" class="text-danger" [innerHtml]="error"></li>
@@ -24,8 +24,8 @@
           </div>
         </div>
         <div class="form-floating">
-          <input type="password" class="form-control" id="floatingPassword" placeholder="Password" formControlName="password" [class.is-invalid]="password?.invalid && password?.touched">
-          <label for="floatingPassword">Password</label>
+          <input type="password" class="form-control" id="password" placeholder="Password" formControlName="password" [class.is-invalid]="password?.invalid && password?.touched">
+          <label for="password">Password</label>
           <div *ngIf="password?.invalid && password?.touched">
             <ul>
               <li *ngFor="let error of getFormFieldErrors('password')" class="text-danger" [innerHtml]="error"></li>
