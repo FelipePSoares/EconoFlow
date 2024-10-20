@@ -26,6 +26,7 @@ import { IncomeDto } from './app/features/income/models/income-dto';
 import { CategoryDto } from './app/features/category/models/category-dto';
 import { ExpenseDto } from './app/features/expense/models/expense-dto';
 import { ExpenseItemDto } from './app/features/expense/models/expense-item-dto';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 
 registerLocaleData(localePt, 'pt');
 
@@ -42,7 +43,7 @@ bootstrapApplication(AppComponent, {
     provideAnimations(),
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(
-      withInterceptors([HttpRequestInterceptor, LoadingInterceptor]))],
+      withInterceptors([HttpRequestInterceptor, LoadingInterceptor])), provideAnimationsAsync()],
 });
 
 createMap(mapper, Project, ProjectDto);

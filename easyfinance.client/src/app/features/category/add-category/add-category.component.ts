@@ -1,18 +1,30 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatInputModule } from '@angular/material/input';
+import { Observable } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
 import { CategoryService } from '../../../core/services/category.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CategoryDto } from '../models/category-dto';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { ApiErrorResponse } from '../../../core/models/error';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-add-category',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, ReturnButtonComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    ReturnButtonComponent,
+    MatAutocompleteModule, // Import autocomplete module
+    MatInputModule         // Import input module for styling
+  ],
   templateUrl: './add-category.component.html',
-  styleUrl: './add-category.component.css'
+  styleUrls: ['./add-category.component.css']
 })
 export class AddCategoryComponent implements OnInit {
   private currentDate!: Date;
@@ -20,26 +32,57 @@ export class AddCategoryComponent implements OnInit {
   httpErrors = false;
   errors!: { [key: string]: string };
 
-  @Input({ required: true })
-  projectId!: string;
+  @Input({ required: true }) projectId!: string;
 
-  constructor(private categoryService: CategoryService, private router: Router, private route: ActivatedRoute, private errorMessageService: ErrorMessageService) { }
+  // Predefined categories for suggestions
+  defaultCategories: string[] = [];
+
+  // Filtered categories that change as the user types
+  filteredCategories!: Observable<string[]>;
+
+  constructor(
+    private categoryService: CategoryService,
+    private router: Router,
+    private route: ActivatedRoute,
+    private errorMessageService: ErrorMessageService
+  ) {}
 
   ngOnInit(): void {
+
     this.currentDate = new Date(this.route.snapshot.paramMap.get('currentDate')!);
 
     this.categoryForm = new FormGroup({
       name: new FormControl('', [Validators.required])
     });
+
+    this.categoryService.getDefaultCategories(this.projectId).subscribe({
+      next: (categories) => {
+        this.defaultCategories = categories.map((category: any) => category.name);
+
+        this.filteredCategories = this.categoryForm.get('name')!.valueChanges.pipe(
+          startWith(''),
+          map(value => this._filterCategories(value || ''))
+        );
+      },
+      error: (error) => {
+        console.error('Error fetching categories:', error);
+      }
+    });
+  
+  }
+
+  private _filterCategories(value: string): string[] {
+    const filterValue = value.toLowerCase();
+    return this.defaultCategories.filter(category =>
+      category.toLowerCase().includes(filterValue)
+    );
   }
 
   save() {
     if (this.categoryForm.valid) {
       const name = this.name?.value;
 
-      var newCategory = <CategoryDto>({
-        name: name
-      });
+      var newCategory = <CategoryDto>{ name: name };
 
       this.categoryService.add(this.projectId, newCategory).subscribe({
         next: response => {
@@ -80,6 +123,10 @@ export class AddCategoryComponent implements OnInit {
     return this.categoryForm.get('name');
   }
 
+  trackByFn(index: number, item: string): number {
+    return index;
+  }
+  
   previous() {
     this.router.navigate(['/projects', this.projectId, 'categories', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
   }
