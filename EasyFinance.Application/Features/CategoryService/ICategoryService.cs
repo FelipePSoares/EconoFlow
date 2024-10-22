@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using EasyFinance.Domain.Financial;
 using EasyFinance.Domain.Models.Financial;
 
 namespace EasyFinance.Application.Features.CategoryService
@@ -15,6 +14,6 @@ namespace EasyFinance.Application.Features.CategoryService
         Task<Category> CreateAsync(Guid projectId, Category category);
         Task<Category> UpdateAsync(Category category);
         Task DeleteAsync(Guid categoryId);
-        Task<ICollection<DefaultCategory>> GetDefaultCategoriesAsync(Guid projectId);
+        Task<ICollection<Category>> GetDefaultCategoriesAsync(Guid projectId);
     }
 }

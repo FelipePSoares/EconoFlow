@@ -27,8 +27,8 @@ export class CategoryService {
     });
   }
 
-  getDefaultCategories(projectId: string) {
-    return this.http.get<string[]>('/api/projects/' + projectId + '/categories/DefaultCategories', {
+  getDefaultCategories(projectId: string): Observable<Category[]> {
+    return this.http.get<Category[]>('/api/projects/' + projectId + '/categories/DefaultCategories', {
       observe: 'body',
       responseType: 'json',
     });
