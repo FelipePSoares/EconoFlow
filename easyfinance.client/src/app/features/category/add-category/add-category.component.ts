@@ -2,7 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { CategoryService } from '../../../core/services/category.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -20,8 +20,8 @@ import { CommonModule } from '@angular/common';
     FormsModule,
     ReactiveFormsModule,
     ReturnButtonComponent,
-    MatAutocompleteModule, // Import autocomplete module
-    MatInputModule         // Import input module for styling
+    MatAutocompleteModule,
+    MatInputModule
   ],
   templateUrl: './add-category.component.html',
   styleUrls: ['./add-category.component.css']
@@ -34,11 +34,10 @@ export class AddCategoryComponent implements OnInit {
 
   @Input({ required: true }) projectId!: string;
 
-  // Predefined categories for suggestions
-  defaultCategories: string[] = [];
-
-  // Filtered categories that change as the user types
-  filteredCategories!: Observable<string[]>;
+  private defaultCategories: BehaviorSubject<string[]> = new BehaviorSubject<string[]>([]);
+  defaultCategories$: Observable<string[]> = this.defaultCategories.asObservable();
+  
+  filteredCategories$: Observable<string[]> = new Observable<string[]>();
 
   constructor(
     private categoryService: CategoryService,
@@ -48,7 +47,6 @@ export class AddCategoryComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-
     this.currentDate = new Date(this.route.snapshot.paramMap.get('currentDate')!);
 
     this.categoryForm = new FormGroup({
@@ -57,23 +55,25 @@ export class AddCategoryComponent implements OnInit {
 
     this.categoryService.getDefaultCategories(this.projectId).subscribe({
       next: (categories) => {
-        this.defaultCategories = categories.map((category: any) => category.name);
-
-        this.filteredCategories = this.categoryForm.get('name')!.valueChanges.pipe(
-          startWith(''),
-          map(value => this._filterCategories(value || ''))
-        );
+        const categoryNames = categories.map((category: any) => category.name);
+        this.defaultCategories.next(categoryNames); 
       },
       error: (error) => {
         console.error('Error fetching categories:', error);
       }
     });
-  
+
+    this.filteredCategories$ = combineLatest([
+      this.categoryForm.get('name')!.valueChanges.pipe(startWith('')),
+      this.defaultCategories$
+    ]).pipe(
+      map(([searchValue, categories]) => this.filterCategories(searchValue || '', categories))
+    );
   }
 
-  private _filterCategories(value: string): string[] {
+  private filterCategories(value: string, categories: string[]): string[] {
     const filterValue = value.toLowerCase();
-    return this.defaultCategories.filter(category =>
+    return categories.filter(category =>
       category.toLowerCase().includes(filterValue)
     );
   }
@@ -86,12 +86,11 @@ export class AddCategoryComponent implements OnInit {
 
       this.categoryService.add(this.projectId, newCategory).subscribe({
         next: response => {
-          this.previous();
+          this.previous(); 
         },
         error: (response: ApiErrorResponse) => {
           this.httpErrors = true;
           this.errors = response.errors;
-
           this.errorMessageService.setFormErrors(this.categoryForm, this.errors);
         }
       });
@@ -126,7 +125,7 @@ export class AddCategoryComponent implements OnInit {
   trackByFn(index: number, item: string): number {
     return index;
   }
-  
+
   previous() {
     this.router.navigate(['/projects', this.projectId, 'categories', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
   }
