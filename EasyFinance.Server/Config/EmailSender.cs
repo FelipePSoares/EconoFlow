@@ -31,8 +31,8 @@ namespace EasyFinance.Server.Config
 
             var response = await sendGridClient.SendEmailAsync(msg);
             this.logger.LogInformation(response.IsSuccessStatusCode
-                                   ? $"Email to {toEmail} queued successfully!"
-                                   : $"Failure Email to {toEmail}");
+                                   ? "Email queued successfully!"
+                                   : "Failure in queuing email");
         }
 
         private SendGridMessage createDefaultEmail(string toEmail, string subject, string message)
