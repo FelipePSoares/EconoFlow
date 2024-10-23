@@ -12,7 +12,7 @@
               }">
           @if(category.id != this.editingCategory.id) {
           <div (click)="select(category.id)">
-            <h5 class="mb-1">{{ category.name }}</h5>
+            <h3 class="mb-1">{{ category.name }}</h3>
             <div class="btn-group" style="position: absolute; right: 15px; top: 10px;">
               <button class="btn btn-secondary" (click)="edit(category); $event.stopPropagation();">
                 <fa-icon [icon]="faPenToSquare"></fa-icon>

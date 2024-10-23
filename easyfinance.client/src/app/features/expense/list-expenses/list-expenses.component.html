@@ -12,7 +12,7 @@
               }">
           @if(expense.id != this.editingExpense.id) {
           <div (click)="select(expense.id)">
-            <h5 class="mb-1">{{ expense.name }}</h5>
+            <h3 class="mb-1">{{ expense.name }}</h3>
             <div class="btn-group" style="position: absolute; right: 15px; top: 10px;">
               <button class="btn btn-secondary" (click)="edit(expense); $event.stopPropagation();">
                 <fa-icon [icon]="faPenToSquare"></fa-icon>
