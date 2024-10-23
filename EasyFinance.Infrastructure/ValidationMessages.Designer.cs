@@ -79,6 +79,15 @@ namespace EasyFinance.Infrastructure {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Can&apos;t import budget because already exists.
+        /// </summary>
+        public static string CantImportBudgetBecauseAlreadyExists {
+            get {
+                return ResourceManager.GetString("CantImportBudgetBecauseAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You don&apos;t have access to do this action.
         /// </summary>
         public static string Forbidden {

@@ -52,11 +52,11 @@ namespace EasyFinance.Domain.Models.Financial
             this.Archive = true;
         }
 
-        public ICollection<Expense> CopyBudgetToCurrentMonth(User user, int currentMonth, int currentYear)
+        public ICollection<Expense> CopyBudgetToCurrentMonth(User user, DateTime currentDate)
         {
-            var previousDate = new DateTime(currentYear, currentMonth, 1).AddMonths(-1);
+            var previousDate = currentDate.AddMonths(-1);
 
-            var newExpenses = this.Expenses.Where(e => e.Date.Month == previousDate.Month && e.Date.Year == previousDate.Year && e.Budget != 0)
+            var newExpenses = this.Expenses.Where(e => e.Date.Month == previousDate.Month && e.Date.Year == previousDate.Year && e.Budget > 0)
                 .Select(expense => expense.CopyBudgetToCurrentMonth(user))
                 .ToList();
 

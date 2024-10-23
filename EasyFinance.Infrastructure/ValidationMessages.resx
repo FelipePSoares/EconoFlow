@@ -144,4 +144,7 @@
   <data name="CantAddExpenseOlderThanYears" xml:space="preserve">
     <value>You can't add expense older than {0} years</value>
   </data>
+  <data name="CantImportBudgetBecauseAlreadyExists" xml:space="preserve">
+    <value>Can't import budget because already exists</value>
+  </data>
 </root>

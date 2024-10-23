@@ -54,6 +54,10 @@ export class DetailProjectComponent implements OnInit {
       this._currentDate = new Date(currentDate);
     }
 
+    this.fillData();
+  }
+
+  fillData() {
     this.projectService.getYearlyInfo(this.projectId, this._currentDate.getFullYear())
       .subscribe({
         next: res => {
@@ -139,5 +143,14 @@ export class DetailProjectComponent implements OnInit {
     }
 
     return 'danger';
+  }
+
+  copyPreviousBudget() {
+    this.projectService.copyBudgetPreviousMonth(this.projectId, this.currentDate)
+      .subscribe({
+        next: res => {
+          this.fillData();
+        }
+      });
   }
 }

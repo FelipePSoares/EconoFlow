@@ -111,12 +111,12 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpPost("{projectId}/copy-budget-previous-month")]
-        public async Task<IActionResult> CopyFrom(Guid projectId, int currentMonth, int currentYear)
+        public async Task<IActionResult> CopyFrom(Guid projectId, [FromBody] DateTime currentDate)
         {
             var id = this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier);
             var user = await this.userManager.FindByIdAsync(id.Value);
 
-            var newExpenses = await projectService.CopyBudgetFromPreviousMonthAsync(user, projectId, currentMonth, currentYear);
+            var newExpenses = await projectService.CopyBudgetFromPreviousMonthAsync(user, projectId, currentDate);
 
             return Ok(newExpenses.ToDTO());
         }
