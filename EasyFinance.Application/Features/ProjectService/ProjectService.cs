@@ -76,5 +76,28 @@ namespace EasyFinance.Application.Features.ProjectService
             unitOfWork.ProjectRepository.InsertOrUpdate(project);
             await unitOfWork.CommitAsync();
         }
+
+        public async Task<ICollection<Expense>> CopyBudgetFromPreviousMonthAsync(User user,Guid id, int currentMonth, int currentYear)
+        {
+            if (id == Guid.Empty)
+                throw new ArgumentNullException($"The {nameof(id)} is not valid");
+
+            if (currentMonth == 0)
+                throw new ArgumentNullException($"The {nameof(currentMonth)} is not valid");
+
+            if (currentYear == 0)
+                throw new ArgumentNullException($"The {nameof(currentYear)} is not valid");
+
+            var project = await unitOfWork.ProjectRepository.Trackable()
+                .Include(p => p.Categories)
+                    .ThenInclude(c => c.Expenses)
+                .FirstOrDefaultAsync(up => up.Id == id);
+
+            var newExpenses = project.Categories.SelectMany(c => c.CopyBudgetToCurrentMonth(user, currentMonth, currentYear)).ToList();
+
+            await unitOfWork.CommitAsync();
+
+            return newExpenses;
+        }
     }
 }
