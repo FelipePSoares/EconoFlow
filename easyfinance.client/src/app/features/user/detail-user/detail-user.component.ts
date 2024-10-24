@@ -47,6 +47,7 @@ export class DetailUserComponent implements OnInit {
 
   ngOnInit(): void {
     this.reset();
+    this.resetPasswordForm();
   }
 
   reset() {
@@ -64,6 +65,7 @@ export class DetailUserComponent implements OnInit {
   }
 
   resetPasswordForm() {
+    this.passwordFormActive = false;
     this.passwordForm = new FormGroup({
       oldPassword: new FormControl('', [Validators.required]),
       password: new FormControl('', [Validators.required, Validators.pattern(/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,}$/)]),
