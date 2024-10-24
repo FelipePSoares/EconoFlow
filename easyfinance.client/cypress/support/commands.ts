@@ -2,7 +2,7 @@ Cypress.Commands.add('login', (username, password) => {
     cy.session(
         username, 
         () => {
-            cy.intercept('/api/account/').as('getAccount')
+            cy.intercept('GET', '/api/account/').as('getAccount')
             cy.visit('/login')
             cy.get('#username').type(username)
             cy.get('#password').type(`${password}{enter}`, { log: false })
