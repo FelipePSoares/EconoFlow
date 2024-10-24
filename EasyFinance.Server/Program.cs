@@ -12,6 +12,7 @@ using EasyFinance.Server.MiddleWare;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -26,7 +27,6 @@ builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddApplicationServices();
 
 builder.Services.AddTransient<IEmailSender, EmailSender>();
-
 
 // Add services to the container.
 builder.Services.AddControllers(config =>
@@ -86,6 +86,13 @@ builder.Services.Configure<IdentityOptions>(options =>
 builder.Services.AddSendGrid(options =>
     options.ApiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY") ?? "abc"
 );
+
+if (!builder.Environment.IsDevelopment())
+{
+    builder.Services.AddDataProtection()
+        .PersistKeysToDbContext<MyKeysContext>()
+        .ProtectKeysWithCertificate(Environment.GetEnvironmentVariable("EconoFlow_THUMBPRINT"));
+}
 
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
