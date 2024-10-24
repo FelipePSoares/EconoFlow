@@ -20,6 +20,7 @@ using Newtonsoft.Json.Converters;
 using SendGrid.Extensions.DependencyInjection;
 using Serilog;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -90,11 +91,19 @@ builder.Services.AddSendGrid(options =>
 
 if (!builder.Environment.IsDevelopment())
 {
-    var cert = new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data", Environment.GetEnvironmentVariable("EconoFlow_CERT_PATH")), Environment.GetEnvironmentVariable("EconoFlow_CERT_PASSWORD"));
+    var keys = builder.Services.AddDataProtection()
+        .PersistKeysToDbContext<MyKeysContext>();
 
-    builder.Services.AddDataProtection()
-        .PersistKeysToDbContext<MyKeysContext>()
-        .ProtectKeysWithCertificate(cert);
+    if (bool.Parse(Environment.GetEnvironmentVariable("EconoFlow_KEY_ENCRYPT_ACTIVE")))
+    {
+        var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data", Environment.GetEnvironmentVariable("EconoFlow_CERT_PATH"));
+
+        Console.WriteLine($"path: {path}");
+
+        var cert = new X509Certificate2(path, Environment.GetEnvironmentVariable("EconoFlow_CERT_PASSWORD"));
+
+        keys.ProtectKeysWithCertificate(cert);
+    }
 }
 
 builder.Host.UseSerilog((context, configuration) =>
