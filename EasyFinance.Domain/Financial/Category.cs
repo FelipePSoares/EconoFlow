@@ -9,6 +9,13 @@ namespace EasyFinance.Domain.Models.Financial
 {
     public class Category : BaseEntity
     {
+        public static readonly Category FixedExpenses = new Category("Fixed Expenses");
+        public static readonly Category Comfort = new Category("Comfort");
+        public static readonly Category Pleasures = new Category("Your Future");
+        public static readonly Category YourFuture = new Category("Food");
+        public static readonly Category SelfImprovement = new Category("Self-Improvement");
+        public static readonly Category CustosFixos = new Category("Custos Fixos");
+
         private Category() { }
 
         public Category(string name = "default", ICollection<Expense> expenses = default)
@@ -22,6 +29,14 @@ namespace EasyFinance.Domain.Models.Financial
         public ICollection<Expense> Expenses { get; private set; } = new List<Expense>();
         public decimal TotalBudget => this.Expenses.Sum(e => e.Budget);
         public decimal TotalWaste => this.Expenses.Sum(e => e.Amount);
+
+
+
+        // Optional: Method to get all the defined categories
+        public static IEnumerable<Category> GetAll()
+        {
+            return new[] { FixedExpenses, Comfort, Pleasures, YourFuture, SelfImprovement };
+        }
 
         public void SetName(string name)
         {

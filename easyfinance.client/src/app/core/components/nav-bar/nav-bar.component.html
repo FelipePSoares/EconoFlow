@@ -18,10 +18,10 @@
         {{ initials$ | async }}
       </button>
       <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuProfile">
-        <li><h6 class="dropdown-header">{{ firstName$ | async }} {{ lastName$ | async }}</h6></li>
-        <li><a class="dropdown-item" [routerLink]="['/user']">My Profile</a></li>
+        <li><h4 class="dropdown-header" style="margin-bottom: 5px">{{ firstName$ | async }} {{ lastName$ | async }}</h4></li>
+        <li><a class="dropdown-item btn-default" [routerLink]="['/user']">My Profile</a></li>
         <li><hr class="dropdown-divider"></li>
-        <li><a class="dropdown-item" [routerLink]="['/logout']">Sign out</a></li>
+        <li><a class="dropdown-item btn-default" [routerLink]="['/logout']">Sign out</a></li>
       </ul>
     </div>
   </div>

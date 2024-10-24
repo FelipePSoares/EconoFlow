@@ -24,6 +24,13 @@ namespace EasyFinance.Server.Controllers
             return Ok(categories.ToDTO());
         }
 
+        [HttpGet("DefaultCategories")]
+        public async Task<IActionResult> GetDefaultCategories(Guid projectId)
+        {
+            var categories = await categoryService.GetDefaultCategoriesAsync(projectId);
+            return Ok(categories);
+        }
+
         [HttpGet("{categoryId}")]
         public async Task<IActionResult> GetById(Guid categoryId)
         {

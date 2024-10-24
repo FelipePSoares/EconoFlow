@@ -66,6 +66,26 @@ namespace EasyFinance.Application.Features.CategoryService
             .Where(c => !c.Archive)
             .ToList();
 
+        public async Task<ICollection<Category>> GetDefaultCategoriesAsync(Guid projectId)
+        {
+            if (projectId == Guid.Empty)
+                throw new ArgumentNullException(nameof(projectId));
+
+            var project = await unitOfWork.ProjectRepository
+                .NoTrackable()
+                .Include(p => p.Categories)
+                .FirstOrDefaultAsync(p => p.Id == projectId);
+
+            // Extract the category names
+            var categoryNames = project.Categories.Select(c => c.Name).ToList();
+            var defaultCategories = Category.GetAll();
+            var filteredCategories = defaultCategories
+                .Where(dc => !categoryNames.Contains(dc.Name))
+                .ToList();
+
+            return filteredCategories;
+        }
+
         public async Task<ICollection<Category>> GetAsync(Guid projectId, int year)
             => (await this.unitOfWork.ProjectRepository.NoTrackable()
             .Include(p => p.Categories)
