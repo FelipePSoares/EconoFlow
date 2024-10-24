@@ -12,6 +12,7 @@ using EasyFinance.Server.MiddleWare;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -19,6 +20,8 @@ using Newtonsoft.Json.Converters;
 using SendGrid.Extensions.DependencyInjection;
 using Serilog;
 using System.Net;
+using System.Runtime.CompilerServices;
+using System.Security.Cryptography.X509Certificates;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,7 +29,6 @@ builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddApplicationServices();
 
 builder.Services.AddTransient<IEmailSender, EmailSender>();
-
 
 // Add services to the container.
 builder.Services.AddControllers(config =>
@@ -89,6 +91,19 @@ builder.Services.AddSendGrid(options =>
 
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
+
+if (!builder.Environment.IsDevelopment())
+{
+    var keys = builder.Services.AddDataProtection()
+        .PersistKeysToDbContext<MyKeysContext>();
+
+    if (bool.Parse(Environment.GetEnvironmentVariable("EconoFlow_KEY_ENCRYPT_ACTIVE")))
+    {
+        var cert = new X509Certificate2(Environment.GetEnvironmentVariable("EconoFlow_CERT_PATH"), Environment.GetEnvironmentVariable("EconoFlow_CERT_PASSWORD"));
+
+        keys.ProtectKeysWithCertificate(cert);
+    }
+}
 
 var app = builder.Build();
 

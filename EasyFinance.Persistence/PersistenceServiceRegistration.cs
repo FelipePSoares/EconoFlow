@@ -21,6 +21,9 @@ namespace EasyFinance.Persistence
             services.AddDbContext<EasyFinanceDatabaseContext>(
                 options => options.UseSqlServer(connectionString));
 
+            services.AddDbContext<MyKeysContext>(
+                options => options.UseSqlServer(connectionString));
+
             services.AddHealthChecks()
                 .AddSqlServer(connectionString);
 #endif
@@ -36,6 +39,9 @@ namespace EasyFinance.Persistence
             {
                 var dbContext = serviceScope.ServiceProvider.GetRequiredService<EasyFinanceDatabaseContext>();
                 dbContext.Database.Migrate();
+
+                var myKeysDbContext = serviceScope.ServiceProvider.GetRequiredService<MyKeysContext>();
+                myKeysDbContext.Database.Migrate();
             }
 
             return app;
