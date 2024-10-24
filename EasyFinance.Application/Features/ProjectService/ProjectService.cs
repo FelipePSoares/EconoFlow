@@ -7,6 +7,7 @@ using EasyFinance.Domain.Models.AccessControl;
 using EasyFinance.Domain.Models.Financial;
 using EasyFinance.Domain.Models.FinancialProject;
 using EasyFinance.Infrastructure;
+using EasyFinance.Infrastructure.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace EasyFinance.Application.Features.ProjectService
@@ -75,6 +76,29 @@ namespace EasyFinance.Application.Features.ProjectService
 
             unitOfWork.ProjectRepository.InsertOrUpdate(project);
             await unitOfWork.CommitAsync();
+        }
+
+        public async Task<ICollection<Expense>> CopyBudgetFromPreviousMonthAsync(User user, Guid id, DateTime currentDate)
+        {
+            if (id == Guid.Empty)
+                throw new ArgumentNullException($"The {nameof(id)} is not valid");
+
+            if (currentDate == DateTime.MinValue)
+                throw new ArgumentNullException($"The {nameof(currentDate)} is not valid");
+
+            var project = await unitOfWork.ProjectRepository.Trackable()
+                .Include(p => p.Categories)
+                    .ThenInclude(c => c.Expenses)
+                .FirstOrDefaultAsync(up => up.Id == id);
+
+            if (project.Categories.Any(c => c.Expenses.Any(e => e.Date.Month == currentDate.Month && e.Date.Year == currentDate.Year && e.Budget > 0)))
+                throw new ValidationException("General", ValidationMessages.CantImportBudgetBecauseAlreadyExists);
+
+            var newExpenses = project.Categories.SelectMany(c => c.CopyBudgetToCurrentMonth(user, currentDate)).ToList();
+
+            await unitOfWork.CommitAsync();
+
+            return newExpenses;
         }
     }
 }

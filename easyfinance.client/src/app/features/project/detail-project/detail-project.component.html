@@ -5,6 +5,12 @@
       <div class="row justify-content-center">
         <div class="wrap col-lg-8">
           <app-current-date [currentDate]="currentDate" (dateUpdatedEvent)="updateDate($event)"></app-current-date>
+          <button
+            class="btn btn-primary"
+            (click)="copyPreviousBudget()"
+            *ngIf="month.budget === 0">
+            Copy Previous Budget
+          </button>
           <div class="clearfix mt-3">
             <span class="float-start">Budget:</span>
             <span class="float-end" [ngClass]="getClassBasedOnPercentage(getPercentageWaste(month.waste, month.budget))">{{getTextBasedOnPercentage(getPercentageWaste(month.waste, month.budget))}} {{ month.remaining | currency }} left</span>
@@ -18,7 +24,7 @@
             </div>
           </div>
           <div class="clearfix">
-            <span class="float-end">of {{ month.budget | currency }}</span>
+            <span class="float-end budget">of {{ month.budget | currency }}</span>
           </div>
           <hr class="solid" />
           <div class="d-grid">

@@ -32,5 +32,10 @@ namespace EasyFinance.Domain.Models.Financial
 
             this.Budget = budget;
         }
+
+        public Expense CopyBudgetToCurrentMonth(User createdBy)
+        {
+            return new Expense(name: this.Name, date: this.Date.AddMonths(1), createdBy: createdBy, budget: this.Budget);
+        }
     }
 }

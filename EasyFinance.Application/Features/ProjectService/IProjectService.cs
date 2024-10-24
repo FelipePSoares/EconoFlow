@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using EasyFinance.Domain.Models.AccessControl;
+using EasyFinance.Domain.Models.Financial;
 using EasyFinance.Domain.Models.FinancialProject;
 
 namespace EasyFinance.Application.Features.ProjectService
@@ -17,5 +18,7 @@ namespace EasyFinance.Application.Features.ProjectService
         Task<Project> UpdateAsync(Project project);
 
         Task DeleteAsync(Guid id);
+
+        Task<ICollection<Expense>> CopyBudgetFromPreviousMonthAsync(User user, Guid id, DateTime currentDate);
     }
 }

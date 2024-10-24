@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using System.Collections.Frozen;
+using System.Security.Claims;
 using EasyFinance.Application.Features.CategoryService;
 using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Application.Features.ProjectService;
@@ -107,6 +108,17 @@ namespace EasyFinance.Server.Controllers
             await projectService.DeleteAsync(projectId);
 
             return NoContent();
+        }
+
+        [HttpPost("{projectId}/copy-budget-previous-month")]
+        public async Task<IActionResult> CopyFrom(Guid projectId, [FromBody] DateTime currentDate)
+        {
+            var id = this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier);
+            var user = await this.userManager.FindByIdAsync(id.Value);
+
+            var newExpenses = await projectService.CopyBudgetFromPreviousMonthAsync(user, projectId, currentDate);
+
+            return Ok(newExpenses.ToDTO());
         }
     }
 }

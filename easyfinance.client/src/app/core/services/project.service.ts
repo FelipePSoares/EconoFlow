@@ -45,4 +45,11 @@ export class ProjectService {
       responseType: 'json'
     });
   }
+
+  copyBudgetPreviousMonth(id: string, currentDate: Date) {
+    return this.http.post('/api/projects/' + id + '/copy-budget-previous-month/', currentDate, {
+      observe: 'body',
+      responseType: 'json'
+    });
+  }
 }
