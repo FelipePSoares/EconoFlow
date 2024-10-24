@@ -90,7 +90,9 @@ builder.Services.AddSendGrid(options =>
 
 if (!builder.Environment.IsDevelopment())
 {
-    var cert = new X509Certificate2(Environment.GetEnvironmentVariable("ECONOFLOW_CERT_PATH"), Environment.GetEnvironmentVariable("ECONOFLOW_CERT_PASSWORD"));
+    var path = Path.Combine(builder.Environment.ContentRootPath, Environment.GetEnvironmentVariable("ECONOFLOW_CERT_PATH"));
+
+    var cert = new X509Certificate2(path, Environment.GetEnvironmentVariable("ECONOFLOW_CERT_PASSWORD"));
 
     builder.Services.AddDataProtection()
         .PersistKeysToDbContext<MyKeysContext>()
