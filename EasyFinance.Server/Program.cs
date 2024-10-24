@@ -20,6 +20,7 @@ using Newtonsoft.Json.Converters;
 using SendGrid.Extensions.DependencyInjection;
 using Serilog;
 using System.Net;
+using System.Security.Cryptography.X509Certificates;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -89,9 +90,11 @@ builder.Services.AddSendGrid(options =>
 
 if (!builder.Environment.IsDevelopment())
 {
+    var cert = new X509Certificate2("www.econoflow.pt.pfx", "123456");
+
     builder.Services.AddDataProtection()
         .PersistKeysToDbContext<MyKeysContext>()
-        .ProtectKeysWithCertificate(Environment.GetEnvironmentVariable("EconoFlow_THUMBPRINT"));
+        .ProtectKeysWithCertificate(cert);
 }
 
 builder.Host.UseSerilog((context, configuration) =>
