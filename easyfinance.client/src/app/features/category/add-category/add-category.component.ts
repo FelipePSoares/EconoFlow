@@ -1,7 +1,9 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { CategoryService } from '../../../core/services/category.service';
@@ -20,8 +22,10 @@ import { CommonModule } from '@angular/common';
     FormsModule,
     ReactiveFormsModule,
     ReturnButtonComponent,
+    MatButtonModule,
     MatAutocompleteModule,
-    MatInputModule
+    MatInputModule,
+    MatFormFieldModule
   ],
   templateUrl: './add-category.component.html',
   styleUrl: './add-category.component.css'

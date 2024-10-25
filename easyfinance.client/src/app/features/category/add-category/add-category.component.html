@@ -3,49 +3,34 @@
   <div class="row justify-content-md-center">
     <div class="wrap col-lg-8">
       <h2 class="text-center mt-3 mb-3">Create Category</h2>
-
-      <!-- Form -->
       <form [formGroup]="categoryForm" (ngSubmit)="save()">
+
         <!-- Name Input with Autocomplete -->
-        <div class="input justify-content-center">
-          <div class="col-8 mb-2 form-floating">
-            <input
-              type="text"
-              class="form-control"
-              id="name"
-              placeholder="Supermarket"
-              formControlName="name"
-              [class.is-invalid]="name?.invalid && name?.touched"
-              [matAutocomplete]="auto"
-            />
-            <label for="name">Name</label>
+        <mat-form-field appearance="fill" class="w-100">
+          <mat-label>Name</mat-label>
+          <input matInput
+                 id="name"
+                 formControlName="name"
+                 [matAutocomplete]="auto" />
+          @if (name?.invalid && name?.touched){
+          <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error }}</mat-error>
+          }
 
-            <!-- Autocomplete Suggestion -->
-            <mat-autocomplete #auto="matAutocomplete">
-              <mat-option *ngFor="let option of filteredCategories$ | async" [value]="option">
-                {{ option }}
-              </mat-option>
-            </mat-autocomplete>
+          <mat-autocomplete #auto="matAutocomplete">
+            <mat-option *ngFor="let option of filteredCategories$ | async" [value]="option">
+              {{ option }}
+            </mat-option>
+          </mat-autocomplete>
+        </mat-form-field>
 
-            <!-- Error Message for 'name' Field -->
-            <div *ngIf="name?.invalid && name?.touched">
-              <ul>
-                <li *ngFor="let error of getFormFieldErrors('name'); trackBy: trackByFn" class="text-danger">
-                  {{ error }}
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <!-- HTTP Errors (General) -->
+        <!-- General Error Display -->
         <div *ngIf="httpErrors && errors['general']">
           <p class="mb-3 text-danger text-center">{{ errors['general'] }}</p>
         </div>
 
         <!-- Submit Button -->
         <div class="float-end">
-          <button type="submit" class="btn btn-primary" [disabled]="categoryForm.invalid">
+          <button mat-raised-button color="primary" type="submit" [disabled]="categoryForm.invalid">
             Create
           </button>
         </div>

@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExpenseService } from '../../../core/services/expense.service';
 import { ExpenseItemDto } from '../models/expense-item-dto';
@@ -11,13 +11,58 @@ import { compare } from 'fast-json-patch';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { ApiErrorResponse } from '../../../core/models/error';
+import { CommonModule } from '@angular/common';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MomentDateAdapter } from '@angular/material-moment-adapter';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import {
+  MatNativeDateModule,
+  DateAdapter,
+  MAT_DATE_FORMATS,
+  MAT_DATE_LOCALE,
+} from '@angular/material/core';
+
+export const MY_FORMATS = {
+  parse: {
+    dateInput: 'DD/MM/YYYY',
+  },
+  display: {
+    dateInput: 'DD/MM/YYYY',
+    monthYearLabel: 'MMMM YYYY',
+    dateA11yLabel: 'DD/MM/YYYY',
+    monthYearA11yLabel: 'MMMM YYYY',
+  },
+};
 
 @Component({
   selector: 'app-add-expense-item',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, ReturnButtonComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    ReturnButtonComponent,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatIconModule,
+    MatDatepickerModule,
+    MatNativeDateModule
+  ],
   templateUrl: './add-expense-item.component.html',
-  styleUrl: './add-expense-item.component.css'
+  styleUrl: './add-expense-item.component.css',
+  providers: [
+    {
+      provide: DateAdapter,
+      useClass: MomentDateAdapter,
+      deps: [MAT_DATE_LOCALE],
+    },
+
+    { provide: MAT_DATE_FORMATS, useValue: MY_FORMATS },
+  ]
 })
 export class AddExpenseItemComponent implements OnInit {
   private expense!: ExpenseDto;
@@ -42,8 +87,8 @@ export class AddExpenseItemComponent implements OnInit {
 
     this.expenseItemForm = new FormGroup({
       name: new FormControl('', [Validators.required]),
-      date: new FormControl(this.currentDate.getFullYear() + '-' + String(this.currentDate.getMonth() + 1).padStart(2, '0') + '-' + String(this.currentDate.getDate()).padStart(2, '0'), [Validators.required, Validators.pattern('^\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])$')]),
-      amount: new FormControl('0', [Validators.pattern('(\\d+)?(\\,\\d{1,2})?')])
+      date: new FormControl(this.currentDate, [Validators.required]),
+      amount: new FormControl('', [Validators.pattern('(\\d+)?(\\,\\d{1,2})?')])
     });
 
     this.expenseService.getById(this.projectId, this.categoryId, this.expenseId)
@@ -73,7 +118,7 @@ export class AddExpenseItemComponent implements OnInit {
       var newExpenseItem = <ExpenseItemDto>({
         name: name,
         date: date,
-        amount: amount
+        amount: amount === "" ? 0 : amount,
       });
 
       this.expenseService.getById(this.projectId, this.categoryId, this.expenseId)
@@ -113,9 +158,6 @@ export class AddExpenseItemComponent implements OnInit {
               errors.push('This field is required.');
               break;
             case 'pattern':
-              if (fieldName === 'date') {
-                errors.push('Invalid Date format. (yyyy-MM-dd).');
-              }
               if (fieldName === 'amount') {
                 errors.push('Invalid amount format. (0000,00)');
               }
