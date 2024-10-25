@@ -25,7 +25,7 @@ namespace EasyFinance.Application.Features.CategoryService
 
             var project = await unitOfWork.ProjectRepository.Trackable().Include(p => p.Categories).FirstOrDefaultAsync(p => p.Id == projectId);
 
-            var categoryExistent = project.Categories.FirstOrDefault(c => c.Name == category.Name && !c.Archive);
+            var categoryExistent = project.Categories.FirstOrDefault(c => c.Name == category.Name && !c.IsArchived);
             if (categoryExistent != default)
                 return categoryExistent;
 
@@ -55,7 +55,7 @@ namespace EasyFinance.Application.Features.CategoryService
         }
 
         public async Task<ICollection<Category>> GetAllAsync(Guid projectId)
-            => (await this.unitOfWork.ProjectRepository.NoTrackable().Include(p => p.Categories).FirstOrDefaultAsync(p => p.Id == projectId))?.Categories.Where(c => !c.Archive).ToList();
+            => (await this.unitOfWork.ProjectRepository.NoTrackable().Include(p => p.Categories).FirstOrDefaultAsync(p => p.Id == projectId))?.Categories.Where(c => !c.IsArchived).ToList();
 
         public async Task<ICollection<Category>> GetAsync(Guid projectId, DateTime from, DateTime to)
             => (await this.unitOfWork.ProjectRepository.NoTrackable()
@@ -63,7 +63,7 @@ namespace EasyFinance.Application.Features.CategoryService
                 .ThenInclude(c => c.Expenses.Where(e => e.Date >= from && e.Date < to))
             .FirstOrDefaultAsync(p => p.Id == projectId))?
             .Categories
-            .Where(c => !c.Archive)
+            .Where(c => !c.IsArchived)
             .ToList();
 
         public async Task<ICollection<Category>> GetDefaultCategoriesAsync(Guid projectId)
@@ -92,7 +92,7 @@ namespace EasyFinance.Application.Features.CategoryService
                 .ThenInclude(c => c.Expenses.Where(e => e.Date.Year == year))
             .FirstOrDefaultAsync(p => p.Id == projectId))?
             .Categories
-            .Where(c => !c.Archive)
+            .Where(c => !c.IsArchived)
             .ToList();
 
         public async Task<Category> GetByIdAsync(Guid categoryId)

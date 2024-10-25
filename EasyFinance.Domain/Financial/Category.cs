@@ -25,7 +25,7 @@ namespace EasyFinance.Domain.Models.Financial
         }
 
         public string Name { get; private set; } = string.Empty;
-        public bool Archive { get; private set; }
+        public bool IsArchived { get; private set; }
         public ICollection<Expense> Expenses { get; private set; } = new List<Expense>();
         public decimal TotalBudget => this.Expenses.Sum(e => e.Budget);
         public decimal TotalWaste => this.Expenses.Sum(e => e.Amount);
@@ -64,7 +64,7 @@ namespace EasyFinance.Domain.Models.Financial
 
         public void SetArchive()
         {
-            this.Archive = true;
+            this.IsArchived = true;
         }
 
         public ICollection<Expense> CopyBudgetToCurrentMonth(User user, DateTime currentDate)
