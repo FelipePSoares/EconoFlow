@@ -87,7 +87,7 @@ namespace EasyFinance.Application.Features.ProjectService
                 throw new ArgumentNullException($"The {nameof(currentDate)} is not valid");
 
             var project = await unitOfWork.ProjectRepository.Trackable()
-                .Include(p => p.Categories)
+                .Include(p => p.Categories.Where(c => !c.IsArchived))
                     .ThenInclude(c => c.Expenses)
                 .FirstOrDefaultAsync(up => up.Id == id);
 
