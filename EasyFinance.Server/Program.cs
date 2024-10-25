@@ -89,6 +89,9 @@ builder.Services.AddSendGrid(options =>
     options.ApiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY") ?? "abc"
 );
 
+builder.Host.UseSerilog((context, configuration) =>
+    configuration.ReadFrom.Configuration(context.Configuration));
+
 if (!builder.Environment.IsDevelopment())
 {
     var keys = builder.Services.AddDataProtection()
@@ -96,18 +99,11 @@ if (!builder.Environment.IsDevelopment())
 
     if (bool.Parse(Environment.GetEnvironmentVariable("EconoFlow_KEY_ENCRYPT_ACTIVE")))
     {
-        var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data", Environment.GetEnvironmentVariable("EconoFlow_CERT_PATH"));
-
-        Console.WriteLine($"path: {path}");
-
-        var cert = new X509Certificate2(path, Environment.GetEnvironmentVariable("EconoFlow_CERT_PASSWORD"));
+        var cert = new X509Certificate2(Environment.GetEnvironmentVariable("EconoFlow_CERT_PATH"), Environment.GetEnvironmentVariable("EconoFlow_CERT_PASSWORD"));
 
         keys.ProtectKeysWithCertificate(cert);
     }
 }
-
-builder.Host.UseSerilog((context, configuration) =>
-    configuration.ReadFrom.Configuration(context.Configuration));
 
 var app = builder.Build();
 
