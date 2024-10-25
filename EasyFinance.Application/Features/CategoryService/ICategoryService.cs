@@ -14,5 +14,6 @@ namespace EasyFinance.Application.Features.CategoryService
         Task<Category> CreateAsync(Guid projectId, Category category);
         Task<Category> UpdateAsync(Category category);
         Task DeleteAsync(Guid categoryId);
+        Task<ICollection<Category>> GetDefaultCategoriesAsync(Guid projectId);
     }
 }
