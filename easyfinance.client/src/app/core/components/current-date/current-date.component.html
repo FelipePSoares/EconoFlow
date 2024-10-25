@@ -1,5 +1,9 @@
 <div class="current-date">
+  <input matInput [matDatepicker]="picker" (dateChange)="setMonthAndYear($event.value, picker)" style="visibility: hidden; width: 0;">
   <fa-icon [icon]="faArrowLeft" class="btn" id="previous" (click)="previous()"></fa-icon>
   <h3>{{ currentDate | date: 'MMM yyyy'}}</h3>
+  <mat-datepicker-toggle matIconSuffix (click)="picker.open()" [for]="picker"></mat-datepicker-toggle>
   <fa-icon [icon]="faArrowRight" class="btn" id="next" (click)="next()"></fa-icon>
+
 </div>
+<mat-datepicker #picker (monthSelected)="setMonthAndYear($event, picker)" startView="year"></mat-datepicker>
