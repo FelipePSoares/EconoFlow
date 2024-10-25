@@ -24,7 +24,7 @@ import { CommonModule } from '@angular/common';
     MatInputModule
   ],
   templateUrl: './add-category.component.html',
-  styleUrls: ['./add-category.component.css']
+  styleUrl: './add-category.component.css'
 })
 export class AddCategoryComponent implements OnInit {
   private currentDate!: Date;
