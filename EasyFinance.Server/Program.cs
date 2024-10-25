@@ -99,7 +99,7 @@ if (!builder.Environment.IsDevelopment())
 
     if (bool.Parse(Environment.GetEnvironmentVariable("EconoFlow_KEY_ENCRYPT_ACTIVE")))
     {
-        var cert = new X509Certificate2(Environment.GetEnvironmentVariable("EconoFlow_CERT_PATH"), Environment.GetEnvironmentVariable("EconoFlow_CERT_PASSWORD"), X509KeyStorageFlags.MachineKeySet);
+        var cert = new X509Certificate2(Environment.GetEnvironmentVariable("EconoFlow_CERT_PATH"), Environment.GetEnvironmentVariable("EconoFlow_CERT_PASSWORD"));
 
         keys.ProtectKeysWithCertificate(cert);
     }
