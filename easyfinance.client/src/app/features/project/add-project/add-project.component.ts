@@ -2,17 +2,32 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ProjectService } from '../../../core/services/project.service';
 import { ProjectType, ProjectType2LabelMapping } from 'src/app/core/enums/project-type';
-import { comboRequiredValidator } from 'src/app/core/utils/custom-validators/combo-required-validator';
 import { ProjectDto } from '../models/project-dto';
 import { Router } from '@angular/router';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-add-project',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, ReturnButtonComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    ReturnButtonComponent,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatInputModule,
+    MatButtonModule,
+    MatIconModule
+  ],
   templateUrl: './add-project.component.html',
   styleUrl: './add-project.component.css'
 })
@@ -22,13 +37,14 @@ export class AddProjectComponent implements OnInit {
   projectForm!: FormGroup;
   httpErrors = false;
   errors!: { [key: string]: string };
+  projectTypeSelected!: ProjectType;
   
   constructor(private projectService: ProjectService, private router: Router, private errorMessageService: ErrorMessageService) { }
 
   ngOnInit(): void {
     this.projectForm = new FormGroup({
       name: new FormControl('', [Validators.required]),
-      type: new FormControl('Choose...', [comboRequiredValidator])
+      type: new FormControl('', [Validators.required])
     });
   }
 

@@ -4,59 +4,47 @@
     <div class="wrap col-lg-8">
       <h2 class="text-center mt-3 mb-3">Create Expense Item</h2>
       <form [formGroup]="expenseItemForm" (ngSubmit)="save()">
-        <div class="input justify-content-center">
-          <div class="col-8 mb-2 form-floating">
-            <input type="text" class="form-control" id="name" placeholder="Supermarket" formControlName="name" [class.is-invalid]="name?.invalid && name?.touched">
-            <label for="name">Name</label>
-            @if(name?.invalid && name?.touched){
-            <div>
-              <ul>
-                @for (error of getFormFieldErrors('name'); track $index) {
-                <li class="text-danger" [innerHtml]="error"></li>
-                }
-              </ul>
-            </div>
-            }
-          </div>
+
+        <!-- Name Field -->
+        <mat-form-field appearance="fill" class="w-100">
+          <mat-label>Name</mat-label>
+          <input matInput id="name" placeholder="Supermarket" formControlName="name">
+          @if (name?.invalid && name?.touched){
+          <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error }}</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Date Field with Date Picker -->
+        <mat-form-field appearance="fill" class="w-100">
+          <mat-label>Date</mat-label>
+          <input matInput [matDatepicker]="picker" formControlName="date">
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+          @if (date?.invalid && date?.touched){
+          <mat-error *ngFor="let error of getFormFieldErrors('date')">{{ error }}</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Amount Field -->
+        <mat-form-field appearance="fill" class="w-100">
+          <mat-label>Amount</mat-label>
+          <input matInput id="amount" formControlName="amount">
+          @if (amount?.invalid && amount?.touched){
+          <mat-error *ngFor="let error of getFormFieldErrors('amount')">{{ error }}</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- General Error Display -->
+        <div *ngIf="httpErrors && errors['general']">
+          <p class="mb-3 text-danger text-center">{{ errors['general'] }}</p>
         </div>
-        <div class="input justify-content-center">
-          <div class="col-8 mb-2 form-floating">
-            <input type="text" class="form-control" id="date" formControlName="date" [class.is-invalid]="date?.invalid && date?.touched">
-            <label for="date">Date</label>
-            @if(date?.invalid && date?.touched){
-            <div>
-              <ul>
-                @for (error of getFormFieldErrors('date'); track $index) {
-                <li class="text-danger" [innerHtml]="error"></li>
-                }
-              </ul>
-            </div>
-            }
-          </div>
-        </div>
-        <div class="input justify-content-center">
-          <div class="col-8 mb-2 form-floating">
-            <input type="text" class="form-control" id="amount" formControlName="amount" [class.is-invalid]="amount?.invalid && amount?.touched">
-            <label for="amount">Amount</label>
-            @if(amount?.invalid && amount?.touched){
-            <div>
-              <ul>
-                @for (error of getFormFieldErrors('amount'); track $index) {
-                <li class="text-danger" [innerHtml]="error"></li>
-                }
-              </ul>
-            </div>
-            }
-          </div>
-        </div>
-        @if (httpErrors && errors['general']) {
-        <div>
-          <p class="mb-3 text-danger text-center">{{errors['general']}}</p>
-        </div>
-        }
+
+        <!-- Submit Button -->
         <div class="float-end">
-          <button type="submit" class="btn btn-primary" [disabled]="expenseItemForm.invalid">Create</button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="expenseItemForm.invalid">
+            Create
+          </button>
         </div>
-    </form>
+      </form>
   </div>
 </div>

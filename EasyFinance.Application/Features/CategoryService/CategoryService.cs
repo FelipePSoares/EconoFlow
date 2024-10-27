@@ -73,7 +73,7 @@ namespace EasyFinance.Application.Features.CategoryService
 
             var project = await unitOfWork.ProjectRepository
                 .NoTrackable()
-                .Include(p => p.Categories)
+                .Include(p => p.Categories.Where(c => !c.IsArchived))
                 .FirstOrDefaultAsync(p => p.Id == projectId);
 
             // Extract the category names
