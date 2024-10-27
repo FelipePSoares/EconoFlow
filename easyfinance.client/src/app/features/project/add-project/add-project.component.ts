@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ProjectService } from '../../../core/services/project.service';
 import { ProjectType, ProjectType2LabelMapping } from 'src/app/core/enums/project-type';
-import { comboRequiredValidator } from 'src/app/core/utils/custom-validators/combo-required-validator';
 import { ProjectDto } from '../models/project-dto';
 import { Router } from '@angular/router';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
