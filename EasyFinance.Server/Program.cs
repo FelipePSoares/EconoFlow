@@ -98,11 +98,7 @@ if (!builder.Environment.IsDevelopment())
         .PersistKeysToDbContext<MyKeysContext>();
 
     if (bool.Parse(Environment.GetEnvironmentVariable("EconoFlow_KEY_ENCRYPT_ACTIVE")))
-    {
-        var cert = new X509Certificate2(Environment.GetEnvironmentVariable("EconoFlow_CERT_PATH"), Environment.GetEnvironmentVariable("EconoFlow_CERT_PASSWORD"));
-
-        keys.ProtectKeysWithCertificate(cert);
-    }
+        keys.ProtectKeysWithCertificate(Environment.GetEnvironmentVariable("EconoFlow_CERT_THUMBPRINT"));
 }
 
 var app = builder.Build();
@@ -134,10 +130,10 @@ if (app.Environment.IsDevelopment())
     };
     userManager.CreateAsync(user, "Passw0rd!").GetAwaiter().GetResult();
 
-    var income = new Income("Salário", DateTime.Now, 3000, user);
+    var income = new Income("Salï¿½rio", DateTime.Now, 3000, user);
     unitOfWork.IncomeRepository.InsertOrUpdate(income);
 
-    var income2 = new Income("Salário", DateTime.Now.AddMonths(-1), 3000, user);
+    var income2 = new Income("Salï¿½rio", DateTime.Now.AddMonths(-1), 3000, user);
     unitOfWork.IncomeRepository.InsertOrUpdate(income2);
 
     var expense = new Expense("Aluguel", DateTime.Now, 700, user, budget: 700);
@@ -155,7 +151,7 @@ if (app.Environment.IsDevelopment())
     category.AddExpense(expense2);
     unitOfWork.CategoryRepository.InsertOrUpdate(category);
 
-    var project = new Project(name: "Família", type: ProjectType.Personal);
+    var project = new Project(name: "Famï¿½lia", type: ProjectType.Personal);
     project.AddIncome(income);
     project.AddIncome(income2);
     project.AddCategory(category);
