@@ -7,6 +7,7 @@ namespace EasyFinance.Application.Contracts.Persistence
     {
         IQueryable<T> Trackable();
         IQueryable<T> NoTrackable();
+        T Insert(T entity);
         T InsertOrUpdate(T entity);
         T Delete(T entity);
     }

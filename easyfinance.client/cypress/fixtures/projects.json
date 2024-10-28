@@ -1,0 +1,11 @@
+{
+    "testPersonalProject": {
+        "name": "Test Personal Project",
+        "type": "Personal"
+    },
+    "defaultProject":{
+        "id": "bf060bc8-48bf-4f5b-3761-08dc54ba19f4",
+        "name": "Family",
+        "type": "Personal"
+    }
+}

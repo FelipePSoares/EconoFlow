@@ -74,7 +74,8 @@ export class AddExpenseComponent implements OnInit {
   constructor(private expenseService: ExpenseService, private router: Router, private route: ActivatedRoute, private errorMessageService: ErrorMessageService) { }
 
   ngOnInit(): void {
-    this.currentDate = new Date(this.route.snapshot.paramMap.get('currentDate')!);
+    var date = this.route.snapshot.paramMap.get('currentDate');
+    this.currentDate = date ? new Date(date) : new Date();
 
     this.expenseForm = new FormGroup({
       name: new FormControl('', [Validators.required]),

@@ -17,6 +17,8 @@ namespace EasyFinance.Persistence.Repositories
 
         public IQueryable<T> NoTrackable() => this.dbSet.AsNoTracking();
 
+        public T Insert(T entity) => this.dbSet.Add(entity).Entity;
+
         public T InsertOrUpdate(T entity) => this.dbSet.Update(entity).Entity;
 
         public T Delete(T entity) => this.dbSet.Remove(entity).Entity;

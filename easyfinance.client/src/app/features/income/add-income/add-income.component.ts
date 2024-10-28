@@ -71,7 +71,8 @@ export class AddIncomeComponent implements OnInit {
   constructor(private incomeService: IncomeService, private router: Router, private route: ActivatedRoute, private errorMessageService: ErrorMessageService) { }
 
   ngOnInit(): void {
-    this.currentDate = new Date(this.route.snapshot.paramMap.get('currentDate')!);
+    var date = this.route.snapshot.paramMap.get('currentDate');
+    this.currentDate = date ? new Date(date) : new Date();
 
     this.incomeForm = new FormGroup({
       name: new FormControl('', [Validators.required]),

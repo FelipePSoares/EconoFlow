@@ -1,0 +1,11 @@
+{
+    "testWageIncome": {
+        "name": "Wage",
+        "amount": 1200
+    },
+    "defaultIncome":{
+        "id": "0bb277f9-a858-4306-148f-08dcf739f7a1",
+        "name": "Investiments",
+        "amount": 3000
+    }
+}
