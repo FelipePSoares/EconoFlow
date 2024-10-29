@@ -1,0 +1,12 @@
+{
+    "testSomeExpense": {
+        "name": "Some",
+        "budget": 150,
+        "amount": 50
+    },
+    "defaultExpense":{
+        "id": "75436cec-70f6-420f-ee8a-08dce6424079",
+        "name": "Groceries",
+        "budget": 450
+    }
+}

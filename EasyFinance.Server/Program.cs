@@ -130,32 +130,37 @@ if (app.Environment.IsDevelopment())
     };
     userManager.CreateAsync(user, "Passw0rd!").GetAwaiter().GetResult();
 
-    var income = new Income("Sal�rio", DateTime.Now, 3000, user);
-    unitOfWork.IncomeRepository.InsertOrUpdate(income);
+    var income = new Income("Investiments", DateTime.Now, 3000, user);
+    income.SetId(new Guid("0bb277f9-a858-4306-148f-08dcf739f7a1"));
+    unitOfWork.IncomeRepository.Insert(income);
 
-    var income2 = new Income("Sal�rio", DateTime.Now.AddMonths(-1), 3000, user);
+    var income2 = new Income("Investiments", DateTime.Now.AddMonths(-1), 3000, user);
     unitOfWork.IncomeRepository.InsertOrUpdate(income2);
 
-    var expense = new Expense("Aluguel", DateTime.Now, 700, user, budget: 700);
+    var expense = new Expense("Rent", DateTime.Now, 700, user, budget: 700);
     unitOfWork.ExpenseRepository.InsertOrUpdate(expense);
 
-    var expense2 = new Expense("Mercado", DateTime.Now, 0, user, budget: 450);
+    var expense2 = new Expense("Groceries", DateTime.Now, 0, user, budget: 450);
     var expenseItem = new ExpenseItem("Pingo Doce", DateTime.Now, 100, user);
+    expenseItem.SetId(new Guid("16ddf6c1-6b33-4563-dac4-08dcf73a4157"));
     var expenseItem2 = new ExpenseItem("Continente", DateTime.Now, 150, user);
+    expense2.SetId(new Guid("75436cec-70f6-420f-ee8a-08dce6424079"));
     expense2.AddItem(expenseItem);
     expense2.AddItem(expenseItem2);
-    unitOfWork.ExpenseRepository.InsertOrUpdate(expense2);
+    unitOfWork.ExpenseRepository.Insert(expense2);
 
-    var category = new Category("Custos Fixos");
+    var category = new Category("Fixed Costs");
+    category.SetId(new Guid("ac795272-1ee2-456c-1fa2-08dcbc8250c1"));
     category.AddExpense(expense);
     category.AddExpense(expense2);
-    unitOfWork.CategoryRepository.InsertOrUpdate(category);
+    unitOfWork.CategoryRepository.Insert(category);
 
-    var project = new Project(name: "Fam�lia", type: ProjectType.Personal);
+    var project = new Project(name: "Family", type: ProjectType.Personal);
+    project.SetId(new Guid("bf060bc8-48bf-4f5b-3761-08dc54ba19f4"));
     project.AddIncome(income);
     project.AddIncome(income2);
     project.AddCategory(category);
-    unitOfWork.ProjectRepository.InsertOrUpdate(project);
+    unitOfWork.ProjectRepository.Insert(project);
 
     var userProject = new UserProject(user, project, Role.Admin);
     unitOfWork.UserProjectRepository.InsertOrUpdate(userProject);

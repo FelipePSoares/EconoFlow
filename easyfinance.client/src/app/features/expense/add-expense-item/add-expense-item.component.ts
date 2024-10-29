@@ -83,7 +83,8 @@ export class AddExpenseItemComponent implements OnInit {
   constructor(private expenseService: ExpenseService, private router: Router, private route: ActivatedRoute, private errorMessageService: ErrorMessageService) { }
 
   ngOnInit(): void {
-    this.currentDate = new Date(this.route.snapshot.paramMap.get('currentDate')!);
+    var date = this.route.snapshot.paramMap.get('currentDate');
+    this.currentDate = date ? new Date(date) : new Date();
 
     this.expenseItemForm = new FormGroup({
       name: new FormControl('', [Validators.required]),
@@ -121,28 +122,22 @@ export class AddExpenseItemComponent implements OnInit {
         amount: amount === "" ? 0 : amount,
       });
 
-      this.expenseService.getById(this.projectId, this.categoryId, this.expenseId)
-        .pipe(map(expense => mapper.map(expense, Expense, ExpenseDto)))
-        .subscribe(
-          {
-            next: res => {
-              res.items.push(newExpenseItem);
+      let newExpense = structuredClone(this.expense)
+      newExpense.items.push(newExpenseItem);
 
-              var patch = compare(this.expense, res);
+      var patch = compare(this.expense, newExpense);
 
-              this.expenseService.update(this.projectId, this.categoryId, this.expenseId, patch).subscribe({
-                next: response => {
-                  this.router.navigate(['projects', this.projectId, 'categories', this.categoryId, 'expenses', this.expenseId, { currentDate: date }]);
-                },
-                error: (response: ApiErrorResponse) => {
-                  this.httpErrors = true;
-                  this.errors = response.errors;
+      this.expenseService.update(this.projectId, this.categoryId, this.expenseId, patch).subscribe({
+        next: response => {
+          this.router.navigate(['projects', this.projectId, 'categories', this.categoryId, 'expenses', this.expenseId, { currentDate: date }]);
+        },
+        error: (response: ApiErrorResponse) => {
+          this.httpErrors = true;
+          this.errors = response.errors;
 
-                  this.errorMessageService.setFormErrors(this.expenseItemForm, this.errors);
-                }
-              });
-            }
-          });
+          this.errorMessageService.setFormErrors(this.expenseItemForm, this.errors);
+        }
+      });
     }
   }
 

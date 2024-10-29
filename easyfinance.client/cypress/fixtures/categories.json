@@ -1,0 +1,9 @@
+{
+    "testGroceriesCategory": {
+        "name": "Groceries"
+    },
+    "defaultCategory":{
+        "id": "ac795272-1ee2-456c-1fa2-08dcbc8250c1",
+        "name": "Fixed Costs"
+    }
+}
