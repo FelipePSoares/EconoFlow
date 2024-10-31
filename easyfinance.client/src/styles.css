@@ -1,3 +1,6 @@
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
 .wrap {
   background: #fff;
   border-radius: 10px;
@@ -15,9 +18,20 @@
   display: flex;
 }
 
-.btn-default:hover {
-  background-color: #f3f3f3 !important;
+.mat-mdc-snack-bar-container.success-snackbar {
+  --mdc-snackbar-container-color: #2ecc71;
+  --mat-mdc-snack-bar-button-color: #fff;
+  --mdc-snackbar-supporting-text-color: #fff;
 }
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+.mat-mdc-snack-bar-container.error-snackbar {
+  --mdc-snackbar-container-color: #e74c3c;
+  --mat-mdc-snack-bar-button-color: #fff;
+  --mdc-snackbar-supporting-text-color: #fff;
+}
+
+.mat-mdc-snack-bar-container.info-snackbar {
+  --mdc-snackbar-container-color: #3498db;
+  --mat-mdc-snack-bar-button-color: #fff;
+  --mdc-snackbar-supporting-text-color: #fff;
+}
