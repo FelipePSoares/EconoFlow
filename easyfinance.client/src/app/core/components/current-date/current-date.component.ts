@@ -57,7 +57,7 @@ export class CurrentDateComponent {
 
   changeDate(value: number) {
     var newDate = new Date(this.currentDate);
-    newDate.setMonth(this.currentDate.getMonth() + value);
+    newDate.setMonth(this.currentDate.getMonth() + value, 1);
     this.currentDate = newDate;
     this.dateUpdatedEvent.emit(this.currentDate);
   }

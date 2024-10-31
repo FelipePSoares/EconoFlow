@@ -51,8 +51,8 @@ namespace EasyFinance.Server.Mappers
             if (expenseItem != null)
             {
                 expenseItem.SetName(expenseItemDTO.Name);
-                expenseItem.SetDate(expenseItemDTO.Date);
                 expenseItem.SetAmount(expenseItemDTO.Amount);
+                expenseItem.SetDate(expenseItemDTO.Date);
                 expenseItem.SetItems(expenseItemDTO.Items.FromDTO(expenseItem.Items.ToList()));
                 return expenseItem;
             }
