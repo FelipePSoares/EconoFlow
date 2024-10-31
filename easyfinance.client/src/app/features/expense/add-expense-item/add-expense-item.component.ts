@@ -24,6 +24,7 @@ import {
   MAT_DATE_FORMATS,
   MAT_DATE_LOCALE,
 } from '@angular/material/core';
+import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.component';
 
 export const MY_FORMATS = {
   parse: {
@@ -80,7 +81,13 @@ export class AddExpenseItemComponent implements OnInit {
   @Input({ required: true })
   expenseId!: string;
 
-  constructor(private expenseService: ExpenseService, private router: Router, private route: ActivatedRoute, private errorMessageService: ErrorMessageService) { }
+  constructor(
+    private expenseService: ExpenseService,
+    private router: Router,
+    private route: ActivatedRoute,
+    private errorMessageService: ErrorMessageService,
+    private snackBar: SnackbarComponent,
+  ) { }
 
   ngOnInit(): void {
     var date = this.route.snapshot.paramMap.get('currentDate');
@@ -129,6 +136,7 @@ export class AddExpenseItemComponent implements OnInit {
 
       this.expenseService.update(this.projectId, this.categoryId, this.expenseId, patch).subscribe({
         next: response => {
+          this.snackBar.openSuccessSnackbar('Created successfully!');
           this.router.navigate(['projects', this.projectId, 'categories', this.categoryId, 'expenses', this.expenseId, { currentDate: date }]);
         },
         error: (response: ApiErrorResponse) => {
