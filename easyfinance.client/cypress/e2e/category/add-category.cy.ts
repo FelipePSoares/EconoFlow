@@ -11,23 +11,26 @@ describe('EconoFlow - category add Tests', () => {
       cy.fixture('projects').then((projects) => {
         var project = projects.defaultProject;
         cy.fixture('categories').then((categories) => {
-            var category = categories.testGroceriesCategory;
+          var category = categories.testGroceriesCategory;
 
-            cy.visit('/projects/' + project.id + '/add-category')
-            
-            cy.get('#name').type(category.name)
-            
-            cy.get('button').contains('Create').click();
+          cy.visit('/projects/' + project.id + '/add-category')
 
-            cy.wait<CategoryReq, CategoryRes>('@postCategories').then(({ request, response }) => {
-                expect(response?.statusCode).to.equal(201)
+          cy.get('#name').type(category.name)
 
-                const incomeCreated = response?.body
-                cy.wait<CategoryReq, CategoryRes[]>('@getCategories').then(({ request, response }) => {
-                    const exists = response?.body.some(item => item.id == incomeCreated?.id)
-                    expect(exists).to.be.true
-                })
+          cy.get('button').contains('Create').click();
+
+          cy.wait<CategoryReq, CategoryRes>('@postCategories').then(({ request, response }) => {
+            expect(response?.statusCode).to.equal(201)
+
+            const incomeCreated = response?.body
+
+            cy.get("mat-snack-bar-container").should("be.visible").contains('Created successfully!')
+
+            cy.wait<CategoryReq, CategoryRes[]>('@getCategories').then(({ request, response }) => {
+              const exists = response?.body.some(item => item.id == incomeCreated?.id)
+              expect(exists).to.be.true
             })
+          })
         })
       })
     })
