@@ -1,5 +1,5 @@
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { Component, Input, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, map } from 'rxjs';
@@ -31,7 +31,7 @@ import { CurrentDateComponent } from '../../../core/components/current-date/curr
   templateUrl: './list-categories.component.html',
   styleUrl: './list-categories.component.css'
 })
-export class ListCategoriesComponent {
+export class ListCategoriesComponent implements OnInit {
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
   faPenToSquare = faPenToSquare;
   faBoxArchive = faBoxArchive;
@@ -48,22 +48,21 @@ export class ListCategoriesComponent {
   @Input({ required: true })
   projectId!: string;
 
-  get currentDate(): Date {
-    return this._currentDate;
+  constructor(public categoryService: CategoryService, private router: Router) {
   }
-  @Input({ required: true })
-  set currentDate(currentDate: Date) {
-    this._currentDate = new Date(currentDate);
-    this.categoryService.get(this.projectId, this._currentDate)
+
+  ngOnInit(): void {
+    this.edit(new CategoryDto());
+    this.fillData(CurrentDateComponent.currentDate);
+  }
+
+  fillData(date: Date) {
+    this.categoryService.get(this.projectId, date)
       .pipe(map(categories => mapper.mapArray(categories, Category, CategoryDto)))
       .subscribe(
         {
           next: res => { this.categories.next(res); }
         });
-  }
-
-  constructor(public categoryService: CategoryService, private router: Router) {
-    this.edit(new CategoryDto());
   }
 
   get id() {
@@ -74,7 +73,7 @@ export class ListCategoriesComponent {
   }
 
   select(id: string): void {
-    this.router.navigate(['/projects', this.projectId, 'categories', id, 'expenses', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
+    this.router.navigate(['/projects', this.projectId, 'categories', id, 'expenses']);
   }
 
   save(): void {
@@ -91,7 +90,6 @@ export class ListCategoriesComponent {
 
       this.categoryService.update(this.projectId, id, patch).subscribe({
         next: response => {
-          this.editingCategory.name = response.name;
           this.editingCategory = new CategoryDto();
         },
         error: error => {
@@ -103,7 +101,7 @@ export class ListCategoriesComponent {
   }
 
   add() {
-      this.router.navigate(['projects', this.projectId, 'add-category', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
+    this.router.navigate(['projects', this.projectId, 'add-category']);
   }
 
   edit(category: CategoryDto): void {
@@ -144,11 +142,11 @@ export class ListCategoriesComponent {
   }
 
   updateDate(newDate: Date) {
-    this.currentDate = newDate;
+    this.fillData(newDate);
   }
 
   previous() {
-    this.router.navigate(['/projects', this.projectId, { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
+    this.router.navigate(['/projects', this.projectId]);
   }
 
   getPercentageWaste(waste: number, budget: number): number {

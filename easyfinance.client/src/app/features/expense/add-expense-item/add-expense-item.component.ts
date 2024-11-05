@@ -18,25 +18,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MomentDateAdapter } from '@angular/material-moment-adapter';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import {
-  MatNativeDateModule,
-  DateAdapter,
-  MAT_DATE_FORMATS,
-  MAT_DATE_LOCALE,
-} from '@angular/material/core';
 import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.component';
-
-export const MY_FORMATS = {
-  parse: {
-    dateInput: 'DD/MM/YYYY',
-  },
-  display: {
-    dateInput: 'DD/MM/YYYY',
-    monthYearLabel: 'MMMM YYYY',
-    dateA11yLabel: 'DD/MM/YYYY',
-    monthYearA11yLabel: 'MMMM YYYY',
-  },
-};
+import { MatNativeDateModule } from '@angular/material/core';
+import { todayUTC } from '../../../core/utils/date/date';
+import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 
 @Component({
   selector: 'app-add-expense-item',
@@ -54,16 +39,7 @@ export const MY_FORMATS = {
     MatNativeDateModule
   ],
   templateUrl: './add-expense-item.component.html',
-  styleUrl: './add-expense-item.component.css',
-  providers: [
-    {
-      provide: DateAdapter,
-      useClass: MomentDateAdapter,
-      deps: [MAT_DATE_LOCALE],
-    },
-
-    { provide: MAT_DATE_FORMATS, useValue: MY_FORMATS },
-  ]
+  styleUrl: './add-expense-item.component.css'
 })
 export class AddExpenseItemComponent implements OnInit {
   private expense!: ExpenseDto;
@@ -90,8 +66,10 @@ export class AddExpenseItemComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    var date = this.route.snapshot.paramMap.get('currentDate');
-    this.currentDate = date ? new Date(date) : new Date();
+    this.currentDate = todayUTC();
+    if (CurrentDateComponent.currentDate.getFullYear() !== this.currentDate.getFullYear() || CurrentDateComponent.currentDate.getMonth() !== this.currentDate.getMonth()) {
+      this.currentDate = CurrentDateComponent.currentDate;
+    }
 
     this.expenseItemForm = new FormGroup({
       name: new FormControl('', [Validators.required]),
@@ -137,7 +115,7 @@ export class AddExpenseItemComponent implements OnInit {
       this.expenseService.update(this.projectId, this.categoryId, this.expenseId, patch).subscribe({
         next: response => {
           this.snackBar.openSuccessSnackbar('Created successfully!');
-          this.router.navigate(['projects', this.projectId, 'categories', this.categoryId, 'expenses', this.expenseId, { currentDate: date }]);
+          this.previous();
         },
         error: (response: ApiErrorResponse) => {
           this.httpErrors = true;
@@ -176,6 +154,6 @@ export class AddExpenseItemComponent implements OnInit {
   }
 
   previous() {
-    this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, 'expenses', this.expenseId, { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
+    this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, 'expenses', this.expenseId]);
   }
 }

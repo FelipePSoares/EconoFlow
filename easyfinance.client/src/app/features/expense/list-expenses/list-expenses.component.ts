@@ -16,6 +16,7 @@ import { CurrentDateComponent } from '../../../core/components/current-date/curr
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPenToSquare, faTrash, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
+import { dateUTC } from '../../../core/utils/date/date';
 
 @Component({
   selector: 'app-list-expenses',
@@ -33,12 +34,12 @@ import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/
   templateUrl: './list-expenses.component.html',
   styleUrl: './list-expenses.component.css'
 })
-export class ListExpensesComponent {
+export class ListExpensesComponent implements OnInit {
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
   faPenToSquare = faPenToSquare;
   faFloppyDisk = faFloppyDisk;
   faTrash = faTrash;
-  private _currentDate!: Date;
+
   private expenses: BehaviorSubject<ExpenseDto[]> = new BehaviorSubject<ExpenseDto[]>([new ExpenseDto()]);
   expenses$: Observable<ExpenseDto[]> = this.expenses.asObservable();
   expenseForm!: FormGroup;
@@ -53,22 +54,21 @@ export class ListExpensesComponent {
   @Input({ required: true })
   categoryId!: string;
 
-  get currentDate(): Date {
-    return this._currentDate;
+  constructor(public expenseService: ExpenseService, private router: Router) {
   }
-  @Input({ required: true })
-  set currentDate(currentDate: Date) {
-    this._currentDate = new Date(currentDate);
-    this.expenseService.get(this.projectId, this.categoryId, this._currentDate)
+
+  ngOnInit(): void {
+    this.edit(new ExpenseDto());
+    this.fillData(CurrentDateComponent.currentDate);
+  }
+
+  fillData(date: Date) {
+    this.expenseService.get(this.projectId, this.categoryId, date)
       .pipe(map(expenses => mapper.mapArray(expenses, Expense, ExpenseDto)))
       .subscribe(
         {
           next: res => { this.expenses.next(res); }
         });
-  }
-
-  constructor(public expenseService: ExpenseService, private router: Router) {
-    this.edit(new ExpenseDto());
   }
 
   get id() {
@@ -88,7 +88,7 @@ export class ListExpensesComponent {
   }
 
   select(id: string): void {
-    this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, 'expenses', id, { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
+    this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, 'expenses', id, { currentDate: CurrentDateComponent.currentDate.toISOString().substring(0, 10) }]);
   }
 
   save(): void {
@@ -102,7 +102,7 @@ export class ListExpensesComponent {
       var newExpense = <ExpenseDto>({
         id: id,
         name: name,
-        date: new Date(date),
+        date: dateUTC(date),
         amount: amount,
         budget: budget,
         items: this.editingExpense.items
@@ -113,7 +113,6 @@ export class ListExpensesComponent {
       this.expenseService.update(this.projectId, this.categoryId, id, patch).subscribe({
         next: response => {
           this.editingExpense = new ExpenseDto();
-          this.currentDate = new Date(response.date);
         },
         error: error => {
           this.httpErrors = true;
@@ -125,7 +124,7 @@ export class ListExpensesComponent {
 
   edit(expense: ExpenseDto): void {
     this.editingExpense = expense;
-    let newDate = new Date(expense.date);
+    let newDate = dateUTC(expense.date);
     this.expenseForm = new FormGroup({
       id: new FormControl(expense.id),
       name: new FormControl(expense.name, [Validators.required]),
@@ -158,15 +157,15 @@ export class ListExpensesComponent {
   }
 
   updateDate(newDate: Date) {
-    this.currentDate = newDate;
+    this.fillData(newDate);
   }
 
   add(): void {
-    this.router.navigate(['projects', this.projectId, 'categories', this.categoryId, 'add-expense', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
+    this.router.navigate(['projects', this.projectId, 'categories', this.categoryId, 'add-expense', { currentDate: CurrentDateComponent.currentDate.toISOString().substring(0, 10) }]);
   }
 
   previous() {
-    this.router.navigate(['/projects', this.projectId, 'categories', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
+    this.router.navigate(['/projects', this.projectId, 'categories']);
   }
 
   triggerDelete(itemId: string): void {

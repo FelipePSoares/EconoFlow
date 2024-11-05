@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { Operation } from 'fast-json-patch';
 import { Expense } from '../models/expense';
-import { formatDate } from '../utils/date/date';
+import { dateUTC, formatDate } from '../utils/date/date';
 
 @Injectable({
   providedIn: 'root'
@@ -17,8 +17,8 @@ export class ExpenseService {
     var month = currentDate.getMonth();
 
     let queryParams = new HttpParams();
-    queryParams = queryParams.append("from", formatDate(new Date(year, month)).substring(0, 10));
-    queryParams = queryParams.append("to", formatDate(new Date(year, month + 1)).substring(0, 10));
+    queryParams = queryParams.append("from", formatDate(dateUTC(year, month)).substring(0, 10));
+    queryParams = queryParams.append("to", formatDate(dateUTC(year, month + 1)).substring(0, 10));
 
     return this.http.get<Expense[]>('/api/projects/' + projectId + '/categories/' + categoryId + '/expenses', {
       observe: 'body',

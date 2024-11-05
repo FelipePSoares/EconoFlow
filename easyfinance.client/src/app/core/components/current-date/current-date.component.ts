@@ -8,20 +8,9 @@ import { faArrowLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { provideMomentDateAdapter } from '@angular/material-moment-adapter';
 import * as _moment from 'moment';
 import { Moment } from 'moment';
+import { dateUTC, todayUTC } from '../../utils/date/date';
 
 const moment = _moment;
-
-export const MY_FORMATS = {
-  parse: {
-    dateInput: 'MM/YYYY',
-  },
-  display: {
-    dateInput: 'MM/YYYY',
-    monthYearLabel: 'MMM YYYY',
-    dateA11yLabel: 'LL',
-    monthYearA11yLabel: 'MMMM YYYY',
-  },
-};
 
 @Component({
   selector: 'app-current-date',
@@ -35,37 +24,56 @@ export const MY_FORMATS = {
   templateUrl: './current-date.component.html',
   styleUrl: './current-date.component.css',
   providers: [
-    provideMomentDateAdapter(MY_FORMATS)
+    provideMomentDateAdapter({
+      parse: {
+        dateInput: 'MM/YYYY',
+      },
+      display: {
+        dateInput: 'MM/YYYY',
+        monthYearLabel: 'MMM YYYY',
+        dateA11yLabel: 'LL',
+        monthYearA11yLabel: 'MMMM YYYY',
+      },
+    })
   ]
 })
 export class CurrentDateComponent {
   faArrowRight = faArrowRight;
   faArrowLeft = faArrowLeft;
+  private static _currentDate: Date;
+  static get currentDate(): Date {
+    if (!CurrentDateComponent._currentDate) {
+      CurrentDateComponent._currentDate = todayUTC();
+    }
 
-  @Input({ required: true })
-  currentDate!: Date;
+    return CurrentDateComponent._currentDate;
+  }
 
   @Output() dateUpdatedEvent = new EventEmitter<Date>();
 
-  previous(): void {
+  getCurrentDate(): Date {
+    return CurrentDateComponent.currentDate;
+  }
+
+  previousMonth(): void {
     this.changeDate(-1);
   }
 
-  next(): void {
+  nextMonth(): void {
     this.changeDate(1);
   }
 
   changeDate(value: number) {
-    var newDate = new Date(this.currentDate);
-    newDate.setMonth(this.currentDate.getMonth() + value, 1);
-    this.currentDate = newDate;
-    this.dateUpdatedEvent.emit(this.currentDate);
+    var newDate = dateUTC(CurrentDateComponent.currentDate);
+    newDate.setMonth(CurrentDateComponent.currentDate.getMonth() + value, 1);
+    CurrentDateComponent._currentDate = dateUTC(newDate);
+    this.dateUpdatedEvent.emit(CurrentDateComponent.currentDate);
   }
 
   setMonthAndYear(event: Moment, datepicker: MatDatepicker<Moment>): void {
-    var newDate = new Date(event.year(), event.month(), this.currentDate.getDate());
-    this.currentDate = newDate;
-    this.dateUpdatedEvent.emit(this.currentDate);
+    var newDate = dateUTC(event.year(), event.month(), 1)
+    CurrentDateComponent._currentDate = newDate;
+    this.dateUpdatedEvent.emit(CurrentDateComponent.currentDate);
     datepicker.close(); 
   }
 }
