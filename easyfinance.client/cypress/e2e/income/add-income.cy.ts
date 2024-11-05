@@ -1,37 +1,50 @@
 describe('EconoFlow - income add Tests', () => {
-  it('should add a new income', () => {
+  beforeEach(() => {
     cy.fixture('users').then((users) => {
       const user = users.testUser;
 
       cy.login(user.username, user.password)
 
-      cy.intercept('GET', '**/incomes*').as('getIncomes')
-      cy.intercept('POST', '**/incomes*').as('postIncomes')
-
       cy.fixture('projects').then((projects) => {
         var project = projects.defaultProject;
-        cy.fixture('incomes').then((incomes) => {
-          var income = incomes.testWageIncome;
+        
+        cy.visit('/projects/' + project.id + '/add-income')
+      })
+    })
+  })
 
-          cy.visit('/projects/' + project.id + '/add-income')
+  it('should appear amount validation error', () => {
+    cy.get('#amount').type('123.231').blur()
+    cy.get('mat-error').should('have.text', 'Invalid amount format. (0000,00)')
+  })
 
-          cy.get('#name').type(income.name)
-          cy.get('#amount').type(income.amount)
+  it('should appear name validation error', () => {
+    cy.get('#name').focus().blur()
+    cy.get('mat-error').should('have.text', 'This field is required.')
+  })
 
-          cy.get('button').contains('Create').click();
+  it('should add a new income', () => {
+    cy.intercept('GET', '**/incomes*').as('getIncomes')
+    cy.intercept('POST', '**/incomes*').as('postIncomes')
 
-          cy.wait<IncomeReq, IncomeRes>('@postIncomes').then(({ request, response }) => {
-            expect(response?.statusCode).to.equal(201)
+    cy.fixture('incomes').then((incomes) => {
+      var income = incomes.testWageIncome;
 
-            const incomeCreated = response?.body
+      cy.get('#name').type(income.name)
+      cy.get('#amount').type(income.amount)
 
-            cy.get("mat-snack-bar-container").should("be.visible").contains('Created successfully!');
+      cy.get('button').contains('Create').click();
 
-            cy.wait<IncomeReq, IncomeRes[]>('@getIncomes').then(({ request, response }) => {
-              const exists = response?.body.some(item => item.id == incomeCreated?.id)
-              expect(exists).to.be.true
-            })
-          })
+      cy.wait<IncomeReq, IncomeRes>('@postIncomes').then(({ request, response }) => {
+        expect(response?.statusCode).to.equal(201)
+
+        const incomeCreated = response?.body
+
+        cy.get("mat-snack-bar-container").should("be.visible").contains('Created successfully!');
+
+        cy.wait<IncomeReq, IncomeRes[]>('@getIncomes').then(({ request, response }) => {
+          const exists = response?.body.some(item => item.id == incomeCreated?.id)
+          expect(exists).to.be.true
         })
       })
     })

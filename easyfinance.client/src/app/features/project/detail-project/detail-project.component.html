@@ -4,7 +4,7 @@
     <div class="container text-center">
       <div class="row justify-content-center">
         <div class="wrap col-lg-8">
-          <app-current-date [currentDate]="currentDate" (dateUpdatedEvent)="updateDate($event)"></app-current-date>
+          <app-current-date (dateUpdatedEvent)="updateDate($event)"></app-current-date>
           <button
             class="btn btn-primary"
             (click)="copyPreviousBudget()"
@@ -39,7 +39,7 @@
           </div>
         </div>
         <div class="wrap col-lg-8">
-          <h3 class="mt-3">{{ currentDate | date: 'yyyy'}}</h3>
+          <h3 class="mt-3">{{ getCurrentDate() | date: 'yyyy'}}</h3>
           <div class="clearfix mt-3">
             <span class="float-start">Budget:</span>
             <span class="float-end" [ngClass]="getClassBasedOnPercentage(getPercentageWaste(year.waste, year.budget))">{{getTextBasedOnPercentage(getPercentageWaste(year.waste, year.budget))}} {{ year.remaining | currency }} left</span>

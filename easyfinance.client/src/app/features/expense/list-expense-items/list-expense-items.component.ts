@@ -15,6 +15,7 @@ import { ReturnButtonComponent } from '../../../core/components/return-button/re
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPenToSquare, faTrash, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
+import { dateUTC } from '../../../core/utils/date/date';
 
 @Component({
   selector: 'app-list-expense-items',
@@ -129,7 +130,7 @@ export class ListExpenseItemsComponent {
 
   edit(expenseItem: ExpenseItemDto): void {
     this.editingExpenseItem = expenseItem;
-    let newDate = new Date(expenseItem.date);
+    let newDate = dateUTC(expenseItem.date);
     this.expenseItemForm = new FormGroup({
       id: new FormControl(expenseItem.id),
       name: new FormControl(expenseItem.name, [Validators.required]),

@@ -31,7 +31,6 @@ import { CommonModule } from '@angular/common';
   styleUrl: './add-category.component.css'
 })
 export class AddCategoryComponent implements OnInit {
-  private currentDate!: Date;
   categoryForm!: FormGroup;
   httpErrors = false;
   errors!: { [key: string]: string };
@@ -51,8 +50,6 @@ export class AddCategoryComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.currentDate = new Date(this.route.snapshot.paramMap.get('currentDate')!);
-
     this.categoryForm = new FormGroup({
       name: new FormControl('', [Validators.required])
     });
@@ -131,6 +128,6 @@ export class AddCategoryComponent implements OnInit {
   }
 
   previous() {
-    this.router.navigate(['/projects', this.projectId, 'categories', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
+    this.router.navigate(['/projects', this.projectId, 'categories']);
   }
 }

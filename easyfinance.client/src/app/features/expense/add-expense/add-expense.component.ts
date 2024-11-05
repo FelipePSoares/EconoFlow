@@ -11,26 +11,10 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
-import { MomentDateAdapter } from '@angular/material-moment-adapter';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import {
-  MatNativeDateModule,
-  DateAdapter,
-  MAT_DATE_FORMATS,
-  MAT_DATE_LOCALE,
-} from '@angular/material/core';
-
-export const MY_FORMATS = {
-  parse: {
-    dateInput: 'DD/MM/YYYY',
-  },
-  display: {
-    dateInput: 'DD/MM/YYYY',
-    monthYearLabel: 'MMMM YYYY',
-    dateA11yLabel: 'DD/MM/YYYY',
-    monthYearA11yLabel: 'MMMM YYYY',
-  },
-};
+import { MatNativeDateModule } from '@angular/material/core';
+import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
+import { todayUTC } from '../../../core/utils/date/date';
 
 @Component({
   selector: 'app-add-expense',
@@ -48,16 +32,7 @@ export const MY_FORMATS = {
     MatNativeDateModule
   ],
   templateUrl: './add-expense.component.html',
-  styleUrl: './add-expense.component.css',
-  providers: [
-    {
-      provide: DateAdapter,
-      useClass: MomentDateAdapter,
-      deps: [MAT_DATE_LOCALE],
-    },
-
-    { provide: MAT_DATE_FORMATS, useValue: MY_FORMATS },
-  ]
+  styleUrl: './add-expense.component.css'
 })
 export class AddExpenseComponent implements OnInit {
   private currentDate!: Date;
@@ -74,8 +49,10 @@ export class AddExpenseComponent implements OnInit {
   constructor(private expenseService: ExpenseService, private router: Router, private route: ActivatedRoute, private errorMessageService: ErrorMessageService) { }
 
   ngOnInit(): void {
-    var date = this.route.snapshot.paramMap.get('currentDate');
-    this.currentDate = date ? new Date(date) : new Date();
+    this.currentDate = todayUTC();
+    if (CurrentDateComponent.currentDate.getFullYear() !== this.currentDate.getFullYear() || CurrentDateComponent.currentDate.getMonth() !== this.currentDate.getMonth()) {
+      this.currentDate = CurrentDateComponent.currentDate;
+    }
 
     this.expenseForm = new FormGroup({
       name: new FormControl('', [Validators.required]),
@@ -113,7 +90,7 @@ export class AddExpenseComponent implements OnInit {
 
       this.expenseService.add(this.projectId, this.categoryId, newExpense).subscribe({
         next: response => {
-          this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, 'expenses', { currentDate: date }]);
+          this.previous();
         },
         error: (response: ApiErrorResponse) => {
           this.httpErrors = true;
@@ -155,6 +132,6 @@ export class AddExpenseComponent implements OnInit {
   }
 
   previous() {
-    this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, 'expenses', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
+    this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, 'expenses']);
   }
 }

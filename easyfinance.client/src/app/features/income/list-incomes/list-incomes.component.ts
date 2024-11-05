@@ -1,4 +1,4 @@
-import { Component, Input, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, map } from 'rxjs';
 import { Income } from 'src/app/core/models/income';
@@ -14,6 +14,7 @@ import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/
 import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
+import { dateUTC } from '../../../core/utils/date/date';
 
 @Component({
   selector: 'app-list-incomes',
@@ -32,12 +33,11 @@ import { CurrentDateComponent } from '../../../core/components/current-date/curr
   styleUrl: './list-incomes.component.css'
 })
 
-export class ListIncomesComponent {
+export class ListIncomesComponent implements OnInit {
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
   faPenToSquare = faPenToSquare;
   faFloppyDisk = faFloppyDisk;
   faTrash = faTrash;
-  private _currentDate!: Date;
   private incomes: BehaviorSubject<IncomeDto[]> = new BehaviorSubject<IncomeDto[]>([new IncomeDto()]);
   incomes$: Observable<IncomeDto[]> = this.incomes.asObservable();
   incomeForm!: FormGroup;
@@ -49,22 +49,21 @@ export class ListIncomesComponent {
   @Input({ required: true })
   projectId!: string;
 
-  get currentDate(): Date {
-    return this._currentDate;
+  constructor(public incomeService: IncomeService, private router: Router) { 
   }
-  @Input({ required: true })
-  set currentDate(currentDate: Date) {
-    this._currentDate = new Date(currentDate);
-    this.incomeService.get(this.projectId, this._currentDate)
+
+  ngOnInit(): void {
+    this.fillData(CurrentDateComponent.currentDate);
+    this.edit(new IncomeDto());
+  }
+
+  fillData(date: Date) {
+    this.incomeService.get(this.projectId, date)
       .pipe(map(incomes => mapper.mapArray(incomes, Income, IncomeDto)))
       .subscribe(
         {
           next: res => { this.incomes.next(res); }
         });
-  }
-
-  constructor(public incomeService: IncomeService, private router: Router) {
-    this.edit(new IncomeDto());
   }
 
   get id() {
@@ -91,7 +90,7 @@ export class ListIncomesComponent {
         id: id,
         name: name,
         amount: amount,
-        date: new Date(date)
+        date: dateUTC(date)
       })
       var patch = compare(this.editingIncome, newIncome);
 
@@ -109,12 +108,12 @@ export class ListIncomesComponent {
   }
 
   add() {
-    this.router.navigate(['projects', this.projectId, 'add-income', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
+    this.router.navigate(['projects', this.projectId, 'add-income']);
   }
 
   edit(income: IncomeDto): void {
     this.editingIncome = income;
-    let newDate = new Date(income.date);
+    let newDate = dateUTC(income.date);
     this.incomeForm = new FormGroup({
       id: new FormControl(income.id),
       name: new FormControl(income.name, [Validators.required]),
@@ -153,10 +152,10 @@ export class ListIncomesComponent {
   }
 
   updateDate(newDate: Date) {
-    this.currentDate = newDate;
+    this.fillData(newDate);
   }
 
   previous() {
-    this.router.navigate(['/projects', this.projectId, { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
+    this.router.navigate(['/projects', this.projectId]);
   }
 }

@@ -35,30 +35,21 @@ export class DetailProjectComponent implements OnInit {
   faArrowDown = faArrowDown;
   btnIncome = 'Income';
   btnCategory = 'Category';
-  private _currentDate!: Date;
   @Input({ required: true })
   projectId!: string;
   month: { budget: number, waste: number, remaining: number, earned: number; } = { budget: 0, waste: 0, remaining: 0, earned: 0 };
   year: { budget: number, waste: number, remaining: number, earned: number; } = { budget: 0, waste: 0, remaining: 0, earned: 0 };
   buttons: string[] = [this.btnIncome, this.btnCategory];
 
-  get currentDate(): Date {
-    return this._currentDate;
-  }
-  @Input()
-  set currentDate(currentDate: Date) {
-    if (!currentDate) {
-      var date = this.route.snapshot.paramMap.get('currentDate');
-      this._currentDate = date == null ? new Date() : new Date(date);
-    } else {
-      this._currentDate = new Date(currentDate);
-    }
-
-    this.fillData();
+  constructor(private router: Router, private route: ActivatedRoute, private projectService: ProjectService, private categoryService: CategoryService, private incomeService: IncomeService) {
   }
 
-  fillData() {
-    this.projectService.getYearlyInfo(this.projectId, this._currentDate.getFullYear())
+  ngOnInit(): void {
+    this.fillData(CurrentDateComponent.currentDate);
+  }
+
+  fillData(date: Date) {
+    this.projectService.getYearlyInfo(this.projectId, date.getFullYear())
       .subscribe({
         next: res => {
           this.year = {
@@ -70,7 +61,7 @@ export class DetailProjectComponent implements OnInit {
         }
       })
 
-    this.categoryService.get(this.projectId, this._currentDate)
+    this.categoryService.get(this.projectId, date)
       .pipe(map(categories => mapper.mapArray(categories, Category, CategoryDto)))
       .subscribe({
         next: res => {
@@ -80,7 +71,7 @@ export class DetailProjectComponent implements OnInit {
         }
       });
 
-    this.incomeService.get(this.projectId, this.currentDate)
+    this.incomeService.get(this.projectId, date)
       .pipe(map(incomes => mapper.mapArray(incomes, Income, IncomeDto)))
       .subscribe({
         next: res => {
@@ -89,14 +80,8 @@ export class DetailProjectComponent implements OnInit {
       });
   }
 
-  constructor(private router: Router, private route: ActivatedRoute, private projectService: ProjectService, private categoryService: CategoryService, private incomeService: IncomeService) {
-  }
-
-  ngOnInit(): void {
-  }
-
   updateDate(newDate: Date) {
-    this.currentDate = newDate;
+    this.fillData(newDate);
   }
 
   previous() {
@@ -104,11 +89,15 @@ export class DetailProjectComponent implements OnInit {
   }
 
   selectCategories(): void {
-    this.router.navigate(['/projects', this.projectId, 'categories', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
+    this.router.navigate(['/projects', this.projectId, 'categories']);
   }
 
   selectIncomes(): void {
-    this.router.navigate(['/projects', this.projectId, 'incomes', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
+    this.router.navigate(['/projects', this.projectId, 'incomes']);
+  }
+
+  getCurrentDate(): Date {
+    return CurrentDateComponent.currentDate;
   }
 
   getPercentageWaste(waste: number, budget: number): number {
@@ -146,10 +135,10 @@ export class DetailProjectComponent implements OnInit {
   }
 
   copyPreviousBudget() {
-    this.projectService.copyBudgetPreviousMonth(this.projectId, this.currentDate)
+    this.projectService.copyBudgetPreviousMonth(this.projectId, CurrentDateComponent.currentDate)
       .subscribe({
         next: res => {
-          this.fillData();
+          this.fillData(CurrentDateComponent.currentDate);
         }
       });
   }

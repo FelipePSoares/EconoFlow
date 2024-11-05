@@ -17,3 +17,20 @@ export function formatDate(input: Date): string {
     ].join(':')
   );
 };
+
+export function todayUTC(): Date {
+  let newDate = new Date();
+  return dateUTC(newDate);
+}
+
+export function dateUTC(newDate: Date): Date;
+export function dateUTC(year: number, month: number, day?: number): Date;
+export function dateUTC(dateOrYear: Date | number, month?: number, day?: number): Date {
+  if (typeof dateOrYear === 'number') {
+    return new Date(Date.UTC(dateOrYear, month, day ?? 1));
+  } else if (dateOrYear instanceof Date) {
+    return new Date(Date.UTC(dateOrYear.getFullYear(), dateOrYear.getMonth(), dateOrYear.getDate()));
+  }
+
+  return todayUTC();
+}

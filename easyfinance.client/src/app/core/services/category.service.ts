@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Category } from '../models/category';
 import { Observable, map } from 'rxjs';
 import { Operation } from 'fast-json-patch';
-import { formatDate } from '../utils/date/date';
+import { dateUTC, formatDate } from '../utils/date/date';
 
 @Injectable({
   providedIn: 'root'
@@ -17,8 +17,8 @@ export class CategoryService {
     var month = currentDate.getMonth();
 
     let queryParams = new HttpParams();
-    queryParams = queryParams.append("from", formatDate(new Date(year, month)).substring(0, 10));
-    queryParams = queryParams.append("to", formatDate(new Date(year, month + 1)).substring(0, 10));
+    queryParams = queryParams.append("from", formatDate(dateUTC(year, month)).substring(0, 10));
+    queryParams = queryParams.append("to", formatDate(dateUTC(year, month + 1)).substring(0, 10));
 
     return this.http.get<Category[]>('/api/projects/' + projectId + '/categories', {
       observe: 'body',
