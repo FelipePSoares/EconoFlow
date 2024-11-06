@@ -6,18 +6,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Update="ValidationMessages.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ValidationMessages.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Update="ValidationMessages.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>  
-      <LastGenOutput>ValidationMessages.Designer.cs</LastGenOutput>
+      <Generator>MSBuild:Compile</Generator>
+      <StronglyTypedFileName>ValidationMessages.Designer.cs</StronglyTypedFileName>
+      <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
+      <StronglyTypedNamespace>EasyFinance.Infrastructure</StronglyTypedNamespace>
+      <StronglyTypedClassName>ValidationMessages</StronglyTypedClassName>
+      <PublicClass>true</PublicClass>
     </EmbeddedResource>
   </ItemGroup>
 
+  <!-- For VS Code/OmniSharp support, ensure that CoreResGen runs before CoreCompile -->
+  <PropertyGroup>
+    <CoreCompileDependsOn>PrepareResources;$(CompileDependsOn)</CoreCompileDependsOn>
+  </PropertyGroup>
 </Project>

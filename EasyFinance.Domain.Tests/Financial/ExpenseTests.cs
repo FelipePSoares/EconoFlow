@@ -86,7 +86,7 @@ namespace EasyFinance.Domain.Tests.Financial
         [Fact]
         public void AddAttachments_SendNull_ShouldThrowException()
         {
-            var action = () => new ExpenseItemBuilder().AddAttachments(null).Build();
+            var action = () => new ExpenseBuilder().AddAttachments(null).Build();
 
             action.Should().Throw<ValidationException>()
                 .WithMessage(string.Format(ValidationMessages.PropertyCantBeNull, "Attachments"))
@@ -96,16 +96,17 @@ namespace EasyFinance.Domain.Tests.Financial
         [Fact]
         public void AddItem_SendNull_ShouldThrowException()
         {
-            var action = () => new ExpenseItemBuilder().AddItem(null).Build();
+            var action = () => new ExpenseBuilder().AddItem(null).Build();
 
             action.Should().Throw<ValidationException>()
                 .WithMessage(string.Format(ValidationMessages.PropertyCantBeNull, "item"))
                 .And.Property.Should().Be("item");
         }
+
         [Fact]
         public void SetItem_SendNull_ShouldThrowException()
         {
-            var action = () => new ExpenseItemBuilder().SetItems(null).Build();
+            var action = () => new ExpenseBuilder().SetItems(null).Build();
 
             action.Should().Throw<ValidationException>()
                 .WithMessage(string.Format(ValidationMessages.PropertyCantBeNull, "Items"))
@@ -124,18 +125,30 @@ namespace EasyFinance.Domain.Tests.Financial
             expense.Amount.Should().Be(value);
         }
 
-        [Fact]
-        public void SetItem_SendRandonAmount_ShouldHaveTheSameAmount()
+        [Theory]
+        [MemberData(nameof(DifferentDateBetweenExpenseAndExpenseItem))]
+        public void AddItem_DifferentYearOrMonthFromExpense_ShouldThrowException(DateTime expenseDate, DateTime expenseItemDate)
         {
-            var value = Convert.ToDecimal(random.NextDouble());
-            var value2 = Convert.ToDecimal(random.NextDouble());
+            var item = new ExpenseItemBuilder().AddDate(expenseItemDate).Build();
 
-            var item = new ExpenseItemBuilder().AddAmount(value).Build();
-            var item2 = new ExpenseItemBuilder().AddAmount(value2).Build();
+            var action = () => new ExpenseBuilder().AddItem(item).AddDate(expenseDate).Build();
 
-            var expense = new ExpenseBuilder().SetItems(new List<ExpenseItem> { item, item2 }).Build();
+            action.Should().Throw<ValidationException>()
+                .WithMessage(ValidationMessages.CantAddExpenseItemWithDifferentYearOrMonthFromExpense)
+                .And.Property.Should().Be("Date");
+        }
 
-            expense.Amount.Should().Be(value + value2);
+        [Theory]
+        [MemberData(nameof(DifferentDateBetweenExpenseAndExpenseItem))]
+        public void SetItem_DifferentYearOrMonthFromExpense_ShouldThrowException(DateTime expenseDate, DateTime expenseItemDate)
+        {
+            var item = new ExpenseItemBuilder().AddDate(expenseItemDate).Build();
+
+            var action = () => new ExpenseBuilder().SetItems(new List<ExpenseItem>() { item }).AddDate(expenseDate).Build();
+
+            action.Should().Throw<ValidationException>()
+                .WithMessage(ValidationMessages.CantAddExpenseItemWithDifferentYearOrMonthFromExpense)
+                .And.Property.Should().Be("Date");
         }
 
         public static IEnumerable<object[]> OlderDates =>
@@ -145,11 +158,21 @@ namespace EasyFinance.Domain.Tests.Financial
                 new object[] { DateTime.Now.AddYears(-15) },
                 new object[] { DateTime.Now.AddYears(-200) }
             };
+            
         public static IEnumerable<object[]> FutureDates =>
             new List<object[]>
             {
                 new object[] { DateTime.Now.AddDays(1) },
                 new object[] { DateTime.Now.AddDays(5) },
+            };
+            
+        public static IEnumerable<object[]> DifferentDateBetweenExpenseAndExpenseItem =>
+            new List<object[]>
+            {
+                new object[] { DateTime.Today.AddMonths(-2), DateTime.Today.AddMonths(-1) },
+                new object[] { DateTime.Today.AddMonths(-1), DateTime.Today.AddMonths(-2) },
+                new object[] { DateTime.Today.AddYears(-1), DateTime.Today.AddYears(-2) },
+                new object[] { DateTime.Today.AddYears(-2), DateTime.Today.AddYears(-1) },
             };
     }
 }

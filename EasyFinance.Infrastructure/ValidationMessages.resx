@@ -147,4 +147,7 @@
   <data name="CantImportBudgetBecauseAlreadyExists" xml:space="preserve">
     <value>Can't import budget because already exists</value>
   </data>
+  <data name="CantAddExpenseItemWithDifferentYearOrMonthFromExpense" xml:space="preserve">
+    <value>Can't add an expense item with different year o r month from expense</value>
+  </data>
 </root>
