@@ -151,7 +151,7 @@ export class ListCategoriesComponent implements OnInit {
   }
 
   getPercentageWaste(waste: number, budget: number): number {
-    return budget === 0 ? 0 : waste * 100 / budget;
+    return budget === 0 ? waste !== 0 ? 101 : 0 : waste * 100 / budget;
   }
 
   getClassToProgressBar(percentage: number): string {

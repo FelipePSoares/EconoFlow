@@ -76,11 +76,11 @@ namespace EasyFinance.Infrastructure {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You can&apos;t add future expense.
+        ///   Looks up a localized string similar to You can&apos;t add future expense/income.
         /// </summary>
-        public static string CantAddFutureExpense {
+        public static string CantAddFutureExpenseIncome {
             get {
-                return ResourceManager.GetString("CantAddFutureExpense", resourceCulture);
+                return ResourceManager.GetString("CantAddFutureExpenseIncome", resourceCulture);
             }
         }
         
