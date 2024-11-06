@@ -57,7 +57,7 @@ namespace EasyFinance.Domain.Tests.Financial
             var action = () => new ExpenseBuilder().AddAmount(1).AddDate(date).Build();
 
             action.Should().Throw<ValidationException>()
-                .WithMessage(ValidationMessages.CantAddFutureExpense)
+                .WithMessage(ValidationMessages.CantAddFutureExpenseIncome)
                 .And.Property.Should().Be("Date");
         }
 
