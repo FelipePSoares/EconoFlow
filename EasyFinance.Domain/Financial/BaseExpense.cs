@@ -33,6 +33,9 @@ namespace EasyFinance.Domain.Models.Financial
             if (expenseItems.Count > 0)
                 this.SetAmount(expenseItems.Sum(e => e.Amount));
 
+            if (expenseItems.Any(item => this.Date.Year != item.Date.Year || this.Date.Month != item.Date.Month))
+                throw new ValidationException(nameof(this.Date), ValidationMessages.CantAddExpenseItemWithDifferentYearOrMonthFromExpense);
+
             this.Items = expenseItems;
         }
 
@@ -40,6 +43,9 @@ namespace EasyFinance.Domain.Models.Financial
         {
             if (item == default)
                 throw new ValidationException(nameof(item), string.Format(ValidationMessages.PropertyCantBeNull, nameof(item)));
+
+            if (this.Date.Year != item.Date.Year || this.Date.Month != item.Date.Month)
+                throw new ValidationException(nameof(item.Date), ValidationMessages.CantAddExpenseItemWithDifferentYearOrMonthFromExpense);
 
             this.SetAmount(this.Amount + item.Amount);
 
