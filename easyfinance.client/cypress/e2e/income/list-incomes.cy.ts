@@ -1,18 +1,15 @@
-describe('EconoFlow - expense list Tests', () => {
+describe('EconoFlow - income list Tests', () => {
     beforeEach(() => {
       cy.fixture('users').then((users) => {
         const user = users.testUser;
   
-        cy.intercept('PATCH', '**/expenses/*').as('patchExpenses')
+        cy.intercept('PATCH', '**/incomes/*').as('patchIncomes')
         cy.login(user.username, user.password)
 
         cy.fixture('projects').then((projects) => {
             var project = projects.defaultProject;
-            cy.fixture('categories').then((categories) => {
-              var category = categories.defaultCategory;
-          
-              cy.visit('/projects/' + project.id + '/categories/' + category.id + '/expenses')
-            })
+            
+            cy.visit('/projects/' + project.id + '/incomes')
         })
       })
     })
@@ -23,7 +20,7 @@ describe('EconoFlow - expense list Tests', () => {
       cy.get('button[name=edit]').first().click()
       cy.get('#name').clear().type(`${value}{enter}`)
 
-      cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
+      cy.wait<IncomeReq, IncomeRes>('@patchIncomes').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(200)
         cy.get('.name').first().contains(`${value}`)
       })
@@ -37,21 +34,9 @@ describe('EconoFlow - expense list Tests', () => {
       cy.get('button[name=edit]').first().click()
       cy.get('#date').clear().type(`${todayFormated}{enter}`)
 
-      cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
+      cy.wait<IncomeReq, IncomeRes>('@patchIncomes').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(200)
         cy.get('.date').first().contains(`${today.toLocaleDateString('pt-PT')}`)
-      })
-    })
-  
-    it('should update budget after success update', () => {
-      let value = Math.floor(Math.random() * 1000);
-
-      cy.get('button[name=edit]').first().click()
-      cy.get('#budget').clear().type(`${value}{enter}`)
-      
-      cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
-        expect(response?.statusCode).to.equal(200)
-        cy.get('.budget').first().contains(`${value}`)
       })
     })
   
@@ -61,9 +46,21 @@ describe('EconoFlow - expense list Tests', () => {
       cy.get('button[name=edit]').first().click()
       cy.get('#amount').clear().type(`${value}{enter}`)
       
-      cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
+      cy.wait<IncomeReq, IncomeRes>('@patchIncomes').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(200)
-        cy.get('.progress-bar').first().contains(`${value}`)
+        cy.get('.amount').first().contains(`${value}`)
+      })
+    })
+  
+    it('should update amount with decimal after success update', () => {
+      let value = (Math.random() * 1000).toFixed(2).toString().replace('.', ',');
+
+      cy.get('button[name=edit]').first().click()
+      cy.get('#amount').clear().type(`${value}{enter}`)
+      
+      cy.wait<IncomeReq, IncomeRes>('@patchIncomes').then(({ request, response }) => {
+        expect(response?.statusCode).to.equal(200)
+        cy.get('.amount').first().contains(`${value}`)
       })
     })
 })

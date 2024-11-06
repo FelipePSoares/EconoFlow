@@ -11,15 +11,15 @@
           <div>
             <div class="d-flex justify-content-between align-items-center">
               <div>
-                <h5 class="mb-1">{{ income.name }}</h5>
-                <p class="mb-1">{{ income.date | date: 'dd/MM/yyyy' }}</p>
-                <p class="mb-1">{{ income.amount | currency }}</p>
+                <h5 class="mb-1 name">{{ income.name }}</h5>
+                <p class="mb-1 date">{{ income.date | date: 'dd/MM/yyyy' }}</p>
+                <p class="mb-1 amount">{{ income.amount | currency }}</p>
               </div>
               <div class="btn-group">
-                <button class="btn btn-secondary" (click)="edit(income)">
+                <button name="edit" class="btn btn-secondary" (click)="edit(income)">
                   <fa-icon [icon]="faPenToSquare"></fa-icon>
                 </button>
-                <button class="btn btn-danger" (click)="triggerDelete(income.id)">
+                <button name="delete" class="btn btn-danger" (click)="triggerDelete(income.id)">
                   <fa-icon [icon]="faTrash"></fa-icon>
                 </button>
               </div>
