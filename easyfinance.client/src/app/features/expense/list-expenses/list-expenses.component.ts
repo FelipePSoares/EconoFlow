@@ -95,7 +95,7 @@ export class ListExpensesComponent implements OnInit {
     if (this.expenseForm.valid) {
       let id = this.id?.value;
       let name = this.name?.value;
-      let date = this.date?.value;
+      let date = new Date(this.date?.value);
       let amount = this.amount?.value.replace('.', '').replace(',', '.');
       let budget = this.budget?.value;
 
@@ -112,6 +112,10 @@ export class ListExpensesComponent implements OnInit {
 
       this.expenseService.update(this.projectId, this.categoryId, id, patch).subscribe({
         next: response => {
+          this.editingExpense.name = response.name;
+          this.editingExpense.date = response.date;
+          this.editingExpense.budget = response.budget;
+          this.editingExpense.amount = response.amount;
           this.editingExpense = new ExpenseDto();
         },
         error: error => {

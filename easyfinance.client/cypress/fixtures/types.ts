@@ -7,5 +7,5 @@ type IncomeRes = { id: string }
 type CategoryReq = {}
 type CategoryRes = { id: string, expenses: ExpenseRes[] }
 
-type ExpenseReq = {}
-type ExpenseRes = { id: string, name: string, budget: number, amount: number, items: {id: string, name: string, amount: number}[] }
+type ExpenseReq = { date: Date }
+type ExpenseRes = { id: string, date: Date, name: string, budget: number, amount: number, items: {id: string, name: string, amount: number}[] }

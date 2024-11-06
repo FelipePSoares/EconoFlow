@@ -83,7 +83,7 @@ export class ListIncomesComponent implements OnInit {
     if (this.incomeForm.valid) {
       const id = this.id?.value;
       const name = this.name?.value;
-      const date = this.date?.value;
+      const date = new Date(this.date?.value);
       const amount = this.amount?.value;
 
       var newIncome = <IncomeDto>({
@@ -97,6 +97,8 @@ export class ListIncomesComponent implements OnInit {
       this.incomeService.update(this.projectId, id, patch).subscribe({
         next: response => {
           this.editingIncome.name = response.name;
+          this.editingIncome.amount = response.amount;
+          this.editingIncome.date = response.date;
           this.editingIncome = new IncomeDto();
         },
         error: error => {
