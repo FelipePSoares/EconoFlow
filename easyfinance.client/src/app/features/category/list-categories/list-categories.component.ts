@@ -90,6 +90,7 @@ export class ListCategoriesComponent implements OnInit {
 
       this.categoryService.update(this.projectId, id, patch).subscribe({
         next: response => {
+          this.editingCategory.name = response.name;
           this.editingCategory = new CategoryDto();
         },
         error: error => {

@@ -12,12 +12,12 @@
               }">
           @if(expense.id != this.editingExpense.id) {
           <div (click)="select(expense.id)">
-            <h3 class="mb-1">{{ expense.name }}</h3>
+            <h3 class="mb-1 name">{{ expense.name }}</h3>
             <div class="btn-group" style="position: absolute; right: 15px; top: 10px;">
-              <button class="btn btn-secondary" (click)="edit(expense); $event.stopPropagation();">
+              <button name="edit" class="btn btn-secondary" (click)="edit(expense); $event.stopPropagation();">
                 <fa-icon [icon]="faPenToSquare"></fa-icon>
               </button>
-              <button class="btn btn-danger" (click)="triggerDelete(expense.id); $event.stopPropagation();">
+              <button name="delete" class="btn btn-danger" (click)="triggerDelete(expense.id); $event.stopPropagation();">
                 <fa-icon [icon]="faTrash"></fa-icon>
               </button>
             </div>
@@ -35,9 +35,9 @@
             </div>
             <div class="clearfix">
               @if (!expense?.items?.length) {
-              <span class="float-start">{{ expense.date | date: 'dd/MM/yyyy' }}</span>
+              <span class="float-start date">{{ expense.date | date: 'dd/MM/yyyy' }}</span>
               }
-              <span class="float-end">of {{ expense.budget | currency }}</span>
+              <span class="float-end budget">of {{ expense.budget | currency }}</span>
             </div>
           </div>
           } @else {
