@@ -90,7 +90,7 @@ export class ListExpenseItemsComponent {
     if (this.expenseItemForm.valid) {
       let id = this.id?.value;
       let name = this.name?.value;
-      let date = new Date(this.date?.value);
+      let date = this.date?.value;
       let amount = this.amount?.value.replace('.', '').replace(',', '.');
 
       let expense = this.expense.getValue();

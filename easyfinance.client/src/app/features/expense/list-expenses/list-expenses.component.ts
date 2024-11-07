@@ -95,7 +95,7 @@ export class ListExpensesComponent implements OnInit {
     if (this.expenseForm.valid) {
       let id = this.id?.value;
       let name = this.name?.value;
-      let date = new Date(this.date?.value);
+      let date = this.date?.value;
       let amount = this.amount?.value.replace('.', '').replace(',', '.');
       let budget = this.budget?.value;
 
