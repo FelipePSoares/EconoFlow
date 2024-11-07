@@ -83,7 +83,7 @@ export class ListIncomesComponent implements OnInit {
     if (this.incomeForm.valid) {
       const id = this.id?.value;
       const name = this.name?.value;
-      const date = new Date(this.date?.value);
+      const date = this.date?.value;
       const amount = this.amount?.value.replace('.', '').replace(',', '.');
 
       var newIncome = <IncomeDto>({

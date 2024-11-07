@@ -28,7 +28,11 @@ export function dateUTC(year: number, month: number, day?: number): Date;
 export function dateUTC(dateOrYear: Date | number, month?: number, day?: number): Date {
   if (typeof dateOrYear === 'number') {
     return new Date(Date.UTC(dateOrYear, month, day ?? 1));
-  } else if (dateOrYear instanceof Date) {
+  }
+
+  dateOrYear = new Date(dateOrYear);
+
+  if (dateOrYear instanceof Date) {
     return new Date(Date.UTC(dateOrYear.getFullYear(), dateOrYear.getMonth(), dateOrYear.getDate()));
   }
 
