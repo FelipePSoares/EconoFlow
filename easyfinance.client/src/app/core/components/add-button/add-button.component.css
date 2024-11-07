@@ -1,7 +1,6 @@
 .btn-add {
-  position: fixed;
   bottom: 20px; /* Adjust the distance from the bottom */
-  right: 20px; /* Adjust the distance from the right */
+  left: 20px; /* Adjust the distance from the right */
   z-index: 1000; /* Ensure button is above other elements */
   padding: 10px 10px;
   cursor: pointer;
@@ -12,8 +11,7 @@
 
 @media (min-width: 576px) {
   .btn-add {
-    position: absolute;
     top: 90px;
-    right: 70px;
+    left: 70px;
   }
 }
