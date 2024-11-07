@@ -1,9 +1,25 @@
-<app-return-button (returnButtonEvent)="previous()"></app-return-button>
 <div class="container text-center">
   <app-current-date (dateUpdatedEvent)="updateDate($event)"></app-current-date>
   <div class="row justify-content-center">
     <div class="wrap col-lg-8">
-      <h2 class="text-center mt-3 mb-3">Incomes</h2>
+
+      <div class="container position-relative">
+        <div class="row align-items-center">
+          <!-- Back button on the left -->
+          <div class="col-auto position-absolute start-0">
+            <app-return-button (returnButtonEvent)="previous()"></app-return-button>
+          </div>
+          <!-- Centered title -->
+          <div class="col text-center mt-3 mb-3">
+            <h2>Incomes</h2>
+          </div>
+          <!-- Right button on the far right -->
+          <div class="col-auto position-absolute end-0">
+            <app-add-button (clickedEvent)="add()"></app-add-button>
+          </div>
+        </div>
+      </div>
+      
       <div class="list-group list-group-flush">
         @for (income of (incomes$ | async); track income.id){
         <div class="list-group-item">
@@ -87,5 +103,4 @@
     </div>
   </div>
 </div>
-<app-add-button (clickedEvent)="add()"></app-add-button>
 <app-confirm-dialog (confirmed)="handleConfirmation($event)"></app-confirm-dialog>

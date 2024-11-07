@@ -1,14 +1,28 @@
 <div class="container">
   <div class="row justify-content-center">
-    <app-return-button (returnButtonEvent)="previous()"></app-return-button>
     <div class="container text-center">
       <div class="row justify-content-center">
         <div class="wrap col-lg-8">
+
+          <div class="container position-relative">
+            <div class="row align-items-center">
+              <!-- Back button on the left -->
+              <div class="col-auto position-absolute start-0">
+                <app-return-button (returnButtonEvent)="previous()"></app-return-button>
+              </div>
+
+              <!-- Centered title -->
+              <div class="col text-center mt-3 mb-3">
+                <h2>Project Details</h2>
+              </div>
+            </div>
+          </div>
+
+
           <app-current-date (dateUpdatedEvent)="updateDate($event)"></app-current-date>
-          <button
-            class="btn btn-primary"
-            (click)="copyPreviousBudget()"
-            *ngIf="month.budget === 0">
+          <button class="btn btn-primary"
+                  (click)="copyPreviousBudget()"
+                  *ngIf="month.budget === 0">
             Copy Previous Budget
           </button>
           <div class="clearfix mt-3">

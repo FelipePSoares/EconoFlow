@@ -1,8 +1,20 @@
 <div class="container text-center">
-  <app-return-button (returnButtonEvent)="previous()"></app-return-button>
   <div class="row justify-content-md-center">
     <div class="wrap col-md-8">
-      <h2 class="text-center mt-3 mb-3">Create Income</h2>
+
+      <div class="container position-relative">
+        <div class="row align-items-center">
+          <!-- Back button on the left -->
+          <div class="col-auto position-absolute start-0">
+            <app-return-button (returnButtonEvent)="previous()"></app-return-button>
+          </div>
+          <!-- Centered title -->
+          <div class="col text-center mt-3 mb-3">
+            <h2>Create Income</h2>
+          </div>
+        </div>
+      </div>
+
       <form [formGroup]="incomeForm" (ngSubmit)="saveIncome()">
 
         <!-- Name Field -->
