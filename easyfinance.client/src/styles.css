@@ -43,3 +43,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 .danger {
   color: #dc3545;
 }
+
+.btn-default:hover {
+  background-color: #f8f9fa;
+}
