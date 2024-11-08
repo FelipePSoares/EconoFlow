@@ -1,11 +1,7 @@
 .btn-default {
-  margin: 0 -14px;
+    margin: 0 -14px;
 }
 
-.warning {
-    color: #ffc107;
-}
-
-.danger {
-    color: #dc3545;
+.month {
+    text-transform: capitalize;
 }
