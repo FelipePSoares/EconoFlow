@@ -31,6 +31,7 @@ namespace EasyFinance.Application.Features.ExpenseService
         {
             return await this.unitOfWork.ExpenseRepository.NoTrackable()
                 .Include(e => e.Items.OrderBy(item => item.Date))
+                .Include(e => e.Attachments)
                 .FirstOrDefaultAsync(p => p.Id == expenseId);
         }
 
