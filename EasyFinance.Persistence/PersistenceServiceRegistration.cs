@@ -13,8 +13,9 @@ namespace EasyFinance.Persistence
         public static IServiceCollection AddPersistenceServices(this IServiceCollection services, IConfiguration configuration)
         {
 #if DEBUG
-            services.AddDbContext<EasyFinanceDatabaseContext>(
-                options => options.UseInMemoryDatabase("AppDb"));
+            services.AddDbContext<EasyFinanceDatabaseContext>(options => options
+                .UseInMemoryDatabase("AppDb")
+                .EnableSensitiveDataLogging());
 #else
             var connectionString = Environment.GetEnvironmentVariable("EasyFinanceDB") ?? string.Empty;
 

@@ -58,6 +58,9 @@ namespace EasyFinance.Server.Controllers
         {
             if (expenseDto == null) return BadRequest();
 
+            var id = this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier);
+            var user = await this.userManager.FindByIdAsync(id.Value);
+
             var existingExpense = await this.expenseService.GetByIdAsync(expenseId);
 
             if (existingExpense == null) return NotFound();
@@ -67,6 +70,11 @@ namespace EasyFinance.Server.Controllers
             expenseDto.ApplyTo(dto);
 
             dto.FromDTO(existingExpense);
+
+            foreach (var expense in existingExpense.Items.Where(item => item.Id == default))
+            {
+                expense.SetCreatedBy(user);
+            }
 
             await this.expenseService.UpdateAsync(existingExpense);
 
