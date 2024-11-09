@@ -46,9 +46,9 @@
             </div>
             <div class="progress">
               <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-                   [ngClass]="getClassToProgressBar(getPercentageWaste(expense.getTotalAmount(), expense.budget))"
-                   [style.width.%]="getPercentageWaste(expense.getTotalAmount(), expense.budget)"
-                   [attr.aria-valuenow]="getPercentageWaste(expense.getTotalAmount(), expense.budget)">
+                [ngClass]="getClassToProgressBar(getPercentageWaste(expense.getTotalAmount(), expense.budget))"
+                [style.width.%]="getPercentageWaste(expense.getTotalAmount(), expense.budget)"
+                [attr.aria-valuenow]="getPercentageWaste(expense.getTotalAmount(), expense.budget)">
                 {{ expense.getTotalAmount() | currency }}
               </div>
             </div>
@@ -61,58 +61,51 @@
           </div>
           } @else {
           <div>
-            <form class="d-flex justify-content-between align-items-center my-1" [formGroup]="expenseForm" (ngSubmit)="save()">
-              <div class="form-floating">
-                <input type="text" class="form-control" id="name" placeholder="Personal" formControlName="name" [class.is-invalid]="name?.invalid && name?.touched">
-                <label for="name">Expense Name</label>
-                @if(name?.invalid && name?.touched){
-                <div>
-                  @if(name?.errors?.['required']) {
-                  <div class="text-danger">Expense Name is required.</div>
-                  }
-                </div>
-                }
-              </div>
-              <div class="form-floating">
-                <input type="text" class="form-control" id="date" formControlName="date" [class.is-invalid]="date?.invalid && date?.touched">
-                <label for="date">Date</label>
-                @if(date?.invalid && date?.touched){
-                <div>
-                  @if(date?.errors?.['required']){
-                  <div class="text-danger">Date is required.</div>
-                  }
-                  @if(date?.errors?.['pattern']){
-                  <div class="text-danger">Invalid Date format. (yyyy-MM-dd).</div>
-                  }
-                </div>
-                }
-              </div>
-              <div class="form-floating">
-                <input type="text" class="form-control" id="budget" formControlName="budget" [class.is-invalid]="budget?.invalid && budget?.touched">
-                <label for="budget">Budget</label>
-                @if(budget?.invalid && budget?.touched){
-                <div>
-                  @if(budget?.errors?.['pattern']){
-                  <div class="text-danger">Only numbers is valid.</div>
-                  }
-                </div>
-                }
-              </div>
-              <div class="form-floating">
-                <input type="text" class="form-control" id="amount" formControlName="amount" [class.is-invalid]="amount?.invalid && amount?.touched">
-                <label for="amount">Amount</label>
-                @if(amount?.invalid && amount?.touched){
-                <div>
-                  @if(amount?.errors?.['pattern']){
-                  <div class="text-danger">Invalid amount format. (0000,00)</div>
-                  }
-                </div>
-                }
-              </div>
+            <form class="d-flex justify-content-between align-items-center my-1" [formGroup]="expenseForm"
+              (ngSubmit)="save()">
+
+              <mat-form-field appearance="fill" class="w-100">
+                <mat-label>Expense Name</mat-label>
+                <input matInput id="name" placeholder="Personal" formControlName="name"
+                  [class.is-invalid]="name?.invalid && name?.touched">
+                <mat-error *ngIf="name?.invalid && name?.touched">
+                  <ng-container *ngIf="name?.errors?.['required']">Expense Name is required.</ng-container>
+                </mat-error>
+              </mat-form-field>
+
+
+              <mat-form-field appearance="fill" class="w-100">
+                <mat-label>Date</mat-label>
+                <input matInput type="text" id="date" formControlName="date"
+                  [class.is-invalid]="date?.invalid && date?.touched">
+                <mat-error *ngIf="date?.invalid && date?.touched">
+                  <ng-container *ngIf="date?.errors?.['required']">Date is required.</ng-container>
+                  <ng-container *ngIf="date?.errors?.['pattern']">Invalid Date format. (yyyy-MM-dd).</ng-container>
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="fill" class="w-100">
+                <mat-label>Budget</mat-label>
+                <input matInput type="text" id="budget" formControlName="budget"
+                  [class.is-invalid]="budget?.invalid && budget?.touched">
+                <mat-error *ngIf="budget?.invalid && budget?.touched">
+                  <ng-container *ngIf="budget?.errors?.['pattern']">Only numbers are valid.</ng-container>
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="fill" class="w-100">
+                <mat-label>Amount</mat-label>
+                <input matInput type="text" id="amount" formControlName="amount"
+                  [class.is-invalid]="amount?.invalid && amount?.touched">
+                <mat-error *ngIf="amount?.invalid && amount?.touched">
+                  <ng-container *ngIf="amount?.errors?.['pattern']">Invalid amount format. (0000,00)</ng-container>
+                </mat-error>
+              </mat-form-field>
+
               <div class="btn-group">
-                <button class="btn btn-secondary" type="button" (click)="cancelEdit()">Cancel</button>
-                <button class="btn btn-success" type="submit" [disabled]="expenseForm.invalid">
-                  <fa-icon [icon]="faFloppyDisk"></fa-icon>
+                <button mat-button type="button" (click)="cancelEdit()">Cancel</button>
+                <button mat-raised-button color="primary" type="submit" [disabled]="expenseForm.invalid">
+                  <fa-icon [icon]="faFloppyDisk"></fa-icon> Save
                 </button>
               </div>
             </form>
