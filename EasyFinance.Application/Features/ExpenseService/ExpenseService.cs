@@ -29,9 +29,11 @@ namespace EasyFinance.Application.Features.ExpenseService
 
         public async Task<Expense> GetByIdAsync(Guid expenseId)
         {
-            return await this.unitOfWork.ExpenseRepository.NoTrackable()
+            return await this.unitOfWork.ExpenseRepository.Trackable()
                 .Include(e => e.Items.OrderBy(item => item.Date))
+                    .ThenInclude(e => e.CreatedBy)
                 .Include(e => e.Attachments)
+                .Include(e => e.CreatedBy)
                 .FirstOrDefaultAsync(p => p.Id == expenseId);
         }
 
