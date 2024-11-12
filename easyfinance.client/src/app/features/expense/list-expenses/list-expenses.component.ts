@@ -22,6 +22,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 
 @Component({
   selector: 'app-list-expenses',
@@ -40,6 +41,7 @@ import { MatIcon } from '@angular/material/icon';
     MatInput,
     MatButton,
     MatIcon,
+    MatDatepickerModule,
   ],
   templateUrl: './list-expenses.component.html',
   styleUrl: './list-expenses.component.css'
@@ -142,12 +144,13 @@ export class ListExpensesComponent implements OnInit {
     this.expenseForm = new FormGroup({
       id: new FormControl(expense.id),
       name: new FormControl(expense.name, [Validators.required]),
-      date: new FormControl(newDate.getFullYear() + '-' + String(newDate.getMonth() + 1).padStart(2, '0') + '-' + String(newDate.getDate()).padStart(2, '0'), [Validators.required, Validators.pattern('^\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])$')]),
+      date: new FormControl(newDate, [Validators.required]),
       amount: new FormControl(expense.amount?.toString().replace('.', ',') ?? 0, [Validators.pattern('(\\d+)?(\\,\\d{1,2})?')]),
       budget: new FormControl(expense.budget ?? 0, [Validators.pattern('[0-9]*')]),
     });
 
     if (this.editingExpense?.items?.length ?? 0 > 0) {
+      this.expenseForm.controls['date'].disable();
       this.expenseForm.controls['amount'].disable();
     }
   }
@@ -225,5 +228,34 @@ export class ListExpensesComponent implements OnInit {
     }
 
     return 'danger';
+  }
+
+  getFormFieldErrors(fieldName: string): string[] {
+    const control = this.expenseForm.get(fieldName);
+    const errors: string[] = [];
+
+    if (control && control.errors) {
+      for (const key in control.errors) {
+        if (control.errors.hasOwnProperty(key)) {
+          switch (key) {
+            case 'required':
+              errors.push('This field is required.');
+              break;
+            case 'pattern':
+              if (fieldName === 'budget') {
+                errors.push('Only numbers is valid.');
+              }
+              if (fieldName === 'amount') {
+                errors.push('Invalid amount format. (0000,00)');
+              }
+              break;
+            default:
+              errors.push(control.errors[key]);
+          }
+        }
+      }
+    }
+
+    return errors;
   }
 }
