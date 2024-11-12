@@ -61,51 +61,54 @@
           </div>
           } @else {
           <div>
-            <form class="d-flex justify-content-between align-items-center my-1" [formGroup]="expenseForm"
-              (ngSubmit)="save()">
+            <form [formGroup]="expenseForm" (ngSubmit)="save()">
+              <div class="row">
+                <mat-form-field appearance="fill" class="col-md-6">
+                  <mat-label>Expense Name</mat-label>
+                  <input matInput id="name" placeholder="Personal" formControlName="name"
+                    [class.is-invalid]="name?.invalid && name?.touched">
+                  @if (name?.invalid && name?.touched){
+                  <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error }}</mat-error>
+                  }
+                </mat-form-field>
+  
+                <mat-form-field appearance="fill" class="col-md-6">
+                  <mat-label>Date</mat-label>
+                  <input matInput [matDatepicker]="picker" formControlName="date">
+                  <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                  <mat-datepicker #picker></mat-datepicker>
+                  @if (date?.invalid && date?.touched){
+                  <mat-error *ngFor="let error of getFormFieldErrors('date')">{{ error }}</mat-error>
+                  }
+                </mat-form-field>
+              </div>
 
-              <mat-form-field appearance="fill" class="w-100">
-                <mat-label>Expense Name</mat-label>
-                <input matInput id="name" placeholder="Personal" formControlName="name"
-                  [class.is-invalid]="name?.invalid && name?.touched">
-                <mat-error *ngIf="name?.invalid && name?.touched">
-                  <ng-container *ngIf="name?.errors?.['required']">Expense Name is required.</ng-container>
-                </mat-error>
-              </mat-form-field>
+              <div class="row">
+                <mat-form-field appearance="fill" class="col-md-6">
+                  <mat-label>Budget</mat-label>
+                  <input matInput type="text" id="budget" formControlName="budget"
+                    [class.is-invalid]="budget?.invalid && budget?.touched">
+                  <span matTextPrefix>€&nbsp;</span>
+                  @if (budget?.invalid && budget?.touched){
+                  <mat-error *ngFor="let error of getFormFieldErrors('budget')">{{ error }}</mat-error>
+                  }
+                </mat-form-field>
 
-
-              <mat-form-field appearance="fill" class="w-100">
-                <mat-label>Date</mat-label>
-                <input matInput type="text" id="date" formControlName="date"
-                  [class.is-invalid]="date?.invalid && date?.touched">
-                <mat-error *ngIf="date?.invalid && date?.touched">
-                  <ng-container *ngIf="date?.errors?.['required']">Date is required.</ng-container>
-                  <ng-container *ngIf="date?.errors?.['pattern']">Invalid Date format. (yyyy-MM-dd).</ng-container>
-                </mat-error>
-              </mat-form-field>
-
-              <mat-form-field appearance="fill" class="w-100">
-                <mat-label>Budget</mat-label>
-                <input matInput type="text" id="budget" formControlName="budget"
-                  [class.is-invalid]="budget?.invalid && budget?.touched">
-                <mat-error *ngIf="budget?.invalid && budget?.touched">
-                  <ng-container *ngIf="budget?.errors?.['pattern']">Only numbers are valid.</ng-container>
-                </mat-error>
-              </mat-form-field>
-
-              <mat-form-field appearance="fill" class="w-100">
-                <mat-label>Amount</mat-label>
-                <input matInput type="text" id="amount" formControlName="amount"
-                  [class.is-invalid]="amount?.invalid && amount?.touched">
-                <mat-error *ngIf="amount?.invalid && amount?.touched">
-                  <ng-container *ngIf="amount?.errors?.['pattern']">Invalid amount format. (0000,00)</ng-container>
-                </mat-error>
-              </mat-form-field>
+                <mat-form-field appearance="fill" class="col-md-6">
+                  <mat-label>Amount</mat-label>
+                  <input matInput type="text" id="amount" formControlName="amount"
+                    [class.is-invalid]="amount?.invalid && amount?.touched">
+                  <span matTextPrefix>€&nbsp;</span>
+                  @if (amount?.invalid && amount?.touched){
+                  <mat-error *ngFor="let error of getFormFieldErrors('amount')">{{ error }}</mat-error>
+                  }
+                </mat-form-field>
+              </div>
 
               <div class="btn-group">
                 <button mat-button type="button" (click)="cancelEdit()">Cancel</button>
                 <button mat-raised-button color="primary" type="submit" [disabled]="expenseForm.invalid">
-                  <fa-icon [icon]="faFloppyDisk"></fa-icon> Save
+                  <fa-icon [icon]="faFloppyDisk"></fa-icon>
                 </button>
               </div>
             </form>

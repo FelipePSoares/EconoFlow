@@ -17,9 +17,9 @@ describe('EconoFlow - expense add Tests', () => {
 
             cy.visit('/projects/' + project.id + '/categories/' + category.id + '/add-expense')
 
-            cy.get('#name').type(expense.name)
-            cy.get('#budget').type(expense.budget)
-            cy.get('#amount').type(expense.amount)
+            cy.get('input[formControlName=name]').type(expense.name)
+            cy.get('input[formControlName=budget]').type(expense.budget)
+            cy.get('input[formControlName=amount]').type(expense.amount)
 
             cy.get('button').contains('Create').click();
 

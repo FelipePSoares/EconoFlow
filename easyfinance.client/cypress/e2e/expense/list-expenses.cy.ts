@@ -21,7 +21,7 @@ describe('EconoFlow - expense list Tests', () => {
       const value = `name_${Math.random()}`;
 
       cy.get('button[name=edit]').first().click()
-      cy.get('#name').clear().type(`${value}{enter}`)
+      cy.get('input[formControlName=name]').clear().type(`${value}{enter}`)
 
       cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(200)
@@ -32,10 +32,9 @@ describe('EconoFlow - expense list Tests', () => {
     it('should update date after success update', () => {
       const today = new Date()
       today.setDate(Math.floor(Math.random() * today.getDate()) + 1)
-      const todayFormated = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
 
       cy.get('button[name=edit]').first().click()
-      cy.get('#date').clear().type(`${todayFormated}{enter}`)
+      cy.get('input[formControlName=date]').clear().type(`${today.toLocaleDateString('pt-PT')}{enter}`)
 
       cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(200)
@@ -47,7 +46,7 @@ describe('EconoFlow - expense list Tests', () => {
       let value = Math.floor(Math.random() * 1000);
 
       cy.get('button[name=edit]').first().click()
-      cy.get('#budget').clear().type(`${value}{enter}`)
+      cy.get('input[formControlName=budget]').clear().type(`${value}{enter}`)
       
       cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(200)
@@ -59,7 +58,7 @@ describe('EconoFlow - expense list Tests', () => {
       let value = Math.floor(Math.random() * 1000);
 
       cy.get('button[name=edit]').first().click()
-      cy.get('#amount').clear().type(`${value}{enter}`)
+      cy.get('input[formControlName=amount]').clear().type(`${value}{enter}`)
       
       cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(200)
