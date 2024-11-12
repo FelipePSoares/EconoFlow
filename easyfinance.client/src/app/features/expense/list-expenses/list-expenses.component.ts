@@ -17,6 +17,11 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPenToSquare, faTrash, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 import { dateUTC } from '../../../core/utils/date/date';
+import { MatFormField } from '@angular/material/form-field';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
 
 @Component({
   selector: 'app-list-expenses',
@@ -29,7 +34,12 @@ import { dateUTC } from '../../../core/utils/date/date';
     AddButtonComponent,
     ReturnButtonComponent,
     FontAwesomeModule,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
+    MatFormField,
+    MatFormFieldModule,
+    MatInput,
+    MatButton,
+    MatIcon,
   ],
   templateUrl: './list-expenses.component.html',
   styleUrl: './list-expenses.component.css'
@@ -68,7 +78,7 @@ export class ListExpensesComponent implements OnInit {
       .subscribe(
         {
           next: res => { this.expenses.next(res); }
-        });
+      });
   }
 
   get id() {
@@ -112,17 +122,17 @@ export class ListExpensesComponent implements OnInit {
 
       this.expenseService.update(this.projectId, this.categoryId, id, patch).subscribe({
         next: response => {
-          this.editingExpense.name = response.name;
-          this.editingExpense.date = response.date;
-          this.editingExpense.budget = response.budget;
-          this.editingExpense.amount = response.amount;
-          this.editingExpense = new ExpenseDto();
-        },
+            this.editingExpense.name = response.name;
+            this.editingExpense.date = response.date;
+            this.editingExpense.budget = response.budget;
+            this.editingExpense.amount = response.amount;
+            this.editingExpense = new ExpenseDto();
+          },
         error: error => {
-          this.httpErrors = true;
-          this.errors = error;
+            this.httpErrors = true;
+            this.errors = error;
         }
-      });
+        });
     }
   }
 
