@@ -42,6 +42,19 @@ describe('EconoFlow - expense list Tests', () => {
       })
     })
   
+    it('should show error after failed update', () => {
+      const today = new Date()
+      today.setMonth(today.getMonth() + 1);
+
+      cy.get('button[name=edit]').first().click()
+      cy.get('input[formControlName=date]').clear().type(`${today.toLocaleDateString('pt-PT')}{enter}`)
+
+      cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
+        expect(response?.statusCode).to.equal(400)
+        cy.get('mat-error').should('have.text', 'You can\u0027t add future expense/income')
+      })
+    })
+  
     it('should update budget after success update', () => {
       let value = Math.floor(Math.random() * 1000);
 

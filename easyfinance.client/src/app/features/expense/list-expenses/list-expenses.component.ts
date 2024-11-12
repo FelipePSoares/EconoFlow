@@ -23,6 +23,8 @@ import { MatInput } from '@angular/material/input';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
+import { ApiErrorResponse } from 'src/app/core/models/error';
+import { ErrorMessageService } from 'src/app/core/services/error-message.service';
 
 @Component({
   selector: 'app-list-expenses',
@@ -66,7 +68,7 @@ export class ListExpensesComponent implements OnInit {
   @Input({ required: true })
   categoryId!: string;
 
-  constructor(public expenseService: ExpenseService, private router: Router) {
+  constructor(public expenseService: ExpenseService, private router: Router, private errorMessageService: ErrorMessageService) {
   }
 
   ngOnInit(): void {
@@ -130,9 +132,11 @@ export class ListExpensesComponent implements OnInit {
             this.editingExpense.amount = response.amount;
             this.editingExpense = new ExpenseDto();
           },
-        error: error => {
-            this.httpErrors = true;
-            this.errors = error;
+        error: (response: ApiErrorResponse) => {
+          this.httpErrors = true;
+          this.errors = response.errors;
+
+          this.errorMessageService.setFormErrors(this.expenseForm, this.errors);
         }
         });
     }
