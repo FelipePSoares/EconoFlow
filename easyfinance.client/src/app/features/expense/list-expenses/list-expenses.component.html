@@ -67,7 +67,7 @@
                   <mat-label>Expense Name</mat-label>
                   <input matInput id="name" placeholder="Personal" formControlName="name"
                     [class.is-invalid]="name?.invalid && name?.touched">
-                  @if (name?.invalid && name?.touched){
+                  @if ((name?.invalid && name?.touched) || httpErrors){
                   <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error }}</mat-error>
                   }
                 </mat-form-field>
@@ -77,7 +77,7 @@
                   <input matInput [matDatepicker]="picker" formControlName="date">
                   <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                   <mat-datepicker #picker></mat-datepicker>
-                  @if (date?.invalid && date?.touched){
+                  @if ((date?.invalid && date?.touched) || httpErrors){
                   <mat-error *ngFor="let error of getFormFieldErrors('date')">{{ error }}</mat-error>
                   }
                 </mat-form-field>
@@ -89,7 +89,7 @@
                   <input matInput type="text" id="budget" formControlName="budget"
                     [class.is-invalid]="budget?.invalid && budget?.touched">
                   <span matTextPrefix>€&nbsp;</span>
-                  @if (budget?.invalid && budget?.touched){
+                  @if ((budget?.invalid && budget?.touched) || httpErrors){
                   <mat-error *ngFor="let error of getFormFieldErrors('budget')">{{ error }}</mat-error>
                   }
                 </mat-form-field>
@@ -99,7 +99,7 @@
                   <input matInput type="text" id="amount" formControlName="amount"
                     [class.is-invalid]="amount?.invalid && amount?.touched">
                   <span matTextPrefix>€&nbsp;</span>
-                  @if (amount?.invalid && amount?.touched){
+                  @if ((amount?.invalid && amount?.touched) || httpErrors){
                   <mat-error *ngFor="let error of getFormFieldErrors('amount')">{{ error }}</mat-error>
                   }
                 </mat-form-field>

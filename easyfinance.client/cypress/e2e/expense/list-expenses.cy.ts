@@ -48,7 +48,6 @@ describe('EconoFlow - expense list Tests', () => {
 
       cy.get('button[name=edit]').first().click()
       cy.get('input[formControlName=date]').clear().type(`${today.toLocaleDateString('pt-PT')}{enter}`)
-      cy.get('input[formControlName=date]').blur()
 
       cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(400)
