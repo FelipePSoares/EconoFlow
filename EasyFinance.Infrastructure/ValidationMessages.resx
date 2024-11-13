@@ -153,4 +153,7 @@
   <data name="InvalidCurrencyCode" xml:space="preserve">
     <value>Invalid currency code</value>
   </data>
+  <data name="InvalidTimeZone" xml:space="preserve">
+    <value>Invalid time zone</value>
+  </data>
 </root>

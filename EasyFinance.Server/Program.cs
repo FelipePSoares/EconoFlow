@@ -19,9 +19,8 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Newtonsoft.Json.Converters;
 using SendGrid.Extensions.DependencyInjection;
 using Serilog;
+using System.Globalization;
 using System.Net;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography.X509Certificates;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -121,11 +120,11 @@ if (app.Environment.IsDevelopment())
     using var serviceScope = app.Services.CreateScope();
     var unitOfWork = serviceScope.ServiceProvider.GetRequiredService<IUnitOfWork>();
     var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<User>>();
-
-    var user = new User("Teste", "Admin", true)
+    var ri = new RegionInfo("pt");
+    var user = new User(firstName: "Test", lastName: "Admin", preferredCurrency: ri.ISOCurrencySymbol, timeZoneId: TimeZoneInfo.Local.Id, enabled: true)
     {
-        UserName = "teste@teste.com",
-        Email = "teste@teste.com",
+        UserName = "test@test.com",
+        Email = "test@test.com",
         EmailConfirmed = true
     };
     userManager.CreateAsync(user, "Passw0rd!").GetAwaiter().GetResult();

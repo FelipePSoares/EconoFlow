@@ -79,7 +79,6 @@ namespace EasyFinance.Persistence.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("PreferredCurrency")
-                        .IsRequired()
                         .HasMaxLength(3)
                         .HasColumnType("nvarchar(3)");
 
@@ -87,7 +86,6 @@ namespace EasyFinance.Persistence.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TimeZoneId")
-                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 

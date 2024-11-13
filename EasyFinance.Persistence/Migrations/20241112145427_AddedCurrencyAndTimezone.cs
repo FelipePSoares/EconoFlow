@@ -15,7 +15,7 @@ namespace EasyFinance.Persistence.Migrations
                 table: "AspNetUsers",
                 type: "nvarchar(3)",
                 maxLength: 3,
-                nullable: false,
+                nullable: true,
                 defaultValue: "EUR");
 
             migrationBuilder.AddColumn<string>(
@@ -23,7 +23,7 @@ namespace EasyFinance.Persistence.Migrations
                 table: "AspNetUsers",
                 type: "nvarchar(255)",
                 maxLength: 255,
-                nullable: false,
+                nullable: true,
                 defaultValue: "UTC");
         }
 

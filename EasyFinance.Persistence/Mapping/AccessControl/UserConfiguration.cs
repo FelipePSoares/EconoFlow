@@ -22,12 +22,10 @@ namespace EasyFinance.Persistence.Mapping.AccessControl
                 .IsRequired();
 
             builder.Property(p => p.PreferredCurrency)
-                .HasMaxLength(3)
-                .IsRequired();
+                .HasMaxLength(3);
 
             builder.Property(p => p.TimeZoneId)
-                .HasMaxLength(255)
-                .IsRequired();
+                .HasMaxLength(255);
         }
     }
 }

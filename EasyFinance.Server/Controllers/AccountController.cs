@@ -39,7 +39,7 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> SetUserNameAsync([FromBody]UserRequestDTO userDTO)
+        public async Task<IActionResult> UpdateUserAsync([FromBody]UserRequestDTO userDTO)
         {
             var id = this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier);
             var user = await this.userManager.FindByIdAsync(id.Value);
@@ -49,6 +49,12 @@ namespace EasyFinance.Server.Controllers
 
             user.SetFirstName(userDTO.FirstName);
             user.SetLastName(userDTO.LastName);
+            
+            if (!string.IsNullOrEmpty(userDTO.PreferredCurrency))
+                user.SetPreferredCurrency(userDTO.PreferredCurrency);
+
+            if (!string.IsNullOrEmpty(userDTO.TimeZoneId))
+                user.SetTimezone(userDTO.TimeZoneId);
 
             await this.userManager.UpdateAsync(user);
             await this.signInManager.RefreshSignInAsync(user);
