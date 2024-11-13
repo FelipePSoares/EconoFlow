@@ -150,4 +150,10 @@
   <data name="CantAddExpenseItemWithDifferentYearOrMonthFromExpense" xml:space="preserve">
     <value>Can't add an expense item with different year o r month from expense</value>
   </data>
+  <data name="InvalidCurrencyCode" xml:space="preserve">
+    <value>Invalid currency code</value>
+  </data>
+  <data name="InvalidTimeZone" xml:space="preserve">
+    <value>Invalid time zone</value>
+  </data>
 </root>

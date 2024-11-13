@@ -23,6 +23,18 @@ namespace EasyFinance.Common.Tests.AccessControl
             return this;
         }
 
+        public UserBuilder AddPreferredCurrency(string preferredCurrency)
+        {
+            this.user.SetPreferredCurrency(preferredCurrency);
+            return this;
+        }
+
+        public UserBuilder AddTimezone(string timezoneId)
+        {
+            this.user.SetTimezone(timezoneId);
+            return this;
+        }
+
         public UserBuilder AddEnabled(bool enabled)
         {
             this.user.Enabled = enabled;

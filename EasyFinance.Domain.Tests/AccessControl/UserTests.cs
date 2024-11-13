@@ -30,5 +30,51 @@ namespace EasyFinance.Domain.Tests.AccessControl
                 .WithMessage(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, "LastName"))
                 .And.Property.Should().Be("LastName");
         }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void AddPreferredCurrency_SendNullAndEmpty_ShouldThrowException(string preferredCurrency)
+        {
+            var action = () => new UserBuilder().AddPreferredCurrency(preferredCurrency).Build();
+
+            action.Should().Throw<ValidationException>()
+                .WithMessage(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, "PreferredCurrency"))
+                .And.Property.Should().Be("PreferredCurrency");
+        }
+
+        [Theory]
+        [InlineData("Test")]
+        public void AddPreferredCurrency_SendInvalid_ShouldThrowException(string preferredCurrency)
+        {
+            var action = () => new UserBuilder().AddPreferredCurrency(preferredCurrency).Build();
+
+            action.Should().Throw<ValidationException>()
+                .WithMessage(ValidationMessages.InvalidCurrencyCode)
+                .And.Property.Should().Be("PreferredCurrency");
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void AddTimezone_SendNullAndEmpty_ShouldThrowException(string timezoneId)
+        {
+            var action = () => new UserBuilder().AddTimezone(timezoneId).Build();
+
+            action.Should().Throw<ValidationException>()
+                .WithMessage(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, "TimeZoneId"))
+                .And.Property.Should().Be("TimeZoneId");
+        }
+
+        [Theory]
+        [InlineData("Test")]
+        public void AddTimezone_SendInvalid_ShouldThrowException(string timezoneId)
+        {
+            var action = () => new UserBuilder().AddTimezone(timezoneId).Build();
+
+            action.Should().Throw<ValidationException>()
+                .WithMessage(ValidationMessages.InvalidTimeZone)
+                .And.Property.Should().Be("TimeZoneId");
+        }
     }
 }

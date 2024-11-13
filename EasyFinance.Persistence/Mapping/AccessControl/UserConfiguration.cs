@@ -20,6 +20,12 @@ namespace EasyFinance.Persistence.Mapping.AccessControl
 
             builder.Property(p => p.Enabled)
                 .IsRequired();
+
+            builder.Property(p => p.PreferredCurrency)
+                .HasMaxLength(3);
+
+            builder.Property(p => p.TimeZoneId)
+                .HasMaxLength(255);
         }
     }
 }
