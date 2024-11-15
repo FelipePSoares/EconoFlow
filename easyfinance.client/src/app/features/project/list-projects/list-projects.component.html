@@ -15,7 +15,7 @@
         </div>
       </div>
 
-      
+
 
       <div class="list-group list-group-flush">
         @for (project of (projects$ | async); track project.id){
@@ -24,7 +24,7 @@
                 'btn-default': project.id != this.editingProject.id
               }">
           @if(project.id != this.editingProject.id) {
-          <div (click)="select(project.id)">
+          <div (click)="select(project.id, project.name)">
             <div class="d-flex justify-content-between align-items-center">
               <div>
                 <h2 class="mb-1">{{ project.name }}</h2>

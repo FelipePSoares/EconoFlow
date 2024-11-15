@@ -37,6 +37,7 @@ export class DetailProjectComponent implements OnInit {
   btnCategory = 'Category';
   @Input({ required: true })
   projectId!: string;
+  projectName!: string;
   month: { budget: number, waste: number, remaining: number, earned: number; } = { budget: 0, waste: 0, remaining: 0, earned: 0 };
   year: { budget: number, waste: number, remaining: number, earned: number; } = { budget: 0, waste: 0, remaining: 0, earned: 0 };
   buttons: string[] = [this.btnIncome, this.btnCategory];
@@ -45,6 +46,7 @@ export class DetailProjectComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.projectName = this.route.snapshot.queryParams['name'];
     this.fillData(CurrentDateComponent.currentDate);
   }
 

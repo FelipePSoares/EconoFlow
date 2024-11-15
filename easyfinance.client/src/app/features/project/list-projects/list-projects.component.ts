@@ -55,7 +55,7 @@ export class ListProjectsComponent implements OnInit {
           next: res => {
             if (ListProjectsComponent.firstAccess && res.length == 1) {
               ListProjectsComponent.firstAccess = false;
-              this.select(res[0].id);
+              this.select(res[0].id, res[0].name);
             }
             this.projects.next(res);
           }
@@ -70,8 +70,10 @@ export class ListProjectsComponent implements OnInit {
     this.router.navigate(['/add-project']);
   }
 
-  select(id: string): void {
-    this.router.navigate(['/projects', id]);
+  select(id: string, name: string): void {
+    this.router.navigate(['/projects', id], {
+      queryParams: { name }
+    });
   }
 
   save(): void {
@@ -99,7 +101,7 @@ export class ListProjectsComponent implements OnInit {
       });
     }
   }
-  
+
   edit(project: ProjectDto): void {
     this.editingProject = project;
     this.projectForm = new FormGroup({
