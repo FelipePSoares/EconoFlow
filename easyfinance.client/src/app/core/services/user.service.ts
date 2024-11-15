@@ -36,10 +36,11 @@ export class UserService {
     localStorage.removeItem(USER_DATA);
   }
 
-  public setUserInfo(firstName: string, lastName: string): Observable<User> {
+  public setUserInfo(firstName: string, lastName: string, preferredCurrency: string): Observable<User> {
     return this.http.put('/api/account/', {
       firstName: firstName,
-      lastName: lastName
+      lastName: lastName,
+      preferredCurrency: preferredCurrency
     }).pipe(concatMap(res => {
         return this.refreshUserInfo();
       }));

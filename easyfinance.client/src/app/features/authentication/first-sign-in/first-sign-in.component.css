@@ -8,3 +8,7 @@
   z-index: 1;
   backdrop-filter: blur(3px);
 }
+
+::ng-deep .cdk-overlay-container {
+  z-index: 9999;
+}

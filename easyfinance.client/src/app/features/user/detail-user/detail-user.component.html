@@ -20,62 +20,72 @@
       <form [formGroup]="userForm" (ngSubmit)="save()">
         <div class="row g-2 mb-2">
           <div class="col-md">
-            <div class="form-floating">
-              <input type="text" class="form-control" id="firstName" formControlName="firstName" [class.is-invalid]="firstName?.invalid && firstName?.touched">
-              <label for="firstName">First Name</label>
-              @if(firstName?.invalid && firstName?.touched){
-              <div>
-                <ul>
-                  @for (error of getFormFieldErrors(userForm, 'firstName'); track $index) {
-                  <li class="text-danger" [innerHtml]="error"></li>
-                  }
-                </ul>
-              </div>
+            <!-- First Name Field -->
+            <mat-form-field appearance="fill" class="w-100">
+              <mat-label>First Name</mat-label>
+              <input matInput formControlName="firstName">
+              @if (firstName?.invalid && firstName?.touched){
+              <mat-error *ngFor="let error of getFormFieldErrors(userForm, 'firstName')">{{ error }}</mat-error>
               }
-            </div>
+            </mat-form-field>
           </div>
           <div class="col-md">
-            <div class="form-floating">
-              <input type="text" class="form-control" id="lastName" formControlName="lastName" [class.is-invalid]="lastName?.invalid && lastName?.touched">
-              <label for="lastName">Last Name</label>
-              @if(lastName?.invalid && lastName?.touched){
-              <div>
-                <ul>
-                  @for (error of getFormFieldErrors(userForm, 'lastName'); track $index) {
-                  <li class="text-danger" [innerHtml]="error"></li>
-                  }
-                </ul>
-              </div>
+            <!-- Last Name Field -->
+            <mat-form-field appearance="fill" class="w-100">
+              <mat-label>Last Name</mat-label>
+              <input matInput formControlName="lastName">
+              @if (lastName?.invalid && lastName?.touched){
+              <mat-error *ngFor="let error of getFormFieldErrors(userForm, 'lastName')">{{ error }}</mat-error>
               }
-            </div>
+            </mat-form-field>
           </div>
         </div>
-        <div class="input-group mb-2">
-          <div class="form-floating">
-            <input type="text" class="form-control" id="email" formControlName="email" [class.is-invalid]="email?.invalid && email?.touched">
-            <label for="email">Email</label>
+
+        <div class="row g-2 mb-2">
+          <div class="col-md">
+            <mat-form-field appearance="fill" class="w-100">
+              <mat-label>Email</mat-label>
+              <input matInput formControlName="email">
+              @if (email?.invalid && email?.touched){
+              <mat-error *ngFor="let error of getFormFieldErrors(userForm, 'email')">{{ error }}</mat-error>
+              }
+              <ng-container matIconSuffix *ngIf="user$ | async as user">
+                <fa-icon class="emailCheck"
+                         [icon]="user.emailConfirmed ? faCircleCheck : faCircleXmark"
+                         [style.color]="user.emailConfirmed ? '#2ecc71' : '#c0392b'">
+                </fa-icon>
+              </ng-container>
+            </mat-form-field>
           </div>
-          <ng-container *ngIf="user$ | async as user">
-            <fa-icon class="input-group-text"
-                     [icon]="user.emailConfirmed ? faCircleCheck : faCircleXmark"
-                     [style.color]="user.emailConfirmed ? '#2ecc71' : '#c0392b'">
-            </fa-icon>
-          </ng-container>
+
+          <div class="col-md">
+            <!-- Preferred Currency Field -->
+            <mat-form-field appearance="fill" class="w-100">
+              <mat-label>Preferred Currency</mat-label>
+              <mat-select formControlName="preferredCurrency">
+                @for (currency of getCurrencies(); track currency) {
+                <mat-option [value]="currency">{{currency}}</mat-option>
+                }
+                @if (preferredCurrency?.invalid && preferredCurrency?.touched){
+                <mat-error *ngFor="let error of getFormFieldErrors(userForm, 'preferredCurrency')">{{ error }}</mat-error>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
         </div>
-        @if(email?.invalid && email?.touched){
-        <div>
-          <ul>
-            @for (error of getFormFieldErrors(userForm, 'email'); track $index) {
-            <li class="text-danger" [innerHtml]="error"></li>
-            }
-          </ul>
+
+        <!-- General Error Display -->
+        <div *ngIf="httpErrors && errors['general']">
+          <p class="mb-3 text-danger text-center">{{ errors['general'] }}</p>
         </div>
-        }
+
         @if(this.userForm.enabled){
         <div class="clearfix">
           <div class="float-end">
             <button type="button" (click)="reset()" class="btn btn-secondary">Cancel</button>
-            <button type="submit" class="btn btn-primary ms-1">Save</button>
+            <button mat-raised-button color="primary" type="submit" [disabled]="userForm.invalid">
+              Save
+            </button>
           </div>
         </div>
         }
