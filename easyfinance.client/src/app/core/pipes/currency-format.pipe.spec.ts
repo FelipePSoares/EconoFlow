@@ -1,31 +1,60 @@
+import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { CurrencyPipe } from '@angular/common';
 import { CurrencyFormatPipe } from './currency-format.pipe';
 import { registerLocaleData } from '@angular/common';
 import localeDe from '@angular/common/locales/de';
+import { Observable } from 'rxjs';
+import { User } from '../models/user';
+import { UserService } from '../services/user.service';
+import { HttpClient } from '@angular/common/http';
 
 //registerLocaleData(localeDe); enable to test de-DE
 
 describe('CurrencyFormatPipe', () => {
+  let userService: UserService;
+  let httpMock: HttpTestingController;
+  let user: User;
+
   let pipe: CurrencyFormatPipe;
   let currencyPipe: CurrencyPipe;
 
-  beforeEach(() => {
-    currencyPipe = new CurrencyPipe('en-US'); // change currency in order to test different currency
-    pipe = new CurrencyFormatPipe(currencyPipe);
+  beforeEach(async () => {
+    user = new User();
+
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
+      providers: [UserService],
+    });
+    userService = TestBed.inject(UserService);
+    httpMock = TestBed.inject(HttpTestingController);
+
+    currencyPipe = new CurrencyPipe('en-US');
+    pipe = new CurrencyFormatPipe(currencyPipe, userService);
   });
 
-  it('should format the Euro amount correctly for German locale (de-DE)', () => {
-    const amount = 1234.56;
-    const preferedCurrency = 'EUR';
-    const result = pipe.transform(amount, preferedCurrency);
+  it('should format the Euro amount correctly for EUR preferences', () => {
+    userService.refreshUserInfo().subscribe();
+    const req = httpMock.expectOne('/api/account/');
 
-    expect(result).toEqual('1.234,56\u00A0€');
+    user.preferredCurrency = 'EUR';
+    req.flush(user);
+
+    const amount = 1234.56;
+    const result = pipe.transform(amount);
+
+    expect(result).toEqual('€1,234.56');
   });
 
-  it('should format the Dollars amount correctly for US locale (en-US)', () => {
+  it('should format the Dollars amount correctly for USD preferences', () => {
+    userService.refreshUserInfo().subscribe();
+    const req = httpMock.expectOne('/api/account/');
+
+    user.preferredCurrency = 'USD';
+    req.flush(user);
+
     const amount = 1234.56;
-    const preferedCurrency = 'USD';
-    const result = pipe.transform(amount, preferedCurrency);
+    const result = pipe.transform(amount);
 
     expect(result).toEqual('$1,234.56');
   });

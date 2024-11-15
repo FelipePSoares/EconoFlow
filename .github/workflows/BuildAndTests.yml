@@ -35,9 +35,12 @@ jobs:
       with:
         node-version: '18.x'
 
-    - name: Install Cypress dependencies
+    - name: Install dependencies
       run: npm install
       working-directory: ./easyfinance.client
+
+    - name: Run Angular tests
+      run: npm test -- --watch=false --browsers=ChromeHeadless
 
     - name: Run Cypress tests
       run: npx cypress run
