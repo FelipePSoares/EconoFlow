@@ -60,8 +60,7 @@ describe('EconoFlow - income list Tests', () => {
       
       cy.wait<IncomeReq, IncomeRes>('@patchIncomes').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(200)
-        cy.get('.amount').first().contains(`${value}`)
+        cy.get('.amount').first().contains(`${value.toString().replace(',', '.') }`)
       })
     })
 })
-  
