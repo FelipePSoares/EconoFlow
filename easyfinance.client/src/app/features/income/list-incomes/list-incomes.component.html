@@ -29,7 +29,7 @@
               <div>
                 <h5 class="mb-1 name">{{ income.name }}</h5>
                 <p class="mb-1 date">{{ income.date | date: 'dd/MM/yyyy' }}</p>
-                <p class="mb-1 amount">{{ income.amount | currency }}</p>
+                <p class="mb-1 amount">{{ income.amount | currencyFormat }}</p>
               </div>
               <div class="btn-group">
                 <button name="edit" class="btn btn-secondary" (click)="edit(income)">

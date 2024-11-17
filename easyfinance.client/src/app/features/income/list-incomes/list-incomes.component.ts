@@ -15,6 +15,7 @@ import { AddButtonComponent } from '../../../core/components/add-button/add-butt
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { dateUTC } from '../../../core/utils/date/date';
+import { CurrencyFormatPipe } from '../../../core/pipes/currency-format.pipe';
 
 @Component({
   selector: 'app-list-incomes',
@@ -28,6 +29,7 @@ import { dateUTC } from '../../../core/utils/date/date';
     AddButtonComponent,
     ReturnButtonComponent,
     CurrentDateComponent,
+    CurrencyFormatPipe,
   ],
   templateUrl: './list-incomes.component.html',
   styleUrl: './list-incomes.component.css'

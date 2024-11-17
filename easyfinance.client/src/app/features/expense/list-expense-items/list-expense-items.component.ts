@@ -4,7 +4,6 @@ import { ExpenseItemDto } from '../models/expense-item-dto';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ExpenseService } from '../../../core/services/expense.service';
-import { ExpenseItem } from '../../../core/models/expense-item';
 import { mapper } from '../../../core/utils/mappings/mapper';
 import { Expense } from '../../../core/models/expense';
 import { ExpenseDto } from '../models/expense-dto';
@@ -16,6 +15,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPenToSquare, faTrash, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 import { dateUTC } from '../../../core/utils/date/date';
+import { CurrencyFormatPipe } from '../../../core/pipes/currency-format.pipe';
 
 @Component({
   selector: 'app-list-expense-items',
@@ -27,7 +27,8 @@ import { dateUTC } from '../../../core/utils/date/date';
     AddButtonComponent,
     ReturnButtonComponent,
     FontAwesomeModule,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
+    CurrencyFormatPipe,
   ],
   templateUrl: './list-expense-items.component.html',
   styleUrl: './list-expense-items.component.css'

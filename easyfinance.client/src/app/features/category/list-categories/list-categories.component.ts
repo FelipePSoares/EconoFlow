@@ -14,6 +14,7 @@ import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/
 import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
+import { CurrencyFormatPipe } from '../../../core/pipes/currency-format.pipe';
 
 @Component({
   selector: 'app-list-categories',
@@ -27,6 +28,7 @@ import { CurrentDateComponent } from '../../../core/components/current-date/curr
     AddButtonComponent,
     ReturnButtonComponent,
     CurrentDateComponent,
+    CurrencyFormatPipe
   ],
   templateUrl: './list-categories.component.html',
   styleUrl: './list-categories.component.css'

@@ -25,6 +25,7 @@ import { MatIcon } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { ApiErrorResponse } from 'src/app/core/models/error';
 import { ErrorMessageService } from 'src/app/core/services/error-message.service';
+import { CurrencyFormatPipe } from '../../../core/pipes/currency-format.pipe';
 
 @Component({
   selector: 'app-list-expenses',
@@ -44,6 +45,7 @@ import { ErrorMessageService } from 'src/app/core/services/error-message.service
     MatButton,
     MatIcon,
     MatDatepickerModule,
+    CurrencyFormatPipe,
   ],
   templateUrl: './list-expenses.component.html',
   styleUrl: './list-expenses.component.css'

@@ -31,7 +31,8 @@ export const MY_FORMATS = {
     CommonModule,
     RouterOutlet,
     NavBarComponent,
-    SpinnerComponent],
+    SpinnerComponent,
+  ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
   providers: [
@@ -44,6 +45,7 @@ export const MY_FORMATS = {
     { provide: MAT_DATE_FORMATS, useValue: MY_FORMATS },
   ]
 })
+
 export class AppComponent {
 
   constructor(public authService: AuthService) { }
