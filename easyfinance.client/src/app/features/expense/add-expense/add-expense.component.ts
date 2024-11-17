@@ -10,11 +10,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { CommonModule } from '@angular/common';
+import { CommonModule, getCurrencySymbol } from '@angular/common';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { todayUTC } from '../../../core/utils/date/date';
+import { UserService } from '../../../core/services/user.service';
 
 @Component({
   selector: 'app-add-expense',
@@ -46,7 +47,7 @@ export class AddExpenseComponent implements OnInit {
   @Input({ required: true })
   categoryId!: string;
 
-  constructor(private expenseService: ExpenseService, private router: Router, private route: ActivatedRoute, private errorMessageService: ErrorMessageService) { }
+  constructor(private expenseService: ExpenseService, private userService: UserService, private router: Router, private route: ActivatedRoute, private errorMessageService: ErrorMessageService) { }
 
   ngOnInit(): void {
     this.currentDate = todayUTC();

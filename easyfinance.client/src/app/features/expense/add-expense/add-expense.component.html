@@ -42,7 +42,6 @@
         <mat-form-field appearance="fill" class="w-100">
           <mat-label>Budget</mat-label>
           <input matInput formControlName="budget">
-          <span matTextPrefix>€&nbsp;</span>
           @if (budget?.invalid && budget?.touched){
           <mat-error *ngFor="let error of getFormFieldErrors('budget')">{{ error }}</mat-error>
           }
@@ -52,7 +51,6 @@
         <mat-form-field appearance="fill" class="w-100">
           <mat-label>Amount</mat-label>
           <input matInput formControlName="amount">
-          <span matTextPrefix>€&nbsp;</span>
           @if (amount?.invalid && amount?.touched){
           <mat-error *ngFor="let error of getFormFieldErrors('amount')">{{ error }}</mat-error>
           }

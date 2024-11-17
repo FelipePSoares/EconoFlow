@@ -15,6 +15,7 @@ import { CommonModule } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faArrowUp, faArrowDown } from '@fortawesome/free-solid-svg-icons';
 import { ProjectService } from '../../../core/services/project.service';
+import { CurrencyFormatPipe } from '../../../core/pipes/currency-format.pipe';
 
 @Component({
   selector: 'app-detail-project',
@@ -24,7 +25,8 @@ import { ProjectService } from '../../../core/services/project.service';
     CurrentDateComponent,
     AddButtonComponent,
     ReturnButtonComponent,
-    FontAwesomeModule
+    FontAwesomeModule,
+    CurrencyFormatPipe,
   ],
   templateUrl: './detail-project.component.html',
   styleUrl: './detail-project.component.css'
