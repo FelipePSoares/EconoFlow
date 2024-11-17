@@ -11,7 +11,9 @@ describe('EconoFlow - Register Tests', () => {
         cy.visit('/')
 
         cy.get('input[formControlName=firstName]').type('Test')
-        cy.get('input[formControlName=lastName]').type(`Test{enter}`)
+        cy.get('input[formControlName=lastName]').type(`Test`)
+        cy.get('mat-select[formControlName=preferredCurrency]').click().get('mat-option').contains('EUR').click()
+        cy.get('button').contains('Send').click();
 
         cy.wait<UserReq, UserRes>('@putAccount').then(({ request, response }) => {
           expect(response?.statusCode).to.equal(200)

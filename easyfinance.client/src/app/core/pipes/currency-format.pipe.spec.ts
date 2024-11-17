@@ -1,15 +1,9 @@
-import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { CurrencyPipe } from '@angular/common';
 import { CurrencyFormatPipe } from './currency-format.pipe';
-import { registerLocaleData } from '@angular/common';
-import localeDe from '@angular/common/locales/de';
-import { Observable } from 'rxjs';
 import { User } from '../models/user';
 import { UserService } from '../services/user.service';
-import { HttpClient } from '@angular/common/http';
-
-//registerLocaleData(localeDe); enable to test de-DE
 
 describe('CurrencyFormatPipe', () => {
   let userService: UserService;
@@ -19,7 +13,7 @@ describe('CurrencyFormatPipe', () => {
   let pipe: CurrencyFormatPipe;
   let currencyPipe: CurrencyPipe;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     user = new User();
 
     TestBed.configureTestingModule({

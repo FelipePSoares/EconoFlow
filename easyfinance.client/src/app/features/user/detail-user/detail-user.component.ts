@@ -9,6 +9,12 @@ import { AsyncPipe, CommonModule } from '@angular/common';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { passwordMatchValidator } from '../../../core/utils/custom-validators/password-match-validator';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatSelectModule } from '@angular/material/select';
+import { MatOptionModule } from '@angular/material/core';
+import { CurrencyService } from '../../../core/services/currency.service';
 
 @Component({
   selector: 'app-detail-user',
@@ -18,7 +24,13 @@ import { passwordMatchValidator } from '../../../core/utils/custom-validators/pa
     FormsModule,
     AsyncPipe,
     ReactiveFormsModule,
-    FontAwesomeModule],
+    FontAwesomeModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatSelectModule,
+    MatOptionModule,
+  ],
   templateUrl: './detail-user.component.html',
   styleUrl: './detail-user.component.css'
 })
@@ -41,7 +53,7 @@ export class DetailUserComponent implements OnInit {
   httpErrors = false;
   errors!: { [key: string]: string };
 
-  constructor(private userService: UserService, private errorMessageService: ErrorMessageService) {
+  constructor(private userService: UserService, private currencyService: CurrencyService, private errorMessageService: ErrorMessageService) {
     this.user$ = this.userService.loggedUser$;
   }
 
@@ -55,6 +67,7 @@ export class DetailUserComponent implements OnInit {
       this.userForm = new FormGroup({
         firstName: new FormControl(user.firstName, [Validators.required]),
         lastName: new FormControl(user.lastName, [Validators.required]),
+        preferredCurrency: new FormControl(user.preferredCurrency, [Validators.required]),
         email: new FormControl(user.email, [Validators.required, Validators.email]),
       });
 
@@ -85,9 +98,13 @@ export class DetailUserComponent implements OnInit {
   get lastName() {
     return this.userForm.get('lastName');
   }
+  get preferredCurrency() {
+    return this.userForm.get('preferredCurrency');
+  }
   get email() {
     return this.userForm.get('email');
   }
+
   get oldPassword() {
     return this.passwordForm.get('oldPassword');
   }
@@ -103,11 +120,12 @@ export class DetailUserComponent implements OnInit {
       const firstName = this.firstName?.value;
       const lastName = this.lastName?.value;
       const email = this.email?.value;
+      const preferredCurrency = this.preferredCurrency?.value;
 
       this.userForm.disable();
 
-      if (firstName !== this.editingUser.firstName || lastName !== this.editingUser.lastName) {
-        this.userService.setUserInfo(firstName, lastName).subscribe({
+      if (firstName !== this.editingUser.firstName || lastName !== this.editingUser.lastName || preferredCurrency !== this.editingUser.preferredCurrency) {
+        this.userService.setUserInfo(firstName, lastName, preferredCurrency).subscribe({
           next: response => { },
           error: (response: ApiErrorResponse) => {
             this.userForm.enable();
@@ -190,5 +208,9 @@ export class DetailUserComponent implements OnInit {
   showPasswordForm(): void {
     this.resetPasswordForm();
     this.passwordFormActive = true;
+  }
+
+  getCurrencies(): string[] {
+    return this.currencyService.getAvailableCurrencies();
   }
 }
