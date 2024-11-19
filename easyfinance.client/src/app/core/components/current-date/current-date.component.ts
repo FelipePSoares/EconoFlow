@@ -5,12 +5,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faArrowLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 
-import { provideMomentDateAdapter } from '@angular/material-moment-adapter';
-import * as _moment from 'moment';
 import { Moment } from 'moment';
 import { dateUTC, todayUTC } from '../../utils/date/date';
-
-const moment = _moment;
 
 @Component({
   selector: 'app-current-date',
@@ -24,17 +20,6 @@ const moment = _moment;
   templateUrl: './current-date.component.html',
   styleUrl: './current-date.component.css',
   providers: [
-    provideMomentDateAdapter({
-      parse: {
-        dateInput: 'MM/YYYY',
-      },
-      display: {
-        dateInput: 'MM/YYYY',
-        monthYearLabel: 'MMM YYYY',
-        dateA11yLabel: 'LL',
-        monthYearA11yLabel: 'MMMM YYYY',
-      },
-    })
   ]
 })
 export class CurrentDateComponent {

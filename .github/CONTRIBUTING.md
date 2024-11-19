@@ -1,3 +1,4 @@
+
 ## Get the source code
 
 *  `git clone git@github.com:FelipePSoares/EconoFlow.git`
@@ -8,10 +9,42 @@
 
 Just run in debug mode.
 
+### Running tests
+We have 3 type of tests in our application, backend unit tests, frontend unit tests and e2e tests.
+
+backend unit tests:
+* Open Test Explorer window and run. 
+
+frontend unit tests:
+* Open Package Manager Console.
+* Select `easyfinance.client` as Default Project
+* Run `npm test`
+
+e2e tests:
+* Open Package Manager Console.
+* Select `easyfinance.client` as Default Project
+* Run `npx cypress open`
+* It'll open a new window just select and run the desired tests.
+
 ## Running on VS Code
 
 to run on VS Code you will need to run the following command line on root path:
-* `dotnet run --project ./EasyFinance.Server --urls https://localhost:7003/`
+`dotnet run --project ./EasyFinance.Server --urls https://localhost:7003/`
+
+### Running tests
+We have 3 type of tests in our application, backend unit tests, frontend unit tests and e2e tests.
+
+backend unit tests:
+* Run `dotnet test` on root folder of the project
+
+frontend unit tests:
+* On folder `easyfinance.client`
+* Run `npm test`
+
+e2e tests:
+* On folder `easyfinance.client`
+* Run `npx cypress open`
+* It'll open a new window just select and run the desired tests.
 
 ## Generating migration
 
