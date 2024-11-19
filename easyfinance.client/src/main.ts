@@ -7,9 +7,10 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { routes } from './app/features/app-routing.module';
 import { HttpRequestInterceptor } from './app/core/interceptor/http-request-interceptor';
 import { LoadingInterceptor } from './app/core/interceptor/loading.interceptor';
-import localeGB from '@angular/common/locales/en-GB';
-import { CurrencyPipe, registerLocaleData } from '@angular/common';
-import { LOCALE_ID, DEFAULT_CURRENCY_CODE } from '@angular/core';
+import { CurrencyPipe } from '@angular/common';
+import { APP_INITIALIZER } from '@angular/core';
+import { loadAngularLocale } from './app/core/utils/loaders/angular-locale-loader';
+import { loadMomentLocale } from './app/core/utils/loaders/moment-locale-loader';
 
 import { AppComponent } from './app/features/app.component';
 import { createMap } from '@automapper/core';
@@ -28,18 +29,14 @@ import { ExpenseDto } from './app/features/expense/models/expense-dto';
 import { ExpenseItemDto } from './app/features/expense/models/expense-item-dto';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 
-registerLocaleData(localeGB, 'en-GB');
 
 bootstrapApplication(AppComponent, {
   providers: [
     CurrencyPipe,
     {
-      provide: LOCALE_ID,
-      useValue: 'en-GB'
-    },
-    {
-      provide: DEFAULT_CURRENCY_CODE,
-      useValue: 'EUR'
+      provide: APP_INITIALIZER,
+      useFactory: appInitializerFactory,
+      multi: true
     },
     provideAnimations(),
     provideRouter(routes, withComponentInputBinding()),
@@ -52,3 +49,11 @@ createMap(mapper, Income, IncomeDto);
 createMap(mapper, Category, CategoryDto);
 createMap(mapper, Expense, ExpenseDto);
 createMap(mapper, ExpenseItem, ExpenseItemDto);
+
+function appInitializerFactory(): () => Promise<void> {
+  return async () => {
+    const browserLang = navigator.language || 'en-US';
+    await loadAngularLocale(browserLang);
+    await loadMomentLocale(browserLang);
+  };
+}

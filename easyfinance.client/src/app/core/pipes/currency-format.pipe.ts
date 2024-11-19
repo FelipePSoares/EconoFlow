@@ -16,6 +16,6 @@ export class CurrencyFormatPipe implements PipeTransform {
   }
 
   transform(amount: number): string | null {
-    return this.currencyPipe.transform(amount, this.preferredCurrency);
+    return this.currencyPipe.transform(amount,  this.preferredCurrency, "symbol", undefined, navigator.language);
   }
 }
