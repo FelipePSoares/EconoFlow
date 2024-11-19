@@ -99,7 +99,10 @@ export class AddExpenseItemComponent implements OnInit {
     if (this.expenseItemForm.valid) {
       let name = this.name?.value;
       let date = this.date?.value;
-      let amount = this.amount?.value.replace('.', '').replace(',', '.');
+      let amount = this.amount?.value;
+      if (isNaN(amount)) {
+        amount = this.amount?.value.replace('.', '')?.replace(',', '.');
+      }
 
       var newExpenseItem = <ExpenseItemDto>({
         name: name,

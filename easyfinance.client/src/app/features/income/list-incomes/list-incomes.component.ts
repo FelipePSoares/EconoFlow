@@ -102,7 +102,10 @@ export class ListIncomesComponent implements OnInit {
       const id = this.id?.value;
       const name = this.name?.value;
       const date = this.date?.value;
-      const amount = this.amount?.value.replace('.', '').replace(',', '.');
+      let amount = this.amount?.value;
+      if (isNaN(amount)) {
+        amount = this.amount?.value.replace('.', '')?.replace(',', '.');
+      }
 
       var newIncome = <IncomeDto>({
         id: id,

@@ -58,7 +58,7 @@ export class AddExpenseComponent implements OnInit {
     this.expenseForm = new FormGroup({
       name: new FormControl('', [Validators.required]),
       date: new FormControl(this.currentDate, [Validators.required]),
-      amount: new FormControl('', [Validators.pattern('(\\d+)?(\\,\\d{1,2})?')]),
+      amount: new FormControl('', [Validators.pattern('^\\d+(\\.\\d{1,2})?$')]),
       budget: new FormControl('', [Validators.pattern('[0-9]*')]),
     });
   }
@@ -79,7 +79,10 @@ export class AddExpenseComponent implements OnInit {
     if (this.expenseForm.valid) {
       let name = this.name?.value;
       let date = this.date?.value;
-      let amount = this.amount?.value.replace('.', '').replace(',', '.');
+      let amount = this.amount?.value;
+      if (isNaN(amount)) {
+        amount = this.amount?.value.replace('.', '')?.replace(',', '.');
+      }
       let budget = this.budget?.value;
 
       var newExpense = <ExpenseDto>({

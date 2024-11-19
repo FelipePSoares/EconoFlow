@@ -86,7 +86,7 @@
               <div class="row">
                 <mat-form-field appearance="fill" class="col-md-6">
                   <mat-label>Budget</mat-label>
-                  <input matInput type="text" id="budget" formControlName="budget"
+                  <input matInput type="number" step="1" min="0" id="budget" formControlName="budget"
                     [class.is-invalid]="budget?.invalid && budget?.touched">
                   <span matTextPrefix>€&nbsp;</span>
                   @if ((budget?.invalid && budget?.touched) || httpErrors){
@@ -96,7 +96,7 @@
 
                 <mat-form-field appearance="fill" class="col-md-6">
                   <mat-label>Amount</mat-label>
-                  <input matInput type="text" id="amount" formControlName="amount"
+                  <input matInput type="number" step="0.01" min="0" id="amount" formControlName="amount"
                     [class.is-invalid]="amount?.invalid && amount?.touched">
                   <span matTextPrefix>€&nbsp;</span>
                   @if ((amount?.invalid && amount?.touched) || httpErrors){

@@ -111,7 +111,10 @@ export class ListExpensesComponent implements OnInit {
       let id = this.id?.value;
       let name = this.name?.value;
       let date = this.date?.value;
-      let amount = this.amount?.value.replace('.', '').replace(',', '.');
+      let amount = this.amount?.value;
+      if (isNaN(amount)) {
+        amount = this.amount?.value.replace('.', '').replace(',', '.');
+      }
       let budget = this.budget?.value;
 
       var newExpense = <ExpenseDto>({

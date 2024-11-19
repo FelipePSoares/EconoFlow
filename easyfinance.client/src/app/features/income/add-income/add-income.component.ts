@@ -54,7 +54,7 @@ export class AddIncomeComponent implements OnInit {
     this.incomeForm = new FormGroup({
       name: new FormControl('', [Validators.required]),
       date: new FormControl(this.currentDate, [Validators.required]),
-      amount: new FormControl('', [Validators.required, Validators.pattern('(\\d+)?(\\,\\d{1,2})?')])
+      amount: new FormControl('', [Validators.required, Validators.pattern('^\\d+(\\.\\d{1,2})?$')])
     });
   }
 
@@ -62,7 +62,10 @@ export class AddIncomeComponent implements OnInit {
     if (this.incomeForm.valid) {
       const name = this.name?.value;
       const date = this.date?.value;
-      const amount = this.amount?.value.replace('.', '').replace(',', '.');
+      let amount = this.amount?.value;
+      if (isNaN(amount)) {
+        amount = this.amount?.value.replace('.', '')?.replace(',', '.');
+      }
 
       var newIncome = <IncomeDto>({
         name: name,
