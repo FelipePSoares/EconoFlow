@@ -22,9 +22,9 @@ Cypress.Commands.add('register', (username, password) => {
         username,
         () => {
             cy.visit('/register')
-            cy.get('#email').type(username)
-            cy.get('#password').type(password)
-            cy.get('#confirmPassword').type(`${password}{enter}`, { log: false })
+            cy.get('input[formControlName=email]').type(username)
+            cy.get('input[formControlName=password]').type(password)
+            cy.get('input[formControlName=confirmPassword]').type(`${password}{enter}`, { force: true, log: false })
             cy.url().should('include', 'login')
 
             cy.login(username, password)
