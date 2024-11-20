@@ -17,7 +17,7 @@
 
         <mat-form-field class="mb-2" [style.width.%]="100">
           <mat-label>Email address</mat-label>
-          <input id="email" placeholder="name@example.com" matInput formControlName="email">
+          <input placeholder="name@example.com" matInput formControlName="email">
           @if ((email?.invalid && email?.touched) || httpErrors){
           <mat-error *ngFor="let error of getFormFieldErrors('email')">{{ error }}</mat-error>
           }
@@ -25,7 +25,7 @@
 
         <mat-form-field class="mb-2" [style.width.%]="100">
           <mat-label>Password</mat-label>
-          <input id="password" placeholder="Passsword" matInput formControlName="password">
+          <input placeholder="Passsword" matInput formControlName="password">
           @if ((password?.invalid && password?.touched) || httpErrors){
           <mat-error *ngFor="let error of getFormFieldErrors('password')">{{ error }}</mat-error>
           }
@@ -33,7 +33,7 @@
 
         <mat-form-field class="mb-2" [style.width.%]="100">
           <mat-label>Confirm Password</mat-label>
-          <input id="confirmPassword" placeholder="Passsword" matInput formControlName="confirmPassword">
+          <input placeholder="Passsword" matInput formControlName="confirmPassword">
           @if ((confirmPassword?.invalid && confirmPassword?.touched) || httpErrors){
           <mat-error *ngFor="let error of getFormFieldErrors('confirmPassword')">{{ error }}</mat-error>
           }

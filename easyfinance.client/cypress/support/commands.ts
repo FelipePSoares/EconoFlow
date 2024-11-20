@@ -1,11 +1,11 @@
 Cypress.Commands.add('login', (username, password) => {
     cy.session(
-        username, 
+        username,
         () => {
             cy.intercept('GET', '/api/account/').as('getAccount')
             cy.visit('/login')
-            cy.get('#username').type(username)
-            cy.get('#password').type(`${password}{enter}`, { log: false })
+            cy.get('input[formControlName=email]').type(username)
+            cy.get('input[formControlName=password]').type(`${password}{enter}`, { log: false })
         },
         {
             validate: () => {
@@ -26,9 +26,9 @@ Cypress.Commands.add('register', (username, password) => {
             cy.get('#password').type(password)
             cy.get('#confirmPassword').type(`${password}{enter}`, { log: false })
             cy.url().should('include', 'login')
-            
+
             cy.login(username, password)
-            
+
             cy.visit('/')
             cy.url().should('include', 'first-signin')
         }
