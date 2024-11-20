@@ -14,24 +14,23 @@
         <div class="form-floating mb-1">
           <p>Please sign in</p>
         </div>
-        <div class="form-floating mb-3">
-          <input type="email" class="form-control" id="username" placeholder="name@example.com" formControlName="email" [class.is-invalid]="email?.invalid && email?.touched">
-          <label for="username">Email address</label>
-          <div *ngIf="email?.invalid && email?.touched">
-            <ul>
-              <li *ngFor="let error of getFormFieldErrors('email')" class="text-danger" [innerHtml]="error"></li>
-            </ul>
-          </div>
-        </div>
-        <div class="form-floating">
-          <input type="password" class="form-control" id="password" placeholder="Password" formControlName="password" [class.is-invalid]="password?.invalid && password?.touched">
-          <label for="password">Password</label>
-          <div *ngIf="password?.invalid && password?.touched">
-            <ul>
-              <li *ngFor="let error of getFormFieldErrors('password')" class="text-danger" [innerHtml]="error"></li>
-            </ul>
-          </div>
-        </div>
+
+        <mat-form-field class="mb-2" [style.width.%]="100">
+          <mat-label>Email address</mat-label>
+          <input id="email" placeholder="name@example.com" matInput formControlName="email">
+          @if ((email?.invalid && email?.touched) || httpErrors){
+          <mat-error *ngFor="let error of getFormFieldErrors('email')">{{ error }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field [style.width.%]="100">
+          <mat-label>Password</mat-label>
+          <input id="password" placeholder="Passsword" matInput formControlName="password">
+          @if ((password?.invalid && password?.touched) || httpErrors){
+          <mat-error *ngFor="let error of getFormFieldErrors('password')">{{ error }}</mat-error>
+          }
+        </mat-form-field>
+
         <a [routerLink]="['/recovery']" class="float-end mb-2" routerLinkActive="active">Forgot password?</a>
         <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="loginForm.invalid">Sign in</button>
         <div *ngIf="httpErrors && errors?.['general']">

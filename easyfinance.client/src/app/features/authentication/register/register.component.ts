@@ -7,11 +7,20 @@ import { passwordMatchValidator } from '../../../core/utils/custom-validators/pa
 import { CommonModule } from '@angular/common';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { take } from 'rxjs';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    RouterLink,
+    MatFormFieldModule,
+    MatInputModule,
+  ],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css']
 })
@@ -27,7 +36,7 @@ export class RegisterComponent implements OnInit{
         this.router.navigate(['/']);
       }
     });
-}
+  }
 
   ngOnInit(){
     this.buildRegisterForm();
@@ -35,10 +44,10 @@ export class RegisterComponent implements OnInit{
 
   buildRegisterForm(){
     this.registerForm = new FormGroup({
-      email: new FormControl('', [Validators.required, Validators.email]),
+        email: new FormControl('', [Validators.required, Validators.email]),
       password: new FormControl('', [Validators.required, Validators.pattern(/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,}$/)]),
       confirmPassword: new FormControl('',[Validators.required])
-    },{validators: passwordMatchValidator}); 
+    },{validators: passwordMatchValidator});
   }
 
   get email() {

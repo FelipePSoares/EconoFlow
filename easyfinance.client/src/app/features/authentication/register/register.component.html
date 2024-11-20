@@ -14,31 +14,31 @@
         <div class="form-floating mb-1">
           <p>Please sign up</p>
         </div>
-        <div class="form-floating mb-3">
-          <input type="email" class="form-control" id="email" placeholder="name@example.com" formControlName="email" [class.is-invalid]="email?.invalid && email?.touched">
-          <label for="email">Email address</label>
-          <div *ngIf="email?.invalid && email?.touched">
-            <ul>
-              <li *ngFor="let error of getFormFieldErrors('email')" class="text-danger" [innerHtml]="error"></li>
-            </ul>
-          </div>
-        </div>
-        <div class="form-floating mb-3">
-          <input type="password" class="form-control" id="password" placeholder="Password" formControlName="password" [class.is-invalid]="password?.invalid && password?.touched">
-          <label for="password">Password</label>
-          <div *ngIf="password?.invalid && password?.touched">
-            <ul>
-              <li *ngFor="let error of getFormFieldErrors('password')" class="text-danger" [innerHtml]="error"></li>
-            </ul>
-          </div>
-        </div>
-        <div class="form-floating mb-3">
-          <input type="password" class="form-control" id="confirmPassword" placeholder="Password" formControlName="confirmPassword" [class.is-invalid]="confirmPassword?.invalid && confirmPassword?.touched">
-          <label for="confirmPassword">Confirm Password</label>
-          <div *ngIf="confirmPassword?.invalid && confirmPassword?.touched">
-            <div *ngIf="confirmPassword?.errors?.['required']" class="text-danger">Password is required.</div>
-          </div>
-        </div>
+
+        <mat-form-field class="mb-2" [style.width.%]="100">
+          <mat-label>Email address</mat-label>
+          <input placeholder="name@example.com" matInput formControlName="email">
+          @if ((email?.invalid && email?.touched) || httpErrors){
+          <mat-error *ngFor="let error of getFormFieldErrors('email')">{{ error }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field class="mb-2" [style.width.%]="100">
+          <mat-label>Password</mat-label>
+          <input placeholder="Passsword" matInput formControlName="password">
+          @if ((password?.invalid && password?.touched) || httpErrors){
+          <mat-error *ngFor="let error of getFormFieldErrors('password')">{{ error }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field class="mb-2" [style.width.%]="100">
+          <mat-label>Confirm Password</mat-label>
+          <input placeholder="Passsword" matInput formControlName="confirmPassword">
+          @if ((confirmPassword?.invalid && confirmPassword?.touched) || httpErrors){
+          <mat-error *ngFor="let error of getFormFieldErrors('confirmPassword')">{{ error }}</mat-error>
+          }
+        </mat-form-field>
+
         <div *ngIf="registerForm.errors?.['passwordMismatch'] && (registerForm.touched || registerForm.dirty)">
           <p class="mb-3 text-danger text-center">Password must match</p>
         </div>
@@ -48,7 +48,7 @@
         <button class="btn btn-primary" type="submit" [disabled]="registerForm.invalid">Sign up</button>
       </form>
       <span class="register-footer">
-        Already have an account? 
+        Already have an account?
         <a [routerLink]="['/login']" routerLinkActive="active">Sign in</a>
       </span>
     </div>
