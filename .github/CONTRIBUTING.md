@@ -1,3 +1,9 @@
+## Prerequisites 
+
+* Node v18.13.0 or higher
+* .NET SDK v8.0
+* Cypress for E2E tests
+
 
 ## Get the source code
 
