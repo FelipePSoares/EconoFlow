@@ -23,82 +23,85 @@
       </div>
 
       <div class="list-group list-group-flush">
-        @for (expenseItem of (expense$ | async)?.items; track expenseItem.id){
-        <div class="list-group-item">
-          @if(expenseItem.id != this.editingExpenseItem.id) {
-          <div>
-            <div class="d-flex justify-content-between align-items-center">
+        @for (expenseItem of (expense$ | async)?.items; track expenseItem.id) {
+          <div class="list-group-item">
+            @if (expenseItem.id != this.editingExpenseItem.id) {
               <div>
-                <h3 class="mb-1">{{ expenseItem.name }}</h3>
-                <p class="mb-1">
-                  date: {{ expenseItem.date | date: 'dd/MM/yyyy' }}
-                  amount: {{ expenseItem.getTotalAmount() | currencyFormat }}
-                </p>
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h3 class="mb-1">{{ expenseItem.name }}</h3>
+                    <p class="mb-1">
+                      date: {{ expenseItem.date | date: 'dd/MM/yyyy' }}
+                      amount: {{ expenseItem.getTotalAmount() | currencyFormat }}
+                    </p>
+                  </div>
+                  <div class="btn-group">
+                    <button class="btn btn-secondary" (click)="edit(expenseItem)">
+                      <fa-icon [icon]="faPenToSquare"></fa-icon>
+                    </button>
+                    <button class="btn btn-danger" (click)="triggerDelete(expenseItem.id)">
+                      <fa-icon [icon]="faTrash"></fa-icon>
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div class="btn-group">
-                <button class="btn btn-secondary" (click)="edit(expenseItem)">
-                  <fa-icon [icon]="faPenToSquare"></fa-icon>
-                </button>
-                <button class="btn btn-danger" (click)="triggerDelete(expenseItem.id)">
-                  <fa-icon [icon]="faTrash"></fa-icon>
-                </button>
+            } @else {
+              <div>
+                <form [formGroup]="expenseItemForm" (ngSubmit)="save()">
+
+                  <div class="row">
+                    <mat-form-field appearance="fill" class="col-md-6">
+                      <mat-label>Expense Name</mat-label>
+                      <input matInput id="name" placeholder="Personal" formControlName="name"
+                             [class.is-invalid]="name?.invalid && name?.touched">
+                      @if ((name?.invalid && name?.touched) || httpErrors) {
+                        <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error }}</mat-error>
+                      }
+                    </mat-form-field>
+
+                    <mat-form-field appearance="fill" class="col-md-6">
+                      <mat-label>Date</mat-label>
+                      <input matInput [matDatepicker]="picker" formControlName="date">
+                      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                      <mat-datepicker #picker></mat-datepicker>
+                      @if ((date?.invalid && date?.touched) || httpErrors) {
+                        <mat-error *ngFor="let error of getFormFieldErrors('date')">{{ error }}</mat-error>
+                      }
+                    </mat-form-field>
+                  </div>
+
+                  <div class="row">
+                    <mat-form-field appearance="fill" class="col-md-6">
+                      <mat-label>Amount</mat-label>
+                      <input matInput type="text" id="amount" formControlName="amount"
+                             [class.is-invalid]="amount?.invalid && amount?.touched">
+                      <span matTextPrefix>€&nbsp;</span>
+                      @if ((amount?.invalid && amount?.touched) || httpErrors) {
+                        <mat-error *ngFor="let error of getFormFieldErrors('amount')">{{ error }}</mat-error>
+                      }
+                    </mat-form-field>
+                  </div>
+
+                  <div class="btn-group">
+                    <button mat-button type="button" (click)="cancelEdit()">Cancel</button>
+                    <button mat-raised-button color="primary" type="submit" [disabled]="expenseItemForm.invalid">
+                      <fa-icon [icon]="faFloppyDisk"></fa-icon>
+                    </button>
+                  </div>
+
+                </form>
+                @if (httpErrors) {
+                  <div>
+                    <p class="mt-5 mb-3 text-danger text-center">{{ errors.statusText }}</p>
+                  </div>
+                }
               </div>
-            </div>
-          </div>
-          } @else {
-          <div>
-            <form class="d-flex justify-content-between align-items-center my-1" [formGroup]="expenseItemForm" (ngSubmit)="save()">
-
-              <mat-form-field appearance="fill" class="col-md-3">
-                <mat-label>Expense Name</mat-label>
-                <input matInput id="name" placeholder="Personal" formControlName="name"
-                       [class.is-invalid]="name?.invalid && name?.touched">
-                @if ((name?.invalid && name?.touched) || httpErrors){
-                  <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error }}</mat-error>
-                }
-              </mat-form-field>
-
-              <mat-form-field appearance="fill" class="col-md-3">
-                <mat-label>Date</mat-label>
-                <input matInput [matDatepicker]="picker" formControlName="date">
-                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-                <mat-datepicker #picker></mat-datepicker>
-                @if ((date?.invalid && date?.touched) || httpErrors){
-                  <mat-error *ngFor="let error of getFormFieldErrors('date')">{{ error }}</mat-error>
-                }
-              </mat-form-field>
-
-              <mat-form-field appearance="fill" class="col-md-3">
-                <mat-label>Amount</mat-label>
-                <input matInput type="text" id="amount" formControlName="amount"
-                       [class.is-invalid]="amount?.invalid && amount?.touched">
-                <span matTextPrefix>€&nbsp;</span>
-                @if ((amount?.invalid && amount?.touched) || httpErrors){
-                  <mat-error *ngFor="let error of getFormFieldErrors('amount')">{{ error }}</mat-error>
-                }
-              </mat-form-field>
-
-              <div class="mb-2 btn-group">
-                <button mat-secondary-button class="btn btn-secondary" type="button" (click)="cancelEdit()">Cancel</button>
-                <button mat-success-button class="btn btn-success" type="submit" [disabled]="expenseItemForm.invalid">
-                  <fa-icon [icon]="faFloppyDisk"></fa-icon>
-                </button>
-              </div>
-
-            </form>
-            @if (httpErrors){
-            <div>
-              <p class="mt-5 mb-3 text-danger text-center">{{errors.statusText}}</p>
-            </div>
             }
           </div>
-          }
-        </div>
-        }
-        @empty {
-        <div class="text-center">
-          No expense created yet.
-        </div>
+        } @empty {
+          <div class="text-center">
+            No expense created yet.
+          </div>
         }
       </div>
     </div>

@@ -26,6 +26,7 @@ import {
 } from '@angular/material/input';
 import {MatButton} from '@angular/material/button';
 import {MatDatepicker, MatDatepickerInput, MatDatepickerToggle} from "@angular/material/datepicker";
+import {CurrentDateComponent} from "../../../core/components/current-date/current-date.component";
 
 @Component({
   selector: 'app-list-expense-items',
@@ -48,7 +49,8 @@ import {MatDatepicker, MatDatepickerInput, MatDatepickerToggle} from "@angular/m
     MatDatepickerToggle,
     MatSuffix,
     MatPrefix,
-    MatButton
+    MatButton,
+    CurrentDateComponent
   ],
   templateUrl: './list-expense-items.component.html',
   styleUrl: './list-expense-items.component.css'
@@ -182,6 +184,7 @@ export class ListExpenseItemsComponent {
       }
     });
   }
+
 
   previous() {
     this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, 'expenses', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
