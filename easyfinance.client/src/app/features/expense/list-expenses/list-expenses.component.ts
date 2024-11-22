@@ -43,7 +43,6 @@ import { CurrencyFormatPipe } from '../../../core/pipes/currency-format.pipe';
     MatFormFieldModule,
     MatInput,
     MatButton,
-    MatIcon,
     MatDatepickerModule,
     CurrencyFormatPipe,
   ],
@@ -253,6 +252,9 @@ export class ListExpensesComponent implements OnInit {
               }
               if (fieldName === 'amount') {
                 errors.push('Invalid amount format. (0000,00)');
+              }
+              if (fieldName === 'date') {
+                errors.push('Invalid date format.');
               }
               break;
             default:

@@ -27,6 +27,8 @@ import {
 import { MatButton } from '@angular/material/button';
 import { MatDatepicker, MatDatepickerInput, MatDatepickerToggle } from "@angular/material/datepicker";
 import { CurrentDateComponent } from "../../../core/components/current-date/current-date.component";
+import { ApiErrorResponse } from "../../../core/models/error";
+import { ErrorMessageService } from "../../../core/services/error-message.service";
 
 @Component({
   selector: 'app-list-expense-items',
@@ -95,7 +97,7 @@ export class ListExpenseItemsComponent {
   @Input({ required: true })
   currentDate!: Date;
 
-  constructor(public expenseService: ExpenseService, private router: Router) {
+  constructor(public expenseService: ExpenseService, private router: Router, private errorMessageService: ErrorMessageService) {
     this.edit(new ExpenseItemDto());
   }
 
@@ -149,9 +151,11 @@ export class ListExpenseItemsComponent {
           this.expense.next(mapper.map(response, Expense, ExpenseDto));
           this.editingExpenseItem = new ExpenseItemDto();
         },
-        error: error => {
+        error: (response: ApiErrorResponse) => {
           this.httpErrors = true;
-          this.errors = error;
+          this.errors = response.errors;
+
+          this.errorMessageService.setFormErrors(this.expenseItemForm, this.errors);
         }
       });
     }
@@ -163,7 +167,7 @@ export class ListExpenseItemsComponent {
     this.expenseItemForm = new FormGroup({
       id: new FormControl(expenseItem.id),
       name: new FormControl(expenseItem.name, [Validators.required]),
-      date: new FormControl(newDate.getFullYear() + '-' + String(newDate.getMonth() + 1).padStart(2, '0') + '-' + String(newDate.getDate()).padStart(2, '0'), [Validators.required, Validators.pattern('^\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])$')]),
+      date: new FormControl(newDate, [Validators.required]),
       amount: new FormControl(expenseItem.amount?.toString().replace('.', ','), [Validators.pattern('(\\d+)?(\\,\\d{1,2})?')]),
     });
   }

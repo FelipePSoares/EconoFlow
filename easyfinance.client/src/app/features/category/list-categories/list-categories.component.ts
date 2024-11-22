@@ -18,6 +18,8 @@ import { CurrencyFormatPipe } from '../../../core/pipes/currency-format.pipe';
 import { MatButton } from "@angular/material/button";
 import { MatError, MatFormField, MatLabel } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
+import { ApiErrorResponse } from "../../../core/models/error";
+import { ErrorMessageService } from "../../../core/services/error-message.service";
 
 @Component({
   selector: 'app-list-categories',
@@ -57,7 +59,7 @@ export class ListCategoriesComponent implements OnInit {
   @Input({ required: true })
   projectId!: string;
 
-  constructor(public categoryService: CategoryService, private router: Router) {
+  constructor(public categoryService: CategoryService, private router: Router, private errorMessageService: ErrorMessageService) {
   }
 
   ngOnInit(): void {
@@ -105,9 +107,11 @@ export class ListCategoriesComponent implements OnInit {
           this.editingCategory.name = response.name;
           this.editingCategory = new CategoryDto();
         },
-        error: error => {
+        error: (response: ApiErrorResponse) => {
           this.httpErrors = true;
-          this.errors = error;
+          this.errors = response.errors;
+
+          this.errorMessageService.setFormErrors(this.categoryForm, this.errors);
         }
       });
     }
