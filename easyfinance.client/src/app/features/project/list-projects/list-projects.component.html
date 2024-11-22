@@ -16,68 +16,68 @@
       </div>
 
 
-
       <div class="list-group list-group-flush">
-        @for (project of (projects$ | async); track project.id){
-        <button class="list-group-item" [ngClass]="{
+        @for (project of (projects$ | async); track project.id) {
+          <button class="list-group-item" [ngClass]="{
                 'list-group-item-action': project.id != this.editingProject.id,
                 'btn-default': project.id != this.editingProject.id
               }">
-          @if(project.id != this.editingProject.id) {
-          <div (click)="select(project.id, project.name)">
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <h2 class="mb-1">{{ project.name }}</h2>
-                <p class="mb-1">{{ project.type }}</p>
-              </div>
-              <div class="btn-group">
-                <button class="btn btn-secondary" (click)="edit(project); $event.stopPropagation();">
-                  <fa-icon [icon]="faPenToSquare"></fa-icon>
-                </button>
-                <button class="btn btn-danger" (click)="triggerDelete(project.id); $event.stopPropagation();">
-                  <fa-icon [icon]="faBoxArchive"></fa-icon>
-                </button>
-              </div>
-            </div>
-          </div>
-          } @else {
-          <div>
-            <form class="d-flex justify-content-between align-items-center my-1" [formGroup]="projectForm" (ngSubmit)="save()">
-              <div class="form-floating">
-                <input type="text" class="form-control" id="name" placeholder="Personal" formControlName="name" [class.is-invalid]="name?.invalid && name?.touched">
-                <label for="name">Project Name</label>
-                @if(name?.invalid && name?.touched){
-                <div>
-                  @if(name?.errors?.['required']) {
-                  <div class="text-danger">Project Name is required.</div>
-                  }
+            @if (project.id != this.editingProject.id) {
+              <div (click)="select(project.id, project.name)">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h2 class="mb-1">{{ project.name }}</h2>
+                    <p class="mb-1">{{ project.type }}</p>
+                  </div>
+                  <div class="btn-group">
+                    <button class="btn btn-secondary" (click)="edit(project); $event.stopPropagation();">
+                      <fa-icon [icon]="faPenToSquare"></fa-icon>
+                    </button>
+                    <button class="btn btn-danger" (click)="triggerDelete(project.id); $event.stopPropagation();">
+                      <fa-icon [icon]="faBoxArchive"></fa-icon>
+                    </button>
+                  </div>
                 </div>
+              </div>
+            } @else {
+              <div>
+                <form [formGroup]="projectForm" (ngSubmit)="save()">
+
+                  <div class="row">
+                    <mat-form-field appearance="fill" class="col-md-6">
+                      <mat-label>Project Name</mat-label>
+                      <input matInput id="name" placeholder="Personal" formControlName="name"
+                             [class.is-invalid]="name?.invalid && name?.touched">
+                      @if ((name?.invalid && name?.touched) || httpErrors) {
+                        <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error }}</mat-error>
+                      }
+                    </mat-form-field>
+
+                    <mat-form-field appearance="fill" class="col-md-6">
+                      <mat-label>Project Type</mat-label>
+                      <input matInput id="type" formControlName="type" readonly>
+                    </mat-form-field>
+                  </div>
+
+                  <div class="btn-group">
+                    <button mat-button type="button" (click)="cancelEdit()">Cancel</button>
+                    <button mat-raised-button color="primary" type="submit" [disabled]="projectForm.invalid">
+                      <fa-icon [icon]="faFloppyDisk"></fa-icon>
+                    </button>
+                  </div>
+                </form>
+                @if (httpErrors) {
+                  <div>
+                    <p class="mt-5 mb-3 text-danger text-center">{{ errors.statusText }}</p>
+                  </div>
                 }
               </div>
-              <div class="form-floating">
-                <input type="text" class="form-control-plaintext" readonly id="type" formControlName="type">
-                <label for="type">Project Type</label>
-              </div>
-              <div class="btn-group">
-                <button class="btn btn-secondary" (click)="cancelEdit()">Cancel</button>
-                <button class="btn btn-success" [disabled]="projectForm.invalid">
-                  <fa-icon [icon]="faFloppyDisk"></fa-icon>
-                </button>
-              </div>
-            </form>
-            @if (httpErrors){
-            <div>
-              <p class="mt-5 mb-3 text-danger text-center">{{errors.statusText}}</p>
-            </div>
             }
+          </button>
+        } @empty {
+          <div class="text-center">
+            No project created yet.
           </div>
-          }
-        </button>
-        }
-        @empty {
-        <div class="text-center">
-          No project created yet.
-        </div>
         }
       </div>
     </div>
