@@ -15,6 +15,9 @@ import { AddButtonComponent } from '../../../core/components/add-button/add-butt
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { CurrencyFormatPipe } from '../../../core/pipes/currency-format.pipe';
+import { MatButton } from "@angular/material/button";
+import { MatError, MatFormField, MatLabel } from "@angular/material/form-field";
+import { MatInput } from "@angular/material/input";
 
 @Component({
   selector: 'app-list-categories',
@@ -28,7 +31,12 @@ import { CurrencyFormatPipe } from '../../../core/pipes/currency-format.pipe';
     AddButtonComponent,
     ReturnButtonComponent,
     CurrentDateComponent,
-    CurrencyFormatPipe
+    CurrencyFormatPipe,
+    MatButton,
+    MatError,
+    MatFormField,
+    MatInput,
+    MatLabel
   ],
   templateUrl: './list-categories.component.html',
   styleUrl: './list-categories.component.css'
@@ -38,7 +46,6 @@ export class ListCategoriesComponent implements OnInit {
   faPenToSquare = faPenToSquare;
   faBoxArchive = faBoxArchive;
   faFloppyDisk = faFloppyDisk;
-  private _currentDate!: Date;
   private categories: BehaviorSubject<CategoryDto[]> = new BehaviorSubject<CategoryDto[]>([new CategoryDto()]);
   categories$: Observable<CategoryDto[]> = this.categories.asObservable();
   categoryForm!: FormGroup;
@@ -63,13 +70,16 @@ export class ListCategoriesComponent implements OnInit {
       .pipe(map(categories => mapper.mapArray(categories, Category, CategoryDto)))
       .subscribe(
         {
-          next: res => { this.categories.next(res); }
+          next: res => {
+            this.categories.next(res);
+          }
         });
   }
 
   get id() {
     return this.categoryForm.get('id');
   }
+
   get name() {
     return this.categoryForm.get('name');
   }
@@ -83,12 +93,12 @@ export class ListCategoriesComponent implements OnInit {
       const id = this.id?.value;
       const name = this.name?.value;
 
-      var newCategory = <CategoryDto>({
+      const newCategory = <CategoryDto>({
         id: id,
         name: name,
         expenses: this.editingCategory.expenses
-      })
-      var patch = compare(this.editingCategory, newCategory);
+      });
+      const patch = compare(this.editingCategory, newCategory);
 
       this.categoryService.update(this.projectId, id, patch).subscribe({
         next: response => {
@@ -125,7 +135,9 @@ export class ListCategoriesComponent implements OnInit {
         const categoriesNewArray: CategoryDto[] = this.categories.getValue();
 
         categoriesNewArray.forEach((item, index) => {
-          if (item.id === id) { categoriesNewArray.splice(index, 1); }
+          if (item.id === id) {
+            categoriesNewArray.splice(index, 1);
+          }
         });
 
         this.categories.next(categoriesNewArray);
@@ -184,5 +196,26 @@ export class ListCategoriesComponent implements OnInit {
     }
 
     return 'danger';
+  }
+
+  getFormFieldErrors(fieldName: string): string[] {
+    const control = this.categoryForm.get(fieldName);
+    const errors: string[] = [];
+
+    if (control && control.errors) {
+      for (const key in control.errors) {
+        if (control.errors.hasOwnProperty(key)) {
+          switch (key) {
+            case 'required':
+              errors.push('This field is required.');
+              break;
+            default:
+              errors.push(control.errors[key]);
+          }
+        }
+      }
+    }
+
+    return errors;
   }
 }

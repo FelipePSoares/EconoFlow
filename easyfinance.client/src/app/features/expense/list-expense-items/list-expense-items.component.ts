@@ -24,9 +24,9 @@ import {
   MatPrefix,
   MatSuffix
 } from '@angular/material/input';
-import {MatButton} from '@angular/material/button';
-import {MatDatepicker, MatDatepickerInput, MatDatepickerToggle} from "@angular/material/datepicker";
-import {CurrentDateComponent} from "../../../core/components/current-date/current-date.component";
+import { MatButton } from '@angular/material/button';
+import { MatDatepicker, MatDatepickerInput, MatDatepickerToggle } from "@angular/material/datepicker";
+import { CurrentDateComponent } from "../../../core/components/current-date/current-date.component";
 
 @Component({
   selector: 'app-list-expense-items',
@@ -57,7 +57,6 @@ import {CurrentDateComponent} from "../../../core/components/current-date/curren
 })
 export class ListExpenseItemsComponent {
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
-  expenseForm!: FormGroup;
   faPenToSquare = faPenToSquare;
   faFloppyDisk = faFloppyDisk;
   faTrash = faTrash;
@@ -79,6 +78,7 @@ export class ListExpenseItemsComponent {
   get expenseId(): string {
     return this._expenseId;
   }
+
   @Input({ required: true })
   set expenseId(expenseId: string) {
     this._expenseId = expenseId;
@@ -86,7 +86,9 @@ export class ListExpenseItemsComponent {
       .pipe(map(expense => mapper.map(expense, Expense, ExpenseDto)))
       .subscribe(
         {
-          next: res => { this.expense.next(res); }
+          next: res => {
+            this.expense.next(res);
+          }
         });
   }
 
@@ -100,12 +102,15 @@ export class ListExpenseItemsComponent {
   get id() {
     return this.expenseItemForm.get('id');
   }
+
   get name() {
     return this.expenseItemForm.get('name');
   }
+
   get date() {
     return this.expenseItemForm.get('date');
   }
+
   get amount() {
     return this.expenseItemForm.get('amount');
   }
@@ -128,7 +133,7 @@ export class ListExpenseItemsComponent {
         }
       })
 
-      var newExpense = <ExpenseDto>({
+      const newExpense = <ExpenseDto>({
         id: expense.id,
         name: expense.name,
         date: expense.date,
@@ -137,7 +142,7 @@ export class ListExpenseItemsComponent {
         items: expenseItemsNewArray
       });
 
-      var patch = compare(expense, newExpense);
+      const patch = compare(expense, newExpense);
 
       this.expenseService.update(this.projectId, this.categoryId, this.expenseId, patch).subscribe({
         next: response => {
@@ -177,7 +182,9 @@ export class ListExpenseItemsComponent {
         let expenseUpdated: ExpenseDto = this.expense.getValue();
 
         expenseUpdated.items.forEach((item, index) => {
-          if (item.id === id) { expenseUpdated.items.splice(index, 1); }
+          if (item.id === id) {
+            expenseUpdated.items.splice(index, 1);
+          }
         });
 
         this.expense.next(expenseUpdated);
@@ -202,7 +209,7 @@ export class ListExpenseItemsComponent {
   }
 
   getFormFieldErrors(fieldName: string): string[] {
-    const control = this.expenseForm.get(fieldName);
+    const control = this.expenseItemForm.get(fieldName);
     const errors: string[] = [];
 
     if (control && control.errors) {
@@ -213,9 +220,6 @@ export class ListExpenseItemsComponent {
               errors.push('This field is required.');
               break;
             case 'pattern':
-              if (fieldName === 'budget') {
-                errors.push('Only numbers is valid.');
-              }
               if (fieldName === 'amount') {
                 errors.push('Invalid amount format. (0000,00)');
               }
