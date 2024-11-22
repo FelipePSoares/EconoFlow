@@ -29,17 +29,17 @@
               <div>
                 <div class="d-flex justify-content-between align-items-center">
                   <div>
-                    <h3 class="mb-1">{{ expenseItem.name }}</h3>
-                    <p class="mb-1">
+                    <h3 class="mb-1 name">{{ expenseItem.name }}</h3>
+                    <p class="mb-1 info">
                       date: {{ expenseItem.date | date: 'dd/MM/yyyy' }}
                       amount: {{ expenseItem.getTotalAmount() | currencyFormat }}
                     </p>
                   </div>
                   <div class="btn-group">
-                    <button class="btn btn-secondary" (click)="edit(expenseItem)">
+                    <button class="btn btn-secondary" name="edit" (click)="edit(expenseItem)">
                       <fa-icon [icon]="faPenToSquare"></fa-icon>
                     </button>
-                    <button class="btn btn-danger" (click)="triggerDelete(expenseItem.id)">
+                    <button class="btn btn-danger" name="remove" (click)="triggerDelete(expenseItem.id)">
                       <fa-icon [icon]="faTrash"></fa-icon>
                     </button>
                   </div>
@@ -73,11 +73,10 @@
                   <div class="row">
                     <mat-form-field appearance="fill" class="col-md-6">
                       <mat-label>Amount</mat-label>
-                      <input matInput type="text" id="amount" formControlName="amount"
-                             [class.is-invalid]="amount?.invalid && amount?.touched">
-                      <span matTextPrefix>€&nbsp;</span>
+                      <span matTextPrefix>{{ currencySymbol }}&nbsp;</span>
+                      <input matInput type="text" inputmode="decimal" formControlName="amount">
                       @if ((amount?.invalid && amount?.touched) || httpErrors) {
-                        <mat-error *ngFor="let error of getFormFieldErrors('amount')">{{ error }}</mat-error>
+                      <mat-error *ngFor="let error of getFormFieldErrors('amount')">{{ error }}</mat-error>
                       }
                     </mat-form-field>
                   </div>

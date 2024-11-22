@@ -14,7 +14,7 @@ import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/
 import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
-import { CurrencyFormatPipe } from '../../../core/pipes/currency-format.pipe';
+import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
 import { MatButton } from "@angular/material/button";
 import { MatError, MatFormField, MatLabel } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
