@@ -7,6 +7,7 @@ import { ApiErrorResponse } from '../../../core/models/error';
 import { take } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import {MatIcon} from "@angular/material/icon";
 
 @Component({
   selector: 'app-login',
@@ -18,6 +19,7 @@ import { MatInputModule } from '@angular/material/input';
     RouterLink,
     MatFormFieldModule,
     MatInputModule,
+    MatIcon,
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
@@ -26,6 +28,7 @@ export class LoginComponent implements OnInit {
   loginForm!: FormGroup;
   httpErrors = false;
   errors!: { [key: string]: string };
+  hide = true;
 
   constructor(private authService: AuthService, private router: Router) {
     this.authService.isSignedIn$.pipe(take(1)).subscribe(value => {
