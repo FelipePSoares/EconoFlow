@@ -16,6 +16,19 @@ import { faPenToSquare, faTrash, faFloppyDisk } from '@fortawesome/free-solid-sv
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 import { dateUTC } from '../../../core/utils/date/date';
 import { CurrencyFormatPipe } from '../../../core/pipes/currency-format.pipe';
+import {
+  MatError,
+  MatFormField,
+  MatInput,
+  MatLabel,
+  MatPrefix,
+  MatSuffix
+} from '@angular/material/input';
+import { MatButton } from '@angular/material/button';
+import { MatDatepicker, MatDatepickerInput, MatDatepickerToggle } from "@angular/material/datepicker";
+import { CurrentDateComponent } from "../../../core/components/current-date/current-date.component";
+import { ApiErrorResponse } from "../../../core/models/error";
+import { ErrorMessageService } from "../../../core/services/error-message.service";
 
 @Component({
   selector: 'app-list-expense-items',
@@ -29,6 +42,17 @@ import { CurrencyFormatPipe } from '../../../core/pipes/currency-format.pipe';
     FontAwesomeModule,
     ConfirmDialogComponent,
     CurrencyFormatPipe,
+    MatFormField,
+    MatLabel,
+    MatError,
+    MatInput,
+    MatDatepicker,
+    MatDatepickerInput,
+    MatDatepickerToggle,
+    MatSuffix,
+    MatPrefix,
+    MatButton,
+    CurrentDateComponent
   ],
   templateUrl: './list-expense-items.component.html',
   styleUrl: './list-expense-items.component.css'
@@ -56,6 +80,7 @@ export class ListExpenseItemsComponent {
   get expenseId(): string {
     return this._expenseId;
   }
+
   @Input({ required: true })
   set expenseId(expenseId: string) {
     this._expenseId = expenseId;
@@ -63,26 +88,31 @@ export class ListExpenseItemsComponent {
       .pipe(map(expense => mapper.map(expense, Expense, ExpenseDto)))
       .subscribe(
         {
-          next: res => { this.expense.next(res); }
+          next: res => {
+            this.expense.next(res);
+          }
         });
   }
 
   @Input({ required: true })
   currentDate!: Date;
 
-  constructor(public expenseService: ExpenseService, private router: Router) {
+  constructor(public expenseService: ExpenseService, private router: Router, private errorMessageService: ErrorMessageService) {
     this.edit(new ExpenseItemDto());
   }
 
   get id() {
     return this.expenseItemForm.get('id');
   }
+
   get name() {
     return this.expenseItemForm.get('name');
   }
+
   get date() {
     return this.expenseItemForm.get('date');
   }
+
   get amount() {
     return this.expenseItemForm.get('amount');
   }
@@ -105,7 +135,7 @@ export class ListExpenseItemsComponent {
         }
       })
 
-      var newExpense = <ExpenseDto>({
+      const newExpense = <ExpenseDto>({
         id: expense.id,
         name: expense.name,
         date: expense.date,
@@ -114,16 +144,18 @@ export class ListExpenseItemsComponent {
         items: expenseItemsNewArray
       });
 
-      var patch = compare(expense, newExpense);
+      const patch = compare(expense, newExpense);
 
       this.expenseService.update(this.projectId, this.categoryId, this.expenseId, patch).subscribe({
         next: response => {
           this.expense.next(mapper.map(response, Expense, ExpenseDto));
           this.editingExpenseItem = new ExpenseItemDto();
         },
-        error: error => {
+        error: (response: ApiErrorResponse) => {
           this.httpErrors = true;
-          this.errors = error;
+          this.errors = response.errors;
+
+          this.errorMessageService.setFormErrors(this.expenseItemForm, this.errors);
         }
       });
     }
@@ -135,7 +167,7 @@ export class ListExpenseItemsComponent {
     this.expenseItemForm = new FormGroup({
       id: new FormControl(expenseItem.id),
       name: new FormControl(expenseItem.name, [Validators.required]),
-      date: new FormControl(newDate.getFullYear() + '-' + String(newDate.getMonth() + 1).padStart(2, '0') + '-' + String(newDate.getDate()).padStart(2, '0'), [Validators.required, Validators.pattern('^\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])$')]),
+      date: new FormControl(newDate, [Validators.required]),
       amount: new FormControl(expenseItem.amount?.toString().replace('.', ','), [Validators.pattern('(\\d+)?(\\,\\d{1,2})?')]),
     });
   }
@@ -154,13 +186,16 @@ export class ListExpenseItemsComponent {
         let expenseUpdated: ExpenseDto = this.expense.getValue();
 
         expenseUpdated.items.forEach((item, index) => {
-          if (item.id === id) { expenseUpdated.items.splice(index, 1); }
+          if (item.id === id) {
+            expenseUpdated.items.splice(index, 1);
+          }
         });
 
         this.expense.next(expenseUpdated);
       }
     });
   }
+
 
   previous() {
     this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, 'expenses', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
@@ -175,5 +210,31 @@ export class ListExpenseItemsComponent {
     if (result) {
       this.remove(this.itemToDelete);
     }
+  }
+
+  getFormFieldErrors(fieldName: string): string[] {
+    const control = this.expenseItemForm.get(fieldName);
+    const errors: string[] = [];
+
+    if (control && control.errors) {
+      for (const key in control.errors) {
+        if (control.errors.hasOwnProperty(key)) {
+          switch (key) {
+            case 'required':
+              errors.push('This field is required.');
+              break;
+            case 'pattern':
+              if (fieldName === 'amount') {
+                errors.push('Invalid amount format. (0000,00)');
+              }
+              break;
+            default:
+              errors.push(control.errors[key]);
+          }
+        }
+      }
+    }
+
+    return errors;
   }
 }

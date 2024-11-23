@@ -19,7 +19,7 @@
           </div>
         </div>
       </div>
-      
+
       <div class="list-group list-group-flush">
         @for (income of (incomes$ | async); track income.id){
         <div class="list-group-item">
@@ -43,46 +43,44 @@
           </div>
           } @else {
           <div>
-            <form class="d-flex justify-content-between align-items-center my-1" [formGroup]="incomeForm" (ngSubmit)="save()">
-              <div class="form-floating">
-                <input type="text" class="form-control" id="name" placeholder="Supermarket" formControlName="name" [class.is-invalid]="name?.invalid && name?.touched">
-                <label for="name">Income Name</label>
-                @if(name?.invalid && name?.touched){
-                <div>
-                  @if(name?.errors?.['required']){
-                  <div class="text-danger">Income Name is required.</div>
+            <form [formGroup]="incomeForm" (ngSubmit)="save()">
+
+              <div class="row">
+                <mat-form-field appearance="fill" class="col-md-6">
+                  <mat-label>Income Name</mat-label>
+                  <input matInput id="name" placeholder="Personal" formControlName="name"
+                         [class.is-invalid]="name?.invalid && name?.touched">
+                  @if ((name?.invalid && name?.touched) || httpErrors){
+                    <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error }}</mat-error>
                   }
-                </div>
-                }
+                </mat-form-field>
+
+                <mat-form-field appearance="fill" class="col-md-6">
+                  <mat-label>Date</mat-label>
+                  <input matInput [matDatepicker]="picker" formControlName="date" id="date">
+                  <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                  <mat-datepicker #picker></mat-datepicker>
+                  @if ((date?.invalid && date?.touched) || httpErrors){
+                    <mat-error *ngFor="let error of getFormFieldErrors('date')">{{ error }}</mat-error>
+                  }
+                </mat-form-field>
               </div>
-              <div class="form-floating">
-                <input type="text" class="form-control" id="date" formControlName="date" [class.is-invalid]="date?.invalid && date?.touched">
-                <label for="date">Date</label>
-                @if(date?.invalid && date?.touched){
-                <div>
-                  @if(date?.errors?.['required']){
-                  <div class="text-danger">Income Date is required.</div>
+
+              <div class="row">
+                <mat-form-field appearance="fill" class="col-md-6">
+                  <mat-label>Amount</mat-label>
+                  <input matInput type="text" id="amount" formControlName="amount"
+                         [class.is-invalid]="amount?.invalid && amount?.touched">
+                  <span matTextPrefix>€&nbsp;</span>
+                  @if ((amount?.invalid && amount?.touched) || httpErrors){
+                    <mat-error *ngFor="let error of getFormFieldErrors('amount')">{{ error }}</mat-error>
                   }
-                  @if(date?.errors?.['pattern']){
-                  <div class="text-danger">Invalid Date format. (yyyy-MM-dd).</div>
-                  }
-                </div>
-                }
+                </mat-form-field>
               </div>
-              <div class="ml-1 form-floating">
-                <input type="text" class="form-control" id="amount" formControlName="amount" [class.is-invalid]="amount?.invalid && amount?.touched">
-                <label for="amount">Amount</label>
-                @if(amount?.invalid && amount?.touched){
-                <div>
-                  @if(amount?.errors?.['required']){
-                  <div class="text-danger">Income Amount is required.</div>
-                  }
-                </div>
-                }
-              </div>
+
               <div class="btn-group">
-                <button class="btn btn-secondary" type="button" (click)="cancelEdit()">Cancel</button>
-                <button class="btn btn-success" type="submit" [disabled]="incomeForm.invalid">
+                <button mat-button type="button" (click)="cancelEdit()">Cancel</button>
+                <button mat-raised-button color="primary" type="submit" [disabled]="incomeForm.invalid">
                   <fa-icon [icon]="faFloppyDisk"></fa-icon>
                 </button>
               </div>

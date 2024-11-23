@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { IDictionary } from '../../../core/interfaces/IDictionary';
 import { AuthService } from '../../../core/services/auth.service';
 import { passwordMatchValidator } from '../../../core/utils/custom-validators/password-match-validator';
 import { CommonModule } from '@angular/common';
@@ -9,6 +8,7 @@ import { ApiErrorResponse } from '../../../core/models/error';
 import { take } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import {MatIcon} from "@angular/material/icon";
 
 @Component({
   selector: 'app-register',
@@ -20,6 +20,7 @@ import { MatInputModule } from '@angular/material/input';
     RouterLink,
     MatFormFieldModule,
     MatInputModule,
+    MatIcon,
   ],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css']
@@ -28,7 +29,8 @@ export class RegisterComponent implements OnInit{
   registerForm!: FormGroup;
   httpErrors = false;
   errors!: { [key: string]: string };
-;
+  hidePassword = true;
+  hideConfirmPassword = true;
 
   constructor(private authService: AuthService, private router: Router) {
     this.authService.isSignedIn$.pipe(take(1)).subscribe(value => {

@@ -54,7 +54,7 @@ namespace EasyFinance.Domain.Models.Financial
             if (amount < 0)
                 throw new ValidationException(nameof(this.Amount), string.Format(ValidationMessages.PropertyCantBeLessThanZero, nameof(this.Amount)));
 
-            if (this.Date > DateTime.Today.ToUniversalTime().AddDays(1) && amount > 0)
+            if (this.Date.ToUniversalTime() > DateTime.Today.ToUniversalTime().AddDays(1) && amount > 0)
                 throw new ValidationException(nameof(this.Date), ValidationMessages.CantAddFutureExpenseIncome);
 
             this.Amount = amount;

@@ -12,6 +12,11 @@ import { AddButtonComponent } from '../../../core/components/add-button/add-butt
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPenToSquare, faBoxArchive, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
+import { MatError, MatFormField, MatLabel } from "@angular/material/form-field";
+import { MatInput } from "@angular/material/input";
+import { ApiErrorResponse } from "../../../core/models/error";
+import { ErrorMessageService } from "../../../core/services/error-message.service";
+import { MatButton } from "@angular/material/button";
 
 @Component({
   selector: 'app-list-projects',
@@ -23,7 +28,12 @@ import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/
     AsyncPipe,
     AddButtonComponent,
     FontAwesomeModule,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
+    MatError,
+    MatFormField,
+    MatInput,
+    MatLabel,
+    MatButton
   ],
   templateUrl: './list-projects.component.html',
   styleUrl: './list-projects.component.css'
@@ -42,8 +52,7 @@ export class ListProjectsComponent implements OnInit {
   httpErrors = false;
   errors: any;
 
-  constructor(public projectService: ProjectService, private router: Router)
-  {
+  constructor(public projectService: ProjectService, private router: Router, private errorMessageService: ErrorMessageService) {
     this.edit(new Project());
   }
 
@@ -66,6 +75,10 @@ export class ListProjectsComponent implements OnInit {
     return this.projectForm.get('name');
   }
 
+  get type() {
+    return this.projectForm.get('type');
+  }
+
   add(): void {
     this.router.navigate(['/add-project']);
   }
@@ -82,21 +95,23 @@ export class ListProjectsComponent implements OnInit {
       const name = this.projectForm.get('name')?.value;
       const type = this.projectForm.get('type')?.value;
 
-      var newProject = <ProjectDto>({
+      const newProject = <ProjectDto>({
         id: id,
         name: name,
         type: type
-      })
-      var patch = compare(this.editingProject, newProject);
+      });
+      const patch = compare(this.editingProject, newProject);
 
       this.projectService.updateProject(id, patch).subscribe({
         next: response => {
           this.editingProject.name = response.name;
           this.editingProject = new Project();
         },
-        error: error => {
+        error: (response: ApiErrorResponse) => {
           this.httpErrors = true;
-          this.errors = error;
+          this.errors = response.errors;
+
+          this.errorMessageService.setFormErrors(this.projectForm, this.errors);
         }
       });
     }
@@ -115,13 +130,15 @@ export class ListProjectsComponent implements OnInit {
     this.editingProject = new ProjectDto();
   }
 
-  remove(id: string): void{
+  remove(id: string): void {
     this.projectService.removeProject(id).subscribe({
       next: response => {
         const projectsNewArray: ProjectDto[] = this.projects.getValue();
 
         projectsNewArray.forEach((item, index) => {
-          if (item.id === id) { projectsNewArray.splice(index, 1); }
+          if (item.id === id) {
+            projectsNewArray.splice(index, 1);
+          }
         });
 
         this.projects.next(projectsNewArray);
@@ -138,5 +155,27 @@ export class ListProjectsComponent implements OnInit {
     if (result) {
       this.remove(this.itemToDelete);
     }
+  }
+
+  getFormFieldErrors(fieldName: string): string[] {
+    const control = this.projectForm.get(fieldName);
+    const errors: string[] = [];
+
+    if (control && control.errors) {
+      for (const key in control.errors) {
+        if (control.errors.hasOwnProperty(key)) {
+          switch (key) {
+            case 'required':
+              errors.push('This field is required.');
+              break;
+
+            default:
+              errors.push(control.errors[key]);
+          }
+        }
+      }
+    }
+
+    return errors;
   }
 }

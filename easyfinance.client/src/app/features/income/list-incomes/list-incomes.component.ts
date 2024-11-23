@@ -16,6 +16,14 @@ import { ReturnButtonComponent } from '../../../core/components/return-button/re
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { dateUTC } from '../../../core/utils/date/date';
 import { CurrencyFormatPipe } from '../../../core/pipes/currency-format.pipe';
+import {
+  MatDatepickerModule
+} from "@angular/material/datepicker";
+import { MatError, MatFormField, MatLabel, MatPrefix, MatSuffix } from "@angular/material/form-field";
+import { MatInput } from "@angular/material/input";
+import { MatButton } from "@angular/material/button";
+import { ApiErrorResponse } from "../../../core/models/error";
+import { ErrorMessageService } from "../../../core/services/error-message.service";
 
 @Component({
   selector: 'app-list-incomes',
@@ -30,6 +38,14 @@ import { CurrencyFormatPipe } from '../../../core/pipes/currency-format.pipe';
     ReturnButtonComponent,
     CurrentDateComponent,
     CurrencyFormatPipe,
+    MatDatepickerModule,
+    MatError,
+    MatFormField,
+    MatInput,
+    MatLabel,
+    MatSuffix,
+    MatPrefix,
+    MatButton,
   ],
   templateUrl: './list-incomes.component.html',
   styleUrl: './list-incomes.component.css'
@@ -47,11 +63,11 @@ export class ListIncomesComponent implements OnInit {
   itemToDelete!: string;
   httpErrors = false;
   errors: any;
-  
+
   @Input({ required: true })
   projectId!: string;
 
-  constructor(public incomeService: IncomeService, private router: Router) { 
+  constructor(public incomeService: IncomeService, private router: Router, private errorMessageService: ErrorMessageService) {
   }
 
   ngOnInit(): void {
@@ -103,9 +119,11 @@ export class ListIncomesComponent implements OnInit {
           this.editingIncome.date = response.date;
           this.editingIncome = new IncomeDto();
         },
-        error: error => {
+        error: (response: ApiErrorResponse) => {
           this.httpErrors = true;
-          this.errors = error;
+          this.errors = response.errors;
+
+          this.errorMessageService.setFormErrors(this.incomeForm, this.errors);
         }
       });
     }
@@ -121,7 +139,7 @@ export class ListIncomesComponent implements OnInit {
     this.incomeForm = new FormGroup({
       id: new FormControl(income.id),
       name: new FormControl(income.name, [Validators.required]),
-      date: new FormControl(newDate.getFullYear() + '-' + String(newDate.getMonth() + 1).padStart(2, '0') + '-' + String(newDate.getDate()).padStart(2, '0'), [Validators.required, Validators.pattern('^\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])$')]),
+      date: new FormControl(newDate, [Validators.required]),
       amount: new FormControl(income.amount?.toString().replace('.', ',') ?? 0, [Validators.required, Validators.pattern('(\\d+)?(\\,\\d{1,2})?')]),
     });
   }
@@ -161,5 +179,32 @@ export class ListIncomesComponent implements OnInit {
 
   previous() {
     this.router.navigate(['/projects', this.projectId]);
+  }
+
+
+  getFormFieldErrors(fieldName: string): string[] {
+    const control = this.incomeForm.get(fieldName);
+    const errors: string[] = [];
+
+    if (control && control.errors) {
+      for (const key in control.errors) {
+        if (control.errors.hasOwnProperty(key)) {
+          switch (key) {
+            case 'required':
+              errors.push('This field is required.');
+              break;
+            case 'pattern':
+              if (fieldName === 'amount') {
+                errors.push('Invalid amount format. (0000,00)');
+              }
+              break;
+            default:
+              errors.push(control.errors[key]);
+          }
+        }
+      }
+    }
+
+    return errors;
   }
 }

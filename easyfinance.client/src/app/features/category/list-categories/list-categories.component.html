@@ -24,72 +24,75 @@
       </div>
 
       <div class="list-group list-group-flush">
-        @for (category of (categories$ | async); track category.id){
-        <button class="list-group-item" [ngClass]="{
+        @for (category of (categories$ | async); track category.id) {
+          <button class="list-group-item" [ngClass]="{
                 'list-group-item-action': category.id != this.editingCategory.id,
                 'btn-default': category.id != this.editingCategory.id
               }">
-          @if(category.id != this.editingCategory.id) {
-          <div (click)="select(category.id)">
-            <h3 class="mb-1">{{ category.name }}</h3>
-            <div class="btn-group" style="position: absolute; right: 15px; top: 10px;">
-              <button class="btn btn-secondary" (click)="edit(category); $event.stopPropagation();">
-                <fa-icon [icon]="faPenToSquare"></fa-icon>
-              </button>
-              <button class="btn btn-danger" (click)="triggerDelete(category.id); $event.stopPropagation();">
-                <fa-icon [icon]="faBoxArchive"></fa-icon>
-              </button>
-            </div>
-            <div class="clearfix mt-3">
-              <span class="float-start">Budget:</span>
-              <span class="float-end" [ngClass]="getClassBasedOnPercentage(getPercentageWaste(category.getTotalWaste(), category.getTotalBudget()))">{{getTextBasedOnPercentage(getPercentageWaste(category.getTotalWaste(), category.getTotalBudget()))}} {{ category.getTotalRemaining() | currencyFormat }} left</span>
-            </div>
-            <div class="progress">
-              <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-                   [ngClass]="getClassToProgressBar(getPercentageWaste(category.getTotalWaste(), category.getTotalBudget()))"
-                   [style.width.%]="getPercentageWaste(category.getTotalWaste(), category.getTotalBudget())"
-                   [attr.aria-valuenow]="getPercentageWaste(category.getTotalWaste(), category.getTotalBudget())">
-                {{ category.getTotalWaste() | currencyFormat }}
-              </div>
-            </div>
-            <div class="clearfix">
-              <span class="float-end">of {{ category.getTotalBudget() | currencyFormat }}</span>
-            </div>
-          </div>
-          } @else {
-          <div>
-            <form class="d-flex justify-content-between align-items-center my-1" [formGroup]="categoryForm" (ngSubmit)="save()">
-              <div class="ml-1 form-floating">
-                <input type="text" class="form-control" id="name" placeholder="Personal" formControlName="name" [class.is-invalid]="name?.invalid && name?.touched">
-                <label for="name">Category Name</label>
-                @if(name?.invalid && name?.touched){
-                <div>
-                  @if(name?.errors?.['required']) {
-                  <div class="text-danger">Category Name is required.</div>
-                  }
+            @if (category.id != this.editingCategory.id) {
+              <div (click)="select(category.id)">
+                <h3 class="mb-1">{{ category.name }}</h3>
+                <div class="btn-group" style="position: absolute; right: 15px; top: 10px;">
+                  <button class="btn btn-secondary" (click)="edit(category); $event.stopPropagation();">
+                    <fa-icon [icon]="faPenToSquare"></fa-icon>
+                  </button>
+                  <button class="btn btn-danger" (click)="triggerDelete(category.id); $event.stopPropagation();">
+                    <fa-icon [icon]="faBoxArchive"></fa-icon>
+                  </button>
                 </div>
+                <div class="clearfix mt-3">
+                  <span class="float-start">Budget:</span>
+                  <span class="float-end"
+                        [ngClass]="getClassBasedOnPercentage(getPercentageWaste(category.getTotalWaste(), category.getTotalBudget()))">{{ getTextBasedOnPercentage(getPercentageWaste(category.getTotalWaste(), category.getTotalBudget())) }} {{ category.getTotalRemaining() | currencyFormat }}
+                    left</span>
+                </div>
+                <div class="progress">
+                  <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                       [ngClass]="getClassToProgressBar(getPercentageWaste(category.getTotalWaste(), category.getTotalBudget()))"
+                       [style.width.%]="getPercentageWaste(category.getTotalWaste(), category.getTotalBudget())"
+                       [attr.aria-valuenow]="getPercentageWaste(category.getTotalWaste(), category.getTotalBudget())">
+                    {{ category.getTotalWaste() | currencyFormat }}
+                  </div>
+                </div>
+                <div class="clearfix">
+                  <span class="float-end">of {{ category.getTotalBudget() | currencyFormat }}</span>
+                </div>
+              </div>
+            } @else {
+              <div>
+                <form [formGroup]="categoryForm" (ngSubmit)="save()">
+                  <div class="row">
+
+                    <mat-form-field appearance="fill" class="col-md-12">
+                      <mat-label>Category Name</mat-label>
+                      <input matInput id="name" placeholder="Personal" formControlName="name"
+                             [class.is-invalid]="name?.invalid && name?.touched">
+                      @if ((name?.invalid && name?.touched) || httpErrors) {
+                        <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error }}</mat-error>
+                      }
+                    </mat-form-field>
+
+                  </div>
+
+                  <div class="btn-group">
+                    <button mat-button type="button" (click)="cancelEdit()">Cancel</button>
+                    <button mat-raised-button color="primary" type="submit" [disabled]="categoryForm.invalid">
+                      <fa-icon [icon]="faFloppyDisk"></fa-icon>
+                    </button>
+                  </div>
+                </form>
+                @if (httpErrors) {
+                  <div>
+                    <p class="mt-5 mb-3 text-danger text-center">{{ errors.statusText }}</p>
+                  </div>
                 }
               </div>
-              <div class="ml-1 btn-group">
-                <button class="btn btn-secondary" type="button" (click)="cancelEdit()">Cancel</button>
-                <button class="btn btn-success" type="submit" [disabled]="categoryForm.invalid">
-                  <fa-icon [icon]="faFloppyDisk"></fa-icon>
-                </button>
-              </div>
-            </form>
-            @if (httpErrors){
-            <div>
-              <p class="mt-5 mb-3 text-danger text-center">{{errors.statusText}}</p>
-            </div>
             }
+          </button>
+        } @empty {
+          <div class="text-center">
+            No category created yet.
           </div>
-          }
-        </button>
-        }
-        @empty {
-        <div class="text-center">
-          No category created yet.
-        </div>
         }
       </div>
     </div>
