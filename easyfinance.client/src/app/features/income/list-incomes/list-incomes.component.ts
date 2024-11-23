@@ -197,9 +197,6 @@ export class ListIncomesComponent implements OnInit {
               if (fieldName === 'amount') {
                 errors.push('Invalid amount format. (0000,00)');
               }
-              if (fieldName === 'date') {
-                errors.push('Invalid date format.');
-              }
               break;
             default:
               errors.push(control.errors[key]);
