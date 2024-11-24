@@ -69,11 +69,10 @@
               <div class="row">
                 <mat-form-field appearance="fill" class="col-md-6">
                   <mat-label>Amount</mat-label>
-                  <input matInput type="text" id="amount" formControlName="amount"
-                         [class.is-invalid]="amount?.invalid && amount?.touched">
-                  <span matTextPrefix>€&nbsp;</span>
+                  <span matTextPrefix>{{ currencySymbol }}&nbsp;</span>
+                  <input matInput type="text" inputmode="decimal" formControlName="amount">
                   @if ((amount?.invalid && amount?.touched) || httpErrors){
-                    <mat-error *ngFor="let error of getFormFieldErrors('amount')">{{ error }}</mat-error>
+                  <mat-error *ngFor="let error of getFormFieldErrors('amount')">{{ error }}</mat-error>
                   }
                 </mat-form-field>
               </div>

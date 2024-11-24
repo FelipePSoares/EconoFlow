@@ -1,5 +1,5 @@
-describe('EconoFlow - expense add Tests', () => {
-  it('should add a new expense', () => {
+describe('EconoFlow - expense item add Tests', () => {
+  it('should add a new expense item', () => {
     cy.fixture('users').then((users) => {
       const user = users.testUser;
 
@@ -21,8 +21,8 @@ describe('EconoFlow - expense add Tests', () => {
 
               cy.wait('@getExpense')
 
-              cy.get('#name').type(expenseItem.name)
-              cy.get('#amount').type(expenseItem.amount)
+              cy.get('input[formControlName=name]').type(expenseItem.name)
+              cy.get('input[formControlName=amount]').type(expenseItem.amount)
 
               cy.get('button').contains('Create').click();
               cy.url().should('include', '/expenses/');

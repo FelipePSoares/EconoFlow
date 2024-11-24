@@ -86,9 +86,8 @@
               <div class="row">
                 <mat-form-field appearance="fill" class="col-md-6">
                   <mat-label>Budget</mat-label>
-                  <input matInput type="text" id="budget" formControlName="budget"
-                    [class.is-invalid]="budget?.invalid && budget?.touched">
-                  <span matTextPrefix>€&nbsp;</span>
+                  <span matTextPrefix>{{ currencySymbol }}&nbsp;</span>
+                  <input matInput type="number" step="1" min="0" id="budget" formControlName="budget">
                   @if ((budget?.invalid && budget?.touched) || httpErrors){
                   <mat-error *ngFor="let error of getFormFieldErrors('budget')">{{ error }}</mat-error>
                   }
@@ -96,9 +95,8 @@
 
                 <mat-form-field appearance="fill" class="col-md-6">
                   <mat-label>Amount</mat-label>
-                  <input matInput type="text" id="amount" formControlName="amount"
-                    [class.is-invalid]="amount?.invalid && amount?.touched">
-                  <span matTextPrefix>€&nbsp;</span>
+                  <span matTextPrefix>{{ currencySymbol }}&nbsp;</span>
+                  <input matInput type="text" inputmode="decimal" formControlName="amount">
                   @if ((amount?.invalid && amount?.touched) || httpErrors){
                   <mat-error *ngFor="let error of getFormFieldErrors('amount')">{{ error }}</mat-error>
                   }

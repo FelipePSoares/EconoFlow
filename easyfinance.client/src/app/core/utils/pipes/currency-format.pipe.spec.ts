@@ -2,11 +2,13 @@ import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { CurrencyPipe } from '@angular/common';
 import { CurrencyFormatPipe } from './currency-format.pipe';
-import { User } from '../models/user';
-import { UserService } from '../services/user.service';
+import { User } from '../../models/user';
+import { UserService } from '../../services/user.service';
+import { GlobalService } from '../../services/global.service';
 
 describe('CurrencyFormatPipe', () => {
   let userService: UserService;
+  let globalService: GlobalService;
   let httpMock: HttpTestingController;
   let user: User;
 
@@ -21,10 +23,11 @@ describe('CurrencyFormatPipe', () => {
       providers: [UserService],
     });
     userService = TestBed.inject(UserService);
+    globalService = TestBed.inject(GlobalService);
     httpMock = TestBed.inject(HttpTestingController);
 
     currencyPipe = new CurrencyPipe('en-US');
-    pipe = new CurrencyFormatPipe(currencyPipe, userService);
+    pipe = new CurrencyFormatPipe(currencyPipe, userService, globalService);
   });
 
   it('should format the Euro amount correctly for EUR preferences', () => {

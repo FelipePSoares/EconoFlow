@@ -10,11 +10,14 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { CommonModule } from '@angular/common';
+import { CommonModule, getCurrencySymbol } from '@angular/common';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
-import { todayUTC } from '../../../core/utils/date/date';
+import { todayUTC } from '../../../core/utils/date';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
+import { currencyValidator } from '../../../core/utils/custom-validators/currency-validator';
+import { GlobalService } from '../../../core/services/global.service';
+import { UserService } from '../../../core/services/user.service';
 
 @Component({
   selector: 'app-add-income',
@@ -39,11 +42,20 @@ export class AddIncomeComponent implements OnInit {
   incomeForm!: FormGroup;
   httpErrors = false;
   errors!: { [key: string]: string };
+  currencySymbol!: string;
 
   @Input({ required: true })
     projectId!: string;
 
-  constructor(private incomeService: IncomeService, private router: Router, private route: ActivatedRoute, private errorMessageService: ErrorMessageService) { }
+  constructor(
+    private incomeService: IncomeService,
+    private router: Router,
+    private errorMessageService: ErrorMessageService,
+    private globalService: GlobalService,
+    private userService: UserService
+  ) {
+    this.userService.loggedUser$.subscribe(value => this.currencySymbol = getCurrencySymbol(value.preferredCurrency, "narrow"));
+  }
 
   ngOnInit(): void {
     this.currentDate = todayUTC();
@@ -54,7 +66,7 @@ export class AddIncomeComponent implements OnInit {
     this.incomeForm = new FormGroup({
       name: new FormControl('', [Validators.required]),
       date: new FormControl(this.currentDate, [Validators.required]),
-      amount: new FormControl('', [Validators.required, Validators.pattern('(\\d+)?(\\,\\d{1,2})?')])
+      amount: new FormControl('', [Validators.min(0), currencyValidator(this.globalService)])
     });
   }
 
@@ -62,7 +74,10 @@ export class AddIncomeComponent implements OnInit {
     if (this.incomeForm.valid) {
       const name = this.name?.value;
       const date = this.date?.value;
-      const amount = this.amount?.value.replace('.', '').replace(',', '.');
+      let amount = this.amount?.value;
+      if (isNaN(amount)) {
+        amount = this.amount?.value.replace('.', '')?.replace(',', '.');
+      }
 
       var newIncome = <IncomeDto>({
         name: name,
@@ -95,10 +110,8 @@ export class AddIncomeComponent implements OnInit {
             case 'required':
               errors.push('This field is required.');
               break;
-            case 'pattern':
-              if (fieldName === 'amount') {
-                errors.push('Invalid amount format. (0000,00)');
-              }
+            case 'min':
+              errors.push(`The value should be greater than ${control.errors[key].min}.`);
               break;
             default:
               errors.push(control.errors[key]);

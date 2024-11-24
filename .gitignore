@@ -39,3 +39,5 @@ msbuild.wrn
 logs/
 
 EasyFinance.Infrastructure/ValidationMessages.Designer.cs
+
+easyfinance.client/cypress/screenshots

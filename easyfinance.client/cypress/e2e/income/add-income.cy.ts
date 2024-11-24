@@ -14,12 +14,12 @@ describe('EconoFlow - income add Tests', () => {
   })
 
   it('should appear amount validation error', () => {
-    cy.get('#amount').type('123.231').blur()
-    cy.get('mat-error').should('have.text', 'Invalid amount format. (0000,00)')
+    cy.get('input[formControlName=amount]').type('123.231d').blur()
+    cy.get('mat-error').should('have.text', 'Invalid amount format. (0,000.00)')
   })
 
   it('should appear name validation error', () => {
-    cy.get('#name').focus().blur()
+    cy.get('input[formControlName=name]').focus().blur()
     cy.get('mat-error').should('have.text', 'This field is required.')
   })
 
@@ -30,8 +30,8 @@ describe('EconoFlow - income add Tests', () => {
     cy.fixture('incomes').then((incomes) => {
       var income = incomes.testWageIncome;
 
-      cy.get('#name').type(income.name)
-      cy.get('#amount').type(income.amount)
+      cy.get('input[formControlName=name]').type(income.name)
+      cy.get('input[formControlName=amount]').type(income.amount)
 
       cy.get('button').contains('Create').click();
 

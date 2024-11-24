@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { ExpenseDto } from '../models/expense-dto';
 import { Expense } from '../../../core/models/expense';
 import { map } from 'rxjs/internal/operators/map';
@@ -7,7 +7,7 @@ import { mapper } from '../../../core/utils/mappings/mapper';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
 import { Observable } from 'rxjs/internal/Observable';
 import { ExpenseService } from '../../../core/services/expense.service';
-import { AsyncPipe, CommonModule } from '@angular/common';
+import { AsyncPipe, CommonModule, getCurrencySymbol } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { compare } from 'fast-json-patch';
 import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
@@ -16,16 +16,19 @@ import { CurrentDateComponent } from '../../../core/components/current-date/curr
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPenToSquare, faTrash, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
-import { dateUTC } from '../../../core/utils/date/date';
+import { dateUTC } from '../../../core/utils/date';
 import { MatFormField } from '@angular/material/form-field';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatButton } from '@angular/material/button';
-import { MatIcon } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { ApiErrorResponse } from 'src/app/core/models/error';
 import { ErrorMessageService } from 'src/app/core/services/error-message.service';
-import { CurrencyFormatPipe } from '../../../core/pipes/currency-format.pipe';
+import { currencyValidator } from '../../../core/utils/custom-validators/currency-validator';
+import { GlobalService } from '../../../core/services/global.service';
+import { CurrencyService } from '../../../core/services/currency.service';
+import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
+import { UserService } from '../../../core/services/user.service';
 
 @Component({
   selector: 'app-list-expenses',
@@ -44,7 +47,7 @@ import { CurrencyFormatPipe } from '../../../core/pipes/currency-format.pipe';
     MatInput,
     MatButton,
     MatDatepickerModule,
-    CurrencyFormatPipe,
+    CurrencyFormatPipe
   ],
   templateUrl: './list-expenses.component.html',
   styleUrl: './list-expenses.component.css'
@@ -62,6 +65,7 @@ export class ListExpensesComponent implements OnInit {
   itemToDelete!: string;
   httpErrors = false;
   errors: any;
+  currencySymbol!: string;
 
   @Input({ required: true })
   projectId!: string;
@@ -69,7 +73,15 @@ export class ListExpensesComponent implements OnInit {
   @Input({ required: true })
   categoryId!: string;
 
-  constructor(public expenseService: ExpenseService, private router: Router, private errorMessageService: ErrorMessageService) {
+  constructor(
+    private expenseService: ExpenseService,
+    private router: Router,
+    private errorMessageService: ErrorMessageService,
+    private globalService: GlobalService,
+    private currencyService: CurrencyService,
+    private userService: UserService
+  ) {
+    this.userService.loggedUser$.subscribe(value => this.currencySymbol = getCurrencySymbol(value.preferredCurrency, "narrow"));
   }
 
   ngOnInit(): void {
@@ -111,7 +123,7 @@ export class ListExpensesComponent implements OnInit {
       let id = this.id?.value;
       let name = this.name?.value;
       let date = this.date?.value;
-      let amount = this.amount?.value.replace('.', '').replace(',', '.');
+      let amount = this.currencyService.parseLocaleCurrencyToNumber(this.amount?.value);
       let budget = this.budget?.value;
 
       var newExpense = <ExpenseDto>({
@@ -150,7 +162,7 @@ export class ListExpensesComponent implements OnInit {
       id: new FormControl(expense.id),
       name: new FormControl(expense.name, [Validators.required]),
       date: new FormControl(newDate, [Validators.required]),
-      amount: new FormControl(expense.amount?.toString().replace('.', ',') ?? 0, [Validators.pattern('(\\d+)?(\\,\\d{1,2})?')]),
+      amount: new FormControl(this.currencyService.parseNumberToLocaleCurrency(expense.amount), [Validators.min(0), currencyValidator(this.globalService)]),
       budget: new FormControl(expense.budget ?? 0, [Validators.pattern('[0-9]*')]),
     });
 
@@ -250,12 +262,9 @@ export class ListExpensesComponent implements OnInit {
               if (fieldName === 'budget') {
                 errors.push('Only numbers is valid.');
               }
-              if (fieldName === 'amount') {
-                errors.push('Invalid amount format. (0000,00)');
-              }
-              if (fieldName === 'date') {
-                errors.push('Invalid date format.');
-              }
+              break;
+            case 'min':
+              errors.push(`The value should be greater than ${control.errors[key].min}.`);
               break;
             default:
               errors.push(control.errors[key]);

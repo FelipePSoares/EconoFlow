@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ListExpenseItemsComponent } from '../list-expense-items/list-expense-items.component';
-import { todayUTC } from '../../../core/utils/date/date';
+import { todayUTC } from '../../../core/utils/date';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 
 @Component({

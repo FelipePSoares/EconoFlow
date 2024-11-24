@@ -1,7 +1,7 @@
 import { Component, Input, ViewChild } from '@angular/core';
 import { BehaviorSubject, Observable, map } from 'rxjs';
 import { ExpenseItemDto } from '../models/expense-item-dto';
-import { AsyncPipe, CommonModule } from '@angular/common';
+import { AsyncPipe, CommonModule, getCurrencySymbol } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ExpenseService } from '../../../core/services/expense.service';
 import { mapper } from '../../../core/utils/mappings/mapper';
@@ -14,8 +14,6 @@ import { ReturnButtonComponent } from '../../../core/components/return-button/re
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPenToSquare, faTrash, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
-import { dateUTC } from '../../../core/utils/date/date';
-import { CurrencyFormatPipe } from '../../../core/pipes/currency-format.pipe';
 import {
   MatError,
   MatFormField,
@@ -29,6 +27,12 @@ import { MatDatepicker, MatDatepickerInput, MatDatepickerToggle } from "@angular
 import { CurrentDateComponent } from "../../../core/components/current-date/current-date.component";
 import { ApiErrorResponse } from "../../../core/models/error";
 import { ErrorMessageService } from "../../../core/services/error-message.service";
+import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
+import { dateUTC } from '../../../core/utils/date';
+import { GlobalService } from '../../../core/services/global.service';
+import { CurrencyService } from '../../../core/services/currency.service';
+import { currencyValidator } from '../../../core/utils/custom-validators/currency-validator';
+import { UserService } from '../../../core/services/user.service';
 
 @Component({
   selector: 'app-list-expense-items',
@@ -70,6 +74,7 @@ export class ListExpenseItemsComponent {
   itemToDelete!: string;
   httpErrors = false;
   errors: any;
+  currencySymbol!: string;
 
   @Input({ required: true })
   categoryId!: string;
@@ -97,7 +102,15 @@ export class ListExpenseItemsComponent {
   @Input({ required: true })
   currentDate!: Date;
 
-  constructor(public expenseService: ExpenseService, private router: Router, private errorMessageService: ErrorMessageService) {
+  constructor(
+    private expenseService: ExpenseService,
+    private router: Router,
+    private errorMessageService: ErrorMessageService,
+    private globalService: GlobalService,
+    private currencyService: CurrencyService,
+    private userService: UserService
+  ) {
+    this.userService.loggedUser$.subscribe(value => this.currencySymbol = getCurrencySymbol(value.preferredCurrency, "narrow"));
     this.edit(new ExpenseItemDto());
   }
 
@@ -122,7 +135,7 @@ export class ListExpenseItemsComponent {
       let id = this.id?.value;
       let name = this.name?.value;
       let date = this.date?.value;
-      let amount = this.amount?.value.replace('.', '').replace(',', '.');
+      let amount = this.currencyService.parseLocaleCurrencyToNumber(this.amount?.value);
 
       let expense = this.expense.getValue();
       let expenseItemsNewArray: ExpenseItemDto[] = JSON.parse(JSON.stringify(expense.items));
@@ -168,7 +181,7 @@ export class ListExpenseItemsComponent {
       id: new FormControl(expenseItem.id),
       name: new FormControl(expenseItem.name, [Validators.required]),
       date: new FormControl(newDate, [Validators.required]),
-      amount: new FormControl(expenseItem.amount?.toString().replace('.', ','), [Validators.pattern('(\\d+)?(\\,\\d{1,2})?')]),
+      amount: new FormControl(this.currencyService.parseNumberToLocaleCurrency(expenseItem.amount), [Validators.min(0), currencyValidator(this.globalService)]),
     });
   }
 
@@ -223,10 +236,8 @@ export class ListExpenseItemsComponent {
             case 'required':
               errors.push('This field is required.');
               break;
-            case 'pattern':
-              if (fieldName === 'amount') {
-                errors.push('Invalid amount format. (0000,00)');
-              }
+            case 'min':
+              errors.push(`The value should be greater than ${control.errors[key].min}.`);
               break;
             default:
               errors.push(control.errors[key]);

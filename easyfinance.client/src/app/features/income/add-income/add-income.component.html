@@ -40,7 +40,8 @@
         <!-- Amount Field -->
         <mat-form-field appearance="fill" class="w-100">
           <mat-label>Amount</mat-label>
-          <input matInput id="amount" formControlName="amount">
+          <span matTextPrefix>{{ currencySymbol }}&nbsp;</span>
+          <input matInput type="text" inputmode="decimal" formControlName="amount">
           @if (amount?.invalid && amount?.touched){
           <mat-error *ngFor="let error of getFormFieldErrors('amount')">{{ error }}</mat-error>
           }

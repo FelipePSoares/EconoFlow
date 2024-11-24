@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ExpenseService } from '../../../core/services/expense.service';
 import { ExpenseItemDto } from '../models/expense-item-dto';
 import { map } from 'rxjs';
@@ -11,17 +11,19 @@ import { compare } from 'fast-json-patch';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { ApiErrorResponse } from '../../../core/models/error';
-import { CommonModule } from '@angular/common';
+import { CommonModule, getCurrencySymbol } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MomentDateAdapter } from '@angular/material-moment-adapter';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.component';
 import { MatNativeDateModule } from '@angular/material/core';
-import { todayUTC } from '../../../core/utils/date/date';
+import { todayUTC } from '../../../core/utils/date';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
+import { currencyValidator } from '../../../core/utils/custom-validators/currency-validator';
+import { GlobalService } from '../../../core/services/global.service';
+import { UserService } from '../../../core/services/user.service';
 
 @Component({
   selector: 'app-add-expense-item',
@@ -47,6 +49,7 @@ export class AddExpenseItemComponent implements OnInit {
   expenseItemForm!: FormGroup;
   httpErrors = false;
   errors!: { [key: string]: string };
+  currencySymbol!: string;
 
   @Input({ required: true })
   projectId!: string;
@@ -60,10 +63,12 @@ export class AddExpenseItemComponent implements OnInit {
   constructor(
     private expenseService: ExpenseService,
     private router: Router,
-    private route: ActivatedRoute,
     private errorMessageService: ErrorMessageService,
     private snackBar: SnackbarComponent,
-  ) { }
+    private globalService: GlobalService,
+    private userService: UserService
+  ) {
+    this.userService.loggedUser$.subscribe(value => this.currencySymbol = getCurrencySymbol(value.preferredCurrency, "narrow")); }
 
   ngOnInit(): void {
     this.currentDate = todayUTC();
@@ -74,7 +79,7 @@ export class AddExpenseItemComponent implements OnInit {
     this.expenseItemForm = new FormGroup({
       name: new FormControl('', [Validators.required]),
       date: new FormControl(this.currentDate, [Validators.required]),
-      amount: new FormControl('', [Validators.pattern('(\\d+)?(\\,\\d{1,2})?')])
+      amount: new FormControl('', [Validators.min(0), currencyValidator(this.globalService)])
     });
 
     this.expenseService.getById(this.projectId, this.categoryId, this.expenseId)
@@ -99,7 +104,10 @@ export class AddExpenseItemComponent implements OnInit {
     if (this.expenseItemForm.valid) {
       let name = this.name?.value;
       let date = this.date?.value;
-      let amount = this.amount?.value.replace('.', '').replace(',', '.');
+      let amount = this.amount?.value;
+      if (isNaN(amount)) {
+        amount = this.amount?.value.replace('.', '')?.replace(',', '.');
+      }
 
       var newExpenseItem = <ExpenseItemDto>({
         name: name,
@@ -138,10 +146,8 @@ export class AddExpenseItemComponent implements OnInit {
             case 'required':
               errors.push('This field is required.');
               break;
-            case 'pattern':
-              if (fieldName === 'amount') {
-                errors.push('Invalid amount format. (0000,00)');
-              }
+            case 'min':
+              errors.push(`The value should be greater than ${control.errors[key].min}.`);
               break;
             default:
               errors.push(control.errors[key]);

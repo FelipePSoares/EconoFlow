@@ -6,7 +6,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faArrowLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 
 import { Moment } from 'moment';
-import { dateUTC, todayUTC } from '../../utils/date/date';
+import { dateUTC, todayUTC } from '../../utils/date';
 
 @Component({
   selector: 'app-current-date',

@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ExpenseService } from '../../../core/services/expense.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { ExpenseDto } from '../models/expense-dto';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
@@ -14,7 +14,9 @@ import { CommonModule, getCurrencySymbol } from '@angular/common';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
-import { todayUTC } from '../../../core/utils/date/date';
+import { todayUTC } from '../../../core/utils/date';
+import { currencyValidator } from '../../../core/utils/custom-validators/currency-validator';
+import { GlobalService } from '../../../core/services/global.service';
 import { UserService } from '../../../core/services/user.service';
 
 @Component({
@@ -40,6 +42,7 @@ export class AddExpenseComponent implements OnInit {
   expenseForm!: FormGroup;
   httpErrors = false;
   errors!: { [key: string]: string };
+  currencySymbol!: string;
 
   @Input({ required: true })
   projectId!: string;
@@ -47,7 +50,15 @@ export class AddExpenseComponent implements OnInit {
   @Input({ required: true })
   categoryId!: string;
 
-  constructor(private expenseService: ExpenseService, private userService: UserService, private router: Router, private route: ActivatedRoute, private errorMessageService: ErrorMessageService) { }
+  constructor(
+    private expenseService: ExpenseService,
+    private router: Router,
+    private errorMessageService: ErrorMessageService,
+    private globalService: GlobalService,
+    private userService: UserService
+  ) {
+    this.userService.loggedUser$.subscribe(value => this.currencySymbol = getCurrencySymbol(value.preferredCurrency, "narrow"));
+  }
 
   ngOnInit(): void {
     this.currentDate = todayUTC();
@@ -58,7 +69,7 @@ export class AddExpenseComponent implements OnInit {
     this.expenseForm = new FormGroup({
       name: new FormControl('', [Validators.required]),
       date: new FormControl(this.currentDate, [Validators.required]),
-      amount: new FormControl('', [Validators.pattern('(\\d+)?(\\,\\d{1,2})?')]),
+      amount: new FormControl('', [Validators.min(0), currencyValidator(this.globalService)]),
       budget: new FormControl('', [Validators.pattern('[0-9]*')]),
     });
   }
@@ -79,7 +90,10 @@ export class AddExpenseComponent implements OnInit {
     if (this.expenseForm.valid) {
       let name = this.name?.value;
       let date = this.date?.value;
-      let amount = this.amount?.value.replace('.', '').replace(',', '.');
+      let amount = this.amount?.value;
+      if (isNaN(amount)) {
+        amount = this.amount?.value.replace('.', '')?.replace(',', '.');
+      }
       let budget = this.budget?.value;
 
       var newExpense = <ExpenseDto>({
@@ -118,9 +132,9 @@ export class AddExpenseComponent implements OnInit {
               if (fieldName === 'budget') {
                 errors.push('Only numbers is valid.');
               }
-              if (fieldName === 'amount') {
-                errors.push('Invalid amount format. (0000,00)');
-              }
+              break;
+            case 'min':
+              errors.push(`The value should be greater than ${control.errors[key].min}.`);
               break;
             default:
               errors.push(control.errors[key]);

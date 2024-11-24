@@ -6,7 +6,7 @@ import { IncomeService } from 'src/app/core/services/income.service';
 import { IncomeDto } from '../models/income-dto';
 import { mapper } from 'src/app/core/utils/mappings/mapper';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { AsyncPipe, CommonModule } from '@angular/common';
+import { AsyncPipe, CommonModule, getCurrencySymbol } from '@angular/common';
 import { compare } from 'fast-json-patch';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPenToSquare, faTrash, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
@@ -14,16 +14,18 @@ import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/
 import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
-import { dateUTC } from '../../../core/utils/date/date';
-import { CurrencyFormatPipe } from '../../../core/pipes/currency-format.pipe';
-import {
-  MatDatepickerModule
-} from "@angular/material/datepicker";
+import { MatDatepickerModule } from "@angular/material/datepicker";
 import { MatError, MatFormField, MatLabel, MatPrefix, MatSuffix } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
 import { MatButton } from "@angular/material/button";
 import { ApiErrorResponse } from "../../../core/models/error";
 import { ErrorMessageService } from "../../../core/services/error-message.service";
+import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
+import { dateUTC } from '../../../core/utils/date';
+import { GlobalService } from '../../../core/services/global.service';
+import { CurrencyService } from '../../../core/services/currency.service';
+import { currencyValidator } from '../../../core/utils/custom-validators/currency-validator';
+import { UserService } from '../../../core/services/user.service';
 
 @Component({
   selector: 'app-list-incomes',
@@ -63,11 +65,20 @@ export class ListIncomesComponent implements OnInit {
   itemToDelete!: string;
   httpErrors = false;
   errors: any;
+  currencySymbol!: string;
 
   @Input({ required: true })
   projectId!: string;
 
-  constructor(public incomeService: IncomeService, private router: Router, private errorMessageService: ErrorMessageService) {
+  constructor(
+    private incomeService: IncomeService,
+    private router: Router,
+    private errorMessageService: ErrorMessageService,
+    private globalService: GlobalService,
+    private currencyService: CurrencyService,
+    private userService: UserService
+  ) {
+    this.userService.loggedUser$.subscribe(value => this.currencySymbol = getCurrencySymbol(value.preferredCurrency, "narrow"));
   }
 
   ngOnInit(): void {
@@ -102,7 +113,7 @@ export class ListIncomesComponent implements OnInit {
       const id = this.id?.value;
       const name = this.name?.value;
       const date = this.date?.value;
-      const amount = this.amount?.value.replace('.', '').replace(',', '.');
+      let amount = this.currencyService.parseLocaleCurrencyToNumber(this.amount?.value);
 
       var newIncome = <IncomeDto>({
         id: id,
@@ -140,7 +151,7 @@ export class ListIncomesComponent implements OnInit {
       id: new FormControl(income.id),
       name: new FormControl(income.name, [Validators.required]),
       date: new FormControl(newDate, [Validators.required]),
-      amount: new FormControl(income.amount?.toString().replace('.', ',') ?? 0, [Validators.required, Validators.pattern('(\\d+)?(\\,\\d{1,2})?')]),
+      amount: new FormControl(this.currencyService.parseNumberToLocaleCurrency(income.amount), [Validators.min(0), currencyValidator(this.globalService)]),
     });
   }
 
@@ -193,10 +204,8 @@ export class ListIncomesComponent implements OnInit {
             case 'required':
               errors.push('This field is required.');
               break;
-            case 'pattern':
-              if (fieldName === 'amount') {
-                errors.push('Invalid amount format. (0000,00)');
-              }
+            case 'min':
+              errors.push(`The value should be greater than ${control.errors[key].min}.`);
               break;
             default:
               errors.push(control.errors[key]);

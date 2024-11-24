@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { Operation } from 'fast-json-patch';
 import { Expense } from '../models/expense';
-import { dateUTC, formatDate } from '../utils/date/date';
+import { dateUTC, formatDate } from '../utils/date';
 
 @Injectable({
   providedIn: 'root'
