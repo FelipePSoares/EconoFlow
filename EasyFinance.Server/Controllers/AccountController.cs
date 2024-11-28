@@ -126,13 +126,7 @@ namespace EasyFinance.Server.Controllers
                     u.LastName.ToLower().Contains(searchTerm) ||
                     u.Email.ToLower().Contains(searchTerm))
                 .Take(50)
-                .Select(u => new UserSearchResponseDTO
-                {
-                    Id = u.Id,
-                    FirstName = u.FirstName,
-                    LastName = u.LastName,
-                    Email = u.Email
-                })
+                .Select(u => new UserSearchResponseDTO(u))
                 .ToList();
 
             return Ok(users);
