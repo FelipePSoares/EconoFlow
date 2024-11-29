@@ -27,21 +27,6 @@ namespace EasyFinance.Domain.Models.AccessControl
         public bool Enabled { get; set; } = true;
         public bool HasIncompletedInformation => string.IsNullOrEmpty(this.FirstName) && string.IsNullOrEmpty(this.LastName);
 
-        public void SetEmail(string email)
-        {
-            if (string.IsNullOrWhiteSpace(email))
-                throw new ValidationException(
-                    property: nameof(Email), 
-                    message: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(Email)));
-
-            if (!IsValidEmail(email)) 
-                throw new ValidationException(
-                    property: nameof(Email),
-                    message: string.Format(ValidationMessages.EmailFormatIsNotValid, nameof(Email)));
-
-            this.Email = email;
-        }
-
         public void SetFirstName(string firstName)
         {
             if (string.IsNullOrEmpty(firstName))
@@ -78,19 +63,6 @@ namespace EasyFinance.Domain.Models.AccessControl
                 this.TimeZoneId = timeZoneInfo.Id;
             else
                 throw new ValidationException(nameof(this.TimeZoneId), ValidationMessages.InvalidTimeZone);
-        }
-
-        public static bool IsValidEmail(string email)
-        {
-            try
-            {
-                var addr = new MailAddress(email);
-                return addr.Address != "";
-            }
-            catch
-            {
-                return false;
-            }
         }
     }
 }

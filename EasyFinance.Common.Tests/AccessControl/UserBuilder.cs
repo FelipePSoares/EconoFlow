@@ -25,7 +25,7 @@ namespace EasyFinance.Common.Tests.AccessControl
 
         public UserBuilder AddEmail(string email)
         {
-            this.user.SetEmail(email);
+            this.user.Email = email;
             return this;
         }
 
