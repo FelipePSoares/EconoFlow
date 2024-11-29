@@ -55,11 +55,12 @@ namespace EasyFinance.Server.Tests.Controllers
         public void SearchUsers_SendNullAndEmpty_ShouldReturnEmptyList(string searchTerm)
         {
             // Act
-            var result = _controller.SearchUsers(searchTerm) as OkObjectResult;
+            var result = _controller.SearchUsers(searchTerm);
 
             // Assert
-            result.ShouldNotBeNull();
-            var returnedUsers = result.Value.ShouldBeOfType<List<UserSearchResponseDTO>>();
+            var okResult = result as OkObjectResult;
+            okResult.ShouldNotBeNull();
+            var returnedUsers = okResult.Value.ShouldBeOfType<List<UserSearchResponseDTO>>();
             returnedUsers.ShouldBeEmpty();
         }
 
@@ -82,12 +83,10 @@ namespace EasyFinance.Server.Tests.Controllers
             var result = _controller.SearchUsers(searchTerm);
 
             // Assert
-            result.ShouldBeOfType<OkObjectResult>();
-            var okResult = (OkObjectResult)result;
-            var returnedUser = (okResult.Value as List<UserSearchResponseDTO>);
-            returnedUser.ShouldNotBeNull();
-            returnedUser.Count.ShouldBe(3);
-            returnedUser.TrueForAll(u => u.FirstName.Contains(searchTerm));
+            var okResult = result as OkObjectResult;
+            var returnedUsers = (okResult.Value as List<UserSearchResponseDTO>);
+            returnedUsers.Count.ShouldBe(3);
+            returnedUsers.TrueForAll(u => u.FirstName.Contains(searchTerm));
         }
 
         [Theory]
@@ -109,12 +108,10 @@ namespace EasyFinance.Server.Tests.Controllers
             var result = _controller.SearchUsers(searchTerm);
 
             // Assert
-            result.ShouldBeOfType<OkObjectResult>();
-            var okResult = (OkObjectResult)result;
-            var returnedUser = (okResult.Value as List<UserSearchResponseDTO>);
-            returnedUser.ShouldNotBeNull();
-            returnedUser.Count.ShouldBe(4);
-            returnedUser.TrueForAll(u => u.LastName.Contains(searchTerm));
+            var okResult = result as OkObjectResult;
+            var returnedUsers = (okResult.Value as List<UserSearchResponseDTO>);
+            returnedUsers.Count.ShouldBe(4);
+            returnedUsers.TrueForAll(u => u.LastName.Contains(searchTerm));
         }
 
         [Theory]
@@ -137,12 +134,39 @@ namespace EasyFinance.Server.Tests.Controllers
             var result = _controller.SearchUsers(searchTerm);
 
             // Assert
+            var okResult = result as OkObjectResult;
+            var returnedUsers = (okResult.Value as List<UserSearchResponseDTO>);
+            returnedUsers.Count.ShouldBe(5);
+            returnedUsers.TrueForAll(u => u.Email.Contains(searchTerm));
+        }
+
+
+
+        [Theory]
+        [InlineData("John")]
+        [InlineData("Jenifer")]
+        [InlineData("cathy@doering.com")]
+        [InlineData("Abdollahi")]
+        [InlineData("Alex")]
+        public void SearchUsers_ReturnsMatchingResultsOfTypeUserSearchResponseDTO(string searchTerm)
+        {
+            // Arrange
+            var userJohn = new UserBuilder().AddFirstName("John").AddLastName("Doe").AddEmail("john@doe.com").Build();
+            var userJohny = new UserBuilder().AddFirstName("Johny").AddLastName("Doerr").AddEmail("johny@doerr.com").Build();
+            var userJohnathan = new UserBuilder().AddFirstName("Johnathan").AddLastName("Doern").AddEmail("johnathan@doern.com").Build();
+            var userJenifer = new UserBuilder().AddFirstName("Jenifer").AddLastName("Doepner").AddEmail("jenifer@doepner.com").Build();
+            var cathyJenifer = new UserBuilder().AddFirstName("Cathy").AddLastName("Doering").AddEmail("cathy@doering.com").Build();
+            var userAmir = new UserBuilder().AddFirstName("Amir").AddLastName("Abdollahi").AddEmail("amir@abdollahi.dev").Build();
+            _userManagerMock.Setup(u => u.Users).Returns(new[] { userJohn, userJohny, userJohnathan, userJenifer, cathyJenifer, userAmir }.AsQueryable());
+
+            // Act
+            var result = _controller.SearchUsers(searchTerm);
+
+            // Assert
             result.ShouldBeOfType<OkObjectResult>();
-            var okResult = (OkObjectResult)result;
-            var returnedUser = (okResult.Value as List<UserSearchResponseDTO>);
-            returnedUser.ShouldNotBeNull();
-            returnedUser.Count.ShouldBe(5);
-            returnedUser.TrueForAll(u => u.Email.Contains(searchTerm));
+            var okResult = result as OkObjectResult;
+            okResult.ShouldNotBeNull();
+            okResult.Value.ShouldBeOfType<List<UserSearchResponseDTO>>();
         }
     }
 }
