@@ -156,4 +156,7 @@
   <data name="InvalidTimeZone" xml:space="preserve">
     <value>Invalid time zone</value>
   </data>
+  <data name="EmailFormatIsNotValid" xml:space="preserve">
+    <value>Email format is not valid</value>
+  </data>
 </root>

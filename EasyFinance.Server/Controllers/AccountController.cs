@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 
+
 namespace EasyFinance.Server.Controllers
 {
     [ApiController]
@@ -17,7 +18,10 @@ namespace EasyFinance.Server.Controllers
         private readonly SignInManager<User> signInManager;
         private readonly IEmailSender emailSender;
 
-        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, IEmailSender emailSender)
+        public AccountController(
+            UserManager<User> userManager,
+            SignInManager<User> signInManager,
+            IEmailSender emailSender)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;

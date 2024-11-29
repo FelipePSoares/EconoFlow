@@ -3,6 +3,7 @@ using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.Exceptions;
 using EasyFinance.Infrastructure.Validators;
 using Microsoft.AspNetCore.Identity;
+using System.Net.Mail;
 
 namespace EasyFinance.Domain.Models.AccessControl
 {
@@ -25,6 +26,21 @@ namespace EasyFinance.Domain.Models.AccessControl
         public string TimeZoneId { get; private set; } = string.Empty;
         public bool Enabled { get; set; } = true;
         public bool HasIncompletedInformation => string.IsNullOrEmpty(this.FirstName) && string.IsNullOrEmpty(this.LastName);
+
+        public void SetEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                throw new ValidationException(
+                    property: nameof(Email), 
+                    message: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(Email)));
+
+            if (!IsValidEmail(email)) 
+                throw new ValidationException(
+                    property: nameof(Email),
+                    message: string.Format(ValidationMessages.EmailFormatIsNotValid, nameof(Email)));
+
+            this.Email = email;
+        }
 
         public void SetFirstName(string firstName)
         {
@@ -62,6 +78,19 @@ namespace EasyFinance.Domain.Models.AccessControl
                 this.TimeZoneId = timeZoneInfo.Id;
             else
                 throw new ValidationException(nameof(this.TimeZoneId), ValidationMessages.InvalidTimeZone);
+        }
+
+        public static bool IsValidEmail(string email)
+        {
+            try
+            {
+                var addr = new MailAddress(email);
+                return addr.Address != "";
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }
