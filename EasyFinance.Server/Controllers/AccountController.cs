@@ -1,12 +1,11 @@
-﻿using System.Security.Claims;
-using EasyFinance.Domain.Models.AccessControl;
+﻿using EasyFinance.Domain.Models.AccessControl;
 using EasyFinance.Server.DTOs.AccessControl;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using SendGrid.Helpers.Mail;
-using SendGrid;
 using Microsoft.AspNetCore.Identity.UI.Services;
-using EasyFinance.Server.Config;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using System.Text.RegularExpressions;
+
 
 namespace EasyFinance.Server.Controllers
 {
@@ -19,13 +18,16 @@ namespace EasyFinance.Server.Controllers
         private readonly SignInManager<User> signInManager;
         private readonly IEmailSender emailSender;
 
-        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, IEmailSender emailSender)
+        public AccountController(
+            UserManager<User> userManager,
+            SignInManager<User> signInManager,
+            IEmailSender emailSender)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
             this.emailSender = emailSender;
         }
-        
+
         [HttpGet]
         public async Task<IActionResult> GetUserAsync()
         {
@@ -39,7 +41,7 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateUserAsync([FromBody]UserRequestDTO userDTO)
+        public async Task<IActionResult> UpdateUserAsync([FromBody] UserRequestDTO userDTO)
         {
             var id = this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier);
             var user = await this.userManager.FindByIdAsync(id.Value);
@@ -49,7 +51,7 @@ namespace EasyFinance.Server.Controllers
 
             user.SetFirstName(userDTO.FirstName);
             user.SetLastName(userDTO.LastName);
-            
+
             if (!string.IsNullOrEmpty(userDTO.PreferredCurrency))
                 user.SetPreferredCurrency(userDTO.PreferredCurrency);
 
@@ -113,6 +115,25 @@ namespace EasyFinance.Server.Controllers
             await emailSender.SendEmailAsync(to, subject, htmlContent);
         }
 
+        [HttpGet("search")]
+        public IActionResult SearchUsers([FromQuery] string searchTerm)
+        {
+            if (string.IsNullOrWhiteSpace(searchTerm))
+            {
+                return Ok(new List<UserSearchResponseDTO>());
+            }
 
+            searchTerm = Regex.Escape(searchTerm).ToLower();
+
+            var users = userManager.Users.Where(u =>
+                    u.FirstName.ToLower().Contains(searchTerm) ||
+                    u.LastName.ToLower().Contains(searchTerm) ||
+                    u.Email.ToLower().Contains(searchTerm))
+                .Take(50)
+                .Select(u => new UserSearchResponseDTO(u))
+                .ToList();
+
+            return Ok(users);
+        }
     }
 }

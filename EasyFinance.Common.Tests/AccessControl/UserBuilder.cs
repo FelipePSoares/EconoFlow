@@ -23,6 +23,12 @@ namespace EasyFinance.Common.Tests.AccessControl
             return this;
         }
 
+        public UserBuilder AddEmail(string email)
+        {
+            this.user.Email = email;
+            return this;
+        }
+
         public UserBuilder AddPreferredCurrency(string preferredCurrency)
         {
             this.user.SetPreferredCurrency(preferredCurrency);

@@ -3,6 +3,7 @@ using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.Exceptions;
 using EasyFinance.Infrastructure.Validators;
 using Microsoft.AspNetCore.Identity;
+using System.Net.Mail;
 
 namespace EasyFinance.Domain.Models.AccessControl
 {
