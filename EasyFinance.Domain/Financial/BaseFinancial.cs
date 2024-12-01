@@ -27,6 +27,7 @@ namespace EasyFinance.Domain.Models.Financial
         public string Name { get; private set; } = string.Empty;
         public DateTime Date { get; private set; }
         public decimal Amount { get; private set; }
+        public string CreatorName { get; private set; }
         public User CreatedBy { get; private set; } = new User();
         public ICollection<Attachment> Attachments { get; private set; } = new List<Attachment>();
 
@@ -66,6 +67,15 @@ namespace EasyFinance.Domain.Models.Financial
                 throw new ValidationException(nameof(this.CreatedBy), string.Format(ValidationMessages.PropertyCantBeNull, nameof(this.CreatedBy)));
 
             this.CreatedBy = createdBy;
+        }
+
+        public void RemoveUserLink(string creatorName)
+        {
+            if (string.IsNullOrEmpty(creatorName))
+                throw new ValidationException(nameof(creatorName), string.Format(ValidationMessages.PropertyCantBeNull, nameof(creatorName)));
+
+            this.CreatedBy = null;
+            this.CreatorName = creatorName;
         }
 
         public void SetAttachments(ICollection<Attachment> attachments)

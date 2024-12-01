@@ -1,4 +1,5 @@
 ﻿using EasyFinance.Application.Contracts.Persistence;
+using EasyFinance.Domain.Models.AccessControl;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,6 +26,20 @@ namespace EasyFinance.Application.Features.ExpenseItemService
                 return;
 
             unitOfWork.ExpenseItemRepository.Delete(expenseItem);
+            await unitOfWork.CommitAsync();
+        }
+
+        public async Task RemoveLinkAsync(User user)
+        {
+            var expenseItems = unitOfWork.ExpenseItemRepository.Trackable().Where(expenseItem => expenseItem.CreatedBy.Id == user.Id).ToList();
+
+
+            foreach (var expenseItem in expenseItems)
+            {
+                expenseItem.RemoveUserLink($"{user.FirstName} {user.LastName}");
+                unitOfWork.ExpenseItemRepository.InsertOrUpdate(expenseItem);
+            }
+
             await unitOfWork.CommitAsync();
         }
     }

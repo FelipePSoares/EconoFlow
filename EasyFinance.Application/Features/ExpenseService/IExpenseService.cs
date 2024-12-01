@@ -13,5 +13,6 @@ namespace EasyFinance.Application.Features.ExpenseService
         Task<Expense> CreateAsync(User user, Guid categoryId, Expense expense);
         Task<Expense> UpdateAsync(Expense expense);
         Task DeleteAsync(Guid expenseId);
+        Task RemoveLinkAsync(User user);
     }
 }
