@@ -18,6 +18,7 @@ import { CurrentDateComponent } from '../../../core/components/current-date/curr
 import { currencyValidator } from '../../../core/utils/custom-validators/currency-validator';
 import { GlobalService } from '../../../core/services/global.service';
 import { UserService } from '../../../core/services/user.service';
+import { CurrencyMaskModule } from 'ng2-currency-mask';
 
 @Component({
   selector: 'app-add-income',
@@ -32,7 +33,8 @@ import { UserService } from '../../../core/services/user.service';
     MatButtonModule,
     MatIconModule,
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    CurrencyMaskModule
   ],
   templateUrl: './add-income.component.html',
   styleUrl: './add-income.component.css'
@@ -43,6 +45,8 @@ export class AddIncomeComponent implements OnInit {
   httpErrors = false;
   errors!: { [key: string]: string };
   currencySymbol!: string;
+  thousandSeparator!: string; 
+  decimalSeparator !: string; 
 
   @Input({ required: true })
     projectId!: string;
@@ -54,6 +58,8 @@ export class AddIncomeComponent implements OnInit {
     private globalService: GlobalService,
     private userService: UserService
   ) {
+    this.thousandSeparator = this.globalService.groupSeparator;
+    this.decimalSeparator  = this.globalService.decimalSeparator
     this.userService.loggedUser$.subscribe(value => this.currencySymbol = getCurrencySymbol(value.preferredCurrency, "narrow"));
   }
 
@@ -66,7 +72,7 @@ export class AddIncomeComponent implements OnInit {
     this.incomeForm = new FormGroup({
       name: new FormControl('', [Validators.required]),
       date: new FormControl(this.currentDate, [Validators.required]),
-      amount: new FormControl('', [Validators.min(0), currencyValidator(this.globalService)])
+      amount: new FormControl(0, [Validators.min(0)])
     });
   }
 

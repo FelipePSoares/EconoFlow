@@ -44,7 +44,8 @@
           <span matTextPrefix>{{ currencySymbol }}&nbsp;</span>
           <input matInput
                  type="text"
-                 inputmode="decimal"
+                 currencyMask
+                 [options]="{ prefix: currencySymbol, allowNegative: false, thousands: thousandSeparator, decimal: decimalSeparator, precision: 2 }"
                  formControlName="amount">
           @if (amount?.invalid && amount?.touched){
           <mat-error *ngFor="let error of getFormFieldErrors('amount')">{{ error }}</mat-error>

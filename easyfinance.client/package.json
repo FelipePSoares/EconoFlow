@@ -31,6 +31,7 @@
     "bootstrap-icons": "^1.11.3",
     "fast-json-patch": "^3.1.1",
     "jest-editor-support": "*",
+    "ng2-currency-mask": "^13.0.3",
     "reflect-metadata": "^0.1.14",
     "run-script-os": "*",
     "rxjs": "~7.8.0",

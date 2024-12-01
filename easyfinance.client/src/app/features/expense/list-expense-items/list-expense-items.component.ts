@@ -33,6 +33,7 @@ import { GlobalService } from '../../../core/services/global.service';
 import { CurrencyService } from '../../../core/services/currency.service';
 import { currencyValidator } from '../../../core/utils/custom-validators/currency-validator';
 import { UserService } from '../../../core/services/user.service';
+import { CurrencyMaskModule } from 'ng2-currency-mask';
 
 @Component({
   selector: 'app-list-expense-items',
@@ -56,7 +57,8 @@ import { UserService } from '../../../core/services/user.service';
     MatSuffix,
     MatPrefix,
     MatButton,
-    CurrentDateComponent
+    CurrentDateComponent,
+    CurrencyMaskModule
   ],
   templateUrl: './list-expense-items.component.html',
   styleUrl: './list-expense-items.component.css'
@@ -72,9 +74,11 @@ export class ListExpenseItemsComponent {
   expenseItemForm!: FormGroup;
   editingExpenseItem: ExpenseItemDto = new ExpenseItemDto();
   itemToDelete!: string;
+  thousandSeparator!: string; 
+  currencySymbol!: string;
+  decimalSeparator!: string; 
   httpErrors = false;
   errors: any;
-  currencySymbol!: string;
 
   @Input({ required: true })
   categoryId!: string;
@@ -110,6 +114,8 @@ export class ListExpenseItemsComponent {
     private currencyService: CurrencyService,
     private userService: UserService
   ) {
+    this.thousandSeparator = this.globalService.groupSeparator;
+    this.decimalSeparator = this.globalService.decimalSeparator
     this.userService.loggedUser$.subscribe(value => this.currencySymbol = getCurrencySymbol(value.preferredCurrency, "narrow"));
     this.edit(new ExpenseItemDto());
   }
@@ -135,7 +141,7 @@ export class ListExpenseItemsComponent {
       let id = this.id?.value;
       let name = this.name?.value;
       let date = this.date?.value;
-      let amount = this.currencyService.parseLocaleCurrencyToNumber(this.amount?.value);
+      let amount = this.amount?.value;
 
       let expense = this.expense.getValue();
       let expenseItemsNewArray: ExpenseItemDto[] = JSON.parse(JSON.stringify(expense.items));
@@ -181,7 +187,7 @@ export class ListExpenseItemsComponent {
       id: new FormControl(expenseItem.id),
       name: new FormControl(expenseItem.name, [Validators.required]),
       date: new FormControl(newDate, [Validators.required]),
-      amount: new FormControl(this.currencyService.parseNumberToLocaleCurrency(expenseItem.amount), [Validators.min(0), currencyValidator(this.globalService)]),
+      amount: new FormControl(expenseItem.amount, [Validators.min(0)]),
     });
   }
 
