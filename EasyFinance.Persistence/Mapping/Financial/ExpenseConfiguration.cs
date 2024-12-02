@@ -19,10 +19,11 @@ namespace EasyFinance.Persistence.Mapping.Financial
             builder.Property(p => p.Amount)
                 .HasPrecision(18,2)
                 .IsRequired();
+            builder.Property(p => p.CreatorName)
+                .HasMaxLength(513);
 
             builder.HasOne(p => p.CreatedBy)
-                .WithMany()
-                .IsRequired();
+                .WithMany();
 
             builder.HasMany(p => p.Attachments)
                 .WithOne()

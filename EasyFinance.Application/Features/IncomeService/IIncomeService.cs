@@ -15,5 +15,6 @@ namespace EasyFinance.Application.Features.IncomeService
         Task<Income> CreateAsync(User user, Guid projectId, Income income);
         Task<Income> UpdateAsync(Income income);
         Task DeleteAsync(Guid incomeId);
+        Task RemoveLinkAsync(User user);
     }
 }

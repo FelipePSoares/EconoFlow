@@ -18,7 +18,8 @@ namespace EasyFinance.Persistence.Mapping.AccessControl
 
             builder.HasOne(p => p.Project)
                 .WithMany()
-                .IsRequired();
+                .IsRequired()
+                .OnDelete(DeleteBehavior.ClientNoAction);
         }
     }
 }

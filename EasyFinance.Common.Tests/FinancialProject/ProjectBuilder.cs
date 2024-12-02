@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using AutoFixture;
 using EasyFinance.Domain.Models.Financial;
 using EasyFinance.Domain.Models.FinancialProject;
 
@@ -10,7 +12,11 @@ namespace EasyFinance.Common.Tests.FinancialProject
 
         public ProjectBuilder()
         {
+            var fixture = new Fixture();
+
             this.project = new Project();
+            this.AddName(fixture.Create<string>());
+            this.AddType(ProjectType.Personal);
         }
 
         public ProjectBuilder AddName(string name)
@@ -30,6 +36,11 @@ namespace EasyFinance.Common.Tests.FinancialProject
             this.project.SetCategories(categories);
             return this;
         }
+        public ProjectBuilder AddCategory(Category category)
+        {
+            this.project.AddCategory(category);
+            return this;
+        }
 
         public ProjectBuilder AddIncomes(ICollection<Income> incomes)
         {
@@ -37,6 +48,13 @@ namespace EasyFinance.Common.Tests.FinancialProject
             return this;
         }
 
+        public ProjectBuilder AddIncome(Income income)
+        {
+            this.project.AddIncome(income);
+            return this;
+        }
+
         public Project Build() => this.project;
+
     }
 }
