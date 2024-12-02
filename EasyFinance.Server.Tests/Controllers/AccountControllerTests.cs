@@ -1,4 +1,8 @@
-﻿using EasyFinance.Common.Tests.AccessControl;
+﻿using EasyFinance.Application.Features.ExpenseItemService;
+using EasyFinance.Application.Features.ExpenseService;
+using EasyFinance.Application.Features.IncomeService;
+using EasyFinance.Application.Features.ProjectService;
+using EasyFinance.Common.Tests.AccessControl;
 using EasyFinance.Domain.Models.AccessControl;
 using EasyFinance.Server.Controllers;
 using EasyFinance.Server.DTOs.AccessControl;
@@ -46,7 +50,12 @@ namespace EasyFinance.Server.Tests.Controllers
             _controller = new AccountController(
                userManager: _userManagerMock.Object,
                signInManager: signInManagerMock.Object,
-               emailSender: emailSenderMock.Object);
+               emailSender: emailSenderMock.Object,
+               expenseService: Mock.Of<IExpenseService>(),
+               expenseItemService: Mock.Of<IExpenseItemService>(),
+               incomeService: Mock.Of<IIncomeService>(),
+               projectService: Mock.Of<IProjectService>()
+               );
         }
 
         [Theory]

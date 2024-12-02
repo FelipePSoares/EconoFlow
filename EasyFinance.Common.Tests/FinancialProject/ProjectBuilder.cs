@@ -48,6 +48,12 @@ namespace EasyFinance.Common.Tests.FinancialProject
             return this;
         }
 
+        public ProjectBuilder AddIncome(Income income)
+        {
+            this.project.AddIncome(income);
+            return this;
+        }
+
         public Project Build() => this.project;
 
     }

@@ -100,7 +100,6 @@ namespace EasyFinance.Server.Controllers
             };
             await Task.WhenAll(tasks);
 
-
             await this.userManager.DeleteAsync(user);
 
             return Ok();

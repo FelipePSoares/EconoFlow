@@ -88,7 +88,7 @@ namespace EasyFinance.Application.Features.ExpenseService
 
         public async Task RemoveLinkAsync(User user)
         {
-            var expenses = unitOfWork.ExpenseRepository.Trackable().Where(expense => expense.CreatedBy.Id == user.Id).ToList();
+            var expenses = unitOfWork.ExpenseRepository.Trackable().Include(e => e.CreatedBy).Where(expense => expense.CreatedBy.Id == user.Id).ToList();
 
             foreach (var expense in expenses)
             {

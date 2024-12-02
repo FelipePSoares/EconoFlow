@@ -1,5 +1,5 @@
 ﻿using EasyFinance.Application.Contracts.Persistence;
-using EasyFinance.Application.Features.ProjectService;
+using EasyFinance.Application.Features.ExpenseItemService;
 using EasyFinance.Common.Tests.AccessControl;
 using EasyFinance.Common.Tests.Financial;
 using EasyFinance.Common.Tests.FinancialProject;
@@ -16,7 +16,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace EasyFinance.Application.Tests
 {
     [Collection("Sequential")]
-    public class ProjectServiceTests
+    public class ExpenseItemServiceTests
     {
         private ServiceProvider serviceProvider;
 
@@ -27,7 +27,7 @@ namespace EasyFinance.Application.Tests
         private readonly Project project2;
         private readonly Project project3;
 
-        public ProjectServiceTests()
+        public ExpenseItemServiceTests()
         {
             var services = new ServiceCollection();
             services.AddDbContext<EasyFinanceDatabaseContext>(options =>
@@ -35,7 +35,7 @@ namespace EasyFinance.Application.Tests
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IGenericRepository<Project>, GenericRepository<Project>>();
-            services.AddScoped<IProjectService, ProjectService>();
+            services.AddScoped<IExpenseItemService, ExpenseItemService>();
             services.AddIdentityCore<User>()
                     .AddEntityFrameworkStores<EasyFinanceDatabaseContext>();
 
@@ -91,57 +91,76 @@ namespace EasyFinance.Application.Tests
         }
 
         [Fact]
-        public async Task DeleteOrRemoveLinkAsync_RemoveUserSoleAdmin_ShouldDeleteProjects()
+        public async Task RemoveLinkAsync_RemoveUserSoleAdmin_ShouldRemoveLinkWithCreatedBy()
         {
             using var scope = this.serviceProvider.CreateScope();
             var scopedServices = scope.ServiceProvider;
-            var projectService = scopedServices.GetRequiredService<IProjectService>();
+            var expenseItemService = scopedServices.GetRequiredService<IExpenseItemService>();
             var unitOfWork = scopedServices.GetRequiredService<IUnitOfWork>();
             var userManager = scopedServices.GetRequiredService<UserManager<User>>();
 
             // Arrange
             // Act
-            await projectService.DeleteOrRemoveLinkAsync(this.user1);
+            await expenseItemService.RemoveLinkAsync(this.user1);
 
             // Assert
-            var projects = unitOfWork.ProjectRepository.NoTrackable().ToList();
-            projects.Should().HaveCount(1);
-            projects.First().Should().NotBeNull();
-            projects.First().Id.Should().Be(project3.Id);
+            var project = unitOfWork.ProjectRepository.NoTrackable()
+                .Include(p => p.Categories)
+                    .ThenInclude(c => c.Expenses)
+                        .ThenInclude(e => e.Items)
+                            .ThenInclude(e => e.CreatedBy)
+                .First(p => p.Id == this.project3.Id);
+
+            project.Categories.First().Expenses.First().Items.First().CreatedBy.Id.Should().BeEmpty();
+            project.Categories.First().Expenses.First().Items.First().CreatorName.Should().NotBeNullOrEmpty();
         }
 
         [Fact]
-        public async Task DeleteOrRemoveLinkAsync_RemoveOnlyViewerUser_ShouldKeepAllProjects()
+        public async Task RemoveLinkAsync_RemoveOnlyViewerUser_ShouldRemoveLinkWithCreatedBy()
         {
             using var scope = this.serviceProvider.CreateScope();
             var scopedServices = scope.ServiceProvider;
-            var projectService = scopedServices.GetRequiredService<IProjectService>();
+            var expenseItemService = scopedServices.GetRequiredService<IExpenseItemService>();
             var unitOfWork = scopedServices.GetRequiredService<IUnitOfWork>();
 
             // Arrange
             // Act
-            await projectService.DeleteOrRemoveLinkAsync(this.user3);
+            await expenseItemService.RemoveLinkAsync(this.user3);
 
             // Assert
-            var projects = unitOfWork.ProjectRepository.NoTrackable().ToList();
-            projects.Should().HaveCount(3);
+            var project = unitOfWork.ProjectRepository.NoTrackable()
+                .Include(p => p.Categories)
+                    .ThenInclude(c => c.Expenses)
+                        .ThenInclude(e => e.Items)
+                            .ThenInclude(e => e.CreatedBy)
+                .First(p => p.Id == this.project1.Id);
+
+            project.Categories.First().Expenses.First().Items.First().CreatedBy.Id.Should().BeEmpty();
+            project.Categories.First().Expenses.First().Items.First().CreatorName.Should().NotBeNullOrEmpty();
         }
 
         [Fact]
-        public async Task DeleteOrRemoveLinkAsync_RemoveNotSoleAdminUser_ShouldKeepAllProjects()
+        public async Task RemoveLinkAsync_RemoveNotSoleAdminUser_ShouldRemoveLinkWithCreatedBy()
         {
             using var scope = this.serviceProvider.CreateScope();
             var scopedServices = scope.ServiceProvider;
-            var projectService = scopedServices.GetRequiredService<IProjectService>();
+            var expenseItemService = scopedServices.GetRequiredService<IExpenseItemService>();
             var unitOfWork = scopedServices.GetRequiredService<IUnitOfWork>();
 
             // Arrange
             // Act
-            await projectService.DeleteOrRemoveLinkAsync(this.user2);
+            await expenseItemService.RemoveLinkAsync(this.user2);
 
             // Assert
-            var projects = unitOfWork.ProjectRepository.NoTrackable().ToList();
-            projects.Should().HaveCount(3);
+            var project = unitOfWork.ProjectRepository.NoTrackable()
+                .Include(p => p.Categories)
+                    .ThenInclude(c => c.Expenses)
+                        .ThenInclude(e => e.Items)
+                            .ThenInclude(e => e.CreatedBy)
+                .First(p => p.Id == this.project2.Id);
+
+            project.Categories.First().Expenses.First().Items.First().CreatedBy.Id.Should().BeEmpty();
+            project.Categories.First().Expenses.First().Items.First().CreatorName.Should().NotBeNullOrEmpty();
         }
     }
 }
