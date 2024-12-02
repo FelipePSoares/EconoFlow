@@ -26,6 +26,7 @@ import { GlobalService } from '../../../core/services/global.service';
 import { CurrencyService } from '../../../core/services/currency.service';
 import { currencyValidator } from '../../../core/utils/custom-validators/currency-validator';
 import { UserService } from '../../../core/services/user.service';
+import { CurrencyMaskModule } from 'ng2-currency-mask';
 
 @Component({
   selector: 'app-list-incomes',
@@ -48,6 +49,7 @@ import { UserService } from '../../../core/services/user.service';
     MatSuffix,
     MatPrefix,
     MatButton,
+    CurrencyMaskModule
   ],
   templateUrl: './list-incomes.component.html',
   styleUrl: './list-incomes.component.css'
@@ -64,6 +66,8 @@ export class ListIncomesComponent implements OnInit {
   editingIncome: IncomeDto = new IncomeDto();
   itemToDelete!: string;
   httpErrors = false;
+  thousandSeparator!: string; 
+  decimalSeparator !: string; 
   errors: any;
   currencySymbol!: string;
 
@@ -78,6 +82,8 @@ export class ListIncomesComponent implements OnInit {
     private currencyService: CurrencyService,
     private userService: UserService
   ) {
+    this.thousandSeparator = this.globalService.groupSeparator;
+    this.decimalSeparator  = this.globalService.decimalSeparator;
     this.userService.loggedUser$.subscribe(value => this.currencySymbol = getCurrencySymbol(value.preferredCurrency, "narrow"));
   }
 
@@ -113,7 +119,7 @@ export class ListIncomesComponent implements OnInit {
       const id = this.id?.value;
       const name = this.name?.value;
       const date = this.date?.value;
-      let amount = this.currencyService.parseLocaleCurrencyToNumber(this.amount?.value);
+      let amount = this.amount?.value;
 
       var newIncome = <IncomeDto>({
         id: id,
@@ -151,7 +157,7 @@ export class ListIncomesComponent implements OnInit {
       id: new FormControl(income.id),
       name: new FormControl(income.name, [Validators.required]),
       date: new FormControl(newDate, [Validators.required]),
-      amount: new FormControl(this.currencyService.parseNumberToLocaleCurrency(income.amount), [Validators.min(0), currencyValidator(this.globalService)]),
+      amount: new FormControl(income.amount, [Validators.min(0)]),
     });
   }
 

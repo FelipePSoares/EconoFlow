@@ -29,6 +29,7 @@ import { GlobalService } from '../../../core/services/global.service';
 import { CurrencyService } from '../../../core/services/currency.service';
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
 import { UserService } from '../../../core/services/user.service';
+import { CurrencyMaskModule } from 'ng2-currency-mask';
 
 @Component({
   selector: 'app-list-expenses',
@@ -47,7 +48,8 @@ import { UserService } from '../../../core/services/user.service';
     MatInput,
     MatButton,
     MatDatepickerModule,
-    CurrencyFormatPipe
+    CurrencyFormatPipe,
+    CurrencyMaskModule
   ],
   templateUrl: './list-expenses.component.html',
   styleUrl: './list-expenses.component.css'
@@ -57,7 +59,8 @@ export class ListExpensesComponent implements OnInit {
   faPenToSquare = faPenToSquare;
   faFloppyDisk = faFloppyDisk;
   faTrash = faTrash;
-
+  thousandSeparator!: string; 
+  decimalSeparator!: string; 
   private expenses: BehaviorSubject<ExpenseDto[]> = new BehaviorSubject<ExpenseDto[]>([new ExpenseDto()]);
   expenses$: Observable<ExpenseDto[]> = this.expenses.asObservable();
   expenseForm!: FormGroup;
@@ -81,6 +84,8 @@ export class ListExpensesComponent implements OnInit {
     private currencyService: CurrencyService,
     private userService: UserService
   ) {
+    this.thousandSeparator = this.globalService.groupSeparator;
+    this.decimalSeparator = this.globalService.decimalSeparator
     this.userService.loggedUser$.subscribe(value => this.currencySymbol = getCurrencySymbol(value.preferredCurrency, "narrow"));
   }
 
@@ -123,7 +128,7 @@ export class ListExpensesComponent implements OnInit {
       let id = this.id?.value;
       let name = this.name?.value;
       let date = this.date?.value;
-      let amount = this.currencyService.parseLocaleCurrencyToNumber(this.amount?.value);
+      let amount = this.amount?.value;
       let budget = this.budget?.value;
 
       var newExpense = <ExpenseDto>({
@@ -162,7 +167,7 @@ export class ListExpensesComponent implements OnInit {
       id: new FormControl(expense.id),
       name: new FormControl(expense.name, [Validators.required]),
       date: new FormControl(newDate, [Validators.required]),
-      amount: new FormControl(this.currencyService.parseNumberToLocaleCurrency(expense.amount), [Validators.min(0), currencyValidator(this.globalService)]),
+      amount: new FormControl(expense.amount, [Validators.min(0)]),
       budget: new FormControl(expense.budget ?? 0, [Validators.pattern('[0-9]*')]),
     });
 

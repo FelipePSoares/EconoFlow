@@ -16,6 +16,8 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { todayUTC } from '../../../core/utils/date';
 import { currencyValidator } from '../../../core/utils/custom-validators/currency-validator';
+import { CurrencyMaskModule } from 'ng2-currency-mask';
+import { CurrencyService } from 'src/app/core/services/currency.service';
 import { GlobalService } from '../../../core/services/global.service';
 import { UserService } from '../../../core/services/user.service';
 
@@ -32,7 +34,8 @@ import { UserService } from '../../../core/services/user.service';
     MatButtonModule,
     MatIconModule,
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    CurrencyMaskModule
   ],
   templateUrl: './add-expense.component.html',
   styleUrl: './add-expense.component.css'
@@ -43,6 +46,8 @@ export class AddExpenseComponent implements OnInit {
   httpErrors = false;
   errors!: { [key: string]: string };
   currencySymbol!: string;
+  thousandSeparator!: string; 
+  decimalSeparator!: string; 
 
   @Input({ required: true })
   projectId!: string;
@@ -57,6 +62,8 @@ export class AddExpenseComponent implements OnInit {
     private globalService: GlobalService,
     private userService: UserService
   ) {
+    this.thousandSeparator = this.globalService.groupSeparator;
+    this.decimalSeparator = this.globalService.decimalSeparator
     this.userService.loggedUser$.subscribe(value => this.currencySymbol = getCurrencySymbol(value.preferredCurrency, "narrow"));
   }
 
@@ -69,7 +76,7 @@ export class AddExpenseComponent implements OnInit {
     this.expenseForm = new FormGroup({
       name: new FormControl('', [Validators.required]),
       date: new FormControl(this.currentDate, [Validators.required]),
-      amount: new FormControl('', [Validators.min(0), currencyValidator(this.globalService)]),
+      amount: new FormControl(0, [Validators.min(0)]),
       budget: new FormControl('', [Validators.pattern('[0-9]*')]),
     });
   }
@@ -91,9 +98,6 @@ export class AddExpenseComponent implements OnInit {
       let name = this.name?.value;
       let date = this.date?.value;
       let amount = this.amount?.value;
-      if (isNaN(amount)) {
-        amount = this.amount?.value.replace('.', '')?.replace(',', '.');
-      }
       let budget = this.budget?.value;
 
       var newExpense = <ExpenseDto>({

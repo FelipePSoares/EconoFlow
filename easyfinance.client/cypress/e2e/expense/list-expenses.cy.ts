@@ -75,7 +75,7 @@ describe('EconoFlow - expense list Tests', () => {
       
       cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(200)
-        cy.get('.progress-bar').first().contains(`${value}`)
+        cy.get('.progress-bar').first().contains(`${value/100}`)
       })
     })
 })

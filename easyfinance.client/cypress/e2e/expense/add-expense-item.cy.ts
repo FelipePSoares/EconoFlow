@@ -33,7 +33,7 @@ describe('EconoFlow - expense item add Tests', () => {
                 cy.get("mat-snack-bar-container").should("be.visible").contains('Created successfully!')
 
                 cy.wait<ExpenseReq, ExpenseRes>('@getExpense').then(({ request, response }) => {
-                  const exists = response?.body.items.some(item => item.name == expenseItem.name && item.amount == expenseItem.amount)
+                  const exists = response?.body.items.some(item => item.name == expenseItem.name && item.amount == expenseItem.amount/100)
                   expect(exists).to.be.true
                 })
               })

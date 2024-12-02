@@ -96,7 +96,11 @@
                 <mat-form-field appearance="fill" class="col-md-6">
                   <mat-label>Amount</mat-label>
                   <span matTextPrefix>{{ currencySymbol }}&nbsp;</span>
-                  <input matInput type="text" inputmode="decimal" formControlName="amount">
+                  <input matInput 
+                  type="text" 
+                  currencyMask
+                  [options]="{ prefix: currencySymbol, allowNegative: false, thousands: thousandSeparator, decimal: decimalSeparator, precision: 2 }" 
+                  formControlName="amount">
                   @if ((amount?.invalid && amount?.touched) || httpErrors){
                   <mat-error *ngFor="let error of getFormFieldErrors('amount')">{{ error }}</mat-error>
                   }
