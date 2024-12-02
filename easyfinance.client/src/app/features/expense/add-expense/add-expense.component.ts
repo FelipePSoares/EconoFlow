@@ -98,10 +98,8 @@ export class AddExpenseComponent implements OnInit {
       let name = this.name?.value;
       let date = this.date?.value;
       let amount = this.amount?.value;
-      //here 
-      if (isNaN(amount)) {
-        amount = this.amount?.value.replace('.', '')?.replace(',', '.');
-      }
+ 
+      console.log("HI,", amount)
       let budget = this.budget?.value;
 
       var newExpense = <ExpenseDto>({
