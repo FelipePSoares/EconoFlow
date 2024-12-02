@@ -1,4 +1,8 @@
-﻿using EasyFinance.Domain.Models.AccessControl;
+﻿using EasyFinance.Application.Features.ExpenseItemService;
+using EasyFinance.Application.Features.ExpenseService;
+using EasyFinance.Application.Features.IncomeService;
+using EasyFinance.Application.Features.ProjectService;
+using EasyFinance.Domain.Models.AccessControl;
 using EasyFinance.Server.DTOs.AccessControl;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -17,15 +21,28 @@ namespace EasyFinance.Server.Controllers
         private readonly UserManager<User> userManager;
         private readonly SignInManager<User> signInManager;
         private readonly IEmailSender emailSender;
+        private readonly IExpenseService expenseService;
+        private readonly IExpenseItemService expenseItemService;
+        private readonly IIncomeService incomeService;
+        private readonly IProjectService projectService;
 
         public AccountController(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            IExpenseService expenseService,
+            IExpenseItemService expenseItemService,
+            IIncomeService incomeService,
+            IProjectService projectService
+            )
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
             this.emailSender = emailSender;
+            this.expenseService = expenseService;
+            this.expenseItemService = expenseItemService;
+            this.incomeService = incomeService;
+            this.projectService = projectService;
         }
 
         [HttpGet]
@@ -62,6 +79,30 @@ namespace EasyFinance.Server.Controllers
             await this.signInManager.RefreshSignInAsync(user);
 
             return Ok(new UserResponseDTO(user));
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> DeleteUserAsync()
+        {
+            var id = this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier);
+            var user = await this.userManager.FindByIdAsync(id.Value);
+
+            if (user == null)
+                BadRequest("User not found!");
+
+            await this.projectService.DeleteOrRemoveLinkAsync(user);
+
+            var tasks = new List<Task>
+            {
+                this.expenseService.RemoveLinkAsync(user),
+                this.expenseItemService.RemoveLinkAsync(user),
+                this.incomeService.RemoveLinkAsync(user)
+            };
+            await Task.WhenAll(tasks);
+
+            await this.userManager.DeleteAsync(user);
+
+            return Ok();
         }
 
         [HttpPost("logout")]

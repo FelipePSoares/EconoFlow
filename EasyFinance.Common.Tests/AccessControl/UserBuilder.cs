@@ -1,4 +1,6 @@
-﻿using EasyFinance.Domain.Models.AccessControl;
+﻿using AutoFixture;
+using EasyFinance.Domain.Models.AccessControl;
+using System.Net.Mail;
 
 namespace EasyFinance.Common.Tests.AccessControl
 {
@@ -8,7 +10,15 @@ namespace EasyFinance.Common.Tests.AccessControl
 
         public UserBuilder()
         {
+            var fixture = new Fixture();
+
             this.user = new User();
+            this.AddFirstName(fixture.Create<string>());
+            this.AddLastName(fixture.Create<string>());
+            this.AddEmail(fixture.Create<MailAddress>().Address);
+            this.AddPreferredCurrency("EUR");
+            this.AddEnabled(true);
+            this.AddTimezone("UTC");
         }
 
         public UserBuilder AddFirstName(string firstName)
@@ -48,5 +58,6 @@ namespace EasyFinance.Common.Tests.AccessControl
         }
 
         public User Build() => this.user;
+
     }
 }

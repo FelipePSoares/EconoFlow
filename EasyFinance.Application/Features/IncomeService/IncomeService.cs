@@ -88,5 +88,18 @@ namespace EasyFinance.Application.Features.IncomeService
             unitOfWork.IncomeRepository.Delete(income);
             await unitOfWork.CommitAsync();
         }
+
+        public async Task RemoveLinkAsync(User user)
+        {
+            var incomes = unitOfWork.IncomeRepository.Trackable().Where(income => income.CreatedBy.Id == user.Id).ToList();
+
+            foreach (var income in incomes)
+            {
+                income.RemoveUserLink($"{user.FirstName} {user.LastName}");
+                unitOfWork.IncomeRepository.InsertOrUpdate(income);
+            }
+
+            await unitOfWork.CommitAsync();
+        }
     }
 }

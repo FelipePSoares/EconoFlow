@@ -23,6 +23,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EasyFinance.Application\EasyFinance.Application.csproj" />
+    <ProjectReference Include="..\EasyFinance.Common.Tests\EasyFinance.Common.Tests.csproj" />
+    <ProjectReference Include="..\EasyFinance.Persistence\EasyFinance.Persistence.csproj" />
   </ItemGroup>
 
   <ItemGroup>

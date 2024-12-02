@@ -46,5 +46,6 @@ namespace EasyFinance.Common.Tests.Financial
         }
 
         public TEntity Build() => this.entity;
+
     }
 }

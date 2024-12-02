@@ -23,7 +23,8 @@ namespace EasyFinance.Application.Features.ProjectService
 
         public ICollection<Project> GetAll(Guid userId)
         {
-            return unitOfWork.UserProjectRepository.NoTrackable().Where(up => up.User.Id == userId && !up.Project.Archive).Select(p => p.Project).ToList();
+            return unitOfWork.UserProjectRepository.NoTrackable()
+                .Where(up => up.User.Id == userId && !up.Project.Archive).Select(p => p.Project).ToList();
         }
 
         public Project GetById(Guid id)
@@ -99,6 +100,30 @@ namespace EasyFinance.Application.Features.ProjectService
             await unitOfWork.CommitAsync();
 
             return newExpenses;
+        }
+
+        public async Task DeleteOrRemoveLinkAsync(User user)
+        {
+            var userProjects = unitOfWork.UserProjectRepository.Trackable().Include(up => up.Project).Where(up => up.User.Id == user.Id).ToList();
+            var projectsToUnlink = unitOfWork.UserProjectRepository.NoTrackable().Include(up => up.Project)
+                .Where(up =>
+                    userProjects.Select(x => x.Project.Id).Contains(up.Project.Id) &&
+                    up.Role == Role.Admin &&
+                    up.User.Id != user.Id
+                )
+                .Select(up => up.Project.Id)
+                .Distinct()
+                .ToList();
+
+            foreach (var userProject in userProjects)
+            {
+                if (projectsToUnlink.Contains(userProject.Project.Id))
+                    unitOfWork.UserProjectRepository.Delete(userProject);
+                else
+                    unitOfWork.ProjectRepository.Delete(userProject.Project);
+            }
+
+            await unitOfWork.CommitAsync();
         }
     }
 }
