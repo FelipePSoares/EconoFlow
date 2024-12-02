@@ -98,8 +98,6 @@ export class AddExpenseComponent implements OnInit {
       let name = this.name?.value;
       let date = this.date?.value;
       let amount = this.amount?.value;
- 
-      console.log("HI,", amount)
       let budget = this.budget?.value;
 
       var newExpense = <ExpenseDto>({
