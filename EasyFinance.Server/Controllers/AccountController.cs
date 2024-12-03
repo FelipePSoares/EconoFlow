@@ -70,7 +70,7 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> DeleteUserAsync([FromQuery]string confirmationToken)
+        public async Task<IActionResult> DeleteUserAsync([FromBody] UserDeleteRequestDTO request = null)
         {
             var id = this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier);
             var user = await this.userManager.FindByIdAsync(id.Value);
@@ -84,7 +84,7 @@ namespace EasyFinance.Server.Controllers
                 var secretKey = Environment.GetEnvironmentVariable("EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN") ?? throw new Exception("Secret key for delete token can't be loaded.");
 #endif
 
-            if (string.IsNullOrEmpty(confirmationToken))
+            if (string.IsNullOrEmpty(request?.ConfirmationToken))
             {
                 var token = this.userService.GenerateDeleteToken(user, secretKey);
                 var message = await this.userService.GenerateConfirmationMessageAsync(user);
@@ -93,7 +93,9 @@ namespace EasyFinance.Server.Controllers
                     confirmationMessage = message,
                     confirmationToken = token
                 });
-            } else if (this.userService.ValidateDeleteToken(user, confirmationToken, secretKey)){
+            } 
+            else if (this.userService.ValidateDeleteToken(user, request.ConfirmationToken, secretKey))
+            {
                 await this.userService.DeleteUserAsync(user);
                 
                 return Ok();
