@@ -15,6 +15,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { CurrencyService } from '../../../core/services/currency.service';
+import { MatIcon } from "@angular/material/icon";
 
 @Component({
   selector: 'app-detail-user',
@@ -30,6 +31,7 @@ import { CurrencyService } from '../../../core/services/currency.service';
     MatButtonModule,
     MatSelectModule,
     MatOptionModule,
+    MatIcon,
   ],
   templateUrl: './detail-user.component.html',
   styleUrl: './detail-user.component.css'
@@ -40,18 +42,25 @@ export class DetailUserComponent implements OnInit {
   isEmailUpdated: boolean = false;
   isPasswordUpdated: boolean = false;
   passwordFormActive: boolean = false;
-
+  
   faCheck = faCheck;
   faCircleCheck = faCircleCheck;
   faCircleXmark = faCircleXmark;
   faFloppyDisk = faFloppyDisk;
   faPenToSquare = faPenToSquare;
   faEnvelopeOpenText = faEnvelopeOpenText;
-
+  
   passwordForm!: FormGroup;
   userForm!: FormGroup;
   httpErrors = false;
   errors!: { [key: string]: string };
+  hide = true;
+
+  hasLowerCase = false;
+  hasUpperCase = false;
+  hasOneNumber = false;
+  hasOneSpecial = false;
+  hasMinCharacteres = false;
 
   constructor(private userService: UserService, private currencyService: CurrencyService, private errorMessageService: ErrorMessageService) {
     this.user$ = this.userService.loggedUser$;
@@ -81,9 +90,17 @@ export class DetailUserComponent implements OnInit {
     this.passwordFormActive = false;
     this.passwordForm = new FormGroup({
       oldPassword: new FormControl('', [Validators.required]),
-      password: new FormControl('', [Validators.required, Validators.pattern(/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,}$/)]),
+      password: new FormControl('', [Validators.required, Validators.pattern(/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_])(?!.* ).{8,}$/)]),
       confirmPassword: new FormControl('', [Validators.required])
     }, { validators: passwordMatchValidator });
+
+    this.passwordForm.valueChanges.subscribe(value => {
+      this.hasLowerCase = /[a-z]/.test(value.password);
+      this.hasUpperCase = /[A-Z]/.test(value.password);
+      this.hasOneNumber = /[0-9]/.test(value.password);
+      this.hasOneSpecial = /[\W_]/.test(value.password);
+      this.hasMinCharacteres = /^.{8,}$/.test(value.password);
+    });
   }
 
   changeStatus() {
@@ -193,7 +210,7 @@ export class DetailUserComponent implements OnInit {
               errors.push('Invalid email format.');
               break;
             case 'pattern':
-              errors.push('Password must have:<ul><li>One lowercase character</li><li>One uppercase character</li><li>One number</li><li>One special character</li><li>8 characters minimum</li></ul>');
+              errors.push('');
               break;
             default:
               errors.push(control.errors[key]);

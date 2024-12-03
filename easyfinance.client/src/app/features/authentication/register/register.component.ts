@@ -32,6 +32,12 @@ export class RegisterComponent implements OnInit{
   hidePassword = true;
   hideConfirmPassword = true;
 
+  hasLowerCase = false;
+  hasUpperCase = false;
+  hasOneNumber = false;
+  hasOneSpecial = false;
+  hasMinCharacteres = false;
+
   constructor(private authService: AuthService, private router: Router) {
     this.authService.isSignedIn$.pipe(take(1)).subscribe(value => {
       if (value) {
@@ -46,10 +52,18 @@ export class RegisterComponent implements OnInit{
 
   buildRegisterForm(){
     this.registerForm = new FormGroup({
-        email: new FormControl('', [Validators.required, Validators.email]),
-      password: new FormControl('', [Validators.required, Validators.pattern(/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,}$/)]),
+      email: new FormControl('', [Validators.required, Validators.email]),
+      password: new FormControl('', [Validators.required, Validators.pattern(/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_])(?!.* ).{8,}$/)]),
       confirmPassword: new FormControl('',[Validators.required])
     },{validators: passwordMatchValidator});
+
+    this.registerForm.valueChanges.subscribe(value => {
+      this.hasLowerCase = /[a-z]/.test(value.password);
+      this.hasUpperCase = /[A-Z]/.test(value.password);
+      this.hasOneNumber = /[0-9]/.test(value.password);
+      this.hasOneSpecial = /[\W_]/.test(value.password);
+      this.hasMinCharacteres = /^.{8,}$/.test(value.password);
+    });
   }
 
   get email() {
@@ -117,7 +131,7 @@ export class RegisterComponent implements OnInit{
               errors.push('Invalid email format.');
               break;
             case 'pattern':
-              errors.push('Password must have:<ul><li>One lowercase character</li><li>One uppercase character</li><li>One number</li><li>One special character</li><li>8 characters minimum</li></ul>');
+              errors.push('');
               break;
             default:
               errors.push(control.errors[key]);

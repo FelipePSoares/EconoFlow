@@ -103,44 +103,73 @@
       <button class="btn btn-secondary" (click)="showPasswordForm()">Modify Password</button>
       } @else {
       <form [formGroup]="passwordForm" (ngSubmit)="savePassword()">
+
         <div class="row g-2 mb-2">
           <div class="col-md">
-            <div class="form-floating mb-3">
-              <input type="password" class="form-control" id="oldPassword" placeholder="Old Password" formControlName="oldPassword" [class.is-invalid]="oldPassword?.invalid && oldPassword?.touched">
-              <label for="oldPassword">Old Password</label>
-              <div *ngIf="oldPassword?.invalid && oldPassword?.touched">
-                <ul>
-                  <li *ngFor="let error of getFormFieldErrors(passwordForm, 'oldPassword')" class="text-danger" [innerHtml]="error"></li>
-                </ul>
-              </div>
-            </div>
-            <div class="form-floating mb-3">
-              <input type="password" class="form-control" id="password" placeholder="password" formControlName="password" [class.is-invalid]="password?.invalid && password?.touched">
-              <label for="password">New Password</label>
-              <div *ngIf="password?.invalid && password?.touched">
-                <ul>
-                  <li *ngFor="let error of getFormFieldErrors(passwordForm, 'password')" class="text-danger" [innerHtml]="error"></li>
-                </ul>
-              </div>
-            </div>
-            <div class="form-floating mb-3">
-              <input type="password" class="form-control" id="confirmPassword" placeholder="Password" formControlName="confirmPassword" [class.is-invalid]="confirmPassword?.invalid && confirmPassword?.touched">
-              <label for="confirmPassword">Confirm Password</label>
-              <div *ngIf="confirmPassword?.invalid && confirmPassword?.touched">
-                <div *ngIf="confirmPassword?.errors?.['required']" class="text-danger">Password is required.</div>
-              </div>
-            </div>
-            <div *ngIf="passwordForm.errors?.['passwordMismatch'] && (passwordForm.touched || passwordForm.dirty)">
-              <p class="mb-3 text-danger text-center">Password must match</p>
-            </div>
-            <div *ngIf="httpErrors && errors?.['general']">
-              <p class="mb-3 text-danger text-center">{{errors['general']}}</p>
-            </div>
-            <div class="float-end">
-              <button type="button" (click)="resetPasswordForm()" class="btn btn-secondary">Cancel</button>
-              <button class="btn btn-primary ms-1" type="submit" [disabled]="passwordForm.invalid">Save</button>
-            </div>
+            <!-- Old Password -->
+            <mat-form-field appearance="fill" class="w-100">
+              <mat-label>Old Password</mat-label>
+              <input matInput formControlName="oldPassword" [type]="hide ? 'password' : 'text'">
+              <mat-icon matSuffix (click)="hide = !hide">{{ hide ? 'visibility_off' : 'visibility' }}</mat-icon>
+              @if (oldPassword?.invalid && oldPassword?.touched){
+              <mat-error *ngFor="let error of getFormFieldErrors(passwordForm, 'oldPassword')" [innerHtml]="error"></mat-error>
+              }
+            </mat-form-field>
           </div>
+        </div>
+
+        <div class="row g-2 mb-2">
+          <div class="col-md">
+            <!-- New Password -->
+            <mat-form-field appearance="fill" class="w-100">
+              <mat-label>New Password</mat-label>
+              <input matInput formControlName="password" [type]="hide ? 'password' : 'text'">
+              <mat-icon matSuffix (click)="hide = !hide">{{ hide ? 'visibility_off' : 'visibility' }}</mat-icon>
+              @if (password?.invalid && password?.touched){
+              <mat-error *ngFor="let error of getFormFieldErrors(passwordForm, 'password')" [innerHtml]="error"></mat-error>
+              }
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="row g-2 mb-2">
+          <div class="col-md">
+            Password must have:
+              <ul>
+                <li [style.color]="hasLowerCase ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">One lowercase character</li>
+                <li [style.color]="hasUpperCase ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">One uppercase character</li>
+                <li [style.color]="hasOneNumber ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">One number</li>
+                <li [style.color]="hasOneSpecial ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">One special character</li>
+                <li [style.color]="hasMinCharacteres ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">8 characters minimum</li>
+              </ul>
+          </div>
+        </div>
+
+        <div class="row g-2 mb-2">
+          <div class="col-md">
+            <!-- Confirm Password -->
+            <mat-form-field appearance="fill" class="w-100">
+              <mat-label>Confirm Password</mat-label>
+              <input matInput formControlName="confirmPassword" [type]="hide ? 'password' : 'text'">
+              <mat-icon matSuffix (click)="hide = !hide">{{ hide ? 'visibility_off' : 'visibility' }}</mat-icon>
+              @if (confirmPassword?.invalid && confirmPassword?.touched){
+              <mat-error *ngFor="let error of getFormFieldErrors(passwordForm, 'confirmPassword')" [innerHtml]="error"></mat-error>
+              }
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- General Error Display -->
+        <div *ngIf="passwordForm.errors?.['passwordMismatch'] && (passwordForm.touched || passwordForm.dirty)">
+          <p class="mb-3 text-danger text-center">Password must match</p>
+        </div>
+        <div *ngIf="httpErrors && errors['general']">
+          <p class="mb-3 text-danger text-center">{{ errors['general'] }}</p>
+        </div>
+
+        <div class="float-end">
+          <button type="button" (click)="resetPasswordForm()" class="btn btn-secondary">Cancel</button>
+          <button class="btn btn-primary ms-1" type="submit" [disabled]="passwordForm.invalid">Save</button>
         </div>
       </form>
       }
