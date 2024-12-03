@@ -1,7 +1,4 @@
-﻿using EasyFinance.Application.Features.ExpenseItemService;
-using EasyFinance.Application.Features.ExpenseService;
-using EasyFinance.Application.Features.IncomeService;
-using EasyFinance.Application.Features.ProjectService;
+﻿using EasyFinance.Application.Features.UserService;
 using EasyFinance.Common.Tests.AccessControl;
 using EasyFinance.Domain.Models.AccessControl;
 using EasyFinance.Server.Controllers;
@@ -51,10 +48,7 @@ namespace EasyFinance.Server.Tests.Controllers
                userManager: _userManagerMock.Object,
                signInManager: signInManagerMock.Object,
                emailSender: emailSenderMock.Object,
-               expenseService: Mock.Of<IExpenseService>(),
-               expenseItemService: Mock.Of<IExpenseItemService>(),
-               incomeService: Mock.Of<IIncomeService>(),
-               projectService: Mock.Of<IProjectService>()
+               userService: Mock.Of<IUserService>()
                );
         }
 

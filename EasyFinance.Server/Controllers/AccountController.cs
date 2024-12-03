@@ -1,7 +1,4 @@
-﻿using EasyFinance.Application.Features.ExpenseItemService;
-using EasyFinance.Application.Features.ExpenseService;
-using EasyFinance.Application.Features.IncomeService;
-using EasyFinance.Application.Features.ProjectService;
+﻿using EasyFinance.Application.Features.UserService;
 using EasyFinance.Domain.Models.AccessControl;
 using EasyFinance.Server.DTOs.AccessControl;
 using Microsoft.AspNetCore.Identity;
@@ -21,28 +18,19 @@ namespace EasyFinance.Server.Controllers
         private readonly UserManager<User> userManager;
         private readonly SignInManager<User> signInManager;
         private readonly IEmailSender emailSender;
-        private readonly IExpenseService expenseService;
-        private readonly IExpenseItemService expenseItemService;
-        private readonly IIncomeService incomeService;
-        private readonly IProjectService projectService;
+        private readonly IUserService userService;
 
         public AccountController(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
             IEmailSender emailSender,
-            IExpenseService expenseService,
-            IExpenseItemService expenseItemService,
-            IIncomeService incomeService,
-            IProjectService projectService
+            IUserService userService
             )
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
             this.emailSender = emailSender;
-            this.expenseService = expenseService;
-            this.expenseItemService = expenseItemService;
-            this.incomeService = incomeService;
-            this.projectService = projectService;
+            this.userService = userService;
         }
 
         [HttpGet]
@@ -82,7 +70,7 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> DeleteUserAsync()
+        public async Task<IActionResult> DeleteUserAsync([FromBody] UserDeleteRequestDTO request = null)
         {
             var id = this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier);
             var user = await this.userManager.FindByIdAsync(id.Value);
@@ -90,19 +78,30 @@ namespace EasyFinance.Server.Controllers
             if (user == null)
                 BadRequest("User not found!");
 
-            await this.projectService.DeleteOrRemoveLinkAsync(user);
+#if DEBUG
+                var secretKey = "DevSecret_SCXbtFO7XfcVWdBg4FsCwDz8u&D$Hp%$7Eo";
+#else
+                var secretKey = Environment.GetEnvironmentVariable("EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN") ?? throw new Exception("Secret key for delete token can't be loaded.");
+#endif
 
-            var tasks = new List<Task>
+            if (string.IsNullOrEmpty(request?.ConfirmationToken))
             {
-                this.expenseService.RemoveLinkAsync(user),
-                this.expenseItemService.RemoveLinkAsync(user),
-                this.incomeService.RemoveLinkAsync(user)
-            };
-            await Task.WhenAll(tasks);
+                var token = this.userService.GenerateDeleteToken(user, secretKey);
+                var message = await this.userService.GenerateConfirmationMessageAsync(user);
 
-            await this.userManager.DeleteAsync(user);
+                return Accepted(new {
+                    confirmationMessage = message,
+                    confirmationToken = token
+                });
+            } 
+            else if (this.userService.ValidateDeleteToken(user, request.ConfirmationToken, secretKey))
+            {
+                await this.userService.DeleteUserAsync(user);
+                
+                return Ok();
+            }
 
-            return Ok();
+            return Unauthorized();
         }
 
         [HttpPost("logout")]

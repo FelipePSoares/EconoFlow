@@ -22,5 +22,7 @@ namespace EasyFinance.Application.Features.ProjectService
         Task<ICollection<Expense>> CopyBudgetFromPreviousMonthAsync(User user, Guid id, DateTime currentDate);
 
         Task DeleteOrRemoveLinkAsync(User user);
+
+        Task<IList<string>> GetProjectsWhereUserIsSoleAdminAsync(User user);
     }
 }

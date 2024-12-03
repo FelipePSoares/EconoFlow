@@ -104,8 +104,8 @@ namespace EasyFinance.Application.Features.ProjectService
 
         public async Task DeleteOrRemoveLinkAsync(User user)
         {
-            var userProjects = unitOfWork.UserProjectRepository.Trackable().Include(up => up.Project).Where(up => up.User.Id == user.Id).ToList();
-            var projectsToUnlink = unitOfWork.UserProjectRepository.NoTrackable().Include(up => up.Project)
+            var userProjects = await unitOfWork.UserProjectRepository.Trackable().Include(up => up.Project).Where(up => up.User.Id == user.Id).ToListAsync();
+            var projectsToUnlink = await unitOfWork.UserProjectRepository.NoTrackable().Include(up => up.Project)
                 .Where(up =>
                     userProjects.Select(x => x.Project.Id).Contains(up.Project.Id) &&
                     up.Role == Role.Admin &&
@@ -113,7 +113,7 @@ namespace EasyFinance.Application.Features.ProjectService
                 )
                 .Select(up => up.Project.Id)
                 .Distinct()
-                .ToList();
+                .ToListAsync();
 
             foreach (var userProject in userProjects)
             {
@@ -124,6 +124,24 @@ namespace EasyFinance.Application.Features.ProjectService
             }
 
             await unitOfWork.CommitAsync();
+        }
+
+        public async Task<IList<string>> GetProjectsWhereUserIsSoleAdminAsync(User user){
+            var userProjects = await unitOfWork.UserProjectRepository.Trackable().Include(up => up.Project)
+                .Where(up => up.User.Id == user.Id && up.Role == Role.Admin)
+                .ToListAsync();
+
+            var projectsWithOthersAdmins = await unitOfWork.UserProjectRepository.NoTrackable().Include(up => up.Project)
+                .Where(up =>
+                    userProjects.Select(x => x.Project.Id).Contains(up.Project.Id) &&
+                    up.Role == Role.Admin &&
+                    up.User.Id != user.Id
+                )
+                .Select(up => up.Project.Id)
+                .Distinct()
+                .ToListAsync();
+
+            return userProjects.Where(up => !projectsWithOthersAdmins.Contains(up.Project.Id)).Select(up => up.Project.Name).ToList();
         }
     }
 }

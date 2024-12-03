@@ -4,6 +4,7 @@ using EasyFinance.Application.Features.ExpenseItemService;
 using EasyFinance.Application.Features.ExpenseService;
 using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Application.Features.ProjectService;
+using EasyFinance.Application.Features.UserService;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EasyFinance.Application
@@ -18,6 +19,7 @@ namespace EasyFinance.Application
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IExpenseService, ExpenseService>();
             services.AddScoped<IExpenseItemService, ExpenseItemService>();
+            services.AddScoped<IUserService, UserService>();
 
             return services;
         }
