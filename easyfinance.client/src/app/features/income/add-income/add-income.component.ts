@@ -15,7 +15,6 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { todayUTC } from '../../../core/utils/date';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
-import { currencyValidator } from '../../../core/utils/custom-validators/currency-validator';
 import { GlobalService } from '../../../core/services/global.service';
 import { UserService } from '../../../core/services/user.service';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
