@@ -23,8 +23,6 @@ import { ErrorMessageService } from "../../../core/services/error-message.servic
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
 import { dateUTC } from '../../../core/utils/date';
 import { GlobalService } from '../../../core/services/global.service';
-import { CurrencyService } from '../../../core/services/currency.service';
-import { currencyValidator } from '../../../core/utils/custom-validators/currency-validator';
 import { UserService } from '../../../core/services/user.service';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
 
@@ -79,7 +77,6 @@ export class ListIncomesComponent implements OnInit {
     private router: Router,
     private errorMessageService: ErrorMessageService,
     private globalService: GlobalService,
-    private currencyService: CurrencyService,
     private userService: UserService
   ) {
     this.thousandSeparator = this.globalService.groupSeparator;

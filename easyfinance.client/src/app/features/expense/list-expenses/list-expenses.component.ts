@@ -24,9 +24,7 @@ import { MatButton } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { ApiErrorResponse } from 'src/app/core/models/error';
 import { ErrorMessageService } from 'src/app/core/services/error-message.service';
-import { currencyValidator } from '../../../core/utils/custom-validators/currency-validator';
 import { GlobalService } from '../../../core/services/global.service';
-import { CurrencyService } from '../../../core/services/currency.service';
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
 import { UserService } from '../../../core/services/user.service';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
@@ -81,7 +79,6 @@ export class ListExpensesComponent implements OnInit {
     private router: Router,
     private errorMessageService: ErrorMessageService,
     private globalService: GlobalService,
-    private currencyService: CurrencyService,
     private userService: UserService
   ) {
     this.thousandSeparator = this.globalService.groupSeparator;
