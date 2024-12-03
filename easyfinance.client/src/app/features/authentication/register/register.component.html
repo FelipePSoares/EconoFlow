@@ -34,6 +34,19 @@
           </ul>
         </div>
 
+        <div class="row g-2 mb-2">
+          <div class="col-md">
+            Password must have:
+              <ul>
+                <li [style.color]="hasLowerCase ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">One lowercase character</li>
+                <li [style.color]="hasUpperCase ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">One uppercase character</li>
+                <li [style.color]="hasOneNumber ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">One number</li>
+                <li [style.color]="hasOneSpecial ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">One special character</li>
+                <li [style.color]="hasMinCharacteres ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">8 characters minimum</li>
+              </ul>
+          </div>
+        </div>
+
         <mat-form-field class="mb-2" [style.width.%]="100">
           <mat-label>Confirm Password</mat-label>
           <input placeholder="Passsword" matInput formControlName="confirmPassword" [type]="hideConfirmPassword ? 'password' : 'text'">
