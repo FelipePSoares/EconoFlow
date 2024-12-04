@@ -183,6 +183,9 @@
           (click)="openDeleteDialog()">
           Delete Account
         </button>
+        <div *ngIf="deleteError" class="mt-2">
+          <p class="text-warning text-center">{{ deleteError }}</p>
+        </div>
       </div>    
     </div>
   </div>
@@ -197,6 +200,9 @@
       <p>Are you sure you want to delete your account? This action cannot be undone.</p>
     </ng-template>
   </mat-dialog-content>
+  <div *ngIf="deleteModalError" class="text-danger text-center mb-2">
+    {{ deleteModalError }}
+  </div>
   <mat-dialog-actions>
     <button mat-button (click)="closeDialog()">Cancel</button>
     <button mat-button color="warn" (click)="confirmDeletion()">Delete</button>

@@ -50,7 +50,10 @@ export class DetailUserComponent implements OnInit {
   isEmailUpdated: boolean = false;
   isPasswordUpdated: boolean = false;
   passwordFormActive: boolean = false;
+  deleteError: string | null =      null;
+  deleteModalError: string | null = null;
   
+
   isModalOpen: boolean = false; 
   faCheck = faCheck;
   faCircleCheck = faCircleCheck;
@@ -119,26 +122,30 @@ export class DetailUserComponent implements OnInit {
   }
   
   openDeleteDialog(): void {
+    this.deleteError = null;
+    this.deleteModalError = null;
+
     const dialogRef: MatDialogRef<any> = this.dialog.open(this.deleteDialog, {
       width: '400px',
     });
     const token = this.tokenService.getToken();
-    
+    const confirmationMessage = this.tokenService.getConfirmationMessage();
+    if(confirmationMessage) this.confirmationMessage = confirmationMessage;
     if(!token){
     this.userService.deleteUser().subscribe({
       next: (response: any) => {
         if (response?.confirmationToken) {
           this.confirmationMessage = response.confirmationMessage; 
-          this.tokenService.setToken(response.confirmationToken); 
+          this.tokenService.setToken(response.confirmationToken, response.confirmationMessage); 
         }
       },
       error: (err) => {
         console.error('Error during first deletion attempt:', err);
-       
+        this.deleteError = 'Failed to delete account. Please try again later';      
       },
     });
     }
-
+    
     dialogRef.afterClosed().subscribe(result => {
       if (result === true) {
         this.confirmDeletion();
@@ -147,11 +154,13 @@ export class DetailUserComponent implements OnInit {
   }
 
   closeDialog(): void {
+    this.deleteError = null;
+    this.deleteModalError = null;
     this.dialog.closeAll();
   }
 
   confirmDeletion(): void {
-  
+    this.deleteModalError = null;
     const token = this.tokenService.getToken();
     if (token) {
       this.userService.deleteUser(token).subscribe({
@@ -163,6 +172,7 @@ export class DetailUserComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error deleting user:', err);
+          this.deleteModalError = 'Account deletion failed. Please log out, then log back in and try again';
         },
       });
     }
