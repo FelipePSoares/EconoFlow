@@ -174,6 +174,37 @@
       </form>
       }
       }
+      <hr class="solid"/>
+      <div class="danger-zone rounded bg-danger p-3 mt-4 text-white">
+        <h3 class="text-white">Danger Zone</h3>
+        <p class="text-white-50">Deleting your account is permanent and cannot be undone.</p>
+        <button 
+          class="btn btn-light btn-sm"
+          (click)="openDeleteDialog()">
+          Delete Account
+        </button>
+        <div *ngIf="deleteError" class="mt-2">
+          <p class="text-warning text-center">{{ deleteError }}</p>
+        </div>
+      </div>    
     </div>
   </div>
 </div>
+
+
+<ng-template #deleteDialog>
+  <h2 mat-dialog-title>Confirm Deletion</h2>
+  <mat-dialog-content>
+    <p *ngIf="confirmationMessage; else defaultMessage" [innerHTML]="sanitizeMessage(confirmationMessage)"></p>
+    <ng-template #defaultMessage>
+      <p>Are you sure you want to delete your account? This action cannot be undone.</p>
+    </ng-template>
+  </mat-dialog-content>
+  <div *ngIf="deleteModalError" class="text-danger text-center mb-2">
+    {{ deleteModalError }}
+  </div>
+  <mat-dialog-actions>
+    <button mat-button (click)="closeDialog()">Cancel</button>
+    <button mat-button color="warn" (click)="confirmDeletion()">Delete</button>
+  </mat-dialog-actions>
+</ng-template>

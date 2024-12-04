@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, TemplateRef  } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faCheck, faCircleCheck, faCircleXmark, faFloppyDisk, faPenToSquare, faEnvelopeOpenText } from '@fortawesome/free-solid-svg-icons';
@@ -16,6 +16,12 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { CurrencyService } from '../../../core/services/currency.service';
 import { MatIcon } from "@angular/material/icon";
+import { MatDialogContent } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MatDialogModule } from '@angular/material/dialog';
+import { Router } from '@angular/router'; 
+import { TokenService } from 'src/app/core/services/token.service';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-detail-user',
@@ -32,6 +38,8 @@ import { MatIcon } from "@angular/material/icon";
     MatSelectModule,
     MatOptionModule,
     MatIcon,
+    MatDialogContent,
+    MatDialogModule,
   ],
   templateUrl: './detail-user.component.html',
   styleUrl: './detail-user.component.css'
@@ -42,7 +50,11 @@ export class DetailUserComponent implements OnInit {
   isEmailUpdated: boolean = false;
   isPasswordUpdated: boolean = false;
   passwordFormActive: boolean = false;
+  deleteError: string | null =      null;
+  deleteModalError: string | null = null;
   
+
+  isModalOpen: boolean = false; 
   faCheck = faCheck;
   faCircleCheck = faCircleCheck;
   faCircleXmark = faCircleXmark;
@@ -50,6 +62,7 @@ export class DetailUserComponent implements OnInit {
   faPenToSquare = faPenToSquare;
   faEnvelopeOpenText = faEnvelopeOpenText;
   
+  confirmationMessage: string = ''
   passwordForm!: FormGroup;
   userForm!: FormGroup;
   httpErrors = false;
@@ -61,8 +74,9 @@ export class DetailUserComponent implements OnInit {
   hasOneNumber = false;
   hasOneSpecial = false;
   hasMinCharacteres = false;
-
-  constructor(private userService: UserService, private currencyService: CurrencyService, private errorMessageService: ErrorMessageService) {
+  @ViewChild('deleteDialog') deleteDialog!: TemplateRef<any>; // Reference the inline dialog templat
+ 
+  constructor(private userService: UserService,private sanitizer: DomSanitizer, private tokenService: TokenService,  private router:Router, private dialog: MatDialog , private currencyService: CurrencyService, private errorMessageService: ErrorMessageService) {
     this.user$ = this.userService.loggedUser$;
   }
 
@@ -101,6 +115,62 @@ export class DetailUserComponent implements OnInit {
       this.hasOneSpecial = /[\W_]/.test(value.password);
       this.hasMinCharacteres = /^.{8,}$/.test(value.password);
     });
+  }
+
+  sanitizeMessage(message: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(message);
+  }
+  
+  openDeleteDialog(): void {
+    this.deleteError = null;
+    this.deleteModalError = null;
+
+    const dialogRef: MatDialogRef<any> = this.dialog.open(this.deleteDialog, {
+      width: '400px',
+    });
+    this.tokenService.clearToken();
+    this.userService.deleteUser().subscribe({
+      next: (response: any) => {
+        if (response?.confirmationToken) {
+          this.confirmationMessage = response.confirmationMessage; 
+          this.tokenService.setToken(response.confirmationToken, response.confirmationMessage); 
+        }
+      },
+      error: (err) => {
+        console.error('Error during first deletion attempt:', err);
+        this.deleteError = 'Failed to delete account. Please try again later';      
+      },
+    });
+    
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        this.confirmDeletion();
+      }
+    });
+  }
+
+  closeDialog(): void {
+    this.deleteError = null;
+    this.deleteModalError = null;
+    this.dialog.closeAll();
+  }
+
+  confirmDeletion(): void {
+    this.deleteModalError = null;
+    const token = this.tokenService.getToken();
+    if (token) {
+      this.userService.deleteUser(token).subscribe({
+        next: (response) => {
+          this.dialog.closeAll(); 
+          this.userService.removeUserInfo();
+          this.router.navigate(['/']);
+        },
+        error: (err) => {
+          console.error('Error deleting user:', err);
+          this.deleteModalError = 'Account deletion failed. Please log out, then log back in and try again';
+        },
+      });
+    }
   }
 
   changeStatus() {
