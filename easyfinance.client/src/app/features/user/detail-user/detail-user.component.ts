@@ -167,7 +167,7 @@ export class DetailUserComponent implements OnInit {
         next: (response) => {
           this.dialog.closeAll(); 
           this.userService.removeUserInfo();
-          this.router.navigate(['/login']);
+          this.router.navigate(['/']);
         },
         error: (err) => {
           console.error('Error deleting user:', err);
