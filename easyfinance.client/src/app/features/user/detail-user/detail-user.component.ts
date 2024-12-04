@@ -166,7 +166,6 @@ export class DetailUserComponent implements OnInit {
       this.userService.deleteUser(token).subscribe({
         next: (response) => {
           this.dialog.closeAll(); 
-          this.tokenService.clearToken(); 
           this.userService.removeUserInfo();
           this.router.navigate(['/login']);
         },
