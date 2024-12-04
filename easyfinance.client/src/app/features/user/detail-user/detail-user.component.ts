@@ -128,10 +128,7 @@ export class DetailUserComponent implements OnInit {
     const dialogRef: MatDialogRef<any> = this.dialog.open(this.deleteDialog, {
       width: '400px',
     });
-    const token = this.tokenService.getToken();
-    const confirmationMessage = this.tokenService.getConfirmationMessage();
-    if(confirmationMessage) this.confirmationMessage = confirmationMessage;
-    if(!token){
+    this.tokenService.clearToken();
     this.userService.deleteUser().subscribe({
       next: (response: any) => {
         if (response?.confirmationToken) {
@@ -144,7 +141,6 @@ export class DetailUserComponent implements OnInit {
         this.deleteError = 'Failed to delete account. Please try again later';      
       },
     });
-    }
     
     dialogRef.afterClosed().subscribe(result => {
       if (result === true) {
