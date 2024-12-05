@@ -1,5 +1,7 @@
 ﻿using EasyFinance.Application.Features.UserService;
 using EasyFinance.Domain.Models.AccessControl;
+using EasyFinance.Infrastructure;
+using EasyFinance.Infrastructure.Exceptions;
 using EasyFinance.Server.DTOs.AccessControl;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -89,19 +91,20 @@ namespace EasyFinance.Server.Controllers
                 var token = this.userService.GenerateDeleteToken(user, secretKey);
                 var message = await this.userService.GenerateConfirmationMessageAsync(user);
 
-                return Accepted(new {
+                return Accepted(new
+                {
                     confirmationMessage = message,
                     confirmationToken = token
                 });
-            } 
+            }
             else if (this.userService.ValidateDeleteToken(user, request.ConfirmationToken, secretKey))
             {
                 await this.userService.DeleteUserAsync(user);
-                
+
                 return Ok();
             }
 
-            return Unauthorized();
+            throw new ValidationException(ValidationMessages.InvalidDeleteToken);
         }
 
         [HttpPost("logout")]
