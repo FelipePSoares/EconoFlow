@@ -104,7 +104,13 @@ namespace EasyFinance.Application.Features.ProjectService
 
         public async Task DeleteOrRemoveLinkAsync(User user)
         {
-            var userProjects = await unitOfWork.UserProjectRepository.Trackable().Include(up => up.Project).Where(up => up.User.Id == user.Id).ToListAsync();
+            var userProjects = await unitOfWork.UserProjectRepository.Trackable()
+                .Include(up => up.Project)
+                    .ThenInclude(up => up.Categories)
+                        .ThenInclude(up => up.Expenses)
+                            .ThenInclude(up => up.Items)
+                .Where(up => up.User.Id == user.Id).ToListAsync();
+
             var projectsToUnlink = await unitOfWork.UserProjectRepository.NoTrackable().Include(up => up.Project)
                 .Where(up =>
                     userProjects.Select(x => x.Project.Id).Contains(up.Project.Id) &&
@@ -120,7 +126,28 @@ namespace EasyFinance.Application.Features.ProjectService
                 if (projectsToUnlink.Contains(userProject.Project.Id))
                     unitOfWork.UserProjectRepository.Delete(userProject);
                 else
+                {
+                    var items = userProject.Project.Categories.SelectMany(c => c.Expenses.SelectMany(e => e.Items));
+                    foreach (var item in items)
+                    {
+                        unitOfWork.ExpenseItemRepository.Delete(item);
+                    }
+
+                    var expenses = userProject.Project.Categories.SelectMany(c => c.Expenses);
+                    foreach (var expense in expenses)
+                    {
+                        unitOfWork.ExpenseRepository.Delete(expense);
+                    }
+
+                    var ups = unitOfWork.UserProjectRepository.Trackable().Where(up => up.Project.Id == userProject.Project.Id).ToList();
+
+                    foreach (var up in userProjects)
+                    {
+                        unitOfWork.UserProjectRepository.Delete(up);
+                    }
+
                     unitOfWork.ProjectRepository.Delete(userProject.Project);
+                }
             }
 
             await unitOfWork.CommitAsync();
