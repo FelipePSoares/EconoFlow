@@ -62,7 +62,7 @@ namespace EasyFinance.Application.Features.UserService
                     new Claim("userId", user.Id.ToString()),
                     new Claim("action", "confirm_delete")
                 ]),
-                Expires = DateTime.UtcNow.AddMinutes(5), // Token valid for 5 minutes
+                Expires = DateTime.UtcNow.AddMinutes(2), // Token valid for 2 minutes
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 

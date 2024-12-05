@@ -162,4 +162,7 @@
   <data name="WarningMessageToAdminUserWhoWantsToDeleteAccount" xml:space="preserve">
     <value>&lt;p&gt;This action is permanent and cannot be undone. Are you sure you want to delete your account?&lt;/p&gt;&lt;p&gt;&lt;span style="color: #ff0000;"&gt;You are associated as a sole administrator of the projects below:&lt;/span&gt;&lt;/p&gt;&lt;ul&gt;{0}&lt;/ul&gt;&lt;p&gt;Please transfer the administration to another user before deleting your account. Otherwise, the project(s) will be deleted also.&lt;/p&gt;</value>
   </data>
+  <data name="InvalidDeleteToken" xml:space="preserve">
+    <value>Delete token expired, please start the delete process again.</value>
+  </data>
 </root>
