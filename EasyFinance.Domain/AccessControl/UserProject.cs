@@ -11,9 +11,7 @@ namespace EasyFinance.Domain.Models.AccessControl
 
         public UserProject(User? user = default,  Project project = default, Role role = default, string? email = default)
         {
-            if (user == null && string.IsNullOrEmpty(email))
-                throw new ValidationException("Either a User or an Email must be provided for the UserProject.");
-
+           
             this.User = user;
             this.Email = email;
             this.SetProject(project ?? new Project());
