@@ -9,16 +9,26 @@ namespace EasyFinance.Domain.Models.AccessControl
     {
         private UserProject() { }
 
-        public UserProject(User user = default, Project project = default, Role role = default) 
+        public UserProject(User? user = default,  Project project = default, Role role = default, string? email = default)
         {
-            this.SetUser(user ?? new User());
+           
+            this.User = user;
+            this.Email = email;
             this.SetProject(project ?? new Project());
             this.SetRole(role);
         }
 
-        public User User { get; private set; } = new User();
+        public User? User { get; private set; } 
+        public string? Email { get; set; }      
         public Project Project { get; private set; } = new Project();
         public Role Role { get; private set; }
+
+        public Guid Token { get; private set; }     
+        public bool Accepted { get; private set; }        
+        public DateTime SentAt { get; private set; }       
+        public DateTime? AcceptedAt { get; private set; }
+        public bool Expired { get; private set; } 
+        public DateTime ExpiryDate { get; private set; } 
 
         public void SetUser(User user)
         {
