@@ -25,12 +25,12 @@ namespace EasyFinance.Domain.Models.AccessControl
         public Project Project { get; private set; } = new Project();
         public Role Role { get; private set; }
 
-        public Guid Token { get; set; }     
-        public bool Accepted { get; set; }        
-        public DateTime SentAt { get; set; }       
-        public DateTime? AcceptedAt { get; set; }
-        public bool Expired { get; set; } 
-        public DateTime ExpiryDate { get; set; } 
+        public Guid Token { get; private set; }     
+        public bool Accepted { get; private set; }        
+        public DateTime SentAt { get; private set; }       
+        public DateTime? AcceptedAt { get; private set; }
+        public bool Expired { get; private set; } 
+        public DateTime ExpiryDate { get; private set; } 
 
         public void SetUser(User user)
         {
