@@ -15,6 +15,12 @@ namespace EasyFinance.Persistence.Mapping.AccessControl
             builder.HasOne(p => p.User)
                 .WithMany()
                 .IsRequired();
+            
+            builder.Property(p => p.Token)
+                .IsRequired();
+
+            builder.HasIndex(p => p.Token)
+                .IsUnique();
 
             builder.HasOne(p => p.Project)
                 .WithMany()
