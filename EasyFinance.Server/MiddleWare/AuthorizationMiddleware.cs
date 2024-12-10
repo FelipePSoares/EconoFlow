@@ -24,8 +24,18 @@ namespace EasyFinance.Server.MiddleWare
                     return;
                 }
 
-                var userId = new Guid(httpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier).Value);
-                var projectId = new Guid(projectIdValue.ToString());
+                if (!Guid.TryParse(httpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier).Value, out var userId))
+                {
+                    httpContext.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    return;
+                }
+
+                if (!Guid.TryParse(projectIdValue.ToString(), out var projectId))
+                {
+                    httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    return;
+                }
+
                 var accessNeeded = httpContext.Request.Method == "GET" ? Role.Viewer : Role.Manager;
 
                 var hasAuthorization = accessControlService.HasAuthorization(userId, projectId, accessNeeded);
