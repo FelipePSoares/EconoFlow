@@ -11,6 +11,18 @@ namespace EasyFinance.Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_UserProjects_AspNetUsers_UserId",
+                table: "UserProjects");
+
+            migrationBuilder.AlterColumn<Guid>(
+                name: "UserId",
+                table: "UserProjects",
+                type: "uniqueidentifier",
+                nullable: true,
+                oldClrType: typeof(Guid),
+                oldType: "uniqueidentifier");
+
             migrationBuilder.AddColumn<bool>(
                 name: "Accepted",
                 table: "UserProjects",
@@ -27,15 +39,10 @@ namespace EasyFinance.Persistence.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "Email",
                 table: "UserProjects",
-                type: "nvarchar(max)",
-                nullable: true);
-
-            migrationBuilder.AddColumn<bool>(
-                name: "Expired",
-                table: "UserProjects",
-                type: "bit",
+                type: "nvarchar(256)",
+                maxLength: 256,
                 nullable: false,
-                defaultValue: false);
+                defaultValue: "");
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "ExpiryDate",
@@ -56,18 +63,29 @@ namespace EasyFinance.Persistence.Migrations
                 table: "UserProjects",
                 type: "uniqueidentifier",
                 nullable: false,
-                defaultValue: new Guid("00000000-0000-0000-0000-000000000000"));
+                defaultValueSql: "NewId()");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserProjects_Token",
                 table: "UserProjects",
                 column: "Token",
                 unique: true);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_UserProjects_AspNetUsers_UserId",
+                table: "UserProjects",
+                column: "UserId",
+                principalTable: "AspNetUsers",
+                principalColumn: "Id");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_UserProjects_AspNetUsers_UserId",
+                table: "UserProjects");
+
             migrationBuilder.DropIndex(
                 name: "IX_UserProjects_Token",
                 table: "UserProjects");
@@ -85,10 +103,6 @@ namespace EasyFinance.Persistence.Migrations
                 table: "UserProjects");
 
             migrationBuilder.DropColumn(
-                name: "Expired",
-                table: "UserProjects");
-
-            migrationBuilder.DropColumn(
                 name: "ExpiryDate",
                 table: "UserProjects");
 
@@ -99,6 +113,24 @@ namespace EasyFinance.Persistence.Migrations
             migrationBuilder.DropColumn(
                 name: "Token",
                 table: "UserProjects");
+
+            migrationBuilder.AlterColumn<Guid>(
+                name: "UserId",
+                table: "UserProjects",
+                type: "uniqueidentifier",
+                nullable: false,
+                defaultValue: new Guid("00000000-0000-0000-0000-000000000000"),
+                oldClrType: typeof(Guid),
+                oldType: "uniqueidentifier",
+                oldNullable: true);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_UserProjects_AspNetUsers_UserId",
+                table: "UserProjects",
+                column: "UserId",
+                principalTable: "AspNetUsers",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
         }
     }
 }

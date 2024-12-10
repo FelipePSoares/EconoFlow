@@ -1,5 +1,7 @@
-﻿using EasyFinance.Domain.Models.AccessControl;
+﻿using EasyFinance.Common.Tests.FinancialProject;
+using EasyFinance.Domain.Models.AccessControl;
 using EasyFinance.Domain.Models.FinancialProject;
+using System;
 
 namespace EasyFinance.Common.Tests.AccessControl
 {
@@ -9,12 +11,15 @@ namespace EasyFinance.Common.Tests.AccessControl
 
         public UserProjectBuilder()
         {
-            this.userProject = new UserProject();
+            var user = new UserBuilder().Build();
+            var project = new ProjectBuilder().Build();
+
+            this.userProject = new UserProject(user, project, Role.Admin);
         }
 
-        public UserProjectBuilder AddUser(User user)
+        public UserProjectBuilder AddUser(User user, string email = null)
         {
-            this.userProject.SetUser(user);
+            this.userProject.SetUser(user, email);
             return this;
         }
 
@@ -27,6 +32,12 @@ namespace EasyFinance.Common.Tests.AccessControl
         public UserProjectBuilder AddRole(Role role)
         {
             this.userProject.SetRole(role);
+            return this;
+        }
+
+        public UserProjectBuilder SetExpiryDate(DateTime value)
+        {
+            this.userProject.GetType().GetProperty("ExpiryDate").SetValue(this.userProject, value);
             return this;
         }
 

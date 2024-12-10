@@ -10,13 +10,29 @@ namespace EasyFinance.Persistence.Mapping.AccessControl
         {
             builder.ToTable("UserProjects");
 
-            builder.Property(p => p.Role).IsRequired();
+            builder.Property(p => p.Role)
+                .IsRequired();
+
+            builder.Property(p => p.Token)
+                .IsRequired();
+
+            builder.Property(p => p.Accepted);
+
+            builder.Property(p => p.SentAt)
+                .IsRequired();
+
+            builder.Property(p => p.AcceptedAt);
+
+            builder.Property(p => p.ExpiryDate)
+                .IsRequired();
+
+            builder.Property(p => p.Email)
+                .HasMaxLength(256)
+                .IsRequired();
 
             builder.HasOne(p => p.User)
                 .WithMany();
             
-            builder.Property(p => p.Token)
-                .IsRequired();
 
             builder.HasIndex(p => p.Token)
                 .IsUnique();

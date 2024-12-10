@@ -165,4 +165,10 @@
   <data name="InvalidDeleteToken" xml:space="preserve">
     <value>Delete token expired, please start the delete process again.</value>
   </data>
+  <data name="EitherUserOrEmailMustBeProvided" xml:space="preserve">
+    <value>Either a User or an Email must be provided.</value>
+  </data>
+  <data name="CantAcceptExpiredInvitation" xml:space="preserve">
+    <value>Can't accept expired invitation</value>
+  </data>
 </root>
