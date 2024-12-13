@@ -1,7 +1,11 @@
-﻿using EasyFinance.Domain.Models.Financial;
-using EasyFinance.Server.DTOs.Financial;
+﻿using EasyFinance.Application.Mappers;
+using EasyFinance.Domain.Financial;
+using EasyFinance.Application.DTOs.Financial;
+using System.Collections.Generic;
+using System;
+using System.Linq;
 
-namespace EasyFinance.Server.Mappers
+namespace EasyFinance.Application.Mappers
 {
     public static class ExpenseItemMap
     {
@@ -36,13 +40,14 @@ namespace EasyFinance.Server.Mappers
             };
         }
 
-        public static ICollection<ExpenseItem> FromDTO(this ICollection<ExpenseItemRequestDTO> expenseItemsDTO, IList<ExpenseItem> expenseItems = null) 
-            => expenseItemsDTO.Select((expenseItemDTO, index) => {
+        public static ICollection<ExpenseItem> FromDTO(this ICollection<ExpenseItemRequestDTO> expenseItemsDTO, IList<ExpenseItem> expenseItems = null)
+            => expenseItemsDTO.Select((expenseItemDTO, index) =>
+            {
                 if (index < expenseItems?.Count)
                     return expenseItemDTO.FromDTO(expenseItems[index]);
 
                 return expenseItemDTO.FromDTO();
-                }).ToList();
+            }).ToList();
 
         public static ExpenseItem FromDTO(this ExpenseItemRequestDTO expenseItemDTO, ExpenseItem expenseItem = null)
         {

@@ -1,5 +1,5 @@
 ﻿using System.Linq;
-using EasyFinance.Domain.Models;
+using EasyFinance.Domain;
 
 namespace EasyFinance.Application.Contracts.Persistence
 {

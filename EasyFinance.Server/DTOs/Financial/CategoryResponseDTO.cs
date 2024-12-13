@@ -1,4 +1,4 @@
-﻿using EasyFinance.Domain.Models.Financial;
+﻿using EasyFinance.Domain.Financial;
 
 namespace EasyFinance.Server.DTOs.Financial
 {

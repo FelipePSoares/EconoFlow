@@ -1,4 +1,4 @@
-﻿using EasyFinance.Domain.Models.AccessControl;
+﻿using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure.Validators;
 
 namespace EasyFinance.Server.DTOs.AccessControl

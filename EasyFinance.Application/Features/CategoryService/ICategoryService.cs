@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using EasyFinance.Domain.Models.Financial;
+using EasyFinance.Domain.Financial;
 
 namespace EasyFinance.Application.Features.CategoryService
 {

@@ -1,7 +1,11 @@
-﻿using EasyFinance.Domain.Models.FinancialProject;
-using EasyFinance.Server.DTOs.FinancialProject;
+﻿using EasyFinance.Application.Mappers;
+using EasyFinance.Domain.FinancialProject;
+using EasyFinance.Application.DTOs.FinancialProject;
+using System.Collections.Generic;
+using System;
+using System.Linq;
 
-namespace EasyFinance.Server.Mappers
+namespace EasyFinance.Application.Mappers
 {
     public static class ProjectMap
     {

@@ -1,8 +1,8 @@
-﻿using EasyFinance.Application.Features.UserService;
-using EasyFinance.Domain.Models.AccessControl;
+﻿using EasyFinance.Application.DTOs.AccessControl;
+using EasyFinance.Application.Features.UserService;
+using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.Exceptions;
-using EasyFinance.Server.DTOs.AccessControl;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;

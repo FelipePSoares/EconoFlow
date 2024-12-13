@@ -1,4 +1,4 @@
-﻿using EasyFinance.Domain.Models.AccessControl;
+﻿using EasyFinance.Domain.AccessControl;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

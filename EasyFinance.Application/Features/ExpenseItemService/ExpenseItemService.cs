@@ -1,5 +1,5 @@
 ﻿using EasyFinance.Application.Contracts.Persistence;
-using EasyFinance.Domain.Models.AccessControl;
+using EasyFinance.Domain.AccessControl;
 using System;
 using System.Linq;
 using System.Threading.Tasks;

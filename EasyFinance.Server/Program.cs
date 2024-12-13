@@ -1,8 +1,8 @@
 using EasyFinance.Application;
 using EasyFinance.Application.Contracts.Persistence;
-using EasyFinance.Domain.Models.AccessControl;
-using EasyFinance.Domain.Models.Financial;
-using EasyFinance.Domain.Models.FinancialProject;
+using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Financial;
+using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Persistence;
 using EasyFinance.Persistence.DatabaseContext;
 using EasyFinance.Server.Config;

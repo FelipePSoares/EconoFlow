@@ -1,6 +1,6 @@
 ﻿using EasyFinance.Application.Features.CategoryService;
-using EasyFinance.Server.DTOs.Financial;
-using EasyFinance.Server.Mappers;
+using EasyFinance.Application.DTOs.Financial;
+using EasyFinance.Application.Mappers;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 

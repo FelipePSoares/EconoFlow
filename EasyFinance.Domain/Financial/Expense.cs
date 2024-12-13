@@ -1,10 +1,11 @@
-﻿using EasyFinance.Domain.Models.AccessControl;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.Exceptions;
+using EasyFinance.Domain.AccessControl;
+using EasyFinance.Infrastructure.DTOs;
 
-namespace EasyFinance.Domain.Models.Financial
+namespace EasyFinance.Domain.Financial
 {
     public class Expense : BaseExpense
     {
@@ -20,22 +21,24 @@ namespace EasyFinance.Domain.Models.Financial
             int budget = default)
             : base(name, date, amount, createdBy, attachments, items)
         {
-            this.SetBudget(budget);
+            SetBudget(budget);
         }
 
         public int Budget { get; private set; }
 
-        public void SetBudget(int budget)
+        public AppResponse SetBudget(int budget)
         {
             if (budget < 0)
-                throw new ValidationException(nameof(this.Budget), string.Format(ValidationMessages.PropertyCantBeLessThanZero, nameof(this.Budget)));
+                return AppResponse.Error(code: nameof(budget), description: string.Format(ValidationMessages.PropertyCantBeLessThanZero, nameof(Budget)));
 
-            this.Budget = budget;
+            Budget = budget;
+            return AppResponse.Success();
         }
 
-        public Expense CopyBudgetToCurrentMonth(User createdBy)
+        public AppResponse<Expense> CopyBudgetToCurrentMonth(User createdBy)
         {
-            return new Expense(name: this.Name, date: this.Date.AddMonths(1), createdBy: createdBy, budget: this.Budget);
+            var expense = new Expense(name: Name, date: Date.AddMonths(1), createdBy: createdBy, budget: Budget);
+            return AppResponse<Expense>.Success(expense);
         }
     }
 }

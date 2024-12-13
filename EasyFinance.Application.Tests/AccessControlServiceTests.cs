@@ -1,7 +1,7 @@
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.Features.AccessControlService;
-using EasyFinance.Domain.Models.AccessControl;
-using EasyFinance.Domain.Models.FinancialProject;
+using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.FinancialProject;
 using FluentAssertions;
 using Moq;
 

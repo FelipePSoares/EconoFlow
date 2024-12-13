@@ -1,8 +1,8 @@
-﻿using EasyFinance.Domain.Models.AccessControl;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System;
+using EasyFinance.Domain.AccessControl;
 
-namespace EasyFinance.Domain.Models.Financial
+namespace EasyFinance.Domain.Financial
 {
     public class Income : BaseFinancial
     {
