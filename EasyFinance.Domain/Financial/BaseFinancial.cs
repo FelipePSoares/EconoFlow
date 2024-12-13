@@ -1,27 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
-using EasyFinance.Domain.Models.AccessControl;
+using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.Exceptions;
 
-namespace EasyFinance.Domain.Models.Financial
+namespace EasyFinance.Domain.Financial
 {
     public abstract class BaseFinancial : BaseEntity
     {
         private BaseFinancial() { }
 
         public BaseFinancial(
-            string name = "default", 
-            DateTime date = default, 
-            decimal amount = default, 
-            User createdBy = default, 
+            string name = "default",
+            DateTime date = default,
+            decimal amount = default,
+            User createdBy = default,
             ICollection<Attachment> attachments = default)
         {
-            this.SetName(name);
-            this.SetDate(date == default ? DateTime.Today : date);
-            this.SetAmount(amount);
-            this.SetCreatedBy(createdBy ?? new User());
-            this.SetAttachments(attachments ?? new List<Attachment>());
+            SetName(name);
+            SetDate(date == default ? DateTime.Today : date);
+            SetAmount(amount);
+            SetCreatedBy(createdBy ?? new User());
+            SetAttachments(attachments ?? new List<Attachment>());
         }
 
         public string Name { get; private set; } = string.Empty;
@@ -34,39 +34,39 @@ namespace EasyFinance.Domain.Models.Financial
         public void SetName(string name)
         {
             if (string.IsNullOrEmpty(name))
-                throw new ValidationException(nameof(this.Name), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(this.Name)));
+                throw new ValidationException(nameof(Name), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(Name)));
 
-            this.Name = name;
+            Name = name;
         }
 
         public void SetDate(DateTime date)
         {
-            if (date.ToUniversalTime() > DateTime.Today.ToUniversalTime().AddDays(1) && this.Amount > 0)
-                throw new ValidationException(nameof(this.Date), ValidationMessages.CantAddFutureExpenseIncome);
+            if (date.ToUniversalTime() > DateTime.Today.ToUniversalTime().AddDays(1) && Amount > 0)
+                throw new ValidationException(nameof(Date), ValidationMessages.CantAddFutureExpenseIncome);
 
             if (date < DateTime.Today.AddYears(-5))
-                throw new ValidationException(nameof(this.Date), string.Format(ValidationMessages.CantAddExpenseOlderThanYears, 5));
+                throw new ValidationException(nameof(Date), string.Format(ValidationMessages.CantAddExpenseOlderThanYears, 5));
 
-            this.Date = date;
+            Date = date;
         }
 
         public void SetAmount(decimal amount)
         {
             if (amount < 0)
-                throw new ValidationException(nameof(this.Amount), string.Format(ValidationMessages.PropertyCantBeLessThanZero, nameof(this.Amount)));
+                throw new ValidationException(nameof(Amount), string.Format(ValidationMessages.PropertyCantBeLessThanZero, nameof(Amount)));
 
-            if (this.Date.ToUniversalTime() > DateTime.Today.ToUniversalTime().AddDays(1) && amount > 0)
-                throw new ValidationException(nameof(this.Date), ValidationMessages.CantAddFutureExpenseIncome);
+            if (Date.ToUniversalTime() > DateTime.Today.ToUniversalTime().AddDays(1) && amount > 0)
+                throw new ValidationException(nameof(Date), ValidationMessages.CantAddFutureExpenseIncome);
 
-            this.Amount = amount;
+            Amount = amount;
         }
 
         public void SetCreatedBy(User createdBy)
         {
             if (createdBy == default)
-                throw new ValidationException(nameof(this.CreatedBy), string.Format(ValidationMessages.PropertyCantBeNull, nameof(this.CreatedBy)));
+                throw new ValidationException(nameof(CreatedBy), string.Format(ValidationMessages.PropertyCantBeNull, nameof(CreatedBy)));
 
-            this.CreatedBy = createdBy;
+            CreatedBy = createdBy;
         }
 
         public void RemoveUserLink(string creatorName)
@@ -74,16 +74,16 @@ namespace EasyFinance.Domain.Models.Financial
             if (string.IsNullOrEmpty(creatorName))
                 throw new ValidationException(nameof(creatorName), string.Format(ValidationMessages.PropertyCantBeNull, nameof(creatorName)));
 
-            this.CreatedBy = null;
-            this.CreatorName = creatorName;
+            CreatedBy = null;
+            CreatorName = creatorName;
         }
 
         public void SetAttachments(ICollection<Attachment> attachments)
         {
             if (attachments == default)
-                throw new ValidationException(nameof(this.Attachments), string.Format(ValidationMessages.PropertyCantBeNull, nameof(this.Attachments)));
+                throw new ValidationException(nameof(Attachments), string.Format(ValidationMessages.PropertyCantBeNull, nameof(Attachments)));
 
-            this.Attachments = attachments;
+            Attachments = attachments;
         }
     }
 }

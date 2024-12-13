@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using EasyFinance.Application.Contracts.Persistence;
-using EasyFinance.Domain.Models.AccessControl;
+using EasyFinance.Domain.AccessControl;
 
 namespace EasyFinance.Application.Features.AccessControlService
 {

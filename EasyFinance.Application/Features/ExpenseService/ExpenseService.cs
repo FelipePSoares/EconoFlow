@@ -1,12 +1,16 @@
 ﻿using EasyFinance.Application.Contracts.Persistence;
-using EasyFinance.Domain.Models.AccessControl;
-using EasyFinance.Domain.Models.Financial;
 using EasyFinance.Infrastructure;
+using EasyFinance.Infrastructure.DTOs;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using EasyFinance.Application.Mappers;
+using EasyFinance.Domain.Financial;
+using EasyFinance.Domain.AccessControl;
+using EasyFinance.Application.DTOs.Financial;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace EasyFinance.Application.Features.ExpenseService
 {
@@ -19,76 +23,129 @@ namespace EasyFinance.Application.Features.ExpenseService
             this.unitOfWork = unitOfWork;
         }
 
-        public async Task<ICollection<Expense>> GetAsync(Guid categoryId, DateTime from, DateTime to)
+        public async Task<AppResponse<IEnumerable<ExpenseResponseDTO>>> GetAsync(Guid categoryId, DateTime from, DateTime to, Paging paging = default!)
         {
-            return (await this.unitOfWork.CategoryRepository.NoTrackable()
+            if (paging == default)
+                paging = new Paging();
+
+            if (from >= to)
+                return AppResponse<IEnumerable<ExpenseResponseDTO>>.Error(code: nameof(from), description: ValidationMessages.InvalidDate);
+
+            var category = await unitOfWork.CategoryRepository
+                .NoTrackable()
                 .Include(p => p.Expenses.Where(e => e.Date >= from && e.Date < to))
-                    .ThenInclude(e => e.Items.Where(i => i.Date >= from && i.Date < to).OrderBy(item => item.Date))
-                .FirstOrDefaultAsync(p => p.Id == categoryId)).Expenses;
+                .ThenInclude(e => e.Items.Where(i => i.Date >= from && i.Date < to)
+                .OrderBy(item => item.Date))
+                .Skip(paging.PageNumber * paging.PageSize).Take(paging.PageSize)
+                .FirstOrDefaultAsync(p => p.Id == categoryId);
+
+            if (category == null)
+                return AppResponse<IEnumerable<ExpenseResponseDTO>>.Error(code: nameof(categoryId), description: ValidationMessages.CategoryNotFound);
+
+            var expenses = category.Expenses;
+
+            return AppResponse<IEnumerable<ExpenseResponseDTO>>.Success(expenses.ToDTO());
         }
 
-        public async Task<Expense> GetByIdAsync(Guid expenseId)
+        public async Task<AppResponse<ExpenseResponseDTO>> GetByIdAsync(Guid expenseId)
         {
-            return await this.unitOfWork.ExpenseRepository.Trackable()
+            var expense = await unitOfWork.ExpenseRepository.Trackable()
                 .Include(e => e.Items.OrderBy(item => item.Date))
-                    .ThenInclude(e => e.CreatedBy)
+                .ThenInclude(e => e.CreatedBy)
                 .Include(e => e.Attachments)
                 .Include(e => e.CreatedBy)
                 .FirstOrDefaultAsync(p => p.Id == expenseId);
+
+            if (expense == null)
+                return AppResponse<ExpenseResponseDTO>.Error(code: nameof(expense), description: string.Format(ValidationMessages.ExpenseNotFound, nameof(expense)));
+
+            return AppResponse<ExpenseResponseDTO>.Success(expense.ToDTO());
         }
 
-        public async Task<Expense> CreateAsync(User user, Guid categoryId, Expense expense)
+        public async Task<AppResponse<ExpenseResponseDTO>> CreateAsync(User user, Guid categoryId, Expense expense)
         {
             if (expense == default)
-                throw new ArgumentNullException(nameof(expense), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(expense)));
+                AppResponse<ExpenseResponseDTO>.Error(code: nameof(expense), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(expense)));
 
             if (user == default)
-                throw new ArgumentNullException(nameof(user), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(user)));
+                AppResponse<ExpenseResponseDTO>.Error(code: nameof(user), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(user)));
 
             expense.SetCreatedBy(user);
 
-            var category = unitOfWork.CategoryRepository.Trackable()
+            var category = unitOfWork.CategoryRepository
+                .Trackable()
                 .Include(p => p.Expenses)
-                    .ThenInclude(e => e.Items)
+                .ThenInclude(e => e.Items)
                 .FirstOrDefault(p => p.Id == categoryId);
 
-            this.unitOfWork.ExpenseRepository.InsertOrUpdate(expense);
-            category.AddExpense(expense);
-            this.unitOfWork.CategoryRepository.InsertOrUpdate(category);
-
-            await unitOfWork.CommitAsync();
-
-            return expense;
-        }
-
-        public async Task<Expense> UpdateAsync(Expense expense)
-        {
-            if (expense == default)
-                throw new ArgumentNullException(nameof(expense), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(expense)));
-
             unitOfWork.ExpenseRepository.InsertOrUpdate(expense);
+            category.AddExpense(expense);
+            unitOfWork.CategoryRepository.InsertOrUpdate(category);
+
             await unitOfWork.CommitAsync();
 
-            return expense;
+            return AppResponse<ExpenseResponseDTO>.Success(expense.ToDTO());
         }
 
-        public async Task DeleteAsync(Guid expenseId)
+        public async Task<AppResponse<ExpenseResponseDTO>> UpdateAsync(
+           User user,
+           Guid categoryId,
+           Guid expenseId,
+           JsonPatchDocument<ExpenseRequestDTO> expenseDto)
+        {
+            if (expenseId == default)
+                return AppResponse<ExpenseResponseDTO>.Error(code: nameof(expenseId), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(expenseId)));
+
+            var existingExpense = await this.unitOfWork.ExpenseRepository.Trackable()
+               .Include(e => e.Items.OrderBy(item => item.Date))
+               .ThenInclude(e => e.CreatedBy)
+               .Include(e => e.Attachments)
+               .Include(e => e.CreatedBy)
+               .FirstOrDefaultAsync(p => p.Id == expenseId);
+
+            if (existingExpense == null)
+                return AppResponse<ExpenseResponseDTO>.Error(code: nameof(expenseId), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(expenseId)));
+
+            var dto = existingExpense.ToRequestDTO();
+
+            expenseDto.ApplyTo(dto);
+
+            dto.FromDTO(existingExpense);
+
+            foreach (var expenseItem in existingExpense.Items.Where(item => item.Id == default))
+            {
+                expenseItem.SetCreatedBy(user);
+            }
+
+            unitOfWork.ExpenseRepository.InsertOrUpdate(existingExpense);
+            await unitOfWork.CommitAsync();
+
+            return AppResponse<ExpenseResponseDTO>.Success(existingExpense.ToDTO());
+        }
+
+        public async Task<AppResponse> DeleteAsync(Guid expenseId)
         {
             if (expenseId == Guid.Empty)
-                throw new ArgumentNullException(nameof(expenseId), "The id is not valid");
+                AppResponse<ExpenseResponseDTO>.Error(code: nameof(expenseId), description: ValidationMessages.InvalidExpenseId);
 
             var expense = unitOfWork.ExpenseRepository.Trackable().FirstOrDefault(e => e.Id == expenseId);
 
             if (expense == null)
-                return;
+                return AppResponse.Error(code: nameof(expenseId), ValidationMessages.ExpenseNotFound);
 
             unitOfWork.ExpenseRepository.Delete(expense);
             await unitOfWork.CommitAsync();
+
+            return AppResponse.Success();
         }
 
-        public async Task RemoveLinkAsync(User user)
+        public async Task<AppResponse> RemoveLinkAsync(User user)
         {
-            var expenses = unitOfWork.ExpenseRepository.Trackable().Include(e => e.CreatedBy).Where(expense => expense.CreatedBy.Id == user.Id).ToList();
+            var expenses = unitOfWork.ExpenseRepository
+                .Trackable()
+                .Include(e => e.CreatedBy)
+                .Where(expense => expense.CreatedBy.Id == user.Id)
+                .ToList();
 
             foreach (var expense in expenses)
             {
@@ -97,6 +154,7 @@ namespace EasyFinance.Application.Features.ExpenseService
             }
 
             await unitOfWork.CommitAsync();
-        }
+            return AppResponse.Success();
+        }       
     }
 }

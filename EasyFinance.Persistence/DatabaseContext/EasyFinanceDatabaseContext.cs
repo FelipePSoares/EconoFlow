@@ -1,4 +1,4 @@
-﻿using EasyFinance.Domain.Models.AccessControl;
+﻿using EasyFinance.Domain.AccessControl;
 using EasyFinance.Persistence.Mapping.AccessControl;
 using EasyFinance.Persistence.Mapping.Financial;
 using EasyFinance.Persistence.Mapping.FinancialProject;

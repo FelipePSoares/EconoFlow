@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using EasyFinance.Application.Contracts.Persistence;
-using EasyFinance.Domain.Models.Financial;
+using EasyFinance.Domain.Financial;
 using EasyFinance.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 

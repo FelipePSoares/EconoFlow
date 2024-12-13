@@ -1,5 +1,5 @@
 ﻿using EasyFinance.Application.Contracts.Persistence;
-using EasyFinance.Domain.Models;
+using EasyFinance.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace EasyFinance.Persistence.Repositories

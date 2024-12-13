@@ -1,6 +1,6 @@
 ﻿using EasyFinance.Common.Tests.FinancialProject;
-using EasyFinance.Domain.Models.AccessControl;
-using EasyFinance.Domain.Models.FinancialProject;
+using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.FinancialProject;
 using System;
 
 namespace EasyFinance.Common.Tests.AccessControl

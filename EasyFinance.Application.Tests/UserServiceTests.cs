@@ -6,7 +6,7 @@ using EasyFinance.Application.Features.ExpenseService;
 using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Application.Features.UserService;
-using EasyFinance.Domain.Models.AccessControl;
+using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;

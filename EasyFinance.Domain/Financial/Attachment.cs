@@ -1,8 +1,8 @@
-﻿using EasyFinance.Domain.Models.AccessControl;
+﻿using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.Exceptions;
 
-namespace EasyFinance.Domain.Models.Financial
+namespace EasyFinance.Domain.Financial
 {
     public class Attachment : BaseEntity
     {
@@ -10,8 +10,8 @@ namespace EasyFinance.Domain.Models.Financial
 
         public Attachment(string name = "default", User createdBy = default)
         {
-            this.SetName(name);
-            this.SetCreatedBy(createdBy ?? new User());
+            SetName(name);
+            SetCreatedBy(createdBy ?? new User());
         }
 
         public string Name { get; private set; } = string.Empty;
@@ -20,17 +20,17 @@ namespace EasyFinance.Domain.Models.Financial
         public void SetName(string name)
         {
             if (string.IsNullOrEmpty(name))
-                throw new ValidationException(nameof(this.Name), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(this.Name)));
+                throw new ValidationException(nameof(Name), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(Name)));
 
-            this.Name = name;
+            Name = name;
         }
 
         public void SetCreatedBy(User createdBy)
         {
             if (createdBy == default)
-                throw new ValidationException(nameof(this.CreatedBy), string.Format(ValidationMessages.PropertyCantBeNull, nameof(this.CreatedBy)));
+                throw new ValidationException(nameof(CreatedBy), string.Format(ValidationMessages.PropertyCantBeNull, nameof(CreatedBy)));
 
-            this.CreatedBy = createdBy;
+            CreatedBy = createdBy;
         }
     }
 }

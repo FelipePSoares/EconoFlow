@@ -1,8 +1,8 @@
 ﻿using System.Security.Claims;
 using EasyFinance.Application.Features.IncomeService;
-using EasyFinance.Domain.Models.AccessControl;
-using EasyFinance.Server.DTOs.Financial;
-using EasyFinance.Server.Mappers;
+using EasyFinance.Application.Mappers;
+using EasyFinance.Domain.AccessControl;
+using EasyFinance.Application.DTOs.Financial;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;

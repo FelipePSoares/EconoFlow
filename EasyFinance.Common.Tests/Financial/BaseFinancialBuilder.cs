@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using EasyFinance.Domain.Models.AccessControl;
-using EasyFinance.Domain.Models.Financial;
+using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Financial;
 
 namespace EasyFinance.Common.Tests.Financial
 {

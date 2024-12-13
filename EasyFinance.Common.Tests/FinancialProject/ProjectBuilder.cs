@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using AutoFixture;
-using EasyFinance.Domain.Models.Financial;
-using EasyFinance.Domain.Models.FinancialProject;
+using EasyFinance.Domain.Financial;
+using EasyFinance.Domain.FinancialProject;
 
 namespace EasyFinance.Common.Tests.FinancialProject
 {

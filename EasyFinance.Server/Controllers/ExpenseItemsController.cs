@@ -1,5 +1,5 @@
 ﻿using EasyFinance.Application.Features.ExpenseItemService;
-using EasyFinance.Domain.Models.AccessControl;
+using EasyFinance.Domain.AccessControl;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 

@@ -1,7 +1,11 @@
-﻿using EasyFinance.Domain.Models.Financial;
-using EasyFinance.Server.DTOs.Financial;
+﻿using EasyFinance.Application.Mappers;
+using EasyFinance.Domain.Financial;
+using EasyFinance.Application.DTOs.Financial;
+using System.Collections.Generic;
+using System;
+using System.Linq;
 
-namespace EasyFinance.Server.Mappers
+namespace EasyFinance.Application.Mappers
 {
     public static class IncomeMap
     {

@@ -1,11 +1,12 @@
 ﻿using EasyFinance.Application.Features.ExpenseService;
-using EasyFinance.Domain.Models.AccessControl;
-using EasyFinance.Server.DTOs.Financial;
-using EasyFinance.Server.Mappers;
+using EasyFinance.Domain.AccessControl;
+using EasyFinance.Application.DTOs.Financial;
+using EasyFinance.Application.Mappers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using EasyFinance.Infrastructure.DTOs;
 
 namespace EasyFinance.Server.Controllers
 {
@@ -22,35 +23,30 @@ namespace EasyFinance.Server.Controllers
             this.userManager = userManager;
         }
 
-
         [HttpGet]
-        public async Task<IActionResult> Get(Guid categoryId, DateTime from, DateTime to)
+        public async Task<IActionResult> Get(Guid categoryId, DateTime from, DateTime to, Paging paging)
         {
-            var expenses = await this.expenseService.GetAsync(categoryId, from, to);
-            return Ok(expenses.ToDTO());
+            var expenses = await expenseService.GetAsync(categoryId: categoryId, from: from, to: to, paging: paging);
+            return Ok(expenses);
         }
 
         [HttpGet("{expenseId}")]
         public async Task<IActionResult> GetById(Guid expenseId)
         {
-            var expense = await this.expenseService.GetByIdAsync(expenseId);
-
-            if (expense == null) return NotFound();
-
-            return Ok(expense.ToDTO());
+            var expense = await expenseService.GetByIdAsync(expenseId);
+            return Ok(expense);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(Guid projectId, Guid categoryId, [FromBody] ExpenseRequestDTO expenseDto)
+        public async Task<IActionResult> Create(Guid projectId, Guid categoryId, [FromBody] ExpenseRequestDTO expenseRequestDto)
         {
-            if (expenseDto == null) return BadRequest();
+            if (expenseRequestDto == null) return BadRequest();
 
-            var id = this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier);
-            var user = await this.userManager.FindByIdAsync(id.Value);
+            var id = HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier);
+            var user = await userManager.FindByIdAsync(id.Value);
 
-            var createdExpense = (await this.expenseService.CreateAsync(user, categoryId, expenseDto.FromDTO())).ToDTO();
-
-            return CreatedAtAction(nameof(GetById), new {projectId, categoryId, expenseId = createdExpense.Id }, createdExpense);
+            var expenseResponseDto = await expenseService.CreateAsync(user: user, categoryId: categoryId, expense: expenseRequestDto.FromDTO());
+            return CreatedAtAction(nameof(GetById), new {projectId, categoryId, expenseId = expenseResponseDto.Data.Id }, expenseResponseDto);
         }
 
         [HttpPatch("{expenseId}")]
@@ -58,35 +54,18 @@ namespace EasyFinance.Server.Controllers
         {
             if (expenseDto == null) return BadRequest();
 
-            var id = this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier);
-            var user = await this.userManager.FindByIdAsync(id.Value);
+            var id = HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier);
+            var user = await userManager.FindByIdAsync(id.Value);
 
-            var existingExpense = await this.expenseService.GetByIdAsync(expenseId);
-
-            if (existingExpense == null) return NotFound();
-
-            var dto = existingExpense.ToRequestDTO();
-
-            expenseDto.ApplyTo(dto);
-
-            dto.FromDTO(existingExpense);
-
-            foreach (var expense in existingExpense.Items.Where(item => item.Id == default))
-            {
-                expense.SetCreatedBy(user);
-            }
-
-            await this.expenseService.UpdateAsync(existingExpense);
-
-            return Ok(existingExpense);
+            var result = await expenseService.UpdateAsync(user: user, categoryId: categoryId, expenseId: expenseId, expenseDto: expenseDto);
+            return Ok(result);
         }
 
         [HttpDelete("{expenseId}")]
         public async Task<IActionResult> DeleteAsync(Guid expenseId)
         {
-            await this.expenseService.DeleteAsync(expenseId);
-
-            return NoContent();
+            var result = await expenseService.DeleteAsync(expenseId);
+            return Ok(result);
         }
     }
 }

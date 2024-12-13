@@ -1,9 +1,9 @@
 ﻿using System;
-using EasyFinance.Domain.Models.FinancialProject;
+using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.Exceptions;
 
-namespace EasyFinance.Domain.Models.AccessControl
+namespace EasyFinance.Domain.AccessControl
 {
     public class UserProject : BaseEntity
     {
@@ -15,9 +15,9 @@ namespace EasyFinance.Domain.Models.AccessControl
             Role role = default,
             string email = default)
         {
-            this.SetUser(user, email);
-            this.SetProject(project);
-            this.SetRole(role);
+            SetUser(user, email);
+            SetProject(project);
+            SetRole(role);
         }
 
         public User User { get; private set; } = new User();
@@ -33,31 +33,31 @@ namespace EasyFinance.Domain.Models.AccessControl
         public void SetUser(User user, string email = default)
         {
             if (user == default && string.IsNullOrEmpty(email))
-                throw new ValidationException(nameof(this.User), ValidationMessages.EitherUserOrEmailMustBeProvided);
+                throw new ValidationException(nameof(User), ValidationMessages.EitherUserOrEmailMustBeProvided);
 
             if (user == default)
-                this.Email = email;
+                Email = email;
             else
-                this.User = user;
+                User = user;
         }
 
         public void SetProject(Project project)
         {
-            this.Project = project ?? throw new ValidationException(nameof(this.Project), string.Format(ValidationMessages.PropertyCantBeNull, nameof(this.Project)));
+            Project = project ?? throw new ValidationException(nameof(Project), string.Format(ValidationMessages.PropertyCantBeNull, nameof(Project)));
         }
 
         public void SetRole(Role role)
         {
-            this.Role = role;
+            Role = role;
         }
 
         public void SetAccepted()
         {
-            if (this.ExpiryDate < DateTime.UtcNow)
-                throw new ValidationException(nameof(this.ExpiryDate), ValidationMessages.CantAcceptExpiredInvitation);
+            if (ExpiryDate < DateTime.UtcNow)
+                throw new ValidationException(nameof(ExpiryDate), ValidationMessages.CantAcceptExpiredInvitation);
 
-            this.Accepted = true;
-            this.AcceptedAt = DateTime.UtcNow;
+            Accepted = true;
+            AcceptedAt = DateTime.UtcNow;
         }
     }
 }
