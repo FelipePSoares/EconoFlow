@@ -1,5 +1,7 @@
 ﻿using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Infrastructure;
+using EasyFinance.Infrastructure.DTOs;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,21 +17,23 @@ namespace EasyFinance.Application.Features.ExpenseItemService
             this.unitOfWork = unitOfWork;
         }
 
-        public async Task DeleteAsync(Guid expenseItemId)
+        public async Task<AppResponse> DeleteAsync(Guid expenseItemId)
         {
             if (expenseItemId == Guid.Empty)
-                throw new ArgumentNullException(nameof(expenseItemId), "The id is not valid");
+                return AppResponse.Error(code: nameof(expenseItemId), description: ValidationMessages.InvalidExpenseItemId);
 
             var expenseItem = unitOfWork.ExpenseItemRepository.Trackable().FirstOrDefault(e => e.Id == expenseItemId);
 
             if (expenseItem == null)
-                return;
+                return AppResponse.Error(code: nameof(expenseItem), description: ValidationMessages.NotFound);
 
             unitOfWork.ExpenseItemRepository.Delete(expenseItem);
             await unitOfWork.CommitAsync();
+
+            return AppResponse.Success();
         }
 
-        public async Task RemoveLinkAsync(User user)
+        public async Task<AppResponse> RemoveLinkAsync(User user)
         {
             var expenseItems = unitOfWork.ExpenseItemRepository.Trackable().Where(expenseItem => expenseItem.CreatedBy.Id == user.Id).ToList();
 
@@ -41,6 +45,8 @@ namespace EasyFinance.Application.Features.ExpenseItemService
             }
 
             await unitOfWork.CommitAsync();
+            
+            return AppResponse.Success();
         }
     }
 }
