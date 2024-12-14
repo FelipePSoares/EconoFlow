@@ -65,10 +65,10 @@ namespace EasyFinance.Application.Features.ExpenseService
         public async Task<AppResponse<ExpenseResponseDTO>> CreateAsync(User user, Guid categoryId, Expense expense)
         {
             if (expense == default)
-                AppResponse<ExpenseResponseDTO>.Error(code: nameof(expense), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(expense)));
+                return AppResponse<ExpenseResponseDTO>.Error(code: nameof(expense), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(expense)));
 
             if (user == default)
-                AppResponse<ExpenseResponseDTO>.Error(code: nameof(user), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(user)));
+                return AppResponse<ExpenseResponseDTO>.Error(code: nameof(user), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(user)));
 
             expense.SetCreatedBy(user);
 
