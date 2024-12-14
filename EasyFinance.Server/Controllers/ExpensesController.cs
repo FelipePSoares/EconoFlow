@@ -1,18 +1,19 @@
-﻿using EasyFinance.Application.Features.ExpenseService;
-using EasyFinance.Domain.AccessControl;
-using EasyFinance.Application.DTOs.Financial;
+﻿using EasyFinance.Application.DTOs.Financial;
+using EasyFinance.Application.Features.ExpenseService;
 using EasyFinance.Application.Mappers;
+using EasyFinance.Domain.AccessControl;
+using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 using System.Security.Claims;
-using EasyFinance.Infrastructure.DTOs;
 
 namespace EasyFinance.Server.Controllers
 {
     [ApiController]
     [Route("api/Projects/{projectId}/Categories/{categoryId}/[controller]")]
-    public class ExpensesController : Controller
+    public class ExpensesController : BaseController
     {
         private readonly IExpenseService expenseService;
         private readonly UserManager<User> userManager;
@@ -27,14 +28,14 @@ namespace EasyFinance.Server.Controllers
         public async Task<IActionResult> Get(Guid categoryId, DateTime from, DateTime to, Paging paging)
         {
             var expenses = await expenseService.GetAsync(categoryId: categoryId, from: from, to: to, paging: paging);
-            return Ok(expenses);
+            return ValidateResponse(expenses, HttpStatusCode.OK);
         }
 
         [HttpGet("{expenseId}")]
         public async Task<IActionResult> GetById(Guid expenseId)
         {
             var expense = await expenseService.GetByIdAsync(expenseId);
-            return Ok(expense);
+            return ValidateResponse(expense, HttpStatusCode.OK);
         }
 
         [HttpPost]
@@ -46,7 +47,7 @@ namespace EasyFinance.Server.Controllers
             var user = await userManager.FindByIdAsync(id.Value);
 
             var expenseResponseDto = await expenseService.CreateAsync(user: user, categoryId: categoryId, expense: expenseRequestDto.FromDTO());
-            return CreatedAtAction(nameof(GetById), new {projectId, categoryId, expenseId = expenseResponseDto.Data.Id }, expenseResponseDto);
+            return ValidateResponse(expenseResponseDto, HttpStatusCode.Created);
         }
 
         [HttpPatch("{expenseId}")]
@@ -58,14 +59,14 @@ namespace EasyFinance.Server.Controllers
             var user = await userManager.FindByIdAsync(id.Value);
 
             var result = await expenseService.UpdateAsync(user: user, categoryId: categoryId, expenseId: expenseId, expenseDto: expenseDto);
-            return Ok(result);
+            return ValidateResponse(result, HttpStatusCode.OK);
         }
 
         [HttpDelete("{expenseId}")]
         public async Task<IActionResult> DeleteAsync(Guid expenseId)
         {
             var result = await expenseService.DeleteAsync(expenseId);
-            return Ok(result);
+            return ValidateResponse(result, HttpStatusCode.OK);
         }
     }
 }
