@@ -3,11 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using EasyFinance.Application.Contracts.Persistence;
+using EasyFinance.Application.DTOs.Financial;
+using EasyFinance.Application.DTOs.FinancialProject;
+using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Financial;
 using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Infrastructure;
+using EasyFinance.Infrastructure.DTOs;
 using EasyFinance.Infrastructure.Exceptions;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
 
 namespace EasyFinance.Application.Features.ProjectService
@@ -21,71 +26,96 @@ namespace EasyFinance.Application.Features.ProjectService
             this.unitOfWork = unitOfWork;
         }
 
-        public ICollection<Project> GetAll(Guid userId)
+        public AppResponse<ICollection<ProjectResponseDTO>> GetAll(Guid userId)
         {
-            return unitOfWork.UserProjectRepository.NoTrackable()
-                .Where(up => up.User.Id == userId && !up.Project.Archive).Select(p => p.Project).ToList();
+            var result = unitOfWork.UserProjectRepository.NoTrackable()
+                .Where(up => up.User.Id == userId && !up.Project.Archive).Select(p => p.Project)
+                .ToDTO()
+                .ToList();
+
+            return AppResponse<ICollection<ProjectResponseDTO>>.Success(result);
         }
 
-        public Project GetById(Guid id)
+        public AppResponse<ProjectResponseDTO> GetById(Guid id)
         {
-            return unitOfWork.ProjectRepository.Trackable().FirstOrDefault(up => up.Id == id);
+            var result = unitOfWork.ProjectRepository.Trackable().FirstOrDefault(up => up.Id == id);
+            return AppResponse<ProjectResponseDTO>.Success(result.ToDTO());
         }
 
-        public async Task<Project> CreateAsync(User user, Project project)
+        public async Task<AppResponse<ProjectResponseDTO>> CreateAsync(User user, Project project)
         {
             if (project == default)
-                throw new ArgumentNullException(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(project)));
+                return AppResponse<ProjectResponseDTO>.Error(code: nameof(project), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(project)));
 
             if (user == default)
-                throw new ArgumentNullException(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(user)));
+                return AppResponse<ProjectResponseDTO>.Error(code: nameof(user), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(user)));
 
             var projectExistent = await unitOfWork.ProjectRepository.Trackable().FirstOrDefaultAsync(p => p.Name == project.Name && !p.Archive);
 
             if (projectExistent != default)
-                return projectExistent;
+                return AppResponse<ProjectResponseDTO>.Success(projectExistent.ToDTO());
 
             unitOfWork.ProjectRepository.InsertOrUpdate(project);
             unitOfWork.UserProjectRepository.InsertOrUpdate(new UserProject(user, project, Role.Admin));
             await unitOfWork.CommitAsync();
 
-            return project;
+            return AppResponse<ProjectResponseDTO>.Success(projectExistent.ToDTO());
         }
 
-        public async Task<Project> UpdateAsync(Project project)
+        public async Task<AppResponse<ProjectResponseDTO>> UpdateAsync(Project project)
         {
             if (project == default)
-                throw new ArgumentNullException(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(project)));
+                return AppResponse<ProjectResponseDTO>.Error(code: nameof(project), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(project)));
 
             unitOfWork.ProjectRepository.InsertOrUpdate(project);
             await unitOfWork.CommitAsync();
 
-            return project;
+            return AppResponse<ProjectResponseDTO>.Success(project.ToDTO());
         }
 
-        public async Task DeleteAsync(Guid id)
+        public async Task<AppResponse<ProjectResponseDTO>> UpdateAsync(Guid projectId, JsonPatchDocument<ProjectRequestDTO> projectDto)
+        {
+            var existingProject = unitOfWork.ProjectRepository.Trackable().FirstOrDefault(up => up.Id == projectId);
+
+            if (existingProject == null) 
+                return AppResponse<ProjectResponseDTO>.Error(code: nameof(existingProject), description: ValidationMessages.ProjectNotFound);
+
+            var dto = existingProject.ToRequestDTO();
+
+            projectDto.ApplyTo(dto);
+
+            dto.FromDTO(existingProject);
+
+            await UpdateAsync(existingProject);
+
+            return AppResponse<ProjectResponseDTO>.Success(existingProject.ToDTO());
+        }
+
+        public async Task<AppResponse> DeleteAsync(Guid id)
         {
             if (id == Guid.Empty)
-                throw new ArgumentNullException("The id is not valid");
+                return AppResponse.Error(code: nameof(id), description: ValidationMessages.InvalidProjectId);
 
             var project = unitOfWork.ProjectRepository.Trackable().FirstOrDefault(product => product.Id == id);
 
             if (project == null)
-                return;
+                return AppResponse.Error(code: nameof(project), description: ValidationMessages.ProjectNotFound);
 
             project.SetArchive();
 
             unitOfWork.ProjectRepository.InsertOrUpdate(project);
             await unitOfWork.CommitAsync();
+
+            return AppResponse.Success();
         }
 
-        public async Task<ICollection<Expense>> CopyBudgetFromPreviousMonthAsync(User user, Guid id, DateTime currentDate)
+        public async Task<AppResponse<ICollection<ExpenseResponseDTO>>> CopyBudgetFromPreviousMonthAsync(User user, Guid id, DateTime currentDate)
         {
             if (id == Guid.Empty)
-                throw new ArgumentNullException($"The {nameof(id)} is not valid");
+                return AppResponse<ICollection<ExpenseResponseDTO>>.Error(code: nameof(id), description: ValidationMessages.InvalidProjectId);
 
             if (currentDate == DateTime.MinValue)
-                throw new ArgumentNullException($"The {nameof(currentDate)} is not valid");
+                return AppResponse<ICollection<ExpenseResponseDTO>>.Error(code: nameof(currentDate), description: ValidationMessages.InvalidDate);
 
             var project = await unitOfWork.ProjectRepository.Trackable()
                 .Include(p => p.Categories.Where(c => !c.IsArchived))
@@ -93,16 +123,16 @@ namespace EasyFinance.Application.Features.ProjectService
                 .FirstOrDefaultAsync(up => up.Id == id);
 
             if (project.Categories.Any(c => c.Expenses.Any(e => e.Date.Month == currentDate.Month && e.Date.Year == currentDate.Year && e.Budget > 0)))
-                throw new ValidationException("General", ValidationMessages.CantImportBudgetBecauseAlreadyExists);
+                return AppResponse<ICollection<ExpenseResponseDTO>>.Error(code: "General", description: ValidationMessages.CantImportBudgetBecauseAlreadyExists);
 
-            var newExpenses = project.Categories.SelectMany(c => c.CopyBudgetToCurrentMonth(user, currentDate)).ToList();
+            var newExpenses = project.Categories.SelectMany(c => c.CopyBudgetToCurrentMonth(user, currentDate)).ToDTO().ToList();
 
             await unitOfWork.CommitAsync();
 
-            return newExpenses;
+            return AppResponse<ICollection<ExpenseResponseDTO>>.Success(newExpenses);
         }
 
-        public async Task DeleteOrRemoveLinkAsync(User user)
+        public async Task<AppResponse> DeleteOrRemoveLinkAsync(User user)
         {
             var userProjects = await unitOfWork.UserProjectRepository.Trackable()
                 .Include(up => up.Project)
@@ -151,9 +181,11 @@ namespace EasyFinance.Application.Features.ProjectService
             }
 
             await unitOfWork.CommitAsync();
+
+            return AppResponse.Success();
         }
 
-        public async Task<IList<string>> GetProjectsWhereUserIsSoleAdminAsync(User user){
+        public async Task<AppResponse<IList<string>>> GetProjectsWhereUserIsSoleAdminAsync(User user){
             var userProjects = await unitOfWork.UserProjectRepository.Trackable().Include(up => up.Project)
                 .Where(up => up.User.Id == user.Id && up.Role == Role.Admin)
                 .ToListAsync();
@@ -168,7 +200,8 @@ namespace EasyFinance.Application.Features.ProjectService
                 .Distinct()
                 .ToListAsync();
 
-            return userProjects.Where(up => !projectsWithOthersAdmins.Contains(up.Project.Id)).Select(up => up.Project.Name).ToList();
-        }
+            var result = userProjects.Where(up => !projectsWithOthersAdmins.Contains(up.Project.Id)).Select(up => up.Project.Name).ToList();
+            return AppResponse<IList<string>>.Success(result);
+        }       
     }
 }

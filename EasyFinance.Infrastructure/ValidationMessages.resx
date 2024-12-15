@@ -198,4 +198,10 @@
   <data name="IncomeNotFound" xml:space="preserve">
     <value>Income not found.</value>
   </data>
+  <data name="InvalidProjectId" xml:space="preserve">
+    <value>ProjectId is not valid.</value>
+  </data>
+  <data name="ProjectNotFound" xml:space="preserve">
+    <value>Project not found.</value>
+  </data>
 </root>
