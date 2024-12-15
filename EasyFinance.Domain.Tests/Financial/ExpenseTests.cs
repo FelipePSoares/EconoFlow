@@ -25,15 +25,7 @@ namespace EasyFinance.Domain.Tests.Financial
 
             result.Succeeded.Should().Be(false);
             result.Messages.Should().HaveCount(1);
-            result.Messages.First().Description.Should().Be(string.Format(ValidationMessages.PropertyCantBeLessThanZero, "Budget"));
-
-            //action..Should().BeOfType<AppResponse>();
-
-            //var action = () => new ExpenseBuilder().SetBudget(budget).Build();
-
-            //action.Should().Throw<ValidationException>()
-            //    .WithMessage(string.Format(ValidationMessages.PropertyCantBeLessThanZero, "Budget"))
-            //    .And.Property.Should().Be("Budget");
+            result.Messages.First().Description.Should().Be(string.Format(ValidationMessages.PropertyCantBeLessThanZero, "Budget"));            
         }
 
         [Theory]

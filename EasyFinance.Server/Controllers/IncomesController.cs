@@ -6,12 +6,14 @@ using EasyFinance.Application.DTOs.Financial;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using EasyFinance.Infrastructure.DTOs;
 
 namespace EasyFinance.Server.Controllers
 {
     [ApiController]
     [Route("api/Projects/{projectId}/[controller]")]
-    public class IncomesController : Controller
+    public class IncomesController : BaseController
     {
         private readonly IIncomeService incomeService;
         private readonly UserManager<User> userManager;
@@ -26,7 +28,7 @@ namespace EasyFinance.Server.Controllers
         public IActionResult Get(Guid projectId, DateTime from, DateTime to)
         {
             var incomes = incomeService.Get(projectId, from, to);
-            return Ok(incomes.ToDTO());
+            return ValidateResponse(incomes, HttpStatusCode.OK);
         }
 
         [HttpGet("{incomeId}")]
@@ -36,7 +38,7 @@ namespace EasyFinance.Server.Controllers
 
             if (income == null) return NotFound();
 
-            return Ok(income.ToDTO());
+            return ValidateResponse(income, HttpStatusCode.OK);
         }
 
         [HttpPost]
@@ -46,38 +48,29 @@ namespace EasyFinance.Server.Controllers
 
             var id = this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier);
             var user = await this.userManager.FindByIdAsync(id.Value);
+            var createdIncome = await incomeService.CreateAsync(user, projectId, incomeDto.FromDTO());
 
-            var createdIncome = (await incomeService.CreateAsync(user, projectId, incomeDto.FromDTO())).ToDTO();
-
-            return CreatedAtAction(nameof(GetById), new { projectId, incomeId = createdIncome.Id }, createdIncome);
+            return ValidateResponse(actionName: nameof(GetById), routeValues: new { projectId, incomeId = createdIncome.Data.Id }, createdIncome);
         }
+
+       
 
         [HttpPatch("{incomeId}")]
         public async Task<IActionResult> Update(Guid projectId, Guid incomeId, [FromBody] JsonPatchDocument<IncomeRequestDTO> incomeDto)
         {
             if (incomeDto == null) return BadRequest();
 
-            var existingIncome = incomeService.GetById(incomeId);
+            var updateResult = await incomeService.UpdateAsync(incomeId: incomeId, incomeDto: incomeDto);          
 
-            if (existingIncome == null) return NotFound();
-
-            var dto = existingIncome.ToRequestDTO();
-
-            incomeDto.ApplyTo(dto);
-
-            dto.FromDTO(existingIncome);
-
-            await incomeService.UpdateAsync(existingIncome);
-
-            return Ok(existingIncome);
+            return ValidateResponse(updateResult, HttpStatusCode.OK);
         }
 
         [HttpDelete("{incomeId}")]
         public async Task<IActionResult> DeleteAsync(Guid incomeId)
         {
-            await incomeService.DeleteAsync(incomeId);
+            var deleteResult = await incomeService.DeleteAsync(incomeId);
 
-            return NoContent();
+            return ValidateResponse(deleteResult, HttpStatusCode.NoContent);
         }
     }
 }

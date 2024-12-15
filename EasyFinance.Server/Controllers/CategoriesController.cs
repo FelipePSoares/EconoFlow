@@ -1,6 +1,8 @@
 ﻿using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.Features.CategoryService;
 using EasyFinance.Application.Mappers;
+using EasyFinance.Domain.Financial;
+using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -45,14 +47,14 @@ namespace EasyFinance.Server.Controllers
             if (categoryDTO == null) return BadRequest();
             var createdCategory = await categoryService.CreateAsync(projectId, categoryDTO.FromDTO());
 
-            return ValidateResponse(createdCategory, HttpStatusCode.Created);
-        }
+            return ValidateResponse(actionName: nameof(GetById), routeValues: new { projectId, categoryId = createdCategory.Data.Id }, appResponse: createdCategory);
+        }        
 
         [HttpPatch("{categoryId}")]
         public async Task<IActionResult> Update(Guid projectId, Guid categoryId, [FromBody] JsonPatchDocument<CategoryRequestDTO> categoryDto)
         {
             if (categoryDto == null) return BadRequest();
-            var updateResult = await categoryService.UpdateAsync(projectId: projectId, categoryId: categoryId, categoryDto: categoryDto);
+            var updateResult = await categoryService.UpdateAsync(categoryId: categoryId, categoryDto: categoryDto);
 
             return ValidateResponse(updateResult, HttpStatusCode.OK);
         }

@@ -1,4 +1,6 @@
-﻿using EasyFinance.Infrastructure;
+﻿using EasyFinance.Application.DTOs.Financial;
+using EasyFinance.Domain.FinancialProject;
+using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -32,6 +34,11 @@ namespace EasyFinance.Server.Controllers
                 return Forbid();
 
             return BadRequest(appResponse.Messages);
+        }
+
+        public IActionResult ValidateResponse<T>(string actionName, object routeValues, AppResponse<T> appResponse)
+        {
+            return CreatedAtAction(actionName: actionName, routeValues: routeValues, value: appResponse.Data);
         }
     }
 }

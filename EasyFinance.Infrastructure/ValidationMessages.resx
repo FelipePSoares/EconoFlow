@@ -192,4 +192,10 @@
   <data name="InvalidCategoryId" xml:space="preserve">
     <value>Invalid CategoryId.</value>
   </data>
+  <data name="InvalidIncomeId" xml:space="preserve">
+    <value>IncomeId is not valid.</value>
+  </data>
+  <data name="IncomeNotFound" xml:space="preserve">
+    <value>Income not found.</value>
+  </data>
 </root>
