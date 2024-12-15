@@ -10,6 +10,7 @@ namespace EasyFinance.Application.Mappers
     public static class ExpenseMap
     {
         public static IEnumerable<ExpenseResponseDTO> ToDTO(this ICollection<Expense> expenses) => expenses.Select(p => p.ToDTO());
+        public static IEnumerable<ExpenseResponseDTO> ToDTO(this IEnumerable<Expense> expenses) => expenses.Select(p => p.ToDTO());
 
         public static ExpenseResponseDTO ToDTO(this Expense expense)
         {

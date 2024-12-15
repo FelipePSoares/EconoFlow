@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
-using EasyFinance.Infrastructure.DTOs;
 
 namespace EasyFinance.Server.Controllers
 {

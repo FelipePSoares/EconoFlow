@@ -42,8 +42,8 @@ namespace EasyFinance.Application.Features.UserService
         {
             var projectsWhereUserIsSoleAdmin = await this.projectService.GetProjectsWhereUserIsSoleAdminAsync(user);
 
-            if (projectsWhereUserIsSoleAdmin.Any()){
-                var projects = string.Concat(projectsWhereUserIsSoleAdmin.Select((value) => $"<li>{value}</li>"));
+            if (projectsWhereUserIsSoleAdmin.Data.Any()){
+                var projects = string.Concat(projectsWhereUserIsSoleAdmin.Data.Select((value) => $"<li>{value}</li>"));
                 return string.Format(ValidationMessages.WarningMessageToAdminUserWhoWantsToDeleteAccount, projects);
             }
 

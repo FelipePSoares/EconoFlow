@@ -10,6 +10,7 @@ namespace EasyFinance.Application.Mappers
     public static class ProjectMap
     {
         public static IEnumerable<ProjectResponseDTO> ToDTO(this ICollection<Project> projects) => projects.Select(p => p.ToDTO());
+        public static IEnumerable<ProjectResponseDTO> ToDTO(this IEnumerable<Project> projects) => projects.Select(p => p.ToDTO());
 
         public static ProjectResponseDTO ToDTO(this Project project)
         {
