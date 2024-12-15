@@ -47,7 +47,8 @@ namespace EasyFinance.Server.Controllers
             var user = await userManager.FindByIdAsync(id.Value);
 
             var expenseResponseDto = await expenseService.CreateAsync(user: user, categoryId: categoryId, expense: expenseRequestDto.FromDTO());
-            return ValidateResponse(expenseResponseDto, HttpStatusCode.Created);
+
+            return ValidateResponse(actionName: nameof(GetById), routeValues: new { projectId, categoryId, expenseId = expenseResponseDto.Data.Id }, appResponse: expenseResponseDto);
         }
 
         [HttpPatch("{expenseId}")]

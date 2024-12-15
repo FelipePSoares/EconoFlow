@@ -59,7 +59,7 @@ namespace EasyFinance.Application.Features.CategoryService
             return AppResponse.Success();
         }
 
-        public async Task<AppResponse<ICollection<Category>>> GetAllAsync(Guid projectId)
+        public async Task<AppResponse<ICollection<CategoryResponseDTO>>> GetAllAsync(Guid projectId)
         {
             var result = 
                 (await unitOfWork.ProjectRepository
@@ -68,9 +68,10 @@ namespace EasyFinance.Application.Features.CategoryService
                 .FirstOrDefaultAsync(p => p.Id == projectId))?
                 .Categories
                 .Where(c => !c.IsArchived)
+                .ToDTO()
                 .ToList();
 
-            return AppResponse<ICollection<Category>>.Success(result);
+            return AppResponse<ICollection<CategoryResponseDTO>>.Success(result);
         }
 
         public async Task<AppResponse<ICollection<CategoryResponseDTO>>> GetAsync(Guid projectId, DateTime from, DateTime to)
@@ -87,10 +88,10 @@ namespace EasyFinance.Application.Features.CategoryService
             return AppResponse<ICollection<CategoryResponseDTO>>.Success(result);
         }
 
-        public async Task<AppResponse<ICollection<Category>>> GetDefaultCategoriesAsync(Guid projectId)
+        public async Task<AppResponse<ICollection<CategoryResponseDTO>>> GetDefaultCategoriesAsync(Guid projectId)
         {
             if (projectId == Guid.Empty)
-                return AppResponse<ICollection<Category>>.Error(code: nameof(projectId), description: ValidationMessages.PropertyCantBeNullOrEmpty);
+                return AppResponse<ICollection<CategoryResponseDTO>>.Error(code: nameof(projectId), description: ValidationMessages.PropertyCantBeNullOrEmpty);
 
             var project = await unitOfWork.ProjectRepository
                 .NoTrackable()
@@ -102,12 +103,13 @@ namespace EasyFinance.Application.Features.CategoryService
             var defaultCategories = Category.GetAll();
             var filteredCategories = defaultCategories
                 .Where(dc => !categoryNames.Contains(dc.Name))
+                .ToDTO()
                 .ToList();
 
-            return AppResponse<ICollection<Category>>.Success(filteredCategories);
+            return AppResponse<ICollection<CategoryResponseDTO>>.Success(filteredCategories);
         }
 
-        public async Task<AppResponse<ICollection<Category>>> GetAsync(Guid projectId, int year)
+        public async Task<AppResponse<ICollection<CategoryResponseDTO>>> GetAsync(Guid projectId, int year)
         {
             var result = (await this.unitOfWork.ProjectRepository.NoTrackable()
                     .Include(p => p.Categories)
@@ -115,9 +117,10 @@ namespace EasyFinance.Application.Features.CategoryService
                     .FirstOrDefaultAsync(p => p.Id == projectId))?
                     .Categories
                     .Where(c => !c.IsArchived)
+                    .ToDTO()
                     .ToList();
 
-            return AppResponse<ICollection<Category>>.Success(result);
+            return AppResponse<ICollection<CategoryResponseDTO>>.Success(result);
         }
 
         public async Task<AppResponse<CategoryResponseDTO>> GetByIdAsync(Guid categoryId)
@@ -131,18 +134,18 @@ namespace EasyFinance.Application.Features.CategoryService
             return AppResponse<CategoryResponseDTO>.Success(result.ToDTO());
         }
 
-        public async Task<AppResponse<Category>> UpdateAsync(Category category)
+        public async Task<AppResponse<CategoryResponseDTO>> UpdateAsync(Category category)
         {
             if (category == default)
-                return AppResponse<Category>.Error(code: nameof(category), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(category)));
+                return AppResponse<CategoryResponseDTO>.Error(code: nameof(category), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(category)));
 
             unitOfWork.CategoryRepository.InsertOrUpdate(category);
             await unitOfWork.CommitAsync();
 
-            return AppResponse<Category>.Success(category);
+            return AppResponse<CategoryResponseDTO>.Success(category.ToDTO());
         }
 
-        public async Task<AppResponse<CategoryResponseDTO>> UpdateAsync(Guid projectId, Guid categoryId, JsonPatchDocument<CategoryRequestDTO> categoryDto)
+        public async Task<AppResponse<CategoryResponseDTO>> UpdateAsync(Guid categoryId, JsonPatchDocument<CategoryRequestDTO> categoryDto)
         {
             if (categoryDto == default)
                 return AppResponse<CategoryResponseDTO>.Error(code: nameof(categoryDto), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(categoryDto)));
@@ -163,7 +166,7 @@ namespace EasyFinance.Application.Features.CategoryService
 
             var updatedCategory = await UpdateAsync(existingCategory);
 
-            return AppResponse<CategoryResponseDTO>.Success(updatedCategory.Data.ToDTO());
+            return AppResponse<CategoryResponseDTO>.Success(updatedCategory.Data);
         }
     }
 }
