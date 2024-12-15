@@ -189,4 +189,7 @@
   <data name="InvalidExpenseItemId" xml:space="preserve">
     <value>ExpenseItemId is not valid.</value>
   </data>
+  <data name="InvalidCategoryId" xml:space="preserve">
+    <value>Invalid CategoryId.</value>
+  </data>
 </root>

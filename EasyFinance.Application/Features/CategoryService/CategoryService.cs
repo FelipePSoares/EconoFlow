@@ -1,11 +1,15 @@
-﻿using System;
+﻿using EasyFinance.Application.Contracts.Persistence;
+using EasyFinance.Application.DTOs.Financial;
+using EasyFinance.Application.Mappers;
+using EasyFinance.Domain.Financial;
+using EasyFinance.Infrastructure;
+using EasyFinance.Infrastructure.DTOs;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using EasyFinance.Application.Contracts.Persistence;
-using EasyFinance.Domain.Financial;
-using EasyFinance.Infrastructure;
-using Microsoft.EntityFrameworkCore;
 
 namespace EasyFinance.Application.Features.CategoryService
 {
@@ -18,58 +22,75 @@ namespace EasyFinance.Application.Features.CategoryService
             this.unitOfWork = unitOfWork;
         }
 
-        public async Task<Category> CreateAsync(Guid projectId, Category category)
+        public async Task<AppResponse<CategoryResponseDTO>> CreateAsync(Guid projectId, Category category)
         {
             if (category == default)
-                throw new ArgumentNullException(nameof(category), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(category)));
+                return AppResponse<CategoryResponseDTO>.Error(code: nameof(category), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(category)));
 
             var project = await unitOfWork.ProjectRepository.Trackable().Include(p => p.Categories).FirstOrDefaultAsync(p => p.Id == projectId);
 
             var categoryExistent = project.Categories.FirstOrDefault(c => c.Name == category.Name && !c.IsArchived);
             if (categoryExistent != default)
-                return categoryExistent;
+                return AppResponse<CategoryResponseDTO>.Success(categoryExistent.ToDTO());
 
             this.unitOfWork.CategoryRepository.InsertOrUpdate(category);
             project.Categories.Add(category);
             this.unitOfWork.ProjectRepository.InsertOrUpdate(project);
 
             await unitOfWork.CommitAsync();
-
-            return category;
+            return AppResponse<CategoryResponseDTO>.Success(category.ToDTO());
         }
 
-        public async Task DeleteAsync(Guid categoryId)
+        public async Task<AppResponse> DeleteAsync(Guid categoryId)
         {
             if (categoryId == Guid.Empty)
-                throw new ArgumentNullException("The id is not valid");
+                return AppResponse.Error(code: nameof(categoryId), description: ValidationMessages.InvalidCategoryId);
 
             var category = await unitOfWork.CategoryRepository.Trackable().FirstOrDefaultAsync(category => category.Id == categoryId);
 
             if (category == null)
-                return;
+                return AppResponse.Error(code: nameof(category), description: ValidationMessages.CategoryNotFound);
 
             category.SetArchive();
 
             unitOfWork.CategoryRepository.InsertOrUpdate(category);
             await unitOfWork.CommitAsync();
+
+            return AppResponse.Success();
         }
 
-        public async Task<ICollection<Category>> GetAllAsync(Guid projectId)
-            => (await this.unitOfWork.ProjectRepository.NoTrackable().Include(p => p.Categories).FirstOrDefaultAsync(p => p.Id == projectId))?.Categories.Where(c => !c.IsArchived).ToList();
+        public async Task<AppResponse<ICollection<Category>>> GetAllAsync(Guid projectId)
+        {
+            var result = 
+                (await unitOfWork.ProjectRepository
+                .NoTrackable()
+                .Include(p => p.Categories)
+                .FirstOrDefaultAsync(p => p.Id == projectId))?
+                .Categories
+                .Where(c => !c.IsArchived)
+                .ToList();
 
-        public async Task<ICollection<Category>> GetAsync(Guid projectId, DateTime from, DateTime to)
-            => (await this.unitOfWork.ProjectRepository.NoTrackable()
-            .Include(p => p.Categories)
-                .ThenInclude(c => c.Expenses.Where(e => e.Date >= from && e.Date < to))
-            .FirstOrDefaultAsync(p => p.Id == projectId))?
-            .Categories
-            .Where(c => !c.IsArchived)
-            .ToList();
+            return AppResponse<ICollection<Category>>.Success(result);
+        }
 
-        public async Task<ICollection<Category>> GetDefaultCategoriesAsync(Guid projectId)
+        public async Task<AppResponse<ICollection<CategoryResponseDTO>>> GetAsync(Guid projectId, DateTime from, DateTime to)
+        {
+            var result = (await this.unitOfWork.ProjectRepository.NoTrackable()
+                    .Include(p => p.Categories)
+                    .ThenInclude(c => c.Expenses.Where(e => e.Date >= from && e.Date < to))
+                    .FirstOrDefaultAsync(p => p.Id == projectId))?
+                    .Categories
+                    .Where(c => !c.IsArchived)
+                    .ToDTO()
+                    .ToList();
+
+            return AppResponse<ICollection<CategoryResponseDTO>>.Success(result);
+        }
+
+        public async Task<AppResponse<ICollection<Category>>> GetDefaultCategoriesAsync(Guid projectId)
         {
             if (projectId == Guid.Empty)
-                throw new ArgumentNullException(nameof(projectId));
+                return AppResponse<ICollection<Category>>.Error(code: nameof(projectId), description: ValidationMessages.PropertyCantBeNullOrEmpty);
 
             var project = await unitOfWork.ProjectRepository
                 .NoTrackable()
@@ -83,31 +104,66 @@ namespace EasyFinance.Application.Features.CategoryService
                 .Where(dc => !categoryNames.Contains(dc.Name))
                 .ToList();
 
-            return filteredCategories;
+            return AppResponse<ICollection<Category>>.Success(filteredCategories);
         }
 
-        public async Task<ICollection<Category>> GetAsync(Guid projectId, int year)
-            => (await this.unitOfWork.ProjectRepository.NoTrackable()
-            .Include(p => p.Categories)
-                .ThenInclude(c => c.Expenses.Where(e => e.Date.Year == year))
-            .FirstOrDefaultAsync(p => p.Id == projectId))?
-            .Categories
-            .Where(c => !c.IsArchived)
-            .ToList();
+        public async Task<AppResponse<ICollection<Category>>> GetAsync(Guid projectId, int year)
+        {
+            var result = (await this.unitOfWork.ProjectRepository.NoTrackable()
+                    .Include(p => p.Categories)
+                    .ThenInclude(c => c.Expenses.Where(e => e.Date.Year == year))
+                    .FirstOrDefaultAsync(p => p.Id == projectId))?
+                    .Categories
+                    .Where(c => !c.IsArchived)
+                    .ToList();
 
-        public async Task<Category> GetByIdAsync(Guid categoryId)
-            => await this.unitOfWork.CategoryRepository.Trackable()
-                .Include(c => c.Expenses).FirstOrDefaultAsync(p => p.Id == categoryId);
+            return AppResponse<ICollection<Category>>.Success(result);
+        }
 
-        public async Task<Category> UpdateAsync(Category category)
+        public async Task<AppResponse<CategoryResponseDTO>> GetByIdAsync(Guid categoryId)
+        {
+            var result = 
+                await unitOfWork.CategoryRepository
+                .Trackable()
+                .Include(c => c.Expenses)
+                .FirstOrDefaultAsync(p => p.Id == categoryId);
+
+            return AppResponse<CategoryResponseDTO>.Success(result.ToDTO());
+        }
+
+        public async Task<AppResponse<Category>> UpdateAsync(Category category)
         {
             if (category == default)
-                throw new ArgumentNullException(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(category)));
+                return AppResponse<Category>.Error(code: nameof(category), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(category)));
 
             unitOfWork.CategoryRepository.InsertOrUpdate(category);
             await unitOfWork.CommitAsync();
 
-            return category;
+            return AppResponse<Category>.Success(category);
+        }
+
+        public async Task<AppResponse<CategoryResponseDTO>> UpdateAsync(Guid projectId, Guid categoryId, JsonPatchDocument<CategoryRequestDTO> categoryDto)
+        {
+            if (categoryDto == default)
+                return AppResponse<CategoryResponseDTO>.Error(code: nameof(categoryDto), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(categoryDto)));
+
+            var existingCategory =
+               await unitOfWork.CategoryRepository
+               .Trackable()
+               .Include(c => c.Expenses)
+               .FirstOrDefaultAsync(p => p.Id == categoryId);
+
+            if (existingCategory == null)
+                return AppResponse<CategoryResponseDTO>.Error(code: nameof(categoryId), description: string.Format(ValidationMessages.CategoryNotFound, nameof(categoryId)));
+
+            var dto = existingCategory.ToRequestDTO();
+            categoryDto.ApplyTo(dto);
+
+            dto.FromDTO(existingCategory);
+
+            var updatedCategory = await UpdateAsync(existingCategory);
+
+            return AppResponse<CategoryResponseDTO>.Success(updatedCategory.Data.ToDTO());
         }
     }
 }

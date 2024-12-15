@@ -9,8 +9,8 @@ namespace EasyFinance.Application.Mappers
 {
     public static class CategoryMap
     {
-        public static IEnumerable<CategoryResponseDTO> ToDTO(this ICollection<Category> categories)
-            => categories.Select(p => p.ToDTO());
+        public static IEnumerable<CategoryResponseDTO> ToDTO(this ICollection<Category> categories) => categories.Select(p => p.ToDTO());
+        public static IEnumerable<CategoryResponseDTO> ToDTO(this IEnumerable<Category> categories) => categories.Select(p => p.ToDTO());
 
         public static CategoryResponseDTO ToDTO(this Category category)
         {

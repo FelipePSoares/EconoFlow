@@ -1,14 +1,13 @@
-﻿using System.Collections.Frozen;
-using System.Security.Claims;
+﻿using EasyFinance.Application.DTOs.FinancialProject;
 using EasyFinance.Application.Features.CategoryService;
 using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
-using EasyFinance.Application.DTOs.FinancialProject;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace EasyFinance.Server.Controllers
 {
@@ -54,11 +53,11 @@ namespace EasyFinance.Server.Controllers
             var incomes = await this.incomeService.GetAsync(projectId, year);
             var categories = await this.categoryService.GetAsync(projectId, year);
 
-            var lastMonthData = categories.Where(c => c.TotalBudget != 0).Select(c => c.Expenses.Where(e => e.Budget != 0)?.Max(e => e.Date.Month)).Max();
-            var totalBudgetLastMonthData = categories.Sum(c => c.Expenses.Where(e => e.Date.Month == lastMonthData).Sum(e => e.Budget));
+            var lastMonthData = categories.Data.Where(c => c.TotalBudget != 0).Select(c => c.Expenses.Where(e => e.Budget != 0)?.Max(e => e.Date.Month)).Max();
+            var totalBudgetLastMonthData = categories.Data.Sum(c => c.Expenses.Where(e => e.Date.Month == lastMonthData).Sum(e => e.Budget));
 
-            var totalBudget = categories.Sum(c => c.TotalBudget) + (totalBudgetLastMonthData * (12 - lastMonthData ?? 0));
-            var totalWaste = categories.Sum(c => c.TotalWaste);
+            var totalBudget = categories.Data.Sum(c => c.TotalBudget) + (totalBudgetLastMonthData * (12 - lastMonthData ?? 0));
+            var totalWaste = categories.Data.Sum(c => c.TotalWaste);
 
             return Ok(new
             {
