@@ -26,3 +26,4 @@ jobs:
           msdeploy-username: ${{ secrets.FTP_USERNAME }}
           msdeploy-password: ${{ secrets.FTP_PASSWORD }}
           source-path: ${{ github.workspace }}\EasyFinance.Server\bin\Release\net8.0\publish\
+          skip-extra-files: 0
