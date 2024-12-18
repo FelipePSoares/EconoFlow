@@ -25,7 +25,7 @@
 
         <mat-form-field class="mb-2" [style.width.%]="100">
           <mat-label>Password</mat-label>
-          <input placeholder="Passsword" matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'">
+          <input placeholder="Password" matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'">
           <mat-icon matSuffix (click)="hidePassword = !hidePassword">{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
         </mat-form-field>
         <div *ngIf="password?.invalid && password?.touched">
@@ -49,7 +49,7 @@
 
         <mat-form-field class="mb-2" [style.width.%]="100">
           <mat-label>Confirm Password</mat-label>
-          <input placeholder="Passsword" matInput formControlName="confirmPassword" [type]="hideConfirmPassword ? 'password' : 'text'">
+          <input placeholder="Password" matInput formControlName="confirmPassword" [type]="hideConfirmPassword ? 'password' : 'text'">
           <mat-icon matSuffix (click)="hideConfirmPassword = !hideConfirmPassword">{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
           @if ((confirmPassword?.invalid && confirmPassword?.touched) || httpErrors){
           <mat-error *ngFor="let error of getFormFieldErrors('confirmPassword')">{{ error }}</mat-error>

@@ -26,7 +26,7 @@
 
         <mat-form-field [style.width.%]="100">
           <mat-label>Password</mat-label>
-          <input id="password" placeholder="Passsword" matInput formControlName="password"
+          <input id="password" placeholder="Password" matInput formControlName="password"
                  [type]="hide ? 'password' : 'text'">
           <mat-icon matSuffix (click)="hide = !hide">{{ hide ? 'visibility_off' : 'visibility' }}</mat-icon>
           @if ((password?.invalid && password?.touched) || httpErrors) {
