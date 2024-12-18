@@ -1,4 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
 using EasyFinance.Application.Features.ExpenseItemService;
@@ -6,8 +7,9 @@ using EasyFinance.Application.Features.ExpenseService;
 using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Application.Features.UserService;
-using EasyFinance.Domain.Models.AccessControl;
+using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure;
+using EasyFinance.Infrastructure.DTOs;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -170,13 +172,13 @@ namespace EasyFinance.Application.Tests
             };
             
             this.projectServiceMock.Setup(x => x.GetProjectsWhereUserIsSoleAdminAsync(It.IsAny<User>()))
-                .ReturnsAsync([]);
+                .ReturnsAsync(AppResponse<IList<string>>.Success([]));
 
             // Act
-            var result = await this.userService.GenerateConfirmationMessageAsync(user);
+            var results = await this.userService.GenerateConfirmationMessageAsync(user);
 
             // Assert
-            result.Should().Be(ValidationMessages.WarningMessageToUserWhoWantsToDeleteAccount);
+            results.Should().Be(ValidationMessages.WarningMessageToUserWhoWantsToDeleteAccount);
         }
 
         [Fact]
@@ -188,7 +190,7 @@ namespace EasyFinance.Application.Tests
             };
             
             this.projectServiceMock.Setup(x => x.GetProjectsWhereUserIsSoleAdminAsync(It.IsAny<User>()))
-                .ReturnsAsync(["Test Project"]);
+                .ReturnsAsync(AppResponse<IList<string>>.Success(new List<string> { "Test Project" }));
                 
             // Act
             var result = await this.userService.GenerateConfirmationMessageAsync(user);

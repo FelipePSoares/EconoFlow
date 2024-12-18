@@ -1,20 +1,22 @@
-﻿using System.Collections.Frozen;
-using System.Security.Claims;
+﻿using EasyFinance.Application.DTOs.FinancialProject;
 using EasyFinance.Application.Features.CategoryService;
 using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Application.Features.ProjectService;
-using EasyFinance.Domain.Models.AccessControl;
-using EasyFinance.Server.DTOs.FinancialProject;
-using EasyFinance.Server.Mappers;
+using EasyFinance.Application.Mappers;
+using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Financial;
+using EasyFinance.Domain.FinancialProject;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using System.Security.Claims;
 
 namespace EasyFinance.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ProjectsController : ControllerBase
+    public class ProjectsController : BaseController
     {
         private readonly IProjectService projectService;
         private readonly ICategoryService categoryService;
@@ -35,17 +37,16 @@ namespace EasyFinance.Server.Controllers
             var userId = new Guid(this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier).Value);
 
             var projects = projectService.GetAll(userId);
-            return Ok(projects.ToDTO());
+            return ValidateResponse(projects, HttpStatusCode.OK);
         }
 
         [HttpGet("{projectId}")]
         public IActionResult GetProjectById(Guid projectId)
         {
             var project = projectService.GetById(projectId);
-
             if (project == null) return NotFound();
 
-            return Ok(project.ToDTO());
+            return ValidateResponse(project, HttpStatusCode.OK);
         }
 
         [HttpGet("{projectId}/year-summary/{year}")]
@@ -54,18 +55,18 @@ namespace EasyFinance.Server.Controllers
             var incomes = await this.incomeService.GetAsync(projectId, year);
             var categories = await this.categoryService.GetAsync(projectId, year);
 
-            var lastMonthData = categories.Where(c => c.TotalBudget != 0).Select(c => c.Expenses.Where(e => e.Budget != 0)?.Max(e => e.Date.Month)).Max();
-            var totalBudgetLastMonthData = categories.Sum(c => c.Expenses.Where(e => e.Date.Month == lastMonthData).Sum(e => e.Budget));
+            var lastMonthData = categories.Data.Where(c => c.Expenses.Sum(e => e.Budget) != 0).Select(c => c.Expenses.Where(e => e.Budget != 0)?.Max(e => e.Date.Month)).Max();
+            var totalBudgetLastMonthData = categories.Data.Sum(c => c.Expenses.Where(e => e.Date.Month == lastMonthData).Sum(e => e.Budget));
 
-            var totalBudget = categories.Sum(c => c.TotalBudget) + (totalBudgetLastMonthData * (12 - lastMonthData ?? 0));
-            var totalWaste = categories.Sum(c => c.TotalWaste);
+            var totalBudget = categories.Data.Sum(c => c.Expenses.Sum(e => e.Budget)) + (totalBudgetLastMonthData * (12 - lastMonthData ?? 0));
+            var totalWaste = categories.Data.Sum(c => c.Expenses.Sum(e => e.Amount));
 
             return Ok(new
             {
                 TotalBudget = totalBudget,
                 TotalWaste = totalWaste,
                 TotalRemaining = totalBudget - totalWaste,
-                TotalEarned = incomes.Sum(i => i.Amount),
+                TotalEarned = incomes.Data.Sum(i => i.Amount),
             });
         }
 
@@ -77,9 +78,9 @@ namespace EasyFinance.Server.Controllers
             var id = this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier);
             var user = await this.userManager.FindByIdAsync(id.Value);
 
-            var createdProject = (await projectService.CreateAsync(user, projectDto.FromDTO())).ToDTO();
+            var createdProject = await projectService.CreateAsync(user, projectDto.FromDTO());
 
-            return CreatedAtAction(nameof(GetProjectById), new { projectId = createdProject.Id }, createdProject);
+            return ValidateResponse(actionName: nameof(GetProjectById), routeValues: new { projectId = createdProject.Data.Id }, appResponse: createdProject);
         }
 
         [HttpPatch("{projectId}")]
@@ -87,27 +88,17 @@ namespace EasyFinance.Server.Controllers
         {
             if (projectDto == null) return BadRequest();
 
-            var existingProject = projectService.GetById(projectId);
+            var updateResult = await projectService.UpdateAsync(projectId: projectId, projectDto: projectDto);
 
-            if (existingProject == null) return NotFound();
-
-            var dto = existingProject.ToRequestDTO();
-
-            projectDto.ApplyTo(dto);
-
-            dto.FromDTO(existingProject);
-
-            await projectService.UpdateAsync(existingProject);
-
-            return Ok(existingProject);
+            return ValidateResponse(updateResult, HttpStatusCode.OK);
         }
 
         [HttpDelete("{projectId}")]
         public async Task<IActionResult> DeleteProjectAsync(Guid projectId)
         {
-            await projectService.DeleteAsync(projectId);
+            var deleteResult = await projectService.DeleteAsync(projectId);
 
-            return NoContent();
+            return ValidateResponse(deleteResult, HttpStatusCode.NoContent);
         }
 
         [HttpPost("{projectId}/copy-budget-previous-month")]
@@ -118,7 +109,7 @@ namespace EasyFinance.Server.Controllers
 
             var newExpenses = await projectService.CopyBudgetFromPreviousMonthAsync(user, projectId, currentDate);
 
-            return Ok(newExpenses.ToDTO());
+            return ValidateResponse(newExpenses, HttpStatusCode.OK);
         }
     }
 }

@@ -1,11 +1,16 @@
-﻿using EasyFinance.Domain.Models.Financial;
-using EasyFinance.Server.DTOs.Financial;
+﻿using EasyFinance.Application.Mappers;
+using EasyFinance.Domain.Financial;
+using EasyFinance.Application.DTOs.Financial;
+using System.Collections.Generic;
+using System;
+using System.Linq;
 
-namespace EasyFinance.Server.Mappers
+namespace EasyFinance.Application.Mappers
 {
     public static class ExpenseMap
     {
         public static IEnumerable<ExpenseResponseDTO> ToDTO(this ICollection<Expense> expenses) => expenses.Select(p => p.ToDTO());
+        public static IEnumerable<ExpenseResponseDTO> ToDTO(this IEnumerable<Expense> expenses) => expenses.Select(p => p.ToDTO());
 
         public static ExpenseResponseDTO ToDTO(this Expense expense)
         {
@@ -37,7 +42,8 @@ namespace EasyFinance.Server.Mappers
         }
 
         public static ICollection<Expense> FromDTO(this ICollection<ExpenseRequestDTO> expenseDTO, IList<Expense> expense = null)
-            => expenseDTO.Select((expenseDTO, index) => {
+            => expenseDTO.Select((expenseDTO, index) =>
+            {
                 if (index < expense.Count)
                     return expenseDTO.FromDTO(expense[index]);
 

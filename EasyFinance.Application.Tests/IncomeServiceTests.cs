@@ -3,9 +3,9 @@ using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Common.Tests.AccessControl;
 using EasyFinance.Common.Tests.Financial;
 using EasyFinance.Common.Tests.FinancialProject;
-using EasyFinance.Domain.Models.AccessControl;
-using EasyFinance.Domain.Models.Financial;
-using EasyFinance.Domain.Models.FinancialProject;
+using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Financial;
+using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Infrastructure;
 using EasyFinance.Persistence.DatabaseContext;
 using EasyFinance.Persistence.Repositories;
@@ -114,14 +114,13 @@ namespace EasyFinance.Application.Tests
             var projectId = Guid.NewGuid();
             Income? income = default;
 
-            var expectedMessage = string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, "income") + " (Parameter 'income')";
-
             // Act
-            Func<Task> func = async () => await this.IncomeService.CreateAsync(user, projectId, income);
+            var result = await IncomeService.CreateAsync(user, projectId, income);
 
             // Assert
-            await func.Should().ThrowExactlyAsync<ArgumentNullException>()
-                .WithMessage(expectedMessage);
+            result.Succeeded.Should().BeFalse();
+            result.Messages.Should().HaveCount(1);
+            result.Messages.First().Description.Should().Be(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(income)));
         }
 
         [Fact]
@@ -132,14 +131,13 @@ namespace EasyFinance.Application.Tests
             var projectId = Guid.NewGuid();
             var income = new Income();
 
-            var expectedMessage = string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, "user") + " (Parameter 'user')";
-
             // Act
-            Func<Task> func = async () => await this.IncomeService.CreateAsync(user, projectId, income);
+            var result = await IncomeService.CreateAsync(user, projectId, income);
 
             // Assert
-            await func.Should().ThrowExactlyAsync<ArgumentNullException>()
-                .WithMessage(expectedMessage);
+            result.Succeeded.Should().BeFalse();
+            result.Messages.Should().HaveCount(1);
+            result.Messages.First().Description.Should().Be(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(user)));
         }
 
         [Fact]

@@ -1,5 +1,5 @@
 ﻿using AutoFixture;
-using EasyFinance.Domain.Models.AccessControl;
+using EasyFinance.Domain.AccessControl;
 using System.Net.Mail;
 
 namespace EasyFinance.Common.Tests.AccessControl

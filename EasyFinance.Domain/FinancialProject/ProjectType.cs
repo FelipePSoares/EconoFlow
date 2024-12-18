@@ -1,4 +1,4 @@
-﻿namespace EasyFinance.Domain.Models.FinancialProject
+﻿namespace EasyFinance.Domain.FinancialProject
 {
     public enum ProjectType
     {

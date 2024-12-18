@@ -1,7 +1,7 @@
 using System.Net;
 using System.Security.Claims;
 using EasyFinance.Application.Features.AccessControlService;
-using EasyFinance.Domain.Models.AccessControl;
+using EasyFinance.Domain.AccessControl;
 using EasyFinance.Server.MiddleWare;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;

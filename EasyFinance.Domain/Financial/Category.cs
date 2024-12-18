@@ -1,11 +1,12 @@
-﻿using EasyFinance.Domain.Models.AccessControl;
+﻿using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure;
+using EasyFinance.Infrastructure.DTOs;
 using EasyFinance.Infrastructure.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace EasyFinance.Domain.Models.Financial
+namespace EasyFinance.Domain.Financial
 {
     public class Category : BaseEntity
     {
@@ -20,15 +21,15 @@ namespace EasyFinance.Domain.Models.Financial
 
         public Category(string name = "default", ICollection<Expense> expenses = default)
         {
-            this.SetName(name);
-            this.SetExpenses(expenses ?? new List<Expense>());
+            SetName(name);
+            SetExpenses(expenses ?? new List<Expense>());
         }
 
         public string Name { get; private set; } = string.Empty;
         public bool IsArchived { get; private set; }
         public ICollection<Expense> Expenses { get; private set; } = new List<Expense>();
-        public decimal TotalBudget => this.Expenses.Sum(e => e.Budget);
-        public decimal TotalWaste => this.Expenses.Sum(e => e.Amount);
+        public decimal TotalBudget => Expenses.Sum(e => e.Budget);
+        public decimal TotalWaste => Expenses.Sum(e => e.Amount);
 
 
 
@@ -64,18 +65,20 @@ namespace EasyFinance.Domain.Models.Financial
 
         public void SetArchive()
         {
-            this.IsArchived = true;
+            IsArchived = true;
         }
 
         public ICollection<Expense> CopyBudgetToCurrentMonth(User user, DateTime currentDate)
         {
             var previousDate = currentDate.AddMonths(-1);
 
-            var newExpenses = this.Expenses.Where(e => e.Date.Month == previousDate.Month && e.Date.Year == previousDate.Year && e.Budget > 0)
+            var newExpenses = Expenses
+                .Where(e => e.Date.Month == previousDate.Month && e.Date.Year == previousDate.Year && e.Budget > 0)
                 .Select(expense => expense.CopyBudgetToCurrentMonth(user))
+                .Select(appResponse => appResponse.Data)
                 .ToList();
 
-            this.SetExpenses(this.Expenses.Concat(newExpenses).ToList());
+            SetExpenses(Expenses.Concat(newExpenses).ToList());
 
             return newExpenses;
         }

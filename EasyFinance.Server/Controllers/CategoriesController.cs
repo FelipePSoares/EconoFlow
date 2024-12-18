@@ -1,14 +1,17 @@
-﻿using EasyFinance.Application.Features.CategoryService;
-using EasyFinance.Server.DTOs.Financial;
-using EasyFinance.Server.Mappers;
+﻿using EasyFinance.Application.DTOs.Financial;
+using EasyFinance.Application.Features.CategoryService;
+using EasyFinance.Application.Mappers;
+using EasyFinance.Domain.Financial;
+using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace EasyFinance.Server.Controllers
 {
     [ApiController]
     [Route("api/Projects/{projectId}/[controller]")]
-    public class CategoriesController : Controller
+    public class CategoriesController : BaseController
     {
         private readonly ICategoryService categoryService;
 
@@ -20,59 +23,48 @@ namespace EasyFinance.Server.Controllers
         [HttpGet]
         public async Task<IActionResult> Get(Guid projectId, DateTime from, DateTime to)
         {
-            var categories = await this.categoryService.GetAsync(projectId, from, to);
-            return Ok(categories.ToDTO());
+            var categories = await categoryService.GetAsync(projectId, from, to);
+            return ValidateResponse(categories, HttpStatusCode.OK);
         }
 
         [HttpGet("DefaultCategories")]
         public async Task<IActionResult> GetDefaultCategories(Guid projectId)
         {
             var categories = await categoryService.GetDefaultCategoriesAsync(projectId);
-            return Ok(categories);
+            return ValidateResponse(categories, HttpStatusCode.OK);
         }
 
         [HttpGet("{categoryId}")]
         public async Task<IActionResult> GetById(Guid categoryId)
         {
-            var category = await this.categoryService.GetByIdAsync(categoryId);
-            return Ok(category.ToDTO());
+            var category = await categoryService.GetByIdAsync(categoryId);
+            return ValidateResponse(category, HttpStatusCode.OK);
         }
 
         [HttpPost]
         public async Task<IActionResult> Create(Guid projectId, [FromBody] CategoryRequestDTO categoryDTO)
         {
             if (categoryDTO == null) return BadRequest();
+            var createdCategory = await categoryService.CreateAsync(projectId, categoryDTO.FromDTO());
 
-            var createdCategory = (await categoryService.CreateAsync(projectId, categoryDTO.FromDTO())).ToDTO();
-
-            return CreatedAtAction(nameof(GetById), new { projectId, categoryId = createdCategory.Id }, createdCategory);
-        }
+            return ValidateResponse(actionName: nameof(GetById), routeValues: new { projectId, categoryId = createdCategory.Data.Id }, appResponse: createdCategory);
+        }        
 
         [HttpPatch("{categoryId}")]
         public async Task<IActionResult> Update(Guid projectId, Guid categoryId, [FromBody] JsonPatchDocument<CategoryRequestDTO> categoryDto)
         {
             if (categoryDto == null) return BadRequest();
+            var updateResult = await categoryService.UpdateAsync(categoryId: categoryId, categoryDto: categoryDto);
 
-            var existingCategory = await categoryService.GetByIdAsync(categoryId);
-
-            if (existingCategory == null) return NotFound();
-
-            var dto = existingCategory.ToRequestDTO();
-            categoryDto.ApplyTo(dto);
-
-            dto.FromDTO(existingCategory);
-
-            await categoryService.UpdateAsync(existingCategory);
-
-            return Ok(existingCategory);
+            return ValidateResponse(updateResult, HttpStatusCode.OK);
         }
 
         [HttpDelete("{categoryId}")]
         public async Task<IActionResult> Delete(Guid categoryId)
         {
-            await categoryService.DeleteAsync(categoryId);
+            var deleteResult = await categoryService.DeleteAsync(categoryId);
 
-            return NoContent();
+            return ValidateResponse(deleteResult, HttpStatusCode.NoContent);
         }
     }
 }

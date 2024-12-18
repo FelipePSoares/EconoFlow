@@ -1,29 +1,28 @@
 ﻿using EasyFinance.Application.Features.ExpenseItemService;
-using EasyFinance.Domain.Models.AccessControl;
+using EasyFinance.Domain.AccessControl;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace EasyFinance.Server.Controllers
 {
     [ApiController]
     [Route("api/Projects/{projectId}/Categories/{categoryId}/Expenses/{expenseId}/[controller]")]
-    public class ExpenseItemsController : Controller
+    public class ExpenseItemsController : BaseController
     {
         private readonly IExpenseItemService expenseItemService;
-        private readonly UserManager<User> userManager;
 
         public ExpenseItemsController(IExpenseItemService expenseItemService, UserManager<User> userManager)
         {
             this.expenseItemService = expenseItemService;
-            this.userManager = userManager;
         }
 
         [HttpDelete("{expenseItemId}")]
         public async Task<IActionResult> DeleteAsync(Guid expenseItemId)
         {
-            await this.expenseItemService.DeleteAsync(expenseItemId);
+            var result = await this.expenseItemService.DeleteAsync(expenseItemId);
 
-            return NoContent();
+            return ValidateResponse(result, HttpStatusCode.OK);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace EasyFinance.Domain.Models.AccessControl
+﻿namespace EasyFinance.Domain.AccessControl
 {
     public enum Role
     {

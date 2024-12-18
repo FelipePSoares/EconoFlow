@@ -1,11 +1,16 @@
-﻿using EasyFinance.Domain.Models.Financial;
-using EasyFinance.Server.DTOs.Financial;
+﻿using EasyFinance.Application.Mappers;
+using EasyFinance.Domain.Financial;
+using EasyFinance.Application.DTOs.Financial;
+using System.Collections.Generic;
+using System;
+using System.Linq;
 
-namespace EasyFinance.Server.Mappers
+namespace EasyFinance.Application.Mappers
 {
     public static class IncomeMap
     {
         public static IEnumerable<IncomeResponseDTO> ToDTO(this ICollection<Income> incomes) => incomes.Select(p => p.ToDTO());
+        public static IEnumerable<IncomeResponseDTO> ToDTO(this IEnumerable<Income> incomes) => incomes.Select(p => p.ToDTO());
 
         public static IncomeResponseDTO ToDTO(this Income income)
         {

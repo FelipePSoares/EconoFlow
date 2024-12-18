@@ -5,7 +5,7 @@ using EasyFinance.Infrastructure.Validators;
 using Microsoft.AspNetCore.Identity;
 using System.Net.Mail;
 
-namespace EasyFinance.Domain.Models.AccessControl
+namespace EasyFinance.Domain.AccessControl
 {
     public class User : IdentityUser<Guid>
     {
@@ -13,11 +13,11 @@ namespace EasyFinance.Domain.Models.AccessControl
 
         public User(string firstName = "Default", string lastName = "Default", string preferredCurrency = "EUR", string timeZoneId = "UTC", bool enabled = default)
         {
-            this.FirstName = firstName;
-            this.LastName = lastName;
-            this.PreferredCurrency = preferredCurrency;
-            this.TimeZoneId = timeZoneId;
-            this.Enabled = enabled;
+            FirstName = firstName;
+            LastName = lastName;
+            PreferredCurrency = preferredCurrency;
+            TimeZoneId = timeZoneId;
+            Enabled = enabled;
         }
 
         public string FirstName { get; private set; } = string.Empty;
@@ -25,44 +25,44 @@ namespace EasyFinance.Domain.Models.AccessControl
         public string PreferredCurrency { get; private set; } = string.Empty;
         public string TimeZoneId { get; private set; } = string.Empty;
         public bool Enabled { get; set; } = true;
-        public bool HasIncompletedInformation => string.IsNullOrEmpty(this.FirstName) && string.IsNullOrEmpty(this.LastName);
+        public bool HasIncompletedInformation => string.IsNullOrEmpty(FirstName) && string.IsNullOrEmpty(LastName);
 
         public void SetFirstName(string firstName)
         {
             if (string.IsNullOrEmpty(firstName))
-                throw new ValidationException(nameof(this.FirstName), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(this.FirstName)));
+                throw new ValidationException(nameof(FirstName), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(FirstName)));
 
-            this.FirstName = firstName;
+            FirstName = firstName;
         }
 
         public void SetLastName(string lastName)
         {
             if (string.IsNullOrEmpty(lastName))
-                throw new ValidationException(nameof(this.LastName), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(this.LastName)));
+                throw new ValidationException(nameof(LastName), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(LastName)));
 
-            this.LastName = lastName;
+            LastName = lastName;
         }
 
         public void SetPreferredCurrency(string preferredCurrency)
         {
             if (string.IsNullOrEmpty(preferredCurrency))
-                throw new ValidationException(nameof(this.PreferredCurrency), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(this.PreferredCurrency)));
+                throw new ValidationException(nameof(PreferredCurrency), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(PreferredCurrency)));
 
             if (!CurrencyValidator.IsValidCurrencyCode(preferredCurrency))
-                throw new ValidationException(nameof(this.PreferredCurrency), ValidationMessages.InvalidCurrencyCode);
+                throw new ValidationException(nameof(PreferredCurrency), ValidationMessages.InvalidCurrencyCode);
 
-            this.PreferredCurrency = preferredCurrency;
+            PreferredCurrency = preferredCurrency;
         }
 
         public void SetTimezone(string timeZoneId)
         {
             if (string.IsNullOrEmpty(timeZoneId))
-                throw new ValidationException(nameof(this.TimeZoneId), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(this.TimeZoneId)));
+                throw new ValidationException(nameof(TimeZoneId), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(TimeZoneId)));
 
             if (TimeZoneValidator.TryGetTimeZoneInfo(timeZoneId, out var timeZoneInfo))
-                this.TimeZoneId = timeZoneInfo.Id;
+                TimeZoneId = timeZoneInfo.Id;
             else
-                throw new ValidationException(nameof(this.TimeZoneId), ValidationMessages.InvalidTimeZone);
+                throw new ValidationException(nameof(TimeZoneId), ValidationMessages.InvalidTimeZone);
         }
     }
 }

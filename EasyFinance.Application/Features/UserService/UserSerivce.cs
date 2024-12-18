@@ -9,7 +9,7 @@ using EasyFinance.Application.Features.ExpenseItemService;
 using EasyFinance.Application.Features.ExpenseService;
 using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Application.Features.ProjectService;
-using EasyFinance.Domain.Models.AccessControl;
+using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -42,8 +42,8 @@ namespace EasyFinance.Application.Features.UserService
         {
             var projectsWhereUserIsSoleAdmin = await this.projectService.GetProjectsWhereUserIsSoleAdminAsync(user);
 
-            if (projectsWhereUserIsSoleAdmin.Any()){
-                var projects = string.Concat(projectsWhereUserIsSoleAdmin.Select((value) => $"<li>{value}</li>"));
+            if (projectsWhereUserIsSoleAdmin.Data.Any()){
+                var projects = string.Concat(projectsWhereUserIsSoleAdmin.Data.Select((value) => $"<li>{value}</li>"));
                 return string.Format(ValidationMessages.WarningMessageToAdminUserWhoWantsToDeleteAccount, projects);
             }
 

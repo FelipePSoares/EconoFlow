@@ -1,11 +1,16 @@
-﻿using EasyFinance.Domain.Models.FinancialProject;
-using EasyFinance.Server.DTOs.FinancialProject;
+﻿using EasyFinance.Application.Mappers;
+using EasyFinance.Domain.FinancialProject;
+using EasyFinance.Application.DTOs.FinancialProject;
+using System.Collections.Generic;
+using System;
+using System.Linq;
 
-namespace EasyFinance.Server.Mappers
+namespace EasyFinance.Application.Mappers
 {
     public static class ProjectMap
     {
         public static IEnumerable<ProjectResponseDTO> ToDTO(this ICollection<Project> projects) => projects.Select(p => p.ToDTO());
+        public static IEnumerable<ProjectResponseDTO> ToDTO(this IEnumerable<Project> projects) => projects.Select(p => p.ToDTO());
 
         public static ProjectResponseDTO ToDTO(this Project project)
         {

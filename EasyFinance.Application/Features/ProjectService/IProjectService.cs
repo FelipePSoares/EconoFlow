@@ -1,28 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using EasyFinance.Domain.Models.AccessControl;
-using EasyFinance.Domain.Models.Financial;
-using EasyFinance.Domain.Models.FinancialProject;
+using EasyFinance.Application.DTOs.Financial;
+using EasyFinance.Application.DTOs.FinancialProject;
+using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Financial;
+using EasyFinance.Domain.FinancialProject;
+using EasyFinance.Infrastructure.DTOs;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace EasyFinance.Application.Features.ProjectService
 {
     public interface IProjectService
     {
-        ICollection<Project> GetAll(Guid userId);
+        AppResponse<ICollection<ProjectResponseDTO>> GetAll(Guid userId);
 
-        Project GetById(Guid id);
+        AppResponse<ProjectResponseDTO> GetById(Guid id);
 
-        Task<Project> CreateAsync(User user, Project project);
+        Task<AppResponse<ProjectResponseDTO>> CreateAsync(User user, Project project);
 
-        Task<Project> UpdateAsync(Project project);
+        Task<AppResponse<ProjectResponseDTO>> UpdateAsync(Project project);
+        Task<AppResponse<ProjectResponseDTO>> UpdateAsync(Guid projectId, JsonPatchDocument<ProjectRequestDTO> projectDto);
 
-        Task DeleteAsync(Guid id);
+        Task<AppResponse> DeleteAsync(Guid id);
 
-        Task<ICollection<Expense>> CopyBudgetFromPreviousMonthAsync(User user, Guid id, DateTime currentDate);
+        Task<AppResponse<ICollection<ExpenseResponseDTO>>> CopyBudgetFromPreviousMonthAsync(User user, Guid id, DateTime currentDate);
 
-        Task DeleteOrRemoveLinkAsync(User user);
+        Task<AppResponse> DeleteOrRemoveLinkAsync(User user);
 
-        Task<IList<string>> GetProjectsWhereUserIsSoleAdminAsync(User user);
+        Task<AppResponse<IList<string>>> GetProjectsWhereUserIsSoleAdminAsync(User user);
     }
 }

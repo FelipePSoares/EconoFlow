@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using EasyFinance.Domain.Models.Financial;
+using EasyFinance.Domain.Financial;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.Exceptions;
 
-namespace EasyFinance.Domain.Models.FinancialProject
+namespace EasyFinance.Domain.FinancialProject
 {
     public class Project : BaseEntity
     {
@@ -13,10 +13,10 @@ namespace EasyFinance.Domain.Models.FinancialProject
         public Project(Guid id = default, string name = "default", ProjectType type = default, ICollection<Category> categories = default, ICollection<Income> incomes = default)
             : base(id)
         {
-            this.SetName(name);
-            this.SetType(type);
-            this.SetCategories(categories ?? new List<Category>());
-            this.SetIncomes(incomes ?? new List<Income>());
+            SetName(name);
+            SetType(type);
+            SetCategories(categories ?? new List<Category>());
+            SetIncomes(incomes ?? new List<Income>());
         }
 
         public string Name { get; private set; } = string.Empty;
@@ -30,15 +30,15 @@ namespace EasyFinance.Domain.Models.FinancialProject
             if (category == default)
                 throw new ValidationException(nameof(category), string.Format(ValidationMessages.PropertyCantBeNull, nameof(category)));
 
-            this.Categories.Add(category);
+            Categories.Add(category);
         }
 
         public void SetCategories(ICollection<Category> categories)
         {
             if (categories == default)
-                throw new ValidationException(nameof(this.Categories), string.Format(ValidationMessages.PropertyCantBeNull, nameof(this.Categories)));
+                throw new ValidationException(nameof(Categories), string.Format(ValidationMessages.PropertyCantBeNull, nameof(Categories)));
 
-            this.Categories = categories;
+            Categories = categories;
         }
 
         public void AddIncome(Income income)
@@ -46,33 +46,33 @@ namespace EasyFinance.Domain.Models.FinancialProject
             if (income == default)
                 throw new ValidationException(nameof(income), string.Format(ValidationMessages.PropertyCantBeNull, nameof(income)));
 
-            this.Incomes.Add(income);
+            Incomes.Add(income);
         }
 
         public void SetIncomes(ICollection<Income> incomes)
         {
             if (incomes == default)
-                throw new ValidationException(nameof(this.Incomes), string.Format(ValidationMessages.PropertyCantBeNull, nameof(this.Incomes)));
+                throw new ValidationException(nameof(Incomes), string.Format(ValidationMessages.PropertyCantBeNull, nameof(Incomes)));
 
-            this.Incomes = incomes;
+            Incomes = incomes;
         }
 
         public void SetName(string name)
         {
             if (string.IsNullOrEmpty(name))
-                throw new ValidationException(nameof(this.Name), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(this.Name)));
+                throw new ValidationException(nameof(Name), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(Name)));
 
-            this.Name = name;
+            Name = name;
         }
 
         public void SetType(ProjectType type)
         {
-            this.Type = type;
+            Type = type;
         }
 
         public void SetArchive()
         {
-            this.Archive = true;
+            Archive = true;
         }
     }
 }

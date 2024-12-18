@@ -1,6 +1,7 @@
 ﻿using EasyFinance.Common.Tests.Financial;
-using EasyFinance.Domain.Models.Financial;
+using EasyFinance.Domain.Financial;
 using EasyFinance.Infrastructure;
+using EasyFinance.Infrastructure.DTOs;
 using EasyFinance.Infrastructure.Exceptions;
 using FluentAssertions;
 
@@ -20,11 +21,11 @@ namespace EasyFinance.Domain.Tests.Financial
         [InlineData(-250)]
         public void SetBudget_SendNegativeGoal_ShouldThrowException(int budget)
         {
-            var action = () => new ExpenseBuilder().SetBudget(budget).Build();
+            var result = new Expense().SetBudget(budget);
 
-            action.Should().Throw<ValidationException>()
-                .WithMessage(string.Format(ValidationMessages.PropertyCantBeLessThanZero, "Budget"))
-                .And.Property.Should().Be("Budget");
+            result.Succeeded.Should().Be(false);
+            result.Messages.Should().HaveCount(1);
+            result.Messages.First().Description.Should().Be(string.Format(ValidationMessages.PropertyCantBeLessThanZero, "Budget"));            
         }
 
         [Theory]
