@@ -78,7 +78,7 @@ namespace EasyFinance.Application.Features.ProjectService
             var existingProject = unitOfWork.ProjectRepository.Trackable().FirstOrDefault(up => up.Id == projectId);
 
             if (existingProject == null) 
-                return AppResponse<ProjectResponseDTO>.Error(code: nameof(existingProject), description: ValidationMessages.ProjectNotFound);
+                return AppResponse<ProjectResponseDTO>.Error(code: ValidationMessages.NotFound, description: ValidationMessages.ProjectNotFound);
 
             var dto = existingProject.ToRequestDTO();
 
@@ -99,7 +99,7 @@ namespace EasyFinance.Application.Features.ProjectService
             var project = unitOfWork.ProjectRepository.Trackable().FirstOrDefault(product => product.Id == id);
 
             if (project == null)
-                return AppResponse.Error(code: nameof(project), description: ValidationMessages.ProjectNotFound);
+                return AppResponse.Error(code: ValidationMessages.NotFound, description: ValidationMessages.ProjectNotFound);
 
             project.SetArchive();
 

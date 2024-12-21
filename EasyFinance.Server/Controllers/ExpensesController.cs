@@ -25,9 +25,9 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get(Guid categoryId, DateTime from, DateTime to, Paging paging)
+        public async Task<IActionResult> Get(Guid categoryId, DateTime from, DateTime to)
         {
-            var expenses = await expenseService.GetAsync(categoryId: categoryId, from: from, to: to, paging: paging);
+            var expenses = await expenseService.GetAsync(categoryId: categoryId, from: from, to: to);
             return ValidateResponse(expenses, HttpStatusCode.OK);
         }
 

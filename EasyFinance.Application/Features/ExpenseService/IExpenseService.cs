@@ -11,7 +11,7 @@ namespace EasyFinance.Application.Features.ExpenseService
 {
     public interface IExpenseService
     {
-        Task<AppResponse<IEnumerable<ExpenseResponseDTO>>> GetAsync(Guid categoryId, DateTime from, DateTime to, Paging paging);
+        Task<AppResponse<IEnumerable<ExpenseResponseDTO>>> GetAsync(Guid categoryId, DateTime from, DateTime to);
         Task<AppResponse<ExpenseResponseDTO>> GetByIdAsync(Guid expenseId);
         Task<AppResponse<ExpenseResponseDTO>> CreateAsync(User user, Guid categoryId, Expense expense);
         Task<AppResponse<ExpenseResponseDTO>> UpdateAsync(User user, Guid categoryId, Guid expenseId, JsonPatchDocument<ExpenseRequestDTO> expenseDto);

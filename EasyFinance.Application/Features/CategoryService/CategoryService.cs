@@ -49,7 +49,7 @@ namespace EasyFinance.Application.Features.CategoryService
             var category = await unitOfWork.CategoryRepository.Trackable().FirstOrDefaultAsync(category => category.Id == categoryId);
 
             if (category == null)
-                return AppResponse.Error(code: nameof(category), description: ValidationMessages.CategoryNotFound);
+                return AppResponse.Error(code: ValidationMessages.NotFound, description: ValidationMessages.CategoryNotFound);
 
             category.SetArchive();
 
@@ -61,7 +61,7 @@ namespace EasyFinance.Application.Features.CategoryService
 
         public async Task<AppResponse<ICollection<CategoryResponseDTO>>> GetAllAsync(Guid projectId)
         {
-            var result = 
+            var result =
                 (await unitOfWork.ProjectRepository
                 .NoTrackable()
                 .Include(p => p.Categories)
@@ -125,7 +125,7 @@ namespace EasyFinance.Application.Features.CategoryService
 
         public async Task<AppResponse<CategoryResponseDTO>> GetByIdAsync(Guid categoryId)
         {
-            var result = 
+            var result =
                 await unitOfWork.CategoryRepository
                 .Trackable()
                 .Include(c => c.Expenses)

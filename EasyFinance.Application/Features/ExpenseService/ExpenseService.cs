@@ -23,11 +23,8 @@ namespace EasyFinance.Application.Features.ExpenseService
             this.unitOfWork = unitOfWork;
         }
 
-        public async Task<AppResponse<IEnumerable<ExpenseResponseDTO>>> GetAsync(Guid categoryId, DateTime from, DateTime to, Paging paging = default!)
+        public async Task<AppResponse<IEnumerable<ExpenseResponseDTO>>> GetAsync(Guid categoryId, DateTime from, DateTime to)
         {
-            if (paging == default)
-                paging = new Paging();
-
             if (from >= to)
                 return AppResponse<IEnumerable<ExpenseResponseDTO>>.Error(code: nameof(from), description: ValidationMessages.InvalidDate);
 
@@ -36,11 +33,10 @@ namespace EasyFinance.Application.Features.ExpenseService
                 .Include(p => p.Expenses.Where(e => e.Date >= from && e.Date < to))
                 .ThenInclude(e => e.Items.Where(i => i.Date >= from && i.Date < to)
                 .OrderBy(item => item.Date))
-                .Skip(paging.PageNumber * paging.PageSize).Take(paging.PageSize)
                 .FirstOrDefaultAsync(p => p.Id == categoryId);
 
             if (category == null)
-                return AppResponse<IEnumerable<ExpenseResponseDTO>>.Error(code: nameof(categoryId), description: ValidationMessages.CategoryNotFound);
+                return AppResponse<IEnumerable<ExpenseResponseDTO>>.Error(code: ValidationMessages.NotFound, description: ValidationMessages.CategoryNotFound);
 
             var expenses = category.Expenses;
 
@@ -57,7 +53,7 @@ namespace EasyFinance.Application.Features.ExpenseService
                 .FirstOrDefaultAsync(p => p.Id == expenseId);
 
             if (expense == null)
-                return AppResponse<ExpenseResponseDTO>.Error(code: nameof(expense), description: string.Format(ValidationMessages.ExpenseNotFound, nameof(expense)));
+                return AppResponse<ExpenseResponseDTO>.Error(code: ValidationMessages.NotFound, description: ValidationMessages.ExpenseNotFound);
 
             return AppResponse<ExpenseResponseDTO>.Success(expense.ToDTO());
         }
@@ -131,7 +127,7 @@ namespace EasyFinance.Application.Features.ExpenseService
             var expense = unitOfWork.ExpenseRepository.Trackable().FirstOrDefault(e => e.Id == expenseId);
 
             if (expense == null)
-                return AppResponse.Error(code: nameof(expenseId), ValidationMessages.ExpenseNotFound);
+                return AppResponse.Error(code: ValidationMessages.NotFound, ValidationMessages.ExpenseNotFound);
 
             unitOfWork.ExpenseRepository.Delete(expense);
             await unitOfWork.CommitAsync();

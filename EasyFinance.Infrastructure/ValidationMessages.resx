@@ -204,4 +204,7 @@
   <data name="ProjectNotFound" xml:space="preserve">
     <value>Project not found.</value>
   </data>
+  <data name="ExpenseItemNotFound" xml:space="preserve">
+    <value>Expense item not found.</value>
+  </data>
 </root>

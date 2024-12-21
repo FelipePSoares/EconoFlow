@@ -25,7 +25,7 @@ namespace EasyFinance.Application.Features.ExpenseItemService
             var expenseItem = unitOfWork.ExpenseItemRepository.Trackable().FirstOrDefault(e => e.Id == expenseItemId);
 
             if (expenseItem == null)
-                return AppResponse.Error(code: nameof(expenseItem), description: ValidationMessages.NotFound);
+                return AppResponse.Error(code: ValidationMessages.NotFound, description: ValidationMessages.ExpenseItemNotFound);
 
             unitOfWork.ExpenseItemRepository.Delete(expenseItem);
             await unitOfWork.CommitAsync();

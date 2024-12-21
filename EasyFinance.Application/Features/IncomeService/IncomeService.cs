@@ -110,7 +110,7 @@ namespace EasyFinance.Application.Features.IncomeService
             var existingIncome = unitOfWork.IncomeRepository.Trackable().FirstOrDefault(p => p.Id == incomeId);
 
             if (existingIncome == null)
-                return AppResponse<IncomeResponseDTO>.Error(code: nameof(existingIncome), description: ValidationMessages.IncomeNotFound);
+                return AppResponse<IncomeResponseDTO>.Error(code: ValidationMessages.NotFound, description: ValidationMessages.IncomeNotFound);
 
             var dto = existingIncome.ToRequestDTO();
 
@@ -129,7 +129,7 @@ namespace EasyFinance.Application.Features.IncomeService
             var income = unitOfWork.IncomeRepository.Trackable().FirstOrDefault(i => i.Id == incomeId);
 
             if (income == null)
-                return AppResponse.Error(code: nameof(income), description: ValidationMessages.IncomeNotFound);
+                return AppResponse.Error(code: ValidationMessages.NotFound, description: ValidationMessages.IncomeNotFound);
 
             unitOfWork.IncomeRepository.Delete(income);
             await unitOfWork.CommitAsync();
