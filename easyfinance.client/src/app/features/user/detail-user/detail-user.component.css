@@ -10,3 +10,8 @@
 .emailCheck {
   margin-right: 10px;
 }
+
+.danger-zone {
+  border-color: var(--bs-btn-hover-border-color);
+  border-style: solid;
+}

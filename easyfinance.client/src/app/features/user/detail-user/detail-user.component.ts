@@ -4,7 +4,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faCheck, faCircleCheck, faCircleXmark, faFloppyDisk, faPenToSquare, faEnvelopeOpenText } from '@fortawesome/free-solid-svg-icons';
 import { UserService } from '../../../core/services/user.service';
 import { Observable } from 'rxjs';
-import { User } from '../../../core/models/user';
+import { DeleteUser, User } from '../../../core/models/user';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
@@ -16,12 +16,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { CurrencyService } from '../../../core/services/currency.service';
 import { MatIcon } from "@angular/material/icon";
-import { MatDialogContent } from '@angular/material/dialog';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { MatDialogModule } from '@angular/material/dialog';
 import { Router } from '@angular/router'; 
-import { TokenService } from 'src/app/core/services/token.service';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-detail-user',
@@ -38,22 +34,21 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
     MatSelectModule,
     MatOptionModule,
     MatIcon,
-    MatDialogContent,
-    MatDialogModule,
+    ConfirmDialogComponent,
   ],
   templateUrl: './detail-user.component.html',
   styleUrl: './detail-user.component.css'
 })
 export class DetailUserComponent implements OnInit {
+  private deleteToken!: string;
+
+  @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
   user$: Observable<User>;
   editingUser!: User;
   isEmailUpdated: boolean = false;
   isPasswordUpdated: boolean = false;
   passwordFormActive: boolean = false;
-  deleteError: string | null =      null;
-  deleteModalError: string | null = null;
   
-
   isModalOpen: boolean = false; 
   faCheck = faCheck;
   faCircleCheck = faCircleCheck;
@@ -62,7 +57,6 @@ export class DetailUserComponent implements OnInit {
   faPenToSquare = faPenToSquare;
   faEnvelopeOpenText = faEnvelopeOpenText;
   
-  confirmationMessage: string = ''
   passwordForm!: FormGroup;
   userForm!: FormGroup;
   httpErrors = false;
@@ -74,9 +68,8 @@ export class DetailUserComponent implements OnInit {
   hasOneNumber = false;
   hasOneSpecial = false;
   hasMinCharacteres = false;
-  @ViewChild('deleteDialog') deleteDialog!: TemplateRef<any>; // Reference the inline dialog templat
  
-  constructor(private userService: UserService,private sanitizer: DomSanitizer, private tokenService: TokenService,  private router:Router, private dialog: MatDialog , private currencyService: CurrencyService, private errorMessageService: ErrorMessageService) {
+  constructor(private userService: UserService,  private router:Router, private currencyService: CurrencyService, private errorMessageService: ErrorMessageService) {
     this.user$ = this.userService.loggedUser$;
   }
 
@@ -116,58 +109,25 @@ export class DetailUserComponent implements OnInit {
       this.hasMinCharacteres = /^.{8,}$/.test(value.password);
     });
   }
-
-  sanitizeMessage(message: string): SafeHtml {
-    return this.sanitizer.bypassSecurityTrustHtml(message);
-  }
   
   openDeleteDialog(): void {
-    this.deleteError = null;
-    this.deleteModalError = null;
-
-    const dialogRef: MatDialogRef<any> = this.dialog.open(this.deleteDialog, {
-      width: '400px',
-    });
-    this.tokenService.clearToken();
     this.userService.deleteUser().subscribe({
-      next: (response: any) => {
+      next: (response: DeleteUser) => {
         if (response?.confirmationToken) {
-          this.confirmationMessage = response.confirmationMessage; 
-          this.tokenService.setToken(response.confirmationToken, response.confirmationMessage); 
+          var message = '<p>Are you sure you want to delete your account? This action cannot be undone.</p>' + response.confirmationMessage;
+          this.ConfirmDialog.openModal('Confirm Deletion', message, 'Delete');
+          this.deleteToken = response.confirmationToken; 
         }
       },
-      error: (err) => {
-        console.error('Error during first deletion attempt:', err);
-        this.deleteError = 'Failed to delete account. Please try again later';      
-      },
     });
-    
-    dialogRef.afterClosed().subscribe(result => {
-      if (result === true) {
-        this.confirmDeletion();
-      }
-    });
-  }
-
-  closeDialog(): void {
-    this.deleteError = null;
-    this.deleteModalError = null;
-    this.dialog.closeAll();
   }
 
   confirmDeletion(): void {
-    this.deleteModalError = null;
-    const token = this.tokenService.getToken();
-    if (token) {
-      this.userService.deleteUser(token).subscribe({
+    if (this.deleteToken) {
+      this.userService.deleteUser(this.deleteToken).subscribe({
         next: (response) => {
-          this.dialog.closeAll(); 
           this.userService.removeUserInfo();
           this.router.navigate(['/']);
-        },
-        error: (err) => {
-          console.error('Error deleting user:', err);
-          this.deleteModalError = 'Account deletion failed. Please log out, then log back in and try again';
         },
       });
     }

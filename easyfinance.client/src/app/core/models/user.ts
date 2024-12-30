@@ -9,3 +9,8 @@ export class User {
   emailConfirmed!: boolean;
   twoFactorEnabled!: boolean;
 }
+
+export class DeleteUser {
+  confirmationToken!: string;
+  confirmationMessage!: string;
+}

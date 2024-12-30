@@ -1,4 +1,5 @@
 import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 declare var bootstrap: any;
 
@@ -14,13 +15,15 @@ export class ConfirmDialogComponent {
   @Output() confirmed = new EventEmitter<boolean>();
 
   title!: string;
-  message!: string;
+  message!: SafeHtml;
   action!: string;
   modalInstance: any;
 
+  constructor(private sanitizer: DomSanitizer) { }
+
   openModal(title: string, customMessage: string, actionText: string): void {
     this.title = title;
-    this.message = customMessage;
+    this.message = this.sanitizer.bypassSecurityTrustHtml(customMessage);
     this.action = actionText;
 
     const modalElement = this.confirmationModal.nativeElement;
