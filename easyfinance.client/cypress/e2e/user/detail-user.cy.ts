@@ -58,4 +58,24 @@ describe('EconoFlow - user detail Tests', () => {
     cy.get('.btn').contains('Cancel').click();
     cy.get('.btn').contains('Modify Password').should('exist')
   })
+
+  it('should be possible delete user', () => {
+    cy.fixture('users').then((users) => {
+      const user = users.userToDelete;
+
+      cy.intercept('DELETE', '**/account*').as('deleteAccount')
+
+      cy.register(user.username, user.password)
+      cy.visit('/user')
+      cy.get('.btn').contains('Delete Account').click();
+      cy.wait('@deleteAccount').then((interception) => {
+        expect(interception?.response?.statusCode).to.equal(202)
+        cy.get('.modal-dialog .btn').contains('Delete').click();
+
+        cy.wait('@deleteAccount').then((interception2) => {
+          expect(interception2?.response?.statusCode).to.equal(200)
+        })
+      })
+    })
+  })
 })

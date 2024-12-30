@@ -114,8 +114,7 @@ export class DetailUserComponent implements OnInit {
     this.userService.deleteUser().subscribe({
       next: (response: DeleteUser) => {
         if (response?.confirmationToken) {
-          var message = '<p>Are you sure you want to delete your account? This action cannot be undone.</p>' + response.confirmationMessage;
-          this.ConfirmDialog.openModal('Confirm Deletion', message, 'Delete');
+          this.ConfirmDialog.openModal('Confirm Deletion', response.confirmationMessage, 'Delete');
           this.deleteToken = response.confirmationToken; 
         }
       },

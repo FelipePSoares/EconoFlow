@@ -9,5 +9,9 @@
   "testUser": {
     "username": "test@test.com",
     "password": "Passw0rd!"
+  },
+  "userToDelete": {
+    "username": "test2@test.com",
+    "password": "Passw0rd!"
   }
 }

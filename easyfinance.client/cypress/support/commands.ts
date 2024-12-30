@@ -31,6 +31,22 @@ Cypress.Commands.add('register', (username, password) => {
 
             cy.visit('/')
             cy.url().should('include', 'first-signin')
+
+            cy.intercept('GET', '/api/account/').as('getAccount')
+
+            cy.get('input[formControlName=firstName]').type('test')
+            cy.get('input[formControlName=lastName]').type('test')
+            const preferredCurrencyInput = cy.get('mat-select[formcontrolname=preferredCurrency]');
+            preferredCurrencyInput.click().get('mat-option').contains('EUR').click()
+            cy.get('button').contains('Send').click();
+            cy.wait('@getAccount')
+      },
+      {
+        validate: () => {
+          cy.login(username, password)
+          cy.visit('/')
+          cy.url().should('not.contain', 'login')
         }
+      }
     )
 })
