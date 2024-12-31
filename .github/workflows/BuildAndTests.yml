@@ -63,7 +63,7 @@ jobs:
       working-directory: ./easyfinance.client
 
     - name: Archive Cypress errors
-      if: ${{ steps.cypress.conclusion == 'failure' }}
+      if: failure()
       uses: actions/upload-artifact@v4
       with:
         name: cypress-screenshots
