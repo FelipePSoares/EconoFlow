@@ -46,3 +46,9 @@ jobs:
     - name: Run Cypress tests
       run: npx cypress run
       working-directory: ./easyfinance.client
+
+    - name: Archive Cypress errors
+      uses: actions/upload-artifact@v4
+      with:
+        name: cypress-screenshots
+        path: ./easyfinance.client/cypress/screenshots
