@@ -33,6 +33,7 @@ Cypress.Commands.add('register', (username, password) => {
 
             cy.get('input[formControlName=email]').type(username)
             cy.get('input[formControlName=password]').type(`${password}{enter}`, { log: false })
+            cy.wait('@getAccount')
 
             cy.url().should('include', 'first-signin')
 
