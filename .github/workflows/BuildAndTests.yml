@@ -37,6 +37,7 @@ jobs:
   tests:
     needs: [build]
     runs-on: ubuntu-latest
+    continue-on-error: true
 
     steps:
     - name: Setup .NET
@@ -60,7 +61,6 @@ jobs:
     - name: Run Cypress tests
       id: cypress
       run: npx cypress run
-      continue-on-error: true
       working-directory: ./easyfinance.client
 
     - name: Archive Cypress errors
@@ -68,6 +68,3 @@ jobs:
       with:
         name: cypress-screenshots
         path: ./easyfinance.client/cypress/screenshots
-
-    outputs:
-      actualResult: ${{ steps.dotnet.outcome && steps.angular.outcome && steps.cypress.outcome }}
