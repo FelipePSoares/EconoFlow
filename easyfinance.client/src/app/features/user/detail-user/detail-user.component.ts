@@ -121,8 +121,8 @@ export class DetailUserComponent implements OnInit {
     });
   }
 
-  confirmDeletion(): void {
-    if (this.deleteToken) {
+  confirmDeletion(result: boolean): void {
+    if (result && this.deleteToken) {
       this.userService.deleteUser(this.deleteToken).subscribe({
         next: (response) => {
           this.userService.removeUserInfo();

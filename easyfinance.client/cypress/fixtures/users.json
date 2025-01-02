@@ -13,5 +13,9 @@
   "userToDelete": {
     "username": "test2@test.com",
     "password": "Passw0rd!"
+  },
+  "userToNotDelete": {
+    "username": "test3@test.com",
+    "password": "Passw0rd!"
   }
 }
