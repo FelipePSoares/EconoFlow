@@ -16,6 +16,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faArrowUp, faArrowDown } from '@fortawesome/free-solid-svg-icons';
 import { ProjectService } from '../../../core/services/project.service';
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
+import { dateUTC } from '../../../core/utils/date';
 
 @Component({
   selector: 'app-detail-project',
@@ -43,6 +44,7 @@ export class DetailProjectComponent implements OnInit {
   month: { budget: number, waste: number, remaining: number, earned: number; } = { budget: 0, waste: 0, remaining: 0, earned: 0 };
   year: { budget: number, waste: number, remaining: number, earned: number; } = { budget: 0, waste: 0, remaining: 0, earned: 0 };
   buttons: string[] = [this.btnIncome, this.btnCategory];
+  showCopyPreviousButton = false;
 
   constructor(private router: Router, private route: ActivatedRoute, private projectService: ProjectService, private categoryService: CategoryService, private incomeService: IncomeService) {
   }
@@ -72,6 +74,22 @@ export class DetailProjectComponent implements OnInit {
           this.month.budget = res.map(c => c.getTotalBudget()).reduce((acc, value) => acc + value, 0);
           this.month.waste = res.map(c => c.getTotalWaste()).reduce((acc, value) => acc + value, 0);
           this.month.remaining = res.map(c => c.getTotalRemaining()).reduce((acc, value) => acc + value, 0);
+
+          if (this.month.budget === 0) {
+            var newDate = dateUTC(CurrentDateComponent.currentDate);
+            newDate.setMonth(CurrentDateComponent.currentDate.getMonth() - 1, 1);
+
+            this.categoryService.get(this.projectId, newDate)
+              .pipe(map(categories => mapper.mapArray(categories, Category, CategoryDto)))
+              .subscribe({
+                next: res => {
+                  let previousBudget = res.map(c => c.getTotalBudget()).reduce((acc, value) => acc + value, 0);
+                  this.showCopyPreviousButton = previousBudget !== 0;
+                }
+              });
+          } else {
+            this.showCopyPreviousButton = false;
+          }
         }
       });
 

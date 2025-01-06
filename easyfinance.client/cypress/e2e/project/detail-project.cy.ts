@@ -2,6 +2,11 @@ import { attempt } from "cypress/types/bluebird";
 import { Expense } from "src/app/core/models/expense";
 
 describe('EconoFlow - project detail Tests', () => {
+
+  beforeEach(() => {
+    attempts = 0;
+  });
+
   it('should copy budget from previous month', () => {
     cy.fixture('users').then((users) => {
       const user = users.testUser;
@@ -10,18 +15,42 @@ describe('EconoFlow - project detail Tests', () => {
 
       cy.intercept('GET', '**/projects*').as('getProjects')
       cy.intercept('GET', '**/categories*').as('getCategories')
-      
+
       cy.fixture('projects').then((projects) => {
         cy.visit('/projects/' + projects.defaultProject.id)
 
         findNextMonthWithoutBudget();
 
         cy.get('.btn-primary').contains('Copy Previous Budget').click();
-        
+
         cy.wait<CategoryReq, CategoryRes[]>('@getCategories').then(({ request, response }) => {
           const exists = response?.body.some(category => category.expenses.some(expense => expense.budget > 0))
           expect(exists).to.be.true
-        })  
+        })
+      })
+    })
+  })
+
+  it('copy budget button should not appears when previous month is empty', () => {
+    cy.fixture('users').then((users) => {
+      const user = users.testUser;
+
+      cy.login(user.username, user.password)
+
+      cy.intercept('GET', '**/projects*').as('getProjects')
+      cy.intercept('GET', '**/categories*').as('getCategories')
+
+      cy.fixture('projects').then((projects) => {
+        cy.visit('/projects/' + projects.defaultProject.id)
+
+        findNextMonthWithoutBudget();
+        cy.get('#next').click()
+
+        cy.wait<CategoryReq, CategoryRes[]>('@getCategories').then(({ request, response }) => {
+          cy.wait<CategoryReq, CategoryRes[]>('@getCategories').then(({ request, response }) => {
+            cy.get('.btn-primary').should('not.exist');
+          });
+        });
       })
     })
   })
