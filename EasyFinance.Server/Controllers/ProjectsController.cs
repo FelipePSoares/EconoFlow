@@ -59,13 +59,18 @@ namespace EasyFinance.Server.Controllers
             var totalBudgetLastMonthData = categories.Data.Sum(c => c.Expenses.Where(e => e.Date.Month == lastMonthData).Sum(e => e.Budget));
 
             var totalBudget = categories.Data.Sum(c => c.Expenses.Sum(e => e.Budget)) + (totalBudgetLastMonthData * (12 - lastMonthData ?? 0));
-            var totalWaste = categories.Data.Sum(c => c.Expenses.Sum(e => e.Amount));
+            var totalSpend = categories.Data.Sum(c => c.Expenses.Sum(e => e.Amount));
+            var totalOverspend = categories.Data.Sum(c => c.Expenses.Sum(e => {
+                var overspend = e.Budget - e.Amount;
+                return (overspend < 0) ? overspend * -1 : 0;
+            }));
 
             return Ok(new
             {
                 TotalBudget = totalBudget,
-                TotalWaste = totalWaste,
-                TotalRemaining = totalBudget - totalWaste,
+                TotalSpend = totalSpend - totalOverspend,
+                TotalOverspend = totalOverspend,
+                TotalRemaining = totalBudget - totalSpend,
                 TotalEarned = incomes.Data.Sum(i => i.Amount),
             });
         }

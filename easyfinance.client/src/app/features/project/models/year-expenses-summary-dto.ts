@@ -1,6 +1,7 @@
 export class YearExpensesSummaryDto {
   totalBudget!: number;
-  totalWaste!: number;
+  totalSpend!: number;
+  totalOverspend!: number;
   totalRemaining!: number
   totalEarned!: number
 }

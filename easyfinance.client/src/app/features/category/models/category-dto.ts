@@ -10,19 +10,26 @@ export class CategoryDto {
   expenses!: ExpenseDto[];
 
 
-  public getTotalWaste(): number {
-    return this.expenses.reduce((sum, current) => sum + current.amount, 0);
+  public getTotalSpend(): number {
+    return this.expenses.reduce((sum, current) => sum + current.amount, 0) - this.getTotalOverspend();
   }
 
   public getTotalBudget(): number {
     return this.expenses.reduce((sum, current) => sum + current.budget, 0);
   }
 
-  public getTotalRemaining(): number {
-    return this.getTotalBudget() - this.getTotalWaste();
+  public getTotalOverspend(): number {
+    return this.expenses.map(e => {
+      let overspend = e.budget - e.amount;
+      return overspend < 0 ? overspend * -1 : 0;
+    }).reduce((sum, current) => sum + current, 0);
   }
 
-  public getPercentageWaste(): number {
-    return this.getTotalWaste() * 100 / this.getTotalBudget();
+  public getTotalRemaining(): number {
+    return this.getTotalBudget() - this.getTotalSpend();
+  }
+
+  public getPercentageSpend(): number {
+    return this.getTotalSpend() * 100 / this.getTotalBudget();
   }
 }

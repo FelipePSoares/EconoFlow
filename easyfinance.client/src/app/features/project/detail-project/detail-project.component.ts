@@ -41,8 +41,8 @@ export class DetailProjectComponent implements OnInit {
   @Input({ required: true })
   projectId!: string;
   projectName!: string;
-  month: { budget: number, waste: number, remaining: number, earned: number; } = { budget: 0, waste: 0, remaining: 0, earned: 0 };
-  year: { budget: number, waste: number, remaining: number, earned: number; } = { budget: 0, waste: 0, remaining: 0, earned: 0 };
+  month: { budget: number, spend: number, overspend: number, remaining: number, earned: number; } = { budget: 0, spend: 0, overspend: 0, remaining: 0, earned: 0 };
+  year: { budget: number, spend: number, overspend: number, remaining: number, earned: number; } = { budget: 0, spend: 0, overspend: 0, remaining: 0, earned: 0 };
   buttons: string[] = [this.btnIncome, this.btnCategory];
   showCopyPreviousButton = false;
 
@@ -60,7 +60,8 @@ export class DetailProjectComponent implements OnInit {
         next: res => {
           this.year = {
             budget: res.totalBudget,
-            waste: res.totalWaste,
+            spend: res.totalSpend,
+            overspend: res.totalOverspend,
             remaining: res.totalRemaining,
             earned: res.totalEarned
           };
@@ -72,7 +73,9 @@ export class DetailProjectComponent implements OnInit {
       .subscribe({
         next: res => {
           this.month.budget = res.map(c => c.getTotalBudget()).reduce((acc, value) => acc + value, 0);
-          this.month.waste = res.map(c => c.getTotalWaste()).reduce((acc, value) => acc + value, 0);
+          this.month.spend = res.map(c => c.getTotalSpend()).reduce((acc, value) => acc + value, 0);
+          this.month.overspend = res.map(c => c.getTotalOverspend()).reduce((acc, value) => acc + value, 0);
+
           this.month.remaining = res.map(c => c.getTotalRemaining()).reduce((acc, value) => acc + value, 0);
 
           if (this.month.budget === 0) {
@@ -122,8 +125,8 @@ export class DetailProjectComponent implements OnInit {
     return CurrentDateComponent.currentDate;
   }
 
-  getPercentageWaste(waste: number, budget: number): number {
-    return budget === 0 ? 0 : waste * 100 / budget;
+  getPercentageSpend(spend: number, budget: number): number {
+    return budget === 0 ? 0 : spend * 100 / budget;
   }
 
   getClassToProgressBar(percentage: number): string {
@@ -143,7 +146,7 @@ export class DetailProjectComponent implements OnInit {
       return 'Risk of overspend';
     }
 
-    return 'Overspend';
+    return 'Overspend /';
   }
 
   getClassBasedOnPercentage(percentage: number): string {

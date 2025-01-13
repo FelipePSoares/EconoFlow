@@ -168,7 +168,7 @@ export class ListCategoriesComponent implements OnInit {
     this.router.navigate(['/projects', this.projectId]);
   }
 
-  getPercentageWaste(waste: number, budget: number): number {
+  getPercentageSpend(waste: number, budget: number): number {
     return budget === 0 ? waste !== 0 ? 101 : 0 : waste * 100 / budget;
   }
 
@@ -189,7 +189,7 @@ export class ListCategoriesComponent implements OnInit {
       return 'Risk of overspend';
     }
 
-    return 'Overspend';
+    return 'Overspend /';
   }
 
   getClassBasedOnPercentage(percentage: number): string {
