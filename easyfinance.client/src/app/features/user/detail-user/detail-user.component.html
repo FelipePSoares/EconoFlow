@@ -92,7 +92,7 @@
               <mat-label>Old Password</mat-label>
               <input matInput formControlName="oldPassword" [type]="hide ? 'password' : 'text'">
               <mat-icon matSuffix (click)="hide = !hide">{{ hide ? 'visibility_off' : 'visibility' }}</mat-icon>
-              @if (oldPassword?.invalid && oldPassword?.touched){
+              @if (oldPassword?.invalid && oldPassword?.touched && oldPassword?.value){
               <mat-error *ngFor="let error of getFormFieldErrors(passwordForm, 'oldPassword')" [innerHtml]="error"></mat-error>
               }
             </mat-form-field>
@@ -106,7 +106,7 @@
               <mat-label>New Password</mat-label>
               <input matInput formControlName="password" [type]="hide ? 'password' : 'text'">
               <mat-icon matSuffix (click)="hide = !hide">{{ hide ? 'visibility_off' : 'visibility' }}</mat-icon>
-              @if (password?.invalid && password?.touched){
+              @if (password?.invalid && password?.touched && password?.value){
               <mat-error *ngFor="let error of getFormFieldErrors(passwordForm, 'password')" [innerHtml]="error"></mat-error>
               }
             </mat-form-field>
@@ -133,7 +133,7 @@
               <mat-label>Confirm Password</mat-label>
               <input matInput formControlName="confirmPassword" [type]="hide ? 'password' : 'text'">
               <mat-icon matSuffix (click)="hide = !hide">{{ hide ? 'visibility_off' : 'visibility' }}</mat-icon>
-              @if (confirmPassword?.invalid && confirmPassword?.touched){
+              @if (confirmPassword?.invalid && confirmPassword?.touched && confirmPassword?.value){
               <mat-error *ngFor="let error of getFormFieldErrors(passwordForm, 'confirmPassword')" [innerHtml]="error"></mat-error>
               }
             </mat-form-field>

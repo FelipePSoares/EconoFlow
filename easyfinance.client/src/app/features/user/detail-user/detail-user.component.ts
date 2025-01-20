@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild, TemplateRef  } from '@angular/core';
-import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faCheck, faCircleCheck, faCircleXmark, faFloppyDisk, faPenToSquare, faEnvelopeOpenText } from '@fortawesome/free-solid-svg-icons';
 import { UserService } from '../../../core/services/user.service';
@@ -94,9 +94,12 @@ export class DetailUserComponent implements OnInit {
   resetPasswordForm() {
     this.passwordFormActive = false;
     this.passwordForm = new FormGroup({
-      oldPassword: new FormControl('', [Validators.required]),
-      password: new FormControl('', [Validators.required, Validators.pattern(/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_])(?!.* ).{8,}$/)]),
-      confirmPassword: new FormControl('', [Validators.required])
+      oldPassword: new FormControl('', []),
+      password: new FormControl('', [
+        (control: AbstractControl): ValidationErrors | null => 
+          control.value ? Validators.pattern(/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_])(?!.* ).{8,}$/)(control) : null
+      ]),
+      confirmPassword: new FormControl('', [])
     }, { validators: passwordMatchValidator });
 
     this.passwordForm.valueChanges.subscribe(value => {
@@ -191,7 +194,7 @@ export class DetailUserComponent implements OnInit {
   }
 
   savePassword() {
-    if (this.passwordForm.valid) {
+    if (this.passwordForm.valid && this.passwordForm.dirty && (this.passwordForm.value.password !== '' || this.passwordForm.value.confirmPassword !== '' || this.passwordForm.value.oldPassword !== '') && this.passwordForm.value.password === this.passwordForm.value.confirmPassword) {
       const oldPassword = this.oldPassword?.value;
       const password = this.password?.value;
 
