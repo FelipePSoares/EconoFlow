@@ -5,6 +5,7 @@ import { DeleteUser, User } from '../models/user';
 import { tap } from 'rxjs';
 import { catchError, throwError } from 'rxjs';
 import { SnackbarComponent } from '../components/snackbar/snackbar.component';
+import { LocalService } from './local.service';
 const USER_DATA = "user_data";
 
 @Injectable({
@@ -14,8 +15,8 @@ export class UserService {
   private loggedUser: Subject<User> = new BehaviorSubject<User>(new User());
   loggedUser$: Observable<User> = this.loggedUser.asObservable();
 
-  constructor(private http: HttpClient, private snackbar: SnackbarComponent) {
-    const user = localStorage.getItem(USER_DATA);
+  constructor(private http: HttpClient, private snackbar: SnackbarComponent, private localService: LocalService) {
+    const user = localService.getData(USER_DATA);
 
     if (user) {
       this.loggedUser.next(JSON.parse(user));
@@ -28,14 +29,15 @@ export class UserService {
       responseType: 'json'
     }).pipe(map(user => {
       this.loggedUser.next(user);
-      localStorage.setItem(USER_DATA, JSON.stringify(user));
+
+      this.localService.saveData(USER_DATA, JSON.stringify(user));
       return user;
     }));
   }
 
   public removeUserInfo() {
     this.loggedUser.next(new User());
-    localStorage.removeItem(USER_DATA);
+    this.localService.removeData(USER_DATA);
   }
 
   public setUserInfo(firstName: string, lastName: string, preferredCurrency: string): Observable<User> {

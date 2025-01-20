@@ -4,16 +4,26 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { Operation } from 'fast-json-patch';
 import { YearExpensesSummaryDto } from '../../features/project/models/year-expenses-summary-dto';
+import { LocalService } from './local.service';
+import { safeJsonParse } from '../utils/json-parser';
+const PROJECT_DATA = "project_data";
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProjectService {
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private localService: LocalService) {
   }
 
-  getProjects() {
+  getProjects(): Observable<Project[]> {
     return this.http.get<Project[]>('/api/projects/', {
+      observe: 'body',
+      responseType: 'json'
+    });
+  }
+
+  getProject(id: string): Observable<Project> {
+    return this.http.get<Project>('/api/projects/' + id, {
       observe: 'body',
       responseType: 'json'
     });
@@ -51,5 +61,15 @@ export class ProjectService {
       observe: 'body',
       responseType: 'json'
     });
+  }
+
+  selectProject(project: Project) {
+    this.localService.saveData(PROJECT_DATA, JSON.stringify(project));
+  }
+
+  getSelectedProject(): Project | undefined {
+    let project = this.localService.getData(PROJECT_DATA);
+
+    return safeJsonParse<Project>(project)
   }
 }
