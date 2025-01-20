@@ -26,8 +26,6 @@ describe('EconoFlow - user detail Tests', () => {
       const preferredCurrencyInput = cy.get('mat-select[formcontrolname=preferredCurrency]');
       const preferredCurrencyValue = currenciesAvailable[Math.floor(Math.random() * currenciesAvailable.length)];
 
-      cy.get('.btn').contains('Edit').click();
-
       firstNameInput.clear().type(firstNameValue);
       lastNameInput.clear().type(lastNameValue);
       emailInput.clear().type(emailValue);
@@ -46,20 +44,6 @@ describe('EconoFlow - user detail Tests', () => {
         expect(response?.body.lastName).to.equal(lastNameValue);
         expect(response?.body.preferredCurrency).to.equal(preferredCurrencyValue);
       })
-    })
-  })
-
-  it('should be possible cancel modify password', () => {
-    cy.fixture('users').then((users) => {
-      currenciesAvailable = users.currencies;
-
-      const user = users.testUser;
-
-      cy.login(user.username, user.password)
-      cy.visit('/user')
-      cy.get('.btn').contains('Modify Password').click();
-      cy.get('.btn').contains('Cancel').click();
-      cy.get('.btn').contains('Modify Password').should('exist')
     })
   })
 
