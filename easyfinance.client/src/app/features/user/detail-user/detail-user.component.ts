@@ -88,8 +88,6 @@ export class DetailUserComponent implements OnInit {
       });
 
       this.editingUser = user;
-
-      this.userForm.disable();
     });
   }
 
@@ -132,12 +130,6 @@ export class DetailUserComponent implements OnInit {
     }
   }
 
-  changeStatus() {
-    if (this.userForm.disabled) {
-      this.userForm.enable();
-    }
-  }
-
   get firstName() {
     return this.userForm.get('firstName');
   }
@@ -167,8 +159,6 @@ export class DetailUserComponent implements OnInit {
       const lastName = this.lastName?.value;
       const email = this.email?.value;
       const preferredCurrency = this.preferredCurrency?.value;
-
-      this.userForm.disable();
 
       if (firstName !== this.editingUser.firstName || lastName !== this.editingUser.lastName || preferredCurrency !== this.editingUser.preferredCurrency) {
         this.userService.setUserInfo(firstName, lastName, preferredCurrency).subscribe({

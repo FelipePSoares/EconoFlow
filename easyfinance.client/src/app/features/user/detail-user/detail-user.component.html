@@ -12,12 +12,7 @@
       </div>
       } @else {
       <h2 class="text-center mt-3 mb-3">My Profile</h2>
-      @if (this.userForm.disabled){
-      <button type="button" (click)="changeStatus()" class="btn btn-primary mb-2">
-        Edit
-      </button>
-      }
-      <form [formGroup]="userForm" (ngSubmit)="save()">
+      <form [formGroup]="userForm">
         <div class="row g-2 mb-2">
           <div class="col-md">
             <!-- First Name Field -->
@@ -78,17 +73,6 @@
         <div *ngIf="httpErrors && errors['general']">
           <p class="mb-3 text-danger text-center">{{ errors['general'] }}</p>
         </div>
-
-        @if(this.userForm.enabled){
-        <div class="clearfix">
-          <div class="float-end">
-            <button type="button" (click)="reset()" class="btn btn-secondary">Cancel</button>
-            <button mat-raised-button color="primary" type="submit" [disabled]="userForm.invalid">
-              Save
-            </button>
-          </div>
-        </div>
-        }
       </form>
       }
       <hr class="solid" />
@@ -99,10 +83,7 @@
         <p>Your password has been reset successfully</p>
       </div>
       } @else {
-      @if (!passwordFormActive) {
-      <button class="btn btn-secondary" (click)="showPasswordForm()">Modify Password</button>
-      } @else {
-      <form [formGroup]="passwordForm" (ngSubmit)="savePassword()">
+      <form [formGroup]="passwordForm">
 
         <div class="row g-2 mb-2">
           <div class="col-md">
@@ -168,11 +149,11 @@
         </div>
 
         <div class="float-end">
-          <button type="button" (click)="resetPasswordForm()" class="btn btn-secondary">Cancel</button>
-          <button class="btn btn-primary ms-1" type="submit" [disabled]="passwordForm.invalid">Save</button>
+          <button type="button" (click)="resetPasswordForm();reset()" mat-flat-button color="warn">Cancel</button>
+          <button type="button" (click)="save();savePassword();" mat-flat-button color="primary" [disabled]="(passwordForm.invalid && passwordForm.touched) || (userForm.invalid && userForm.touched) || (!userForm.touched && !passwordForm.touched)">Save</button>
         </div>
+        <div class="clearfix"></div>
       </form>
-      }
       }
       <hr class="solid" />
       <div class="danger-zone rounded p-3 mt-4 text-danger">
