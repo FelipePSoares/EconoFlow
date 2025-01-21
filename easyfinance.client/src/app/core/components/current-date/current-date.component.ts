@@ -28,11 +28,15 @@ export class CurrentDateComponent {
   private static _currentDate: Date;
   static get currentDate(): Date {
     if (!CurrentDateComponent._currentDate) {
-      CurrentDateComponent._currentDate = todayUTC();
+        const localDate = todayUTC();
+        CurrentDateComponent._currentDate = new Date(
+            localDate.getFullYear(),
+            localDate.getMonth(),
+            localDate.getDate()
+        );
     }
-
     return CurrentDateComponent._currentDate;
-  }
+}
 
   @Output() dateUpdatedEvent = new EventEmitter<Date>();
 
@@ -49,14 +53,15 @@ export class CurrentDateComponent {
   }
 
   changeDate(value: number) {
-    var newDate = dateUTC(CurrentDateComponent.currentDate);
-    newDate.setMonth(CurrentDateComponent.currentDate.getMonth() + value, 1);
-    CurrentDateComponent._currentDate = dateUTC(newDate);
+    const currentDate = new Date(CurrentDateComponent.currentDate);
+    currentDate.setUTCDate(1);
+    currentDate.setUTCMonth(currentDate.getUTCMonth() + value);
+    CurrentDateComponent._currentDate = currentDate;
     this.dateUpdatedEvent.emit(CurrentDateComponent.currentDate);
-  }
+}
 
   setMonthAndYear(event: Moment, datepicker: MatDatepicker<Moment>): void {
-    var newDate = dateUTC(event.year(), event.month(), 1)
+    const newDate = new Date(event.year(), event.month(), 1, 12);
     CurrentDateComponent._currentDate = newDate;
     this.dateUpdatedEvent.emit(CurrentDateComponent.currentDate);
     datepicker.close(); 
