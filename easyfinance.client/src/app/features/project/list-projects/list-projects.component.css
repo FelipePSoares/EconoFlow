@@ -1,0 +1,31 @@
+.grid-list {
+  margin-top: 40px;
+}
+
+.grid-item {
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 80%;
+  height: 80%;
+}
+
+  .grid-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  .grid-item h1, .grid-item h5 {
+    margin: 0;
+    font-weight: 500;
+    width: 100%;
+  }

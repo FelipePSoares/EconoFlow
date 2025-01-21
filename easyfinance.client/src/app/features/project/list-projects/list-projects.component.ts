@@ -8,6 +8,9 @@ import { Router } from '@angular/router';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
+import { MatGridListModule } from '@angular/material/grid-list';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-list-projects',
@@ -16,6 +19,8 @@ import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/
     CommonModule,
     AsyncPipe,
     AddButtonComponent,
+    MatGridListModule,
+    FontAwesomeModule,
   ],
   templateUrl: './list-projects.component.html',
   styleUrl: './list-projects.component.css'
@@ -25,6 +30,7 @@ export class ListProjectsComponent implements OnInit {
   static firstAccess = true;
   private projects: BehaviorSubject<ProjectDto[]> = new BehaviorSubject<ProjectDto[]>([new ProjectDto()]);
   projects$: Observable<ProjectDto[]> = this.projects.asObservable();
+  faPlus = faPlus;
 
   constructor(public projectService: ProjectService, private router: Router) {
   }
@@ -35,10 +41,10 @@ export class ListProjectsComponent implements OnInit {
       .subscribe(
         {
           next: res => {
-            if (ListProjectsComponent.firstAccess && res.length == 1) {
-              ListProjectsComponent.firstAccess = false;
-              this.select(res[0]);
-            }
+            //if (ListProjectsComponent.firstAccess && res.length == 1) {
+            //  ListProjectsComponent.firstAccess = false;
+            //  this.select(res[0]);
+            //}
             this.projects.next(res);
           }
         });
