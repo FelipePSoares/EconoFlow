@@ -51,7 +51,7 @@ jobs:
 
     - name: Run Angular tests
       id: angular
-      run: npm test -- --watch=false --browsers=ChromeHeadless
+      run: npm test -- --watch=false
       working-directory: ./easyfinance.client
 
   integration-tests:
@@ -65,6 +65,9 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
+
+    - name: Build application
+      run: dotnet build --configuration Debug
 
     - name: Start application
       id: dotnet
