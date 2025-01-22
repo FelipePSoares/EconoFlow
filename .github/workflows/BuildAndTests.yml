@@ -51,7 +51,7 @@ jobs:
 
     - name: Run Angular tests
       id: angular
-      run: npm test -- --watch=false
+      run: npm test -- --watch=false --browsers=ChromeHeadless
       working-directory: ./easyfinance.client
 
   integration-tests:
