@@ -51,6 +51,11 @@ jobs:
         name: build
         path: .
 
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
     - uses: actions/checkout@v4
     - name: Run .Net tests
       run: dotnet test --verbosity normal --no-build
@@ -70,6 +75,11 @@ jobs:
       with:
         name: build
         path: .
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
 
     - name: Start application
       id: dotnet
