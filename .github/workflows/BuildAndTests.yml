@@ -34,15 +34,22 @@ jobs:
       run: npm install
       working-directory: ./easyfinance.client
 
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: build
+        path: .
+
   tests:
     needs: [build]
     runs-on: ubuntu-latest
 
     steps:
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+    - name: Download artifact
+      uses: actions/download-artifact@v4
       with:
-        dotnet-version: 8.0.x
+        name: build
+        path: .
 
     - uses: actions/checkout@v4
     - name: Run .Net tests
