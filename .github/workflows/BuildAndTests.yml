@@ -34,31 +34,20 @@ jobs:
       run: npm install
       working-directory: ./easyfinance.client
 
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: build
-        path: .
-
   unit-tests:
     needs: [build]
     runs-on: ubuntu-latest
 
     steps:
-    - name: Download artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: build
-        path: .
+    - uses: actions/checkout@v4
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
 
-    - uses: actions/checkout@v4
     - name: Run .Net tests
-      run: dotnet test --verbosity normal --no-build
+      run: dotnet test --verbosity normal
 
     - name: Run Angular tests
       id: angular
@@ -70,11 +59,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Download artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: build
-        path: .
+    - uses: actions/checkout@v4
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -83,7 +68,7 @@ jobs:
 
     - name: Start application
       id: dotnet
-      run: dotnet run --project ./EasyFinance.Server --no-build --urls https://localhost:7003/ &
+      run: dotnet run --project ./EasyFinance.Server --urls https://localhost:7003/ &
 
     - name: Run Cypress tests
       id: cypress
