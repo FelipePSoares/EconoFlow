@@ -34,8 +34,7 @@ describe('EconoFlow - project detail Tests', () => {
 
       cy.login(user.username, user.password)
 
-      cy.intercept('GET', '**/projects/*').as('getProjects')
-      cy.intercept('GET', '**/categories/*').as('getCategories')
+      cy.intercept('GET', '**/categories*').as('getCategories')
 
       cy.fixture('projects').then((projects) => {
         cy.visit('/projects/' + projects.defaultProject.id)
@@ -58,7 +57,6 @@ describe('EconoFlow - project detail Tests', () => {
 
       cy.login(user.username, user.password)
 
-      cy.intercept('GET', '**/projects*').as('getProjects')
       cy.intercept('GET', '**/categories*').as('getCategories')
 
       cy.fixture('projects').then((projects) => {
