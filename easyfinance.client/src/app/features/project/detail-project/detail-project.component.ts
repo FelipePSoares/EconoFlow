@@ -17,6 +17,8 @@ import { faArrowUp, faArrowDown } from '@fortawesome/free-solid-svg-icons';
 import { ProjectService } from '../../../core/services/project.service';
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
 import { dateUTC } from '../../../core/utils/date';
+import { MatTableModule } from '@angular/material/table';
+import { TransactionService } from 'src/app/core/services/transaction.service';
 
 @Component({
   selector: 'app-detail-project',
@@ -28,6 +30,7 @@ import { dateUTC } from '../../../core/utils/date';
     ReturnButtonComponent,
     FontAwesomeModule,
     CurrencyFormatPipe,
+    MatTableModule,
   ],
   templateUrl: './detail-project.component.html',
   styleUrl: './detail-project.component.css'
@@ -45,8 +48,9 @@ export class DetailProjectComponent implements OnInit {
   year: { budget: number, spend: number, overspend: number, remaining: number, earned: number; } = { budget: 0, spend: 0, overspend: 0, remaining: 0, earned: 0 };
   buttons: string[] = [this.btnIncome, this.btnCategory];
   showCopyPreviousButton = false;
+  transactions: { date: Date, description: string, amount: number, type: string }[] = [];
 
-  constructor(private router: Router, private route: ActivatedRoute, private projectService: ProjectService, private categoryService: CategoryService, private incomeService: IncomeService) {
+  constructor(private router: Router, private route: ActivatedRoute, private projectService: ProjectService, private categoryService: CategoryService, private incomeService: IncomeService, private transactionService: TransactionService) {
   }
 
   ngOnInit(): void {
@@ -101,6 +105,20 @@ export class DetailProjectComponent implements OnInit {
       .subscribe({
         next: res => {
           this.month.earned = res.map(c => c.amount).reduce((acc, value) => acc + value, 0);
+        }
+      });
+
+    this.transactionService.getLatest(this.projectId, 5)
+      .subscribe({
+        next: res => {
+          this.transactions = res.map(t => {
+            return {
+              date: t.date,
+              description: t.name,
+              amount: t.amount,
+              type: t.type
+            };
+          });
         }
       });
   }

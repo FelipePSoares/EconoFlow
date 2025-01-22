@@ -151,6 +151,22 @@ namespace EasyFinance.Application.Features.IncomeService
             return AppResponse.Success();
         }
 
+        public AppResponse<ICollection<IncomeResponseDTO>> GetLatest(Guid projectId, int numberOfTransactions)
+        {
+            var result =
+                unitOfWork.ProjectRepository
+                .NoTrackable()
+                .Include(p => p.Incomes)
+                .FirstOrDefault(p => p.Id == projectId)
+                .Incomes
+                .OrderByDescending(i => i.Date)
+                .Take(numberOfTransactions)
+                .ToDTO()
+                .ToList();
+
+            return AppResponse<ICollection<IncomeResponseDTO>>.Success(result);
+        }
+
        
     }
 }

@@ -47,3 +47,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 .btn-default:hover {
   background-color: #f8f9fa;
 }
+
+.cursor-default {
+  cursor: default !important;
+}

@@ -6,97 +6,163 @@
   <div class="row justify-content-center">
     <div class="container text-center">
       <div class="row justify-content-center">
-        <div class="wrap col-lg-8">
+        <div class="col-lg-6">
+          <div class="wrap p-3">
+            <div class="container position-relative">
+              <div class="row align-items-center">
+                <!-- Back button on the left -->
+                <div class="col-auto position-absolute start-0">
+                  <app-return-button (returnButtonEvent)="previous()"></app-return-button>
+                </div>
 
-          <div class="container position-relative">
-            <div class="row align-items-center">
-              <!-- Back button on the left -->
-              <div class="col-auto position-absolute start-0">
-                <app-return-button (returnButtonEvent)="previous()"></app-return-button>
+                <!-- Centered title -->
+                <div class="col text-center mt-3 mb-3 month">
+                  <h2>{{ getCurrentDate() | date: 'MMMM'}}</h2>
+                </div>
               </div>
+            </div>
 
-              <!-- Centered title -->
-              <div class="col text-center mt-3 mb-3 month">
-                <h2>{{ getCurrentDate() | date: 'MMMM'}}</h2>
+            <button class="btn btn-primary"
+                    (click)="copyPreviousBudget()"
+                    *ngIf="showCopyPreviousButton">
+              Copy Previous Budget
+            </button>
+            <div class="clearfix mt-3">
+              <span class="float-start">Budget:</span>
+              <span class="float-end" [ngClass]="getClassBasedOnPercentage(getPercentageSpend(month.spend + month.overspend, month.budget))">{{getTextBasedOnPercentage(getPercentageSpend(month.spend + month.overspend, month.budget))}} {{ month.remaining | currencyFormat }} left</span>
+            </div>
+            <div class="progress">
+              <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                  [ngClass]="getClassToProgressBar(getPercentageSpend(month.spend, month.budget + month.overspend))"
+                  [style.width.%]="getPercentageSpend(month.spend, month.budget + month.overspend)"
+                  [attr.aria-valuenow]="getPercentageSpend(month.spend, month.budget + month.overspend)">
+                {{ month.spend | currencyFormat }}
+              </div>
+              <div class="progress-bar progress-bar-striped bg-danger" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                  [style.width.%]="getPercentageSpend(month.overspend, month.budget + month.overspend)"
+                  [attr.aria-valuenow]="getPercentageSpend(month.overspend, month.budget + month.overspend)">
+                {{ month.overspend | currencyFormat }}
               </div>
             </div>
-          </div>
-
-          <button class="btn btn-primary"
-                  (click)="copyPreviousBudget()"
-                  *ngIf="showCopyPreviousButton">
-            Copy Previous Budget
-          </button>
-          <div class="clearfix mt-3">
-            <span class="float-start">Budget:</span>
-            <span class="float-end" [ngClass]="getClassBasedOnPercentage(getPercentageSpend(month.spend + month.overspend, month.budget))">{{getTextBasedOnPercentage(getPercentageSpend(month.spend + month.overspend, month.budget))}} {{ month.remaining | currencyFormat }} left</span>
-          </div>
-          <div class="progress">
-            <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-                 [ngClass]="getClassToProgressBar(getPercentageSpend(month.spend, month.budget + month.overspend))"
-                 [style.width.%]="getPercentageSpend(month.spend, month.budget + month.overspend)"
-                 [attr.aria-valuenow]="getPercentageSpend(month.spend, month.budget + month.overspend)">
-              {{ month.spend | currencyFormat }}
+            <div class="clearfix">
+              @if (month.overspend > 0) {
+                <span class="float-end budget">of <s>{{ month.budget | currencyFormat }}</s> {{ month.budget + month.overspend | currencyFormat }}</span>
+              } @else {
+                <span class="float-end budget">of {{ month.budget | currencyFormat }}</span>
+              }
             </div>
-            <div class="progress-bar progress-bar-striped bg-danger" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-                 [style.width.%]="getPercentageSpend(month.overspend, month.budget + month.overspend)"
-                 [attr.aria-valuenow]="getPercentageSpend(month.overspend, month.budget + month.overspend)">
-              {{ month.overspend | currencyFormat }}
+            <hr class="solid" />
+            <div class="d-grid">
+              <button class="btn btn-default" (click)="selectCategories()">
+                <span class="float-start"><fa-icon [icon]="faArrowUp" transform="rotate-45" style="color: #c0392b"></fa-icon> Money Out</span>
+                <span class="float-end">-{{ month.spend | currencyFormat }} ></span>
+              </button>
+              <button class="btn btn-default" (click)="selectIncomes()">
+                <span class="float-start"><fa-icon [icon]="faArrowDown" transform="rotate-45" style="color: #2ecc71"></fa-icon> Money In</span>
+                <span class="float-end">{{ month.earned | currencyFormat }} ></span>
+              </button>
             </div>
-          </div>
-          <div class="clearfix">
-            @if (month.overspend > 0) {
-              <span class="float-end budget">of <s>{{ month.budget | currencyFormat }}</s> {{ month.budget + month.overspend | currencyFormat }}</span>
-            } @else {
-              <span class="float-end budget">of {{ month.budget | currencyFormat }}</span>
-            }
-          </div>
-          <hr class="solid" />
-          <div class="d-grid">
-            <button class="btn btn-default" (click)="selectCategories()">
-              <span class="float-start"><fa-icon [icon]="faArrowUp" transform="rotate-45" style="color: #c0392b"></fa-icon> Money Out</span>
-              <span class="float-end">-{{ month.spend | currencyFormat }} ></span>
-            </button>
-            <button class="btn btn-default" (click)="selectIncomes()">
-              <span class="float-start"><fa-icon [icon]="faArrowDown" transform="rotate-45" style="color: #2ecc71"></fa-icon> Money In</span>
-              <span class="float-end">{{ month.earned | currencyFormat }} ></span>
-            </button>
           </div>
         </div>
-        <div class="wrap col-lg-8">
-          <h2 class="mt-3">{{ getCurrentDate() | date: 'yyyy'}}</h2>
-          <div class="clearfix mt-3">
-            <span class="float-start">Budget:</span>
-            <span class="float-end" [ngClass]="getClassBasedOnPercentage(getPercentageSpend(year.spend, year.budget + year.overspend))">{{getTextBasedOnPercentage(getPercentageSpend(year.spend, year.budget + year.overspend))}} {{ year.remaining | currencyFormat }} left</span>
-          </div>
-          <div class="progress">
-            <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-                 [ngClass]="getClassToProgressBar(getPercentageSpend(year.spend, year.budget + year.overspend))"
-                 [style.width.%]="getPercentageSpend(year.spend, year.budget + year.overspend)"
-                 [attr.aria-valuenow]="getPercentageSpend(year.spend, year.budget + year.overspend)">
-              {{ year.spend | currencyFormat }}
+        <div class="col-lg-6">
+          <div class="wrap p-3">
+            <div class="container position-relative">
+              <div class="row align-items-center">
+                <div class="col text-center mt-3 mb-3 month">
+                  <h2>{{ getCurrentDate() | date: 'yyyy'}}</h2>
+                </div>
+              </div>
             </div>
-            <div class="progress-bar progress-bar-striped bg-danger" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-                 [style.width.%]="getPercentageSpend(year.overspend, year.budget + year.overspend)"
-                 [attr.aria-valuenow]="getPercentageSpend(year.overspend, year.budget + year.overspend)">
-              {{ year.overspend | currencyFormat }}
+            <div class="clearfix mt-3">
+              <span class="float-start">Budget:</span>
+              <span class="float-end" [ngClass]="getClassBasedOnPercentage(getPercentageSpend(year.spend, year.budget + year.overspend))">{{getTextBasedOnPercentage(getPercentageSpend(year.spend, year.budget + year.overspend))}} {{ year.remaining | currencyFormat }} left</span>
+            </div>
+            <div class="progress">
+              <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                  [ngClass]="getClassToProgressBar(getPercentageSpend(year.spend, year.budget + year.overspend))"
+                  [style.width.%]="getPercentageSpend(year.spend, year.budget + year.overspend)"
+                  [attr.aria-valuenow]="getPercentageSpend(year.spend, year.budget + year.overspend)">
+                {{ year.spend | currencyFormat }}
+              </div>
+              <div class="progress-bar progress-bar-striped bg-danger" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                  [style.width.%]="getPercentageSpend(year.overspend, year.budget + year.overspend)"
+                  [attr.aria-valuenow]="getPercentageSpend(year.overspend, year.budget + year.overspend)">
+                {{ year.overspend | currencyFormat }}
+              </div>
+            </div>
+            <div class="clearfix">
+              @if (year.overspend > 0) {
+                <span class="float-end budget">of <s>{{ year.budget | currencyFormat }}</s> {{ year.budget + year.overspend | currencyFormat }}</span>
+              } @else {
+                <span class="float-end budget">of {{ year.budget | currencyFormat }}</span>
+              }
+            </div>
+            <hr class="solid" />
+            <div class="d-grid">
+              <button class="btn btn-default cursor-default">
+                <span class="float-start"><fa-icon [icon]="faArrowUp" transform="rotate-45" style="color: #c0392b"></fa-icon> Money Out</span>
+                <span class="float-end">-{{ year.spend | currencyFormat }}</span>
+              </button>
+              <button class="btn btn-default cursor-default">
+                <span class="float-start"><fa-icon [icon]="faArrowDown" transform="rotate-45" style="color: #2ecc71"></fa-icon> Money In</span>
+                <span class="float-end">{{ year.earned | currencyFormat }}</span>
+              </button>
             </div>
           </div>
-          <div class="clearfix">
-            @if (year.overspend > 0) {
-              <span class="float-end budget">of <s>{{ year.budget | currencyFormat }}</s> {{ year.budget + year.overspend | currencyFormat }}</span>
-            } @else {
-              <span class="float-end budget">of {{ year.budget | currencyFormat }}</span>
-            }
-          </div>
-          <hr class="solid" />
-          <div class="clearfix">
-            <span class="float-start"><fa-icon [icon]="faArrowUp" transform="rotate-45" style="color: #c0392b"></fa-icon> Money Out</span>
-            <span class="float-end">-{{ year.spend | currencyFormat }}</span>
-          </div>
-          <div class="clearfix mt-3">
-            <span class="float-start"><fa-icon [icon]="faArrowDown" transform="rotate-45" style="color: #2ecc71"></fa-icon> Money In</span>
-            <span class="float-end">{{ year.earned | currencyFormat }}</span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12">
+          <div class="wrap">
+            <div class="row align-items-center">
+              <div class="col text-center mt-3 mb-3 month">
+                <h2>Latest transactions</h2>
+              </div>
+            </div>
+    
+            <div class="table-responsive">
+              <table mat-table [dataSource]="transactions" class="w-100">
+                <ng-container matColumnDef="date">
+                  <th mat-header-cell *matHeaderCellDef class="ps-4"> Date </th>
+                  <td mat-cell *matCellDef="let row" class="ps-4">
+                    <div class="text-secondary">{{row.date | date: 'dd/MM/yyyy'}}</div>
+                  </td>
+                </ng-container>
+      
+                <ng-container matColumnDef="description">
+                  <th mat-header-cell *matHeaderCellDef> Description </th>
+                  <td mat-cell *matCellDef="let row">
+                    <div class="d-flex align-items-center py-3">
+                      <div class="transaction-icon me-3">
+                        <fa-icon 
+                          [icon]="row.type === 'Income' ? faArrowDown : faArrowUp"
+                          transform="rotate-45"
+                          [style.color]="row.type === 'Income' ? '#2ecc71' : '#c0392b'"
+                          size="lg">
+                        </fa-icon>
+                      </div>
+                      <div>
+                        <div class="fw-medium">{{row.description}}</div>
+                        <div class="text-secondary small">{{row.type === 'Income' ? 'Income' : 'Expense'}}</div>
+                      </div>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="amount">
+                  <th mat-header-cell *matHeaderCellDef class="pe-4 text-end"> Amount </th>
+                  <td mat-cell *matCellDef="let row" class="pe-4 text-end">
+                    <div [class]="row.type === 'Income' ? 'text-success fw-medium' : 'text-danger fw-medium'">
+                      {{row.type === 'Income' ? '+' : '-'}}${{row.amount}}
+                    </div>
+                  </td>
+                </ng-container>
+            
+                <tr mat-header-row *matHeaderRowDef="['date', 'description', 'amount']" class="bg-light"></tr>
+                <tr mat-row *matRowDef="let row; columns: ['date', 'description', 'amount'];" 
+                    class="hover-row"></tr>
+              </table>
+            </div>
           </div>
         </div>
       </div>
