@@ -77,7 +77,15 @@ export class DetailProjectComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.project = this.projectService.getSelectedProject() || new ProjectDto();
+    let project = this.projectService.getSelectedProject();
+
+    if (!project) {
+      this.projectService.getProject(this.projectId)
+        .subscribe(res => this.project = res);
+    } else {
+      this.project = project;
+    }
+
     this.fillData(CurrentDateComponent.currentDate);
   }
 
