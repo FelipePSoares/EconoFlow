@@ -41,10 +41,10 @@ export class ListProjectsComponent implements OnInit {
       .subscribe(
         {
           next: res => {
-            //if (ListProjectsComponent.firstAccess && res.length == 1) {
-            //  ListProjectsComponent.firstAccess = false;
-            //  this.select(res[0]);
-            //}
+            if (ListProjectsComponent.firstAccess && res.length == 1) {
+              ListProjectsComponent.firstAccess = false;
+              this.select(res[0]);
+            }
             this.projects.next(res);
           }
         });
