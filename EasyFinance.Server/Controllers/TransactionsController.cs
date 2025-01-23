@@ -26,8 +26,10 @@ namespace EasyFinance.Server.Controllers
         [HttpGet("{projectId}/latests/{numberOfTransactions}")]
         public IActionResult GetLatestTransactions(Guid projectId, int numberOfTransactions)
         {
-            var incomes = incomeService.GetLatest(projectId, numberOfTransactions);
-            var expenses = expenseService.GetLatest(projectId, numberOfTransactions);
+            var incomes = incomeService.GetLatestAsync(projectId, numberOfTransactions);
+            var expenses = expenseService.GetLatestAsync(projectId, numberOfTransactions);
+            
+            Task.WaitAll(incomes, expenses);
 
             var transactions = incomes.Data.Select(i => new { Type = "Income", i.Id, i.Date, i.Amount, i.Name })
                 .Concat(expenses.Data.Select(e => new { Type = "Expense", e.Id, e.Date, e.Amount, e.Name }))
