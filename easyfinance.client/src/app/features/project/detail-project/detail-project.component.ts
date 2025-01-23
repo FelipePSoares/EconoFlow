@@ -4,7 +4,7 @@ import { ReturnButtonComponent } from '../../../core/components/return-button/re
 import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CategoryService } from '../../../core/services/category.service';
-import { map } from 'rxjs';
+import { BehaviorSubject, map, Observable } from 'rxjs';
 import { Category } from '../../../core/models/category';
 import { CategoryDto } from '../../category/models/category-dto';
 import { mapper } from '../../../core/utils/mappings/mapper';
@@ -19,6 +19,8 @@ import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pi
 import { dateUTC } from '../../../core/utils/date';
 import { MatTableModule } from '@angular/material/table';
 import { TransactionService } from 'src/app/core/services/transaction.service';
+import { TransactionDto } from '../models/transaction-dto';
+import { Transaction } from 'src/app/core/models/transaction';
 
 @Component({
   selector: 'app-detail-project',

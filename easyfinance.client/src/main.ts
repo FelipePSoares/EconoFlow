@@ -29,6 +29,8 @@ import { CategoryDto } from './app/features/category/models/category-dto';
 import { ExpenseDto } from './app/features/expense/models/expense-dto';
 import { ExpenseItemDto } from './app/features/expense/models/expense-item-dto';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { Transaction } from './app/core/models/transaction';
+import { TransactionDto } from './app/features/project/models/transaction-dto';
 
 
 bootstrapApplication(AppComponent, {
@@ -52,6 +54,7 @@ createMap(mapper, Income, IncomeDto);
 createMap(mapper, Category, CategoryDto);
 createMap(mapper, Expense, ExpenseDto);
 createMap(mapper, ExpenseItem, ExpenseItemDto);
+createMap(mapper, Transaction, TransactionDto);
 
 function appInitializerFactory(globalService: GlobalService): () => Promise<void> {
   return async () => {
