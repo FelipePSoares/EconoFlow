@@ -48,7 +48,8 @@ export class DetailProjectComponent implements OnInit {
   year: { budget: number, spend: number, overspend: number, remaining: number, earned: number; } = { budget: 0, spend: 0, overspend: 0, remaining: 0, earned: 0 };
   buttons: string[] = [this.btnIncome, this.btnCategory];
   showCopyPreviousButton = false;
-  transactions: { date: Date, description: string, amount: number, type: string }[] = [];
+  private transactions: BehaviorSubject<TransactionDto[]> = new BehaviorSubject<TransactionDto[]>([new TransactionDto()]);
+  transactions$: Observable<TransactionDto[]> = this.transactions.asObservable();
 
   constructor(private router: Router, private route: ActivatedRoute, private projectService: ProjectService, private categoryService: CategoryService, private incomeService: IncomeService, private transactionService: TransactionService) {
   }
