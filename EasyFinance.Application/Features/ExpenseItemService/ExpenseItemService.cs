@@ -54,10 +54,10 @@ namespace EasyFinance.Application.Features.ExpenseItemService
         }
         
 
-        public AppResponse<ICollection<ExpenseItemResponseDTO>> GetLatest(Guid projectId, int numberOfTransactions)
+        public Task<AppResponse<ICollection<ExpenseItemResponseDTO>>> GetLatestAsync(Guid projectId, int numberOfTransactions)
         {
             var result = 
-                unitOfWork.ProjectRepository
+                await unitOfWork.ProjectRepository
                 .NoTrackable()
                 .Include(p => p.Categories)
                     .ThenInclude(c => c.Expenses)
@@ -69,7 +69,7 @@ namespace EasyFinance.Application.Features.ExpenseItemService
                 .OrderByDescending(i => i.Date)
                 .Take(numberOfTransactions)
                 .ToDTO()
-                .ToList();
+                .ToListAsync();
 
             return AppResponse<ICollection<ExpenseItemResponseDTO>>.Success(result);
         }
