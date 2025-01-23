@@ -32,7 +32,7 @@ namespace EasyFinance.Server.Controllers
             Task.WaitAll(incomes, expenses);
 
             var transactions = incomes.Data.Select(i => new { Type = "Income", i.Id, i.Date, i.Amount, i.Name })
-                .Concat(expenses.Data.Select(e => new { Type = "Expense", e.Id, e.Date, e.Amount, e.Name }))
+                .Concat(expenses.Data.Select(e => new { Type = "Expense", e.Id, e.Date, Amount = e.Amount * -1, e.Name }))
                 .OrderByDescending(t => t.Date)
                 .Take(numberOfTransactions)
                 .Cast<object>()  // Add this cast
