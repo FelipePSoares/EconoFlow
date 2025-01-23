@@ -68,7 +68,7 @@ namespace EasyFinance.Application.Mappers
         return new Expense(
             expenseDTO.Name, 
             expenseDTO.Date, 
-            expenseDTO.Amount, 
+            expenseDTO.Amount,
             budget: expenseDTO.Budget,
             items: expenseDTO.Items.FromDTO()
         );

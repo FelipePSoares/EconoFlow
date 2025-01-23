@@ -17,10 +17,11 @@ import { faArrowUp, faArrowDown } from '@fortawesome/free-solid-svg-icons';
 import { ProjectService } from '../../../core/services/project.service';
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
 import { dateUTC } from '../../../core/utils/date';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { TransactionService } from 'src/app/core/services/transaction.service';
 import { TransactionDto } from '../models/transaction-dto';
 import { Transaction } from 'src/app/core/models/transaction';
+import { CdkTableDataSourceInput } from '@angular/cdk/table';
 
 @Component({
   selector: 'app-detail-project',
@@ -50,8 +51,16 @@ export class DetailProjectComponent implements OnInit {
   year: { budget: number, spend: number, overspend: number, remaining: number, earned: number; } = { budget: 0, spend: 0, overspend: 0, remaining: 0, earned: 0 };
   buttons: string[] = [this.btnIncome, this.btnCategory];
   showCopyPreviousButton = false;
+
+  private dataSource = new MatTableDataSource<TransactionDto>();
   private transactions: BehaviorSubject<TransactionDto[]> = new BehaviorSubject<TransactionDto[]>([new TransactionDto()]);
-  transactions$: Observable<TransactionDto[]> = this.transactions.asObservable();
+  transactions$: Observable<CdkTableDataSourceInput<TransactionDto>> = this.transactions.asObservable().pipe(
+    map((transaction) => {
+      const dataSource = this.dataSource;
+      dataSource.data = transaction
+      return dataSource;
+    })
+  );
 
   constructor(private router: Router, private route: ActivatedRoute, private projectService: ProjectService, private categoryService: CategoryService, private incomeService: IncomeService, private transactionService: TransactionService) {
   }

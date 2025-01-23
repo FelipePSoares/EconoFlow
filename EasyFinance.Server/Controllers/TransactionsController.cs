@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using EasyFinance.Application.Features.ExpenseItemService;
+using EasyFinance.Application.Features.ExpenseService;
 using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Mvc;
@@ -15,24 +16,28 @@ namespace EasyFinance.Server.Controllers
     public class TransactionsController : BaseController
     {
         private readonly IIncomeService incomeService;
-        private readonly IExpenseItemService expenseService;
+        private readonly IExpenseService expenseService;
+        private readonly IExpenseItemService expenseItemService;
 
-        public TransactionsController(IIncomeService incomeService, IExpenseItemService expenseService)
+        public TransactionsController(IIncomeService incomeService, IExpenseService expenseService, IExpenseItemService expenseItemService)
         {
             this.incomeService = incomeService;
             this.expenseService = expenseService;
+            this.expenseItemService = expenseItemService;
         }
 
         [HttpGet("{projectId}/latests/{numberOfTransactions}")]
-        public IActionResult GetLatestTransactions(Guid projectId, int numberOfTransactions)
+        public async Task<IActionResult> GetLatestTransactions(Guid projectId, int numberOfTransactions)
         {
             var incomes = incomeService.GetLatestAsync(projectId, numberOfTransactions);
             var expenses = expenseService.GetLatestAsync(projectId, numberOfTransactions);
-            
-            Task.WaitAll(incomes, expenses);
+            var expenseItems = expenseItemService.GetLatestAsync(projectId, numberOfTransactions);
 
-            var transactions = incomes.Data.Select(i => new { Type = "Income", i.Id, i.Date, i.Amount, i.Name })
-                .Concat(expenses.Data.Select(e => new { Type = "Expense", e.Id, e.Date, Amount = e.Amount * -1, e.Name }))
+            await Task.WhenAll(incomes, expenses, expenseItems);
+
+            var transactions = incomes.Result.Data.Select(i => new { Type = "Income", i.Id, i.Date, i.Amount, i.Name })
+                .Concat(expenses.Result.Data.Select(e => new { Type = "Expense", e.Id, e.Date, Amount = e.Amount * -1, e.Name }))
+                .Concat(expenseItems.Result.Data.Select(e => new { Type = "Expense", e.Id, e.Date, Amount = e.Amount * -1, e.Name }))
                 .OrderByDescending(t => t.Date)
                 .Take(numberOfTransactions)
                 .Cast<object>()  // Add this cast

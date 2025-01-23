@@ -1,19 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using EasyFinance.Application.Contracts.Persistence;
+﻿using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.DTOs.FinancialProject;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
-using EasyFinance.Domain.Financial;
 using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
-using EasyFinance.Infrastructure.Exceptions;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace EasyFinance.Application.Features.ProjectService
 {

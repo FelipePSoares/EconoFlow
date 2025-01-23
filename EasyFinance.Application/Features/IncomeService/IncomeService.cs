@@ -151,18 +151,20 @@ namespace EasyFinance.Application.Features.IncomeService
             return AppResponse.Success();
         }
 
-        public Task<AppResponse<ICollection<IncomeResponseDTO>>> GetLatestAsync(Guid projectId, int numberOfTransactions)
+        public async Task<AppResponse<ICollection<IncomeResponseDTO>>> GetLatestAsync(Guid projectId, int numberOfTransactions)
         {
-            var result =
-                await unitOfWork.ProjectRepository
+            var project = await unitOfWork.ProjectRepository
                 .NoTrackable()
                 .Include(p => p.Incomes)
-                .FirstOrDefault(p => p.Id == projectId)
+                .FirstOrDefaultAsync(p => p.Id == projectId);
+
+            var result =
+                project
                 .Incomes
                 .OrderByDescending(i => i.Date)
                 .Take(numberOfTransactions)
                 .ToDTO()
-                .ToListAsync();
+                .ToList();
 
             return AppResponse<ICollection<IncomeResponseDTO>>.Success(result);
         }
