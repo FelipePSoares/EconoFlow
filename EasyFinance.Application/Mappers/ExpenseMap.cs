@@ -36,7 +36,8 @@ namespace EasyFinance.Application.Mappers
             Name = expense.Name,
             Date = expense.Date,
             Amount = expense.Amount,
-            Budget = expense.Budget
+            Budget = expense.Budget,
+            Items = expense.Items.ToRequestDTO(),
         };
     }
 
