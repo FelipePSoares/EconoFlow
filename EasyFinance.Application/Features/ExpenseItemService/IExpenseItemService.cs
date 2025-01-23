@@ -11,6 +11,6 @@ namespace EasyFinance.Application.Features.ExpenseItemService
     {
         Task<AppResponse> DeleteAsync(Guid expenseItemId);
         Task<AppResponse> RemoveLinkAsync(User user);
-        AppResponse<ICollection<ExpenseItemResponseDTO>> GetLatest(Guid projectId, int numberOfTransactions);
+        Task<AppResponse<ICollection<ExpenseItemResponseDTO>>> GetLatestAsync(Guid projectId, int numberOfTransactions);
     }
 }
