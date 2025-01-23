@@ -7,13 +7,33 @@ describe('EconoFlow - project detail Tests', () => {
     attempts = 0;
   });
 
+  it('should edit the name of the project', () => {
+    cy.fixture('users').then((users) => {
+      const user = users.testUser;
+
+      cy.login(user.username, user.password)
+
+      cy.intercept('GET', 'api/projects/*').as('getProjects')
+
+      cy.fixture('projects').then((projects) => {
+        cy.visit('/projects/' + projects.defaultProject.id)
+
+        cy.wait('@getProjects').then(({ request, response }) => {
+          cy.get('#edit').click()
+          cy.get('#name').clear().type('Test Project II')
+          cy.get('button').contains('save').click({ force: true })
+          cy.get('h2').first().contains('Test Project II')
+        });
+      })
+    })
+  })
+
   it('should copy budget from previous month', () => {
     cy.fixture('users').then((users) => {
       const user = users.testUser;
 
       cy.login(user.username, user.password)
 
-      cy.intercept('GET', '**/projects*').as('getProjects')
       cy.intercept('GET', '**/categories*').as('getCategories')
 
       cy.fixture('projects').then((projects) => {
@@ -37,7 +57,6 @@ describe('EconoFlow - project detail Tests', () => {
 
       cy.login(user.username, user.password)
 
-      cy.intercept('GET', '**/projects*').as('getProjects')
       cy.intercept('GET', '**/categories*').as('getCategories')
 
       cy.fixture('projects').then((projects) => {

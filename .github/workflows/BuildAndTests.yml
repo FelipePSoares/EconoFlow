@@ -34,28 +34,44 @@ jobs:
       run: npm install
       working-directory: ./easyfinance.client
 
-  tests:
+  unit-tests:
     needs: [build]
     runs-on: ubuntu-latest
 
     steps:
+    - uses: actions/checkout@v4
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
 
-    - uses: actions/checkout@v4
     - name: Run .Net tests
       run: dotnet test --verbosity normal
-
-    - name: Start application
-      id: dotnet
-      run: dotnet run --project ./EasyFinance.Server --urls https://localhost:7003/ &
 
     - name: Run Angular tests
       id: angular
       run: npm test -- --watch=false --browsers=ChromeHeadless
       working-directory: ./easyfinance.client
+
+  integration-tests:
+    needs: [build]
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Build application
+      run: dotnet build --configuration Debug
+
+    - name: Start application
+      id: dotnet
+      run: dotnet run --project ./EasyFinance.Server --urls https://localhost:7003/ &
 
     - name: Run Cypress tests
       id: cypress
