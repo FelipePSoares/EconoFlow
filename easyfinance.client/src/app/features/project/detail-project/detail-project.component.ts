@@ -13,7 +13,7 @@ import { Income } from '../../../core/models/income';
 import { IncomeDto } from '../../income/models/income-dto';
 import { CommonModule } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faArrowUp, faArrowDown } from '@fortawesome/free-solid-svg-icons';
+import { faArrowUp, faArrowDown, faPencil } from '@fortawesome/free-solid-svg-icons';
 import { ProjectService } from '../../../core/services/project.service';
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
 import { dateUTC } from '../../../core/utils/date';
@@ -22,6 +22,14 @@ import { TransactionService } from 'src/app/core/services/transaction.service';
 import { TransactionDto } from '../models/transaction-dto';
 import { Transaction } from 'src/app/core/models/transaction';
 import { CdkTableDataSourceInput } from '@angular/cdk/table';
+import { ProjectDto } from '../models/project-dto';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { compare } from 'fast-json-patch';
+import { ApiErrorResponse } from '../../../core/models/error';
+import { ErrorMessageService } from '../../../core/services/error-message.service';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-detail-project',
@@ -33,6 +41,10 @@ import { CdkTableDataSourceInput } from '@angular/cdk/table';
     ReturnButtonComponent,
     FontAwesomeModule,
     CurrencyFormatPipe,
+    MatInputModule,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatIconModule,
     MatTableModule,
   ],
   templateUrl: './detail-project.component.html',
@@ -40,17 +52,25 @@ import { CdkTableDataSourceInput } from '@angular/cdk/table';
 })
 
 export class DetailProjectComponent implements OnInit {
-  faArrowUp = faArrowUp;
-  faArrowDown = faArrowDown;
-  btnIncome = 'Income';
-  btnCategory = 'Category';
   @Input({ required: true })
   projectId!: string;
-  projectName!: string;
+
+  faArrowUp = faArrowUp;
+  faArrowDown = faArrowDown;
+  faPencil = faPencil;
+  btnIncome = 'Income';
+  btnCategory = 'Category';
   month: { budget: number, spend: number, overspend: number, remaining: number, earned: number; } = { budget: 0, spend: 0, overspend: 0, remaining: 0, earned: 0 };
   year: { budget: number, spend: number, overspend: number, remaining: number, earned: number; } = { budget: 0, spend: 0, overspend: 0, remaining: 0, earned: 0 };
   buttons: string[] = [this.btnIncome, this.btnCategory];
   showCopyPreviousButton = false;
+
+  isProjectNameEditing = false;
+  project!: ProjectDto;
+  projectForm!: FormGroup;
+
+  httpErrors = false;
+  errors: any;
 
   private dataSource = new MatTableDataSource<TransactionDto>();
   private transactions: BehaviorSubject<TransactionDto[]> = new BehaviorSubject<TransactionDto[]>([new TransactionDto()]);
@@ -62,11 +82,19 @@ export class DetailProjectComponent implements OnInit {
     })
   );
 
-  constructor(private router: Router, private route: ActivatedRoute, private projectService: ProjectService, private categoryService: CategoryService, private incomeService: IncomeService, private transactionService: TransactionService) {
+  constructor(private router: Router, private route: ActivatedRoute, private projectService: ProjectService, private categoryService: CategoryService, private incomeService: IncomeService, private transactionService: TransactionService, private errorMessageService: ErrorMessageService) {
   }
 
   ngOnInit(): void {
-    this.projectName = this.route.snapshot.queryParams['name'];
+    let project = this.projectService.getSelectedProject();
+
+    if (!project) {
+      this.projectService.getProject(this.projectId)
+        .subscribe(res => this.project = res);
+    } else {
+      this.project = project;
+    }
+
     this.fillData(CurrentDateComponent.currentDate);
   }
 
@@ -189,5 +217,70 @@ export class DetailProjectComponent implements OnInit {
           this.fillData(CurrentDateComponent.currentDate);
         }
       });
+  }
+
+  editName() {
+    this.projectForm = new FormGroup({
+      name: new FormControl(this.project.name, [Validators.required])
+    });
+
+    this.isProjectNameEditing = true;
+  }
+
+  get name() {
+    return this.projectForm.get('name');
+  }
+
+  saveProjectName() {
+    if (this.projectForm.valid) {
+      const name = this.name?.value;
+
+      const newProject = <ProjectDto>({
+        id: this.projectId,
+        name: name,
+        type: this.project.type
+      });
+      const patch = compare(this.project, newProject);
+
+      if (patch.length > 0) {
+        this.projectService.updateProject(this.project.id, patch).subscribe({
+          next: response => {
+            this.project.name = response.name;
+            this.projectService.selectProject(this.project);
+            this.isProjectNameEditing = false;
+          },
+          error: (response: ApiErrorResponse) => {
+            this.httpErrors = true;
+            this.errors = response.errors;
+
+            this.errorMessageService.setFormErrors(this.projectForm, this.errors);
+          }
+        });
+      } else {
+        this.isProjectNameEditing = false;
+      }
+    }
+
+  }
+
+  getFormFieldErrors(fieldName: string): string[] {
+    const control = this.projectForm.get(fieldName);
+    const errors: string[] = [];
+
+    if (control && control.errors) {
+      for (const key in control.errors) {
+        if (control.errors.hasOwnProperty(key)) {
+          switch (key) {
+            case 'required':
+              errors.push('This field is required.');
+              break;
+            default:
+              errors.push(control.errors[key]);
+          }
+        }
+      }
+    }
+
+    return errors;
   }
 }
