@@ -70,7 +70,7 @@ namespace EasyFinance.Application.Mappers
             expenseDTO.Date, 
             expenseDTO.Amount, 
             budget: expenseDTO.Budget,
-            item: expenseDTO.Item,
+            items: expenseDTO.Items.FromDTO()
         );
     }
 }
