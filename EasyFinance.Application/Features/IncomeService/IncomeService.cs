@@ -151,10 +151,10 @@ namespace EasyFinance.Application.Features.IncomeService
             return AppResponse.Success();
         }
 
-        public AppResponse<ICollection<IncomeResponseDTO>> GetLatest(Guid projectId, int numberOfTransactions)
+        public Task<AppResponse<ICollection<IncomeResponseDTO>>> GetLatestAsync(Guid projectId, int numberOfTransactions)
         {
             var result =
-                unitOfWork.ProjectRepository
+                await unitOfWork.ProjectRepository
                 .NoTrackable()
                 .Include(p => p.Incomes)
                 .FirstOrDefault(p => p.Id == projectId)
@@ -162,7 +162,7 @@ namespace EasyFinance.Application.Features.IncomeService
                 .OrderByDescending(i => i.Date)
                 .Take(numberOfTransactions)
                 .ToDTO()
-                .ToList();
+                .ToListAsync();
 
             return AppResponse<ICollection<IncomeResponseDTO>>.Success(result);
         }
