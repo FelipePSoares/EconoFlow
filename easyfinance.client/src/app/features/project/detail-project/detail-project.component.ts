@@ -110,17 +110,10 @@ export class DetailProjectComponent implements OnInit {
       });
 
     this.transactionService.getLatest(this.projectId, 5)
-      .subscribe({
-        next: res => {
-          this.transactions = res.map(t => {
-            return {
-              date: t.date,
-              description: t.name,
-              amount: t.amount,
-              type: t.type
-            };
-          });
-        }
+      .pipe(map(transactions => mapper.mapArray(transactions, Transaction, TransactionDto)))
+      .subscribe(
+        {
+          next: res => { this.transactions.next(res); }
       });
   }
 
