@@ -8,7 +8,7 @@ import { routes } from './app/features/app-routing.module';
 import { HttpRequestInterceptor } from './app/core/interceptor/http-request-interceptor';
 import { LoadingInterceptor } from './app/core/interceptor/loading.interceptor';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
-import { APP_INITIALIZER } from '@angular/core';
+import { inject, provideAppInitializer } from '@angular/core';
 import { loadAngularLocale } from './app/core/utils/loaders/angular-locale-loader';
 import { loadMomentLocale } from './app/core/utils/loaders/moment-locale-loader';
 import { GlobalService } from './app/core/services/global.service';
@@ -37,12 +37,10 @@ bootstrapApplication(AppComponent, {
   providers: [
     CurrencyPipe,
     DecimalPipe,
-    {
-      provide: APP_INITIALIZER,
-      deps: [GlobalService],
-      useFactory: appInitializerFactory,
-      multi: true
-    },
+    provideAppInitializer(() => {
+        const initializerFn = (appInitializerFactory)(inject(GlobalService));
+        return initializerFn();
+      }),
     provideAnimations(),
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(

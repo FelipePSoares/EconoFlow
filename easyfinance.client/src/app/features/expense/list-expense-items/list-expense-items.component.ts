@@ -34,32 +34,31 @@ import { UserService } from '../../../core/services/user.service';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
 
 @Component({
-  selector: 'app-list-expense-items',
-  standalone: true,
-  imports: [
-    CommonModule,
-    AsyncPipe,
-    ReactiveFormsModule,
-    AddButtonComponent,
-    ReturnButtonComponent,
-    FontAwesomeModule,
-    ConfirmDialogComponent,
-    CurrencyFormatPipe,
-    MatFormField,
-    MatLabel,
-    MatError,
-    MatInput,
-    MatDatepicker,
-    MatDatepickerInput,
-    MatDatepickerToggle,
-    MatSuffix,
-    MatPrefix,
-    MatButton,
-    CurrentDateComponent,
-    CurrencyMaskModule
-  ],
-  templateUrl: './list-expense-items.component.html',
-  styleUrl: './list-expense-items.component.css'
+    selector: 'app-list-expense-items',
+    imports: [
+        CommonModule,
+        AsyncPipe,
+        ReactiveFormsModule,
+        AddButtonComponent,
+        ReturnButtonComponent,
+        FontAwesomeModule,
+        ConfirmDialogComponent,
+        CurrencyFormatPipe,
+        MatFormField,
+        MatLabel,
+        MatError,
+        MatInput,
+        MatDatepicker,
+        MatDatepickerInput,
+        MatDatepickerToggle,
+        MatSuffix,
+        MatPrefix,
+        MatButton,
+        CurrentDateComponent,
+        CurrencyMaskModule
+    ],
+    templateUrl: './list-expense-items.component.html',
+    styleUrl: './list-expense-items.component.css'
 })
 export class ListExpenseItemsComponent {
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;

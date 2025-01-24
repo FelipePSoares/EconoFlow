@@ -9,11 +9,10 @@ import { ApiErrorResponse } from '../../../core/models/error';
 import { passwordMatchValidator } from '../../../core/utils/custom-validators/password-match-validator';
 
 @Component({
-  selector: 'app-recovery',
-  standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink, FontAwesomeModule],
-  templateUrl: './recovery.component.html',
-  styleUrl: './recovery.component.css'
+    selector: 'app-recovery',
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink, FontAwesomeModule],
+    templateUrl: './recovery.component.html',
+    styleUrl: './recovery.component.css'
 })
 export class RecoveryComponent implements OnInit {
   faEnvelopeOpenText = faEnvelopeOpenText;

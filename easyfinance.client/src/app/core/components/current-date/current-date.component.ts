@@ -9,18 +9,16 @@ import { Moment } from 'moment';
 import { dateUTC, todayUTC } from '../../utils/date';
 
 @Component({
-  selector: 'app-current-date',
-  standalone: true,
-  imports: [
-    DatePipe,
-    FontAwesomeModule,
-    MatButtonModule,
-    MatDatepickerModule
-  ],
-  templateUrl: './current-date.component.html',
-  styleUrl: './current-date.component.css',
-  providers: [
-  ]
+    selector: 'app-current-date',
+    imports: [
+        DatePipe,
+        FontAwesomeModule,
+        MatButtonModule,
+        MatDatepickerModule
+    ],
+    templateUrl: './current-date.component.html',
+    styleUrl: './current-date.component.css',
+    providers: []
 })
 export class CurrentDateComponent {
   faArrowRight = faArrowRight;

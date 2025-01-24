@@ -25,25 +25,24 @@ export const MY_FORMATS = {
 };
 
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [
-    CommonModule,
-    RouterOutlet,
-    NavBarComponent,
-    SpinnerComponent,
-  ],
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css'],
-  providers: [
-    { provide: MAT_MOMENT_DATE_ADAPTER_OPTIONS, useValue: { useUtc: true } },
-    {
-      provide: DateAdapter,
-      useClass: MomentDateAdapter,
-      deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS],
-    },
-    { provide: MAT_DATE_FORMATS, useValue: MY_FORMATS },
-  ]
+    selector: 'app-root',
+    imports: [
+        CommonModule,
+        RouterOutlet,
+        NavBarComponent,
+        SpinnerComponent,
+    ],
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.css'],
+    providers: [
+        { provide: MAT_MOMENT_DATE_ADAPTER_OPTIONS, useValue: { useUtc: true } },
+        {
+            provide: DateAdapter,
+            useClass: MomentDateAdapter,
+            deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS],
+        },
+        { provide: MAT_DATE_FORMATS, useValue: MY_FORMATS },
+    ]
 })
 
 export class AppComponent {

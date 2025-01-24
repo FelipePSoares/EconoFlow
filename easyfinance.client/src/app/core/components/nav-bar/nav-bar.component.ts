@@ -5,11 +5,10 @@ import { AsyncPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
 @Component({
-  selector: 'app-nav-bar',
-  standalone: true,
-  imports: [AsyncPipe, RouterLink],
-  templateUrl: './nav-bar.component.html',
-  styleUrls: ['./nav-bar.component.css']
+    selector: 'app-nav-bar',
+    imports: [AsyncPipe, RouterLink],
+    templateUrl: './nav-bar.component.html',
+    styleUrls: ['./nav-bar.component.css']
 })
 export class NavBarComponent implements OnInit {
   initials$: Observable<string>;

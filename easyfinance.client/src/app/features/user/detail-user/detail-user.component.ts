@@ -20,24 +20,23 @@ import { Router } from '@angular/router';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
-  selector: 'app-detail-user',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    AsyncPipe,
-    ReactiveFormsModule,
-    FontAwesomeModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatSelectModule,
-    MatOptionModule,
-    MatIcon,
-    ConfirmDialogComponent,
-  ],
-  templateUrl: './detail-user.component.html',
-  styleUrl: './detail-user.component.css'
+    selector: 'app-detail-user',
+    imports: [
+        CommonModule,
+        FormsModule,
+        AsyncPipe,
+        ReactiveFormsModule,
+        FontAwesomeModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatSelectModule,
+        MatOptionModule,
+        MatIcon,
+        ConfirmDialogComponent,
+    ],
+    templateUrl: './detail-user.component.html',
+    styleUrl: './detail-user.component.css'
 })
 export class DetailUserComponent implements OnInit {
   private deleteToken!: string;

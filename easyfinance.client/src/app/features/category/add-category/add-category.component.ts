@@ -15,20 +15,19 @@ import { ApiErrorResponse } from '../../../core/models/error';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-add-category',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
-    ReturnButtonComponent,
-    MatButtonModule,
-    MatAutocompleteModule,
-    MatInputModule,
-    MatFormFieldModule
-  ],
-  templateUrl: './add-category.component.html',
-  styleUrl: './add-category.component.css'
+    selector: 'app-add-category',
+    imports: [
+        CommonModule,
+        FormsModule,
+        ReactiveFormsModule,
+        ReturnButtonComponent,
+        MatButtonModule,
+        MatAutocompleteModule,
+        MatInputModule,
+        MatFormFieldModule
+    ],
+    templateUrl: './add-category.component.html',
+    styleUrl: './add-category.component.css'
 })
 export class AddCategoryComponent implements OnInit {
   categoryForm!: FormGroup;

@@ -20,23 +20,22 @@ import { UserService } from '../../../core/services/user.service';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
 
 @Component({
-  selector: 'app-add-income',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
-    ReturnButtonComponent,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
-    CurrencyMaskModule
-  ],
-  templateUrl: './add-income.component.html',
-  styleUrl: './add-income.component.css'
+    selector: 'app-add-income',
+    imports: [
+        CommonModule,
+        FormsModule,
+        ReactiveFormsModule,
+        ReturnButtonComponent,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule,
+        MatDatepickerModule,
+        MatNativeDateModule,
+        CurrencyMaskModule
+    ],
+    templateUrl: './add-income.component.html',
+    styleUrl: './add-income.component.css'
 })
 export class AddIncomeComponent implements OnInit {
   private currentDate!: Date;

@@ -15,21 +15,20 @@ import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-add-project',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
-    ReturnButtonComponent,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatInputModule,
-    MatButtonModule,
-    MatIconModule
-  ],
-  templateUrl: './add-project.component.html',
-  styleUrl: './add-project.component.css'
+    selector: 'app-add-project',
+    imports: [
+        CommonModule,
+        FormsModule,
+        ReactiveFormsModule,
+        ReturnButtonComponent,
+        MatFormFieldModule,
+        MatSelectModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule
+    ],
+    templateUrl: './add-project.component.html',
+    styleUrl: './add-project.component.css'
 })
 export class AddProjectComponent implements OnInit {
   public projectType2LabelMapping = ProjectType2LabelMapping;

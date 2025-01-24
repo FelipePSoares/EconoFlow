@@ -5,11 +5,10 @@ import { todayUTC } from '../../../core/utils/date';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 
 @Component({
-  selector: 'app-detail-expense',
-  standalone: true,
-  imports: [ListExpenseItemsComponent],
-  templateUrl: './detail-expense.component.html',
-  styleUrl: './detail-expense.component.css'
+    selector: 'app-detail-expense',
+    imports: [ListExpenseItemsComponent],
+    templateUrl: './detail-expense.component.html',
+    styleUrl: './detail-expense.component.css'
 })
 export class DetailExpenseComponent implements OnInit {
   currentDate!: Date;

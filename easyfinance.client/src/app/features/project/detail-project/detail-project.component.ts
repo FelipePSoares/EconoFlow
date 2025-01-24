@@ -31,23 +31,22 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
 @Component({
-  selector: 'app-detail-project',
-  standalone: true,
-  imports: [
-    CommonModule,
-    CurrentDateComponent,
-    AddButtonComponent,
-    ReturnButtonComponent,
-    FontAwesomeModule,
-    CurrencyFormatPipe,
-    MatInputModule,
-    ReactiveFormsModule,
-    MatButtonModule,
-    MatIconModule,
-    MatTableModule,
-  ],
-  templateUrl: './detail-project.component.html',
-  styleUrl: './detail-project.component.css'
+    selector: 'app-detail-project',
+    imports: [
+        CommonModule,
+        CurrentDateComponent,
+        AddButtonComponent,
+        ReturnButtonComponent,
+        FontAwesomeModule,
+        CurrencyFormatPipe,
+        MatInputModule,
+        ReactiveFormsModule,
+        MatButtonModule,
+        MatIconModule,
+        MatTableModule,
+    ],
+    templateUrl: './detail-project.component.html',
+    styleUrl: './detail-project.component.css'
 })
 
 export class DetailProjectComponent implements OnInit {

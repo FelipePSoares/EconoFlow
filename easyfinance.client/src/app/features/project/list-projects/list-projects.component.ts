@@ -13,17 +13,16 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
-  selector: 'app-list-projects',
-  standalone: true,
-  imports: [
-    CommonModule,
-    AsyncPipe,
-    AddButtonComponent,
-    MatGridListModule,
-    FontAwesomeModule,
-  ],
-  templateUrl: './list-projects.component.html',
-  styleUrl: './list-projects.component.css'
+    selector: 'app-list-projects',
+    imports: [
+        CommonModule,
+        AsyncPipe,
+        AddButtonComponent,
+        MatGridListModule,
+        FontAwesomeModule,
+    ],
+    templateUrl: './list-projects.component.html',
+    styleUrl: './list-projects.component.css'
 })
 export class ListProjectsComponent implements OnInit {
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;

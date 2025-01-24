@@ -1,10 +1,11 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { CurrencyPipe } from '@angular/common';
 import { CurrencyFormatPipe } from './currency-format.pipe';
 import { User } from '../../models/user';
 import { UserService } from '../../services/user.service';
 import { GlobalService } from '../../services/global.service';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('CurrencyFormatPipe', () => {
   let userService: UserService;
@@ -19,9 +20,9 @@ describe('CurrencyFormatPipe', () => {
     user = new User();
 
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [UserService],
-    });
+    imports: [],
+    providers: [UserService, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+});
     userService = TestBed.inject(UserService);
     globalService = TestBed.inject(GlobalService);
     httpMock = TestBed.inject(HttpTestingController);

@@ -26,23 +26,22 @@ import { UserService } from '../../../core/services/user.service';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
 
 @Component({
-  selector: 'app-add-expense-item',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
-    ReturnButtonComponent,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
-    CurrencyMaskModule
-  ],
-  templateUrl: './add-expense-item.component.html',
-  styleUrl: './add-expense-item.component.css'
+    selector: 'app-add-expense-item',
+    imports: [
+        CommonModule,
+        FormsModule,
+        ReactiveFormsModule,
+        ReturnButtonComponent,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule,
+        MatDatepickerModule,
+        MatNativeDateModule,
+        CurrencyMaskModule
+    ],
+    templateUrl: './add-expense-item.component.html',
+    styleUrl: './add-expense-item.component.css'
 })
 export class AddExpenseItemComponent implements OnInit {
   private expense!: ExpenseDto;

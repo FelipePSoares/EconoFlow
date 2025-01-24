@@ -22,26 +22,25 @@ import { ApiErrorResponse } from "../../../core/models/error";
 import { ErrorMessageService } from "../../../core/services/error-message.service";
 
 @Component({
-  selector: 'app-list-categories',
-  standalone: true,
-  imports: [
-    CommonModule,
-    AsyncPipe,
-    ReactiveFormsModule,
-    FontAwesomeModule,
-    ConfirmDialogComponent,
-    AddButtonComponent,
-    ReturnButtonComponent,
-    CurrentDateComponent,
-    CurrencyFormatPipe,
-    MatButton,
-    MatError,
-    MatFormField,
-    MatInput,
-    MatLabel
-  ],
-  templateUrl: './list-categories.component.html',
-  styleUrl: './list-categories.component.css'
+    selector: 'app-list-categories',
+    imports: [
+        CommonModule,
+        AsyncPipe,
+        ReactiveFormsModule,
+        FontAwesomeModule,
+        ConfirmDialogComponent,
+        AddButtonComponent,
+        ReturnButtonComponent,
+        CurrentDateComponent,
+        CurrencyFormatPipe,
+        MatButton,
+        MatError,
+        MatFormField,
+        MatInput,
+        MatLabel
+    ],
+    templateUrl: './list-categories.component.html',
+    styleUrl: './list-categories.component.css'
 })
 export class ListCategoriesComponent implements OnInit {
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;

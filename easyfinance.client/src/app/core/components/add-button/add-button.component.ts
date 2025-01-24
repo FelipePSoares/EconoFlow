@@ -3,11 +3,10 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
-  selector: 'app-add-button',
-  standalone: true,
-  imports: [FontAwesomeModule],
-  templateUrl: './add-button.component.html',
-  styleUrl: './add-button.component.css'
+    selector: 'app-add-button',
+    imports: [FontAwesomeModule],
+    templateUrl: './add-button.component.html',
+    styleUrl: './add-button.component.css'
 })
 export class AddButtonComponent {
   faPlus = faPlus;

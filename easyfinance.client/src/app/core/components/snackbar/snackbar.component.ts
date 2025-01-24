@@ -2,10 +2,9 @@ import { Component, Injectable } from '@angular/core';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 
 @Component({
-  selector: 'app-snackbar',
-  standalone: true,
-  imports: [],
-  template: ''
+    selector: 'app-snackbar',
+    imports: [],
+    template: ''
 })
 @Injectable({
   providedIn: 'root',

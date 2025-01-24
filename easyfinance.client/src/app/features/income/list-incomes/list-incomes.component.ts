@@ -27,30 +27,29 @@ import { UserService } from '../../../core/services/user.service';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
 
 @Component({
-  selector: 'app-list-incomes',
-  standalone: true,
-  imports: [
-    CommonModule,
-    AsyncPipe,
-    ReactiveFormsModule,
-    FontAwesomeModule,
-    ConfirmDialogComponent,
-    AddButtonComponent,
-    ReturnButtonComponent,
-    CurrentDateComponent,
-    CurrencyFormatPipe,
-    MatDatepickerModule,
-    MatError,
-    MatFormField,
-    MatInput,
-    MatLabel,
-    MatSuffix,
-    MatPrefix,
-    MatButton,
-    CurrencyMaskModule
-  ],
-  templateUrl: './list-incomes.component.html',
-  styleUrl: './list-incomes.component.css'
+    selector: 'app-list-incomes',
+    imports: [
+        CommonModule,
+        AsyncPipe,
+        ReactiveFormsModule,
+        FontAwesomeModule,
+        ConfirmDialogComponent,
+        AddButtonComponent,
+        ReturnButtonComponent,
+        CurrentDateComponent,
+        CurrencyFormatPipe,
+        MatDatepickerModule,
+        MatError,
+        MatFormField,
+        MatInput,
+        MatLabel,
+        MatSuffix,
+        MatPrefix,
+        MatButton,
+        CurrencyMaskModule
+    ],
+    templateUrl: './list-incomes.component.html',
+    styleUrl: './list-incomes.component.css'
 })
 
 export class ListIncomesComponent implements OnInit {

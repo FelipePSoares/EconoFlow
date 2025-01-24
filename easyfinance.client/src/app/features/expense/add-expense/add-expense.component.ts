@@ -20,23 +20,22 @@ import { GlobalService } from '../../../core/services/global.service';
 import { UserService } from '../../../core/services/user.service';
 
 @Component({
-  selector: 'app-add-expense',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
-    ReturnButtonComponent,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
-    CurrencyMaskModule
-  ],
-  templateUrl: './add-expense.component.html',
-  styleUrl: './add-expense.component.css'
+    selector: 'app-add-expense',
+    imports: [
+        CommonModule,
+        FormsModule,
+        ReactiveFormsModule,
+        ReturnButtonComponent,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule,
+        MatDatepickerModule,
+        MatNativeDateModule,
+        CurrencyMaskModule
+    ],
+    templateUrl: './add-expense.component.html',
+    styleUrl: './add-expense.component.css'
 })
 export class AddExpenseComponent implements OnInit {
   private currentDate!: Date;

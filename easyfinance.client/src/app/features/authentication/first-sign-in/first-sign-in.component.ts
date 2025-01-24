@@ -14,20 +14,19 @@ import { ErrorMessageService } from '../../../core/services/error-message.servic
 import { MatSelectModule } from '@angular/material/select';
 
 @Component({
-  selector: 'app-first-sign-in',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatSelectModule,
-    MatOptionModule,
-  ],
-  templateUrl: './first-sign-in.component.html',
-  styleUrls: ['./first-sign-in.component.css']
+    selector: 'app-first-sign-in',
+    imports: [
+        CommonModule,
+        FormsModule,
+        ReactiveFormsModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatSelectModule,
+        MatOptionModule,
+    ],
+    templateUrl: './first-sign-in.component.html',
+    styleUrls: ['./first-sign-in.component.css']
 })
 export class FirstSignInComponent implements OnInit {
 
