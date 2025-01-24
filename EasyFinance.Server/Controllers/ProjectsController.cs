@@ -116,5 +116,13 @@ namespace EasyFinance.Server.Controllers
 
             return ValidateResponse(newExpenses, HttpStatusCode.OK);
         }
+
+        [HttpGet("{projectId}/latests/{numberOfTransactions}")]
+        public async Task<IActionResult> GetLatestTransactions(Guid projectId, int numberOfTransactions)
+        {
+            var response = await projectService.GetLatestAsync(projectId, numberOfTransactions);
+
+            return ValidateResponse(response, HttpStatusCode.OK);
+        }
     }
 }

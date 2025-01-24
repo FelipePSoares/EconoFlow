@@ -18,7 +18,6 @@ import { ProjectService } from '../../../core/services/project.service';
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
 import { dateUTC } from '../../../core/utils/date';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { TransactionService } from 'src/app/core/services/transaction.service';
 import { TransactionDto } from '../models/transaction-dto';
 import { Transaction } from 'src/app/core/models/transaction';
 import { CdkTableDataSourceInput } from '@angular/cdk/table';
@@ -82,7 +81,7 @@ export class DetailProjectComponent implements OnInit {
     })
   );
 
-  constructor(private router: Router, private route: ActivatedRoute, private projectService: ProjectService, private categoryService: CategoryService, private incomeService: IncomeService, private transactionService: TransactionService, private errorMessageService: ErrorMessageService) {
+  constructor(private router: Router, private route: ActivatedRoute, private projectService: ProjectService, private categoryService: CategoryService, private incomeService: IncomeService, private errorMessageService: ErrorMessageService) {
   }
 
   ngOnInit(): void {
@@ -148,7 +147,7 @@ export class DetailProjectComponent implements OnInit {
         }
       });
 
-    this.transactionService.getLatest(this.projectId, 5)
+    this.projectService.getLatest(this.projectId, 5)
       .pipe(map(transactions => mapper.mapArray(transactions, Transaction, TransactionDto)))
       .subscribe(
         {

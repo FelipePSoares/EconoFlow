@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using EasyFinance.Application.DTOs.Financial;
+﻿using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.DTOs.FinancialProject;
 using EasyFinance.Domain.AccessControl;
-using EasyFinance.Domain.Financial;
 using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.JsonPatch;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace EasyFinance.Application.Features.ProjectService
 {
@@ -29,5 +28,7 @@ namespace EasyFinance.Application.Features.ProjectService
         Task<AppResponse> DeleteOrRemoveLinkAsync(User user);
 
         Task<AppResponse<IList<string>>> GetProjectsWhereUserIsSoleAdminAsync(User user);
+
+        Task<AppResponse<ICollection<TransactionResponseDTO>>> GetLatestAsync(Guid projectId, int numberOfTransactions);
     }
 }

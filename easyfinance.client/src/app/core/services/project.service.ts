@@ -6,6 +6,7 @@ import { Operation } from 'fast-json-patch';
 import { YearExpensesSummaryDto } from '../../features/project/models/year-expenses-summary-dto';
 import { LocalService } from './local.service';
 import { safeJsonParse } from '../utils/json-parser';
+import { Transaction } from '../models/transaction';
 const PROJECT_DATA = "project_data";
 
 @Injectable({
@@ -71,5 +72,12 @@ export class ProjectService {
     let project = this.localService.getData(PROJECT_DATA);
 
     return safeJsonParse<Project>(project)
+  }
+
+  getLatest(id: string, numberOfTransactions: number): Observable<Transaction[]> {
+    return this.http.get<Transaction[]>('/api/projects/' + id + '/latests/' + numberOfTransactions, {
+      observe: 'body',
+      responseType: 'json',
+    });
   }
 }

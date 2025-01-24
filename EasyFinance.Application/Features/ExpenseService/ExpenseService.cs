@@ -152,25 +152,5 @@ namespace EasyFinance.Application.Features.ExpenseService
             await unitOfWork.CommitAsync();
             return AppResponse.Success();
         }
-
-        public async Task<AppResponse<ICollection<ExpenseResponseDTO>>> GetLatestAsync(Guid projectId, int numberOfTransactions)
-        {
-            var project = await unitOfWork.ProjectRepository
-                .NoTrackable()
-                .Include(p => p.Categories)
-                    .ThenInclude(c => c.Expenses)
-                        .ThenInclude(e => e.Items)
-                .FirstOrDefaultAsync(p => p.Id == projectId);
-
-            var result = project.Categories
-                .SelectMany(c => c.Expenses)
-                .Where(e => e.Amount > 0 && !e.Items.Any())
-                .OrderByDescending(i => i.Date)
-                .Take(numberOfTransactions)
-                .ToDTO()
-                .ToList();
-
-            return AppResponse<ICollection<ExpenseResponseDTO>>.Success(result);
-        }
     }
 }

@@ -200,6 +200,68 @@ namespace EasyFinance.Application.Features.ProjectService
 
             var result = userProjects.Where(up => !projectsWithOthersAdmins.Contains(up.Project.Id)).Select(up => up.Project.Name).ToList();
             return AppResponse<IList<string>>.Success(result);
-        }       
+        }
+
+        public async Task<AppResponse<ICollection<TransactionResponseDTO>>> GetLatestAsync(Guid projectId, int numberOfTransactions)
+        {
+            var result = new List<TransactionResponseDTO>();
+
+            var project = await unitOfWork.ProjectRepository
+                .NoTrackable()
+                .Include(p => p.Incomes)
+                .Include(p => p.Categories)
+                    .ThenInclude(c => c.Expenses)
+                        .ThenInclude(e => e.Items)
+                .FirstOrDefaultAsync(p => p.Id == projectId);
+
+            result.AddRange(
+                project
+                .Incomes
+                .OrderByDescending(i => i.Date)
+                .Take(numberOfTransactions)
+                .Select(income => new TransactionResponseDTO()
+                {
+                    Id = income.Id,
+                    Amount = income.Amount,
+                    Date = income.Date,
+                    Name = income.Name,
+                    Type = TransactionType.Income
+                }));
+
+            result.AddRange(
+                project.Categories
+                .SelectMany(c => c.Expenses)
+                .Where(e => e.Amount > 0 && !e.Items.Any())
+                .OrderByDescending(i => i.Date)
+                .Take(numberOfTransactions)
+                .Select(income => new TransactionResponseDTO()
+                {
+                    Id = income.Id,
+                    Amount = income.Amount,
+                    Date = income.Date,
+                    Name = income.Name,
+                    Type = TransactionType.Expense
+                }));
+
+            result.AddRange(
+                project.Categories
+                .SelectMany(c => c.Expenses)
+                .SelectMany(e => e.Items)
+                .Where(e => e.Amount > 0 && !e.Items.Any())
+                .OrderByDescending(i => i.Date)
+                .Take(numberOfTransactions)
+                .Select(income => new TransactionResponseDTO()
+                {
+                    Id = income.Id,
+                    Amount = income.Amount,
+                    Date = income.Date,
+                    Name = income.Name,
+                    Type = TransactionType.Expense
+                }));
+
+            result = result.OrderByDescending(i => i.Date).Take(numberOfTransactions).ToList();
+
+            return AppResponse<ICollection<TransactionResponseDTO>>.Success(result);
+        }
     }
 }

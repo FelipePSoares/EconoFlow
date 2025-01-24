@@ -20,6 +20,5 @@ namespace EasyFinance.Application.Features.IncomeService
         Task<AppResponse<IncomeResponseDTO>> UpdateAsync(Guid incomeId, JsonPatchDocument<IncomeRequestDTO> incomeDto);
         Task<AppResponse> DeleteAsync(Guid incomeId);
         Task<AppResponse> RemoveLinkAsync(User user);
-        Task<AppResponse<ICollection<IncomeResponseDTO>>> GetLatestAsync(Guid projectId, int numberOfTransactions);
     }
 }
