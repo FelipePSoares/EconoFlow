@@ -24,6 +24,7 @@ namespace EasyFinance.Server.Tests.Controllers
             _userStoreMock = new Mock<IUserStore<User>>();
             var emailSenderMock = new Mock<IEmailSender>();
 
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
             _userManagerMock = new Mock<UserManager<User>>(
                 _userStoreMock.Object,
                 null,
@@ -43,6 +44,7 @@ namespace EasyFinance.Server.Tests.Controllers
                 null,
                 null,
                 null);
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
             _controller = new AccountController(
                userManager: _userManagerMock.Object,

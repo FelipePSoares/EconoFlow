@@ -15,7 +15,7 @@ import { AddButtonComponent } from '../../../core/components/add-button/add-butt
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { MatDatepickerModule } from "@angular/material/datepicker";
-import { MatError, MatFormField, MatLabel, MatPrefix, MatSuffix } from "@angular/material/form-field";
+import { MatError, MatFormField, MatLabel, MatSuffix } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
 import { MatButton } from "@angular/material/button";
 import { ApiErrorResponse } from "../../../core/models/error";
@@ -44,7 +44,6 @@ import { CurrencyMaskModule } from 'ng2-currency-mask';
         MatInput,
         MatLabel,
         MatSuffix,
-        MatPrefix,
         MatButton,
         CurrencyMaskModule
     ],

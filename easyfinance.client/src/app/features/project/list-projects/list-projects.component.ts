@@ -6,7 +6,6 @@ import { mapper } from 'src/app/core/utils/mappings/mapper';
 import { Project } from 'src/app/core/models/project';
 import { Router } from '@angular/router';
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -17,7 +16,6 @@ import { faPlus } from '@fortawesome/free-solid-svg-icons';
     imports: [
         CommonModule,
         AsyncPipe,
-        AddButtonComponent,
         MatGridListModule,
         FontAwesomeModule,
     ],

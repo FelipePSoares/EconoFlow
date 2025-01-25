@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
+    <!-- For VS Code/OmniSharp support, ensure that CoreResGen runs before CoreCompile -->
+    <CoreCompileDependsOn>PrepareResources;$(CompileDependsOn)</CoreCompileDependsOn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,9 +17,4 @@
       <PublicClass>true</PublicClass>
     </EmbeddedResource>
   </ItemGroup>
-
-  <!-- For VS Code/OmniSharp support, ensure that CoreResGen runs before CoreCompile -->
-  <PropertyGroup>
-    <CoreCompileDependsOn>PrepareResources;$(CompileDependsOn)</CoreCompileDependsOn>
-  </PropertyGroup>
 </Project>

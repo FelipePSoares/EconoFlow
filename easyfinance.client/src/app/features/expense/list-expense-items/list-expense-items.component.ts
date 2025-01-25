@@ -19,7 +19,6 @@ import {
   MatFormField,
   MatInput,
   MatLabel,
-  MatPrefix,
   MatSuffix
 } from '@angular/material/input';
 import { MatButton } from '@angular/material/button';
@@ -52,7 +51,6 @@ import { CurrencyMaskModule } from 'ng2-currency-mask';
         MatDatepickerInput,
         MatDatepickerToggle,
         MatSuffix,
-        MatPrefix,
         MatButton,
         CurrentDateComponent,
         CurrencyMaskModule

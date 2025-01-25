@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faEnvelopeOpenText } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../../../core/services/auth.service';
@@ -10,7 +10,7 @@ import { passwordMatchValidator } from '../../../core/utils/custom-validators/pa
 
 @Component({
     selector: 'app-recovery',
-    imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink, FontAwesomeModule],
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, FontAwesomeModule],
     templateUrl: './recovery.component.html',
     styleUrl: './recovery.component.css'
 })

@@ -28,6 +28,7 @@ namespace EasyFinance.Application.Tests
 
         public UserServiceTests()
         {
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
             var userStoreMock = new Mock<IUserStore<User>>();
             this.userManagerMock = new Mock<UserManager<User>>(
                 userStoreMock.Object,
@@ -39,6 +40,7 @@ namespace EasyFinance.Application.Tests
                 null,
                 null,
                 null);
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
             this.expenseServiceMock = new Mock<IExpenseService>();
             this.expenseItemServiceMock = new Mock<IExpenseItemService>();

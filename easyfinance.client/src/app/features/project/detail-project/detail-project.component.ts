@@ -1,7 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
-import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CategoryService } from '../../../core/services/category.service';
 import { BehaviorSubject, map, Observable } from 'rxjs';
@@ -35,7 +34,6 @@ import { MatIconModule } from '@angular/material/icon';
     imports: [
         CommonModule,
         CurrentDateComponent,
-        AddButtonComponent,
         ReturnButtonComponent,
         FontAwesomeModule,
         CurrencyFormatPipe,
