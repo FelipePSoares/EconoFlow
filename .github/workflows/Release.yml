@@ -18,11 +18,11 @@ jobs:
       - name: Publish
         run: dotnet publish --configuration Release
 
-    - name: Archive publish files
-      uses: actions/upload-artifact@v4
-      with:
-        name: publish
-        path: ./EasyFinance.Server/bin/Release/net8.0/publish/
+      - name: Archive publish files
+        uses: actions/upload-artifact@v4
+        with:
+          name: publish
+          path: ./EasyFinance.Server/bin/Release/net8.0/publish/
 
       - name: Deploy
         uses: ChristopheLav/iis-deploy@v1
