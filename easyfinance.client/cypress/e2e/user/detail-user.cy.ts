@@ -30,8 +30,8 @@ describe('EconoFlow - user detail Tests', () => {
       lastNameInput.clear().type(lastNameValue);
       emailInput.clear().type(emailValue);
       preferredCurrencyInput.click().get('mat-option').contains(preferredCurrencyValue).click();
-      cy.wait(50);
-      cy.get('button').contains('Confirm').click();
+
+      cy.get('button.btn-danger').contains('Confirm').click();
       cy.get('button').contains('Save').click();
 
       cy.wait<UserReq, UserRes>('@putAccount').then(({ request, response }) => {
