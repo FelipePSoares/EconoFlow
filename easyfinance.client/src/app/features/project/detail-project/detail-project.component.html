@@ -75,7 +75,7 @@
             <div class="d-grid">
               <button class="btn btn-default" (click)="selectCategories()">
                 <span class="float-start"><fa-icon [icon]="faArrowUp" transform="rotate-45" style="color: #c0392b"></fa-icon> Money Out</span>
-                <span class="float-end">-{{ month.spend | currencyFormat }} ></span>
+                <span class="float-end">-{{ month.spend + month.overspend | currencyFormat }} ></span>
               </button>
               <button class="btn btn-default" (click)="selectIncomes()">
                 <span class="float-start"><fa-icon [icon]="faArrowDown" transform="rotate-45" style="color: #2ecc71"></fa-icon> Money In</span>
@@ -121,7 +121,7 @@
             <div class="d-grid">
               <button class="btn btn-default cursor-default">
                 <span class="float-start"><fa-icon [icon]="faArrowUp" transform="rotate-45" style="color: #c0392b"></fa-icon> Money Out</span>
-                <span class="float-end">-{{ year.spend | currencyFormat }}</span>
+                <span class="float-end">-{{ year.spend + year.overspend | currencyFormat }}</span>
               </button>
               <button class="btn btn-default cursor-default">
                 <span class="float-start"><fa-icon [icon]="faArrowDown" transform="rotate-45" style="color: #2ecc71"></fa-icon> Money In</span>
