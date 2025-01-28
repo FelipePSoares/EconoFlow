@@ -2,7 +2,7 @@
   <div class="row justify-content-center">
     <div class="wrap col-lg-8">
       @if (isEmailUpdated){
-      <div class="text-center">
+      <div class="text-center" style="margin-top: 40px;">
         <fa-icon class="fa-4x" [icon]="faEnvelopeOpenText"></fa-icon>
         <h3>Check your email</h3>
         <p>We have sent a confirmation to your email.</p>
@@ -166,4 +166,4 @@
     </div>
   </div>
 </div>
-<app-confirm-dialog (confirmed)="confirmDeletion($event)"></app-confirm-dialog>
+<app-confirm-dialog (confirmed)="confirm($event)"></app-confirm-dialog>

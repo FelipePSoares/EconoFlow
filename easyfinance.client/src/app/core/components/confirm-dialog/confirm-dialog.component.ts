@@ -30,12 +30,12 @@ export class ConfirmDialogComponent {
     this.modalInstance.show();
   }
 
-  confirmDelete(): void {
+  confirm(): void {
     this.confirmed.emit(true); 
     this.modalInstance.hide();
   }
 
-  cancelDelete(): void {
+  cancel(): void {
     this.confirmed.emit(false);
     this.modalInstance.hide();
   }

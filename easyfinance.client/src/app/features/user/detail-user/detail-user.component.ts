@@ -3,7 +3,7 @@ import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModu
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faCheck, faCircleCheck, faCircleXmark, faFloppyDisk, faPenToSquare, faEnvelopeOpenText } from '@fortawesome/free-solid-svg-icons';
 import { UserService } from '../../../core/services/user.service';
-import { Observable } from 'rxjs';
+import { Observable, pairwise, startWith } from 'rxjs';
 import { DeleteUser, User } from '../../../core/models/user';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { ApiErrorResponse } from '../../../core/models/error';
@@ -39,36 +39,51 @@ import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/
     styleUrl: './detail-user.component.css'
 })
 export class DetailUserComponent implements OnInit {
+  // Private Properties
   private deleteToken!: string;
+  private lastDialogCalled!: string;
+  private oldValue!: string;
 
+  // ViewChild
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
+
+  // Observables & Forms
   user$: Observable<User>;
+  userForm!: FormGroup;
+  passwordForm!: FormGroup;
+
+  // User & Validation State
   editingUser!: User;
-  isEmailUpdated: boolean = false;
-  isPasswordUpdated: boolean = false;
-  passwordFormActive: boolean = false;
-  
-  isModalOpen: boolean = false; 
+  isEmailUpdated = false;
+  isPasswordUpdated = false;
+  isModalOpen = false;
+  hide = true;
+
+  // Password Validation Flags
+  hasLowerCase = false;
+  hasUpperCase = false;
+  hasOneNumber = false;
+  hasOneSpecial = false;
+  hasMinCharacteres = false;
+
+  // Error Handling
+  httpErrors = false;
+  errors!: { [key: string]: string };
+
+  // Icons
   faCheck = faCheck;
   faCircleCheck = faCircleCheck;
   faCircleXmark = faCircleXmark;
   faFloppyDisk = faFloppyDisk;
   faPenToSquare = faPenToSquare;
   faEnvelopeOpenText = faEnvelopeOpenText;
-  
-  passwordForm!: FormGroup;
-  userForm!: FormGroup;
-  httpErrors = false;
-  errors!: { [key: string]: string };
-  hide = true;
 
-  hasLowerCase = false;
-  hasUpperCase = false;
-  hasOneNumber = false;
-  hasOneSpecial = false;
-  hasMinCharacteres = false;
- 
-  constructor(private userService: UserService,  private router:Router, private currencyService: CurrencyService, private errorMessageService: ErrorMessageService) {
+  constructor(
+    private userService: UserService,
+    private router: Router,
+    private currencyService: CurrencyService,
+    private errorMessageService: ErrorMessageService
+  ) {
     this.user$ = this.userService.loggedUser$;
   }
 
@@ -77,6 +92,7 @@ export class DetailUserComponent implements OnInit {
     this.resetPasswordForm();
   }
 
+  /** User Form Initialization **/
   reset() {
     this.user$.subscribe(user => {
       this.userForm = new FormGroup({
@@ -86,12 +102,17 @@ export class DetailUserComponent implements OnInit {
         email: new FormControl(user.email, [Validators.required, Validators.email]),
       });
 
+      this.preferredCurrency!.valueChanges
+        .pipe(
+          startWith(user.preferredCurrency),
+          pairwise()
+        )
+        .subscribe(([oldValue, newValue]) => this.openChangeCurrencyDialog(oldValue, newValue));
       this.editingUser = user;
     });
   }
 
   resetPasswordForm() {
-    this.passwordFormActive = false;
     this.passwordForm = new FormGroup({
       oldPassword: new FormControl('', []),
       password: new FormControl('', [
@@ -109,8 +130,16 @@ export class DetailUserComponent implements OnInit {
       this.hasMinCharacteres = /^.{8,}$/.test(value.password);
     });
   }
-  
+
+  confirmCurrencyChange(result: boolean) {
+    if (!result) {
+      this.preferredCurrency?.setValue(this.oldValue, { emitEvent: false });
+    }
+  }
+
+  /** Deletion Handling **/
   openDeleteDialog(): void {
+    this.lastDialogCalled = 'deletion';
     this.userService.deleteUser().subscribe({
       next: (response: DeleteUser) => {
         if (response?.confirmationToken) {
@@ -132,61 +161,30 @@ export class DetailUserComponent implements OnInit {
     }
   }
 
-  get firstName() {
-    return this.userForm.get('firstName');
-  }
-  get lastName() {
-    return this.userForm.get('lastName');
-  }
-  get preferredCurrency() {
-    return this.userForm.get('preferredCurrency');
-  }
-  get email() {
-    return this.userForm.get('email');
-  }
+  /** Getters for Form Controls **/
+  get firstName() { return this.userForm.get('firstName'); }
+  get lastName() { return this.userForm.get('lastName'); }
+  get preferredCurrency() { return this.userForm.get('preferredCurrency'); }
+  get email() { return this.userForm.get('email'); }
+  get oldPassword() { return this.passwordForm.get('oldPassword'); }
+  get password() { return this.passwordForm.get('password'); }
+  get confirmPassword() { return this.passwordForm.get('confirmPassword'); }
 
-  get oldPassword() {
-    return this.passwordForm.get('oldPassword');
-  }
-  get password() {
-    return this.passwordForm.get('password');
-  }
-  get confirmPassword() {
-    return this.passwordForm.get('confirmPassword');
-  }
-
+  /** Save User Information **/
   save() {
     if (this.userForm.valid) {
-      const firstName = this.firstName?.value;
-      const lastName = this.lastName?.value;
-      const email = this.email?.value;
-      const preferredCurrency = this.preferredCurrency?.value;
+      const { firstName, lastName, email, preferredCurrency } = this.userForm.value;
 
       if (firstName !== this.editingUser.firstName || lastName !== this.editingUser.lastName || preferredCurrency !== this.editingUser.preferredCurrency) {
         this.userService.setUserInfo(firstName, lastName, preferredCurrency).subscribe({
-          next: response => { },
-          error: (response: ApiErrorResponse) => {
-            this.userForm.enable();
-            this.httpErrors = true;
-            this.errors = response.errors;
-
-            this.errorMessageService.setFormErrors(this.userForm, this.errors);
-          }
+          error: (response: ApiErrorResponse) => this.handleError(response, this.userForm)
         });
       }
 
       if (email !== this.editingUser.email) {
         this.userService.manageInfo(email).subscribe({
-          next: response => {
-            this.isEmailUpdated = true;
-          },
-          error: (response: ApiErrorResponse) => {
-            this.userForm.enable();
-            this.httpErrors = true;
-            this.errors = response.errors;
-
-            this.errorMessageService.setFormErrors(this.userForm, this.errors);
-          }
+          next: () => this.isEmailUpdated = true,
+          error: (response: ApiErrorResponse) => this.handleError(response, this.userForm)
         });
       }
     }
@@ -194,61 +192,55 @@ export class DetailUserComponent implements OnInit {
 
   savePassword() {
     if (this.passwordForm.valid && this.passwordForm.dirty && (this.passwordForm.value.password !== '' || this.passwordForm.value.confirmPassword !== '' || this.passwordForm.value.oldPassword !== '') && this.passwordForm.value.password === this.passwordForm.value.confirmPassword) {
-      const oldPassword = this.oldPassword?.value;
-      const password = this.password?.value;
-
+      const { oldPassword, password } = this.passwordForm.value;
       this.passwordForm.disable();
 
       this.userService.manageInfo(undefined, password, oldPassword).subscribe({
-        next: response => {
-          this.isPasswordUpdated = true;
-          this.passwordFormActive = false;
-        },
-        error: (response: ApiErrorResponse) => {
-          this.passwordForm.enable();
-          this.httpErrors = true;
-          this.errors = response.errors;
-
-          this.errorMessageService.setFormErrors(this.passwordForm, this.errors);
-        }
+        next: response => this.isPasswordUpdated = true,
+        error: (response: ApiErrorResponse) => this.handleError(response, this.passwordForm)
       });
 
     }
   }
 
+  /** Error Handling **/
+  private handleError(response: ApiErrorResponse, form: FormGroup): void {
+    form.enable();
+    this.httpErrors = true;
+    this.errors = response.errors;
+    this.errorMessageService.setFormErrors(form, this.errors);
+  }
+
   getFormFieldErrors(form: FormGroup<any>, fieldName: string): string[] {
     const control = form.get(fieldName);
-    const errors: string[] = [];
+    if (!control?.errors) return [];
 
-    if (control && control.errors) {
-      for (const key in control.errors) {
-        if (control.errors.hasOwnProperty(key)) {
-          switch (key) {
-            case 'required':
-              errors.push('This field is required.');
-              break;
-            case 'email':
-              errors.push('Invalid email format.');
-              break;
-            case 'pattern':
-              errors.push('');
-              break;
-            default:
-              errors.push(control.errors[key]);
-          }
-        }
+    return Object.keys(control.errors).map(key => {
+      switch (key) {
+        case 'required': return 'This field is required.';
+        case 'email': return 'Invalid email format.';
+        case 'pattern': return '';
+        default: return control.errors ? control.errors[key] : 'an error occurred';
       }
-    }
-
-    return errors;
+    });
   }
 
-  showPasswordForm(): void {
-    this.resetPasswordForm();
-    this.passwordFormActive = true;
-  }
-
+  /** UI Actions **/
   getCurrencies(): string[] {
     return this.currencyService.getAvailableCurrencies();
+  }
+
+  openChangeCurrencyDialog(oldValue: string, newValue: string) {
+    this.lastDialogCalled = 'currency';
+    this.oldValue = oldValue;
+    this.ConfirmDialog.openModal('Confirm', 'The values ​​will not be changed, only the currency symbol displayed on the screens will be changed.', 'Confirm');
+  }
+
+  confirm(result: boolean): void {
+    if (this.lastDialogCalled == 'currency') {
+      this.confirmCurrencyChange(result);
+    } else if (this.lastDialogCalled == 'deletion') {
+      this.confirmDeletion(result);
+    }
   }
 }
