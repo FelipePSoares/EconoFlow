@@ -31,6 +31,7 @@ describe('EconoFlow - user detail Tests', () => {
       emailInput.clear().type(emailValue);
       preferredCurrencyInput.click().get('mat-option').contains(preferredCurrencyValue).click();
       cy.get('#confirmationModal').should('have.class', 'show');
+      cy.wait(150); // wait for show animation.
       cy.get('button').contains('Confirm').click();
       cy.get('button').contains('Save').click();
 
