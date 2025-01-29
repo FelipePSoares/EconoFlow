@@ -1,4 +1,5 @@
 ﻿using EasyFinance.Application.DTOs.AccessControl;
+using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Application.Features.UserService;
 using EasyFinance.Common.Tests.AccessControl;
 using EasyFinance.Domain.AccessControl;
@@ -17,6 +18,7 @@ namespace EasyFinance.Server.Tests.Controllers
     {
         private readonly Mock<IUserStore<User>> _userStoreMock;
         private readonly Mock<UserManager<User>> _userManagerMock;
+        private readonly Mock<IProjectService> projectServiceMock;
         private readonly AccountController _controller;
 
         public AccountControllerTests()
@@ -46,11 +48,14 @@ namespace EasyFinance.Server.Tests.Controllers
                 null);
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
+            this.projectServiceMock = new Mock<IProjectService>();
+
             _controller = new AccountController(
                userManager: _userManagerMock.Object,
                signInManager: signInManagerMock.Object,
                emailSender: emailSenderMock.Object,
-               userService: Mock.Of<IUserService>()
+               userService: Mock.Of<IUserService>(),
+               projectService: this.projectServiceMock.Object
                );
         }
 

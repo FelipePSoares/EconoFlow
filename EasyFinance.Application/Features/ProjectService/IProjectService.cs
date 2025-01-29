@@ -14,7 +14,7 @@ namespace EasyFinance.Application.Features.ProjectService
     {
         AppResponse<ICollection<ProjectResponseDTO>> GetAll(Guid userId);
 
-        AppResponse<ProjectResponseDTO> GetById(Guid id);
+        Task<AppResponse<ProjectResponseDTO>> GetByIdAsync(Guid id);
 
         Task<AppResponse<ProjectResponseDTO>> CreateAsync(User user, Project project);
 

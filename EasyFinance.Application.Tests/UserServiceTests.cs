@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
 using System.Text;
+using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.Features.ExpenseItemService;
 using EasyFinance.Application.Features.ExpenseService;
 using EasyFinance.Application.Features.IncomeService;
@@ -24,6 +25,7 @@ namespace EasyFinance.Application.Tests
         private readonly Mock<IExpenseItemService> expenseItemServiceMock;
         private readonly Mock<IIncomeService> incomeServiceMock;
         private readonly Mock<IProjectService> projectServiceMock;
+        private readonly Mock<IUnitOfWork> unitOfWorkMock;
         private readonly UserService userService;
 
         public UserServiceTests()
@@ -46,13 +48,15 @@ namespace EasyFinance.Application.Tests
             this.expenseItemServiceMock = new Mock<IExpenseItemService>();
             this.incomeServiceMock = new Mock<IIncomeService>();
             this.projectServiceMock = new Mock<IProjectService>();
+            this.unitOfWorkMock = new Mock<IUnitOfWork>();
 
             this.userService = new UserService(
                 this.userManagerMock.Object,
                 this.expenseServiceMock.Object,
                 this.expenseItemServiceMock.Object,
                 this.incomeServiceMock.Object,
-                this.projectServiceMock.Object
+                this.projectServiceMock.Object,
+                this.unitOfWorkMock.Object
                 );
         }
         
