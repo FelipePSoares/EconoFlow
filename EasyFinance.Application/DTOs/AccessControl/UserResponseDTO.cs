@@ -24,7 +24,7 @@ namespace EasyFinance.Application.DTOs.AccessControl
                 IsFirstLogin = user.HasIncompletedInformation;
                 EmailConfirmed = user.EmailConfirmed;
                 TwoFactorEnabled = user.TwoFactorEnabled;
-                DefaultProject = user.DefaultProject.ToDTO();
+                DefaultProject = user.DefaultProject != null ? user.DefaultProject.ToDTO() : new ProjectResponseDTO();
             }
         }
 
