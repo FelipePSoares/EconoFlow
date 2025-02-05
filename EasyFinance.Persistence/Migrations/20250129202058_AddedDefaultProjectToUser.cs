@@ -29,7 +29,7 @@ namespace EasyFinance.Persistence.Migrations
                 principalTable: "Projects",
                 principalColumn: "Id");
 
-            migrationBuilder.Sql("UPDATE AspNetUsers SET DefaultProjectId SELECT ProjectId FROM UserProjects WHERE UserProjects.UserId = AspNetUsers.id");
+            migrationBuilder.Sql("UPDATE AspNetUsers SET AspNetUsers.DefaultProjectId = Min(UserProjects.ProjectId) FROM UserProjects WHERE UserProjects.UserId = AspNetUsers.id");
         }
 
         /// <inheritdoc />
