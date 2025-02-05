@@ -17,7 +17,7 @@ namespace EasyFinance.Common.Tests.AccessControl
             this.userProject = new UserProject(user, project, Role.Admin);
         }
 
-        public UserProjectBuilder AddUser(User user, string email = null)
+        public UserProjectBuilder AddUser(User user, string email = "")
         {
             this.userProject.SetUser(user, email);
             return this;

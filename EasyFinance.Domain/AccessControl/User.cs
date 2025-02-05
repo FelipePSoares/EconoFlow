@@ -5,6 +5,7 @@ using EasyFinance.Infrastructure.Validators;
 using Microsoft.AspNetCore.Identity;
 using System.Net.Mail;
 using EasyFinance.Domain.FinancialProject;
+using EasyFinance.Infrastructure.DTOs;
 
 namespace EasyFinance.Domain.AccessControl
 {
@@ -67,9 +68,14 @@ namespace EasyFinance.Domain.AccessControl
                 throw new ValidationException(nameof(TimeZoneId), ValidationMessages.InvalidTimeZone);
         }
 
-        public void SetProject(Project project)
+        public AppResponse SetDefaultProject(Project project)
         {
-            this.DefaultProject = project ?? throw new ValidationException(nameof(this.DefaultProject), string.Format(ValidationMessages.PropertyCantBeNull, nameof(this.DefaultProject)));
+            if (project == default)
+                return AppResponse.Error(nameof(project), string.Format(ValidationMessages.PropertyCantBeNull, nameof(this.DefaultProject)));
+
+            this.DefaultProject = project;
+
+            return AppResponse.Success();
         }
     }
 }

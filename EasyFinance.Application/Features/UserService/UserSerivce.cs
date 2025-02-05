@@ -121,9 +121,17 @@ namespace EasyFinance.Application.Features.UserService
 
         public async Task<AppResponse> SetDefaultProjectAsync(User user, Guid defaultProjectId)
         {
-            var project = await unitOfWork.ProjectRepository.Trackable().FirstOrDefaultAsync(up => up.Id == defaultProjectId);
+            var project = await unitOfWork.UserProjectRepository.Trackable()
+                .Include(up => up.User)
+                .Include(up => up.Project)
+                .Where(up => up.User.Id == user.Id)
+                .Select(up => up.Project)
+                .FirstOrDefaultAsync(up => up.Id == defaultProjectId);
 
-            user.SetProject(project);
+            var result = user.SetDefaultProject(project);
+
+            if (!result.Succeeded)
+                return AppResponse.Error(nameof(defaultProjectId), ValidationMessages.ProjectNotFoundOrInsufficientUserPermissions);
 
             await this.userManager.UpdateAsync(user);
 

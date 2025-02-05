@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Shouldly;
 
-
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
 namespace EasyFinance.Server.Tests.Controllers
 {
     public class AccountControllerTests
@@ -62,7 +62,7 @@ namespace EasyFinance.Server.Tests.Controllers
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void SearchUsers_SendNullAndEmpty_ShouldReturnEmptyList(string searchTerm)
+        public void SearchUsers_SendNullAndEmpty_ShouldReturnEmptyList(string? searchTerm)
         {
             // Act
             var result = _controller.SearchUsers(searchTerm);
@@ -180,3 +180,4 @@ namespace EasyFinance.Server.Tests.Controllers
         }
     }
 }
+#pragma warning restore CS8602 // Dereference of a possibly null reference.

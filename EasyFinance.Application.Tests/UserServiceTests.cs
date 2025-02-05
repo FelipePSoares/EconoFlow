@@ -9,12 +9,14 @@ using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Application.Features.UserService;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
+using MockQueryable;
 
 namespace EasyFinance.Application.Tests
 {
@@ -60,6 +62,101 @@ namespace EasyFinance.Application.Tests
                 );
         }
         
+        [Fact]
+        public async Task SetDefaultProjectAsync_InexistentProjectId_ShouldReturnError()
+        {
+            // Arrange
+            var user = new User(){
+                Id = Guid.NewGuid()
+            };
+
+            var projectId = Guid.NewGuid();
+
+            var userProjects = new List<UserProject>()
+            {
+                new UserProject(user, new Project(Guid.NewGuid()))
+            }.BuildMock();
+
+            var userProjectRepository = new Mock<IGenericRepository<UserProject>>();
+
+            userProjectRepository.Setup(repository => repository.Trackable())
+                .Returns(userProjects);
+
+            this.unitOfWorkMock.Setup(unitOfWork => unitOfWork.UserProjectRepository)
+                .Returns(userProjectRepository.Object);
+
+            // Act
+            var result = await this.userService.SetDefaultProjectAsync(user, projectId);
+
+            // Assert
+            result.Succeeded.Should().BeFalse();
+            result.Messages.Should().HaveCount(1);
+            result.Messages.Should().ContainEquivalentOf(new AppMessage("defaultProjectId", ValidationMessages.ProjectNotFoundOrInsufficientUserPermissions));
+        }
+        
+        [Fact]
+        public async Task SetDefaultProjectAsync_UserDontHavePermission_ShouldReturnError()
+        {
+            // Arrange
+            var user = new User(){
+                Id = Guid.NewGuid()
+            };
+
+            var projectId = Guid.NewGuid();
+
+            var userProjects = new List<UserProject>()
+            {
+                new UserProject(new User(), new Project(projectId)),
+                new UserProject(user, new Project(Guid.NewGuid()))
+            }.BuildMock();
+
+            var userProjectRepository = new Mock<IGenericRepository<UserProject>>();
+
+            userProjectRepository.Setup(repository => repository.Trackable())
+                .Returns(userProjects);
+
+            this.unitOfWorkMock.Setup(unitOfWork => unitOfWork.UserProjectRepository)
+                .Returns(userProjectRepository.Object);
+
+            // Act
+            var result = await this.userService.SetDefaultProjectAsync(user, projectId);
+
+            // Assert
+            result.Succeeded.Should().BeFalse();
+            result.Messages.Should().HaveCount(1);
+            result.Messages.Should().ContainEquivalentOf(new AppMessage("defaultProjectId", ValidationMessages.ProjectNotFoundOrInsufficientUserPermissions));
+        }
+        
+        [Fact]
+        public async Task SetDefaultProjectAsync_ProjectExistsAndUserHasPermission_ShouldReturnSuccess()
+        {
+            // Arrange
+            var user = new User(){
+                Id = Guid.NewGuid()
+            };
+
+            var projectId = Guid.NewGuid();
+
+            var userProjects = new List<UserProject>()
+            {
+                new UserProject(user, new Project(projectId))
+            }.BuildMock();
+
+            var userProjectRepository = new Mock<IGenericRepository<UserProject>>();
+
+            userProjectRepository.Setup(repository => repository.Trackable())
+                .Returns(userProjects);
+
+            this.unitOfWorkMock.Setup(unitOfWork => unitOfWork.UserProjectRepository)
+                .Returns(userProjectRepository.Object);
+
+            // Act
+            var result = await this.userService.SetDefaultProjectAsync(user, projectId);
+
+            // Assert
+            result.Succeeded.Should().BeTrue();
+        }
+
         [Fact]
         public void GenerateDeleteToken_ValidUser_ShouldReturnValidToken()
         {
