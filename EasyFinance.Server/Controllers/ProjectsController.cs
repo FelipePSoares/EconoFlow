@@ -41,9 +41,9 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpGet("{projectId}")]
-        public IActionResult GetProjectById(Guid projectId)
+        public async Task<IActionResult> GetProjectByIdAsync(Guid projectId)
         {
-            var project = projectService.GetById(projectId);
+            var project = await projectService.GetByIdAsync(projectId);
             if (project == null) return NotFound();
 
             return ValidateResponse(project, HttpStatusCode.OK);
@@ -85,7 +85,7 @@ namespace EasyFinance.Server.Controllers
 
             var createdProject = await projectService.CreateAsync(user, projectDto.FromDTO());
 
-            return ValidateResponse(actionName: nameof(GetProjectById), routeValues: new { projectId = createdProject.Data.Id }, appResponse: createdProject);
+            return ValidateResponse(actionName: nameof(GetProjectByIdAsync), routeValues: new { projectId = createdProject.Data.Id }, appResponse: createdProject);
         }
 
         [HttpPatch("{projectId}")]

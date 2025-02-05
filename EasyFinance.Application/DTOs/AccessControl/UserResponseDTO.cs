@@ -1,4 +1,6 @@
-﻿using EasyFinance.Domain.AccessControl;
+﻿using EasyFinance.Application.DTOs.FinancialProject;
+using EasyFinance.Application.Mappers;
+using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure.Validators;
 using System;
 
@@ -22,6 +24,7 @@ namespace EasyFinance.Application.DTOs.AccessControl
                 IsFirstLogin = user.HasIncompletedInformation;
                 EmailConfirmed = user.EmailConfirmed;
                 TwoFactorEnabled = user.TwoFactorEnabled;
+                DefaultProject = user.DefaultProject != null ? user.DefaultProject.ToDTO() : new ProjectResponseDTO();
             }
         }
 
@@ -35,5 +38,6 @@ namespace EasyFinance.Application.DTOs.AccessControl
         public bool IsFirstLogin { get; set; }
         public bool EmailConfirmed { get; set; }
         public bool TwoFactorEnabled { get; set; }
+        public ProjectResponseDTO DefaultProject {  get; set; } = new ProjectResponseDTO();
     }
 }

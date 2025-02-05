@@ -5,13 +5,16 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.Features.ExpenseItemService;
 using EasyFinance.Application.Features.ExpenseService;
 using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure;
+using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 namespace EasyFinance.Application.Features.UserService
@@ -23,19 +26,22 @@ namespace EasyFinance.Application.Features.UserService
         private readonly IExpenseItemService expenseItemService;
         private readonly IIncomeService incomeService;
         private readonly IProjectService projectService;
+        private readonly IUnitOfWork unitOfWork;
 
         public UserService(
             UserManager<User> userManager,
             IExpenseService expenseService,
             IExpenseItemService expenseItemService,
             IIncomeService incomeService,
-            IProjectService projectService
+            IProjectService projectService,
+            IUnitOfWork unitOfWork
         ){
             this.userManager = userManager;
             this.expenseService = expenseService;
             this.expenseItemService = expenseItemService;
             this.incomeService = incomeService;
             this.projectService = projectService;
+            this.unitOfWork = unitOfWork;
         }
 
         public async Task<string> GenerateConfirmationMessageAsync(User user)
@@ -111,6 +117,25 @@ namespace EasyFinance.Application.Features.UserService
             await Task.WhenAll(tasks);
 
             await this.userManager.DeleteAsync(user);
+        }
+
+        public async Task<AppResponse> SetDefaultProjectAsync(User user, Guid defaultProjectId)
+        {
+            var project = await unitOfWork.UserProjectRepository.Trackable()
+                .Include(up => up.User)
+                .Include(up => up.Project)
+                .Where(up => up.User.Id == user.Id)
+                .Select(up => up.Project)
+                .FirstOrDefaultAsync(up => up.Id == defaultProjectId);
+
+            var result = user.SetDefaultProject(project);
+
+            if (!result.Succeeded)
+                return AppResponse.Error(nameof(defaultProjectId), ValidationMessages.ProjectNotFoundOrInsufficientUserPermissions);
+
+            await this.userManager.UpdateAsync(user);
+
+            return AppResponse.Success();
         }
     }
 }

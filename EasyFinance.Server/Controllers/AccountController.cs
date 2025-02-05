@@ -1,11 +1,14 @@
 ﻿using EasyFinance.Application.DTOs.AccessControl;
+using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Application.Features.UserService;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure;
+using EasyFinance.Infrastructure.DTOs;
 using EasyFinance.Infrastructure.Exceptions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 
@@ -15,7 +18,7 @@ namespace EasyFinance.Server.Controllers
     [ApiController]
     [Tags("AccessControl")]
     [Route("api/[controller]")]
-    public class AccountController : Controller
+    public class AccountController : BaseController
     {
         private readonly UserManager<User> userManager;
         private readonly SignInManager<User> signInManager;
@@ -26,7 +29,8 @@ namespace EasyFinance.Server.Controllers
             UserManager<User> userManager,
             SignInManager<User> signInManager,
             IEmailSender emailSender,
-            IUserService userService
+            IUserService userService,
+            IProjectService projectService
             )
         {
             this.userManager = userManager;
@@ -69,6 +73,20 @@ namespace EasyFinance.Server.Controllers
             await this.signInManager.RefreshSignInAsync(user);
 
             return Ok(new UserResponseDTO(user));
+        }
+
+        [HttpPut("default-project/{defaultProjectId}")]
+        public async Task<IActionResult> SetDefaultProject(Guid defaultProjectId)
+        {
+            var id = this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier);
+            var user = await this.userManager.FindByIdAsync(id.Value);
+
+            if (user == null)
+                BadRequest("User not found!");
+
+            var result = await this.userService.SetDefaultProjectAsync(user, defaultProjectId);
+
+            return ValidateResponse(result, HttpStatusCode.OK);
         }
 
         [HttpDelete]

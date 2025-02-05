@@ -34,9 +34,9 @@ namespace EasyFinance.Application.Features.ProjectService
             return AppResponse<ICollection<ProjectResponseDTO>>.Success(result);
         }
 
-        public AppResponse<ProjectResponseDTO> GetById(Guid id)
+        public async Task<AppResponse<ProjectResponseDTO>> GetByIdAsync(Guid id)
         {
-            var result = unitOfWork.ProjectRepository.Trackable().FirstOrDefault(up => up.Id == id);
+            var result = await unitOfWork.ProjectRepository.Trackable().FirstOrDefaultAsync(up => up.Id == id);
             return AppResponse<ProjectResponseDTO>.Success(result.ToDTO());
         }
 

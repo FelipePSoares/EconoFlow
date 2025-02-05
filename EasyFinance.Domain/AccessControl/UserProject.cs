@@ -30,7 +30,7 @@ namespace EasyFinance.Domain.AccessControl
         public DateTime? AcceptedAt { get; private set; }
         public DateTime ExpiryDate { get; private set; } = DateTime.UtcNow.AddDays(7);
 
-        public void SetUser(User user, string email = default)
+        public void SetUser(User user, string email = "")
         {
             if (user == default && string.IsNullOrEmpty(email))
                 throw new ValidationException(nameof(User), ValidationMessages.EitherUserOrEmailMustBeProvided);

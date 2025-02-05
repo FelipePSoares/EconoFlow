@@ -2,18 +2,21 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
 using System.Text;
+using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.Features.ExpenseItemService;
 using EasyFinance.Application.Features.ExpenseService;
 using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Application.Features.UserService;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
+using MockQueryable;
 
 namespace EasyFinance.Application.Tests
 {
@@ -24,6 +27,7 @@ namespace EasyFinance.Application.Tests
         private readonly Mock<IExpenseItemService> expenseItemServiceMock;
         private readonly Mock<IIncomeService> incomeServiceMock;
         private readonly Mock<IProjectService> projectServiceMock;
+        private readonly Mock<IUnitOfWork> unitOfWorkMock;
         private readonly UserService userService;
 
         public UserServiceTests()
@@ -46,16 +50,113 @@ namespace EasyFinance.Application.Tests
             this.expenseItemServiceMock = new Mock<IExpenseItemService>();
             this.incomeServiceMock = new Mock<IIncomeService>();
             this.projectServiceMock = new Mock<IProjectService>();
+            this.unitOfWorkMock = new Mock<IUnitOfWork>();
 
             this.userService = new UserService(
                 this.userManagerMock.Object,
                 this.expenseServiceMock.Object,
                 this.expenseItemServiceMock.Object,
                 this.incomeServiceMock.Object,
-                this.projectServiceMock.Object
+                this.projectServiceMock.Object,
+                this.unitOfWorkMock.Object
                 );
         }
         
+        [Fact]
+        public async Task SetDefaultProjectAsync_InexistentProjectId_ShouldReturnError()
+        {
+            // Arrange
+            var user = new User(){
+                Id = Guid.NewGuid()
+            };
+
+            var projectId = Guid.NewGuid();
+
+            var userProjects = new List<UserProject>()
+            {
+                new UserProject(user, new Project(Guid.NewGuid()))
+            }.BuildMock();
+
+            var userProjectRepository = new Mock<IGenericRepository<UserProject>>();
+
+            userProjectRepository.Setup(repository => repository.Trackable())
+                .Returns(userProjects);
+
+            this.unitOfWorkMock.Setup(unitOfWork => unitOfWork.UserProjectRepository)
+                .Returns(userProjectRepository.Object);
+
+            // Act
+            var result = await this.userService.SetDefaultProjectAsync(user, projectId);
+
+            // Assert
+            result.Succeeded.Should().BeFalse();
+            result.Messages.Should().HaveCount(1);
+            result.Messages.Should().ContainEquivalentOf(new AppMessage("defaultProjectId", ValidationMessages.ProjectNotFoundOrInsufficientUserPermissions));
+        }
+        
+        [Fact]
+        public async Task SetDefaultProjectAsync_UserDontHavePermission_ShouldReturnError()
+        {
+            // Arrange
+            var user = new User(){
+                Id = Guid.NewGuid()
+            };
+
+            var projectId = Guid.NewGuid();
+
+            var userProjects = new List<UserProject>()
+            {
+                new UserProject(new User(), new Project(projectId)),
+                new UserProject(user, new Project(Guid.NewGuid()))
+            }.BuildMock();
+
+            var userProjectRepository = new Mock<IGenericRepository<UserProject>>();
+
+            userProjectRepository.Setup(repository => repository.Trackable())
+                .Returns(userProjects);
+
+            this.unitOfWorkMock.Setup(unitOfWork => unitOfWork.UserProjectRepository)
+                .Returns(userProjectRepository.Object);
+
+            // Act
+            var result = await this.userService.SetDefaultProjectAsync(user, projectId);
+
+            // Assert
+            result.Succeeded.Should().BeFalse();
+            result.Messages.Should().HaveCount(1);
+            result.Messages.Should().ContainEquivalentOf(new AppMessage("defaultProjectId", ValidationMessages.ProjectNotFoundOrInsufficientUserPermissions));
+        }
+        
+        [Fact]
+        public async Task SetDefaultProjectAsync_ProjectExistsAndUserHasPermission_ShouldReturnSuccess()
+        {
+            // Arrange
+            var user = new User(){
+                Id = Guid.NewGuid()
+            };
+
+            var projectId = Guid.NewGuid();
+
+            var userProjects = new List<UserProject>()
+            {
+                new UserProject(user, new Project(projectId))
+            }.BuildMock();
+
+            var userProjectRepository = new Mock<IGenericRepository<UserProject>>();
+
+            userProjectRepository.Setup(repository => repository.Trackable())
+                .Returns(userProjects);
+
+            this.unitOfWorkMock.Setup(unitOfWork => unitOfWork.UserProjectRepository)
+                .Returns(userProjectRepository.Object);
+
+            // Act
+            var result = await this.userService.SetDefaultProjectAsync(user, projectId);
+
+            // Assert
+            result.Succeeded.Should().BeTrue();
+        }
+
         [Fact]
         public void GenerateDeleteToken_ValidUser_ShouldReturnValidToken()
         {
