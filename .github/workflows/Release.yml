@@ -23,6 +23,7 @@ jobs:
         with:
           name: publish
           path: ./EasyFinance.Server/bin/Release/net8.0/publish/
+          retention-days: 5
 
       - name: Deploy
         uses: ChristopheLav/iis-deploy@v1
