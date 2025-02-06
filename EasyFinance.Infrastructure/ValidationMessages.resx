@@ -153,9 +153,6 @@
   <data name="InvalidCurrencyCode" xml:space="preserve">
     <value>Invalid currency code</value>
   </data>
-  <data name="InvalidTimeZone" xml:space="preserve">
-    <value>Invalid time zone</value>
-  </data>
   <data name="WarningMessageToUserWhoWantsToDeleteAccount" xml:space="preserve">
     <value>This action is permanent and cannot be undone. Are you sure you want to delete your account?</value>
   </data>

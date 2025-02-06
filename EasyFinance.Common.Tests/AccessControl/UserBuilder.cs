@@ -18,7 +18,6 @@ namespace EasyFinance.Common.Tests.AccessControl
             this.AddEmail(fixture.Create<MailAddress>().Address);
             this.AddPreferredCurrency("EUR");
             this.AddEnabled(true);
-            this.AddTimezone("UTC");
         }
 
         public UserBuilder AddFirstName(string firstName)
@@ -42,12 +41,6 @@ namespace EasyFinance.Common.Tests.AccessControl
         public UserBuilder AddPreferredCurrency(string preferredCurrency)
         {
             this.user.SetPreferredCurrency(preferredCurrency);
-            return this;
-        }
-
-        public UserBuilder AddTimezone(string timezoneId)
-        {
-            this.user.SetTimezone(timezoneId);
             return this;
         }
 

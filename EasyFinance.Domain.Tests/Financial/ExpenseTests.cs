@@ -1,7 +1,6 @@
 ﻿using EasyFinance.Common.Tests.Financial;
 using EasyFinance.Domain.Financial;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.DTOs;
 using EasyFinance.Infrastructure.Exceptions;
 using FluentAssertions;
 
@@ -42,7 +41,7 @@ namespace EasyFinance.Domain.Tests.Financial
 
         [Theory]
         [MemberData(nameof(OlderDates))]
-        public void AddDate_SendTooOldDate_ShouldThrowException(DateTime date)
+        public void AddDate_SendTooOldDate_ShouldThrowException(DateOnly date)
         {
             var action = () => new ExpenseBuilder().AddDate(date).Build();
 
@@ -53,7 +52,7 @@ namespace EasyFinance.Domain.Tests.Financial
 
         [Theory]
         [MemberData(nameof(FutureDates))]
-        public void AddDate_SendFutureDate_ShouldThrowException(DateTime date)
+        public void AddDate_SendFutureDate_ShouldThrowException(DateOnly date)
         {
             var action = () => new ExpenseBuilder().AddAmount(1).AddDate(date).Build();
 
@@ -128,7 +127,7 @@ namespace EasyFinance.Domain.Tests.Financial
 
         [Theory]
         [MemberData(nameof(DifferentDateBetweenExpenseAndExpenseItem))]
-        public void AddItem_DifferentYearOrMonthFromExpense_ShouldThrowException(DateTime expenseDate, DateTime expenseItemDate)
+        public void AddItem_DifferentYearOrMonthFromExpense_ShouldThrowException(DateOnly expenseDate, DateOnly expenseItemDate)
         {
             var item = new ExpenseItemBuilder().AddDate(expenseItemDate).Build();
 
@@ -141,7 +140,7 @@ namespace EasyFinance.Domain.Tests.Financial
 
         [Theory]
         [MemberData(nameof(DifferentDateBetweenExpenseAndExpenseItem))]
-        public void SetItem_DifferentYearOrMonthFromExpense_ShouldThrowException(DateTime expenseDate, DateTime expenseItemDate)
+        public void SetItem_DifferentYearOrMonthFromExpense_ShouldThrowException(DateOnly expenseDate, DateOnly expenseItemDate)
         {
             var item = new ExpenseItemBuilder().AddDate(expenseItemDate).Build();
 
@@ -155,25 +154,25 @@ namespace EasyFinance.Domain.Tests.Financial
         public static IEnumerable<object[]> OlderDates =>
             new List<object[]>
             {
-                new object[] { DateTime.Now.AddYears(-5).AddDays(-1) },
-                new object[] { DateTime.Now.AddYears(-15) },
-                new object[] { DateTime.Now.AddYears(-200) }
+                new object[] { DateOnly.FromDateTime(DateTime.Now.AddYears(-5).AddDays(-2)) },
+                new object[] { DateOnly.FromDateTime(DateTime.Now.AddYears(-15)) },
+                new object[] { DateOnly.FromDateTime(DateTime.Now.AddYears(-200)) }
             };
             
         public static IEnumerable<object[]> FutureDates =>
             new List<object[]>
             {
-                new object[] { DateTime.Now.AddDays(1) },
-                new object[] { DateTime.Now.AddDays(5) },
+                new object[] { DateOnly.FromDateTime(DateTime.Now.AddDays(1)) },
+                new object[] { DateOnly.FromDateTime(DateTime.Now.AddDays(5)) },
             };
             
         public static IEnumerable<object[]> DifferentDateBetweenExpenseAndExpenseItem =>
             new List<object[]>
             {
-                new object[] { DateTime.Today.AddMonths(-2), DateTime.Today.AddMonths(-1) },
-                new object[] { DateTime.Today.AddMonths(-1), DateTime.Today.AddMonths(-2) },
-                new object[] { DateTime.Today.AddYears(-1), DateTime.Today.AddYears(-2) },
-                new object[] { DateTime.Today.AddYears(-2), DateTime.Today.AddYears(-1) },
+                new object[] { DateOnly.FromDateTime(DateTime.Today.AddMonths(-2)), DateOnly.FromDateTime(DateTime.Today.AddMonths(-1)) },
+                new object[] { DateOnly.FromDateTime(DateTime.Today.AddMonths(-1)), DateOnly.FromDateTime(DateTime.Today.AddMonths(-2)) },
+                new object[] { DateOnly.FromDateTime(DateTime.Today.AddYears(-1)), DateOnly.FromDateTime(DateTime.Today.AddYears(-2)) },
+                new object[] { DateOnly.FromDateTime(DateTime.Today.AddYears(-2)), DateOnly.FromDateTime(DateTime.Today.AddYears(-1)) },
             };
     }
 }

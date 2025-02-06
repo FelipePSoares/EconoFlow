@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Net;
 using EasyFinance.Application;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Domain.AccessControl;
@@ -19,8 +21,6 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Newtonsoft.Json.Converters;
 using SendGrid.Extensions.DependencyInjection;
 using Serilog;
-using System.Globalization;
-using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -122,7 +122,7 @@ if (app.Environment.IsDevelopment())
     var unitOfWork = serviceScope.ServiceProvider.GetRequiredService<IUnitOfWork>();
     var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<User>>();
     var ri = new RegionInfo("pt");
-    var user = new User(firstName: "Test", lastName: "Admin", preferredCurrency: ri.ISOCurrencySymbol, timeZoneId: TimeZoneInfo.Local.Id, enabled: true)
+    var user = new User(firstName: "Test", lastName: "Admin", preferredCurrency: ri.ISOCurrencySymbol, enabled: true)
     {
         UserName = "test@test.com",
         Email = "test@test.com",
@@ -130,20 +130,20 @@ if (app.Environment.IsDevelopment())
     };
     userManager.CreateAsync(user, "Passw0rd!").GetAwaiter().GetResult();
 
-    var income = new Income("Investiments", DateTime.Now, 3000, user);
+    var income = new Income("Investiments", DateOnly.FromDateTime(DateTime.Now), 3000, user);
     income.SetId(new Guid("0bb277f9-a858-4306-148f-08dcf739f7a1"));
     unitOfWork.IncomeRepository.Insert(income);
 
-    var income2 = new Income("Investiments", DateTime.Now.AddMonths(-1), 3000, user);
+    var income2 = new Income("Investiments", DateOnly.FromDateTime(DateTime.Now.AddMonths(-1)), 3000, user);
     unitOfWork.IncomeRepository.InsertOrUpdate(income2);
 
-    var expense = new Expense("Rent", DateTime.Now, 700, user, budget: 700);
+    var expense = new Expense("Rent", DateOnly.FromDateTime(DateTime.Now), 700, user, budget: 700);
     unitOfWork.ExpenseRepository.InsertOrUpdate(expense);
 
-    var expense2 = new Expense("Groceries", DateTime.Now, 0, user, budget: 450);
-    var expenseItem = new ExpenseItem("Pingo Doce", DateTime.Now, 100, user);
+    var expense2 = new Expense("Groceries", DateOnly.FromDateTime(DateTime.Now), 0, user, budget: 450);
+    var expenseItem = new ExpenseItem("Pingo Doce", DateOnly.FromDateTime(DateTime.Now), 100, user);
     expenseItem.SetId(new Guid("16ddf6c1-6b33-4563-dac4-08dcf73a4157"));
-    var expenseItem2 = new ExpenseItem("Continente", DateTime.Now, 150, user);
+    var expenseItem2 = new ExpenseItem("Continente", DateOnly.FromDateTime(DateTime.Now), 150, user);
     expense2.SetId(new Guid("75436cec-70f6-420f-ee8a-08dce6424079"));
     expense2.AddItem(expenseItem);
     expense2.AddItem(expenseItem2);

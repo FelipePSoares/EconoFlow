@@ -123,14 +123,14 @@ export class ListExpensesComponent implements OnInit {
     if (this.expenseForm.valid) {
       let id = this.id?.value;
       let name = this.name?.value;
-      let date = this.date?.value;
+      let date = this.date?.value.toISOString().split("T")[0];
       let amount = this.amount?.value;
       let budget = this.budget?.value;
 
       var newExpense = <ExpenseDto>({
         id: id,
         name: name,
-        date: dateUTC(date),
+        date: date,
         amount: amount,
         budget: budget,
         items: this.editingExpense.items

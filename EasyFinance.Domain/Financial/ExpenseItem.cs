@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using EasyFinance.Domain.AccessControl;
 
 namespace EasyFinance.Domain.Financial
@@ -10,7 +10,7 @@ namespace EasyFinance.Domain.Financial
 
         public ExpenseItem(
             string name = "default",
-            DateTime date = default,
+            DateOnly date = default,
             decimal amount = default,
             User createdBy = default,
             ICollection<Attachment> attachments = default,

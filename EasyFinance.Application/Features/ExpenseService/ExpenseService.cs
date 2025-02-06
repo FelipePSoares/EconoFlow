@@ -1,16 +1,16 @@
-﻿using EasyFinance.Application.Contracts.Persistence;
-using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.DTOs;
-using Microsoft.EntityFrameworkCore;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using EasyFinance.Application.Mappers;
-using EasyFinance.Domain.Financial;
-using EasyFinance.Domain.AccessControl;
+using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.DTOs.Financial;
+using EasyFinance.Application.Mappers;
+using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Financial;
+using EasyFinance.Infrastructure;
+using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.EntityFrameworkCore;
 
 namespace EasyFinance.Application.Features.ExpenseService
 {
@@ -23,7 +23,7 @@ namespace EasyFinance.Application.Features.ExpenseService
             this.unitOfWork = unitOfWork;
         }
 
-        public async Task<AppResponse<IEnumerable<ExpenseResponseDTO>>> GetAsync(Guid categoryId, DateTime from, DateTime to)
+        public async Task<AppResponse<IEnumerable<ExpenseResponseDTO>>> GetAsync(Guid categoryId, DateOnly from, DateOnly to)
         {
             if (from >= to)
                 return AppResponse<IEnumerable<ExpenseResponseDTO>>.Error(code: nameof(from), description: ValidationMessages.InvalidDate);

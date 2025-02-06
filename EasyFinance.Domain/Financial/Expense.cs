@@ -1,8 +1,7 @@
-﻿using System.Collections.Generic;
-using System;
-using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.Exceptions;
+﻿using System;
+using System.Collections.Generic;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 
 namespace EasyFinance.Domain.Financial
@@ -13,7 +12,7 @@ namespace EasyFinance.Domain.Financial
 
         public Expense(
             string name = "default",
-            DateTime date = default,
+            DateOnly date = default,
             decimal amount = default,
             User createdBy = default,
             ICollection<Attachment> attachments = default,

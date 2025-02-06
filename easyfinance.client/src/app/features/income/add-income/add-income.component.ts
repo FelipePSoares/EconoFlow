@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { IncomeService } from '../../../core/services/income.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { IncomeDto } from '../models/income-dto';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { ApiErrorResponse } from '../../../core/models/error';
@@ -77,7 +77,7 @@ export class AddIncomeComponent implements OnInit {
   saveIncome() {
     if (this.incomeForm.valid) {
       const name = this.name?.value;
-      const date = this.date?.value;
+      const date = this.date?.value.toISOString().split("T")[0];
       let amount = this.amount?.value;
       if (isNaN(amount)) {
         amount = this.amount?.value.replace('.', '')?.replace(',', '.');

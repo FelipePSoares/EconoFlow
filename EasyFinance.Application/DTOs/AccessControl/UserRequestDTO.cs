@@ -1,5 +1,4 @@
-﻿using EasyFinance.Application.DTOs.FinancialProject;
-using System;
+﻿using System;
 
 namespace EasyFinance.Application.DTOs.AccessControl
 {
@@ -8,7 +7,6 @@ namespace EasyFinance.Application.DTOs.AccessControl
         public string FirstName { get; set; } = "Default";
         public string LastName { get; set; } = "Default";
         public string PreferredCurrency { get; set; } = string.Empty;
-        public string TimeZoneId { get; set; } = string.Empty;
         public Guid DefaultProject {  get; set; } = Guid.Empty;
     }
 }

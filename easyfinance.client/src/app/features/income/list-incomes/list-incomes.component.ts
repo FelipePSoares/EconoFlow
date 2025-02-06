@@ -113,14 +113,14 @@ export class ListIncomesComponent implements OnInit {
     if (this.incomeForm.valid) {
       const id = this.id?.value;
       const name = this.name?.value;
-      const date = this.date?.value;
+      const date = this.date?.value.toISOString().split("T")[0];
       let amount = this.amount?.value;
 
       var newIncome = <IncomeDto>({
         id: id,
         name: name,
         amount: amount,
-        date: dateUTC(date)
+        date: date
       })
       var patch = compare(this.editingIncome, newIncome);
 

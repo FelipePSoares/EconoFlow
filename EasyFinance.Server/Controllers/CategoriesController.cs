@@ -1,11 +1,9 @@
-﻿using EasyFinance.Application.DTOs.Financial;
+﻿using System.Net;
+using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.Features.CategoryService;
 using EasyFinance.Application.Mappers;
-using EasyFinance.Domain.Financial;
-using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using System.Net;
 
 namespace EasyFinance.Server.Controllers
 {
@@ -21,7 +19,7 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get(Guid projectId, DateTime from, DateTime to)
+        public async Task<IActionResult> Get(Guid projectId, DateOnly from, DateOnly to)
         {
             var categories = await categoryService.GetAsync(projectId, from, to);
             return ValidateResponse(categories, HttpStatusCode.OK);

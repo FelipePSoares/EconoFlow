@@ -134,7 +134,7 @@ export class ListExpenseItemsComponent {
     if (this.expenseItemForm.valid) {
       let id = this.id?.value;
       let name = this.name?.value;
-      let date = this.date?.value;
+      let date = this.date?.value.toISOString().split("T")[0];
       let amount = this.amount?.value;
 
       let expense = this.expense.getValue();
@@ -143,7 +143,7 @@ export class ListExpenseItemsComponent {
       expenseItemsNewArray.forEach(expenseItem => {
         if (expenseItem.id == id) {
           expenseItem.name = name;
-          expenseItem.date = dateUTC(date);
+          expenseItem.date = date;
           expenseItem.amount = amount;
         }
       })

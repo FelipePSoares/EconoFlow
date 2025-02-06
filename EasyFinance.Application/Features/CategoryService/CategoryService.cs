@@ -1,4 +1,8 @@
-﻿using EasyFinance.Application.Contracts.Persistence;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.Financial;
@@ -6,10 +10,6 @@ using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace EasyFinance.Application.Features.CategoryService
 {
@@ -74,7 +74,7 @@ namespace EasyFinance.Application.Features.CategoryService
             return AppResponse<ICollection<CategoryResponseDTO>>.Success(result);
         }
 
-        public async Task<AppResponse<ICollection<CategoryResponseDTO>>> GetAsync(Guid projectId, DateTime from, DateTime to)
+        public async Task<AppResponse<ICollection<CategoryResponseDTO>>> GetAsync(Guid projectId, DateOnly from, DateOnly to)
         {
             var result = (await this.unitOfWork.ProjectRepository.NoTrackable()
                     .Include(p => p.Categories)

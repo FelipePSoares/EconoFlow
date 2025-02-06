@@ -13,19 +13,17 @@ namespace EasyFinance.Domain.AccessControl
     {
         public User() { }
 
-        public User(string firstName = "Default", string lastName = "Default", string preferredCurrency = "EUR", string timeZoneId = "UTC", bool enabled = default)
+        public User(string firstName = "Default", string lastName = "Default", string preferredCurrency = "EUR", bool enabled = default)
         {
             FirstName = firstName;
             LastName = lastName;
             PreferredCurrency = preferredCurrency;
-            TimeZoneId = timeZoneId;
             Enabled = enabled;
         }
 
         public string FirstName { get; private set; } = string.Empty;
         public string LastName { get; private set; } = string.Empty;
         public string PreferredCurrency { get; private set; } = string.Empty;
-        public string TimeZoneId { get; private set; } = string.Empty;
         public bool Enabled { get; set; } = true;
         public bool HasIncompletedInformation => string.IsNullOrEmpty(FirstName) && string.IsNullOrEmpty(LastName);
         public Project DefaultProject { get; private set; } = default;
@@ -55,17 +53,6 @@ namespace EasyFinance.Domain.AccessControl
                 throw new ValidationException(nameof(PreferredCurrency), ValidationMessages.InvalidCurrencyCode);
 
             PreferredCurrency = preferredCurrency;
-        }
-
-        public void SetTimezone(string timeZoneId)
-        {
-            if (string.IsNullOrEmpty(timeZoneId))
-                throw new ValidationException(nameof(TimeZoneId), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(TimeZoneId)));
-
-            if (TimeZoneValidator.TryGetTimeZoneInfo(timeZoneId, out var timeZoneInfo))
-                TimeZoneId = timeZoneInfo.Id;
-            else
-                throw new ValidationException(nameof(TimeZoneId), ValidationMessages.InvalidTimeZone);
         }
 
         public AppResponse SetDefaultProject(Project project)

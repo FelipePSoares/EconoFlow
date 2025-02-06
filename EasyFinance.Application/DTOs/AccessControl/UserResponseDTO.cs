@@ -1,8 +1,7 @@
-﻿using EasyFinance.Application.DTOs.FinancialProject;
+﻿using System;
+using EasyFinance.Application.DTOs.FinancialProject;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
-using EasyFinance.Infrastructure.Validators;
-using System;
 
 namespace EasyFinance.Application.DTOs.AccessControl
 {
@@ -10,8 +9,6 @@ namespace EasyFinance.Application.DTOs.AccessControl
     {
         public UserResponseDTO(User user)
         {
-            TimeZoneValidator.TryGetTimeZoneInfo(user.TimeZoneId, out var timeZoneInfo);
-
             if (user != null)
             {
                 Id = user.Id;
@@ -19,7 +16,6 @@ namespace EasyFinance.Application.DTOs.AccessControl
                 FirstName = user.FirstName;
                 LastName = user.LastName;
                 PreferredCurrency = user.PreferredCurrency;
-                TimeZone = timeZoneInfo;
                 Enabled = user.Enabled;
                 IsFirstLogin = user.HasIncompletedInformation;
                 EmailConfirmed = user.EmailConfirmed;
@@ -33,7 +29,6 @@ namespace EasyFinance.Application.DTOs.AccessControl
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
         public string PreferredCurrency { get; set; } = string.Empty;
-        public TimeZoneInfo TimeZone { get; set; }
         public bool Enabled { get; set; }
         public bool IsFirstLogin { get; set; }
         public bool EmailConfirmed { get; set; }

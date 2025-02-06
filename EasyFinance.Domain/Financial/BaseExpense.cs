@@ -13,7 +13,7 @@ namespace EasyFinance.Domain.Financial
 
         public BaseExpense(
             string name = "default",
-            DateTime date = default,
+            DateOnly date = default,
             decimal amount = default,
             User createdBy = default,
             ICollection<Attachment> attachments = default,

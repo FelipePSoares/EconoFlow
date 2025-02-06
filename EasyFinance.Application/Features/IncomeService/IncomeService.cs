@@ -37,7 +37,7 @@ namespace EasyFinance.Application.Features.IncomeService
             return AppResponse<ICollection<IncomeResponseDTO>>.Success(result);
         }
 
-        public AppResponse<ICollection<IncomeResponseDTO>> Get(Guid projectId, DateTime from, DateTime to)
+        public AppResponse<ICollection<IncomeResponseDTO>> Get(Guid projectId, DateOnly from, DateOnly to)
         {
             var result =
                 unitOfWork

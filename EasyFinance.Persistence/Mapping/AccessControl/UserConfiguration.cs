@@ -24,9 +24,6 @@ namespace EasyFinance.Persistence.Mapping.AccessControl
             builder.Property(p => p.PreferredCurrency)
                 .HasMaxLength(3);
 
-            builder.Property(p => p.TimeZoneId)
-                .HasMaxLength(255);
-
             builder.HasOne(p => p.DefaultProject)
                 .WithMany()
                 .OnDelete(DeleteBehavior.ClientNoAction);

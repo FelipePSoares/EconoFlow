@@ -12,20 +12,20 @@ namespace EasyFinance.Domain.Financial
 
         public BaseFinancial(
             string name = "default",
-            DateTime date = default,
+            DateOnly date = default,
             decimal amount = default,
             User createdBy = default,
             ICollection<Attachment> attachments = default)
         {
             SetName(name);
-            SetDate(date == default ? DateTime.Today : date);
+            SetDate(date == default ? DateOnly.FromDateTime(DateTime.Today) : date);
             SetAmount(amount);
             SetCreatedBy(createdBy ?? new User());
             SetAttachments(attachments ?? new List<Attachment>());
         }
 
         public string Name { get; private set; } = string.Empty;
-        public DateTime Date { get; private set; }
+        public DateOnly Date { get; private set; }
         public decimal Amount { get; private set; }
         public string CreatorName { get; private set; }
         public User CreatedBy { get; private set; } = new User();
@@ -39,12 +39,12 @@ namespace EasyFinance.Domain.Financial
             Name = name;
         }
 
-        public void SetDate(DateTime date)
+        public void SetDate(DateOnly date)
         {
-            if (date.ToUniversalTime() > DateTime.Today.ToUniversalTime().AddDays(1) && Amount > 0)
+            if (date > DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddDays(1)) && Amount > 0)
                 throw new ValidationException(nameof(Date), ValidationMessages.CantAddFutureExpenseIncome);
 
-            if (date < DateTime.Today.AddYears(-5))
+            if (date < DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-5)))
                 throw new ValidationException(nameof(Date), string.Format(ValidationMessages.CantAddExpenseOlderThanYears, 5));
 
             Date = date;
@@ -55,7 +55,7 @@ namespace EasyFinance.Domain.Financial
             if (amount < 0)
                 throw new ValidationException(nameof(Amount), string.Format(ValidationMessages.PropertyCantBeLessThanZero, nameof(Amount)));
 
-            if (Date.ToUniversalTime() > DateTime.Today.ToUniversalTime().AddDays(1) && amount > 0)
+            if (Date > DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddDays(1)) && amount > 0)
                 throw new ValidationException(nameof(Date), ValidationMessages.CantAddFutureExpenseIncome);
 
             Amount = amount;
@@ -63,10 +63,7 @@ namespace EasyFinance.Domain.Financial
 
         public void SetCreatedBy(User createdBy)
         {
-            if (createdBy == default)
-                throw new ValidationException(nameof(CreatedBy), string.Format(ValidationMessages.PropertyCantBeNull, nameof(CreatedBy)));
-
-            CreatedBy = createdBy;
+            CreatedBy = createdBy ?? throw new ValidationException(nameof(CreatedBy), string.Format(ValidationMessages.PropertyCantBeNull, nameof(CreatedBy)));
         }
 
         public void RemoveUserLink(string creatorName)
@@ -80,10 +77,7 @@ namespace EasyFinance.Domain.Financial
 
         public void SetAttachments(ICollection<Attachment> attachments)
         {
-            if (attachments == default)
-                throw new ValidationException(nameof(Attachments), string.Format(ValidationMessages.PropertyCantBeNull, nameof(Attachments)));
-
-            Attachments = attachments;
+            Attachments = attachments ?? throw new ValidationException(nameof(Attachments), string.Format(ValidationMessages.PropertyCantBeNull, nameof(Attachments)));
         }
     }
 }

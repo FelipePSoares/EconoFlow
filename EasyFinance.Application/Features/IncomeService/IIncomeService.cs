@@ -12,7 +12,7 @@ namespace EasyFinance.Application.Features.IncomeService
     public interface IIncomeService
     {
         AppResponse<ICollection<IncomeResponseDTO>> GetAll(Guid projectId);
-        AppResponse<ICollection<IncomeResponseDTO>> Get(Guid projectId, DateTime from, DateTime to);
+        AppResponse<ICollection<IncomeResponseDTO>> Get(Guid projectId, DateOnly from, DateOnly to);
         Task<AppResponse<ICollection<IncomeResponseDTO>>> GetAsync(Guid projectId, int year);
         AppResponse<IncomeResponseDTO> GetById(Guid incomeId);
         Task<AppResponse<IncomeResponseDTO>> CreateAsync(User user, Guid projectId, Income income);

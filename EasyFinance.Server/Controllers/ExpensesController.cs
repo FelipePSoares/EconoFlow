@@ -1,13 +1,12 @@
-﻿using EasyFinance.Application.DTOs.Financial;
+﻿using System.Net;
+using System.Security.Claims;
+using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.Features.ExpenseService;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
-using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using System.Net;
-using System.Security.Claims;
 
 namespace EasyFinance.Server.Controllers
 {
@@ -25,7 +24,7 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get(Guid categoryId, DateTime from, DateTime to)
+        public async Task<IActionResult> Get(Guid categoryId, DateOnly from, DateOnly to)
         {
             var expenses = await expenseService.GetAsync(categoryId: categoryId, from: from, to: to);
             return ValidateResponse(expenses, HttpStatusCode.OK);

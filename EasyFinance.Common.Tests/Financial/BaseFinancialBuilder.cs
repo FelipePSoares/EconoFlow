@@ -21,7 +21,7 @@ namespace EasyFinance.Common.Tests.Financial
             return this;
         }
 
-        public BaseFinancialBuilder<TEntity> AddDate(DateTime date)
+        public BaseFinancialBuilder<TEntity> AddDate(DateOnly date)
         {
             this.entity.SetDate(date);
             return this;

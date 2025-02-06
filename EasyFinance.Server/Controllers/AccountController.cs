@@ -66,9 +66,6 @@ namespace EasyFinance.Server.Controllers
             if (!string.IsNullOrEmpty(userDTO.PreferredCurrency))
                 user.SetPreferredCurrency(userDTO.PreferredCurrency);
 
-            if (!string.IsNullOrEmpty(userDTO.TimeZoneId))
-                user.SetTimezone(userDTO.TimeZoneId);
-
             await this.userManager.UpdateAsync(user);
             await this.signInManager.RefreshSignInAsync(user);
 

@@ -53,28 +53,5 @@ namespace EasyFinance.Domain.Tests.AccessControl
                 .WithMessage(ValidationMessages.InvalidCurrencyCode)
                 .And.Property.Should().Be("PreferredCurrency");
         }
-
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        public void AddTimezone_SendNullAndEmpty_ShouldThrowException(string timezoneId)
-        {
-            var action = () => new UserBuilder().AddTimezone(timezoneId).Build();
-
-            action.Should().Throw<ValidationException>()
-                .WithMessage(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, "TimeZoneId"))
-                .And.Property.Should().Be("TimeZoneId");
-        }
-
-        [Theory]
-        [InlineData("Test")]
-        public void AddTimezone_SendInvalid_ShouldThrowException(string timezoneId)
-        {
-            var action = () => new UserBuilder().AddTimezone(timezoneId).Build();
-
-            action.Should().Throw<ValidationException>()
-                .WithMessage(ValidationMessages.InvalidTimeZone)
-                .And.Property.Should().Be("TimeZoneId");
-        }
     }
 }

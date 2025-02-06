@@ -93,7 +93,7 @@ export class AddExpenseComponent implements OnInit {
   save() {
     if (this.expenseForm.valid) {
       let name = this.name?.value;
-      let date = this.date?.value;
+      let date = this.date?.value.toISOString().split("T")[0];
       let amount = this.amount?.value;
       let budget = this.budget?.value;
 

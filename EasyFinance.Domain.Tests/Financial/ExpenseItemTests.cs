@@ -21,7 +21,7 @@ namespace EasyFinance.Domain.Tests.Financial
 
         [Theory]
         [MemberData(nameof(OlderDates))]
-        public void AddDate_SendTooOldDate_ShouldThrowException(DateTime date)
+        public void AddDate_SendTooOldDate_ShouldThrowException(DateOnly date)
         {
             var action = () => new ExpenseItemBuilder().AddDate(date).Build();
 
@@ -32,7 +32,7 @@ namespace EasyFinance.Domain.Tests.Financial
 
         [Theory]
         [MemberData(nameof(FutureDates))]
-        public void AddDate_SendFutureDate_ShouldThrowException(DateTime date)
+        public void AddDate_SendFutureDate_ShouldThrowException(DateOnly date)
         {
             var action = () => new ExpenseItemBuilder().AddAmount(1).AddDate(date).Build();
 
@@ -86,15 +86,15 @@ namespace EasyFinance.Domain.Tests.Financial
         public static IEnumerable<object[]> OlderDates =>
             new List<object[]>
             {
-                new object[] { DateTime.Now.AddYears(-5).AddDays(-1) },
-                new object[] { DateTime.Now.AddYears(-15) },
-                new object[] { DateTime.Now.AddYears(-200) }
+                new object[] { DateOnly.FromDateTime(DateTime.Now.AddYears(-5).AddDays(-2)) },
+                new object[] { DateOnly.FromDateTime(DateTime.Now.AddYears(-15)) },
+                new object[] { DateOnly.FromDateTime(DateTime.Now.AddYears(-200)) }
             };
         public static IEnumerable<object[]> FutureDates =>
             new List<object[]>
             {
-                new object[] { DateTime.Now.AddDays(1) },
-                new object[] { DateTime.Now.AddDays(5) },
+                new object[] { DateOnly.FromDateTime(DateTime.Now.AddDays(1)) },
+                new object[] { DateOnly.FromDateTime(DateTime.Now.AddDays(5)) },
             };
     }
 }

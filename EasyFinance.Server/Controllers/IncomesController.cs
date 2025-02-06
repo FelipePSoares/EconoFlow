@@ -1,12 +1,12 @@
-﻿using System.Security.Claims;
+﻿using System.Net;
+using System.Security.Claims;
+using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
-using EasyFinance.Application.DTOs.Financial;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using System.Net;
 
 namespace EasyFinance.Server.Controllers
 {
@@ -24,7 +24,7 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpGet]
-        public IActionResult Get(Guid projectId, DateTime from, DateTime to)
+        public IActionResult Get(Guid projectId, DateOnly from, DateOnly to)
         {
             var incomes = incomeService.Get(projectId, from, to);
             return ValidateResponse(incomes, HttpStatusCode.OK);

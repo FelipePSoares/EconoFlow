@@ -56,21 +56,21 @@ namespace EasyFinance.Application.Tests
             user3 = new UserBuilder().Build();
             userManager.CreateAsync(user3, "Passw0rd!").GetAwaiter().GetResult();
 
-            var expenseItem1 = new ExpenseItemBuilder().AddName("Expense Item").AddCreatedBy(user3).AddDate(DateTime.UtcNow.AddDays(-1)).Build();
-            var expense1 = new ExpenseBuilder().AddName("Expense").AddCreatedBy(user2).AddDate(DateTime.UtcNow.AddDays(-1)).Build();
+            var expenseItem1 = new ExpenseItemBuilder().AddName("Expense Item").AddCreatedBy(user3).AddDate(DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1))).Build();
+            var expense1 = new ExpenseBuilder().AddName("Expense").AddCreatedBy(user2).AddDate(DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1))).Build();
             expense1.SetItems([expenseItem1]);
             var category1 = new CategoryBuilder().AddName("Category").AddExpenses(new List<Expense>() { expense1 }).Build();
 
             project1 = unitOfWork.ProjectRepository.Insert(new ProjectBuilder().AddCategory(category1).Build());
 
-            var expenseItem2 = new ExpenseItemBuilder().AddName("Expense Item").AddCreatedBy(user2).AddDate(DateTime.UtcNow.AddDays(-1)).Build();
-            var expense2 = new ExpenseBuilder().AddName("Expense").AddCreatedBy(user1).AddDate(DateTime.UtcNow.AddDays(-1)).Build();
+            var expenseItem2 = new ExpenseItemBuilder().AddName("Expense Item").AddCreatedBy(user2).AddDate(DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1))).Build();
+            var expense2 = new ExpenseBuilder().AddName("Expense").AddCreatedBy(user1).AddDate(DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1))).Build();
             expense2.SetItems([expenseItem2]);
             var category2 = new CategoryBuilder().AddName("Category").AddExpenses(new List<Expense>() { expense2 }).Build();
             project2 = unitOfWork.ProjectRepository.Insert(new ProjectBuilder().AddCategory(category2).Build());
 
-            var expenseItem3 = new ExpenseItemBuilder().AddName("Expense Item").AddCreatedBy(user1).AddDate(DateTime.UtcNow.AddDays(-1)).Build();
-            var expense3 = new ExpenseBuilder().AddName("Expense").AddCreatedBy(user3).AddDate(DateTime.UtcNow.AddDays(-1)).Build();
+            var expenseItem3 = new ExpenseItemBuilder().AddName("Expense Item").AddCreatedBy(user1).AddDate(DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1))).Build();
+            var expense3 = new ExpenseBuilder().AddName("Expense").AddCreatedBy(user3).AddDate(DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1))).Build();
             expense3.SetItems([expenseItem3]);
             var category3 = new CategoryBuilder().AddName("Category").AddExpenses(new List<Expense>() { expense3 }).Build();
             project3 = unitOfWork.ProjectRepository.Insert(new ProjectBuilder().AddCategory(category3).Build());
