@@ -93,7 +93,7 @@ namespace EasyFinance.Domain.Tests.Financial
         public static IEnumerable<object[]> FutureDates =>
             new List<object[]>
             {
-                new object[] { DateOnly.FromDateTime(DateTime.Now.AddDays(1)) },
+                new object[] { DateOnly.FromDateTime(DateTime.Now.AddDays(2)) },
                 new object[] { DateOnly.FromDateTime(DateTime.Now.AddDays(5)) },
             };
     }
