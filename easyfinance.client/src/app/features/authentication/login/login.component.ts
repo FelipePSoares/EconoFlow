@@ -63,7 +63,11 @@ export class LoginComponent implements OnInit {
 
       this.authService.signIn(email, password).subscribe({
         next: response => {
-          this.router.navigate(['/']);
+          if (response.defaultProjectId) {
+            this.router.navigate(['/projects', response.defaultProjectId]);
+          } else {
+            this.router.navigate(['/']);
+          }
         },
         error: (response: ApiErrorResponse) => {
           this.httpErrors = true;

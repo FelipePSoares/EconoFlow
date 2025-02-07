@@ -533,12 +533,10 @@ namespace EasyFinance.Persistence.Migrations
 
             modelBuilder.Entity("EasyFinance.Domain.AccessControl.User", b =>
                 {
-                    b.HasOne("EasyFinance.Domain.FinancialProject.Project", "DefaultProject")
+                    b.HasOne("EasyFinance.Domain.FinancialProject.Project", null)
                         .WithMany()
                         .HasForeignKey("DefaultProjectId")
                         .OnDelete(DeleteBehavior.ClientNoAction);
-
-                    b.Navigation("DefaultProject");
                 });
 
             modelBuilder.Entity("EasyFinance.Domain.AccessControl.UserProject", b =>

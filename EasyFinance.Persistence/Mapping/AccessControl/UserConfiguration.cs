@@ -1,4 +1,5 @@
 ﻿using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.FinancialProject;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -24,8 +25,9 @@ namespace EasyFinance.Persistence.Mapping.AccessControl
             builder.Property(p => p.PreferredCurrency)
                 .HasMaxLength(3);
 
-            builder.HasOne(p => p.DefaultProject)
+            builder.HasOne<Project>()
                 .WithMany()
+                .HasForeignKey(p => p.DefaultProjectId)
                 .OnDelete(DeleteBehavior.ClientNoAction);
         }
     }

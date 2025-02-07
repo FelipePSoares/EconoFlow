@@ -11,6 +11,6 @@ namespace EasyFinance.Application.Features.UserService
         string GenerateDeleteToken(User user, string secretKey);
         bool ValidateDeleteToken(User user, string confirmationToken, string secretKey);
         Task DeleteUserAsync(User user);
-        Task<AppResponse> SetDefaultProjectAsync(User user, Guid defaultProjectId);
+        Task<AppResponse> SetDefaultProjectAsync(User user, Guid? defaultProjectId);
     }
 }

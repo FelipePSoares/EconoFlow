@@ -1,11 +1,9 @@
 ﻿using System;
 using EasyFinance.Infrastructure;
+using EasyFinance.Infrastructure.DTOs;
 using EasyFinance.Infrastructure.Exceptions;
 using EasyFinance.Infrastructure.Validators;
 using Microsoft.AspNetCore.Identity;
-using System.Net.Mail;
-using EasyFinance.Domain.FinancialProject;
-using EasyFinance.Infrastructure.DTOs;
 
 namespace EasyFinance.Domain.AccessControl
 {
@@ -26,7 +24,7 @@ namespace EasyFinance.Domain.AccessControl
         public string PreferredCurrency { get; private set; } = string.Empty;
         public bool Enabled { get; set; } = true;
         public bool HasIncompletedInformation => string.IsNullOrEmpty(FirstName) && string.IsNullOrEmpty(LastName);
-        public Project DefaultProject { get; private set; } = default;
+        public Guid? DefaultProjectId { get; private set; } = default;
 
         public void SetFirstName(string firstName)
         {
@@ -55,12 +53,9 @@ namespace EasyFinance.Domain.AccessControl
             PreferredCurrency = preferredCurrency;
         }
 
-        public AppResponse SetDefaultProject(Project project)
+        public AppResponse SetDefaultProject(Guid? projectId)
         {
-            if (project == default)
-                return AppResponse.Error(nameof(project), string.Format(ValidationMessages.PropertyCantBeNull, nameof(this.DefaultProject)));
-
-            this.DefaultProject = project;
+            this.DefaultProjectId = projectId;
 
             return AppResponse.Success();
         }

@@ -37,7 +37,7 @@ export class UserService {
 
   public removeUserInfo() {
     this.loggedUser.next(new User());
-    this.localService.removeData(USER_DATA);
+    this.localService.clearData();
   }
 
   public setUserInfo(firstName: string, lastName: string, preferredCurrency: string): Observable<User> {

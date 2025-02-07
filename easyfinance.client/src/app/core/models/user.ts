@@ -8,6 +8,7 @@ export class User {
   isFirstLogin!: boolean;
   emailConfirmed!: boolean;
   twoFactorEnabled!: boolean;
+  defaultProjectId!: string;
 }
 
 export class DeleteUser {

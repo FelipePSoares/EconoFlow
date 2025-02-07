@@ -11,6 +11,7 @@ using EasyFinance.Application.Features.ExpenseService;
 using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Identity;
@@ -119,16 +120,22 @@ namespace EasyFinance.Application.Features.UserService
             await this.userManager.DeleteAsync(user);
         }
 
-        public async Task<AppResponse> SetDefaultProjectAsync(User user, Guid defaultProjectId)
+        public async Task<AppResponse> SetDefaultProjectAsync(User user, Guid? defaultProjectId)
         {
-            var project = await unitOfWork.UserProjectRepository.Trackable()
-                .Include(up => up.User)
-                .Include(up => up.Project)
-                .Where(up => up.User.Id == user.Id)
-                .Select(up => up.Project)
-                .FirstOrDefaultAsync(up => up.Id == defaultProjectId);
+            Project project = null;
 
-            var result = user.SetDefaultProject(project);
+            if (defaultProjectId.HasValue)
+            {
+                project = await unitOfWork.UserProjectRepository.Trackable()
+                    .Include(up => up.User)
+                    .Include(up => up.Project)
+                    .Where(up => up.User.Id == user.Id)
+                    .Select(up => up.Project)
+                    .FirstOrDefaultAsync(up => up.Id == defaultProjectId);
+
+            }
+
+            var result = user.SetDefaultProject(project?.Id);
 
             if (!result.Succeeded)
                 return AppResponse.Error(nameof(defaultProjectId), ValidationMessages.ProjectNotFoundOrInsufficientUserPermissions);

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Project } from '../models/project';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { BehaviorSubject, Observable, map } from 'rxjs';
 import { Operation } from 'fast-json-patch';
 import { YearExpensesSummaryDto } from '../../features/project/models/year-expenses-summary-dto';
 import { LocalService } from './local.service';
@@ -13,6 +13,9 @@ const PROJECT_DATA = "project_data";
   providedIn: 'root'
 })
 export class ProjectService {
+  private selectedProjectSubject = new BehaviorSubject<any | null>(null);
+  selectedProject$ = this.selectedProjectSubject.asObservable();
+
   constructor(private http: HttpClient, private localService: LocalService) {
   }
 
@@ -66,12 +69,19 @@ export class ProjectService {
 
   selectProject(project: Project) {
     this.localService.saveData(PROJECT_DATA, JSON.stringify(project));
+    this.selectedProjectSubject.next(project);
   }
 
   getSelectedProject(): Project | undefined {
-    let project = this.localService.getData(PROJECT_DATA);
+    let currentProject = this.selectedProjectSubject.value;
 
-    return safeJsonParse<Project>(project)
+    if (!currentProject) {
+      let project = this.localService.getData(PROJECT_DATA);
+      currentProject = safeJsonParse<Project>(project);
+      this.selectedProjectSubject.next(currentProject);
+    }
+
+    return currentProject;
   }
 
   getLatest(id: string, numberOfTransactions: number): Observable<Transaction[]> {

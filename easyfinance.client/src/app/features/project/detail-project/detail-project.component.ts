@@ -86,7 +86,10 @@ export class DetailProjectComponent implements OnInit {
 
     if (!project) {
       this.projectService.getProject(this.projectId)
-        .subscribe(res => this.project = res);
+        .subscribe(res => {
+          this.projectService.selectProject(res);
+          this.project = res;
+        });
     } else {
       this.project = project;
     }

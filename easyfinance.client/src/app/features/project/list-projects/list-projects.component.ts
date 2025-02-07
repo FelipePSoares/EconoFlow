@@ -24,7 +24,6 @@ import { faPlus } from '@fortawesome/free-solid-svg-icons';
 })
 export class ListProjectsComponent implements OnInit {
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
-  static firstAccess = true;
   private projects: BehaviorSubject<ProjectDto[]> = new BehaviorSubject<ProjectDto[]>([new ProjectDto()]);
   projects$: Observable<ProjectDto[]> = this.projects.asObservable();
   faPlus = faPlus;
@@ -38,10 +37,6 @@ export class ListProjectsComponent implements OnInit {
       .subscribe(
         {
           next: res => {
-            if (ListProjectsComponent.firstAccess && res.length == 1) {
-              ListProjectsComponent.firstAccess = false;
-              this.select(res[0]);
-            }
             this.projects.next(res);
           }
         });
