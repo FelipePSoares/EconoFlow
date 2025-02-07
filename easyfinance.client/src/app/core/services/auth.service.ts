@@ -3,6 +3,8 @@ import { Injectable } from '@angular/core';
 import { Observable, concatMap, map } from 'rxjs';
 import { UserService } from '../services/user.service';
 import { User } from '../models/user';
+import { ProjectService } from './project.service';
+import { Project } from '../models/project';
 
 @Injectable({
   providedIn: 'root',

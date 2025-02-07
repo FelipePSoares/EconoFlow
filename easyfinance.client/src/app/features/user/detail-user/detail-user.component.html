@@ -69,6 +69,18 @@
           </div>
         </div>
 
+        <div>
+          <mat-form-field appearance="fill" class="w-100">
+            <mat-label>Default Project</mat-label>
+            <mat-select [(value)]="editingUser.defaultProjectId" (selectionChange)="setDefaultProject()">
+              <mat-option>None</mat-option>
+              @for (project of (projects$ | async); track project.id) {
+              <mat-option [value]="project.id">{{project.name}}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
         <!-- General Error Display -->
         <div *ngIf="httpErrors && errors['general']">
           <p class="mb-3 text-danger text-center">{{ errors['general'] }}</p>

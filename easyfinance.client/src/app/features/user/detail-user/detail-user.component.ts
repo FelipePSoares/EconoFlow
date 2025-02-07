@@ -18,6 +18,8 @@ import { CurrencyService } from '../../../core/services/currency.service';
 import { MatIcon } from "@angular/material/icon";
 import { Router } from '@angular/router'; 
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
+import { Project } from '../../../core/models/project';
+import { ProjectService } from '../../../core/services/project.service';
 
 @Component({
     selector: 'app-detail-user',
@@ -48,6 +50,7 @@ export class DetailUserComponent implements OnInit {
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
 
   // Observables & Forms
+  projects$: Observable<Project[]>;
   user$: Observable<User>;
   userForm!: FormGroup;
   passwordForm!: FormGroup;
@@ -82,9 +85,11 @@ export class DetailUserComponent implements OnInit {
     private userService: UserService,
     private router: Router,
     private currencyService: CurrencyService,
-    private errorMessageService: ErrorMessageService
+    private errorMessageService: ErrorMessageService,
+    private projectService: ProjectService
   ) {
     this.user$ = this.userService.loggedUser$;
+    this.projects$ = this.projectService.getProjects();
   }
 
   ngOnInit(): void {
@@ -201,6 +206,11 @@ export class DetailUserComponent implements OnInit {
       });
 
     }
+  }
+
+  /** Save default project **/
+  setDefaultProject() {
+    this.userService.setDefaultProject(this.editingUser.defaultProjectId ? this.editingUser.defaultProjectId : '').subscribe();
   }
 
   /** Error Handling **/

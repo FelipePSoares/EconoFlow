@@ -72,8 +72,8 @@ namespace EasyFinance.Server.Controllers
             return Ok(new UserResponseDTO(user));
         }
 
-        [HttpPut("default-project/{defaultProjectId}")]
-        public async Task<IActionResult> SetDefaultProject(Guid defaultProjectId)
+        [HttpPut("default-project/{defaultProjectId?}")]
+        public async Task<IActionResult> SetDefaultProject(Guid? defaultProjectId = null)
         {
             var id = this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier);
             var user = await this.userManager.FindByIdAsync(id.Value);

@@ -60,6 +60,12 @@ export class UserService {
     }));
   }
 
+  public setDefaultProject(projectId: string) {
+    return this.http.put(`/api/account/default-project/${projectId}`, {}).pipe(concatMap(res => {
+      return this.refreshUserInfo();
+    }));
+  }
+
   public deleteUser(token?: string): Observable<DeleteUser> {
     const options = token
       ? {
