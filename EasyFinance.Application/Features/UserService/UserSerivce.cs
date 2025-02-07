@@ -133,6 +133,8 @@ namespace EasyFinance.Application.Features.UserService
                     .Select(up => up.Project)
                     .FirstOrDefaultAsync(up => up.Id == defaultProjectId);
 
+                if (project == null)
+                    return AppResponse.Error(nameof(defaultProjectId), ValidationMessages.ProjectNotFoundOrInsufficientUserPermissions);
             }
 
             var result = user.SetDefaultProject(project?.Id);
