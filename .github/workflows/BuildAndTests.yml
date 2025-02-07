@@ -7,6 +7,10 @@ on:
   pull_request:
     branches: [ "master" ]
 
+permissions:
+  checks: write
+  #pull-requests: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -89,8 +93,8 @@ jobs:
       id: dotnet
       run: dotnet run --project ./EasyFinance.Server --urls https://localhost:7003/ &
 
-    - name: Sleep for 10 seconds
-      run: sleep 10s
+    - name: wait application startup
+      run: sleep 3s
       shell: bash
 
     - name: Run Cypress tests
