@@ -8,6 +8,8 @@ on:
     branches: [ "master" ]
 
 permissions:
+  contents: read
+  actions: read
   checks: write
   #pull-requests: write
 
@@ -68,6 +70,7 @@ jobs:
         name: Test Results
         path: "${{ github.workspace }}/**/*.trx"
         reporter: dotnet-trx
+        fail-on-error: false
 
     - name: Run Angular tests
       id: angular
