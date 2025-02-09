@@ -13,6 +13,9 @@
         </span>
       </a>
     </span>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
@@ -22,17 +25,18 @@
           <a [routerLink]="['/projects']" class="nav-link">Projects</a>
         </li>
       </ul>
-      <div class="dropdown"> <!-- d-flex -->
-        <button class="btn dropdown-toggle" type="button" id="dropdownMenuProfile" data-bs-toggle="dropdown" aria-expanded="false">
-          {{ initials$ | async }}
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuProfile">
-          <li><h4 class="dropdown-header" style="margin-bottom: 5px">{{ firstName$ | async }} {{ lastName$ | async }}</h4></li>
-          <li><a class="dropdown-item btn-default" [routerLink]="['/user']">My Profile</a></li>
-          <li><hr class="dropdown-divider"></li>
-          <li><a class="dropdown-item btn-default" [routerLink]="['/logout']">Sign out</a></li>
-        </ul>
-      </div>
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item dropdown">
+          <button class="nav-link dropdown-toggle" type="button" id="dropdownMenuProfile" data-bs-toggle="dropdown" aria-expanded="false">
+            {{ firstName$ | async }} {{ lastName$ | async }}
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+            <li><a class="dropdown-item btn-default" [routerLink]="['/user']">My Profile</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item btn-default" [routerLink]="['/logout']">Sign out</a></li>
+          </ul>
+        </li>
+      </ul>
     </div>
   </div>
 </nav>
