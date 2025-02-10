@@ -7,6 +7,9 @@
           <div (click)="select(project)" class="grid-item">
             <h1>{{ project.name }}</h1>
             <h5>{{ project.type }}</h5>
+            @if ((defaultProjectId$ | async) == project.id){
+              <p>(Default)</p>
+            }
           </div>
         </mat-grid-tile>
         }

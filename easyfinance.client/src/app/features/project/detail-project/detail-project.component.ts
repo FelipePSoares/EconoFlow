@@ -157,10 +157,6 @@ export class DetailProjectComponent implements OnInit {
     this.fillData(newDate);
   }
 
-  previous() {
-    this.router.navigate(['projects']);
-  }
-
   selectCategories(): void {
     this.router.navigate(['/projects', this.projectId, 'categories']);
   }

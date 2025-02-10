@@ -29,3 +29,7 @@
     font-weight: 500;
     width: 100%;
   }
+
+p {
+  margin-top: 5px;
+}

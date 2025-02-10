@@ -10,6 +10,7 @@ import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/
 import { MatGridListModule } from '@angular/material/grid-list';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { UserService } from 'src/app/core/services/user.service';
 
 @Component({
     selector: 'app-list-projects',
@@ -27,8 +28,10 @@ export class ListProjectsComponent implements OnInit {
   private projects: BehaviorSubject<ProjectDto[]> = new BehaviorSubject<ProjectDto[]>([new ProjectDto()]);
   projects$: Observable<ProjectDto[]> = this.projects.asObservable();
   faPlus = faPlus;
+  defaultProjectId$: Observable<string>;
 
-  constructor(public projectService: ProjectService, private router: Router) {
+  constructor(public projectService: ProjectService, private userService: UserService, private router: Router) {
+    this.defaultProjectId$ = userService.loggedUser$.pipe(map(user => user.defaultProjectId));
   }
 
   ngOnInit(): void {

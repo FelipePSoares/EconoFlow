@@ -30,11 +30,6 @@
           <div class="wrap p-3">
             <div class="container position-relative">
               <div class="row align-items-center">
-                <!-- Back button on the left -->
-                <div class="col-auto position-absolute start-0">
-                  <app-return-button (returnButtonEvent)="previous()"></app-return-button>
-                </div>
-
                 <!-- Centered title -->
                 <div class="col text-center mt-3 mb-3 month">
                   <h2>{{ getCurrentDate() | date: 'MMMM'}}</h2>

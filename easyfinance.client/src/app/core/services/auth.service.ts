@@ -71,7 +71,7 @@ export class AuthService {
   public startUserPolling() {
     if (this.pollingSubscription) return;
 
-    this.pollingSubscription = interval(300000) // 5 minutes
+    this.pollingSubscription = interval(30000) // 30 seconds
       .pipe(switchMap(() => this.userService.refreshUserInfo()))
       .subscribe();
   }
