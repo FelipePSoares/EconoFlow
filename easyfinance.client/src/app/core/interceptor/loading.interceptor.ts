@@ -9,7 +9,10 @@ export const LoadingInterceptor: HttpInterceptorFn = (req, next) => {
   const loadingService = inject(LoaderService);
 
   totalRequests++;
-  loadingService.setLoading(true);
+  if (req.method != 'GET' || req.url != '/api/account/') {
+    loadingService.setLoading(true);
+  }
+
   return next(req).pipe(
     finalize(() => {
       totalRequests--;

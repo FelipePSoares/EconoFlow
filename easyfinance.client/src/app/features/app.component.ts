@@ -47,5 +47,9 @@ export const MY_FORMATS = {
 
 export class AppComponent {
 
-  constructor(public authService: AuthService) { }
+  constructor(public authService: AuthService) {
+    if (this.authService.isSignedIn$){
+      this.authService.startUserPolling();
+    }
+   }
 }
