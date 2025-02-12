@@ -4,7 +4,6 @@ import { ProjectService } from '../../../core/services/project.service';
 import { ProjectType, ProjectType2LabelMapping } from 'src/app/core/enums/project-type';
 import { ProjectDto } from '../models/project-dto';
 import { Router } from '@angular/router';
-import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -20,7 +19,6 @@ import { CommonModule } from '@angular/common';
         CommonModule,
         FormsModule,
         ReactiveFormsModule,
-        ReturnButtonComponent,
         MatFormFieldModule,
         MatSelectModule,
         MatInputModule,
@@ -59,7 +57,7 @@ export class AddProjectComponent implements OnInit {
 
       this.projectService.addProject(newProject).subscribe({
         next: response => {
-          this.previous();
+          this.router.navigate([{ outlets: { modal: null } }]);
         },
         error: (response: ApiErrorResponse) => {
           this.httpErrors = true;
@@ -98,9 +96,5 @@ export class AddProjectComponent implements OnInit {
 
   get type() {
     return this.projectForm.get('type');
-  }
-
-  previous() {
-    this.router.navigate(['projects']);
   }
 }

@@ -1,0 +1,8 @@
+.dialog-header {
+  display: block;
+}
+
+.dialog-header h2 {
+    display: inline-block;
+    margin: 8px 24px;
+}

@@ -1,0 +1,9 @@
+<div class="dialog-header">
+  <h2>{{ data.title }}</h2>
+  <button mat-icon-button (click)="close(false)" class="float-end" aria-label="Close" type="button">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+<mat-dialog-content>
+  <router-outlet name="modal"></router-outlet>
+</mat-dialog-content>

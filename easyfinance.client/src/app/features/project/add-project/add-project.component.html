@@ -1,58 +1,40 @@
 <div class="container text-center">
-  
   <div class="row justify-content-md-center">
-    <div class="wrap col-lg-8">
-      <div class="container position-relative">
-        <div class="row align-items-center">
-          <!-- Back button on the left -->
-          <div class="col-auto position-absolute start-0">
-            <app-return-button (returnButtonEvent)="previous()"></app-return-button>
-          </div>
+    <form [formGroup]="projectForm" (ngSubmit)="saveProject()">
 
-          <!-- Centered title -->
-          <div class="col text-center mt-3 mb-3">
-            <h2>Create Project</h2>
-          </div>
-        </div>
+      <!-- Name Field -->
+      <mat-form-field appearance="fill" class="w-100">
+        <mat-label>Name</mat-label>
+        <input matInput id="name" placeholder="E.g., Family, Econoflow" formControlName="name">
+        @if (name?.invalid && name?.touched){
+        <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error }}</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Type Field -->
+      <mat-form-field appearance="fill" class="w-100">
+        <mat-label>Type</mat-label>
+        <mat-select [(ngModel)]="projectTypeSelected" name="type" formControlName="type">
+          <mat-option *ngFor="let item of projectTypes" [value]="item">
+            {{ projectType2LabelMapping[item] }}
+          </mat-option>
+        </mat-select>
+        @if (type?.invalid && type?.touched){
+        <mat-error *ngFor="let error of getFormFieldErrors('type')">{{ error }}</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- General Error Display -->
+      <div *ngIf="httpErrors && errors['general']">
+        <p class="mb-3 text-danger text-center">{{ errors['general'] }}</p>
       </div>
 
-
-      <form [formGroup]="projectForm" (ngSubmit)="saveProject()">
-
-        <!-- Name Field -->
-        <mat-form-field appearance="fill" class="w-100">
-          <mat-label>Name</mat-label>
-          <input matInput id="name" placeholder="Supermarket" formControlName="name">
-          @if (name?.invalid && name?.touched){
-          <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error }}</mat-error>
-          }
-        </mat-form-field>
-
-        <!-- Type Field -->
-        <mat-form-field appearance="fill" class="w-100">
-          <mat-label>Type</mat-label>
-          <mat-select [(ngModel)]="projectTypeSelected" name="type" formControlName="type">
-            <mat-option *ngFor="let item of projectTypes" [value]="item">
-              {{ projectType2LabelMapping[item] }}
-            </mat-option>
-          </mat-select>
-          @if (type?.invalid && type?.touched){
-          <mat-error *ngFor="let error of getFormFieldErrors('type')">{{ error }}</mat-error>
-          }
-        </mat-form-field>
-
-        <!-- General Error Display -->
-        <div *ngIf="httpErrors && errors['general']">
-          <p class="mb-3 text-danger text-center">{{ errors['general'] }}</p>
-        </div>
-
-        <!-- Submit Button -->
-        <div class="float-end">
-          <button mat-raised-button color="primary" type="submit" [disabled]="projectForm.invalid">
-            Create
-          </button>
-        </div>
-      </form>
-    </div>
+      <!-- Submit Button -->
+      <div class="float-end">
+        <button mat-raised-button color="primary" type="submit" [disabled]="projectForm.invalid">
+          Create
+        </button>
+      </div>
+    </form>
   </div>
 </div>
