@@ -13,7 +13,9 @@ describe('EconoFlow - category add Tests', () => {
         cy.fixture('categories').then((categories) => {
           var category = categories.testGroceriesCategory;
 
-          cy.visit('/projects/' + project.id + '/add-category')
+          cy.visit('/projects/' + project.id + '/categories')
+
+          cy.get('.btn-add').click();
 
           cy.get('#name').type(category.name)
 
@@ -26,10 +28,11 @@ describe('EconoFlow - category add Tests', () => {
 
             cy.get("mat-snack-bar-container").should("be.visible").contains('Created successfully!')
 
-            cy.wait<CategoryReq, CategoryRes[]>('@getCategories').then(({ request, response }) => {
-              const exists = response?.body.some(item => item.id == incomeCreated?.id)
+            cy.wait<CategoryReq, CategoryRes[]>(['@getCategories', '@getCategories']).then(([first, second]) => {
+              const exists = second.response?.body.some(item => item.id == incomeCreated?.id)
               expect(exists).to.be.true
             })
+
           })
         })
       })

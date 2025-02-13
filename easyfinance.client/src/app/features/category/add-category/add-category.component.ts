@@ -9,7 +9,6 @@ import { map, startWith } from 'rxjs/operators';
 import { CategoryService } from '../../../core/services/category.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CategoryDto } from '../models/category-dto';
-import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { CommonModule } from '@angular/common';
@@ -20,7 +19,6 @@ import { CommonModule } from '@angular/common';
         CommonModule,
         FormsModule,
         ReactiveFormsModule,
-        ReturnButtonComponent,
         MatButtonModule,
         MatAutocompleteModule,
         MatInputModule,
@@ -86,7 +84,7 @@ export class AddCategoryComponent implements OnInit {
 
       this.categoryService.add(this.projectId, newCategory).subscribe({
         next: response => {
-          this.previous(); 
+          this.router.navigate([{ outlets: { modal: null } }]);
         },
         error: (response: ApiErrorResponse) => {
           this.httpErrors = true;
@@ -124,9 +122,5 @@ export class AddCategoryComponent implements OnInit {
 
   trackByFn(index: number, item: string): number {
     return index;
-  }
-
-  previous() {
-    this.router.navigate(['/projects', this.projectId, 'categories']);
   }
 }

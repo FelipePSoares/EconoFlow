@@ -20,6 +20,8 @@ import { MatError, MatFormField, MatLabel } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
 import { ApiErrorResponse } from "../../../core/models/error";
 import { ErrorMessageService } from "../../../core/services/error-message.service";
+import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
     selector: 'app-list-categories',
@@ -58,7 +60,12 @@ export class ListCategoriesComponent implements OnInit {
   @Input({ required: true })
   projectId!: string;
 
-  constructor(public categoryService: CategoryService, private router: Router, private errorMessageService: ErrorMessageService) {
+  constructor(
+    public categoryService: CategoryService,
+    private router: Router,
+    private errorMessageService: ErrorMessageService,
+    private dialog: MatDialog
+  ) {
   }
 
   ngOnInit(): void {
@@ -117,7 +124,18 @@ export class ListCategoriesComponent implements OnInit {
   }
 
   add() {
-    this.router.navigate(['projects', this.projectId, 'add-category']);
+    this.router.navigate([{ outlets: { modal: ['projects', this.projectId, 'add-category'] } }]);
+
+    this.dialog.open(PageModalComponent, {
+      autoFocus: 'input',
+      data: {
+        title: 'Create Category'
+      }
+    }).afterClosed().subscribe((result) => {
+      if (result) {
+        this.fillData(CurrentDateComponent.currentDate);
+      }
+    });
   }
 
   edit(category: CategoryDto): void {
