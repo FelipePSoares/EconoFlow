@@ -31,6 +31,8 @@ import { dateUTC } from '../../../core/utils/date';
 import { GlobalService } from '../../../core/services/global.service';
 import { UserService } from '../../../core/services/user.service';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
+import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
     selector: 'app-list-expense-items',
@@ -88,14 +90,7 @@ export class ListExpenseItemsComponent {
   @Input({ required: true })
   set expenseId(expenseId: string) {
     this._expenseId = expenseId;
-    this.expenseService.getById(this.projectId, this.categoryId, this._expenseId)
-      .pipe(map(expense => mapper.map(expense, Expense, ExpenseDto)))
-      .subscribe(
-        {
-          next: res => {
-            this.expense.next(res);
-          }
-        });
+    this.fillData();
   }
 
   @Input({ required: true })
@@ -106,12 +101,24 @@ export class ListExpenseItemsComponent {
     private router: Router,
     private errorMessageService: ErrorMessageService,
     private globalService: GlobalService,
-    private userService: UserService
+    private userService: UserService,
+    private dialog: MatDialog
   ) {
     this.thousandSeparator = this.globalService.groupSeparator;
     this.decimalSeparator = this.globalService.decimalSeparator
     this.userService.loggedUser$.subscribe(value => this.currencySymbol = getCurrencySymbol(value.preferredCurrency, "narrow"));
     this.edit(new ExpenseItemDto());
+  }
+
+  fillData() {
+    this.expenseService.getById(this.projectId, this.categoryId, this._expenseId)
+      .pipe(map(expense => mapper.map(expense, Expense, ExpenseDto)))
+      .subscribe(
+        {
+          next: res => {
+            this.expense.next(res);
+          }
+        });
   }
 
   get id() {
@@ -190,7 +197,18 @@ export class ListExpenseItemsComponent {
   }
 
   add(): void {
-    this.router.navigate(['projects', this.projectId, 'categories', this.categoryId, 'expenses', this.expenseId, 'add-expense-item', { currentDate: this.currentDate.toJSON() }]);
+    this.router.navigate([{ outlets: { modal: ['projects', this.projectId, 'categories', this.categoryId, 'expenses', this.expenseId, 'add-expense-item'] } }]);
+
+    this.dialog.open(PageModalComponent, {
+      autoFocus: 'input',
+      data: {
+        title: 'Create Expense Item'
+      }
+    }).afterClosed().subscribe((result) => {
+      if (result) {
+        this.fillData();
+      }
+    });
   }
 
   remove(id: string): void {

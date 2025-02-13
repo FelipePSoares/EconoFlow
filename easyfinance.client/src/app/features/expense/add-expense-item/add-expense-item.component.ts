@@ -8,7 +8,6 @@ import { Expense } from '../../../core/models/expense';
 import { mapper } from '../../../core/utils/mappings/mapper';
 import { ExpenseDto } from '../models/expense-dto';
 import { compare } from 'fast-json-patch';
-import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { CommonModule, getCurrencySymbol } from '@angular/common';
@@ -31,7 +30,6 @@ import { CurrencyMaskModule } from 'ng2-currency-mask';
         CommonModule,
         FormsModule,
         ReactiveFormsModule,
-        ReturnButtonComponent,
         MatFormFieldModule,
         MatInputModule,
         MatButtonModule,
@@ -128,7 +126,7 @@ export class AddExpenseItemComponent implements OnInit {
       this.expenseService.update(this.projectId, this.categoryId, this.expenseId, patch).subscribe({
         next: response => {
           this.snackBar.openSuccessSnackbar('Created successfully!');
-          this.previous();
+          this.router.navigate([{ outlets: { modal: null } }]);
         },
         error: (response: ApiErrorResponse) => {
           this.httpErrors = true;
@@ -162,9 +160,5 @@ export class AddExpenseItemComponent implements OnInit {
     }
 
     return errors;
-  }
-
-  previous() {
-    this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, 'expenses', this.expenseId]);
   }
 }
