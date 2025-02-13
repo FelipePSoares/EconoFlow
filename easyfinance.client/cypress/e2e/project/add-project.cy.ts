@@ -11,7 +11,9 @@ describe('EconoFlow - project add Tests', () => {
       cy.fixture('projects').then((projects) => {
         var project = projects.testPersonalProject;
 
-        cy.visit('/add-project')
+        cy.visit('/projects')
+
+        cy.get('#add-item').click()
 
         cy.get('#name').type(project.name)
         cy.get('[name="type"]').click()
@@ -31,8 +33,8 @@ describe('EconoFlow - project add Tests', () => {
 
           cy.get("mat-snack-bar-container").should("be.visible").contains('Created successfully!');
 
-          cy.wait<ProjectReq, ProjectRes[]>('@getProjects').then(({ request, response }) => {
-            const exists = response?.body.some(item => item.id == projectCreated?.id)
+          cy.wait<ProjectReq, ProjectRes[]>(['@getProjects', '@getProjects']).then(([first, second]) => {
+            const exists = second.response?.body.some(item => item.id == projectCreated?.id)
             expect(exists).to.be.true
           })
         })

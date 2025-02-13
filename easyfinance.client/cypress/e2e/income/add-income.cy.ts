@@ -8,19 +8,17 @@ describe('EconoFlow - income add Tests', () => {
       cy.fixture('projects').then((projects) => {
         var project = projects.defaultProject;
         
-        cy.visit('/projects/' + project.id + '/add-income')
+        cy.visit('/projects/' + project.id + '/incomes')
+
+        cy.get('.btn-add').click();
+
+        cy.focused().should('have.attr', 'formControlName', 'name')
       })
     })
   })
 
-  it('should appear amount validation error', () => {
-    cy.get('input[formControlName=amount]').type('123.231d').blur()
-    // Verify no mat-error is displayed
-    cy.get('mat-error').should('not.exist');  
-  })
-
   it('should appear name validation error', () => {
-    cy.get('input[formControlName=name]').focus().blur()
+    cy.get('input[formControlName=name]').blur()
     cy.get('mat-error').should('have.text', 'This field is required.')
   })
 

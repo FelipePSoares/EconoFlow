@@ -25,6 +25,8 @@ import { dateUTC } from '../../../core/utils/date';
 import { GlobalService } from '../../../core/services/global.service';
 import { UserService } from '../../../core/services/user.service';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
+import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
     selector: 'app-list-incomes',
@@ -75,7 +77,8 @@ export class ListIncomesComponent implements OnInit {
     private router: Router,
     private errorMessageService: ErrorMessageService,
     private globalService: GlobalService,
-    private userService: UserService
+    private userService: UserService,
+    private dialog: MatDialog
   ) {
     this.thousandSeparator = this.globalService.groupSeparator;
     this.decimalSeparator  = this.globalService.decimalSeparator;
@@ -142,7 +145,18 @@ export class ListIncomesComponent implements OnInit {
   }
 
   add() {
-    this.router.navigate(['projects', this.projectId, 'add-income']);
+    this.router.navigate([{ outlets: { modal: ['projects', this.projectId, 'add-income'] } }]);
+
+    this.dialog.open(PageModalComponent, {
+      autoFocus: 'input',
+      data: {
+        title: 'Create Income'
+      }
+    }).afterClosed().subscribe((result) => {
+      if (result) {
+        this.fillData(CurrentDateComponent.currentDate);
+      }
+    });
   }
 
   edit(income: IncomeDto): void {

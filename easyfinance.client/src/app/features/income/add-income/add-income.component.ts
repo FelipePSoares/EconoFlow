@@ -3,7 +3,6 @@ import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } 
 import { IncomeService } from '../../../core/services/income.service';
 import { Router } from '@angular/router';
 import { IncomeDto } from '../models/income-dto';
-import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -25,7 +24,6 @@ import { CurrencyMaskModule } from 'ng2-currency-mask';
         CommonModule,
         FormsModule,
         ReactiveFormsModule,
-        ReturnButtonComponent,
         MatFormFieldModule,
         MatInputModule,
         MatButtonModule,
@@ -91,7 +89,7 @@ export class AddIncomeComponent implements OnInit {
 
       this.incomeService.add(this.projectId, newIncome).subscribe({
         next: response => {
-          this.previous();
+          this.router.navigate([{ outlets: { modal: null } }]);
         },
         error: (response: ApiErrorResponse) => {
           this.httpErrors = true;
@@ -135,9 +133,5 @@ export class AddIncomeComponent implements OnInit {
   }
   get amount() {
     return this.incomeForm.get('amount');
-  }
-
-  previous() {
-    this.router.navigate(['/projects', this.projectId, 'incomes']);
   }
 }
