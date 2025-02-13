@@ -1,42 +1,46 @@
 describe('EconoFlow - project add Tests', () => {
-  it('should add a new project', () => {
+  beforeEach(() => {
     cy.fixture('users').then((users) => {
       const user = users.testUser;
 
       cy.login(user.username, user.password)
 
-      cy.intercept('GET', '**/projects*').as('getProjects')
-      cy.intercept('POST', '**/projects*').as('postProjects')
+      cy.visit('/projects')
 
-      cy.fixture('projects').then((projects) => {
-        var project = projects.testPersonalProject;
+      cy.get('#add-item').click()
 
-        cy.visit('/projects')
+      cy.focused().should('have.attr', 'formControlName', 'name')
+    })
+  })
 
-        cy.get('#add-item').click()
+  it('should add a new project', () => {
+    cy.intercept('GET', '**/projects*').as('getProjects')
+    cy.intercept('POST', '**/projects*').as('postProjects')
 
-        cy.get('#name').type(project.name)
-        cy.get('[name="type"]').click()
-        cy.get('mat-option').contains(project.type).then(option => {
-          cy.wrap(option).contains(project.type);
-          option[0].click();
-        })
+    cy.fixture('projects').then((projects) => {
+      var project = projects.testPersonalProject;
 
-        cy.get('[name="type"]').contains(project.type)
+      cy.get('input[formControlName=name]').type(project.name)
+      cy.get('[name="type"]').click()
+      cy.get('mat-option').contains(project.type).then(option => {
+        cy.wrap(option).contains(project.type);
+        option[0].click();
+      })
 
-        cy.get('button').contains('Create').click();
+      cy.get('[name="type"]').contains(project.type)
 
-        cy.wait<ProjectReq, ProjectRes>('@postProjects').then(({ request, response }) => {
-          expect(response?.statusCode).to.equal(201)
+      cy.get('button').contains('Create').click();
 
-          const projectCreated = response?.body
+      cy.wait<ProjectReq, ProjectRes>('@postProjects').then(({ request, response }) => {
+        expect(response?.statusCode).to.equal(201)
 
-          cy.get("mat-snack-bar-container").should("be.visible").contains('Created successfully!');
+        const projectCreated = response?.body
 
-          cy.wait<ProjectReq, ProjectRes[]>(['@getProjects', '@getProjects']).then(([first, second]) => {
-            const exists = second.response?.body.some(item => item.id == projectCreated?.id)
-            expect(exists).to.be.true
-          })
+        cy.get("mat-snack-bar-container").should("be.visible").contains('Created successfully!');
+
+        cy.wait<ProjectReq, ProjectRes[]>('@getProjects').then(response => {
+          const exists = response.response?.body.some(item => item.id == projectCreated?.id)
+          expect(exists).to.be.true
         })
       })
     })

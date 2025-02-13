@@ -28,6 +28,8 @@ import { GlobalService } from '../../../core/services/global.service';
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
 import { UserService } from '../../../core/services/user.service';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
+import { MatDialog } from '@angular/material/dialog';
+import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
 
 @Component({
     selector: 'app-list-expenses',
@@ -78,7 +80,8 @@ export class ListExpensesComponent implements OnInit {
     private router: Router,
     private errorMessageService: ErrorMessageService,
     private globalService: GlobalService,
-    private userService: UserService
+    private userService: UserService,
+    private dialog: MatDialog
   ) {
     this.thousandSeparator = this.globalService.groupSeparator;
     this.decimalSeparator = this.globalService.decimalSeparator
@@ -86,8 +89,8 @@ export class ListExpensesComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.edit(new ExpenseDto());
     this.fillData(CurrentDateComponent.currentDate);
+    this.edit(new ExpenseDto());
   }
 
   fillData(date: Date) {
@@ -196,7 +199,18 @@ export class ListExpensesComponent implements OnInit {
   }
 
   add(): void {
-    this.router.navigate(['projects', this.projectId, 'categories', this.categoryId, 'add-expense', { currentDate: CurrentDateComponent.currentDate.toISOString().substring(0, 10) }]);
+    this.router.navigate([{ outlets: { modal: ['projects', this.projectId, 'categories', this.categoryId, 'add-expense'] } }]);
+
+    this.dialog.open(PageModalComponent, {
+      autoFocus: 'input',
+      data: {
+        title: 'Create Expense'
+      }
+    }).afterClosed().subscribe((result) => {
+      if (result) {
+        this.fillData(CurrentDateComponent.currentDate);
+      }
+    });
   }
 
   previous() {

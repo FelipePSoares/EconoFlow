@@ -106,7 +106,7 @@ export class AddExpenseComponent implements OnInit {
 
       this.expenseService.add(this.projectId, this.categoryId, newExpense).subscribe({
         next: response => {
-          this.previous();
+          this.router.navigate([{ outlets: { modal: null } }]);
         },
         error: (response: ApiErrorResponse) => {
           this.httpErrors = true;
@@ -145,9 +145,5 @@ export class AddExpenseComponent implements OnInit {
     }
 
     return errors;
-  }
-
-  previous() {
-    this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, 'expenses']);
   }
 }

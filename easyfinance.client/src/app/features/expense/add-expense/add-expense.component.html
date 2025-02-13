@@ -1,79 +1,62 @@
 <div class="container text-center">
   <div class="row justify-content-md-center">
-    <div class="wrap col-lg-8">
+    <form [formGroup]="expenseForm" (ngSubmit)="save()">
 
-      <div class="container position-relative">
-        <div class="row align-items-center">
-          <!-- Back button on the left -->
-          <div class="col-auto position-absolute start-0">
-            <app-return-button (returnButtonEvent)="previous()"></app-return-button>
-          </div>
+      <!-- Name Field -->
+      <mat-form-field appearance="fill" class="w-100">
+        <mat-label>Name</mat-label>
+        <input matInput placeholder="E.g., Rent, Grocery Shopping, Internet Bill" formControlName="name">
+        @if (name?.invalid && name?.touched){
+        <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error }}</mat-error>
+        }
+      </mat-form-field>
 
-          <!-- Centered title -->
-          <div class="col text-center mt-3 mb-3">
-            <h2>Create Expense</h2>
-          </div>
-        </div>
+      <!-- Date Field with Date Picker -->
+      <mat-form-field appearance="fill" class="w-100">
+        <mat-label>Date</mat-label>
+        <input matInput [matDatepicker]="picker" formControlName="date">
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+        @if (date?.invalid && date?.touched){
+        <mat-error *ngFor="let error of getFormFieldErrors('date')">{{ error }}</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Budget Field -->
+      <mat-form-field appearance="fill" class="w-100">
+        <mat-label>Budget</mat-label>
+        <span matTextPrefix>{{ currencySymbol }}&nbsp;</span>
+        <input matInput formControlName="budget" type="number" step="1" min="0">
+        @if (budget?.invalid && budget?.touched){
+        <mat-error *ngFor="let error of getFormFieldErrors('budget')">{{ error }}</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Amount Field -->
+      <mat-form-field appearance="fill" class="w-100">
+        <mat-label>Amount</mat-label>
+        <input matInput 
+          type="text"
+          inputmode="decimal"
+          currencyMask
+          [options]="{ prefix: currencySymbol, allowNegative: false, thousands: thousandSeparator, decimal: decimalSeparator, precision: 2 }"
+          formControlName="amount">
+        @if (amount?.invalid && amount?.touched){
+        <mat-error *ngFor="let error of getFormFieldErrors('amount')">{{ error }}</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- General Error Display -->
+      <div *ngIf="httpErrors && errors['general']">
+        <p class="mb-3 text-danger text-center">{{ errors['general'] }}</p>
       </div>
 
-      <form [formGroup]="expenseForm" (ngSubmit)="save()">
-
-        <!-- Name Field -->
-        <mat-form-field appearance="fill" class="w-100">
-          <mat-label>Name</mat-label>
-          <input matInput placeholder="Supermarket" formControlName="name">
-          @if (name?.invalid && name?.touched){
-          <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error }}</mat-error>
-          }
-        </mat-form-field>
-
-        <!-- Date Field with Date Picker -->
-        <mat-form-field appearance="fill" class="w-100">
-          <mat-label>Date</mat-label>
-          <input matInput [matDatepicker]="picker" formControlName="date">
-          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-          <mat-datepicker #picker></mat-datepicker>
-          @if (date?.invalid && date?.touched){
-          <mat-error *ngFor="let error of getFormFieldErrors('date')">{{ error }}</mat-error>
-          }
-        </mat-form-field>
-
-        <!-- Budget Field -->
-        <mat-form-field appearance="fill" class="w-100">
-          <mat-label>Budget</mat-label>
-          <span matTextPrefix>{{ currencySymbol }}&nbsp;</span>
-          <input matInput formControlName="budget" type="number" step="1" min="0">
-          @if (budget?.invalid && budget?.touched){
-          <mat-error *ngFor="let error of getFormFieldErrors('budget')">{{ error }}</mat-error>
-          }
-        </mat-form-field>
-
-        <!-- Amount Field -->
-        <mat-form-field appearance="fill" class="w-100">
-          <mat-label>Amount</mat-label>
-          <input matInput 
-            type="text"
-            inputmode="decimal"
-            currencyMask
-            [options]="{ prefix: currencySymbol, allowNegative: false, thousands: thousandSeparator, decimal: decimalSeparator, precision: 2 }"
-            formControlName="amount">
-          @if (amount?.invalid && amount?.touched){
-          <mat-error *ngFor="let error of getFormFieldErrors('amount')">{{ error }}</mat-error>
-          }
-        </mat-form-field>
-
-        <!-- General Error Display -->
-        <div *ngIf="httpErrors && errors['general']">
-          <p class="mb-3 text-danger text-center">{{ errors['general'] }}</p>
-        </div>
-
-        <!-- Submit Button -->
-        <div class="float-end">
-          <button mat-raised-button color="primary" type="submit" [disabled]="expenseForm.invalid">
-            Create
-          </button>
-        </div>
-      </form>
-    </div>
+      <!-- Submit Button -->
+      <div class="float-end">
+        <button mat-raised-button color="primary" type="submit" [disabled]="expenseForm.invalid">
+          Create
+        </button>
+      </div>
+    </form>
   </div>
 </div>
