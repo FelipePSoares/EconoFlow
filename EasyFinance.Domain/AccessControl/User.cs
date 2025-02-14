@@ -11,6 +11,11 @@ namespace EasyFinance.Domain.AccessControl
     {
         public User() { }
 
+        public User(Guid id)
+        {
+            Id = id;
+        }
+
         public User(string firstName = "Default", string lastName = "Default", string preferredCurrency = "EUR", bool enabled = default)
         {
             FirstName = firstName;
@@ -21,6 +26,7 @@ namespace EasyFinance.Domain.AccessControl
 
         public string FirstName { get; private set; } = string.Empty;
         public string LastName { get; private set; } = string.Empty;
+        public string FullName => $"{FirstName} {LastName}";
         public string PreferredCurrency { get; private set; } = string.Empty;
         public bool Enabled { get; set; } = true;
         public bool HasIncompletedInformation => string.IsNullOrEmpty(FirstName) && string.IsNullOrEmpty(LastName);

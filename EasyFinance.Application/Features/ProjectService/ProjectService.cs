@@ -1,4 +1,8 @@
-﻿using EasyFinance.Application.Contracts.Persistence;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.DTOs.FinancialProject;
 using EasyFinance.Application.Mappers;
@@ -8,10 +12,6 @@ using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace EasyFinance.Application.Features.ProjectService
 {
@@ -82,11 +82,11 @@ namespace EasyFinance.Application.Features.ProjectService
 
             projectDto.ApplyTo(dto);
 
-            dto.FromDTO(existingProject);
+            var result = dto.FromDTO(existingProject);
 
-            await UpdateAsync(existingProject);
+            await UpdateAsync(result);
 
-            return AppResponse<ProjectResponseDTO>.Success(existingProject.ToDTO());
+            return AppResponse<ProjectResponseDTO>.Success(result.ToDTO());
         }
 
         public async Task<AppResponse> DeleteAsync(Guid id)

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text.Json.Serialization;
 using EasyFinance.Domain.FinancialProject;
 
 namespace EasyFinance.Application.DTOs.FinancialProject

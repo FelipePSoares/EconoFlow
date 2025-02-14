@@ -1,12 +1,12 @@
-﻿using EasyFinance.Application.DTOs.Financial;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.DTOs.FinancialProject;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.JsonPatch;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace EasyFinance.Application.Features.ProjectService
 {
