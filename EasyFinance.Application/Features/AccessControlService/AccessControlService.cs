@@ -29,16 +29,25 @@ namespace EasyFinance.Application.Features.AccessControlService
             return access != null && access.Role >= accessNeeded;
         }
 
-        public async Task<AppResponse<IEnumerable<UserProjectResponseDTO>>> UpdateAccessAsync(Guid projectId, JsonPatchDocument<IEnumerable<UserProjectRequestDTO>> userProjectDto)
+        public async Task<AppResponse<IEnumerable<UserProjectResponseDTO>>> UpdateAccessAsync(User user, Guid projectId, JsonPatchDocument<IList<UserProjectRequestDTO>> userProjectsDto)
         {
-            var project = unitOfWork.ProjectRepository.Trackable().FirstOrDefault(up => up.Id == projectId);
+            if (!this.HasAuthorization(user.Id, projectId, Role.Admin))
+                return AppResponse<IEnumerable<UserProjectResponseDTO>>.Error(code: ValidationMessages.Forbidden, description: ValidationMessages.Forbidden);
+
+            var project = unitOfWork.ProjectRepository.NoTrackable().FirstOrDefault(up => up.Id == projectId);
             var existingUserProject = unitOfWork.UserProjectRepository.Trackable().Include(up => up.User).Include(up => up.Project).Where(up => up.Project.Id == projectId).ToList();
 
-            var dto = existingUserProject.ToRequestDTO();
+            if (userProjectsDto.Operations.Count == 0)
+                return AppResponse<IEnumerable<UserProjectResponseDTO>>.Success(existingUserProject.ToDTO());
 
-            userProjectDto.ApplyTo(dto);
+            var dto = existingUserProject.ToRequestDTO().ToList();
+
+            userProjectsDto.ApplyTo(dto);
 
             var result = dto.FromDTO(project, existingUserProject);
+
+            if (!result.Any(r => r.Role == Role.Admin))
+                return AppResponse<IEnumerable<UserProjectResponseDTO>>.Error(description: ValidationMessages.AdminRequired);
 
             return await this.BulkyUpdateAsync(result);
         }

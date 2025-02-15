@@ -24,6 +24,11 @@ namespace EasyFinance.Infrastructure.DTOs
             return AddMessage(result, messages);
         }
 
+        public static AppResponse Error(string description)
+        {
+            var result = new AppResponse() { Succeeded = false };
+            return AddMessage(result, new AppMessage("General", description));
+        }
         public static AppResponse Error(string code, string description)
         {
             var result = new AppResponse() { Succeeded = false };
@@ -78,6 +83,11 @@ namespace EasyFinance.Infrastructure.DTOs
             return AddMessage(result, messages);
         }
 
+        public new static AppResponse<T> Error(string description)
+        {
+            var result = new AppResponse<T>() { Succeeded = false };
+            return AddMessage(result, new AppMessage("General", description));
+        }
         public new static AppResponse<T> Error(string code, string description)
         {
             var result = new AppResponse<T>() { Succeeded = false };

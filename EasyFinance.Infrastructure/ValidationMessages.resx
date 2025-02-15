@@ -207,4 +207,7 @@
   <data name="ProjectNotFoundOrInsufficientUserPermissions" xml:space="preserve">
     <value>Project not found or insufficient user permissions.</value>
   </data>
+  <data name="AdminRequired" xml:space="preserve">
+    <value>At least one admin is required in the project.</value>
+  </data>
 </root>

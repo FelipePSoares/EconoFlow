@@ -121,7 +121,7 @@ namespace EasyFinance.Application.Features.ProjectService
                 .FirstOrDefaultAsync(up => up.Id == id);
 
             if (project.Categories.Any(c => c.Expenses.Any(e => e.Date.Month == currentDate.Month && e.Date.Year == currentDate.Year && e.Budget > 0)))
-                return AppResponse<ICollection<ExpenseResponseDTO>>.Error(code: "General", description: ValidationMessages.CantImportBudgetBecauseAlreadyExists);
+                return AppResponse<ICollection<ExpenseResponseDTO>>.Error(description: ValidationMessages.CantImportBudgetBecauseAlreadyExists);
 
             var newExpenses = project.Categories.SelectMany(c => c.CopyBudgetToCurrentMonth(user, currentDate)).ToDTO().ToList();
 

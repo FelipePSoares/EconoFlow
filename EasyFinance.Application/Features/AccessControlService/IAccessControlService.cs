@@ -11,6 +11,6 @@ namespace EasyFinance.Application.Features.AccessControlService
     public interface IAccessControlService
     {
         bool HasAuthorization(Guid userId, Guid projectId, Role accessNeeded);
-        Task<AppResponse<IEnumerable<UserProjectResponseDTO>>> UpdateAccessAsync(Guid projectId, JsonPatchDocument<IEnumerable<UserProjectRequestDTO>> userProjectDto);
+        Task<AppResponse<IEnumerable<UserProjectResponseDTO>>> UpdateAccessAsync(User user, Guid projectId, JsonPatchDocument<IList<UserProjectRequestDTO>> userProjectDto);
     }
 }

@@ -131,11 +131,14 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpPatch("{projectId}/access")]
-        public async Task<IActionResult> UpdateAccess(Guid projectId, [FromBody] JsonPatchDocument<IEnumerable<UserProjectRequestDTO>> userProjectDto)
+        public async Task<IActionResult> UpdateAccess(Guid projectId, [FromBody] JsonPatchDocument<IList<UserProjectRequestDTO>> userProjectDto)
         {
             if (userProjectDto == null) return BadRequest();
 
-            var updateResult = await accessControlService.UpdateAccessAsync(projectId: projectId, userProjectDto: userProjectDto);
+            var id = this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier);
+            var user = await this.userManager.FindByIdAsync(id.Value);
+
+            var updateResult = await accessControlService.UpdateAccessAsync(user, projectId, userProjectDto);
 
             return ValidateResponse(updateResult, HttpStatusCode.OK);
         }
