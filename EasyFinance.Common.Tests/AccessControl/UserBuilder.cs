@@ -1,5 +1,6 @@
 ﻿using AutoFixture;
 using EasyFinance.Domain.AccessControl;
+using System;
 using System.Net.Mail;
 
 namespace EasyFinance.Common.Tests.AccessControl
@@ -47,6 +48,12 @@ namespace EasyFinance.Common.Tests.AccessControl
         public UserBuilder AddEnabled(bool enabled)
         {
             this.user.Enabled = enabled;
+            return this;
+        }
+
+        public UserBuilder AddId(Guid guid)
+        {
+            this.user.Id = guid;
             return this;
         }
 

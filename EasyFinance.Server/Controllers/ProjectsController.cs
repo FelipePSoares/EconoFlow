@@ -135,8 +135,7 @@ namespace EasyFinance.Server.Controllers
         {
             if (userProjectDto == null) return BadRequest();
 
-            var id = this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier);
-            var user = await this.userManager.FindByIdAsync(id.Value);
+            var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
             var updateResult = await accessControlService.UpdateAccessAsync(user, projectId, userProjectDto);
 

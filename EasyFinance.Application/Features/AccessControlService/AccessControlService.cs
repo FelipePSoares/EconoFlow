@@ -8,6 +8,7 @@ using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,10 +17,12 @@ namespace EasyFinance.Application.Features.AccessControlService
     public class AccessControlService : IAccessControlService
     {
         private readonly IUnitOfWork unitOfWork;
+        private readonly UserManager<User> userManager;
 
-        public AccessControlService(IUnitOfWork unitOfWork)
+        public AccessControlService(IUnitOfWork unitOfWork, UserManager<User> userManager)
         {
             this.unitOfWork = unitOfWork;
+            this.userManager = userManager;
         }
 
         public bool HasAuthorization(Guid userId, Guid projectId, Role accessNeeded)
@@ -58,7 +61,21 @@ namespace EasyFinance.Application.Features.AccessControlService
                 return AppResponse<IEnumerable<UserProjectResponseDTO>>.Error(code: nameof(userProjects), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(userProjects)));
 
             foreach (var userProject in userProjects)
+            {
+                if (userProject.User.Id == default)
+                {
+                    var user = await userManager.FindByEmailAsync(userProject.Email);
+                    if (user != default)
+                        userProject.SetUser(user);
+                }
+                else
+                {
+                    var user = await userManager.FindByIdAsync(userProject.User.Id.ToString());
+                    if (user != default)
+                        userProject.SetUser(user);
+                }
                 unitOfWork.UserProjectRepository.InsertOrUpdate(userProject);
+            }
 
             await unitOfWork.CommitAsync();
 
