@@ -19,6 +19,12 @@ namespace EasyFinance.Common.Tests.FinancialProject
             this.AddType(ProjectType.Personal);
         }
 
+        public ProjectBuilder AddId(Guid guid)
+        {
+            this.project.SetId(guid);
+            return this;
+        }
+
         public ProjectBuilder AddName(string name)
         {
             this.project.SetName(name);

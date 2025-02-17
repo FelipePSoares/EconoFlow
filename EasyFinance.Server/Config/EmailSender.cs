@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity.UI.Services;
+using Newtonsoft.Json.Linq;
 using SendGrid;
 using SendGrid.Helpers.Mail;
 using System.Text.RegularExpressions;
@@ -7,6 +8,8 @@ namespace EasyFinance.Server.Config
 {
     public class EmailSender : IEmailSender
     {
+        private static readonly Regex InvitationRegex = new Regex(@"(.*?){{(.*?)}}", RegexOptions.Compiled);
+
         private readonly ILogger logger;
         private readonly ISendGridClient sendGridClient;
         private readonly IHttpContextAccessor httpContextAccessor;
@@ -22,12 +25,27 @@ namespace EasyFinance.Server.Config
         {
             SendGridMessage msg;
 
-            if (subject == "Reset your password")
-                msg = createResetPasswordEmail(toEmail, subject, message);
-            else if (subject == "Confirm your email")
-                msg = CreateConfirmationEmail(toEmail, subject, message);
-            else
-                msg = createDefaultEmail(toEmail, subject, message);
+            switch (subject)
+            {
+                case "Reset your password":
+                    msg = CreateResetPasswordEmail(toEmail, subject, message);
+                    break;
+                case "Confirm your email":
+                    msg = CreateConfirmationEmail(toEmail, subject, message);
+                    break;
+                case "You have received an invitation":
+                    msg = CreateInvitationEmail(toEmail, subject, message);
+                    break;
+                case "You have been granted access to a project":
+                    msg = CreateGrantedAccessEmail(toEmail, subject, message);
+                    break;
+                case "Your grant access level has been changed.":
+                    msg = CreateDefaultEmail(toEmail, subject, message);
+                    break;
+                default:
+                    msg = CreateDefaultEmail(toEmail, subject, message);
+                    break;
+            }
 
             var response = await sendGridClient.SendEmailAsync(msg);
             this.logger.LogInformation(response.IsSuccessStatusCode
@@ -35,7 +53,7 @@ namespace EasyFinance.Server.Config
                                    : "Failure in queuing email");
         }
 
-        private SendGridMessage createDefaultEmail(string toEmail, string subject, string message)
+        private SendGridMessage CreateDefaultEmail(string toEmail, string subject, string message)
         {
             var msg = new SendGridMessage()
             {
@@ -49,18 +67,45 @@ namespace EasyFinance.Server.Config
             return msg;
         }
 
+        private SendGridMessage CreateInvitationEmail(string toEmail, string subject, string message)
+        {
+            var data = InvitationRegex.Match(message);
+
+            message = data.Groups[1].Value;
+            var token = data.Groups[2].Value;
+
+            var request = this.httpContextAccessor.HttpContext.Request;
+            var callbackUrl = new UriBuilder($"{request.Scheme}://{request.Host}/register");
+
+            callbackUrl.Query = $"?token={token}";
+
+            var email = this.Format(subject, message, callbackUrl.Uri.AbsoluteUri);
+            return CreateDefaultEmail(toEmail, subject, email);
+        }
+
+        private SendGridMessage CreateGrantedAccessEmail(string toEmail, string subject, string message)
+        {
+            var data = InvitationRegex.Match(message);
+
+            message = data.Groups[1].Value;
+            var token = data.Groups[2].Value;
+
+            var request = this.httpContextAccessor.HttpContext.Request;
+            var callbackUrl = new UriBuilder($"{request.Scheme}://{request.Host}//projects/{token}/accept");
+
+            var email = this.Format(subject, message, callbackUrl.Uri.AbsoluteUri);
+            return CreateDefaultEmail(toEmail, subject, email);
+        }
+
         private SendGridMessage CreateConfirmationEmail(string toEmail, string subject, string message)
         {
             var regex = new Regex(@"<a href='(.+?)'");
-
             var url = regex.Match(message);
-
             var email = this.Format(subject, "Please confirm your account by clicking the button below.", url.Groups[1].Value);
-
-            return createDefaultEmail(toEmail, subject, email);
+            return CreateDefaultEmail(toEmail, subject, email);
         }
 
-        private SendGridMessage createResetPasswordEmail(string toEmail, string subject, string message)
+        private SendGridMessage CreateResetPasswordEmail(string toEmail, string subject, string message)
         {
             var token = ExtractResetPasswordToken(message);
 
@@ -71,7 +116,7 @@ namespace EasyFinance.Server.Config
 
             message = Format(subject, "Please reset your password by clicking the button below.", callbackUrl.Uri.AbsoluteUri);
 
-            return this.createDefaultEmail(toEmail, subject, message);
+            return this.CreateDefaultEmail(toEmail, subject, message);
         }
 
         private string Format(string subject, string message, string callbackUrl)
@@ -205,6 +250,14 @@ namespace EasyFinance.Server.Config
                   
                     <div class=""button"">
                         <a href=""{{callbackUrl}}"">Click here to proceed</a>
+                    </div>
+                    <div>
+                        <p>
+                            If you are unable to click the link, please copy and paste the address below into your browser:
+                        </p>
+                        <code style=""background-color: rgb(47, 47, 47) !important; color: rgb(215, 215, 215) !important; display: block; font-size: 14px; padding: 12px; border-radius: 8px; word-break: break-all;"" data-ogsc=""rgb(51, 51, 51)"" data-ogsb=""rgb(243, 243, 243)"">
+                            {{callbackUrl}}
+                        </code>
                     </div>
                     <p>Thank you for joining!</p>
                     <hr>

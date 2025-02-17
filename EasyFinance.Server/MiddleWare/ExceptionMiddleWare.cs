@@ -1,9 +1,6 @@
-﻿using System.Diagnostics;
-using System.Net;
+﻿using System.Net;
 using System.Text.Json;
 using EasyFinance.Infrastructure.Exceptions;
-using EasyFinance.Server.MiddleWare;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Serilog;
 
 namespace EasyFinance.Server.Middleware

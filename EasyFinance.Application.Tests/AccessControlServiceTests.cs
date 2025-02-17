@@ -3,13 +3,16 @@ using EasyFinance.Application.DTOs.AccessControl;
 using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Common.Tests.AccessControl;
+using EasyFinance.Common.Tests.FinancialProject;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Infrastructure;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace EasyFinance.Application.Tests
@@ -17,16 +20,21 @@ namespace EasyFinance.Application.Tests
     public class AccessControlServiceTests
     {
         private readonly AccessControlService accessControlService;
+        private readonly Mock<IUnitOfWork> unitOfWork;
         private readonly Mock<IGenericRepository<UserProject>> userProjectRepository;
         private readonly Mock<IGenericRepository<Project>> ProjectRepository;
+        private readonly Mock<IEmailSender> emailSender;
+        private readonly Mock<ILogger<AccessControlService>> logger;
         private readonly Mock<IUserStore<User>> userStoreMock;
         private readonly Mock<UserManager<User>> userManagerMock;
 
         public AccessControlServiceTests()
         {
-            var unitOfWork = new Mock<IUnitOfWork>();
+            this.unitOfWork = new Mock<IUnitOfWork>();
             this.userProjectRepository = new Mock<IGenericRepository<UserProject>>();
             this.ProjectRepository = new Mock<IGenericRepository<Project>>();
+            this.emailSender = new Mock<IEmailSender>();
+            this.logger = new Mock<ILogger<AccessControlService>>();
 
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
             this.userStoreMock = new Mock<IUserStore<User>>();
@@ -46,7 +54,7 @@ namespace EasyFinance.Application.Tests
             unitOfWork.Setup(uw => uw.UserProjectRepository).Returns(this.userProjectRepository.Object);
             unitOfWork.Setup(uw => uw.ProjectRepository).Returns(this.ProjectRepository.Object);
 
-            this.accessControlService = new AccessControlService(unitOfWork.Object, this.userManagerMock.Object);
+            this.accessControlService = new AccessControlService(unitOfWork.Object, this.userManagerMock.Object, this.emailSender.Object, this.logger.Object);
         }
 
         [Fact]
@@ -298,6 +306,51 @@ namespace EasyFinance.Application.Tests
             // Assert
             result.Succeeded.Should().BeFalse();
             result.Messages.Should().ContainSingle(e => e.Code == ValidationMessages.Forbidden && e.Description == ValidationMessages.Forbidden);
+        }
+
+        [Fact]
+        public async Task SendEmailsAsync_InvitesNewUsers_ShouldSendEmails()
+        {
+            // Arrange
+            var inviterUser = new UserBuilder()
+                .AddId(Guid.NewGuid())
+                .AddEmail("inviter@example.com")
+                .AddFirstName("Inviter")
+                .AddLastName("User")
+                .Build();
+
+            this.userManagerMock.Setup(u => u.FindByIdAsync(It.IsAny<string>())).ReturnsAsync(inviterUser);
+
+            var project = new ProjectBuilder()
+                .AddId(Guid.NewGuid())
+                .AddName("Project A")
+                .Build();
+
+            var userProjectAuthorization = new List<UserProject>
+            {
+                new UserProjectBuilder().AddUser(inviterUser).AddProject(project).AddRole(Role.Admin).AddAccepted().Build()
+            };
+
+            this.ProjectRepository.Setup(pr => pr.NoTrackable()).Returns(new List<Project> { project }.AsQueryable());
+            this.userProjectRepository.Setup(upr => upr.NoTrackable()).Returns(userProjectAuthorization.AsQueryable());
+            this.userProjectRepository.Setup(upr => upr.Trackable()).Returns(userProjectAuthorization.AsQueryable());
+            this.unitOfWork.Setup(u => u.GetAffectedUsers()).Returns([]);
+
+            var userProjectDto = new JsonPatchDocument<IList<UserProjectRequestDTO>>()
+                .Add(up => up, new UserProjectRequestDTO() 
+                { 
+                    UserEmail = "newuser@example.com",
+                    Role = Role.Viewer 
+                });
+
+            // Act
+            var result = await this.accessControlService.UpdateAccessAsync(inviterUser, project.Id, userProjectDto);
+
+            // Assert
+            this.emailSender.Verify(es => es.SendEmailAsync(
+                "newuser@example.com",
+                "You have received an invitation",
+                It.IsAny<string>()), Times.Once);
         }
     }
 }

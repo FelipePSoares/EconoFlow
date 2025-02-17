@@ -35,7 +35,13 @@ namespace EasyFinance.Common.Tests.AccessControl
             return this;
         }
 
-        public UserProjectBuilder SetExpiryDate(DateTime value)
+        public UserProjectBuilder AddAccepted()
+        {
+            this.userProject.SetAccepted();
+            return this;
+        }
+
+        public UserProjectBuilder AddExpiryDate(DateTime value)
         {
             this.userProject.GetType().GetProperty("ExpiryDate").SetValue(this.userProject, value);
             return this;

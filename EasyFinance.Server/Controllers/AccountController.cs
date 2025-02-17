@@ -1,16 +1,15 @@
-﻿using EasyFinance.Application.DTOs.AccessControl;
+﻿using System.Net;
+using System.Security.Claims;
+using System.Text.RegularExpressions;
+using EasyFinance.Application.DTOs.AccessControl;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Application.Features.UserService;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.DTOs;
 using EasyFinance.Infrastructure.Exceptions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.Net;
-using System.Security.Claims;
-using System.Text.RegularExpressions;
 
 
 namespace EasyFinance.Server.Controllers

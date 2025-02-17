@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Net;
-using System.Runtime.CompilerServices;
 using EasyFinance.Application;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Domain.AccessControl;

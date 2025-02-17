@@ -30,7 +30,7 @@ namespace EasyFinance.Domain.Tests.AccessControl
         [Fact]
         public void SetAccepted_ExpiredInvite_ShouldThrowException()
         {
-            var userProject = new UserProjectBuilder().SetExpiryDate(DateTime.UtcNow.AddDays(-2)).Build();
+            var userProject = new UserProjectBuilder().AddExpiryDate(DateTime.UtcNow.AddDays(-2)).Build();
 
             var action = () => userProject.SetAccepted();
 
