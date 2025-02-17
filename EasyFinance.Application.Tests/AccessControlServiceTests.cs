@@ -352,5 +352,50 @@ namespace EasyFinance.Application.Tests
                 "You have received an invitation",
                 It.IsAny<string>()), Times.Once);
         }
+
+        [Fact]
+        public async Task SendEmailsAsync_EmailSenderThrowsException_ShouldLogError()
+        {
+            // Arrange
+            var inviterUser = new UserBuilder()
+                .AddId(Guid.NewGuid())
+                .AddEmail("inviter@example.com")
+                .AddFirstName("Inviter")
+                .AddLastName("User")
+                .Build();
+
+            this.userManagerMock.Setup(u => u.FindByIdAsync(It.IsAny<string>())).ReturnsAsync(inviterUser);
+
+            var project = new ProjectBuilder()
+                .AddId(Guid.NewGuid())
+                .AddName("Project A")
+                .Build();
+
+            var userProjectAuthorization = new List<UserProject>
+            {
+                new UserProjectBuilder().AddUser(inviterUser).AddProject(project).AddRole(Role.Admin).AddAccepted().Build()
+            };
+
+            this.ProjectRepository.Setup(pr => pr.NoTrackable()).Returns(new List<Project> { project }.AsQueryable());
+            this.userProjectRepository.Setup(upr => upr.NoTrackable()).Returns(userProjectAuthorization.AsQueryable());
+            this.userProjectRepository.Setup(upr => upr.Trackable()).Returns(userProjectAuthorization.AsQueryable());
+            this.unitOfWork.Setup(u => u.GetAffectedUsers()).Returns([]);
+
+            var userProjectDto = new JsonPatchDocument<IList<UserProjectRequestDTO>>()
+                .Add(up => up, new UserProjectRequestDTO()
+                {
+                    UserEmail = "newuser@example.com",
+                    Role = Role.Viewer
+                });
+
+            this.emailSender.Setup(es => es.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ThrowsAsync(new Exception("Email sending failed"));
+
+            // Act
+            var result = await this.accessControlService.UpdateAccessAsync(inviterUser, project.Id, userProjectDto);
+
+            // Assert
+            this.logger.Verify(l => l.Log(LogLevel.Error, It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.Is<Exception>(e => e.Message == "Email sending failed"), It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
+        }
     }
 }
