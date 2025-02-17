@@ -47,8 +47,8 @@ namespace EasyFinance.Application.Features.AccessControlService
             if (!this.HasAuthorization(inviterUser.Id, projectId, Role.Admin))
                 return AppResponse<IEnumerable<UserProjectResponseDTO>>.Error(code: ValidationMessages.Forbidden, description: ValidationMessages.Forbidden);
 
-            var project = unitOfWork.ProjectRepository.NoTrackable().FirstOrDefault(up => up.Id == projectId);
-            var existingUserProject = unitOfWork.UserProjectRepository.Trackable().Include(up => up.User).Include(up => up.Project).Where(up => up.Project.Id == projectId).ToList();
+            var project = unitOfWork.ProjectRepository.Trackable().FirstOrDefault(up => up.Id == projectId);
+            var existingUserProject = unitOfWork.UserProjectRepository.Trackable().Include(up => up.User).Where(up => up.Project.Id == projectId).ToList();
 
             if (userProjectsDto.Operations.Count == 0)
                 return AppResponse<IEnumerable<UserProjectResponseDTO>>.Success(existingUserProject.ToDTO());
@@ -81,9 +81,9 @@ namespace EasyFinance.Application.Features.AccessControlService
                 {
                     var user = await userManager.FindByEmailAsync(userProject.Email);
                     if (user != default)
-                        userProject.SetUser(user);
+                        userProject.User.Id = user.Id;
                 }
-                else
+                else if (userProject.Id == default)
                 {
                     var user = await userManager.FindByIdAsync(userProject.User.Id.ToString());
                     if (user != default)
@@ -104,9 +104,9 @@ namespace EasyFinance.Application.Features.AccessControlService
                     var email = userProject.User.Email ?? userProject.Email;
 
                     if (userProject.User.Id == default)
-                        sendingEmails.Add(emailSender.SendEmailAsync(email, "You have received an invitation", $"You have received an invitation from {inviterUser.FullName} to join Econoflow in the {userProject.Project.Name} project. Click the button below to accept it. {{{userProject.Token}}}"));
+                        sendingEmails.Add(emailSender.SendEmailAsync(email, "You have received an invitation", $"You have received an invitation from {inviterUser.FullName} to join Econoflow in the {userProject.Project.Name} project. Click the button below to accept it. {{{{{userProject.Token}}}}}"));
                     else if (affectedUsers.Contains(userProject.User.Id))
-                        sendingEmails.Add(emailSender.SendEmailAsync(email, "You have been granted access to a project", $"You have received an invitation from {inviterUser.FullName} to join in the {userProject.Project.Name} project. Click the button below to accept it. {{{userProject.Token}}}"));
+                        sendingEmails.Add(emailSender.SendEmailAsync(email, "You have been granted access to a project", $"You have received an invitation from {inviterUser.FullName} to join in the {userProject.Project.Name} project. Click the button below to accept it. {{{{{userProject.Token}}}}}"));
                 }
 
                 foreach (var userProject in userProjects.Where(up => up.Accepted && affectedUsers.Contains(up.User.Id)))

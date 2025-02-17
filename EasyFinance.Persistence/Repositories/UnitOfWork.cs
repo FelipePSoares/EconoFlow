@@ -72,7 +72,7 @@ namespace EasyFinance.Persistence.Repositories
 
             // get a list of all Modified entries which implement the UserProject
             var updatedUsers = entries.Where(e => e.Entity is UserProject)
-                    .Where(e => e.State == EntityState.Modified)
+                    .Where(e => e.State == EntityState.Modified || e.State == EntityState.Added)
                     .Select(e => ((UserProject)e.Entity).User.Id)
                     .Distinct()
                     .ToList();

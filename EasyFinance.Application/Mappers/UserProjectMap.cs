@@ -41,7 +41,8 @@ namespace EasyFinance.Application.Mappers
             if (existingUserProject != null)
             {
                 existingUserProject.SetRole(userProjectDTO.Role);
-                existingUserProject.SetUser(user, userProjectDTO.UserEmail);
+                if (user != null && user.Id != existingUserProject.User.Id || user == null)
+                    existingUserProject.SetUser(user, userProjectDTO.UserEmail);
                 existingUserProject.SetProject(project);
                 return existingUserProject;
             }
@@ -65,3 +66,4 @@ namespace EasyFinance.Application.Mappers
         }
     }
 }
+;

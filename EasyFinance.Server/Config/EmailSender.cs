@@ -91,7 +91,7 @@ namespace EasyFinance.Server.Config
             var token = data.Groups[2].Value;
 
             var request = this.httpContextAccessor.HttpContext.Request;
-            var callbackUrl = new UriBuilder($"{request.Scheme}://{request.Host}//projects/{token}/accept");
+            var callbackUrl = new UriBuilder($"{request.Scheme}://{request.Host}/projects/{token}/accept");
 
             var email = this.Format(subject, message, callbackUrl.Uri.AbsoluteUri);
             return CreateDefaultEmail(toEmail, subject, email);

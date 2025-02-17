@@ -27,7 +27,7 @@ namespace EasyFinance.Application.Features.ProjectService
         public AppResponse<ICollection<ProjectResponseDTO>> GetAll(Guid userId)
         {
             var result = unitOfWork.UserProjectRepository.NoTrackable()
-                .Where(up => up.User.Id == userId && !up.Project.Archive).Select(p => p.Project)
+                .Where(up => up.User.Id == userId && !up.Project.Archive && up.Accepted).Select(p => p.Project)
                 .ToDTO()
                 .ToList();
 
