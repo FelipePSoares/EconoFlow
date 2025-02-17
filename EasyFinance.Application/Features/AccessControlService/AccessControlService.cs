@@ -11,7 +11,6 @@ using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -112,7 +111,7 @@ namespace EasyFinance.Application.Features.AccessControlService
 
                 foreach (var userProject in userProjects.Where(up => up.Accepted && affectedUsers.Contains(up.User.Id)))
                 {
-                    sendingEmails.Add(emailSender.SendEmailAsync(userProject.User.Email, "Your grant access level has been changed.", $"Your grant access level in the {userProject.Project.Name} project has been changed by {inviterUser.FullName}. Your access level now is {userProject.Role}"));
+                    sendingEmails.Add(emailSender.SendEmailAsync(userProject.User.Email, "Your grant access level has been changed", $"Your grant access level in the {userProject.Project.Name} project has been changed by {inviterUser.FullName}. Your access level now is {userProject.Role}"));
                 }
 
                 await Task.WhenAll(sendingEmails.ToArray());

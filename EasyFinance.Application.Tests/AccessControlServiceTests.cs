@@ -8,7 +8,6 @@ using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Infrastructure;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.JsonPatch;
@@ -350,6 +349,113 @@ namespace EasyFinance.Application.Tests
             this.emailSender.Verify(es => es.SendEmailAsync(
                 "newuser@example.com",
                 "You have received an invitation",
+                It.IsAny<string>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task SendEmailsAsync_UpdateExistingUserGrant_ShouldSendEmails()
+        {
+            // Arrange
+            var inviterUser = new UserBuilder()
+                .AddId(Guid.NewGuid())
+                .AddEmail("inviter@example.com")
+                .AddFirstName("Inviter")
+                .AddLastName("User")
+                .Build();
+
+            var existingUser = new UserBuilder()
+                .AddId(Guid.NewGuid())
+                .AddEmail("existinguser@example.com")
+                .AddFirstName("Existing")
+                .AddLastName("User")
+                .Build();
+
+            this.userManagerMock.Setup(u => u.FindByIdAsync(It.Is<string>(u => u == inviterUser.Id.ToString()))).ReturnsAsync(inviterUser);
+            this.userManagerMock.Setup(u => u.FindByIdAsync(It.Is<string>(u => u == existingUser.Id.ToString()))).ReturnsAsync(existingUser);
+
+            var project = new ProjectBuilder()
+                .AddId(Guid.NewGuid())
+                .AddName("Project A")
+                .Build();
+
+            var userProjectAuthorization = new List<UserProject>
+            {
+                new UserProjectBuilder().AddUser(inviterUser).AddProject(project).AddRole(Role.Admin).AddAccepted().Build(),
+                new UserProjectBuilder().AddUser(existingUser).AddProject(project).AddRole(Role.Viewer).AddAccepted().Build()
+            };
+
+            this.ProjectRepository.Setup(pr => pr.NoTrackable()).Returns(new List<Project> { project }.AsQueryable());
+            this.userProjectRepository.Setup(upr => upr.NoTrackable()).Returns(userProjectAuthorization.AsQueryable());
+            this.userProjectRepository.Setup(upr => upr.Trackable()).Returns(userProjectAuthorization.AsQueryable());
+            this.unitOfWork.Setup(u => u.GetAffectedUsers()).Returns([existingUser.Id]);
+
+            var userProjectDto = new JsonPatchDocument<IList<UserProjectRequestDTO>>()
+                .Replace(up => up[1], new UserProjectRequestDTO()
+                {
+                    UserId = existingUser.Id,
+                    Role = Role.Manager
+                });
+
+            // Act
+            var result = await this.accessControlService.UpdateAccessAsync(inviterUser, project.Id, userProjectDto);
+
+            // Assert
+            this.emailSender.Verify(es => es.SendEmailAsync(
+                "existinguser@example.com",
+                "Your grant access level has been changed",
+                It.IsAny<string>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task SendEmailsAsync_AddExistingUser_ShouldSendEmails()
+        {
+            // Arrange
+            var inviterUser = new UserBuilder()
+                .AddId(Guid.NewGuid())
+                .AddEmail("inviter@example.com")
+                .AddFirstName("Inviter")
+                .AddLastName("User")
+                .Build();
+
+            var existingUser = new UserBuilder()
+                .AddId(Guid.NewGuid())
+                .AddEmail("existinguser@example.com")
+                .AddFirstName("Existing")
+                .AddLastName("User")
+                .Build();
+
+            this.userManagerMock.Setup(u => u.FindByIdAsync(It.Is<string>(u => u == inviterUser.Id.ToString()))).ReturnsAsync(inviterUser);
+            this.userManagerMock.Setup(u => u.FindByIdAsync(It.Is<string>(u => u == existingUser.Id.ToString()))).ReturnsAsync(existingUser);
+
+            var project = new ProjectBuilder()
+                .AddId(Guid.NewGuid())
+                .AddName("Project A")
+                .Build();
+
+            var userProjectAuthorization = new List<UserProject>
+            {
+                new UserProjectBuilder().AddUser(inviterUser).AddProject(project).AddRole(Role.Admin).AddAccepted().Build()
+            };
+
+            this.ProjectRepository.Setup(pr => pr.NoTrackable()).Returns(new List<Project> { project }.AsQueryable());
+            this.userProjectRepository.Setup(upr => upr.NoTrackable()).Returns(userProjectAuthorization.AsQueryable());
+            this.userProjectRepository.Setup(upr => upr.Trackable()).Returns(userProjectAuthorization.AsQueryable());
+            this.unitOfWork.Setup(u => u.GetAffectedUsers()).Returns([existingUser.Id]);
+
+            var userProjectDto = new JsonPatchDocument<IList<UserProjectRequestDTO>>()
+                .Add(up => up, new UserProjectRequestDTO()
+                {
+                    UserId = existingUser.Id,
+                    Role = Role.Manager
+                });
+
+            // Act
+            var result = await this.accessControlService.UpdateAccessAsync(inviterUser, project.Id, userProjectDto);
+
+            // Assert
+            this.emailSender.Verify(es => es.SendEmailAsync(
+                "existinguser@example.com",
+                "You have been granted access to a project",
                 It.IsAny<string>()), Times.Once);
         }
 
