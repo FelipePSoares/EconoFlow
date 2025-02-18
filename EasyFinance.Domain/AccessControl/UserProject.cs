@@ -20,15 +20,16 @@ namespace EasyFinance.Domain.AccessControl
             SetRole(role);
         }
 
-        public User User { get; private set; } = new User();
-        public string Email { get; set; } = string.Empty;
-        public Project Project { get; private set; } = new Project();
+        public User User { get; private set; }
+        public string Email { get; private set; } = string.Empty;
+        public Project Project { get; private set; }
         public Role Role { get; private set; }
         public Guid Token { get; private set; } = Guid.NewGuid();
         public bool Accepted { get; private set; }
         public DateTime SentAt { get; private set; } = DateTime.UtcNow;
         public DateTime? AcceptedAt { get; private set; }
         public DateTime ExpiryDate { get; private set; } = DateTime.UtcNow.AddDays(7);
+        public bool InvitationEmailSent { get; private set; }
 
         public void SetUser(User user, string email = "")
         {
@@ -58,6 +59,11 @@ namespace EasyFinance.Domain.AccessControl
 
             Accepted = true;
             AcceptedAt = DateTime.UtcNow;
+        }
+
+        public void SetInvitationEmailSent()
+        {
+            InvitationEmailSent = true;
         }
     }
 }

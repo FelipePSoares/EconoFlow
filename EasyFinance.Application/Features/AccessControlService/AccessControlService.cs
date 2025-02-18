@@ -62,9 +62,13 @@ namespace EasyFinance.Application.Features.AccessControlService
             if (!entities.Any(r => r.Role == Role.Admin))
                 return AppResponse<IEnumerable<UserProjectResponseDTO>>.Error(description: ValidationMessages.AdminRequired);
 
+            // Get modified users to send them an email
+            var affectedUsers = unitOfWork.GetAffectedUsers(EntityState.Modified);
+
             await InsertOrUpdateUserProjects(entities);
 
-            var affectedUsers = unitOfWork.GetAffectedUsers();
+            // Get added users to send them an email
+            affectedUsers = [.. affectedUsers, .. unitOfWork.GetAffectedUsers(EntityState.Added)];
 
             await unitOfWork.CommitAsync();
 
@@ -77,7 +81,7 @@ namespace EasyFinance.Application.Features.AccessControlService
         {
             foreach (var userProject in entities)
             {
-                if (userProject.User.Id == default)
+                if (userProject.User == null || userProject.User.Id == default)
                 {
                     var user = await userManager.FindByEmailAsync(userProject.Email);
                     if (user != default)
@@ -101,20 +105,27 @@ namespace EasyFinance.Application.Features.AccessControlService
 
                 foreach (var userProject in userProjects.Where(up => !up.Accepted))
                 {
-                    var email = userProject.User.Email ?? userProject.Email;
+                    var email = userProject.User?.Email ?? userProject.Email;
 
-                    if (userProject.User.Id == default)
-                        sendingEmails.Add(emailSender.SendEmailAsync(email, "You have received an invitation", $"You have received an invitation from {inviterUser.FullName} to join Econoflow in the {userProject.Project.Name} project. Click the button below to accept it. {{{{{userProject.Token}}}}}"));
+                    if (userProject.User == null || userProject.User.Id == default)
+                    {
+                        if (!userProject.InvitationEmailSent)
+                        {
+                            sendingEmails.Add(emailSender.SendEmailAsync(email, Emails.InvitationSubject, string.Format(Emails.InvitationHtmlMessage, inviterUser.FullName, userProject.Project.Name, userProject.Token)));
+                            userProject.SetInvitationEmailSent();
+                        }
+                    }
                     else if (affectedUsers.Contains(userProject.User.Id))
-                        sendingEmails.Add(emailSender.SendEmailAsync(email, "You have been granted access to a project", $"You have received an invitation from {inviterUser.FullName} to join in the {userProject.Project.Name} project. Click the button below to accept it. {{{{{userProject.Token}}}}}"));
+                        sendingEmails.Add(emailSender.SendEmailAsync(email, Emails.GrantedAccessSubject, string.Format(Emails.GrantedAccessHtmlMessage, userProject.User.FirstName, inviterUser.FullName, userProject.Project.Name, userProject.Token)));
                 }
 
                 foreach (var userProject in userProjects.Where(up => up.Accepted && affectedUsers.Contains(up.User.Id)))
                 {
-                    sendingEmails.Add(emailSender.SendEmailAsync(userProject.User.Email, "Your grant access level has been changed", $"Your grant access level in the {userProject.Project.Name} project has been changed by {inviterUser.FullName}. Your access level now is {userProject.Role}"));
+                    sendingEmails.Add(emailSender.SendEmailAsync(userProject.User.Email, Emails.GrantedAccessChangedSubject, string.Format(Emails.GrantedAccessChangedHtmlMessage, userProject.User.FirstName, userProject.Project.Name, inviterUser.FullName, userProject.Role)));
                 }
 
-                await Task.WhenAll(sendingEmails.ToArray());
+                await Task.WhenAll([.. sendingEmails]);
+                await unitOfWork.CommitAsync();
             }
             catch (Exception ex)
             {

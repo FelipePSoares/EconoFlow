@@ -18,8 +18,8 @@ namespace EasyFinance.Application.Mappers
 
             return new UserProjectRequestDTO()
             {
-                UserId = userProject.User.Id,
-                UserEmail = userProject.User.Email,
+                UserId = userProject.User?.Id,
+                UserEmail = userProject.User?.Email ?? userProject.Email,
                 Role = userProject.Role,
             };
         }
@@ -36,14 +36,19 @@ namespace EasyFinance.Application.Mappers
         {
             ArgumentNullException.ThrowIfNull(userProjectDTO);
 
-            var user = userProjectDTO.UserId == Guid.Empty ? null : new User(userProjectDTO.UserId);
+            var user = userProjectDTO.UserId.HasValue ? new User(userProjectDTO.UserId.Value) : null;
 
             if (existingUserProject != null)
             {
-                existingUserProject.SetRole(userProjectDTO.Role);
+                if (existingUserProject.Role != userProjectDTO.Role)
+                    existingUserProject.SetRole(userProjectDTO.Role);
+
                 if (user != null && user.Id != existingUserProject.User.Id || user == null)
                     existingUserProject.SetUser(user, userProjectDTO.UserEmail);
-                existingUserProject.SetProject(project);
+
+                if (existingUserProject.Project.Id != project.Id)
+                    existingUserProject.SetProject(project);
+
                 return existingUserProject;
             }
 

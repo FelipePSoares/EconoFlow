@@ -66,16 +66,18 @@ namespace EasyFinance.Persistence.Repositories
             await this.context.SaveChangesAsync();
         }
 
-        public ICollection<Guid> GetAffectedUsers()
+        public ICollection<Guid> GetAffectedUsers(params EntityState[] entityStates)
         {
             var entries = this.context.ChangeTracker.Entries();
 
-            // get a list of all Modified entries which implement the UserProject
-            var updatedUsers = entries.Where(e => e.Entity is UserProject)
-                    .Where(e => e.State == EntityState.Modified || e.State == EntityState.Added)
-                    .Select(e => ((UserProject)e.Entity).User.Id)
-                    .Distinct()
-                    .ToList();
+            var updatedUsers = entries
+                .Where(e => 
+                    e.Entity is UserProject userProject && 
+                    userProject.User != null && 
+                    entityStates.Contains(e.State))
+                .Select(e => ((UserProject)e.Entity).User.Id)
+                .Distinct()
+                .ToList();
 
             return updatedUsers;
         }

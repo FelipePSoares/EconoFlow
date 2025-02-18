@@ -8,13 +8,29 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Update="Emails.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Emails.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Emails.resx">
+	    <Generator>MSBuild:Compile</Generator>
+	    <StronglyTypedFileName>$(IntermediateOutputPath)\Emails.Designer.cs</StronglyTypedFileName>
+	    <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
+	    <StronglyTypedNamespace>EasyFinance.Infrastructure</StronglyTypedNamespace>
+	    <StronglyTypedClassName>Emails</StronglyTypedClassName>
+	    <PublicClass>true</PublicClass>
+    </EmbeddedResource>
     <EmbeddedResource Update="ValidationMessages.resx">
-      <Generator>MSBuild:Compile</Generator>
-      <StronglyTypedFileName>$(IntermediateOutputPath)\ValidationMessages.Designer.cs</StronglyTypedFileName>
-      <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
-      <StronglyTypedNamespace>EasyFinance.Infrastructure</StronglyTypedNamespace>
-      <StronglyTypedClassName>ValidationMessages</StronglyTypedClassName>
-      <PublicClass>true</PublicClass>
+        <Generator>MSBuild:Compile</Generator>
+        <StronglyTypedFileName>$(IntermediateOutputPath)\ValidationMessages.Designer.cs</StronglyTypedFileName>
+        <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
+        <StronglyTypedNamespace>EasyFinance.Infrastructure</StronglyTypedNamespace>
+        <StronglyTypedClassName>ValidationMessages</StronglyTypedClassName>
+        <PublicClass>true</PublicClass>
     </EmbeddedResource>
   </ItemGroup>
 </Project>

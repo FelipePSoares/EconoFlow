@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Financial;
 using EasyFinance.Domain.FinancialProject;
+using Microsoft.EntityFrameworkCore;
 
 namespace EasyFinance.Application.Contracts.Persistence
 {
@@ -18,6 +19,6 @@ namespace EasyFinance.Application.Contracts.Persistence
 
         Task CommitAsync();
 
-        ICollection<Guid> GetAffectedUsers();
+        ICollection<Guid> GetAffectedUsers(params EntityState[] entityStates);
     }
 }
