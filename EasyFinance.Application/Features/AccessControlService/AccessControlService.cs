@@ -81,7 +81,7 @@ namespace EasyFinance.Application.Features.AccessControlService
                 {
                     var user = await userManager.FindByEmailAsync(userProject.Email);
                     if (user != default)
-                        userProject.User.Id = user.Id;
+                        userProject.SetUser(user);
                 }
                 else if (userProject.Id == default)
                 {

@@ -54,7 +54,11 @@ namespace EasyFinance.Application.Features.ProjectService
                 return AppResponse<ProjectResponseDTO>.Success(projectExistent.ToDTO());
 
             unitOfWork.ProjectRepository.InsertOrUpdate(project);
-            unitOfWork.UserProjectRepository.InsertOrUpdate(new UserProject(user, project, Role.Admin));
+
+            var userProject = new UserProject(user, project, Role.Admin);
+            userProject.SetAccepted();
+            unitOfWork.UserProjectRepository.InsertOrUpdate(userProject);
+            
             await unitOfWork.CommitAsync();
 
             return AppResponse<ProjectResponseDTO>.Success(project.ToDTO());

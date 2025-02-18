@@ -10,7 +10,7 @@
   <ItemGroup>
     <EmbeddedResource Update="ValidationMessages.resx">
       <Generator>MSBuild:Compile</Generator>
-      <StronglyTypedFileName>ValidationMessages.Designer.cs</StronglyTypedFileName>
+      <StronglyTypedFileName>$(IntermediateOutputPath)\ValidationMessages.Designer.cs</StronglyTypedFileName>
       <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
       <StronglyTypedNamespace>EasyFinance.Infrastructure</StronglyTypedNamespace>
       <StronglyTypedClassName>ValidationMessages</StronglyTypedClassName>

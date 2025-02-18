@@ -43,7 +43,7 @@ namespace EasyFinance.Common.Tests.AccessControl
 
         public UserProjectBuilder AddExpiryDate(DateTime value)
         {
-            this.userProject.GetType().GetProperty("ExpiryDate").SetValue(this.userProject, value);
+            this.userProject?.GetType()?.GetProperty("ExpiryDate")?.SetValue(this.userProject, value);
             return this;
         }
 

@@ -139,7 +139,7 @@ namespace EasyFinance.Application.Tests
                 new UserProject(new User { Id = Guid.NewGuid() }, new Project(projectId), Role.Viewer)
             };
 
-            this.ProjectRepository.Setup(pr => pr.NoTrackable()).Returns(new List<Project> { new Project(projectId) }.AsQueryable());
+            this.ProjectRepository.Setup(pr => pr.Trackable()).Returns(new List<Project> { new Project(projectId) }.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.NoTrackable()).Returns(userProjectAuthorization.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.Trackable()).Returns(userProjects.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.InsertOrUpdate(It.IsAny<UserProject>())).Returns((UserProject up) => up);
@@ -158,63 +158,89 @@ namespace EasyFinance.Application.Tests
         public async Task UpdateAccessAsync_AddExistentUserByEmail_ShouldReturnSuccess()
         {
             // Arrange
-            var user = new User() { Id = Guid.NewGuid() };
-            var projectId = Guid.NewGuid();
+            var inviterUser = new UserBuilder()
+                .AddId(Guid.NewGuid())
+                .AddEmail("inviter@example.com")
+                .AddFirstName("Inviter")
+                .AddLastName("User")
+                .Build();
 
-            var userTest = new UserBuilder().AddId(Guid.NewGuid()).AddEmail("test@test.dev").AddFirstName("test").AddLastName("test").Build();
-            this.userManagerMock.Setup(u => u.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync(userTest);
+            var existingUser = new UserBuilder()
+                .AddId(Guid.NewGuid())
+                .AddEmail("existinguser@example.com")
+                .AddFirstName("Existing")
+                .AddLastName("User")
+                .Build();
 
-            var userProjectDto = new JsonPatchDocument<IList<UserProjectRequestDTO>>().Add(up => up, new UserProjectRequestDTO() { UserEmail = "test@test.dev", Role = Role.Manager });
+            this.userManagerMock.Setup(u => u.FindByIdAsync(It.Is<string>(u => u == inviterUser.Id.ToString()))).ReturnsAsync(inviterUser);
+            this.userManagerMock.Setup(u => u.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync(existingUser);
+
+            var project = new ProjectBuilder()
+                .AddId(Guid.NewGuid())
+                .AddName("Project A")
+                .Build();
+
+            var userProjectDto = new JsonPatchDocument<IList<UserProjectRequestDTO>>().Add(up => up, new UserProjectRequestDTO() { UserEmail = existingUser.Email, Role = Role.Manager });
             var userProjectAuthorization = new List<UserProject>
             {
-                new UserProject(user, new Project(projectId), Role.Admin)
+                new UserProject(inviterUser, project, Role.Admin)
             };
             var userProjects = new List<UserProject>
             {
-                new UserProject(user, new Project(projectId), Role.Admin),
-                new UserProject(new User { Id = Guid.NewGuid() }, new Project(projectId), Role.Viewer)
+                new UserProject(inviterUser, project, Role.Admin)
             };
 
-            this.ProjectRepository.Setup(pr => pr.NoTrackable()).Returns(new List<Project> { new Project(projectId) }.AsQueryable());
+            this.ProjectRepository.Setup(pr => pr.Trackable()).Returns(new List<Project> { project }.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.NoTrackable()).Returns(userProjectAuthorization.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.Trackable()).Returns(userProjects.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.InsertOrUpdate(It.IsAny<UserProject>())).Returns((UserProject up) => up);
 
             // Act
-            var result = await this.accessControlService.UpdateAccessAsync(user, projectId, userProjectDto);
+            var result = await this.accessControlService.UpdateAccessAsync(inviterUser, project.Id, userProjectDto);
 
             // Assert
             result.Succeeded.Should().BeTrue();
             result.Data.Should().NotBeNull();
-            result.Data.Should().HaveCount(3);
-            result.Data.Last().UserName.Should().Be(userTest.FullName);
+            result.Data.Should().HaveCount(2);
+            result.Data.Last().UserName.Should().Be(existingUser.FullName);
         }
 
         [Fact]
         public async Task UpdateAccessAsync_AddNotExistentUserByEmail_ShouldReturnSuccess()
         {
             // Arrange
-            var user = new User() { Id = Guid.NewGuid() };
-            var projectId = Guid.NewGuid();
+            var inviterUser = new UserBuilder()
+                .AddId(Guid.NewGuid())
+                .AddEmail("inviter@example.com")
+                .AddFirstName("Inviter")
+                .AddLastName("User")
+                .Build();
+
+            var project = new ProjectBuilder()
+                .AddId(Guid.NewGuid())
+                .AddName("Project A")
+                .Build();
+
+            this.userManagerMock.Setup(u => u.FindByIdAsync(It.IsAny<string>())).ReturnsAsync(inviterUser);
 
             var userProjectDto = new JsonPatchDocument<IList<UserProjectRequestDTO>>().Add(up => up, new UserProjectRequestDTO() { UserEmail = "test@test.dev", Role = Role.Manager });
             var userProjectAuthorization = new List<UserProject>
             {
-                new UserProject(user, new Project(projectId), Role.Admin)
+                new UserProject(inviterUser, project, Role.Admin)
             };
             var userProjects = new List<UserProject>
             {
-                new UserProject(user, new Project(projectId), Role.Admin),
-                new UserProject(new User { Id = Guid.NewGuid() }, new Project(projectId), Role.Viewer)
+                new UserProject(inviterUser, project, Role.Admin),
+                new UserProject(new User { Id = Guid.NewGuid() }, project, Role.Viewer)
             };
 
-            this.ProjectRepository.Setup(pr => pr.NoTrackable()).Returns(new List<Project> { new Project(projectId) }.AsQueryable());
+            this.ProjectRepository.Setup(pr => pr.Trackable()).Returns(new List<Project> { project }.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.NoTrackable()).Returns(userProjectAuthorization.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.Trackable()).Returns(userProjects.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.InsertOrUpdate(It.IsAny<UserProject>())).Returns((UserProject up) => up);
 
             // Act
-            var result = await this.accessControlService.UpdateAccessAsync(user, projectId, userProjectDto);
+            var result = await this.accessControlService.UpdateAccessAsync(inviterUser, project.Id, userProjectDto);
 
             // Assert
             result.Succeeded.Should().BeTrue();
@@ -239,7 +265,7 @@ namespace EasyFinance.Application.Tests
                 new UserProject(new User { Id = Guid.NewGuid() }, new Project(projectId), Role.Viewer)
             };
 
-            this.ProjectRepository.Setup(pr => pr.NoTrackable()).Returns(new List<Project> { new Project(projectId) }.AsQueryable());
+            this.ProjectRepository.Setup(pr => pr.Trackable()).Returns(new List<Project> { new Project(projectId) }.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.NoTrackable()).Returns(userProjectAuthorization.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.Trackable()).Returns(userProjects.AsQueryable());
 
@@ -267,7 +293,7 @@ namespace EasyFinance.Application.Tests
                 new UserProject(new User { Id = Guid.NewGuid() }, new Project(projectId), Role.Viewer)
             };
 
-            this.ProjectRepository.Setup(pr => pr.NoTrackable()).Returns(new List<Project> { new Project(projectId) }.AsQueryable());
+            this.ProjectRepository.Setup(pr => pr.Trackable()).Returns(new List<Project> { new Project(projectId) }.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.NoTrackable()).Returns(userProjectAuthorization.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.Trackable()).Returns(userProjects.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.InsertOrUpdate(It.IsAny<UserProject>())).Returns((UserProject up) => up);
@@ -295,7 +321,7 @@ namespace EasyFinance.Application.Tests
                 new UserProject(new User { Id = Guid.NewGuid() }, new Project(projectId), Role.Viewer)
             };
 
-            this.ProjectRepository.Setup(pr => pr.NoTrackable()).Returns(new List<Project> { new Project(projectId) }.AsQueryable());
+            this.ProjectRepository.Setup(pr => pr.Trackable()).Returns(new List<Project> { new Project(projectId) }.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.NoTrackable()).Returns(userProjectAuthorization.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.Trackable()).Returns(userProjects.AsQueryable());
 
@@ -330,7 +356,7 @@ namespace EasyFinance.Application.Tests
                 new UserProjectBuilder().AddUser(inviterUser).AddProject(project).AddRole(Role.Admin).AddAccepted().Build()
             };
 
-            this.ProjectRepository.Setup(pr => pr.NoTrackable()).Returns(new List<Project> { project }.AsQueryable());
+            this.ProjectRepository.Setup(pr => pr.Trackable()).Returns(new List<Project> { project }.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.NoTrackable()).Returns(userProjectAuthorization.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.Trackable()).Returns(userProjectAuthorization.AsQueryable());
             this.unitOfWork.Setup(u => u.GetAffectedUsers()).Returns([]);
@@ -384,7 +410,7 @@ namespace EasyFinance.Application.Tests
                 new UserProjectBuilder().AddUser(existingUser).AddProject(project).AddRole(Role.Viewer).AddAccepted().Build()
             };
 
-            this.ProjectRepository.Setup(pr => pr.NoTrackable()).Returns(new List<Project> { project }.AsQueryable());
+            this.ProjectRepository.Setup(pr => pr.Trackable()).Returns(new List<Project> { project }.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.NoTrackable()).Returns(userProjectAuthorization.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.Trackable()).Returns(userProjectAuthorization.AsQueryable());
             this.unitOfWork.Setup(u => u.GetAffectedUsers()).Returns([existingUser.Id]);
@@ -437,7 +463,7 @@ namespace EasyFinance.Application.Tests
                 new UserProjectBuilder().AddUser(inviterUser).AddProject(project).AddRole(Role.Admin).AddAccepted().Build()
             };
 
-            this.ProjectRepository.Setup(pr => pr.NoTrackable()).Returns(new List<Project> { project }.AsQueryable());
+            this.ProjectRepository.Setup(pr => pr.Trackable()).Returns(new List<Project> { project }.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.NoTrackable()).Returns(userProjectAuthorization.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.Trackable()).Returns(userProjectAuthorization.AsQueryable());
             this.unitOfWork.Setup(u => u.GetAffectedUsers()).Returns([existingUser.Id]);
@@ -482,7 +508,7 @@ namespace EasyFinance.Application.Tests
                 new UserProjectBuilder().AddUser(inviterUser).AddProject(project).AddRole(Role.Admin).AddAccepted().Build()
             };
 
-            this.ProjectRepository.Setup(pr => pr.NoTrackable()).Returns(new List<Project> { project }.AsQueryable());
+            this.ProjectRepository.Setup(pr => pr.Trackable()).Returns(new List<Project> { project }.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.NoTrackable()).Returns(userProjectAuthorization.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.Trackable()).Returns(userProjectAuthorization.AsQueryable());
             this.unitOfWork.Setup(u => u.GetAffectedUsers()).Returns([]);
