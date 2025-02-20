@@ -8,7 +8,8 @@ import { ApiErrorResponse } from '../../../core/models/error';
 import { take } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import {MatIcon} from "@angular/material/icon";
+import { MatIcon } from "@angular/material/icon";
+import confetti from 'canvas-confetti';
 
 @Component({
     selector: 'app-register',
@@ -83,6 +84,7 @@ export class RegisterComponent implements OnInit{
 
       this.authService.register(email, password, token).subscribe({
         next: response => {
+          this.celebrate();
           this.router.navigate(['login']);
         },
         error: (response: ApiErrorResponse) => {
@@ -141,5 +143,19 @@ export class RegisterComponent implements OnInit{
     }
 
     return errors;
+  }
+
+
+  celebrate() {
+    confetti({
+      particleCount: 150,
+      spread: 150,
+      ticks: 250,
+      startVelocity: 30,
+      decay: 0.95,
+      origin: {
+        y: 0.5
+      }
+    });
   }
 }

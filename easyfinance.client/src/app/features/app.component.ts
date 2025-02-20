@@ -5,6 +5,7 @@ import { RouterOutlet } from '@angular/router';
 import { NavBarComponent } from '../core/components/nav-bar/nav-bar.component';
 import { SpinnerComponent } from '../core/components/spinner/spinner.component';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
+
 import {
   DateAdapter,
   MAT_DATE_FORMATS,
@@ -51,5 +52,5 @@ export class AppComponent {
     if (this.authService.isSignedIn$){
       this.authService.startUserPolling();
     }
-   }
+  }
 }
