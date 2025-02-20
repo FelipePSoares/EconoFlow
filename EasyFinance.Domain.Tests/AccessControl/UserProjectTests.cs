@@ -10,21 +10,29 @@ namespace EasyFinance.Domain.Tests.AccessControl
         [Fact]
         public void AddUser_SendNull_ShouldThrowException()
         {
-            var action = () => new UserProjectBuilder().AddUser(null).Build();
+            var userProject = new UserProjectBuilder().Build();
 
-            action.Should().Throw<ValidationException>()
-                .WithMessage(ValidationMessages.EitherUserOrEmailMustBeProvided)
-                .And.Property.Should().Be("User");
+            var response = userProject.SetUser(null);
+
+            response.Succeeded.Should().BeFalse();
+            response.Messages.Should().ContainSingle()
+                .Which.Code.Should().Be("User");
+            response.Messages.Should().ContainSingle()
+                .Which.Description.Should().Be(ValidationMessages.EitherUserOrEmailMustBeProvided);
         }
 
         [Fact]
         public void AddProject_SendNull_ShouldThrowException()
         {
-            var action = () => new UserProjectBuilder().AddProject(null).Build();
+            var userProject = new UserProjectBuilder().Build();
 
-            action.Should().Throw<ValidationException>()
-                .WithMessage(string.Format(ValidationMessages.PropertyCantBeNull, "Project"))
-                .And.Property.Should().Be("Project");
+            var response = userProject.SetProject(null);
+
+            response.Succeeded.Should().BeFalse();
+            response.Messages.Should().ContainSingle()
+                .Which.Code.Should().Be("Project");
+            response.Messages.Should().ContainSingle()
+                .Which.Description.Should().Be(string.Format(ValidationMessages.PropertyCantBeNull, "Project"));
         }
 
         [Fact]

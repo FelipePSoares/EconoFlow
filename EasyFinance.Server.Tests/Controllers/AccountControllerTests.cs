@@ -1,4 +1,5 @@
 ﻿using EasyFinance.Application.DTOs.AccessControl;
+using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Application.Features.UserService;
 using EasyFinance.Common.Tests.AccessControl;
@@ -57,7 +58,8 @@ namespace EasyFinance.Server.Tests.Controllers
                emailSender: emailSenderMock.Object,
                userService: Mock.Of<IUserService>(),
                projectService: this.projectServiceMock.Object,
-               linkGenerator: Mock.Of<LinkGenerator>()
+               linkGenerator: Mock.Of<LinkGenerator>(),
+               accessControlService: Mock.Of<IAccessControlService>()
                );
         }
 
