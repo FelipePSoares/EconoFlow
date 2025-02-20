@@ -1,9 +1,8 @@
-﻿using EasyFinance.Application.DTOs.Financial;
-using EasyFinance.Domain.FinancialProject;
+﻿using System.Net;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Net;
 
 namespace EasyFinance.Server.Controllers
 {

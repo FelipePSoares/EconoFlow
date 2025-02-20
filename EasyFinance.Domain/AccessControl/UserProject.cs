@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Reflection.Metadata.Ecma335;
 using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Infrastructure;
+using EasyFinance.Infrastructure.DTOs;
 using EasyFinance.Infrastructure.Exceptions;
 
 namespace EasyFinance.Domain.AccessControl
@@ -31,20 +33,27 @@ namespace EasyFinance.Domain.AccessControl
         public DateTime ExpiryDate { get; private set; } = DateTime.UtcNow.AddDays(7);
         public bool InvitationEmailSent { get; private set; }
 
-        public void SetUser(User user, string email = "")
+        public AppResponse SetUser(User user, string email = "")
         {
             if (user == default && string.IsNullOrEmpty(email))
-                throw new ValidationException(nameof(User), ValidationMessages.EitherUserOrEmailMustBeProvided);
+                return AppResponse.Error(nameof(User), ValidationMessages.EitherUserOrEmailMustBeProvided);
 
             if (user == default)
                 Email = email;
             else
                 User = user;
+
+            return AppResponse.Success();
         }
 
-        public void SetProject(Project project)
+        public AppResponse SetProject(Project project)
         {
-            Project = project ?? throw new ValidationException(nameof(Project), string.Format(ValidationMessages.PropertyCantBeNull, nameof(Project)));
+            if (project == default)
+                return AppResponse.Error(nameof(Project), string.Format(ValidationMessages.PropertyCantBeNull, nameof(Project)));
+
+            Project = project;
+
+            return AppResponse.Success();
         }
 
         public void SetRole(Role role)
@@ -52,13 +61,15 @@ namespace EasyFinance.Domain.AccessControl
             Role = role;
         }
 
-        public void SetAccepted()
+        public AppResponse SetAccepted()
         {
             if (ExpiryDate < DateTime.UtcNow)
-                throw new ValidationException(nameof(ExpiryDate), ValidationMessages.CantAcceptExpiredInvitation);
+                return AppResponse.Error(nameof(ExpiryDate), ValidationMessages.CantAcceptExpiredInvitation);
 
             Accepted = true;
             AcceptedAt = DateTime.UtcNow;
+
+            return AppResponse.Success();
         }
 
         public void SetInvitationEmailSent()

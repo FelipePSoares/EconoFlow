@@ -138,7 +138,7 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpPatch("{projectId}/access")]
-        public async Task<IActionResult> UpdateAccess(Guid projectId, [FromBody] JsonPatchDocument<IList<UserProjectRequestDTO>> userProjectDto)
+        public async Task<IActionResult> UpdateAccessAsync(Guid projectId, [FromBody] JsonPatchDocument<IList<UserProjectRequestDTO>> userProjectDto)
         {
             if (userProjectDto == null) return BadRequest();
 
@@ -147,6 +147,16 @@ namespace EasyFinance.Server.Controllers
             var updateResult = await accessControlService.UpdateAccessAsync(user, projectId, userProjectDto);
 
             return ValidateResponse(updateResult, HttpStatusCode.OK);
+        }
+
+        [HttpPost("{token}/accept")]
+        public async Task<IActionResult> AcceptInvitationAsync(Guid token)
+        {
+            var user = await this.userManager.GetUserAsync(this.HttpContext.User);
+
+            var response = await accessControlService.AcceptInvitationAsync(user, token);
+
+            return ValidateResponse(response, HttpStatusCode.OK);
         }
     }
 }

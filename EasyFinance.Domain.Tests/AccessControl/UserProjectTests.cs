@@ -32,11 +32,13 @@ namespace EasyFinance.Domain.Tests.AccessControl
         {
             var userProject = new UserProjectBuilder().AddExpiryDate(DateTime.UtcNow.AddDays(-2)).Build();
 
-            var action = () => userProject.SetAccepted();
+            var response = userProject.SetAccepted();
 
-            action.Should().Throw<ValidationException>()
-                .WithMessage(ValidationMessages.CantAcceptExpiredInvitation)
-                .And.Property.Should().Be("ExpiryDate");
+            response.Succeeded.Should().BeFalse();
+            response.Messages.Should().ContainSingle()
+                .Which.Code.Should().Be("ExpiryDate");
+            response.Messages.Should().ContainSingle()
+                .Which.Description.Should().Be(ValidationMessages.CantAcceptExpiredInvitation);
         }
     }
 }

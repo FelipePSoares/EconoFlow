@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { passwordMatchValidator } from '../../../core/utils/custom-validators/password-match-validator';
 import { CommonModule } from '@angular/common';
@@ -37,7 +37,7 @@ export class RegisterComponent implements OnInit{
   hasOneSpecial = false;
   hasMinCharacteres = false;
 
-  constructor(private authService: AuthService, private router: Router) {
+  constructor(private authService: AuthService, private router: Router, private route: ActivatedRoute) {
     this.authService.isSignedIn$.pipe(take(1)).subscribe(value => {
       if (value) {
         this.router.navigate(['/']);
@@ -79,8 +79,9 @@ export class RegisterComponent implements OnInit{
     if (this.registerForm.valid) {
       const email = this.registerForm.get('email')?.value;
       const password = this.registerForm.get('password')?.value;
+      const token = this.route.snapshot.queryParams['token'];
 
-      this.authService.register(email, password).subscribe({
+      this.authService.register(email, password, token).subscribe({
         next: response => {
           this.router.navigate(['login']);
         },

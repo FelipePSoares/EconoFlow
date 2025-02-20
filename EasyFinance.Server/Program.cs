@@ -106,10 +106,6 @@ var app = builder.Build();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
-app.MapGroup("/api/account")
-    .MapIdentityApi<User>()
-    .WithTags("AccessControl");
-
 app.UseSerilogRequestLogging();
 
 // Configure the HTTP request pipeline.

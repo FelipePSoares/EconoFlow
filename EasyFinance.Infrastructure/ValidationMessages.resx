@@ -210,4 +210,7 @@
   <data name="AdminRequired" xml:space="preserve">
     <value>At least one admin is required in the project.</value>
   </data>
+  <data name="OldPasswordRequired" xml:space="preserve">
+    <value>The old password is required to set a new password. If the old password is forgotten, use forget my password.</value>
+  </data>
 </root>

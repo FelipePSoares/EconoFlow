@@ -67,6 +67,13 @@ export class ProjectService {
     });
   }
 
+  acceptInvite(token: string) {
+    return this.http.post('/api/projects/' + token + '/accept', null, {
+      observe: 'body',
+      responseType: 'json'
+    });
+  }
+
   selectProject(project: Project) {
     this.localService.saveData(PROJECT_DATA, JSON.stringify(project));
     this.selectedProjectSubject.next(project);

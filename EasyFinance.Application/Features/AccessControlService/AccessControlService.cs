@@ -11,6 +11,7 @@ using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -40,6 +41,30 @@ namespace EasyFinance.Application.Features.AccessControlService
             var access = this.unitOfWork.UserProjectRepository.NoTrackable().FirstOrDefault(up => up.User.Id == userId && up.Project.Id == projectId);
 
             return access != null && access.Role >= accessNeeded;
+        }
+
+        public async Task<AppResponse> AcceptInvitationAsync(User user, Guid token)
+        {
+            AppResponse result;
+
+            var userProject = unitOfWork.UserProjectRepository.Trackable().Include(up => up.Project).Include(up => up.User).FirstOrDefault(up => up.Token == token);
+            if (userProject == default)
+                return AppResponse.Error(ValidationMessages.NotFound);
+
+            if (userProject.User?.Id != user.Id && userProject.Email != user.Email)
+                return AppResponse.Error(ValidationMessages.Forbidden, ValidationMessages.Forbidden);
+
+            result = userProject.SetUser(user);
+            if (!result.Succeeded)
+                return result;
+
+            result = userProject.SetAccepted();
+            if (!result.Succeeded)
+                return result;
+
+            unitOfWork.UserProjectRepository.InsertOrUpdate(userProject);
+            await this.unitOfWork.CommitAsync();
+            return AppResponse.Success();
         }
 
         public async Task<AppResponse<IEnumerable<UserProjectResponseDTO>>> UpdateAccessAsync(User inviterUser, Guid projectId, JsonPatchDocument<IList<UserProjectRequestDTO>> userProjectsDto)

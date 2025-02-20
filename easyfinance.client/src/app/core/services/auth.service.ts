@@ -41,8 +41,10 @@ export class AuthService {
     }).pipe<boolean>(map(res => res.ok));
   }
 
-  public register(email: string, password: string): Observable<boolean> {
-    return this.http.post('/api/account/register', {
+  public register(email: string, password: string, token?: string): Observable<boolean> {
+    var query = token ? `?token=${token}` : '';
+
+    return this.http.post('/api/account/register' + query, {
       email: email,
       password: password
     }, {

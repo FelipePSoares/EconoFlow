@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { CommonModule } from '@angular/common';
 import { ApiErrorResponse } from '../../../core/models/error';
@@ -29,7 +29,7 @@ export class LoginComponent implements OnInit {
   errors!: { [key: string]: string };
   hide = true;
 
-  constructor(private authService: AuthService, private router: Router) {
+  constructor(private authService: AuthService, private router: Router, private route: ActivatedRoute) {
     this.authService.isSignedIn$.pipe(take(1)).subscribe(value => {
       if (value) {
         this.router.navigate(['/']);
@@ -63,7 +63,11 @@ export class LoginComponent implements OnInit {
 
       this.authService.signIn(email, password).subscribe({
         next: response => {
-          if (response.defaultProjectId) {
+          const returnUrl = this.route.snapshot.queryParams['returnUrl'];
+          
+          if (returnUrl) {
+            this.router.navigateByUrl(returnUrl);
+          } else if (response.defaultProjectId) {
             this.router.navigate(['/projects', response.defaultProjectId]);
           } else {
             this.router.navigate(['/']);
