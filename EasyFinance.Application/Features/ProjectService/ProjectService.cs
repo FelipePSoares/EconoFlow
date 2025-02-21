@@ -26,8 +26,8 @@ namespace EasyFinance.Application.Features.ProjectService
 
         public AppResponse<ICollection<ProjectResponseDTO>> GetAll(Guid userId)
         {
-            var result = unitOfWork.UserProjectRepository.NoTrackable()
-                .Where(up => up.User.Id == userId && !up.Project.Archive && up.Accepted).Select(p => p.Project)
+            var result = unitOfWork.UserProjectRepository.NoTrackable().Include(up => up.Project).Include(up => up.User)
+                .Where(up => up.User.Id == userId).Select(p => p.Project)
                 .ToDTO()
                 .ToList();
 
@@ -48,7 +48,7 @@ namespace EasyFinance.Application.Features.ProjectService
             if (user == default)
                 return AppResponse<ProjectResponseDTO>.Error(code: nameof(user), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(user)));
 
-            var projectExistent = await unitOfWork.ProjectRepository.Trackable().FirstOrDefaultAsync(p => p.Name == project.Name && !p.Archive);
+            var projectExistent = await unitOfWork.ProjectRepository.Trackable().FirstOrDefaultAsync(p => p.Name == project.Name);
 
             if (projectExistent != default)
                 return AppResponse<ProjectResponseDTO>.Success(projectExistent.ToDTO());
@@ -120,7 +120,7 @@ namespace EasyFinance.Application.Features.ProjectService
                 return AppResponse<ICollection<ExpenseResponseDTO>>.Error(code: nameof(currentDate), description: ValidationMessages.InvalidDate);
 
             var project = await unitOfWork.ProjectRepository.Trackable()
-                .Include(p => p.Categories.Where(c => !c.IsArchived))
+                .Include(p => p.Categories)
                     .ThenInclude(c => c.Expenses)
                 .FirstOrDefaultAsync(up => up.Id == id);
 

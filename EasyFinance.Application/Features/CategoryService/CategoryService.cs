@@ -29,7 +29,7 @@ namespace EasyFinance.Application.Features.CategoryService
 
             var project = await unitOfWork.ProjectRepository.Trackable().Include(p => p.Categories).FirstOrDefaultAsync(p => p.Id == projectId);
 
-            var categoryExistent = project.Categories.FirstOrDefault(c => c.Name == category.Name && !c.IsArchived);
+            var categoryExistent = project.Categories.FirstOrDefault(c => c.Name == category.Name);
             if (categoryExistent != default)
                 return AppResponse<CategoryResponseDTO>.Success(categoryExistent.ToDTO());
 
@@ -67,7 +67,6 @@ namespace EasyFinance.Application.Features.CategoryService
                 .Include(p => p.Categories)
                 .FirstOrDefaultAsync(p => p.Id == projectId))?
                 .Categories
-                .Where(c => !c.IsArchived)
                 .ToDTO()
                 .ToList();
 
@@ -81,7 +80,6 @@ namespace EasyFinance.Application.Features.CategoryService
                     .ThenInclude(c => c.Expenses.Where(e => e.Date >= from && e.Date < to))
                     .FirstOrDefaultAsync(p => p.Id == projectId))?
                     .Categories
-                    .Where(c => !c.IsArchived)
                     .ToDTO()
                     .ToList();
 
@@ -95,7 +93,7 @@ namespace EasyFinance.Application.Features.CategoryService
 
             var project = await unitOfWork.ProjectRepository
                 .NoTrackable()
-                .Include(p => p.Categories.Where(c => !c.IsArchived))
+                .Include(p => p.Categories)
                 .FirstOrDefaultAsync(p => p.Id == projectId);
 
             // Extract the category names
@@ -116,7 +114,6 @@ namespace EasyFinance.Application.Features.CategoryService
                     .ThenInclude(c => c.Expenses.Where(e => e.Date.Year == year))
                     .FirstOrDefaultAsync(p => p.Id == projectId))?
                     .Categories
-                    .Where(c => !c.IsArchived)
                     .ToDTO()
                     .ToList();
 

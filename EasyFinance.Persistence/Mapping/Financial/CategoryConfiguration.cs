@@ -10,8 +10,13 @@ namespace EasyFinance.Persistence.Mapping.Financial
         {
             builder.ToTable("Categories");
 
+            builder.HasQueryFilter(p => !p.IsArchived);
+
             builder.Property(p => p.Name)
                 .HasMaxLength(150)
+                .IsRequired();
+
+            builder.Property(p => p.IsArchived)
                 .IsRequired();
 
             builder.HasMany(p => p.Expenses)

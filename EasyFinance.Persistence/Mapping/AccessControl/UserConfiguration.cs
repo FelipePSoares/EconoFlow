@@ -9,6 +9,8 @@ namespace EasyFinance.Persistence.Mapping.AccessControl
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
+            builder.HasQueryFilter(p => p.Enabled);
+
             builder.Ignore(p => p.HasIncompletedInformation);
 
             builder.Property(p => p.FirstName)

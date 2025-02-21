@@ -75,17 +75,17 @@ namespace EasyFinance.Application.Tests
             var category3 = new CategoryBuilder().AddName("Category").AddExpenses(new List<Expense>() { expense3 }).Build();
             project3 = unitOfWork.ProjectRepository.Insert(new ProjectBuilder().AddCategory(category3).Build());
 
-            unitOfWork.UserProjectRepository.Insert(new UserProjectBuilder().AddProject(project1).AddUser(user1).AddRole(Role.Admin).Build());
-            unitOfWork.UserProjectRepository.Insert(new UserProjectBuilder().AddProject(project2).AddUser(user1).AddRole(Role.Admin).Build());
-            unitOfWork.UserProjectRepository.Insert(new UserProjectBuilder().AddProject(project3).AddUser(user1).AddRole(Role.Admin).Build());
+            unitOfWork.UserProjectRepository.Insert(new UserProjectBuilder().AddProject(project1).AddUser(user1).AddRole(Role.Admin).AddAccepted().Build());
+            unitOfWork.UserProjectRepository.Insert(new UserProjectBuilder().AddProject(project2).AddUser(user1).AddRole(Role.Admin).AddAccepted().Build());
+            unitOfWork.UserProjectRepository.Insert(new UserProjectBuilder().AddProject(project3).AddUser(user1).AddRole(Role.Admin).AddAccepted().Build());
 
-            unitOfWork.UserProjectRepository.Insert(new UserProjectBuilder().AddProject(project1).AddUser(user2).AddRole(Role.Manager).Build());
-            unitOfWork.UserProjectRepository.Insert(new UserProjectBuilder().AddProject(project2).AddUser(user2).AddRole(Role.Viewer).Build());
-            unitOfWork.UserProjectRepository.Insert(new UserProjectBuilder().AddProject(project3).AddUser(user2).AddRole(Role.Admin).Build());
+            unitOfWork.UserProjectRepository.Insert(new UserProjectBuilder().AddProject(project1).AddUser(user2).AddRole(Role.Manager).AddAccepted().Build());
+            unitOfWork.UserProjectRepository.Insert(new UserProjectBuilder().AddProject(project2).AddUser(user2).AddRole(Role.Viewer).AddAccepted().Build());
+            unitOfWork.UserProjectRepository.Insert(new UserProjectBuilder().AddProject(project3).AddUser(user2).AddRole(Role.Admin).AddAccepted().Build());
 
-            unitOfWork.UserProjectRepository.Insert(new UserProjectBuilder().AddProject(project1).AddUser(user3).AddRole(Role.Viewer).Build());
-            unitOfWork.UserProjectRepository.Insert(new UserProjectBuilder().AddProject(project2).AddUser(user3).AddRole(Role.Viewer).Build());
-            unitOfWork.UserProjectRepository.Insert(new UserProjectBuilder().AddProject(project3).AddUser(user3).AddRole(Role.Viewer).Build());
+            unitOfWork.UserProjectRepository.Insert(new UserProjectBuilder().AddProject(project1).AddUser(user3).AddRole(Role.Viewer).AddAccepted().Build());
+            unitOfWork.UserProjectRepository.Insert(new UserProjectBuilder().AddProject(project2).AddUser(user3).AddRole(Role.Viewer).AddAccepted().Build());
+            unitOfWork.UserProjectRepository.Insert(new UserProjectBuilder().AddProject(project3).AddUser(user3).AddRole(Role.Viewer).AddAccepted().Build());
 
             unitOfWork.CommitAsync();
         }
@@ -93,13 +93,13 @@ namespace EasyFinance.Application.Tests
         [Fact]
         public async Task DeleteOrRemoveLinkAsync_RemoveUserSoleAdmin_ShouldDeleteProjects()
         {
+            // Arrange
             using var scope = this.serviceProvider.CreateScope();
             var scopedServices = scope.ServiceProvider;
             var projectService = scopedServices.GetRequiredService<IProjectService>();
             var unitOfWork = scopedServices.GetRequiredService<IUnitOfWork>();
             var userManager = scopedServices.GetRequiredService<UserManager<User>>();
 
-            // Arrange
             // Act
             await projectService.DeleteOrRemoveLinkAsync(this.user1);
 
@@ -113,12 +113,12 @@ namespace EasyFinance.Application.Tests
         [Fact]
         public async Task DeleteOrRemoveLinkAsync_RemoveOnlyViewerUser_ShouldKeepAllProjects()
         {
+            // Arrange
             using var scope = this.serviceProvider.CreateScope();
             var scopedServices = scope.ServiceProvider;
             var projectService = scopedServices.GetRequiredService<IProjectService>();
             var unitOfWork = scopedServices.GetRequiredService<IUnitOfWork>();
 
-            // Arrange
             // Act
             await projectService.DeleteOrRemoveLinkAsync(this.user3);
 
@@ -130,12 +130,12 @@ namespace EasyFinance.Application.Tests
         [Fact]
         public async Task DeleteOrRemoveLinkAsync_RemoveNotSoleAdminUser_ShouldKeepAllProjects()
         {
+            // Arrange
             using var scope = this.serviceProvider.CreateScope();
             var scopedServices = scope.ServiceProvider;
             var projectService = scopedServices.GetRequiredService<IProjectService>();
             var unitOfWork = scopedServices.GetRequiredService<IUnitOfWork>();
 
-            // Arrange
             // Act
             await projectService.DeleteOrRemoveLinkAsync(this.user2);
 
