@@ -1,9 +1,8 @@
-﻿using EasyFinance.Application.Mappers;
-using EasyFinance.Domain.FinancialProject;
-using EasyFinance.Application.DTOs.FinancialProject;
+﻿using System;
 using System.Collections.Generic;
-using System;
 using System.Linq;
+using EasyFinance.Application.DTOs.FinancialProject;
+using EasyFinance.Domain.FinancialProject;
 
 namespace EasyFinance.Application.Mappers
 {
@@ -19,8 +18,7 @@ namespace EasyFinance.Application.Mappers
             return new ProjectResponseDTO()
             {
                 Id = project.Id,
-                Name = project.Name,
-                Type = project.Type
+                Name = project.Name
             };
         }
 
@@ -30,8 +28,7 @@ namespace EasyFinance.Application.Mappers
 
             return new ProjectRequestDTO()
             {
-                Name = project.Name,
-                Type = project.Type
+                Name = project.Name
             };
         }
 
@@ -44,11 +41,10 @@ namespace EasyFinance.Application.Mappers
             if (existingProject != null)
             {
                 existingProject.SetName(projectDTO.Name);
-                existingProject.SetType(projectDTO.Type);
                 return existingProject;
             }
 
-            return new Project(name: projectDTO.Name, type: projectDTO.Type);
+            return new Project(name: projectDTO.Name);
         }
     }
 }

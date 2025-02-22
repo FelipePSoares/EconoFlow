@@ -16,9 +16,11 @@ namespace EasyFinance.Persistence.Mapping.Financial
                 .HasMaxLength(150)
                 .IsRequired();
             builder.Property(p => p.Date).IsRequired();
+
             builder.Property(p => p.Amount)
                 .HasPrecision(18,2)
                 .IsRequired();
+
             builder.Property(p => p.CreatorName)
                 .HasMaxLength(513);
 

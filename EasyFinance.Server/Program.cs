@@ -151,7 +151,7 @@ if (app.Environment.IsDevelopment())
     category.AddExpense(expense2);
     unitOfWork.CategoryRepository.Insert(category);
 
-    var project = new Project(name: "Family", type: ProjectType.Personal);
+    var project = new Project(name: "Family");
     project.SetId(new Guid("bf060bc8-48bf-4f5b-3761-08dc54ba19f4"));
     project.AddIncome(income);
     project.AddIncome(income2);

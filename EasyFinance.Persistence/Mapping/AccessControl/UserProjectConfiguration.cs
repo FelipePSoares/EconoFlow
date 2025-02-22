@@ -10,6 +10,8 @@ namespace EasyFinance.Persistence.Mapping.AccessControl
         {
             builder.ToTable("UserProjects");
 
+            builder.HasQueryFilter(p => p.Accepted);
+
             builder.Property(p => p.Role)
                 .IsRequired();
 
