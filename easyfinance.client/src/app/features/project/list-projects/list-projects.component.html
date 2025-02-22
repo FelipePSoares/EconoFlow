@@ -10,11 +10,11 @@
             </div>
             <div class="card-footer">
               <div class="dropdown">
-                <button class="btn" [class]="(defaultProjectId$ | async) == project.id ? 'btn-primary' : 'btn-secondary'" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <button class="btn more" [class]="(defaultProjectId$ | async) == project.id ? 'btn-primary' : 'btn-secondary'" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                   <fa-icon [icon]="faEllipsis"></fa-icon>
                 </button>
                 <ul class="dropdown-menu">
-                  <li><button type="button" class="dropdown-item" (click)="edit(project)">Edit Name</button></li>
+                  <li><button type="button" class="edit dropdown-item" (click)="edit(project)">Edit Name</button></li>
                   @if ((defaultProjectId$ | async) != project.id){
                     <li><button type="button" class="dropdown-item" (click)="setAsDefault(project)" href="#">Set as Default</button></li>
                   }

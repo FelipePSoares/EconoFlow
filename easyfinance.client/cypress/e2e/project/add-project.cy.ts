@@ -21,13 +21,6 @@ describe('EconoFlow - project add Tests', () => {
       var project = projects.testPersonalProject;
 
       cy.get('input[formControlName=name]').type(project.name)
-      cy.get('[name="type"]').click()
-      cy.get('mat-option').contains(project.type).then(option => {
-        cy.wrap(option).contains(project.type);
-        option[0].click();
-      })
-
-      cy.get('[name="type"]').contains(project.type)
 
       cy.get('button').contains('Create').click();
 

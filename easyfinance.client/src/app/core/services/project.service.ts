@@ -98,7 +98,7 @@ export class ProjectService {
   }
 
   getEditingProject(): ProjectDto {
-    return this.editingProject;
+    return this.editingProject ?? new ProjectDto();
   }
 
   getLatest(id: string, numberOfTransactions: number): Observable<Transaction[]> {
