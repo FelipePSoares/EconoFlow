@@ -10,8 +10,8 @@ describe('EconoFlow - project detail Tests', () => {
       cy.visit('/projects/')
 
       cy.wait('@getProjects').then(({ request, response }) => {
-        cy.get('.more').click()
-        cy.get('.edit').click()
+        cy.get('.more').first().click()
+        cy.get('.edit').first().click()
         cy.get('input[formControlName=name]').clear().type('Test Project II')
         cy.get('button').contains('Update').click({ force: true })
         cy.get('h1').first().contains('Test Project II')
