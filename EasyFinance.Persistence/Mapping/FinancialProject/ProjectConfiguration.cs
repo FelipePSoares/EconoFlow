@@ -16,9 +16,6 @@ namespace EasyFinance.Persistence.Mapping.FinancialProject
                 .HasMaxLength(150)
                 .IsRequired();
 
-            builder.Property(p => p.Type)
-                .IsRequired();
-
             builder.Property(p => p.IsArchived)
                 .IsRequired();
 

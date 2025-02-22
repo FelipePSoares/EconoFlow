@@ -11,19 +11,6 @@
         }
       </mat-form-field>
 
-      <!-- Type Field -->
-      <mat-form-field appearance="fill" class="w-100">
-        <mat-label>Type</mat-label>
-        <mat-select [(ngModel)]="projectTypeSelected" name="type" formControlName="type">
-          <mat-option *ngFor="let item of projectTypes" [value]="item">
-            {{ projectType2LabelMapping[item] }}
-          </mat-option>
-        </mat-select>
-        @if (type?.invalid && type?.touched){
-        <mat-error *ngFor="let error of getFormFieldErrors('type')">{{ error }}</mat-error>
-        }
-      </mat-form-field>
-
       <!-- General Error Display -->
       <div *ngIf="httpErrors && errors['general']">
         <p class="mb-3 text-danger text-center">{{ errors['general'] }}</p>
@@ -32,7 +19,7 @@
       <!-- Submit Button -->
       <div class="float-end">
         <button mat-raised-button color="primary" type="submit" [disabled]="projectForm.invalid">
-          Create
+          {{ editingProject.id ? 'Update' : 'Create' }}
         </button>
       </div>
     </form>

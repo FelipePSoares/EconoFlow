@@ -208,11 +208,6 @@ export class DetailUserComponent implements OnInit {
     }
   }
 
-  /** Save default project **/
-  setDefaultProject() {
-    this.userService.setDefaultProject(this.editingUser.defaultProjectId ? this.editingUser.defaultProjectId : '').subscribe();
-  }
-
   /** Error Handling **/
   private handleError(response: ApiErrorResponse, form: FormGroup): void {
     form.enable();
