@@ -1,35 +1,67 @@
+p {
+  margin-top: 5px;
+}
+
 .grid-list {
+  display: flex;
   margin-top: 40px;
 }
 
-.grid-item {
+.card {
+  width: 80%;
+  height: 80%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease-in-out;
+}
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  .card h1, .card h5 {
+    margin: 0;
+    font-weight: 500;
+    width: 100%;
+  }
+
+.card-body {
   display: flex;
   flex-flow: column;
+  color: white;
+  cursor: pointer;
   align-items: center;
   justify-content: center;
   text-align: center;
+}
+
+/*.card {
+  display: flex;
+  flex-flow: column;
   padding: 20px;
   border-radius: 12px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   background: linear-gradient(135deg, #007bff, #0056b3);
   color: white;
-  cursor: pointer;
   transition: all 0.3s ease-in-out;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   width: 80%;
   height: 80%;
 }
 
-  .grid-item:hover {
+  .card:hover {
     transform: translateY(-3px);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
   }
 
-  .grid-item h1, .grid-item h5 {
+  .card h1, .card h5 {
     margin: 0;
     font-weight: 500;
     width: 100%;
   }
 
-p {
-  margin-top: 5px;
-}
+.card-body {
+  cursor: pointer;
+}*/
+

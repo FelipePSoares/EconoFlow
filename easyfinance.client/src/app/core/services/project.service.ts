@@ -7,12 +7,14 @@ import { YearExpensesSummaryDto } from '../../features/project/models/year-expen
 import { LocalService } from './local.service';
 import { safeJsonParse } from '../utils/json-parser';
 import { Transaction } from '../models/transaction';
+import { ProjectDto } from '../../features/project/models/project-dto';
 const PROJECT_DATA = "project_data";
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProjectService {
+  private editingProject!: ProjectDto;
   private selectedProjectSubject = new BehaviorSubject<any | null>(null);
   selectedProject$ = this.selectedProjectSubject.asObservable();
 
@@ -89,6 +91,14 @@ export class ProjectService {
     }
 
     return currentProject;
+  }
+
+  setEditingProject(project: ProjectDto) {
+    this.editingProject = project;
+  }
+
+  getEditingProject(): ProjectDto {
+    return this.editingProject ?? new ProjectDto();
   }
 
   getLatest(id: string, numberOfTransactions: number): Observable<Transaction[]> {

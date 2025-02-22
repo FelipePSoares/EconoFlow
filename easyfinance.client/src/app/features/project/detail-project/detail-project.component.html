@@ -1,26 +1,8 @@
 <div class="container text-center">
   <div class="col text-center mt-3">
-    @if (isProjectNameEditing){
-    <form [formGroup]="projectForm" (ngSubmit)="saveProjectName()">
-      <!-- Name Field -->
-      <mat-form-field appearance="fill" class="w-40">
-        <input matInput id="name" placeholder="Personal" formControlName="name">
-        @if (name?.invalid && name?.touched){
-        <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error }}</mat-error>
-        }
-        <button matSuffix mat-icon-button type="submit" [disabled]="projectForm.invalid">
-          <mat-icon>save</mat-icon>
-        </button>
-      </mat-form-field>
-    </form>
-    } @else{
     <h2 class="mb-0">
       {{ project.name }}
-      <button class="btn" (click)="editName()" id="edit">
-        <fa-icon [icon]="faPencil"></fa-icon>
-      </button>
     </h2>
-    }
   </div>
   <app-current-date (dateUpdatedEvent)="updateDate($event)"></app-current-date>
   <div class="row justify-content-center">

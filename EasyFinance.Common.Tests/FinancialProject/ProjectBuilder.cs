@@ -16,7 +16,6 @@ namespace EasyFinance.Common.Tests.FinancialProject
 
             this.project = new Project();
             this.AddName(fixture.Create<string>());
-            this.AddType(ProjectType.Personal);
         }
 
         public ProjectBuilder AddId(Guid guid)
@@ -28,12 +27,6 @@ namespace EasyFinance.Common.Tests.FinancialProject
         public ProjectBuilder AddName(string name)
         {
             this.project.SetName(name);
-            return this;
-        }
-
-        public ProjectBuilder AddType(ProjectType type) 
-        {
-            this.project.SetType(type);
             return this;
         }
 

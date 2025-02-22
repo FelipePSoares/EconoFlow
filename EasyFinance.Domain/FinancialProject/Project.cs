@@ -10,17 +10,15 @@ namespace EasyFinance.Domain.FinancialProject
     {
         private Project() { }
 
-        public Project(Guid id = default, string name = "default", ProjectType type = default, ICollection<Category> categories = default, ICollection<Income> incomes = default)
+        public Project(Guid id = default, string name = "default", ICollection<Category> categories = default, ICollection<Income> incomes = default)
             : base(id)
         {
             SetName(name);
-            SetType(type);
             SetCategories(categories ?? new List<Category>());
             SetIncomes(incomes ?? new List<Income>());
         }
 
         public string Name { get; private set; } = string.Empty;
-        public ProjectType Type { get; private set; }
         public bool IsArchived { get; private set; }
         public ICollection<Category> Categories { get; private set; } = new List<Category>();
         public ICollection<Income> Incomes { get; private set; } = new List<Income>();
@@ -63,11 +61,6 @@ namespace EasyFinance.Domain.FinancialProject
                 throw new ValidationException(nameof(Name), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(Name)));
 
             Name = name;
-        }
-
-        public void SetType(ProjectType type)
-        {
-            Type = type;
         }
 
         public void SetArchive()
