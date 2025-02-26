@@ -16,9 +16,9 @@
                 <ul class="dropdown-menu">
                   <li><button type="button" class="edit dropdown-item" (click)="edit(project)">Edit Name</button></li>
                   @if ((defaultProjectId$ | async) != project.id){
-                    <li><button type="button" class="dropdown-item" (click)="setAsDefault(project)" href="#">Set as Default</button></li>
+                    <li><button type="button" class="dropdown-item" (click)="setAsDefault(project)">Set as Default</button></li>
                   }
-                  <li><button type="button" class="dropdown-item" href="#">Access Control</button></li>
+                  <li><button type="button" class="dropdown-item" (click)="managePermission(project)">Access Control</button></li>
                 </ul>
               </div>
             </div>

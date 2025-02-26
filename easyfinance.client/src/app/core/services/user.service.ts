@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, Subject, concatMap, map } from 'rxjs';
 import { DeleteUser, User } from '../models/user';
@@ -6,6 +6,7 @@ import { tap } from 'rxjs';
 import { catchError, throwError } from 'rxjs';
 import { SnackbarComponent } from '../components/snackbar/snackbar.component';
 import { LocalService } from './local.service';
+import { UserProject } from '../models/user-project';
 const USER_DATA = "user_data";
 
 @Injectable({
@@ -81,5 +82,19 @@ export class UserService {
         return throwError(() => error);
       })
     );
+  }
+
+  public searchUser(searchTerm: string, projectId: string | undefined = undefined): Observable<UserProject[]> {
+    let queryParams = new HttpParams();
+    queryParams = queryParams.append("searchTerm", searchTerm);
+
+    if (projectId)
+      queryParams = queryParams.append("projectId", projectId);
+
+    return this.http.get<UserProject[]>('/api/account/search', {
+      observe: 'body',
+      responseType: 'json',
+      params: queryParams
+    });
   }
 }

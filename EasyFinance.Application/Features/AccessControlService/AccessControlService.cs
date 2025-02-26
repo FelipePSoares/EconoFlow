@@ -95,6 +95,9 @@ namespace EasyFinance.Application.Features.AccessControlService
             // Get added users to send them an email
             affectedUsers = [.. affectedUsers, .. unitOfWork.GetAffectedUsers(EntityState.Added)];
 
+            if (entities.Where(e => e.User != null).GroupBy(e => e.User.Id).Any(e => e.Count() > 1) || entities.Where(e => !string.IsNullOrEmpty(e.Email)).GroupBy(e => e.Email).Any(e => e.Count() > 1))
+                return AppResponse<IEnumerable<UserProjectResponseDTO>>.Error(code: "User", description: ValidationMessages.DuplicateUser);
+
             await unitOfWork.CommitAsync();
 
             await this.SendEmailsToAffectedUsersAsync(inviterUser, entities, affectedUsers);
@@ -156,6 +159,18 @@ namespace EasyFinance.Application.Features.AccessControlService
             {
                 logger.LogError(ex, ex.Message);
             }
+        }
+
+        public Task<AppResponse<IEnumerable<UserProjectResponseDTO>>> GetUsers(User user, Guid value)
+        {
+            var userProjects = this.unitOfWork.UserProjectRepository.NoTrackable()
+                .IgnoreQueryFilters()
+                .Include(up => up.User)
+                .Include(up => up.Project)
+                .Where(up => up.Project.Id == value && up.User.Id != user.Id)
+                .ToList();
+
+            return Task.FromResult(AppResponse<IEnumerable<UserProjectResponseDTO>>.Success(userProjects.ToDTO()));
         }
     }
 }

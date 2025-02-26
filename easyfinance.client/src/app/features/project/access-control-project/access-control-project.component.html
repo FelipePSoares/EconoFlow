@@ -1,0 +1,52 @@
+<div class="container text-center">
+  <div class="row justify-content-md-center">
+    <form [formGroup]="accessForm" (ngSubmit)="addUser()">
+
+      <!-- User Input with Autocomplete -->
+      <mat-form-field appearance="fill" class="w-100">
+        <mat-label>User</mat-label>
+        <input matInput
+               id="user"
+               formControlName="user"
+               [matAutocomplete]="auto" />
+        @if (user?.invalid && user?.touched){
+        <mat-error *ngFor="let error of getFormFieldErrors('user')">{{ error }}</mat-error>
+        }
+
+        <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn">
+          <mat-option *ngFor="let user of filteredUsers$ | async" [value]="user">
+            {{ user.userName }} - {{ user.userEmail }}
+          </mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+
+      <!-- Role Input -->
+      <mat-form-field appearance="fill" class="w-100">
+        <mat-label>Role</mat-label>
+        <mat-select formControlName="role">
+          <mat-option *ngFor="let role of roles" [value]="role">{{ role2LabelMapping[role] }}</mat-option>
+        </mat-select>
+        <mat-error *ngIf="role?.invalid && role?.touched">
+          <span *ngFor="let error of getFormFieldErrors('role')">{{ error }}</span>
+        </mat-error>
+      </mat-form-field>
+
+      <!-- General Error Display -->
+      <div *ngIf="httpErrors && errors['general']">
+        <p class="mb-3 text-danger text-center">{{ errors['general'] }}</p>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="float-end">
+        <button mat-raised-button color="primary" type="submit" [disabled]="accessForm.invalid">
+          Invite
+        </button>
+      </div>
+    </form>
+  </div>
+  <div>
+    <ul>
+      <li *ngFor="let user of currentUsers$ | async">{{ user.userName }} - {{ user.userEmail }} - {{ user.role }} - {{ user.accepted }}</li>
+    </ul>
+  </div>
+</div>

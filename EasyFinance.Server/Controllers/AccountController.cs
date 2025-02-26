@@ -40,7 +40,6 @@ namespace EasyFinance.Server.Controllers
             SignInManager<User> signInManager,
             IEmailSender<User> emailSender,
             IUserService userService,
-            IProjectService projectService,
             LinkGenerator linkGenerator,
             IAccessControlService accessControlService)
         {
@@ -332,21 +331,36 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpGet("search")]
-        public IActionResult SearchUsers([FromQuery] string searchTerm)
+        public async Task<IActionResult> SearchUsers([FromQuery] string searchTerm, [FromQuery] Guid? projectId, [FromServices] IAccessControlService accessControlService)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
             {
-                return Ok(new List<UserSearchResponseDTO>());
+                return Ok(new List<UserProjectResponseDTO>());
+            }
+
+            var user = await this.userManager.GetUserAsync(this.HttpContext.User);
+
+            List<Guid> filterUsers = [user.Id];
+
+            if (projectId.HasValue)
+            {
+                var projectUsers = await accessControlService.GetUsers(user, projectId.Value);
+
+                if (projectUsers.Succeeded)
+                    filterUsers.AddRange(projectUsers.Data.Where(u => u.UserId.HasValue).Select(u => u.UserId.Value));
             }
 
             searchTerm = Regex.Escape(searchTerm).ToLower();
 
-            var users = userManager.Users.Where(u =>
+            var users = userManager.Users
+                .Where(u => !filterUsers.Contains(u.Id))
+                .Where(u =>
                     u.FirstName.ToLower().Contains(searchTerm) ||
                     u.LastName.ToLower().Contains(searchTerm) ||
                     u.Email.ToLower().Contains(searchTerm))
-                .Take(50)
-                .Select(u => new UserSearchResponseDTO(u))
+                .OrderBy(u => u.FirstName)
+                .Take(5)
+                .Select(u => new UserProjectResponseDTO(u))
                 .ToList();
 
             return Ok(users);

@@ -12,6 +12,7 @@ import { ListProjectsComponent } from './project/list-projects/list-projects.com
 import { AddEditProjectComponent } from './project/add-edit-project/add-edit-project.component';
 import { DetailProjectComponent } from './project/detail-project/detail-project.component';
 import { AcceptInviteComponent } from '../core/components/accept-invite/accept-invite.component';
+import { AccessControlProjectComponent } from './project/access-control-project/access-control-project.component';
 
 import { ListIncomesComponent } from './income/list-incomes/list-incomes.component';
 import { AddIncomeComponent } from './income/add-income/add-income.component';
@@ -37,6 +38,7 @@ export const routes: Routes = [
   { path: 'add-edit-project', component: AddEditProjectComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]), outlet: 'modal' },
   { path: 'projects', component: ListProjectsComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
   { path: 'projects/:projectId', component: DetailProjectComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
+  { path: 'projects/:projectId/users', component: AccessControlProjectComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]), outlet: 'modal' },
   { path: 'projects/:token/accept', component: AcceptInviteComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
   { path: 'projects/:projectId/incomes', component: ListIncomesComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
   { path: 'projects/:projectId/add-income', component: AddIncomeComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]), outlet: 'modal' },

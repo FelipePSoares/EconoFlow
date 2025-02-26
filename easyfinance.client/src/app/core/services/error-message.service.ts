@@ -5,6 +5,30 @@ import { AbstractControl, ValidationErrors, FormGroup } from "@angular/forms";
   providedIn: 'root'
 })
 export class ErrorMessageService {
+  getFormFieldErrors(form: FormGroup<any>, fieldName: string): string[] {
+    const control = form.get(fieldName);
+    const errors: string[] = [];
+
+    if (control && control.errors) {
+      for (const key in control.errors) {
+        if (control.errors.hasOwnProperty(key)) {
+          switch (key) {
+            case 'required':
+              errors.push('This field is required.');
+              break;
+            case 'email':
+              errors.push('Email is invalid.');
+              break;
+            default:
+              errors.push(control.errors[key]);
+          }
+        }
+      }
+    }
+
+    return errors;
+  }
+
   setFormErrors(form: FormGroup<any>, errors: { [key: string]: string }) {
     for (let key in errors) {
       const formControl = form.get(key.toLowerCase());

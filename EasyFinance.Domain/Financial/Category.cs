@@ -1,10 +1,9 @@
-﻿using EasyFinance.Domain.AccessControl;
-using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.DTOs;
-using EasyFinance.Infrastructure.Exceptions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using EasyFinance.Domain.AccessControl;
+using EasyFinance.Infrastructure;
+using EasyFinance.Infrastructure.Exceptions;
 
 namespace EasyFinance.Domain.Financial
 {
@@ -12,10 +11,9 @@ namespace EasyFinance.Domain.Financial
     {
         public static readonly Category FixedExpenses = new Category("Fixed Expenses");
         public static readonly Category Comfort = new Category("Comfort");
-        public static readonly Category Pleasures = new Category("Your Future");
-        public static readonly Category YourFuture = new Category("Food");
+        public static readonly Category Pleasures = new Category("Pleasures");
+        public static readonly Category YourFuture = new Category("Your Future");
         public static readonly Category SelfImprovement = new Category("Self-Improvement");
-        public static readonly Category CustosFixos = new Category("Custos Fixos");
 
         private Category() { }
 

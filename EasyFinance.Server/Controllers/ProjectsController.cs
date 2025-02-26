@@ -146,6 +146,9 @@ namespace EasyFinance.Server.Controllers
 
             var updateResult = await accessControlService.UpdateAccessAsync(user, projectId, userProjectDto);
 
+            if (updateResult.Succeeded)
+                updateResult = AppResponse<IEnumerable<UserProjectResponseDTO>>.Success(updateResult.Data.Where(data => data.UserId != user.Id));
+
             return ValidateResponse(updateResult, HttpStatusCode.OK);
         }
 
@@ -155,6 +158,16 @@ namespace EasyFinance.Server.Controllers
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
             var response = await accessControlService.AcceptInvitationAsync(user, token);
+
+            return ValidateResponse(response, HttpStatusCode.OK);
+        }
+
+        [HttpGet("{projectId}/users")]
+        public async Task<IActionResult> GetProjectUsersAsync(Guid projectId)
+        {
+            var user = await this.userManager.GetUserAsync(this.HttpContext.User);
+
+            var response = await accessControlService.GetUsers(user, projectId);
 
             return ValidateResponse(response, HttpStatusCode.OK);
         }

@@ -126,6 +126,14 @@ if (app.Environment.IsDevelopment())
     };
     userManager.CreateAsync(user, "Passw0rd!").GetAwaiter().GetResult();
 
+    var user2 = new User(firstName: "Second", lastName: "User", preferredCurrency: ri.ISOCurrencySymbol, enabled: true)
+    {
+        UserName = "test2@test.com",
+        Email = "test2@test.com",
+        EmailConfirmed = true
+    };
+    userManager.CreateAsync(user2, "Passw0rd!").GetAwaiter().GetResult();
+
     var income = new Income("Investiments", DateOnly.FromDateTime(DateTime.Now), 3000, user);
     income.SetId(new Guid("0bb277f9-a858-4306-148f-08dcf739f7a1"));
     unitOfWork.IncomeRepository.Insert(income);

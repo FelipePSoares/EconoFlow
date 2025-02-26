@@ -68,6 +68,17 @@ export class ListProjectsComponent implements OnInit {
     });
   }
 
+  managePermission(project: ProjectDto) {
+    this.router.navigate([{ outlets: { modal: ['projects', project.id, 'users'] } }]);
+
+    this.dialog.open(PageModalComponent, {
+      autoFocus: 'input',
+      data: {
+        title: 'Manage Permission'
+      }
+    }).afterClosed().subscribe();
+  }
+
   select(project: ProjectDto): void {
     this.projectService.selectProject(project);
 

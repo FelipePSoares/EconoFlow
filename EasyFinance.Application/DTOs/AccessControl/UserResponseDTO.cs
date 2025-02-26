@@ -1,6 +1,4 @@
 ﻿using System;
-using EasyFinance.Application.DTOs.FinancialProject;
-using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
 
 namespace EasyFinance.Application.DTOs.AccessControl

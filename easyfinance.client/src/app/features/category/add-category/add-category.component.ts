@@ -96,24 +96,7 @@ export class AddCategoryComponent implements OnInit {
   }
 
   getFormFieldErrors(fieldName: string): string[] {
-    const control = this.categoryForm.get(fieldName);
-    const errors: string[] = [];
-
-    if (control && control.errors) {
-      for (const key in control.errors) {
-        if (control.errors.hasOwnProperty(key)) {
-          switch (key) {
-            case 'required':
-              errors.push('This field is required.');
-              break;
-            default:
-              errors.push(control.errors[key]);
-          }
-        }
-      }
-    }
-
-    return errors;
+    return this.errorMessageService.getFormFieldErrors(this.categoryForm, fieldName);
   }
 
   get name() {

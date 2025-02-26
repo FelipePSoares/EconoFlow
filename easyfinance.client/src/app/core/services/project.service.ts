@@ -8,6 +8,7 @@ import { LocalService } from './local.service';
 import { safeJsonParse } from '../utils/json-parser';
 import { Transaction } from '../models/transaction';
 import { ProjectDto } from '../../features/project/models/project-dto';
+import { UserProject } from '../models/user-project';
 const PROJECT_DATA = "project_data";
 
 @Injectable({
@@ -105,6 +106,20 @@ export class ProjectService {
     return this.http.get<Transaction[]>('/api/projects/' + id + '/latests/' + numberOfTransactions, {
       observe: 'body',
       responseType: 'json',
+    });
+  }
+
+  getProjectUsers(id: string): Observable<UserProject[]> {
+    return this.http.get<UserProject[]>('/api/projects/' + id + '/users', {
+      observe: 'body',
+      responseType: 'json',
+    })
+  }
+
+  updateAccess(id: string, patch: Operation[]): Observable<UserProject[]> {
+    return this.http.patch<UserProject[]>('/api/projects/' + id + '/access', patch, {
+      observe: 'body',
+      responseType: 'json'
     });
   }
 }

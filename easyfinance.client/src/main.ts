@@ -2,6 +2,7 @@
 
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideAnimations } from '@angular/platform-browser/animations';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { routes } from './app/features/app-routing.module';
@@ -28,10 +29,10 @@ import { IncomeDto } from './app/features/income/models/income-dto';
 import { CategoryDto } from './app/features/category/models/category-dto';
 import { ExpenseDto } from './app/features/expense/models/expense-dto';
 import { ExpenseItemDto } from './app/features/expense/models/expense-item-dto';
-import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { Transaction } from './app/core/models/transaction';
 import { TransactionDto } from './app/features/project/models/transaction-dto';
-
+import { UserProject } from './app/core/models/user-project';
+import { UserProjectDto } from './app/features/project/models/user-project-dto';
 
 bootstrapApplication(AppComponent, {
   providers: [
@@ -53,6 +54,7 @@ createMap(mapper, Category, CategoryDto);
 createMap(mapper, Expense, ExpenseDto);
 createMap(mapper, ExpenseItem, ExpenseItemDto);
 createMap(mapper, Transaction, TransactionDto);
+createMap(mapper, UserProject, UserProjectDto);
 
 function appInitializerFactory(globalService: GlobalService): () => Promise<void> {
   return async () => {

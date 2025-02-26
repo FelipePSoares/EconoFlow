@@ -1,8 +1,10 @@
-﻿using System.Net;
+﻿using System.ComponentModel;
+using System.Net;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace EasyFinance.Server.Controllers
 {
@@ -32,7 +34,7 @@ namespace EasyFinance.Server.Controllers
             if (appResponse.Messages.Any(message => message.Code == ValidationMessages.Forbidden))
                 return Forbid();
 
-            return BadRequest(appResponse.Messages);
+            return BadRequest(new { errors = appResponse.Messages.ToDictionary(m => m.Code, m => m.Description) });
         }
 
         public IActionResult ValidateResponse<T>(string actionName, object routeValues, AppResponse<T> appResponse)
