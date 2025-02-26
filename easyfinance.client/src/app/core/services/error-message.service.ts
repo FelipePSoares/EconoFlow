@@ -17,10 +17,13 @@ export class ErrorMessageService {
               errors.push('This field is required.');
               break;
             case 'email':
-              errors.push('Email is invalid.');
+              errors.push('Invalid email format.');
+              break;
+            case 'pattern':
+              errors.push('');
               break;
             default:
-              errors.push(control.errors[key]);
+              errors.push(control.errors ? control.errors[key] : 'an error occours!');
           }
         }
       }

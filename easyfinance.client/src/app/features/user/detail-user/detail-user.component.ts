@@ -50,7 +50,6 @@ export class DetailUserComponent implements OnInit {
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
 
   // Observables & Forms
-  projects$: Observable<Project[]>;
   user$: Observable<User>;
   userForm!: FormGroup;
   passwordForm!: FormGroup;
@@ -89,7 +88,6 @@ export class DetailUserComponent implements OnInit {
     private projectService: ProjectService
   ) {
     this.user$ = this.userService.loggedUser$;
-    this.projects$ = this.projectService.getProjects();
   }
 
   ngOnInit(): void {
@@ -217,17 +215,7 @@ export class DetailUserComponent implements OnInit {
   }
 
   getFormFieldErrors(form: FormGroup<any>, fieldName: string): string[] {
-    const control = form.get(fieldName);
-    if (!control?.errors) return [];
-
-    return Object.keys(control.errors).map(key => {
-      switch (key) {
-        case 'required': return 'This field is required.';
-        case 'email': return 'Invalid email format.';
-        case 'pattern': return '';
-        default: return control.errors ? control.errors[key] : 'an error occurred';
-      }
-    });
+    return this.errorMessageService.getFormFieldErrors(form, fieldName);
   }
 
   /** UI Actions **/

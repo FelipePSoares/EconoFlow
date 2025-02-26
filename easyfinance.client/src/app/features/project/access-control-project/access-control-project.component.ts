@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BehaviorSubject, map, Observable } from 'rxjs';
 import { mapper } from '../../../core/utils/mappings/mapper';
@@ -8,13 +8,14 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
+import { MatIconModule } from '@angular/material/icon';
+import { Operation } from 'fast-json-patch';
 import { ProjectService } from '../../../core/services/project.service';
 import { UserProjectDto } from '../models/user-project-dto';
 import { UserProject } from '../../../core/models/user-project';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { Role, Role2LabelMapping } from '../../../core/enums/Role';
 import { UserService } from '../../../core/services/user.service';
-import { Operation } from 'fast-json-patch';
 import { ApiErrorResponse } from '../../../core/models/error';
 
 @Component({
@@ -27,7 +28,8 @@ import { ApiErrorResponse } from '../../../core/models/error';
     MatAutocompleteModule,
     MatInputModule,
     MatFormFieldModule,
-    MatSelectModule
+    MatSelectModule,
+    MatIconModule,
   ],
   templateUrl: './access-control-project.component.html',
   styleUrl: './access-control-project.component.css'
@@ -119,6 +121,14 @@ export class AccessControlProjectComponent implements OnInit {
         }
       });
     }
+  }
+
+  removeUser(userProjectId: string): void {
+    this.projectService.removeUser(this.projectId, userProjectId).subscribe({
+      next: response => {
+        this.updateCurrentUsers();
+      }
+    })
   }
 
   private updateUsers(patch: Operation[]): Observable<UserProjectDto[]> {

@@ -122,4 +122,10 @@ export class ProjectService {
       responseType: 'json'
     });
   }
+
+  removeUser(id: string, userProjectId: string): Observable<boolean> {
+    return this.http.delete('/api/projects/' + id + '/access/' + userProjectId, {
+      observe: 'response'
+    }).pipe(map(res => res.ok));
+  }
 }

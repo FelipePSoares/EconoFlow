@@ -44,9 +44,32 @@
       </div>
     </form>
   </div>
-  <div>
-    <ul>
-      <li *ngFor="let user of currentUsers$ | async">{{ user.userName }} - {{ user.userEmail }} - {{ user.role }} - {{ user.accepted }}</li>
-    </ul>
+  <div class="list-users">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Role</th>
+          <th>Accepted</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of currentUsers$ | async">
+          @if (user.userName){
+          <td>{{ user.userName }}<br />{{ user.userEmail }}</td>
+          } @else {
+          <td>{{ user.userEmail }}</td>
+          }
+          <td>{{ user.role }}</td>
+          <td>{{ user.accepted ? 'Yes' : 'No' }}</td>
+          <td>
+            <button mat-icon-button color="warn" (click)="removeUser(user.id)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </div>

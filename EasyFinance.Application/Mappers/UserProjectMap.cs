@@ -62,6 +62,7 @@ namespace EasyFinance.Application.Mappers
 
             return new UserProjectResponseDTO()
             {
+                Id = userProject.Id,
                 UserId = userProject.User?.Id,
                 UserName = userProject.User?.FullName,
                 UserEmail = userProject.User?.Email ?? userProject.Email,

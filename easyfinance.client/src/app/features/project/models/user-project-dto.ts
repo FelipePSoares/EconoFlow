@@ -3,6 +3,8 @@ import { Role } from "../../../core/enums/Role";
 
 export class UserProjectDto {
   @AutoMap()
+  id!: string;
+  @AutoMap()
   userId!: string;
   @AutoMap()
   userName!: string;

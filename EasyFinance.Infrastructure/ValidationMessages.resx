@@ -216,4 +216,7 @@
   <data name="DuplicateUser" xml:space="preserve">
     <value>User already exists in the project.</value>
   </data>
+  <data name="InvalidUserProjectId" xml:space="preserve">
+    <value>Invalid UserProjectId.</value>
+  </data>
 </root>

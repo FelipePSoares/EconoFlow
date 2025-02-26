@@ -4,14 +4,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.DTOs.AccessControl;
+using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Financial;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -171,6 +172,22 @@ namespace EasyFinance.Application.Features.AccessControlService
                 .ToList();
 
             return Task.FromResult(AppResponse<IEnumerable<UserProjectResponseDTO>>.Success(userProjects.ToDTO()));
+        }
+
+        public async Task<AppResponse> RemoveAccessAsync(Guid userProjectId)
+        {
+            if (userProjectId == Guid.Empty)
+                AppResponse<ExpenseResponseDTO>.Error(code: nameof(userProjectId), description: ValidationMessages.InvalidUserProjectId);
+
+            var userProject = unitOfWork.UserProjectRepository.Trackable().IgnoreQueryFilters().FirstOrDefault(e => e.Id == userProjectId);
+
+            if (userProject == null)
+                return AppResponse.Error(code: ValidationMessages.NotFound, ValidationMessages.NotFound);
+
+            unitOfWork.UserProjectRepository.Delete(userProject);
+            await unitOfWork.CommitAsync();
+
+            return AppResponse.Success();
         }
     }
 }

@@ -8,6 +8,7 @@ using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Financial;
 using EasyFinance.Domain.FinancialProject;
+using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -144,6 +145,11 @@ namespace EasyFinance.Server.Controllers
 
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
+            var hasAuthorization = accessControlService.HasAuthorization(user.Id, projectId, Role.Admin);
+
+            if (!hasAuthorization)
+                return ValidateResponse(AppResponse<IEnumerable<UserProjectResponseDTO>>.Error(ValidationMessages.Forbidden, ValidationMessages.Forbidden), HttpStatusCode.OK);
+
             var updateResult = await accessControlService.UpdateAccessAsync(user, projectId, userProjectDto);
 
             if (updateResult.Succeeded)
@@ -170,6 +176,21 @@ namespace EasyFinance.Server.Controllers
             var response = await accessControlService.GetUsers(user, projectId);
 
             return ValidateResponse(response, HttpStatusCode.OK);
+        }
+
+        [HttpDelete("{projectId}/access/{userProjectId}")]
+        public async Task<IActionResult> DeleteUserProjectAsync(Guid projectId, Guid userProjectId)
+        {
+            var user = await this.userManager.GetUserAsync(this.HttpContext.User);
+
+            var hasAuthorization = accessControlService.HasAuthorization(user.Id, projectId, Role.Admin);
+
+            if (!hasAuthorization)
+                return ValidateResponse(AppResponse<IEnumerable<UserProjectResponseDTO>>.Error(ValidationMessages.Forbidden, ValidationMessages.Forbidden), HttpStatusCode.OK);
+
+            AppResponse result = await this.accessControlService.RemoveAccessAsync(userProjectId);
+
+            return ValidateResponse(result, HttpStatusCode.OK);
         }
     }
 }

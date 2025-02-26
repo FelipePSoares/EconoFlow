@@ -3,6 +3,8 @@ import { Role } from "../enums/Role";
 
 export class UserProject {
   @AutoMap()
+  id!: string;
+  @AutoMap()
   userId!: string;
   @AutoMap()
   userName!: string;
