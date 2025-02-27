@@ -127,7 +127,7 @@ namespace EasyFinance.Application.Tests
             var projectId = Guid.NewGuid();
 
             var userTest = new UserBuilder().AddId(Guid.NewGuid()).AddEmail("test@test.dev").AddFirstName("test").AddLastName("test").Build();
-            this.userManagerMock.Setup(u => u.FindByIdAsync(It.IsAny<string>())).ReturnsAsync(userTest);
+            this.userManagerMock.Setup(u => u.FindByIdAsync(It.Is<string>(a => a == userTest.Id.ToString()))).ReturnsAsync(userTest);
 
             var userProjectDto = new JsonPatchDocument<IList<UserProjectRequestDTO>>().Add(up => up, new UserProjectRequestDTO() { UserId = userTest.Id, Role = Role.Manager });
             var userProjectAuthorization = new List<UserProject>
@@ -224,7 +224,7 @@ namespace EasyFinance.Application.Tests
                 .AddName("Project A")
                 .Build();
 
-            this.userManagerMock.Setup(u => u.FindByIdAsync(It.IsAny<string>())).ReturnsAsync(inviterUser);
+            this.userManagerMock.Setup(u => u.FindByIdAsync(It.Is<string>(a => a == inviterUser.Id.ToString()))).ReturnsAsync(inviterUser);
 
             var userProjectDto = new JsonPatchDocument<IList<UserProjectRequestDTO>>().Add(up => up, new UserProjectRequestDTO() { UserEmail = "test@test.dev", Role = Role.Manager });
             var userProjectAuthorization = new List<UserProject>
@@ -532,6 +532,101 @@ namespace EasyFinance.Application.Tests
 
             // Assert
             this.logger.Verify(l => l.Log(LogLevel.Error, It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.Is<Exception>(e => e.Message == "Email sending failed"), It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdateAccessAsync_AddDuplicateUserByEmail_ShouldReturnFalse()
+        {
+            // Arrange
+            var inviterUser = new UserBuilder()
+                .AddId(Guid.NewGuid())
+                .AddEmail("inviter@example.com")
+                .AddFirstName("Inviter")
+                .AddLastName("User")
+                .Build();
+
+            var existingUser = new UserBuilder()
+                .AddId(Guid.NewGuid())
+                .AddEmail("existinguser@example.com")
+                .AddFirstName("Existing")
+                .AddLastName("User")
+                .Build();
+
+            this.userManagerMock.Setup(u => u.FindByIdAsync(It.Is<string>(u => u == inviterUser.Id.ToString()))).ReturnsAsync(inviterUser);
+            this.userManagerMock.Setup(u => u.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync(existingUser);
+
+            var project = new ProjectBuilder()
+                .AddId(Guid.NewGuid())
+                .AddName("Project A")
+                .Build();
+
+            var userProjectDto = new JsonPatchDocument<IList<UserProjectRequestDTO>>().Add(up => up, new UserProjectRequestDTO() { UserEmail = existingUser.Email, Role = Role.Manager });
+            var userProjectAuthorization = new List<UserProject>
+            {
+                new UserProject(inviterUser, project, Role.Admin)
+            };
+            var userProjects = new List<UserProject>
+            {
+                new UserProject(inviterUser, project, Role.Admin),
+                new UserProject(existingUser, project, Role.Viewer)
+            };
+
+            this.ProjectRepository.Setup(pr => pr.Trackable()).Returns(new List<Project> { project }.AsQueryable());
+            this.userProjectRepository.Setup(upr => upr.NoTrackable()).Returns(userProjectAuthorization.AsQueryable());
+            this.userProjectRepository.Setup(upr => upr.Trackable()).Returns(userProjects.AsQueryable());
+            this.userProjectRepository.Setup(upr => upr.InsertOrUpdate(It.IsAny<UserProject>())).Returns((UserProject up) => up);
+            this.unitOfWork.Setup(u => u.GetAffectedUsers(It.IsAny<EntityState[]>())).Returns([]);
+
+            // Act
+            var result = await this.accessControlService.UpdateAccessAsync(inviterUser, project.Id, userProjectDto);
+
+            // Assert
+            result.Succeeded.Should().BeFalse();
+            result.Messages.Should().ContainSingle(e => e.Code == "User" && e.Description == ValidationMessages.DuplicateUser);
+        }
+
+        [Fact]
+        public async Task UpdateAccessAsync_AddDuplicateNotExistentUserByEmail_ShouldReturnFalse()
+        {
+            // Arrange
+            var inviterUser = new UserBuilder()
+                .AddId(Guid.NewGuid())
+                .AddEmail("inviter@example.com")
+                .AddFirstName("Inviter")
+                .AddLastName("User")
+                .Build();
+
+            var project = new ProjectBuilder()
+                .AddId(Guid.NewGuid())
+                .AddName("Project A")
+                .Build();
+
+            this.userManagerMock.Setup(u => u.FindByIdAsync(It.Is<string>(a => a == inviterUser.Id.ToString()))).ReturnsAsync(inviterUser);
+
+            var userProjectDto = new JsonPatchDocument<IList<UserProjectRequestDTO>>().Add(up => up, new UserProjectRequestDTO() { UserEmail = "test@test.dev", Role = Role.Manager });
+            var userProjectAuthorization = new List<UserProject>
+            {
+                new UserProject(inviterUser, project, Role.Admin)
+            };
+            var userProjects = new List<UserProject>
+            {
+                new UserProject(inviterUser, project, Role.Admin),
+                new UserProject(new User { Id = Guid.NewGuid() }, project, Role.Viewer),
+                new UserProject(null, project, Role.Viewer, "test@test.dev")
+            };
+
+            this.ProjectRepository.Setup(pr => pr.Trackable()).Returns(new List<Project> { project }.AsQueryable());
+            this.userProjectRepository.Setup(upr => upr.NoTrackable()).Returns(userProjectAuthorization.AsQueryable());
+            this.userProjectRepository.Setup(upr => upr.Trackable()).Returns(userProjects.AsQueryable());
+            this.userProjectRepository.Setup(upr => upr.InsertOrUpdate(It.IsAny<UserProject>())).Returns((UserProject up) => up);
+            this.unitOfWork.Setup(u => u.GetAffectedUsers(It.IsAny<EntityState[]>())).Returns([]);
+
+            // Act
+            var result = await this.accessControlService.UpdateAccessAsync(inviterUser, project.Id, userProjectDto);
+
+            // Assert
+            result.Succeeded.Should().BeFalse();
+            result.Messages.Should().ContainSingle(e => e.Code == "User" && e.Description == ValidationMessages.DuplicateUser);
         }
     }
 }

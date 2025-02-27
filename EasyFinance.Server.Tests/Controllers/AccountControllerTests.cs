@@ -1,13 +1,15 @@
-﻿using EasyFinance.Application.DTOs.AccessControl;
+﻿using System.Security.Claims;
+using System.Security.Principal;
+using EasyFinance.Application.DTOs.AccessControl;
 using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Application.Features.UserService;
 using EasyFinance.Common.Tests.AccessControl;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Infrastructure.DTOs;
 using EasyFinance.Server.Controllers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Moq;
@@ -20,7 +22,7 @@ namespace EasyFinance.Server.Tests.Controllers
     {
         private readonly Mock<IUserStore<User>> _userStoreMock;
         private readonly Mock<UserManager<User>> _userManagerMock;
-        private readonly Mock<IProjectService> projectServiceMock;
+        private readonly Mock<IAccessControlService> accessControlService;
         private readonly AccountController _controller;
 
         public AccountControllerTests()
@@ -50,14 +52,13 @@ namespace EasyFinance.Server.Tests.Controllers
                 null);
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
-            this.projectServiceMock = new Mock<IProjectService>();
+            this.accessControlService = new Mock<IAccessControlService>();
 
             _controller = new AccountController(
                userManager: _userManagerMock.Object,
                signInManager: signInManagerMock.Object,
                emailSender: emailSenderMock.Object,
                userService: Mock.Of<IUserService>(),
-               projectService: this.projectServiceMock.Object,
                linkGenerator: Mock.Of<LinkGenerator>(),
                accessControlService: Mock.Of<IAccessControlService>()
                );
@@ -66,15 +67,24 @@ namespace EasyFinance.Server.Tests.Controllers
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void SearchUsers_SendNullAndEmpty_ShouldReturnEmptyList(string? searchTerm)
+        public async Task SearchUsers_SendNullAndEmpty_ShouldReturnEmptyList(string? searchTerm)
         {
+            // Arrange
+            _controller.ControllerContext.HttpContext = new DefaultHttpContext
+            {
+                User = new GenericPrincipal(
+                    new GenericIdentity("username"),
+                    new string[0]
+                    )
+            };
+
             // Act
-            var result = _controller.SearchUsers(searchTerm);
+            var result = await _controller.SearchUsers(searchTerm, Guid.Empty, this.accessControlService.Object);
 
             // Assert
             var okResult = result as OkObjectResult;
             okResult.ShouldNotBeNull();
-            var returnedUsers = okResult.Value.ShouldBeOfType<List<UserSearchResponseDTO>>();
+            var returnedUsers = okResult.Value.ShouldBeOfType<List<UserProjectResponseDTO>>();
             returnedUsers.ShouldBeEmpty();
         }
 
@@ -84,9 +94,20 @@ namespace EasyFinance.Server.Tests.Controllers
         [InlineData("johN")]
         [InlineData("john")]
         [InlineData("John")]
-        public void SearchUsers_ReturnsMatchingResultsForExactAndPartialCaseInsensitiveFirstNameMatches(string searchTerm)
+        public async Task SearchUsers_ReturnsMatchingResultsForExactAndPartialCaseInsensitiveFirstNameMatches(string searchTerm)
         {
             // Arrange
+            _controller.ControllerContext.HttpContext = new DefaultHttpContext
+            {
+                User = new GenericPrincipal(
+                    new GenericIdentity("username"),
+                    new string[0]
+                    )
+            };
+
+            _userManagerMock.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(new User(Guid.NewGuid()));
+            this.accessControlService.Setup(a => a.GetUsers(It.IsAny<User>(), It.IsAny<Guid>())).ReturnsAsync(new AppResponse<IEnumerable<UserProjectResponseDTO>>());
+
             var userJohn = new UserBuilder().AddFirstName("John").AddLastName("Doe").AddEmail("john@doe.com").Build();
             var userJohny = new UserBuilder().AddFirstName("Johny").AddLastName("Brown").AddEmail("johny@brown.com").Build();
             var userJohnathan = new UserBuilder().AddFirstName("Johnathan").AddLastName("Nelson").AddEmail("johnathan@nelson.com").Build();
@@ -94,13 +115,13 @@ namespace EasyFinance.Server.Tests.Controllers
             _userManagerMock.Setup(u => u.Users).Returns(new[] { userJohn, userJohny, userJohnathan, userAmir }.AsQueryable());
 
             // Act
-            var result = _controller.SearchUsers(searchTerm);
+            var result = await _controller.SearchUsers(searchTerm, Guid.Empty, this.accessControlService.Object);
 
             // Assert
             var okResult = result as OkObjectResult;
-            var returnedUsers = (okResult.Value as List<UserSearchResponseDTO>);
+            var returnedUsers = (okResult.Value as List<UserProjectResponseDTO>);
             returnedUsers.Count.ShouldBe(3);
-            returnedUsers.TrueForAll(u => u.FirstName.Contains(searchTerm));
+            returnedUsers.TrueForAll(u => u.UserName.Contains(searchTerm));
         }
 
         [Theory]
@@ -108,9 +129,20 @@ namespace EasyFinance.Server.Tests.Controllers
         [InlineData("doE")]
         [InlineData("doe")]
         [InlineData("DOE")]
-        public void SearchUsers_ReturnsMatchingResultsForExactAndPartialCaseInsensitiveLastNameMatches(string searchTerm)
+        public async Task SearchUsers_ReturnsMatchingResultsForExactAndPartialCaseInsensitiveLastNameMatches(string searchTerm)
         {
             // Arrange
+            _controller.ControllerContext.HttpContext = new DefaultHttpContext
+            {
+                User = new GenericPrincipal(
+                    new GenericIdentity("username"),
+                    new string[0]
+                    )
+            };
+
+            _userManagerMock.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(new User(Guid.NewGuid()));
+            this.accessControlService.Setup(a => a.GetUsers(It.IsAny<User>(), It.IsAny<Guid>())).ReturnsAsync(new AppResponse<IEnumerable<UserProjectResponseDTO>>());
+
             var userJohn = new UserBuilder().AddFirstName("John").AddLastName("Doe").AddEmail("john@doe.com").Build();
             var userJohny = new UserBuilder().AddFirstName("Johny").AddLastName("Doerr").AddEmail("johny@doerr.com").Build();
             var userJohnathan = new UserBuilder().AddFirstName("Johnathan").AddLastName("Doern").AddEmail("johnathan@doern.com").Build();
@@ -119,13 +151,13 @@ namespace EasyFinance.Server.Tests.Controllers
             _userManagerMock.Setup(u => u.Users).Returns(new[] { userJohn, userJohny, userJohnathan, userJenifer, userAmir }.AsQueryable());
 
             // Act
-            var result = _controller.SearchUsers(searchTerm);
+            var result = await _controller.SearchUsers(searchTerm, Guid.Empty, this.accessControlService.Object);
 
             // Assert
             var okResult = result as OkObjectResult;
-            var returnedUsers = (okResult.Value as List<UserSearchResponseDTO>);
+            var returnedUsers = (okResult.Value as List<UserProjectResponseDTO>);
             returnedUsers.Count.ShouldBe(4);
-            returnedUsers.TrueForAll(u => u.LastName.Contains(searchTerm));
+            returnedUsers.TrueForAll(u => u.UserName.Contains(searchTerm));
         }
 
         [Theory]
@@ -133,9 +165,20 @@ namespace EasyFinance.Server.Tests.Controllers
         [InlineData("doE")]
         [InlineData("doe")]
         [InlineData("DOE")]
-        public void SearchUsers_ReturnsMatchingResultsForExactAndPartialCaseInsensitiveEmailMatches(string searchTerm)
+        public async Task SearchUsers_ReturnsMatchingResultsForExactAndPartialCaseInsensitiveEmailMatches(string searchTerm)
         {
             // Arrange
+            _controller.ControllerContext.HttpContext = new DefaultHttpContext
+            {
+                User = new GenericPrincipal(
+                    new GenericIdentity("username"),
+                    new string[0]
+                    )
+            };
+
+            _userManagerMock.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(new User(Guid.NewGuid()));
+            this.accessControlService.Setup(a => a.GetUsers(It.IsAny<User>(), It.IsAny<Guid>())).ReturnsAsync(new AppResponse<IEnumerable<UserProjectResponseDTO>>());
+
             var userJohn = new UserBuilder().AddFirstName("John").AddLastName("Doe").AddEmail("john@doe.com").Build();
             var userJohny = new UserBuilder().AddFirstName("Johny").AddLastName("Doerr").AddEmail("johny@doerr.com").Build();
             var userJohnathan = new UserBuilder().AddFirstName("Johnathan").AddLastName("Doern").AddEmail("johnathan@doern.com").Build();
@@ -145,13 +188,13 @@ namespace EasyFinance.Server.Tests.Controllers
             _userManagerMock.Setup(u => u.Users).Returns(new[] { userJohn, userJohny, userJohnathan, userJenifer, cathyJenifer, userAmir }.AsQueryable());
 
             // Act
-            var result = _controller.SearchUsers(searchTerm);
+            var result = await _controller.SearchUsers(searchTerm, Guid.Empty, this.accessControlService.Object);
 
             // Assert
             var okResult = result as OkObjectResult;
-            var returnedUsers = (okResult.Value as List<UserSearchResponseDTO>);
+            var returnedUsers = (okResult.Value as List<UserProjectResponseDTO>);
             returnedUsers.Count.ShouldBe(5);
-            returnedUsers.TrueForAll(u => u.Email.Contains(searchTerm));
+            returnedUsers.TrueForAll(u => u.UserEmail.Contains(searchTerm));
         }
 
 
@@ -162,9 +205,20 @@ namespace EasyFinance.Server.Tests.Controllers
         [InlineData("cathy@doering.com")]
         [InlineData("Abdollahi")]
         [InlineData("Alex")]
-        public void SearchUsers_ReturnsMatchingResultsOfTypeUserSearchResponseDTO(string searchTerm)
+        public async Task SearchUsers_ReturnsMatchingResultsOfTypeUserSearchResponseDTO(string searchTerm)
         {
             // Arrange
+            _controller.ControllerContext.HttpContext = new DefaultHttpContext
+            {
+                User = new GenericPrincipal(
+                    new GenericIdentity("username"),
+                    new string[0]
+                    )
+            };
+
+            _userManagerMock.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(new User(Guid.NewGuid()));
+            this.accessControlService.Setup(a => a.GetUsers(It.IsAny<User>(), It.IsAny<Guid>())).ReturnsAsync(new AppResponse<IEnumerable<UserProjectResponseDTO>>());
+
             var userJohn = new UserBuilder().AddFirstName("John").AddLastName("Doe").AddEmail("john@doe.com").Build();
             var userJohny = new UserBuilder().AddFirstName("Johny").AddLastName("Doerr").AddEmail("johny@doerr.com").Build();
             var userJohnathan = new UserBuilder().AddFirstName("Johnathan").AddLastName("Doern").AddEmail("johnathan@doern.com").Build();
@@ -174,13 +228,13 @@ namespace EasyFinance.Server.Tests.Controllers
             _userManagerMock.Setup(u => u.Users).Returns(new[] { userJohn, userJohny, userJohnathan, userJenifer, cathyJenifer, userAmir }.AsQueryable());
 
             // Act
-            var result = _controller.SearchUsers(searchTerm);
+            var result = await _controller.SearchUsers(searchTerm, Guid.Empty, this.accessControlService.Object);
 
             // Assert
             result.ShouldBeOfType<OkObjectResult>();
             var okResult = result as OkObjectResult;
             okResult.ShouldNotBeNull();
-            okResult.Value.ShouldBeOfType<List<UserSearchResponseDTO>>();
+            okResult.Value.ShouldBeOfType<List<UserProjectResponseDTO>>();
         }
     }
 }
