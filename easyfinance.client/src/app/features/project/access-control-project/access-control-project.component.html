@@ -44,13 +44,13 @@
       </div>
     </form>
   </div>
-  <div class="list-users">
+  <div class="list-users table-responsive">
     <table class="table table-striped">
       <thead>
         <tr>
           <th>User</th>
           <th>Role</th>
-          <th>Accepted</th>
+          <th class="d-none d-sm-table-cell">Accepted</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -62,7 +62,7 @@
           <td>{{ user.userEmail }}</td>
           }
           <td>{{ user.role }}</td>
-          <td>{{ user.accepted ? 'Yes' : 'No' }}</td>
+          <td class="d-none d-sm-table-cell">{{ user.accepted ? 'Yes' : 'No' }}</td>
           <td>
             <button mat-icon-button color="warn" (click)="removeUser(user.id)">
               <mat-icon>delete</mat-icon>

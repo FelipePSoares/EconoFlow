@@ -128,8 +128,8 @@ if (app.Environment.IsDevelopment())
 
     var user2 = new User(firstName: "Second", lastName: "User", preferredCurrency: ri.ISOCurrencySymbol, enabled: true)
     {
-        UserName = "test2@test.com",
-        Email = "test2@test.com",
+        UserName = "test1@test.com",
+        Email = "test1@test.com",
         EmailConfirmed = true
     };
     userManager.CreateAsync(user2, "Passw0rd!").GetAwaiter().GetResult();

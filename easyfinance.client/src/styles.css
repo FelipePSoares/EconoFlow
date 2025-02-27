@@ -36,6 +36,10 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   --mdc-snackbar-supporting-text-color: #fff;
 }
 
+.cdk-overlay-pane.mat-mdc-dialog-panel {
+  --mat-dialog-container-small-max-width: 90vw;
+}
+
 .warning {
   color: #ffc107;
 }
