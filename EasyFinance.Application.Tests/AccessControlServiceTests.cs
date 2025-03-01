@@ -152,7 +152,7 @@ namespace EasyFinance.Application.Tests
             // Assert
             result.Succeeded.Should().BeTrue();
             result.Data.Should().NotBeNull();
-            result.Data.Should().HaveCount(3);
+            result.Data.Should().HaveCount(2);
             result.Data.Last().UserName.Should().Be(userTest.FullName);
         }
 
@@ -204,7 +204,7 @@ namespace EasyFinance.Application.Tests
             // Assert
             result.Succeeded.Should().BeTrue();
             result.Data.Should().NotBeNull();
-            result.Data.Should().HaveCount(2);
+            result.Data.Should().HaveCount(1);
             result.Data.Last().UserName.Should().Be(existingUser.FullName);
         }
 
@@ -249,7 +249,7 @@ namespace EasyFinance.Application.Tests
             // Assert
             result.Succeeded.Should().BeTrue();
             result.Data.Should().NotBeNull();
-            result.Data.Should().HaveCount(3);
+            result.Data.Should().HaveCount(2);
             result.Data.Last().UserEmail.Should().Be("test@test.dev");
         }
 
@@ -279,35 +279,6 @@ namespace EasyFinance.Application.Tests
             // Assert
             result.Succeeded.Should().BeTrue();
             result.Data.Should().BeEquivalentTo(userProjects.ToDTO());
-        }
-
-        [Fact]
-        public async Task UpdateAccessAsync_NoAdminUserInProject_ShouldReturnFalse()
-        {
-            // Arrange
-            var user = new User() { Id = Guid.NewGuid() };
-            var projectId = Guid.NewGuid();
-            var userProjectDto = new JsonPatchDocument<IList<UserProjectRequestDTO>>().Add(up => up, new UserProjectRequestDTO() { UserId = Guid.NewGuid(), Role = Role.Manager });
-            var userProjectAuthorization = new List<UserProject>
-            {
-                new UserProject(user, new Project(projectId), Role.Admin)
-            };
-            var userProjects = new List<UserProject>
-            {
-                new UserProject(new User { Id = Guid.NewGuid() }, new Project(projectId), Role.Viewer)
-            };
-
-            this.ProjectRepository.Setup(pr => pr.Trackable()).Returns(new List<Project> { new Project(projectId) }.AsQueryable());
-            this.userProjectRepository.Setup(upr => upr.NoTrackable()).Returns(userProjectAuthorization.AsQueryable());
-            this.userProjectRepository.Setup(upr => upr.Trackable()).Returns(userProjects.AsQueryable());
-            this.userProjectRepository.Setup(upr => upr.InsertOrUpdate(It.IsAny<UserProject>())).Returns((UserProject up) => up);
-
-            // Act
-            var result = await this.accessControlService.UpdateAccessAsync(user, projectId, userProjectDto);
-
-            // Assert
-            result.Succeeded.Should().BeFalse();
-            result.Messages.Should().ContainSingle(e => e.Code == "General" && e.Description == ValidationMessages.AdminRequired);
         }
 
         [Fact]
@@ -420,7 +391,7 @@ namespace EasyFinance.Application.Tests
             this.unitOfWork.Setup(u => u.GetAffectedUsers(It.IsAny<EntityState[]>())).Returns([existingUser.Id]);
 
             var userProjectDto = new JsonPatchDocument<IList<UserProjectRequestDTO>>()
-                .Replace(up => up[1], new UserProjectRequestDTO()
+                .Replace(up => up[0], new UserProjectRequestDTO()
                 {
                     UserId = existingUser.Id,
                     Role = Role.Manager

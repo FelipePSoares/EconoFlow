@@ -154,25 +154,25 @@ namespace EasyFinance.Domain.Tests.Financial
         public static IEnumerable<object[]> OlderDates =>
             new List<object[]>
             {
-                new object[] { DateOnly.FromDateTime(DateTime.Now.AddYears(-5).AddDays(-2)) },
-                new object[] { DateOnly.FromDateTime(DateTime.Now.AddYears(-15)) },
-                new object[] { DateOnly.FromDateTime(DateTime.Now.AddYears(-200)) }
+                new object[] { DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-5).AddDays(-2)) },
+                new object[] { DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-15)) },
+                new object[] { DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-200)) }
             };
             
         public static IEnumerable<object[]> FutureDates =>
             new List<object[]>
             {
-                new object[] { DateOnly.FromDateTime(DateTime.Now.AddDays(2)) },
-                new object[] { DateOnly.FromDateTime(DateTime.Now.AddDays(5)) },
+                new object[] { DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddDays(2)) },
+                new object[] { DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddDays(5)) },
             };
             
         public static IEnumerable<object[]> DifferentDateBetweenExpenseAndExpenseItem =>
             new List<object[]>
             {
-                new object[] { DateOnly.FromDateTime(DateTime.Today.AddMonths(-2)), DateOnly.FromDateTime(DateTime.Today.AddMonths(-1)) },
-                new object[] { DateOnly.FromDateTime(DateTime.Today.AddMonths(-1)), DateOnly.FromDateTime(DateTime.Today.AddMonths(-2)) },
-                new object[] { DateOnly.FromDateTime(DateTime.Today.AddYears(-1)), DateOnly.FromDateTime(DateTime.Today.AddYears(-2)) },
-                new object[] { DateOnly.FromDateTime(DateTime.Today.AddYears(-2)), DateOnly.FromDateTime(DateTime.Today.AddYears(-1)) },
+                new object[] { DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddMonths(-2)), DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddMonths(-1)) },
+                new object[] { DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddMonths(-1)), DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddMonths(-2)) },
+                new object[] { DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-1)), DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-2)) },
+                new object[] { DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-2)), DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-1)) },
             };
     }
 }

@@ -74,7 +74,7 @@ namespace EasyFinance.Application.Features.AccessControlService
                 return AppResponse<IEnumerable<UserProjectResponseDTO>>.Error(code: ValidationMessages.Forbidden, description: ValidationMessages.Forbidden);
 
             var project = unitOfWork.ProjectRepository.Trackable().FirstOrDefault(up => up.Id == projectId);
-            var existingUserProject = unitOfWork.UserProjectRepository.Trackable().IgnoreQueryFilters().Include(up => up.User).Where(up => up.Project.Id == projectId && up.User.Id != inviterUser.Id).ToList();
+            var existingUserProject = unitOfWork.UserProjectRepository.Trackable().IgnoreQueryFilters().Include(up => up.User).Where(up => up.Project.Id == projectId && (up.User == null || up.User.Id != inviterUser.Id)).ToList();
 
             if (userProjectsDto.Operations.Count == 0)
                 return AppResponse<IEnumerable<UserProjectResponseDTO>>.Success(existingUserProject.ToDTO());

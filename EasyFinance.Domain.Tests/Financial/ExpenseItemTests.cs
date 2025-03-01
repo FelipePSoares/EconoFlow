@@ -86,15 +86,15 @@ namespace EasyFinance.Domain.Tests.Financial
         public static IEnumerable<object[]> OlderDates =>
             new List<object[]>
             {
-                new object[] { DateOnly.FromDateTime(DateTime.Now.AddYears(-5).AddDays(-2)) },
-                new object[] { DateOnly.FromDateTime(DateTime.Now.AddYears(-15)) },
-                new object[] { DateOnly.FromDateTime(DateTime.Now.AddYears(-200)) }
+                new object[] { DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-5).AddDays(-2)) },
+                new object[] { DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-15)) },
+                new object[] { DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-200)) }
             };
         public static IEnumerable<object[]> FutureDates =>
             new List<object[]>
             {
-                new object[] { DateOnly.FromDateTime(DateTime.Now.AddDays(2)) },
-                new object[] { DateOnly.FromDateTime(DateTime.Now.AddDays(5)) },
+                new object[] { DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddDays(2)) },
+                new object[] { DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddDays(5)) },
             };
     }
 }
