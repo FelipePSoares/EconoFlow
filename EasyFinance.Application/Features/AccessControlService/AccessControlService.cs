@@ -74,7 +74,7 @@ namespace EasyFinance.Application.Features.AccessControlService
                 return AppResponse<IEnumerable<UserProjectResponseDTO>>.Error(code: ValidationMessages.Forbidden, description: ValidationMessages.Forbidden);
 
             var project = unitOfWork.ProjectRepository.Trackable().FirstOrDefault(up => up.Id == projectId);
-            var existingUserProject = unitOfWork.UserProjectRepository.Trackable().IgnoreQueryFilters().Include(up => up.User).Where(up => up.Project.Id == projectId).ToList();
+            var existingUserProject = unitOfWork.UserProjectRepository.Trackable().IgnoreQueryFilters().Include(up => up.User).Where(up => up.Project.Id == projectId && up.User.Id != inviterUser.Id).ToList();
 
             if (userProjectsDto.Operations.Count == 0)
                 return AppResponse<IEnumerable<UserProjectResponseDTO>>.Success(existingUserProject.ToDTO());
@@ -84,9 +84,6 @@ namespace EasyFinance.Application.Features.AccessControlService
             userProjectsDto.ApplyTo(dto);
 
             var entities = dto.FromDTO(project, existingUserProject);
-
-            if (!entities.Any(r => r.Role == Role.Admin))
-                return AppResponse<IEnumerable<UserProjectResponseDTO>>.Error(description: ValidationMessages.AdminRequired);
 
             // Get modified users to send them an email
             var affectedUsers = unitOfWork.GetAffectedUsers(EntityState.Modified);

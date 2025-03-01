@@ -37,7 +37,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 }
 
 .cdk-overlay-pane.mat-mdc-dialog-panel {
-  --mat-dialog-container-small-max-width: 90vw;
+  --mat-dialog-container-small-max-width: 95vw;
 }
 
 .warning {

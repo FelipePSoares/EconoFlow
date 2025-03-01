@@ -44,8 +44,8 @@
       </div>
     </form>
   </div>
-  <div class="list-users table-responsive">
-    <table class="table table-striped">
+  <div class="list-users table-responsive" style="max-width: 100%; overflow-x: auto;">
+    <table class="table table-striped" style="min-width: 100%; width: auto;">
       <thead>
         <tr>
           <th>User</th>
@@ -61,7 +61,14 @@
           } @else {
           <td>{{ user.userEmail }}</td>
           }
-          <td>{{ user.role }}</td>
+          <td>
+            <mat-form-field appearance="outline" style="max-width: 115px; width: 100%;">
+              <mat-label>Role</mat-label>
+              <mat-select [(ngModel)]="user.role" (selectionChange)="updateUserRole()">
+                <mat-option *ngFor="let role of roles" [value]="role2LabelMapping[role]">{{ role2LabelMapping[role] }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </td>
           <td class="d-none d-sm-table-cell">{{ user.accepted ? 'Yes' : 'No' }}</td>
           <td>
             <button mat-icon-button color="warn" (click)="removeUser(user.id)">

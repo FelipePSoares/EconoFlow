@@ -9,7 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
-import { Operation } from 'fast-json-patch';
+import { compare, Operation } from 'fast-json-patch';
 import { ProjectService } from '../../../core/services/project.service';
 import { UserProjectDto } from '../models/user-project-dto';
 import { UserProject } from '../../../core/models/user-project';
@@ -40,6 +40,7 @@ export class AccessControlProjectComponent implements OnInit {
   accessForm!: FormGroup;
   httpErrors = false;
   errors!: { [key: string]: string };
+  private listCurrentUsersToCompare!: UserProjectDto[];
 
   @Input({ required: true }) projectId!: string;
 
@@ -73,7 +74,8 @@ export class AccessControlProjectComponent implements OnInit {
     this.projectService.getProjectUsers(this.projectId)
       .pipe(map(users => mapper.mapArray(users, UserProject, UserProjectDto)))
       .subscribe({
-      next: (users) => {
+        next: (users) => {
+          this.listCurrentUsersToCompare = JSON.parse(JSON.stringify(users));
           this.currentUsers.next(users);
       },
       error: (error) => {
@@ -109,8 +111,9 @@ export class AccessControlProjectComponent implements OnInit {
       var patch = <Operation[]>[{ op: "add", path: "/-", value: newUserProject }];
 
       this.updateUsers(patch).subscribe({
-        next: response => {
-          this.currentUsers.next(response);
+        next: users => {
+          this.listCurrentUsersToCompare = JSON.parse(JSON.stringify(users));
+          this.currentUsers.next(users);
           this.cleanForm();
         },
         error: (response: ApiErrorResponse) => {
@@ -121,6 +124,24 @@ export class AccessControlProjectComponent implements OnInit {
         }
       });
     }
+  }
+
+  updateUserRole(): void {
+    var patch = compare(this.listCurrentUsersToCompare, this.currentUsers.value);
+
+    this.updateUsers(patch).subscribe({
+      next: users => {
+        this.listCurrentUsersToCompare = JSON.parse(JSON.stringify(users));
+        this.currentUsers.next(users);
+        this.cleanForm();
+      },
+      error: (response: ApiErrorResponse) => {
+        this.httpErrors = true;
+        this.errors = response.errors;
+
+        this.errorMessageService.setFormErrors(this.accessForm, this.errors);
+      }
+    });
   }
 
   removeUser(userProjectId: string): void {
