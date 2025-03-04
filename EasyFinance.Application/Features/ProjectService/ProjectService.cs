@@ -10,6 +10,7 @@ using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,10 +19,12 @@ namespace EasyFinance.Application.Features.ProjectService
     public class ProjectService : IProjectService
     {
         private readonly IUnitOfWork unitOfWork;
+        private readonly UserManager<User> userManager;
 
-        public ProjectService(IUnitOfWork unitOfWork)
+        public ProjectService(IUnitOfWork unitOfWork, UserManager<User> userManager)
         {
             this.unitOfWork = unitOfWork;
+            this.userManager = userManager;
         }
 
         public AppResponse<ICollection<ProjectResponseDTO>> GetAll(Guid userId)
@@ -48,6 +51,8 @@ namespace EasyFinance.Application.Features.ProjectService
             if (user == default)
                 return AppResponse<ProjectResponseDTO>.Error(code: nameof(user), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(user)));
 
+            var isFirstProject = !unitOfWork.UserProjectRepository.Trackable().Any(up => up.User.Id == user.Id);
+
             var projectExistent = await unitOfWork.ProjectRepository.Trackable().FirstOrDefaultAsync(p => p.Name == project.Name);
 
             if (projectExistent != default)
@@ -57,9 +62,16 @@ namespace EasyFinance.Application.Features.ProjectService
 
             var userProject = new UserProject(user, project, Role.Admin);
             userProject.SetAccepted();
+
             unitOfWork.UserProjectRepository.InsertOrUpdate(userProject);
-            
+
             await unitOfWork.CommitAsync();
+
+            if (isFirstProject)
+            {
+                user.SetDefaultProject(project.Id);
+                await userManager.UpdateAsync(user);
+            }
 
             return AppResponse<ProjectResponseDTO>.Success(project.ToDTO());
         }

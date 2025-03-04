@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
-import { Observable, map, take } from 'rxjs';
+import { map, of, switchMap } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { UserService } from '../services/user.service';
 
@@ -8,32 +8,36 @@ import { UserService } from '../services/user.service';
   providedIn: 'root'
 })
 export class AuthGuard implements CanActivate {
+  private urls: string[] = ["/first-signin", "/logout"];
+
   constructor(
     private authService: AuthService,
     private userService: UserService,
     private router: Router) { }
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
-    return this.isSignedIn(state);
-  }
-  
-  isSignedIn(state: RouterStateSnapshot): Observable<boolean> {
     return this.authService.isSignedIn$.pipe(
-      map((isSignedIn) => {
+      switchMap((isSignedIn) => {
         if (!isSignedIn) {
           this.router.navigate(['login'], { queryParams: { returnUrl: state.url } });
-          return false;
+          return of(false);
         }
 
-        if (!sessionStorage.getItem("visited")) {
-          sessionStorage.setItem("visited", "true");
-          this.userService.loggedUser$.pipe(take(1)).subscribe(user => {
-            this.router.navigate(['/projects', user.defaultProjectId]);
-          });
-          return false;
-        }
+        return this.userService.loggedUser$.pipe(
+          map((user) => {
+            if (user.isFirstLogin && this.urls.indexOf(state.url) == -1) {
+              this.router.navigate(['first-signin']);
+              return false;
+            }
 
-        return true;
+            if (!sessionStorage.getItem("visited")) {
+              sessionStorage.setItem("visited", "true");
+              this.router.navigate(['/projects', user.defaultProjectId]);
+              return false;
+            }
+
+            return true;
+          }));
       }));
   }
 }
