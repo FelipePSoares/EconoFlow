@@ -67,11 +67,9 @@ export class LoginComponent implements OnInit {
           
           if (returnUrl) {
             this.router.navigateByUrl(returnUrl);
-          } else if (response.defaultProjectId) {
-            this.router.navigate(['/projects', response.defaultProjectId]);
-          } else {
-            this.router.navigate(['/']);
           }
+
+          this.router.navigate(['/']);
         },
         error: (response: ApiErrorResponse) => {
           this.httpErrors = true;

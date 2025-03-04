@@ -12,3 +12,7 @@
 ::ng-deep .cdk-overlay-container {
   z-index: 9999;
 }
+
+.modal-title {
+    font-size: 18px;
+}
