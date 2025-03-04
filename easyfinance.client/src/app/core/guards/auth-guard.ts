@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
-import { Observable, map } from 'rxjs';
+import { Observable, map, take } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { UserService } from '../services/user.service';
 
@@ -27,7 +27,7 @@ export class AuthGuard implements CanActivate {
 
         if (!sessionStorage.getItem("visited")) {
           sessionStorage.setItem("visited", "true");
-          this.userService.loggedUser$.subscribe(user => {
+          this.userService.loggedUser$.pipe(take(1)).subscribe(user => {
             this.router.navigate(['/projects', user.defaultProjectId]);
           });
           return false;
