@@ -1,10 +1,7 @@
-﻿using System.ComponentModel;
-using System.Net;
+﻿using System.Net;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace EasyFinance.Server.Controllers
 {

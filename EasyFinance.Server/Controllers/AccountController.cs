@@ -455,10 +455,10 @@ namespace EasyFinance.Server.Controllers
                     newDescriptions = [error.Description];
                 }
 
-                errorDictionary[error.Code] = newDescriptions;
+                errorDictionary[error.Code == "DuplicateEmail" ? "Email" : error.Code] = newDescriptions;
             }
 
-            return BadRequest(errorDictionary);
+            return BadRequest(new { errors = errorDictionary });
         }
 
         private static async Task<InfoResponse> CreateInfoResponseAsync<TUser>(TUser user, UserManager<TUser> userManager)

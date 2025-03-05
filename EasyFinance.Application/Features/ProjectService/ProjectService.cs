@@ -51,12 +51,17 @@ namespace EasyFinance.Application.Features.ProjectService
             if (user == default)
                 return AppResponse<ProjectResponseDTO>.Error(code: nameof(user), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(user)));
 
-            var isFirstProject = !unitOfWork.UserProjectRepository.Trackable().Any(up => up.User.Id == user.Id);
+            var existentUserProjects = unitOfWork.UserProjectRepository.NoTrackable().Include(up => up.Project).Where(up => up.User.Id == user.Id);
 
-            var projectExistent = await unitOfWork.ProjectRepository.Trackable().FirstOrDefaultAsync(p => p.Name == project.Name);
+            var isFirstProject = !existentUserProjects.Any();
 
-            if (projectExistent != default)
-                return AppResponse<ProjectResponseDTO>.Success(projectExistent.ToDTO());
+            if (!isFirstProject)
+            {
+                var projectExistent = await existentUserProjects.Select(up => up.Project).FirstOrDefaultAsync(p => p.Name == project.Name);
+
+                if (projectExistent != default)
+                    return AppResponse<ProjectResponseDTO>.Success(projectExistent.ToDTO());
+            }
 
             unitOfWork.ProjectRepository.InsertOrUpdate(project);
 
