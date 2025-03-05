@@ -10,13 +10,10 @@ import { User } from '../models/user';
 export class AuthService {
   private pollingSubscription: Subscription | null = null;
 
-  isSignedIn$ : Observable<boolean>;
-  isSignedOut$ : Observable<boolean>;
+  isSignedIn$: Observable<boolean> = this.userService.loggedUser$.pipe(map(user => user.enabled));
+  isSignedOut$: Observable<boolean> = this.isSignedIn$.pipe(map(isLoggedIn => !isLoggedIn));
 
-  constructor(private http: HttpClient, private userService: UserService) {
-    this.isSignedIn$ = this.userService.loggedUser$.pipe(map(user => user.enabled));
-    this.isSignedOut$ = this.isSignedIn$.pipe(map(isLoggedIn => !isLoggedIn));
-  }
+  constructor(private http: HttpClient, private userService: UserService) { }
 
   public signIn(email: string, password: string): Observable<User> {
     return this.http.post('/api/account/login?useCookies=true', {
@@ -41,7 +38,7 @@ export class AuthService {
     }).pipe<boolean>(map(res => res.ok));
   }
 
-  public register(email: string, password: string, token?: string): Observable<boolean> {
+  public register(email: string, password: string, token?: string): Observable<User> {
     var query = token ? `?token=${token}` : '';
 
     return this.http.post('/api/account/register' + query, {
@@ -49,7 +46,11 @@ export class AuthService {
       password: password
     }, {
       observe: 'response'
-    }).pipe<boolean>(map(res => res.ok));
+    }).pipe(concatMap(res => {
+      this.startUserPolling();
+
+      return this.userService.refreshUserInfo();
+    }));
   }
 
   public forgotPassword(email: string): Observable<boolean> {

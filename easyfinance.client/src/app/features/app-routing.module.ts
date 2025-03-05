@@ -1,5 +1,4 @@
 import { Routes, mapToCanActivate } from '@angular/router';
-import { FirstSignInGuard } from '../core/guards/first-sign-in-guard';
 import { AuthGuard } from '../core/guards/auth-guard';
 
 import { LoginComponent } from './authentication/login/login.component';
@@ -34,18 +33,19 @@ export const routes: Routes = [
   { path: 'register', component: RegisterComponent },
   { path: 'logout', component: LogoutComponent, canActivate: mapToCanActivate([AuthGuard]) },
   { path: 'first-signin', component: FirstSignInComponent, canActivate: mapToCanActivate([AuthGuard]) },
-  { path: 'user', component: DetailUserComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
-  { path: 'add-edit-project', component: AddEditProjectComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]), outlet: 'modal' },
-  { path: 'projects', component: ListProjectsComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
-  { path: 'projects/:projectId', component: DetailProjectComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
-  { path: 'projects/:projectId/users', component: AccessControlProjectComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]), outlet: 'modal' },
-  { path: 'projects/:token/accept', component: AcceptInviteComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
-  { path: 'projects/:projectId/incomes', component: ListIncomesComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
-  { path: 'projects/:projectId/add-income', component: AddIncomeComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]), outlet: 'modal' },
-  { path: 'projects/:projectId/categories', component: ListCategoriesComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
-  { path: 'projects/:projectId/add-category', component: AddCategoryComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]), outlet: 'modal' },
-  { path: 'projects/:projectId/categories/:categoryId/add-expense', component: AddExpenseComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]), outlet: 'modal' },
-  { path: 'projects/:projectId/categories/:categoryId/expenses', component: ListExpensesComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
-  { path: 'projects/:projectId/categories/:categoryId/expenses/:expenseId', component: DetailExpenseComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]) },
-  { path: 'projects/:projectId/categories/:categoryId/expenses/:expenseId/add-expense-item', component: AddExpenseItemComponent, canActivate: mapToCanActivate([AuthGuard, FirstSignInGuard]), outlet: 'modal' },
+  { path: 'user', component: DetailUserComponent, canActivate: mapToCanActivate([AuthGuard]) },
+  { path: 'add-edit-project', component: AddEditProjectComponent, canActivate: mapToCanActivate([AuthGuard]), outlet: 'modal' },
+  { path: 'projects', component: ListProjectsComponent, canActivate: mapToCanActivate([AuthGuard]) },
+  { path: 'projects/:projectId', component: DetailProjectComponent, canActivate: mapToCanActivate([AuthGuard]) },
+  { path: 'projects/:projectId/users', component: AccessControlProjectComponent, canActivate: mapToCanActivate([AuthGuard]), outlet: 'modal' },
+  { path: 'projects/:token/accept', component: AcceptInviteComponent, canActivate: mapToCanActivate([AuthGuard]) },
+  { path: 'projects/:projectId/incomes', component: ListIncomesComponent, canActivate: mapToCanActivate([AuthGuard]) },
+  { path: 'projects/:projectId/add-income', component: AddIncomeComponent, canActivate: mapToCanActivate([AuthGuard]), outlet: 'modal' },
+  { path: 'projects/:projectId/categories', component: ListCategoriesComponent, canActivate: mapToCanActivate([AuthGuard]) },
+  { path: 'projects/:projectId/add-category', component: AddCategoryComponent, canActivate: mapToCanActivate([AuthGuard]), outlet: 'modal' },
+  { path: 'projects/:projectId/categories/:categoryId/add-expense', component: AddExpenseComponent, canActivate: mapToCanActivate([AuthGuard]), outlet: 'modal' },
+  { path: 'projects/:projectId/categories/:categoryId/expenses', component: ListExpensesComponent, canActivate: mapToCanActivate([AuthGuard]) },
+  { path: 'projects/:projectId/categories/:categoryId/expenses/:expenseId', component: DetailExpenseComponent, canActivate: mapToCanActivate([AuthGuard]) },
+  { path: 'projects/:projectId/categories/:categoryId/expenses/:expenseId/add-expense-item', component: AddExpenseItemComponent, canActivate: mapToCanActivate([AuthGuard]), outlet: 'modal' },
+  { path: '**', redirectTo: 'projects' },
 ];

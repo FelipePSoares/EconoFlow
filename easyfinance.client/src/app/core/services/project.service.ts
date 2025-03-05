@@ -9,6 +9,7 @@ import { safeJsonParse } from '../utils/json-parser';
 import { Transaction } from '../models/transaction';
 import { ProjectDto } from '../../features/project/models/project-dto';
 import { UserProject } from '../models/user-project';
+import { UserService } from './user.service';
 const PROJECT_DATA = "project_data";
 
 @Injectable({
@@ -19,7 +20,7 @@ export class ProjectService {
   private selectedProjectSubject = new BehaviorSubject<any | null>(null);
   selectedProject$ = this.selectedProjectSubject.asObservable();
 
-  constructor(private http: HttpClient, private localService: LocalService) {
+  constructor(private http: HttpClient, private localService: LocalService, private userService: UserService) {
   }
 
   getProjects(): Observable<Project[]> {
@@ -40,7 +41,11 @@ export class ProjectService {
     return this.http.post<Project>('/api/projects/', project, {
       observe: 'body',
       responseType: 'json'
-    });
+    }).pipe(map(project => {
+      this.userService.refreshUserInfo().subscribe();
+
+      return project;
+    }));
   }
 
   updateProject(id: string, patch: Operation[]): Observable<Project> {
