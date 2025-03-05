@@ -29,12 +29,9 @@ Cypress.Commands.add('register', (username, password) => {
             cy.get('input[formControlName=password]').type(password)
             cy.get('input[formControlName=confirmPassword]').type(`${password}{enter}`, { force: true, log: false })
             cy.wait('@postAccount')
-            cy.url().should('include', 'login')
-
-            cy.get('input[formControlName=email]').type(username)
-            cy.get('input[formControlName=password]').type(`${password}{enter}`, { log: false })
             cy.wait('@getAccount')
 
+            cy.visit('/')
             cy.url().should('include', 'first-signin')
 
             cy.get('input[formControlName=firstName]').type('test')

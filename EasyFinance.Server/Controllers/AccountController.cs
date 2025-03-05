@@ -170,6 +170,9 @@ namespace EasyFinance.Server.Controllers
             }
 
             await SendConfirmationEmailAsync(user, HttpContext, email);
+
+            await signInManager.PasswordSignInAsync(registration.Email, registration.Password, isPersistent: true, lockoutOnFailure: true);
+
             return Ok();
         }
 

@@ -1,15 +1,16 @@
 import { Component, OnInit } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../../core/services/auth.service';
-import { passwordMatchValidator } from '../../../core/utils/custom-validators/password-match-validator';
-import { CommonModule } from '@angular/common';
-import { ApiErrorResponse } from '../../../core/models/error';
 import { take } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIcon } from "@angular/material/icon";
+import { CommonModule } from '@angular/common';
 import confetti from 'canvas-confetti';
+import { AuthService } from '../../../core/services/auth.service';
+import { passwordMatchValidator } from '../../../core/utils/custom-validators/password-match-validator';
+import { ApiErrorResponse } from '../../../core/models/error';
+import { ErrorMessageService } from '../../../core/services/error-message.service';
 
 @Component({
     selector: 'app-register',
@@ -25,7 +26,7 @@ import confetti from 'canvas-confetti';
     templateUrl: './register.component.html',
     styleUrls: ['./register.component.css']
 })
-export class RegisterComponent implements OnInit{
+export class RegisterComponent implements OnInit {
   registerForm!: FormGroup;
   httpErrors = false;
   errors!: { [key: string]: string };
@@ -38,15 +39,16 @@ export class RegisterComponent implements OnInit{
   hasOneSpecial = false;
   hasMinCharacteres = false;
 
-  constructor(private authService: AuthService, private router: Router, private route: ActivatedRoute) {
+  constructor(private authService: AuthService, private router: Router, private route: ActivatedRoute, private errorMessageService: ErrorMessageService) {
+  }
+
+  ngOnInit() {
     this.authService.isSignedIn$.pipe(take(1)).subscribe(value => {
       if (value) {
         this.router.navigate(['/']);
       }
     });
-  }
 
-  ngOnInit(){
     this.buildRegisterForm();
   }
 
@@ -85,64 +87,20 @@ export class RegisterComponent implements OnInit{
       this.authService.register(email, password, token).subscribe({
         next: response => {
           this.celebrate();
-          this.router.navigate(['login']);
+          this.router.navigate(['/']);
         },
         error: (response: ApiErrorResponse) => {
           this.httpErrors = true;
           this.errors = response.errors;
 
-          this.setFormErrors(this.errors);
+          this.errorMessageService.setFormErrors(this.registerForm, this.errors);
         }
       });
     }
   }
 
-  setFormErrors(errors: { [key: string]: string }) {
-    for (let key in errors) {
-      if (key.indexOf("Password") > -1) {
-        const formControl = this.registerForm.get('password');
-        this.setErrorFormControl(formControl, { [key]: errors[key] });
-      }
-      if (key.indexOf("Email") > -1) {
-        const formControl = this.registerForm.get('email');
-        this.setErrorFormControl(formControl, { [key]: errors[key] });
-      }
-    }
-  }
-
-  setErrorFormControl(formControl: AbstractControl | null, errors: ValidationErrors) {
-    if (formControl) {
-      const currentErrors = formControl.errors || {};
-      const updatedErrors = { ...currentErrors, ...errors };
-      formControl.setErrors(updatedErrors);
-    }
-  }
-
   getFormFieldErrors(fieldName: string): string[] {
-    const control = this.registerForm.get(fieldName);
-    const errors: string[] = [];
-
-    if (control && control.errors) {
-      for (const key in control.errors) {
-        if (control.errors.hasOwnProperty(key)) {
-          switch (key) {
-            case 'required':
-              errors.push('This field is required.');
-              break;
-            case 'email':
-              errors.push('Invalid email format.');
-              break;
-            case 'pattern':
-              errors.push('');
-              break;
-            default:
-              errors.push(control.errors[key]);
-          }
-        }
-      }
-    }
-
-    return errors;
+    return this.errorMessageService.getFormFieldErrors(this.registerForm, fieldName);
   }
 
 
