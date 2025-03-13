@@ -31,12 +31,12 @@ export class AuthGuard implements CanActivate {
   }
 
   private handleUserRedirect(user: any, currentUrl: string): boolean {
-    if (user.isFirstLogin && !this.bypassUrls.includes(currentUrl)) {
-      this.router.navigate(['first-signin']);
-      return false;
-    }
-
-    if (!sessionStorage.getItem("visited")) {
+    if (user.isFirstLogin) {
+      if (!this.bypassUrls.includes(currentUrl)) {
+        this.router.navigate(['first-signin']);
+        return false;
+      }
+    } else if (currentUrl == '/projects' && !sessionStorage.getItem("visited") && user.defaultProjectId) {
       sessionStorage.setItem("visited", "true");
       this.router.navigate(['/projects', user.defaultProjectId]);
       return false;

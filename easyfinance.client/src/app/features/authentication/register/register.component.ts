@@ -87,7 +87,7 @@ export class RegisterComponent implements OnInit {
       this.authService.register(email, password, token).subscribe({
         next: response => {
           this.celebrate();
-          this.router.navigate(['/']);
+          this.router.navigate(['/first-signin']);
         },
         error: (response: ApiErrorResponse) => {
           this.httpErrors = true;

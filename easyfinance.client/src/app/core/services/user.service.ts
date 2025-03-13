@@ -24,13 +24,43 @@ export class UserService {
     }
   }
 
+  public signIn(email: string, password: string): Observable<User> {
+    return this.http.post<User>('/api/account/login?useCookies=true', {
+      email: email,
+      password: password
+    }, {
+      observe: 'body',
+      responseType: 'json'
+    })
+      .pipe(map(user => {
+        this.loggedUser.next(user);
+        this.localService.saveData(USER_DATA, JSON.stringify(user));
+        return user;
+      }));
+  }
+
+  public register(email: string, password: string, token?: string): Observable<User> {
+    var query = token ? `?token=${token}` : '';
+
+    return this.http.post<User>('/api/account/register' + query, {
+      email: email,
+      password: password
+    }, {
+      observe: 'body',
+      responseType: 'json'
+    }).pipe(map(user => {
+      this.loggedUser.next(user);
+      this.localService.saveData(USER_DATA, JSON.stringify(user));
+      return user;
+    }));
+  }
+
   public refreshUserInfo(): Observable<User> {
     return this.http.get<User>('/api/account/', {
       observe: 'body',
       responseType: 'json'
     }).pipe(map(user => {
       this.loggedUser.next(user);
-
       this.localService.saveData(USER_DATA, JSON.stringify(user));
       return user;
     }));

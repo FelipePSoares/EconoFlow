@@ -16,16 +16,10 @@ export class AuthService {
   constructor(private http: HttpClient, private userService: UserService) { }
 
   public signIn(email: string, password: string): Observable<User> {
-    return this.http.post('/api/account/login?useCookies=true', {
-      email: email,
-      password: password
-    }, {
-      observe: 'response'
-    })
-      .pipe(concatMap(res => {
+    return this.userService.signIn(email, password)
+      .pipe(map(user => {
         this.startUserPolling();
-
-        return this.userService.refreshUserInfo();
+        return user;
       }));
   }
 
@@ -39,17 +33,9 @@ export class AuthService {
   }
 
   public register(email: string, password: string, token?: string): Observable<User> {
-    var query = token ? `?token=${token}` : '';
-
-    return this.http.post('/api/account/register' + query, {
-      email: email,
-      password: password
-    }, {
-      observe: 'response'
-    }).pipe(concatMap(res => {
+    return this.userService.register(email, password, token).pipe(map(user => {
       this.startUserPolling();
-
-      return this.userService.refreshUserInfo();
+      return user;
     }));
   }
 

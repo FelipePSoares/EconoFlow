@@ -171,9 +171,9 @@ namespace EasyFinance.Server.Controllers
 
             await SendConfirmationEmailAsync(user, HttpContext, email);
 
-            await signInManager.PasswordSignInAsync(registration.Email, registration.Password, isPersistent: true, lockoutOnFailure: true);
+            await signInManager.SignInAsync(user, isPersistent: true);
 
-            return Ok();
+            return Ok(new UserResponseDTO(user));
         }
 
         [HttpPost("login")]
@@ -203,7 +203,7 @@ namespace EasyFinance.Server.Controllers
                 return Unauthorized(result.ToString());
             }
 
-            return Ok();
+            return await this.GetUserAsync();
         }
 
         [HttpPost("logout")]
