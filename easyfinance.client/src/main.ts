@@ -9,7 +9,7 @@ import { routes } from './app/features/app-routing.module';
 import { HttpRequestInterceptor } from './app/core/interceptor/http-request-interceptor';
 import { LoadingInterceptor } from './app/core/interceptor/loading.interceptor';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
-import { inject, provideAppInitializer } from '@angular/core';
+import { importProvidersFrom, inject, provideAppInitializer } from '@angular/core';
 import { loadAngularLocale } from './app/core/utils/loaders/angular-locale-loader';
 import { loadMomentLocale } from './app/core/utils/loaders/moment-locale-loader';
 import { GlobalService } from './app/core/services/global.service';
@@ -33,6 +33,7 @@ import { Transaction } from './app/core/models/transaction';
 import { TransactionDto } from './app/features/project/models/transaction-dto';
 import { UserProject } from './app/core/models/user-project';
 import { UserProjectDto } from './app/features/project/models/user-project-dto';
+import { MatNativeDateModule } from '@angular/material/core';
 
 bootstrapApplication(AppComponent, {
   providers: [
@@ -44,6 +45,7 @@ bootstrapApplication(AppComponent, {
       }),
     provideAnimations(),
     provideRouter(routes, withComponentInputBinding()),
+    importProvidersFrom(MatNativeDateModule),
     provideHttpClient(
       withInterceptors([HttpRequestInterceptor, LoadingInterceptor])), provideAnimationsAsync()],
 });
