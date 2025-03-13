@@ -7,6 +7,7 @@ Cypress.Commands.add('login', (username, password) => {
       cy.get('input[formControlName=email]').type(username)
       cy.get('input[formControlName=password]').type(`${password}{enter}`, { log: false })
       cy.wait('@postAccount')
+      cy.visit('/')
     },
     {
       validate: () => {
@@ -37,6 +38,7 @@ Cypress.Commands.add('register', (username, password) => {
       preferredCurrencyInput.click().get('mat-option').contains('EUR').click()
       cy.get('button').contains('Send').click();
       cy.wait('@getAccount')
+      cy.visit('/')
     },
     {
       validate: () => {
