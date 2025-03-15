@@ -169,7 +169,11 @@ if (app.Environment.IsDevelopment())
     var userProject = new UserProject(user, project, Role.Admin);
     userProject.SetAccepted();
     unitOfWork.UserProjectRepository.InsertOrUpdate(userProject);
-    
+
+    var userProject2 = new UserProject(user2, project, Role.Manager);
+    userProject2.SetAccepted();
+    unitOfWork.UserProjectRepository.InsertOrUpdate(userProject2);
+
     unitOfWork.CommitAsync().GetAwaiter().GetResult();
 
     user.SetDefaultProject(project.Id);

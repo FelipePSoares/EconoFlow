@@ -5,11 +5,13 @@ import { AuthService } from '../services/auth.service';
 import { inject } from '@angular/core';
 import { ApiErrorResponse } from '../models/error';
 import { SnackbarComponent } from '../components/snackbar/snackbar.component';
+import { MatDialog } from '@angular/material/dialog';
 
 export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
   var router = inject(Router);
   var authService = inject(AuthService);
   var snackBar = inject(SnackbarComponent);
+  var matDialog = inject(MatDialog);
 
   req = req.clone({
     withCredentials: true
@@ -26,10 +28,10 @@ export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
         }
       }
     }),
-    catchError(err => handleAuthError(err, router, authService, snackBar)));
+    catchError(err => handleAuthError(err, router, authService, snackBar, matDialog)));
 }
 
-function handleAuthError(err: HttpErrorResponse, router: Router, authService: AuthService, snackBar: SnackbarComponent): Observable<any> {
+function handleAuthError(err: HttpErrorResponse, router: Router, authService: AuthService, snackBar: SnackbarComponent, matDialog: MatDialog): Observable<any> {
   if (err.status === 0) {
     snackBar.openErrorSnackbar('Network error. Please check your connection.');
   } 
@@ -37,6 +39,7 @@ function handleAuthError(err: HttpErrorResponse, router: Router, authService: Au
     console.log('authInterceptor 401 or 403');
     try { authService.signOut().subscribe(); } catch (e) { } // silent catch to avoid stop the redirection
     router.navigate(['login']);
+    matDialog.closeAll();
 
     return of(err.message);
   }

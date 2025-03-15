@@ -26,7 +26,6 @@ import { PageModalComponent } from '../../../core/components/page-modal/page-mod
   styleUrl: './list-projects.component.css'
 })
 export class ListProjectsComponent implements OnInit {
-
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
   private projects: BehaviorSubject<ProjectDto[]> = new BehaviorSubject<ProjectDto[]>([new ProjectDto()]);
   projects$: Observable<ProjectDto[]> = this.projects.asObservable();

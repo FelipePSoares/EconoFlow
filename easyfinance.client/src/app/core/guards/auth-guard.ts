@@ -17,9 +17,6 @@ export class AuthGuard implements CanActivate {
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
     return this.userService.loggedUser$.pipe(
       map((user) => {
-        console.log(`url: ${state.url}`);
-        console.log(`user: ${JSON.stringify(user)}`);
-
         if (!user?.enabled) {
           this.router.navigate(['login'], { queryParams: { returnUrl: state.url } });
           return false;
