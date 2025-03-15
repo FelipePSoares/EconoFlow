@@ -17,7 +17,6 @@ import { CurrentDateComponent } from '../../../core/components/current-date/curr
 import { todayUTC } from '../../../core/utils/date';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
 import { GlobalService } from '../../../core/services/global.service';
-import { UserService } from '../../../core/services/user.service';
 
 @Component({
     selector: 'app-add-expense',
@@ -56,12 +55,11 @@ export class AddExpenseComponent implements OnInit {
     private expenseService: ExpenseService,
     private router: Router,
     private errorMessageService: ErrorMessageService,
-    private globalService: GlobalService,
-    private userService: UserService
+    private globalService: GlobalService
   ) {
     this.thousandSeparator = this.globalService.groupSeparator;
     this.decimalSeparator = this.globalService.decimalSeparator
-    this.userService.loggedUser$.subscribe(value => this.currencySymbol = getCurrencySymbol(value.preferredCurrency, "narrow"));
+    this.currencySymbol = this.globalService.currencySymbol;
   }
 
   ngOnInit(): void {

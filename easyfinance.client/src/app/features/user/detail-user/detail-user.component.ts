@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, TemplateRef  } from '@angular/core';
+import { Component, OnInit, ViewChild  } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faCheck, faCircleCheck, faCircleXmark, faFloppyDisk, faPenToSquare, faEnvelopeOpenText } from '@fortawesome/free-solid-svg-icons';
@@ -14,12 +14,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
-import { CurrencyService } from '../../../core/services/currency.service';
 import { MatIcon } from "@angular/material/icon";
 import { Router } from '@angular/router'; 
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
-import { Project } from '../../../core/models/project';
-import { ProjectService } from '../../../core/services/project.service';
 
 @Component({
     selector: 'app-detail-user',
@@ -43,8 +40,6 @@ import { ProjectService } from '../../../core/services/project.service';
 export class DetailUserComponent implements OnInit {
   // Private Properties
   private deleteToken!: string;
-  private lastDialogCalled!: string;
-  private oldValue!: string;
 
   // ViewChild
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
@@ -83,9 +78,7 @@ export class DetailUserComponent implements OnInit {
   constructor(
     private userService: UserService,
     private router: Router,
-    private currencyService: CurrencyService,
-    private errorMessageService: ErrorMessageService,
-    private projectService: ProjectService
+    private errorMessageService: ErrorMessageService
   ) {
     this.user$ = this.userService.loggedUser$;
   }
@@ -101,16 +94,9 @@ export class DetailUserComponent implements OnInit {
       this.userForm = new FormGroup({
         firstName: new FormControl(user.firstName, [Validators.required]),
         lastName: new FormControl(user.lastName, [Validators.required]),
-        preferredCurrency: new FormControl(user.preferredCurrency, [Validators.required]),
         email: new FormControl(user.email, [Validators.required, Validators.email]),
       });
 
-      this.preferredCurrency!.valueChanges
-        .pipe(
-          startWith(user.preferredCurrency),
-          pairwise()
-        )
-        .subscribe(([oldValue, newValue]) => this.openChangeCurrencyDialog(oldValue, newValue));
       this.editingUser = user;
     });
   }
@@ -134,15 +120,8 @@ export class DetailUserComponent implements OnInit {
     });
   }
 
-  confirmCurrencyChange(result: boolean) {
-    if (!result) {
-      this.preferredCurrency?.setValue(this.oldValue, { emitEvent: false });
-    }
-  }
-
   /** Deletion Handling **/
   openDeleteDialog(): void {
-    this.lastDialogCalled = 'deletion';
     this.userService.deleteUser().subscribe({
       next: (response: DeleteUser) => {
         if (response?.confirmationToken) {
@@ -167,7 +146,6 @@ export class DetailUserComponent implements OnInit {
   /** Getters for Form Controls **/
   get firstName() { return this.userForm.get('firstName'); }
   get lastName() { return this.userForm.get('lastName'); }
-  get preferredCurrency() { return this.userForm.get('preferredCurrency'); }
   get email() { return this.userForm.get('email'); }
   get oldPassword() { return this.passwordForm.get('oldPassword'); }
   get password() { return this.passwordForm.get('password'); }
@@ -178,8 +156,8 @@ export class DetailUserComponent implements OnInit {
     if (this.userForm.valid) {
       const { firstName, lastName, email, preferredCurrency } = this.userForm.value;
 
-      if (firstName !== this.editingUser.firstName || lastName !== this.editingUser.lastName || preferredCurrency !== this.editingUser.preferredCurrency) {
-        this.userService.setUserInfo(firstName, lastName, preferredCurrency).subscribe({
+      if (firstName !== this.editingUser.firstName || lastName !== this.editingUser.lastName) {
+        this.userService.setUserInfo(firstName, lastName).subscribe({
           error: (response: ApiErrorResponse) => this.handleError(response, this.userForm)
         });
       }
@@ -219,21 +197,7 @@ export class DetailUserComponent implements OnInit {
   }
 
   /** UI Actions **/
-  getCurrencies(): string[] {
-    return this.currencyService.getAvailableCurrencies();
-  }
-
-  openChangeCurrencyDialog(oldValue: string, newValue: string) {
-    this.lastDialogCalled = 'currency';
-    this.oldValue = oldValue;
-    this.ConfirmDialog.openModal('Confirm', 'The values ​​will not be changed, only the currency symbol displayed on the screens will be changed.', 'Confirm');
-  }
-
   confirm(result: boolean): void {
-    if (this.lastDialogCalled == 'currency') {
-      this.confirmCurrencyChange(result);
-    } else if (this.lastDialogCalled == 'deletion') {
-      this.confirmDeletion(result);
-    }
+    this.confirmDeletion(result);
   }
 }

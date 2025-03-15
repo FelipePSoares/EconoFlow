@@ -23,7 +23,6 @@ import { ErrorMessageService } from "../../../core/services/error-message.servic
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
 import { dateUTC } from '../../../core/utils/date';
 import { GlobalService } from '../../../core/services/global.service';
-import { UserService } from '../../../core/services/user.service';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
 import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
 import { MatDialog } from '@angular/material/dialog';
@@ -77,12 +76,11 @@ export class ListIncomesComponent implements OnInit {
     private router: Router,
     private errorMessageService: ErrorMessageService,
     private globalService: GlobalService,
-    private userService: UserService,
     private dialog: MatDialog
   ) {
     this.thousandSeparator = this.globalService.groupSeparator;
-    this.decimalSeparator  = this.globalService.decimalSeparator;
-    this.userService.loggedUser$.subscribe(value => this.currencySymbol = getCurrencySymbol(value.preferredCurrency, "narrow"));
+    this.decimalSeparator = this.globalService.decimalSeparator;
+    this.currencySymbol = this.globalService.currencySymbol;
   }
 
   ngOnInit(): void {

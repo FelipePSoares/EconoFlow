@@ -5,4 +5,6 @@ export class Project {
   id!: string;
   @AutoMap()
   name!: string;
+  @AutoMap()
+  preferredCurrency!: string;
 }

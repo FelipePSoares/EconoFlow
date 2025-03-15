@@ -71,11 +71,10 @@ export class UserService {
     this.localService.clearData();
   }
 
-  public setUserInfo(firstName: string, lastName: string, preferredCurrency: string): Observable<User> {
+  public setUserInfo(firstName: string, lastName: string): Observable<User> {
     return this.http.put('/api/account/', {
       firstName: firstName,
-      lastName: lastName,
-      preferredCurrency: preferredCurrency
+      lastName: lastName
     }).pipe(concatMap(res => {
         return this.refreshUserInfo();
       }));

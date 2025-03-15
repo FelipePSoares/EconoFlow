@@ -7,7 +7,7 @@ import { mapper } from '../../../core/utils/mappings/mapper';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
 import { Observable } from 'rxjs/internal/Observable';
 import { ExpenseService } from '../../../core/services/expense.service';
-import { AsyncPipe, CommonModule, getCurrencySymbol } from '@angular/common';
+import { AsyncPipe, CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { compare } from 'fast-json-patch';
 import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
@@ -26,7 +26,6 @@ import { ApiErrorResponse } from 'src/app/core/models/error';
 import { ErrorMessageService } from 'src/app/core/services/error-message.service';
 import { GlobalService } from '../../../core/services/global.service';
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
-import { UserService } from '../../../core/services/user.service';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
 import { MatDialog } from '@angular/material/dialog';
 import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
@@ -80,12 +79,11 @@ export class ListExpensesComponent implements OnInit {
     private router: Router,
     private errorMessageService: ErrorMessageService,
     private globalService: GlobalService,
-    private userService: UserService,
     private dialog: MatDialog
   ) {
     this.thousandSeparator = this.globalService.groupSeparator;
-    this.decimalSeparator = this.globalService.decimalSeparator
-    this.userService.loggedUser$.subscribe(value => this.currencySymbol = getCurrencySymbol(value.preferredCurrency, "narrow"));
+    this.decimalSeparator = this.globalService.decimalSeparator;
+    this.currencySymbol = this.globalService.currencySymbol;
   }
 
   ngOnInit(): void {

@@ -3,7 +3,6 @@ export class User {
   email!: string;
   firstName!: string;
   lastName!: string;
-  preferredCurrency!: string;
   enabled!: boolean;
   isFirstLogin!: boolean;
   emailConfirmed!: boolean;

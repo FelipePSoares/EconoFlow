@@ -29,19 +29,6 @@
                 }
               </mat-form-field>
 
-              <!-- Preferred Currency Field -->
-              <mat-form-field appearance="fill" class="w-100">
-                <mat-label>Preferred Currency</mat-label>
-                <mat-select formControlName="preferredCurrency">
-                  @for (currency of getCurrencies(); track currency) {
-                  <mat-option [value]="currency">{{currency}}</mat-option>
-                  }
-                  @if (preferredCurrency?.invalid && preferredCurrency?.touched){
-                  <mat-error *ngFor="let error of getFormFieldErrors('preferredCurrency')">{{ error }}</mat-error>
-                  }
-                </mat-select>
-              </mat-form-field>
-
               <!-- General Error Display -->
               <div *ngIf="httpErrors && errors['general']">
                 <p class="mb-3 text-danger text-center">{{ errors['general'] }}</p>

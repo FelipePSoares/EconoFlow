@@ -10,7 +10,7 @@ import { ExpenseDto } from '../models/expense-dto';
 import { compare } from 'fast-json-patch';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { ApiErrorResponse } from '../../../core/models/error';
-import { CommonModule, getCurrencySymbol } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -21,7 +21,6 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { todayUTC } from '../../../core/utils/date';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { GlobalService } from '../../../core/services/global.service';
-import { UserService } from '../../../core/services/user.service';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
 
 @Component({
@@ -65,12 +64,11 @@ export class AddExpenseItemComponent implements OnInit {
     private router: Router,
     private errorMessageService: ErrorMessageService,
     private snackBar: SnackbarComponent,
-    private globalService: GlobalService,
-    private userService: UserService
+    private globalService: GlobalService
   ) {
     this.thousandSeparator = this.globalService.groupSeparator;
-    this.decimalSeparator = this.globalService.decimalSeparator
-    this.userService.loggedUser$.subscribe(value => this.currencySymbol = getCurrencySymbol(value.preferredCurrency, "narrow"));
+    this.decimalSeparator = this.globalService.decimalSeparator;
+    this.currencySymbol = this.globalService.currencySymbol;
    }
 
   ngOnInit(): void {
