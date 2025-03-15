@@ -30,28 +30,5 @@ namespace EasyFinance.Domain.Tests.AccessControl
                 .WithMessage(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, "LastName"))
                 .And.Property.Should().Be("LastName");
         }
-
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        public void AddPreferredCurrency_SendNullAndEmpty_ShouldThrowException(string preferredCurrency)
-        {
-            var action = () => new UserBuilder().AddPreferredCurrency(preferredCurrency).Build();
-
-            action.Should().Throw<ValidationException>()
-                .WithMessage(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, "PreferredCurrency"))
-                .And.Property.Should().Be("PreferredCurrency");
-        }
-
-        [Theory]
-        [InlineData("Test")]
-        public void AddPreferredCurrency_SendInvalid_ShouldThrowException(string preferredCurrency)
-        {
-            var action = () => new UserBuilder().AddPreferredCurrency(preferredCurrency).Build();
-
-            action.Should().Throw<ValidationException>()
-                .WithMessage(ValidationMessages.InvalidCurrencyCode)
-                .And.Property.Should().Be("PreferredCurrency");
-        }
     }
 }

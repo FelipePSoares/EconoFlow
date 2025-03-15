@@ -117,8 +117,7 @@ if (app.Environment.IsDevelopment())
     using var serviceScope = app.Services.CreateScope();
     var unitOfWork = serviceScope.ServiceProvider.GetRequiredService<IUnitOfWork>();
     var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<User>>();
-    var ri = new RegionInfo("pt");
-    var user = new User(firstName: "Test", lastName: "Admin", preferredCurrency: ri.ISOCurrencySymbol, enabled: true)
+    var user = new User(firstName: "Test", lastName: "Admin", enabled: true)
     {
         UserName = "test@test.com",
         Email = "test@test.com",
@@ -126,7 +125,7 @@ if (app.Environment.IsDevelopment())
     };
     userManager.CreateAsync(user, "Passw0rd!").GetAwaiter().GetResult();
 
-    var user2 = new User(firstName: "Second", lastName: "User", preferredCurrency: ri.ISOCurrencySymbol, enabled: true)
+    var user2 = new User(firstName: "Second", lastName: "User", enabled: true)
     {
         UserName = "test1@test.com",
         Email = "test1@test.com",
@@ -159,7 +158,8 @@ if (app.Environment.IsDevelopment())
     category.AddExpense(expense2);
     unitOfWork.CategoryRepository.Insert(category);
 
-    var project = new Project(name: "Family");
+    var ri = new RegionInfo("pt");
+    var project = new Project(name: "Family", preferredCurrency: ri.ISOCurrencySymbol);
     project.SetId(new Guid("bf060bc8-48bf-4f5b-3761-08dc54ba19f4"));
     project.AddIncome(income);
     project.AddIncome(income2);

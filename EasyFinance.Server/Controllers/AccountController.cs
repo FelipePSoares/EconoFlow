@@ -72,9 +72,6 @@ namespace EasyFinance.Server.Controllers
             user.SetFirstName(userDTO.FirstName);
             user.SetLastName(userDTO.LastName);
 
-            if (!string.IsNullOrEmpty(userDTO.PreferredCurrency))
-                user.SetPreferredCurrency(userDTO.PreferredCurrency);
-
             await this.userManager.UpdateAsync(user);
             await this.signInManager.RefreshSignInAsync(user);
 

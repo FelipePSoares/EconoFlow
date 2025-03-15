@@ -16,6 +16,7 @@ namespace EasyFinance.Common.Tests.FinancialProject
 
             this.project = new Project();
             this.AddName(fixture.Create<string>());
+            this.AddPreferredCurrency("EUR");
         }
 
         public ProjectBuilder AddId(Guid guid)
@@ -50,6 +51,12 @@ namespace EasyFinance.Common.Tests.FinancialProject
         public ProjectBuilder AddIncome(Income income)
         {
             this.project.AddIncome(income);
+            return this;
+        }
+
+        public ProjectBuilder AddPreferredCurrency(string preferredCurrency)
+        {
+            this.project.SetPreferredCurrency(preferredCurrency);
             return this;
         }
 

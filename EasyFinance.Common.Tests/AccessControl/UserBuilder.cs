@@ -17,7 +17,6 @@ namespace EasyFinance.Common.Tests.AccessControl
             this.AddFirstName(fixture.Create<string>());
             this.AddLastName(fixture.Create<string>());
             this.AddEmail(fixture.Create<MailAddress>().Address);
-            this.AddPreferredCurrency("EUR");
             this.AddEnabled(true);
         }
 
@@ -36,12 +35,6 @@ namespace EasyFinance.Common.Tests.AccessControl
         public UserBuilder AddEmail(string email)
         {
             this.user.Email = email;
-            return this;
-        }
-
-        public UserBuilder AddPreferredCurrency(string preferredCurrency)
-        {
-            this.user.SetPreferredCurrency(preferredCurrency);
             return this;
         }
 

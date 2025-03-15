@@ -19,6 +19,11 @@ namespace EasyFinance.Persistence.Mapping.FinancialProject
             builder.Property(p => p.IsArchived)
                 .IsRequired();
 
+            builder.Property(p => p.PreferredCurrency)
+                .HasMaxLength(3)
+                .IsRequired()
+                .HasDefaultValue("EUR");
+
             builder.HasMany(p => p.Categories)
                 .WithOne()
                 .IsRequired();
