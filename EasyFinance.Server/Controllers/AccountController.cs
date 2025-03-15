@@ -152,7 +152,7 @@ namespace EasyFinance.Server.Controllers
 
             if (!result.Succeeded)
             {
-                return this.ValidateResponse(result);
+                return this.ValidateIdentityResponse(result);
             }
 
             if (token.HasValue)
@@ -237,7 +237,7 @@ namespace EasyFinance.Server.Controllers
 
             if (user is null || !(await userManager.IsEmailConfirmedAsync(user)))
             {
-                return this.ValidateResponse(IdentityResult.Failed(userManager.ErrorDescriber.InvalidToken()));
+                return this.ValidateIdentityResponse(IdentityResult.Failed(userManager.ErrorDescriber.InvalidToken()));
             }
 
             IdentityResult result;
@@ -253,7 +253,7 @@ namespace EasyFinance.Server.Controllers
 
             if (!result.Succeeded)
             {
-                return this.ValidateResponse(result);
+                return this.ValidateIdentityResponse(result);
             }
 
             return Ok();
@@ -269,7 +269,7 @@ namespace EasyFinance.Server.Controllers
 
             if (!string.IsNullOrEmpty(infoRequest.NewEmail) && !emailAddressAttribute.IsValid(infoRequest.NewEmail))
             {
-                return this.ValidateResponse(IdentityResult.Failed(userManager.ErrorDescriber.InvalidEmail(infoRequest.NewEmail)));
+                return this.ValidateIdentityResponse(IdentityResult.Failed(userManager.ErrorDescriber.InvalidEmail(infoRequest.NewEmail)));
             }
 
             if (!string.IsNullOrEmpty(infoRequest.NewPassword))
@@ -282,7 +282,7 @@ namespace EasyFinance.Server.Controllers
                 var changePasswordResult = await userManager.ChangePasswordAsync(user, infoRequest.OldPassword, infoRequest.NewPassword);
                 if (!changePasswordResult.Succeeded)
                 {
-                    return this.ValidateResponse(changePasswordResult);
+                    return this.ValidateIdentityResponse(changePasswordResult);
                 }
             }
 
@@ -344,7 +344,11 @@ namespace EasyFinance.Server.Controllers
 
             var knowUsers = await accessControlService.GetAllKnowUsersAsync(user, projectId);
 
+            if (!knowUsers.Succeeded)
+                return this.ValidateResponse(knowUsers, HttpStatusCode.OK);
+
             searchTerm = Regex.Escape(searchTerm).ToLower();
+
 
             var users = knowUsers.Data
                 .Where(u => !filterUsers.Contains(u.Id))
@@ -428,7 +432,7 @@ namespace EasyFinance.Server.Controllers
             await emailSender.SendConfirmationLinkAsync(user, email, HtmlEncoder.Default.Encode(confirmEmailUrl));
         }
 
-        private IActionResult ValidateResponse(IdentityResult identityResult)
+        private IActionResult ValidateIdentityResponse(IdentityResult identityResult)
         {
             var errorDictionary = new Dictionary<string, string[]>(1);
 
