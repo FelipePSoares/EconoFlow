@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.NetworkInformation;
 using EasyFinance.Application.DTOs.AccessControl;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.FinancialProject;

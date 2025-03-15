@@ -15,7 +15,7 @@
 
         <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn">
           <mat-option *ngFor="let user of filteredUsers$ | async" [value]="user">
-            {{ user.userName }} - {{ user.userEmail }}
+            {{ user.fullName }} - {{ user.email }}
           </mat-option>
         </mat-autocomplete>
       </mat-form-field>

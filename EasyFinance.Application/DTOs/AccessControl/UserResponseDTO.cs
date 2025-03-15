@@ -13,6 +13,7 @@ namespace EasyFinance.Application.DTOs.AccessControl
                 Email = user.Email;
                 FirstName = user.FirstName;
                 LastName = user.LastName;
+                FullName = user.FullName;
                 Enabled = user.Enabled;
                 IsFirstLogin = user.HasIncompletedInformation;
                 EmailConfirmed = user.EmailConfirmed;
@@ -25,6 +26,7 @@ namespace EasyFinance.Application.DTOs.AccessControl
         public string Email { get; set; } = string.Empty;
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
+        public string FullName { get; set; } = string.Empty;
         public bool Enabled { get; set; }
         public bool IsFirstLogin { get; set; }
         public bool EmailConfirmed { get; set; }
