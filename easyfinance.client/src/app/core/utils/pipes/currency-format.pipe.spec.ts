@@ -6,37 +6,36 @@ import { User } from '../../models/user';
 import { UserService } from '../../services/user.service';
 import { GlobalService } from '../../services/global.service';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { ProjectService } from '../../services/project.service';
+import { Project } from '../../models/project';
 
 describe('CurrencyFormatPipe', () => {
-  let userService: UserService;
+  let projectService: ProjectService;
   let globalService: GlobalService;
   let httpMock: HttpTestingController;
-  let user: User;
+  let project: Project;
 
   let pipe: CurrencyFormatPipe;
   let currencyPipe: CurrencyPipe;
 
   beforeEach(() => {
-    user = new User();
+    project = new Project();
 
     TestBed.configureTestingModule({
-    imports: [],
-    providers: [UserService, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+      imports: [],
+      providers: [ProjectService, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 });
-    userService = TestBed.inject(UserService);
+    projectService = TestBed.inject(ProjectService);
     globalService = TestBed.inject(GlobalService);
     httpMock = TestBed.inject(HttpTestingController);
 
     currencyPipe = new CurrencyPipe('en-US');
-    pipe = new CurrencyFormatPipe(currencyPipe, userService, globalService);
+    pipe = new CurrencyFormatPipe(currencyPipe, projectService, globalService);
   });
 
   it('should format the Euro amount correctly for EUR preferences', () => {
-    userService.refreshUserInfo().subscribe();
-    const req = httpMock.expectOne('/api/account/');
-
-    user.preferredCurrency = 'EUR';
-    req.flush(user);
+    project.preferredCurrency = 'EUR';
+    projectService.selectProject(project);
 
     const amount = 1234.56;
     const result = pipe.transform(amount);
@@ -45,11 +44,8 @@ describe('CurrencyFormatPipe', () => {
   });
 
   it('should format the Dollars amount correctly for USD preferences', () => {
-    userService.refreshUserInfo().subscribe();
-    const req = httpMock.expectOne('/api/account/');
-
-    user.preferredCurrency = 'USD';
-    req.flush(user);
+    project.preferredCurrency = 'USD';
+    projectService.selectProject(project);
 
     const amount = 1234.56;
     const result = pipe.transform(amount);
