@@ -21,6 +21,8 @@ describe('EconoFlow - project add Tests', () => {
       var project = projects.testPersonalProject;
 
       cy.get('input[formControlName=name]').type(project.name)
+      const preferredCurrencyInput = cy.get('mat-select[formcontrolname=preferredCurrency]');
+      preferredCurrencyInput.click().get('mat-option').contains('EUR').click()
 
       cy.get('button').contains('Create').click();
 

@@ -23,16 +23,9 @@ describe('EconoFlow - user detail Tests', () => {
       const emailInput = cy.get('input[formcontrolname=email]');
       const emailValue = 'email' + Math.floor(Math.random() * 1000).toString() + '@test.com';
 
-      const preferredCurrencyInput = cy.get('mat-select[formcontrolname=preferredCurrency]');
-      const preferredCurrencyValue = currenciesAvailable[Math.floor(Math.random() * currenciesAvailable.length)];
-
       firstNameInput.clear().type(firstNameValue);
       lastNameInput.clear().type(lastNameValue);
       emailInput.clear().type(emailValue);
-      preferredCurrencyInput.click().get('mat-option').contains(preferredCurrencyValue).click();
-      cy.get('#confirmationModal').should('have.class', 'show');
-      cy.wait(400); // wait for show animation.
-      cy.get('button').contains('Confirm').click();
       cy.get('button').contains('Save').click();
 
       cy.wait<UserReq, UserRes>('@putAccount').then(({ request, response }) => {
@@ -44,7 +37,6 @@ describe('EconoFlow - user detail Tests', () => {
       cy.wait<UserReq, UserRes>('@getAccount').then(({ request, response }) => {
         expect(response?.body.firstName).to.equal(firstNameValue);
         expect(response?.body.lastName).to.equal(lastNameValue);
-        expect(response?.body.preferredCurrency).to.equal(preferredCurrencyValue);
       })
     })
   })

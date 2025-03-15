@@ -34,8 +34,6 @@ Cypress.Commands.add('register', (username, password) => {
 
       cy.get('input[formControlName=firstName]').type('test')
       cy.get('input[formControlName=lastName]').type('test')
-      const preferredCurrencyInput = cy.get('mat-select[formcontrolname=preferredCurrency]');
-      preferredCurrencyInput.click().get('mat-option').contains('EUR').click()
       cy.get('button').contains('Send').click();
       cy.wait('@getAccount')
       cy.visit('/')
