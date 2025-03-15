@@ -14,7 +14,7 @@
                   <fa-icon [icon]="faEllipsis"></fa-icon>
                 </button>
                 <ul class="dropdown-menu">
-                  <li><button type="button" class="edit dropdown-item" (click)="edit(project)">Edit Name</button></li>
+                  <li><button type="button" class="edit dropdown-item" (click)="edit(project)">Edit</button></li>
                   @if ((defaultProjectId$ | async) != project.id){
                     <li><button type="button" class="dropdown-item" (click)="setAsDefault(project)">Set as Default</button></li>
                   }
