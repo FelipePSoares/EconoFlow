@@ -113,14 +113,14 @@ export class UserService {
     );
   }
 
-  public searchUser(searchTerm: string, projectId: string | undefined = undefined): Observable<UserProject[]> {
+  public searchUser(searchTerm: string, projectId: string | undefined = undefined): Observable<User[]> {
     let queryParams = new HttpParams();
     queryParams = queryParams.append("searchTerm", searchTerm);
 
     if (projectId)
       queryParams = queryParams.append("projectId", projectId);
 
-    return this.http.get<UserProject[]>('/api/account/search', {
+    return this.http.get<User[]>('/api/account/search', {
       observe: 'body',
       responseType: 'json',
       params: queryParams

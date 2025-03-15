@@ -17,6 +17,7 @@ import { ErrorMessageService } from '../../../core/services/error-message.servic
 import { Role, Role2LabelMapping } from '../../../core/enums/Role';
 import { UserService } from '../../../core/services/user.service';
 import { ApiErrorResponse } from '../../../core/models/error';
+import { User } from '../../../core/models/user';
 
 @Component({
   selector: 'app-access-control-project',
@@ -47,8 +48,8 @@ export class AccessControlProjectComponent implements OnInit {
   private currentUsers: BehaviorSubject<UserProjectDto[]> = new BehaviorSubject<UserProjectDto[]>([]);
   currentUsers$: Observable<UserProjectDto[]> = this.currentUsers.asObservable();
 
-  private filteredUsers: BehaviorSubject<UserProjectDto[]> = new BehaviorSubject<UserProjectDto[]>([]);
-  filteredUsers$: Observable<UserProjectDto[]> = this.filteredUsers.asObservable();
+  private filteredUsers: BehaviorSubject<User[]> = new BehaviorSubject<User[]>([]);
+  filteredUsers$: Observable<User[]> = this.filteredUsers.asObservable();
 
   constructor(private projectService: ProjectService, private userService: UserService, private errorMessageService: ErrorMessageService) { }
 
@@ -86,7 +87,6 @@ export class AccessControlProjectComponent implements OnInit {
 
   private searchUsers(searchTerm: string): void {
     this.userService.searchUser(searchTerm, this.projectId)
-      .pipe(map(users => mapper.mapArray(users, UserProject, UserProjectDto)))
       .subscribe({
         next: (users) => {
           this.filteredUsers.next(users);
@@ -103,8 +103,8 @@ export class AccessControlProjectComponent implements OnInit {
       let role = this.role?.value;
 
       var newUserProject = <UserProjectDto>({
-        userId: user instanceof UserProjectDto ? user.userId : '',
-        userEmail: user instanceof UserProjectDto ? '' : user,
+        userId: user?.id ?? '',
+        userEmail: user?.id ? '' : user,
         role: role
       });
 
@@ -168,7 +168,7 @@ export class AccessControlProjectComponent implements OnInit {
     return this.accessForm.get('role');
   }
 
-  displayFn(user: UserProjectDto): string {
-    return user && user.userName ? user.userName : '';
+  displayFn(user: User): string {
+    return user && user.fullName ? user.fullName : '';
   }
 }

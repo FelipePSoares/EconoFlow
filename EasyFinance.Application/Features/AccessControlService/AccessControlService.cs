@@ -7,7 +7,6 @@ using EasyFinance.Application.DTOs.AccessControl;
 using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
-using EasyFinance.Domain.Financial;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Identity;
@@ -159,16 +158,44 @@ namespace EasyFinance.Application.Features.AccessControlService
             }
         }
 
-        public Task<AppResponse<IEnumerable<UserProjectResponseDTO>>> GetUsers(User user, Guid value)
+        public async Task<AppResponse<IEnumerable<UserProjectResponseDTO>>> GetUsers(User user, Guid projectId)
         {
-            var userProjects = this.unitOfWork.UserProjectRepository.NoTrackable()
+            var userProjects = await this.unitOfWork.UserProjectRepository.NoTrackable()
                 .IgnoreQueryFilters()
                 .Include(up => up.User)
                 .Include(up => up.Project)
-                .Where(up => up.Project.Id == value && up.User.Id != user.Id)
-                .ToList();
+                .Where(up => up.Project.Id == projectId && up.User.Id != user.Id)
+                .ToListAsync();
 
-            return Task.FromResult(AppResponse<IEnumerable<UserProjectResponseDTO>>.Success(userProjects.ToDTO()));
+            return AppResponse<IEnumerable<UserProjectResponseDTO>>.Success(userProjects.ToDTO());
+        }
+
+        public async Task<AppResponse<IEnumerable<UserResponseDTO>>> GetAllKnowUsersAsync(User user, Guid? projectId)
+        {
+            var usersToFilter = new List<Guid>();
+
+            if (projectId != null)
+            {
+                usersToFilter = await this.unitOfWork.UserProjectRepository.NoTrackable()
+                    .Where(up => up.Project.Id == projectId)
+                    .Select(up => up.User.Id)
+                    .ToListAsync();
+            }
+
+            var projectIds = await this.unitOfWork.UserProjectRepository.NoTrackable()
+                .Where(up => up.User.Id == user.Id)
+                .Select(up => up.Project.Id)
+                .ToListAsync();
+
+            var users = await this.unitOfWork.UserProjectRepository.NoTrackable()
+                .IgnoreQueryFilters()
+                .Include(up => up.User)
+                .Where(up => projectIds.Contains(up.Project.Id) && !usersToFilter.Contains(up.User.Id))
+                .Select(up => up.User)
+                .Distinct()
+                .ToListAsync();
+
+            return AppResponse<IEnumerable<UserResponseDTO>>.Success(users.ToDTO());
         }
 
         public async Task<AppResponse> RemoveAccessAsync(Guid userProjectId)

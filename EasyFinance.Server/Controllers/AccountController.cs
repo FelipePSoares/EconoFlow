@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using EasyFinance.Application.DTOs.AccessControl;
 using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Application.Features.UserService;
+using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
@@ -341,17 +342,11 @@ namespace EasyFinance.Server.Controllers
 
             List<Guid> filterUsers = [user.Id];
 
-            if (projectId.HasValue)
-            {
-                var projectUsers = await accessControlService.GetUsers(user, projectId.Value);
-
-                if (projectUsers.Succeeded)
-                    filterUsers.AddRange(projectUsers.Data.Where(u => u.UserId.HasValue).Select(u => u.UserId.Value));
-            }
+            var knowUsers = await accessControlService.GetAllKnowUsersAsync(user, projectId);
 
             searchTerm = Regex.Escape(searchTerm).ToLower();
 
-            var users = userManager.Users
+            var users = knowUsers.Data
                 .Where(u => !filterUsers.Contains(u.Id))
                 .Where(u =>
                     u.FirstName.ToLower().Contains(searchTerm) ||
@@ -359,7 +354,7 @@ namespace EasyFinance.Server.Controllers
                     u.Email.ToLower().Contains(searchTerm))
                 .OrderBy(u => u.FirstName)
                 .Take(5)
-                .Select(u => new UserProjectResponseDTO(u))
+                .ToSearchResponseDTO()
                 .ToList();
 
             return Ok(users);
