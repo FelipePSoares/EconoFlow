@@ -14,6 +14,14 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 8.0.x
+    
+      - name: Cache node_modules
+        uses: actions/cache@v3
+        with:
+          path: ./easyfinance.client/node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            node-modules-${{ runner.os }}-
 
       - name: Publish
         run: dotnet publish --configuration Release
