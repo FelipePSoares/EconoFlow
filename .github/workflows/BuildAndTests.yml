@@ -32,6 +32,14 @@ jobs:
         key: node-modules-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
           node-modules-${{ runner.os }}-
+            
+    - name: Cache Cypress binary
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/Cypress
+        key: cypress-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          cypress-${{ runner.os }}-
 
     - name: Restore dependencies
       run: dotnet restore
@@ -112,7 +120,7 @@ jobs:
         key: node-modules-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
           node-modules-${{ runner.os }}-
-            
+
     - name: Cache Cypress binary
       uses: actions/cache@v3
       with:
