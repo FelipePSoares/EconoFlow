@@ -45,8 +45,8 @@ export class ListProjectsComponent implements OnInit {
   }
 
   loadProjects() {
-    this.projectService.getProjects()
-      .pipe(map(projects => mapper.mapArray(projects, UserProject, UserProjectDto)))
+    this.projectService.getUserProjects()
+      .pipe(map(userProjects => mapper.mapArray(userProjects, UserProject, UserProjectDto)))
       .subscribe(
         {
           next: res => {

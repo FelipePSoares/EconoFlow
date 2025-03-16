@@ -1,4 +1,4 @@
-import { Component, Input, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { BehaviorSubject, Observable, map } from 'rxjs';
 import { ExpenseItemDto } from '../models/expense-item-dto';
 import { AsyncPipe, CommonModule } from '@angular/common';
@@ -32,6 +32,9 @@ import { GlobalService } from '../../../core/services/global.service';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
 import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
 import { MatDialog } from '@angular/material/dialog';
+import { UserProjectDto } from '../../project/models/user-project-dto';
+import { ProjectService } from '../../../core/services/project.service';
+import { Role } from '../../../core/enums/Role';
 
 @Component({
     selector: 'app-list-expense-items',
@@ -59,7 +62,7 @@ import { MatDialog } from '@angular/material/dialog';
     templateUrl: './list-expense-items.component.html',
     styleUrl: './list-expense-items.component.css'
 })
-export class ListExpenseItemsComponent {
+export class ListExpenseItemsComponent implements OnInit {
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
   faPenToSquare = faPenToSquare;
   faFloppyDisk = faFloppyDisk;
@@ -75,6 +78,7 @@ export class ListExpenseItemsComponent {
   decimalSeparator!: string; 
   httpErrors = false;
   errors: any;
+  userProject!: UserProjectDto;
 
   @Input({ required: true })
   categoryId!: string;
@@ -100,11 +104,27 @@ export class ListExpenseItemsComponent {
     private router: Router,
     private errorMessageService: ErrorMessageService,
     private globalService: GlobalService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private projectService: ProjectService
   ) {
     this.thousandSeparator = this.globalService.groupSeparator;
     this.decimalSeparator = this.globalService.decimalSeparator;
     this.currencySymbol = this.globalService.currencySymbol;
+  }
+
+  ngOnInit(): void {
+    this.projectService.selectedUserProject$.subscribe(userProject => {
+      if (userProject) {
+        this.userProject = userProject;
+      } else {
+        this.projectService.getUserProject(this.projectId)
+          .subscribe(res => {
+            this.projectService.selectUserProject(res);
+            this.userProject = res;
+          });
+      }
+    });
+
     this.edit(new ExpenseItemDto());
   }
 
@@ -242,26 +262,10 @@ export class ListExpenseItemsComponent {
   }
 
   getFormFieldErrors(fieldName: string): string[] {
-    const control = this.expenseItemForm.get(fieldName);
-    const errors: string[] = [];
+    return this.errorMessageService.getFormFieldErrors(this.expenseItemForm, fieldName);
+  }
 
-    if (control && control.errors) {
-      for (const key in control.errors) {
-        if (control.errors.hasOwnProperty(key)) {
-          switch (key) {
-            case 'required':
-              errors.push('This field is required.');
-              break;
-            case 'min':
-              errors.push(`The value should be greater than ${control.errors[key].min}.`);
-              break;
-            default:
-              errors.push(control.errors[key]);
-          }
-        }
-      }
-    }
-
-    return errors;
+  canAddOrEdit(): boolean {
+    return this.userProject.role === Role.Admin || this.userProject.role === Role.Manager;
   }
 }

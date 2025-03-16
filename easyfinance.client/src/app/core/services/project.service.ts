@@ -23,14 +23,14 @@ export class ProjectService {
   constructor(private http: HttpClient, private localService: LocalService, private userService: UserService) {
   }
 
-  getProjects(): Observable<UserProject[]> {
+  getUserProjects(): Observable<UserProject[]> {
     return this.http.get<UserProject[]>('/api/projects/', {
       observe: 'body',
       responseType: 'json'
     });
   }
 
-  getProject(id: string): Observable<UserProject> {
+  getUserProject(id: string): Observable<UserProject> {
     return this.http.get<UserProject>('/api/projects/' + id, {
       observe: 'body',
       responseType: 'json'

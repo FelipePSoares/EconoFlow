@@ -22,6 +22,9 @@ import { ApiErrorResponse } from "../../../core/models/error";
 import { ErrorMessageService } from "../../../core/services/error-message.service";
 import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
 import { MatDialog } from '@angular/material/dialog';
+import { UserProjectDto } from '../../project/models/user-project-dto';
+import { ProjectService } from '../../../core/services/project.service';
+import { Role } from '../../../core/enums/Role';
 
 @Component({
     selector: 'app-list-categories',
@@ -56,6 +59,7 @@ export class ListCategoriesComponent implements OnInit {
   itemToDelete!: string;
   httpErrors = false;
   errors: any;
+  userProject!: UserProjectDto;
 
   @Input({ required: true })
   projectId!: string;
@@ -64,11 +68,24 @@ export class ListCategoriesComponent implements OnInit {
     public categoryService: CategoryService,
     private router: Router,
     private errorMessageService: ErrorMessageService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private projectService: ProjectService
   ) {
   }
 
   ngOnInit(): void {
+    this.projectService.selectedUserProject$.subscribe(userProject => {
+      if (userProject) {
+        this.userProject = userProject;
+      } else {
+        this.projectService.getUserProject(this.projectId)
+          .subscribe(res => {
+            this.projectService.selectUserProject(res);
+            this.userProject = res;
+          });
+      }
+    });
+
     this.edit(new CategoryDto());
     this.fillData(CurrentDateComponent.currentDate);
   }
@@ -220,23 +237,10 @@ export class ListCategoriesComponent implements OnInit {
   }
 
   getFormFieldErrors(fieldName: string): string[] {
-    const control = this.categoryForm.get(fieldName);
-    const errors: string[] = [];
+    return this.errorMessageService.getFormFieldErrors(this.categoryForm, fieldName);
+  }
 
-    if (control && control.errors) {
-      for (const key in control.errors) {
-        if (control.errors.hasOwnProperty(key)) {
-          switch (key) {
-            case 'required':
-              errors.push('This field is required.');
-              break;
-            default:
-              errors.push(control.errors[key]);
-          }
-        }
-      }
-    }
-
-    return errors;
+  canAddOrEdit(): boolean {
+    return this.userProject.role === Role.Admin || this.userProject.role === Role.Manager;
   }
 }

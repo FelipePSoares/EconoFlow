@@ -25,6 +25,7 @@ import { ErrorMessageService } from '../../../core/services/error-message.servic
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { UserProjectDto } from '../models/user-project-dto';
+import { Role } from '../../../core/enums/Role';
 
 @Component({
     selector: 'app-detail-project',
@@ -75,7 +76,7 @@ export class DetailProjectComponent implements OnInit {
       this.userProject = userProject ?? new UserProjectDto();
     });
 
-    this.projectService.getProject(this.projectId)
+    this.projectService.getUserProject(this.projectId)
       .subscribe(res => {
         this.projectService.selectUserProject(res);
         this.userProject = res;

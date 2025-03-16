@@ -38,13 +38,13 @@ namespace EasyFinance.Application.Features.ProjectService
             return AppResponse<ICollection<UserProjectResponseDTO>>.Success(result);
         }
 
-        public AppResponse<UserProjectResponseDTO> GetById(Guid id)
+        public AppResponse<UserProjectResponseDTO> GetById(Guid userId, Guid projectId)
         {
             var result = unitOfWork.UserProjectRepository.NoTrackable()
                 .Include(up => up.Project)
                 .Include(up => up.User)
                 .ToDTO()
-                .FirstOrDefault(up => up.Project.Id == id);
+                .FirstOrDefault(up => up.Project.Id == projectId && up.UserId == userId);
 
             return AppResponse<UserProjectResponseDTO>.Success(result);
         }

@@ -15,9 +15,11 @@
           </div>
 
           <!-- Right button on the far right -->
+          @if (canAddOrEdit()){
           <div class="col-auto position-absolute end-0">
             <app-add-button (clickedEvent)="add()"></app-add-button>
           </div>
+          }
 
         </div>
       </div>
@@ -35,6 +37,8 @@
                       amount: {{ expenseItem.getTotalAmount() | currencyFormat }}
                     </p>
                   </div>
+
+                  @if (canAddOrEdit()){
                   <div class="btn-group">
                     <button class="btn btn-secondary" name="edit" (click)="edit(expenseItem)">
                       <fa-icon [icon]="faPenToSquare"></fa-icon>
@@ -43,6 +47,7 @@
                       <fa-icon [icon]="faTrash"></fa-icon>
                     </button>
                   </div>
+                  }
                 </div>
               </div>
             } @else {

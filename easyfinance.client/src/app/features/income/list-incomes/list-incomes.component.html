@@ -14,9 +14,11 @@
             <h2>Incomes</h2>
           </div>
           <!-- Right button on the far right -->
+          @if (canAddOrEdit()){
           <div class="col-auto position-absolute end-0">
             <app-add-button (clickedEvent)="add()"></app-add-button>
           </div>
+          }
         </div>
       </div>
 
@@ -31,6 +33,7 @@
                 <p class="mb-1 date">{{ income.date | date: 'dd/MM/yyyy' }}</p>
                 <p class="mb-1 amount">{{ income.amount | currencyFormat }}</p>
               </div>
+              @if (canAddOrEdit()){
               <div class="btn-group">
                 <button name="edit" class="btn btn-secondary" (click)="edit(income)">
                   <fa-icon [icon]="faPenToSquare"></fa-icon>
@@ -39,6 +42,7 @@
                   <fa-icon [icon]="faTrash"></fa-icon>
                 </button>
               </div>
+              }
             </div>
           </div>
           } @else {

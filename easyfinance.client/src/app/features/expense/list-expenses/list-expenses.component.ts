@@ -29,6 +29,9 @@ import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pi
 import { CurrencyMaskModule } from 'ng2-currency-mask';
 import { MatDialog } from '@angular/material/dialog';
 import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
+import { UserProjectDto } from '../../project/models/user-project-dto';
+import { ProjectService } from '../../../core/services/project.service';
+import { Role } from '../../../core/enums/Role';
 
 @Component({
     selector: 'app-list-expenses',
@@ -67,6 +70,7 @@ export class ListExpensesComponent implements OnInit {
   httpErrors = false;
   errors: any;
   currencySymbol!: string;
+  userProject!: UserProjectDto;
 
   @Input({ required: true })
   projectId!: string;
@@ -79,7 +83,8 @@ export class ListExpensesComponent implements OnInit {
     private router: Router,
     private errorMessageService: ErrorMessageService,
     private globalService: GlobalService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private projectService: ProjectService
   ) {
     this.thousandSeparator = this.globalService.groupSeparator;
     this.decimalSeparator = this.globalService.decimalSeparator;
@@ -87,6 +92,18 @@ export class ListExpensesComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.projectService.selectedUserProject$.subscribe(userProject => {
+      if (userProject) {
+        this.userProject = userProject;
+      } else {
+        this.projectService.getUserProject(this.projectId)
+          .subscribe(res => {
+            this.projectService.selectUserProject(res);
+            this.userProject = res;
+          });
+      }
+    });
+
     this.fillData(CurrentDateComponent.currentDate);
     this.edit(new ExpenseDto());
   }
@@ -261,31 +278,10 @@ export class ListExpensesComponent implements OnInit {
   }
 
   getFormFieldErrors(fieldName: string): string[] {
-    const control = this.expenseForm.get(fieldName);
-    const errors: string[] = [];
+    return this.errorMessageService.getFormFieldErrors(this.expenseForm, fieldName);
+  }
 
-    if (control && control.errors) {
-      for (const key in control.errors) {
-        if (control.errors.hasOwnProperty(key)) {
-          switch (key) {
-            case 'required':
-              errors.push('This field is required.');
-              break;
-            case 'pattern':
-              if (fieldName === 'budget') {
-                errors.push('Only numbers is valid.');
-              }
-              break;
-            case 'min':
-              errors.push(`The value should be greater than ${control.errors[key].min}.`);
-              break;
-            default:
-              errors.push(control.errors[key]);
-          }
-        }
-      }
-    }
-
-    return errors;
+  canAddOrEdit(): boolean {
+    return this.userProject.role === Role.Admin || this.userProject.role === Role.Manager;
   }
 }

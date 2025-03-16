@@ -20,7 +20,13 @@ export class ErrorMessageService {
               errors.push('Invalid email format.');
               break;
             case 'pattern':
+              if (fieldName === 'budget') {
+                errors.push('Only numbers is valid.');
+              }
               errors.push('');
+              break;
+            case 'min':
+              errors.push(`The value should be greater than ${control.errors[key].min}.`);
               break;
             default:
               errors.push(control.errors ? control.errors[key] : 'an error occours!');

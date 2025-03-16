@@ -6,7 +6,7 @@ import { IncomeService } from 'src/app/core/services/income.service';
 import { IncomeDto } from '../models/income-dto';
 import { mapper } from 'src/app/core/utils/mappings/mapper';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { AsyncPipe, CommonModule, getCurrencySymbol } from '@angular/common';
+import { AsyncPipe, CommonModule } from '@angular/common';
 import { compare } from 'fast-json-patch';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPenToSquare, faTrash, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
@@ -26,6 +26,9 @@ import { GlobalService } from '../../../core/services/global.service';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
 import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
 import { MatDialog } from '@angular/material/dialog';
+import { ProjectService } from '../../../core/services/project.service';
+import { UserProjectDto } from '../../project/models/user-project-dto';
+import { Role } from '../../../core/enums/Role';
 
 @Component({
     selector: 'app-list-incomes',
@@ -67,6 +70,7 @@ export class ListIncomesComponent implements OnInit {
   decimalSeparator !: string; 
   errors: any;
   currencySymbol!: string;
+  userProject!: UserProjectDto;
 
   @Input({ required: true })
   projectId!: string;
@@ -76,7 +80,8 @@ export class ListIncomesComponent implements OnInit {
     private router: Router,
     private errorMessageService: ErrorMessageService,
     private globalService: GlobalService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private projectService: ProjectService
   ) {
     this.thousandSeparator = this.globalService.groupSeparator;
     this.decimalSeparator = this.globalService.decimalSeparator;
@@ -84,6 +89,18 @@ export class ListIncomesComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.projectService.selectedUserProject$.subscribe(userProject => {
+      if (userProject) {
+        this.userProject = userProject;
+      } else {
+        this.projectService.getUserProject(this.projectId)
+          .subscribe(res => {
+            this.projectService.selectUserProject(res);
+            this.userProject = res;
+          });
+      }
+    });
+
     this.fillData(CurrentDateComponent.currentDate);
     this.edit(new IncomeDto());
   }
@@ -205,28 +222,11 @@ export class ListIncomesComponent implements OnInit {
     this.router.navigate(['/projects', this.projectId]);
   }
 
-
   getFormFieldErrors(fieldName: string): string[] {
-    const control = this.incomeForm.get(fieldName);
-    const errors: string[] = [];
+    return this.errorMessageService.getFormFieldErrors(this.incomeForm, fieldName);
+  }
 
-    if (control && control.errors) {
-      for (const key in control.errors) {
-        if (control.errors.hasOwnProperty(key)) {
-          switch (key) {
-            case 'required':
-              errors.push('This field is required.');
-              break;
-            case 'min':
-              errors.push(`The value should be greater than ${control.errors[key].min}.`);
-              break;
-            default:
-              errors.push(control.errors[key]);
-          }
-        }
-      }
-    }
-
-    return errors;
+  canAddOrEdit(): boolean {
+    return this.userProject.role === Role.Admin || this.userProject.role === Role.Manager;
   }
 }
