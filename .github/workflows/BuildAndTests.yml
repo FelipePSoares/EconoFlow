@@ -24,6 +24,19 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
+
+    - name: Install Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+    
+    - name: Cache node_modules
+      uses: actions/cache@v3
+      with:
+        path: ./easyfinance.client/node_modules
+        key: node-modules-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          node-modules-${{ runner.os }}-
             
     - name: Cache Cypress binary
       uses: actions/cache@v3
@@ -38,11 +51,6 @@ jobs:
 
     - name: Build backend application
       run: dotnet build --configuration Debug --no-restore
-
-    - name: Install Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18.x'
 
     - name: Install dependencies
       run: npm install
