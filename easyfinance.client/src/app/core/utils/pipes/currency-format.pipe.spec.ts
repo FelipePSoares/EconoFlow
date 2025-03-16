@@ -8,18 +8,20 @@ import { GlobalService } from '../../services/global.service';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { ProjectService } from '../../services/project.service';
 import { Project } from '../../models/project';
+import { UserProject } from '../../models/user-project';
 
 describe('CurrencyFormatPipe', () => {
   let projectService: ProjectService;
   let globalService: GlobalService;
   let httpMock: HttpTestingController;
-  let project: Project;
+  let userProject: UserProject;
 
   let pipe: CurrencyFormatPipe;
   let currencyPipe: CurrencyPipe;
 
   beforeEach(() => {
-    project = new Project();
+    userProject = new UserProject();
+    userProject.project = new Project();
 
     TestBed.configureTestingModule({
       imports: [],
@@ -34,8 +36,8 @@ describe('CurrencyFormatPipe', () => {
   });
 
   it('should format the Euro amount correctly for EUR preferences', () => {
-    project.preferredCurrency = 'EUR';
-    projectService.selectProject(project);
+    userProject.project.preferredCurrency = 'EUR';
+    projectService.selectUserProject(userProject);
 
     const amount = 1234.56;
     const result = pipe.transform(amount);
@@ -44,8 +46,8 @@ describe('CurrencyFormatPipe', () => {
   });
 
   it('should format the Dollars amount correctly for USD preferences', () => {
-    project.preferredCurrency = 'USD';
-    projectService.selectProject(project);
+    userProject.project.preferredCurrency = 'USD';
+    projectService.selectUserProject(userProject);
 
     const amount = 1234.56;
     const result = pipe.transform(amount);
