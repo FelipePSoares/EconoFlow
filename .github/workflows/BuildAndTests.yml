@@ -112,6 +112,14 @@ jobs:
         key: node-modules-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
           node-modules-${{ runner.os }}-
+            
+    - name: Cache Cypress binary
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/Cypress
+        key: cypress-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          cypress-${{ runner.os }}-
 
     - name: Build application
       run: dotnet build --configuration Debug
