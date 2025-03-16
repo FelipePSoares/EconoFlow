@@ -33,8 +33,8 @@ describe('EconoFlow - project add Tests', () => {
 
         cy.get("mat-snack-bar-container").should("be.visible").contains('Created successfully!');
 
-        cy.wait<ProjectReq, ProjectRes[]>('@getProjects').then(response => {
-          const exists = response.response?.body.some(item => item.id == projectCreated?.id)
+        cy.wait<UserProjectReq, UserProjectRes[]>('@getProjects').then(response => {
+          const exists = response.response?.body.some(item => item.project.id == projectCreated?.id)
           expect(exists).to.be.true
         })
       })
