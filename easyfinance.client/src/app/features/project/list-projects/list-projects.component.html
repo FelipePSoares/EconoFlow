@@ -2,23 +2,25 @@
   <div class="row justify-content-center">
     <div class="col-lg-8">
       <mat-grid-list cols="2" rowHeight="1:1" class="grid-list">
-        @for (project of (projects$ | async); track project.id) {
+        @for (userProject of (userProjects$ | async); track userProject.id) {
         <mat-grid-tile>
-          <div class="card" [class]="(defaultProjectId$ | async) == project.id ? 'text-bg-primary' : 'text-bg-secondary'">
-            <div (click)="select(project)" class="card-body">
-              <h1>{{ project.name }}</h1>
+          <div class="card" [class]="userProject?.project?.id && (defaultProjectId$ | async) === userProject.project.id ? 'text-bg-primary' : 'text-bg-secondary'">
+            <div (click)="select(userProject)" class="card-body">
+              <h1>{{ userProject?.project?.name }}</h1>
             </div>
             <div class="card-footer">
               <div class="dropdown">
-                <button class="btn more" [class]="(defaultProjectId$ | async) == project.id ? 'btn-primary' : 'btn-secondary'" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <button class="btn more" [class]="userProject?.project?.id && (defaultProjectId$ | async) === userProject.project.id ? 'btn-primary' : 'btn-secondary'" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                   <fa-icon [icon]="faEllipsis"></fa-icon>
                 </button>
                 <ul class="dropdown-menu">
-                  <li><button type="button" class="edit dropdown-item" (click)="edit(project)">Edit</button></li>
-                  @if ((defaultProjectId$ | async) != project.id){
-                    <li><button type="button" class="dropdown-item" (click)="setAsDefault(project)">Set as Default</button></li>
+                  <li><button type="button" class="edit dropdown-item" (click)="edit(userProject.project)">Edit</button></li>
+                  @if (userProject?.project?.id && (defaultProjectId$ | async) != userProject.project.id){
+                  <li><button type="button" class="dropdown-item" (click)="setAsDefault(userProject.project)">Set as Default</button></li>
                   }
-                  <li><button type="button" class="dropdown-item" (click)="managePermission(project)">Access Control</button></li>
+                  @if (isAdmin(userProject)){
+                  <li><button type="button" class="dropdown-item" (click)="managePermission(userProject.project)">Access Control</button></li>
+                  }
                 </ul>
               </div>
             </div>

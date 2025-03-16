@@ -17,21 +17,21 @@ const PROJECT_DATA = "project_data";
 })
 export class ProjectService {
   private editingProject!: ProjectDto;
-  private selectedProjectSubject = new BehaviorSubject<any | null>(null);
-  selectedProject$ = this.selectedProjectSubject.asObservable();
+  private selectedProjectSubject = new BehaviorSubject<UserProject | undefined>(undefined);
+  selectedUserProject$ = this.selectedProjectSubject.asObservable();
 
   constructor(private http: HttpClient, private localService: LocalService, private userService: UserService) {
   }
 
-  getProjects(): Observable<Project[]> {
-    return this.http.get<Project[]>('/api/projects/', {
+  getProjects(): Observable<UserProject[]> {
+    return this.http.get<UserProject[]>('/api/projects/', {
       observe: 'body',
       responseType: 'json'
     });
   }
 
-  getProject(id: string): Observable<Project> {
-    return this.http.get<Project>('/api/projects/' + id, {
+  getProject(id: string): Observable<UserProject> {
+    return this.http.get<UserProject>('/api/projects/' + id, {
       observe: 'body',
       responseType: 'json'
     });
@@ -82,17 +82,17 @@ export class ProjectService {
     });
   }
 
-  selectProject(project: Project) {
-    this.localService.saveData(PROJECT_DATA, JSON.stringify(project));
-    this.selectedProjectSubject.next(project);
+  selectUserProject(userProject: UserProject) {
+    this.localService.saveData(PROJECT_DATA, JSON.stringify(userProject));
+    this.selectedProjectSubject.next(userProject);
   }
 
-  getSelectedProject(): Project | undefined {
+  getSelectedUserProject(): UserProject | undefined {
     let currentProject = this.selectedProjectSubject.value;
 
     if (!currentProject) {
       let project = this.localService.getData(PROJECT_DATA);
-      currentProject = safeJsonParse<Project>(project);
+      currentProject = safeJsonParse<UserProject>(project);
       this.selectedProjectSubject.next(currentProject);
     }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using EasyFinance.Application.DTOs.AccessControl;
 using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.DTOs.FinancialProject;
 using EasyFinance.Domain.AccessControl;
@@ -12,9 +13,9 @@ namespace EasyFinance.Application.Features.ProjectService
 {
     public interface IProjectService
     {
-        AppResponse<ICollection<ProjectResponseDTO>> GetAll(Guid userId);
+        AppResponse<ICollection<UserProjectResponseDTO>> GetAll(Guid userId);
 
-        Task<AppResponse<ProjectResponseDTO>> GetByIdAsync(Guid id);
+        AppResponse<UserProjectResponseDTO> GetById(Guid id);
 
         Task<AppResponse<ProjectResponseDTO>> CreateAsync(User user, Project project);
 

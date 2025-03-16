@@ -22,8 +22,8 @@ export class NavBarComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.projectService.selectedProject$.subscribe(project => {
-      this.defaultLink = project ? `/projects/${project.id}` : '/projects';
+    this.projectService.selectedUserProject$.subscribe(userProject => {
+      this.defaultLink = userProject?.project ? `/projects/${userProject.project.id}` : '/projects';
     });
   }
 }

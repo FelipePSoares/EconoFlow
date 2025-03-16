@@ -50,9 +50,9 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpGet("{projectId}")]
-        public async Task<IActionResult> GetProjectByIdAsync(Guid projectId)
+        public IActionResult GetProjectByIdAsync(Guid projectId)
         {
-            var project = await projectService.GetByIdAsync(projectId);
+            var project = projectService.GetById(projectId);
             if (project == null) return NotFound();
 
             return ValidateResponse(project, HttpStatusCode.OK);

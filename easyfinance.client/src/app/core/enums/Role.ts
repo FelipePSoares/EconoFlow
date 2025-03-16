@@ -1,7 +1,7 @@
 export enum Role {
-  Viewer = "viewer",
-  Manager = "manager",
-  Admin = "admin"
+  Viewer = "Viewer",
+  Manager = "Manager",
+  Admin = "Admin"
 }
 
 export const Role2LabelMapping: Record<Role, string> = {

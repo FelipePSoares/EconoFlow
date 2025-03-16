@@ -24,6 +24,7 @@ import { ProjectDto } from '../models/project-dto';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { UserProjectDto } from '../models/user-project-dto';
 
 @Component({
     selector: 'app-detail-project',
@@ -45,7 +46,7 @@ export class DetailProjectComponent implements OnInit {
   @Input({ required: true })
   projectId!: string;
 
-  project!: ProjectDto;
+  userProject!: UserProjectDto;
 
   faArrowUp = faArrowUp;
   faArrowDown = faArrowDown;
@@ -70,14 +71,14 @@ export class DetailProjectComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.projectService.selectedProject$.subscribe(project => {
-      this.project = project;
+    this.projectService.selectedUserProject$.subscribe(userProject => {
+      this.userProject = userProject ?? new UserProjectDto();
     });
 
     this.projectService.getProject(this.projectId)
       .subscribe(res => {
-        this.projectService.selectProject(res);
-        this.project = res;
+        this.projectService.selectUserProject(res);
+        this.userProject = res;
       });
 
     this.fillData(CurrentDateComponent.currentDate);

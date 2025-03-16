@@ -12,8 +12,8 @@ export class CurrencyFormatPipe implements PipeTransform {
   constructor(private currencyPipe: CurrencyPipe, private projectService: ProjectService, private globalService: GlobalService) { }
 
   transform(amount: number): string | null {
-    const project = this.projectService.getSelectedProject();
+    const userProject = this.projectService.getSelectedUserProject();
 
-    return this.currencyPipe.transform(amount, project?.preferredCurrency, "symbol", '1.2-2', this.globalService.languageLoaded);
+    return this.currencyPipe.transform(amount, userProject?.project.preferredCurrency, "symbol", '1.2-2', this.globalService.languageLoaded);
   }
 }
