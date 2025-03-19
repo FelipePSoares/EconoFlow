@@ -26,29 +26,15 @@
 }
 
 .slide {
-  width: 15%;
   height: 115px;
   color: #333;
   display: flex;
   align-items: center;
-  margin-right: 15px;
-}
-
-@media (max-width: 992px) {
-  .slide {
-    min-width: 25%;
-  }
-}
-
-@media (max-width: 768px) {
-  .slide {
-    min-width: 35%;
-  }
 }
 
 @media (max-width: 576px) {
-  .slide {
-    min-width: 55%;
+  .hide-border-on-mobile {
+    border-right: none !important;
   }
 }
 

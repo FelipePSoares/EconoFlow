@@ -5,43 +5,59 @@
     </h2>
   </div>
   <app-current-date (dateUpdatedEvent)="updateDate($event)"></app-current-date>
-  <div class="row slider-container">
-    <ul class="slider list-unstyled d-flex">
-      @for (category of (categories$ | async); track category.id) {
-      <li class="slide">
-        <div class="card" (click)="selectCategory(category.id)">
+  <div class="row">
+    <div class="d-flex justify-content-start">
+      <div class="d-flex pe-3 mt-2 border-end">
+        <div class="card" style="min-width: 100px" (click)="selectIncomes()">
           <div class="card-body">
-            <h3>{{ category.name }}</h3>
+            <h3>Incomes</h3>
             <div class="clearfix mt-1">
-              <span>
-                {{ category.getTotalSpend() + category.getTotalOverspend() | currencyFormat }}
-              </span><br />
-              @if(!category.hasBudget()){
-              <span>set a budget</span>
-              } @else if (category.hasOverspend()){
-              <span class="danger">
-                budget exceeded
+              <span class="success">
+                {{ month.earned | currencyFormat }}
               </span>
-              } @else {
-              <span [ngClass]="getClassBasedOnCategory(category)">
-                {{ category.getTotalRemaining() | currencyFormat }} remaining
-              </span>
-              }
             </div>
           </div>
         </div>
-      </li>
-      }
-      @if (canAddOrEdit()){
-      <li class="slide">
-        <div class="card" style="width: 100px;" (click)="addCategory()">
-          <div class="card-body">
-            <fa-icon [icon]="faPlus" size="2xl"></fa-icon>
-          </div>
-        </div>
-      </li>
-      }
-    </ul>
+      </div>
+      <div class="slider-container flex-fill ms-3">
+        <ul class="slider list-unstyled d-flex">
+          @for (category of (categories$ | async); track category.id) {
+          <li class="slide me-1">
+            <div class="card" (click)="selectCategory(category.id)">
+              <div class="card-body">
+                <h3>{{ category.name }}</h3>
+                <div class="clearfix mt-1">
+                  <span class="danger">
+                    {{ (category.getTotalSpend() + category.getTotalOverspend()) * -1 | currencyFormat }}
+                  </span><br />
+                  @if(!category.hasBudget()){
+                  <span>set a budget</span>
+                  } @else if (category.hasOverspend()){
+                  <span class="danger">
+                    budget exceeded
+                  </span>
+                  } @else {
+                  <span [ngClass]="getClassBasedOnCategory(category)">
+                    {{ category.getTotalRemaining() | currencyFormat }} remaining
+                  </span>
+                  }
+                </div>
+              </div>
+            </div>
+          </li>
+          }
+          @if (canAddOrEdit()){
+          <li class="slide">
+            <div class="card" style="min-width: 100px;" (click)="addCategory()">
+              <div class="card-body">
+                <fa-icon [icon]="faPlus" size="2xl"></fa-icon>
+              </div>
+            </div>
+          </li>
+          }
+        </ul>
+      </div>
+    </div>
   </div>
   <div class="row justify-content-center">
     <div class="container text-center">
@@ -92,7 +108,7 @@
                 <span class="float-start"><fa-icon [icon]="faArrowUp" transform="rotate-45" style="color: #c0392b"></fa-icon> Money Out</span>
                 <span class="float-end">-{{ month.spend + month.overspend | currencyFormat }}</span>
               </div>
-              <div class="mt-2" (click)="selectIncomes()">
+              <div class="mt-2">
                 <span class="float-start"><fa-icon [icon]="faArrowDown" transform="rotate-45" style="color: #2ecc71"></fa-icon> Money In</span>
                 <span class="float-end">{{ month.earned | currencyFormat }}</span>
               </div>
