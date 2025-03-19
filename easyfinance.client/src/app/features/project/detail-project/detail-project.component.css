@@ -5,3 +5,7 @@
 .month {
     text-transform: capitalize;
 }
+
+.card-body {
+    color: #000;
+}

@@ -12,7 +12,7 @@ import { Income } from '../../../core/models/income';
 import { IncomeDto } from '../../income/models/income-dto';
 import { CommonModule } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faArrowUp, faArrowDown } from '@fortawesome/free-solid-svg-icons';
+import { faArrowUp, faArrowDown, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { ProjectService } from '../../../core/services/project.service';
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
 import { dateUTC } from '../../../core/utils/date';
@@ -20,12 +20,10 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { TransactionDto } from '../models/transaction-dto';
 import { Transaction } from 'src/app/core/models/transaction';
 import { CdkTableDataSourceInput } from '@angular/cdk/table';
-import { ProjectDto } from '../models/project-dto';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { UserProjectDto } from '../models/user-project-dto';
-import { Role } from '../../../core/enums/Role';
 
 @Component({
     selector: 'app-detail-project',
@@ -51,6 +49,8 @@ export class DetailProjectComponent implements OnInit {
 
   faArrowUp = faArrowUp;
   faArrowDown = faArrowDown;
+  faPlus = faPlus;
+
   btnIncome = 'Income';
   btnCategory = 'Category';
   month: { budget: number, spend: number, overspend: number, remaining: number, earned: number; } = { budget: 0, spend: 0, overspend: 0, remaining: 0, earned: 0 };
