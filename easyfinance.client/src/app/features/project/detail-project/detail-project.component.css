@@ -6,6 +6,57 @@
     text-transform: capitalize;
 }
 
+.label-money {
+  line-height: 1.5;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.slider-container {
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: thin;
+  scrollbar-color: #666 #ddd;
+  margin: 0;
+}
+
+.slider {
+  padding: 0;
+  margin: 0;
+}
+
+.slide {
+  width: 15%;
+  height: 115px;
+  color: #333;
+  display: flex;
+  align-items: center;
+  margin-right: 15px;
+}
+
+@media (max-width: 992px) {
+  .slide {
+    min-width: 25%;
+  }
+}
+
+@media (max-width: 768px) {
+  .slide {
+    min-width: 35%;
+  }
+}
+
+@media (max-width: 576px) {
+  .slide {
+    min-width: 55%;
+  }
+}
+
+.card {
+  width: 100%;
+  height: 100px;
+}
+
 .card-body {
-    color: #000;
+  color: #000;
 }

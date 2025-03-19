@@ -14,7 +14,7 @@ import { AddButtonComponent } from '../../../core/components/add-button/add-butt
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPenToSquare, faTrash, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
+import { faPenToSquare, faTrash, faFloppyDisk, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 import { dateUTC } from '../../../core/utils/date';
 import { MatFormField } from '@angular/material/form-field';
@@ -57,9 +57,12 @@ import { Role } from '../../../core/enums/Role';
 })
 export class ListExpensesComponent implements OnInit {
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
+
   faPenToSquare = faPenToSquare;
   faFloppyDisk = faFloppyDisk;
   faTrash = faTrash;
+  faPlus = faPlus;
+
   thousandSeparator!: string; 
   decimalSeparator!: string; 
   private expenses: BehaviorSubject<ExpenseDto[]> = new BehaviorSubject<ExpenseDto[]>([new ExpenseDto()]);
@@ -229,7 +232,7 @@ export class ListExpensesComponent implements OnInit {
   }
 
   previous() {
-    this.router.navigate(['/projects', this.projectId, 'categories']);
+    this.router.navigate(['/projects', this.projectId]);
   }
 
   triggerDelete(itemId: string): void {

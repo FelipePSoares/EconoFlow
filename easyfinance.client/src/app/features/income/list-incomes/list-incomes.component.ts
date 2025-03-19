@@ -9,7 +9,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { compare } from 'fast-json-patch';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPenToSquare, faTrash, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
+import { faPenToSquare, faTrash, faFloppyDisk, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
@@ -57,9 +57,12 @@ import { Role } from '../../../core/enums/Role';
 
 export class ListIncomesComponent implements OnInit {
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
+
   faPenToSquare = faPenToSquare;
   faFloppyDisk = faFloppyDisk;
   faTrash = faTrash;
+  faPlus = faPlus;
+
   private incomes: BehaviorSubject<IncomeDto[]> = new BehaviorSubject<IncomeDto[]>([new IncomeDto()]);
   incomes$: Observable<IncomeDto[]> = this.incomes.asObservable();
   incomeForm!: FormGroup;

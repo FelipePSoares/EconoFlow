@@ -1,7 +1,8 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
-import { ActivatedRoute, Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+import { Router } from '@angular/router';
 import { CategoryService } from '../../../core/services/category.service';
 import { BehaviorSubject, map, Observable } from 'rxjs';
 import { Category } from '../../../core/models/category';
@@ -20,10 +21,11 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { TransactionDto } from '../models/transaction-dto';
 import { Transaction } from 'src/app/core/models/transaction';
 import { CdkTableDataSourceInput } from '@angular/cdk/table';
-import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { UserProjectDto } from '../models/user-project-dto';
+import { Role } from '../../../core/enums/Role';
+import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
 
 @Component({
     selector: 'app-detail-project',
@@ -68,7 +70,15 @@ export class DetailProjectComponent implements OnInit {
     })
   );
 
-  constructor(private router: Router, private route: ActivatedRoute, private projectService: ProjectService, private categoryService: CategoryService, private incomeService: IncomeService, private errorMessageService: ErrorMessageService) {
+  private categories: BehaviorSubject<CategoryDto[]> = new BehaviorSubject<CategoryDto[]>([new CategoryDto()]);
+  categories$: Observable<CategoryDto[]> = this.categories.asObservable();
+
+  constructor(
+    private router: Router,
+    private projectService: ProjectService,
+    private categoryService: CategoryService,
+    private incomeService: IncomeService,
+    private dialog: MatDialog) {
   }
 
   ngOnInit(): void {
@@ -103,6 +113,8 @@ export class DetailProjectComponent implements OnInit {
       .pipe(map(categories => mapper.mapArray(categories, Category, CategoryDto)))
       .subscribe({
         next: res => {
+          this.categories.next(res);
+
           this.month.budget = res.map(c => c.getTotalBudget()).reduce((acc, value) => acc + value, 0);
           this.month.spend = res.map(c => c.getTotalSpend()).reduce((acc, value) => acc + value, 0);
           this.month.overspend = res.map(c => c.getTotalOverspend()).reduce((acc, value) => acc + value, 0);
@@ -140,11 +152,30 @@ export class DetailProjectComponent implements OnInit {
       .subscribe(
         {
           next: res => { this.transactions.next(res); }
-      });
+        });
   }
 
   updateDate(newDate: Date) {
     this.fillData(newDate);
+  }
+
+  addCategory(): void {
+    this.router.navigate([{ outlets: { modal: ['projects', this.projectId, 'add-category'] } }]);
+
+    this.dialog.open(PageModalComponent, {
+      autoFocus: 'input',
+      data: {
+        title: 'Create Category'
+      }
+    }).afterClosed().subscribe((result) => {
+      if (result) {
+        this.fillData(CurrentDateComponent.currentDate);
+      }
+    });
+  }
+
+  selectCategory(id: string): void {
+    this.router.navigate(['/projects', this.projectId, 'categories', id, 'expenses']);
   }
 
   selectCategories(): void {
@@ -193,6 +224,16 @@ export class DetailProjectComponent implements OnInit {
     return 'danger';
   }
 
+  getClassBasedOnCategory(category: CategoryDto): string {
+    if (category.hasOverspend()) {
+      return 'danger';
+    } else if (category.hasRisk()) {
+      return 'warning';
+    }
+
+    return 'success';
+  }
+
   copyPreviousBudget() {
     this.projectService.copyBudgetPreviousMonth(this.projectId, CurrentDateComponent.currentDate)
       .subscribe({
@@ -200,5 +241,9 @@ export class DetailProjectComponent implements OnInit {
           this.fillData(CurrentDateComponent.currentDate);
         }
       });
+  }
+
+  canAddOrEdit(): boolean {
+    return this.userProject.role === Role.Admin || this.userProject.role === Role.Manager;
   }
 }

@@ -19,9 +19,3 @@ p {
   transform: translateY(-3px);
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
-
-.card h1, .card h5 {
-  margin: 0;
-  font-weight: 500;
-  width: 100%;
-}

@@ -1,5 +1,6 @@
 import { AutoMap } from "@automapper/classes";
 import { ExpenseDto } from "../../expense/models/expense-dto";
+import { CategoryStatus } from "../../../core/enums/categoryStatus";
 
 export class CategoryDto {
   @AutoMap()
@@ -9,27 +10,40 @@ export class CategoryDto {
   @AutoMap(() => [ExpenseDto])
   expenses!: ExpenseDto[];
 
+  hasBudget(): boolean { return this.getStatus() != CategoryStatus.NotDefined; }
+  hasOverspend(): boolean { return this.getStatus() == CategoryStatus.Exceeded; }
+  hasRisk(): boolean { return this.getStatus() == CategoryStatus.Risk; }
+
+  public getStatus(): CategoryStatus {
+    let percentage = this.getPercentageSpend();
+
+    if (percentage == undefined) {
+      return CategoryStatus.NotDefined;
+    }
+
+    return percentage < 75 ? CategoryStatus.Normal : percentage <= 100 ? CategoryStatus.Risk : CategoryStatus.Exceeded;
+  }
 
   public getTotalSpend(): number {
-    return this.expenses.reduce((sum, current) => sum + current.amount, 0) - this.getTotalOverspend();
+    return (this.expenses?.reduce((sum, current) => sum + current.amount, 0) ?? 0) - this.getTotalOverspend();
   }
 
   public getTotalBudget(): number {
-    return this.expenses.reduce((sum, current) => sum + current.budget, 0);
+    return this.expenses?.reduce((sum, current) => sum + current.budget, 0) ?? 0;
   }
 
   public getTotalOverspend(): number {
-    return this.expenses.map(e => {
+    return this.expenses?.map(e => {
       let overspend = e.budget - e.amount;
       return overspend < 0 ? overspend * -1 : 0;
-    }).reduce((sum, current) => sum + current, 0);
+    }).reduce((sum, current) => sum + current, 0) ?? 0;
   }
 
   public getTotalRemaining(): number {
     return this.getTotalBudget() - this.getTotalSpend();
   }
 
-  public getPercentageSpend(): number {
-    return this.getTotalSpend() * 100 / this.getTotalBudget();
+  public getPercentageSpend(): number | undefined {
+    return this.getTotalBudget() == 0 ? undefined : this.getTotalSpend() * 100 / this.getTotalBudget();
   }
 }

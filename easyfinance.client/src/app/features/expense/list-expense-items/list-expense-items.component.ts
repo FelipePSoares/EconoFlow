@@ -12,7 +12,7 @@ import { compare } from 'fast-json-patch';
 import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPenToSquare, faTrash, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
+import { faPenToSquare, faTrash, faFloppyDisk, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 import {
   MatError,
@@ -64,9 +64,12 @@ import { Role } from '../../../core/enums/Role';
 })
 export class ListExpenseItemsComponent implements OnInit {
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
+
   faPenToSquare = faPenToSquare;
   faFloppyDisk = faFloppyDisk;
   faTrash = faTrash;
+  faPlus = faPlus;
+
   private _expenseId!: string;
   private expense: BehaviorSubject<ExpenseDto> = new BehaviorSubject<ExpenseDto>(new ExpenseDto());
   expense$: Observable<ExpenseDto> = this.expense.asObservable();

@@ -5,6 +5,44 @@
     </h2>
   </div>
   <app-current-date (dateUpdatedEvent)="updateDate($event)"></app-current-date>
+  <div class="row slider-container">
+    <ul class="slider list-unstyled d-flex">
+      @for (category of (categories$ | async); track category.id) {
+      <li class="slide">
+        <div class="card" (click)="selectCategory(category.id)">
+          <div class="card-body">
+            <h3>{{ category.name }}</h3>
+            <div class="clearfix mt-1">
+              <span>
+                {{ category.getTotalSpend() + category.getTotalOverspend() | currencyFormat }}
+              </span><br />
+              @if(!category.hasBudget()){
+              <span>set a budget</span>
+              } @else if (category.hasOverspend()){
+              <span class="danger">
+                budget exceeded
+              </span>
+              } @else {
+              <span [ngClass]="getClassBasedOnCategory(category)">
+                {{ category.getTotalRemaining() | currencyFormat }} remaining
+              </span>
+              }
+            </div>
+          </div>
+        </div>
+      </li>
+      }
+      @if (canAddOrEdit()){
+      <li class="slide">
+        <div class="card" style="width: 100px;" (click)="addCategory()">
+          <div class="card-body">
+            <fa-icon [icon]="faPlus" size="2xl"></fa-icon>
+          </div>
+        </div>
+      </li>
+      }
+    </ul>
+  </div>
   <div class="row justify-content-center">
     <div class="container text-center">
       <div class="row justify-content-center">
@@ -30,34 +68,34 @@
             </div>
             <div class="progress">
               <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-                  [ngClass]="getClassToProgressBar(getPercentageSpend(month.spend, month.budget + month.overspend))"
-                  [style.width.%]="getPercentageSpend(month.spend, month.budget + month.overspend)"
-                  [attr.aria-valuenow]="getPercentageSpend(month.spend, month.budget + month.overspend)">
+                   [ngClass]="getClassToProgressBar(getPercentageSpend(month.spend, month.budget + month.overspend))"
+                   [style.width.%]="getPercentageSpend(month.spend, month.budget + month.overspend)"
+                   [attr.aria-valuenow]="getPercentageSpend(month.spend, month.budget + month.overspend)">
                 {{ month.spend | currencyFormat }}
               </div>
               <div class="progress-bar progress-bar-striped bg-danger" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-                  [style.width.%]="getPercentageSpend(month.overspend, month.budget + month.overspend)"
-                  [attr.aria-valuenow]="getPercentageSpend(month.overspend, month.budget + month.overspend)">
+                   [style.width.%]="getPercentageSpend(month.overspend, month.budget + month.overspend)"
+                   [attr.aria-valuenow]="getPercentageSpend(month.overspend, month.budget + month.overspend)">
                 {{ month.overspend | currencyFormat }}
               </div>
             </div>
             <div class="clearfix">
               @if (month.overspend > 0) {
-                <span class="float-end budget">of <s>{{ month.budget | currencyFormat }}</s> {{ month.budget + month.overspend | currencyFormat }}</span>
+              <span class="float-end budget">of <s>{{ month.budget | currencyFormat }}</s> {{ month.budget + month.overspend | currencyFormat }}</span>
               } @else {
-                <span class="float-end budget">of {{ month.budget | currencyFormat }}</span>
+              <span class="float-end budget">of {{ month.budget | currencyFormat }}</span>
               }
             </div>
             <hr class="solid" />
-            <div class="d-grid">
-              <button class="btn btn-default" (click)="selectCategories()">
+            <div class="d-grid label-money">
+              <div class="mt-2">
                 <span class="float-start"><fa-icon [icon]="faArrowUp" transform="rotate-45" style="color: #c0392b"></fa-icon> Money Out</span>
-                <span class="float-end">-{{ month.spend + month.overspend | currencyFormat }} ></span>
-              </button>
-              <button class="btn btn-default" (click)="selectIncomes()">
+                <span class="float-end">-{{ month.spend + month.overspend | currencyFormat }}</span>
+              </div>
+              <div class="mt-2" (click)="selectIncomes()">
                 <span class="float-start"><fa-icon [icon]="faArrowDown" transform="rotate-45" style="color: #2ecc71"></fa-icon> Money In</span>
-                <span class="float-end">{{ month.earned | currencyFormat }} ></span>
-              </button>
+                <span class="float-end">{{ month.earned | currencyFormat }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -76,85 +114,34 @@
             </div>
             <div class="progress">
               <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-                  [ngClass]="getClassToProgressBar(getPercentageSpend(year.spend, year.budget + year.overspend))"
-                  [style.width.%]="getPercentageSpend(year.spend, year.budget + year.overspend)"
-                  [attr.aria-valuenow]="getPercentageSpend(year.spend, year.budget + year.overspend)">
+                   [ngClass]="getClassToProgressBar(getPercentageSpend(year.spend, year.budget + year.overspend))"
+                   [style.width.%]="getPercentageSpend(year.spend, year.budget + year.overspend)"
+                   [attr.aria-valuenow]="getPercentageSpend(year.spend, year.budget + year.overspend)">
                 {{ year.spend | currencyFormat }}
               </div>
               <div class="progress-bar progress-bar-striped bg-danger" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-                  [style.width.%]="getPercentageSpend(year.overspend, year.budget + year.overspend)"
-                  [attr.aria-valuenow]="getPercentageSpend(year.overspend, year.budget + year.overspend)">
+                   [style.width.%]="getPercentageSpend(year.overspend, year.budget + year.overspend)"
+                   [attr.aria-valuenow]="getPercentageSpend(year.overspend, year.budget + year.overspend)">
                 {{ year.overspend | currencyFormat }}
               </div>
             </div>
             <div class="clearfix">
               @if (year.overspend > 0) {
-                <span class="float-end budget">of <s>{{ year.budget | currencyFormat }}</s> {{ year.budget + year.overspend | currencyFormat }}</span>
+              <span class="float-end budget">of <s>{{ year.budget | currencyFormat }}</s> {{ year.budget + year.overspend | currencyFormat }}</span>
               } @else {
-                <span class="float-end budget">of {{ year.budget | currencyFormat }}</span>
+              <span class="float-end budget">of {{ year.budget | currencyFormat }}</span>
               }
             </div>
             <hr class="solid" />
-            <div class="d-grid">
-              <button class="btn btn-default cursor-default">
+            <div class="d-grid label-money">
+              <div class="mt-2">
                 <span class="float-start"><fa-icon [icon]="faArrowUp" transform="rotate-45" style="color: #c0392b"></fa-icon> Money Out</span>
                 <span class="float-end">-{{ year.spend + year.overspend | currencyFormat }}</span>
-              </button>
-              <button class="btn btn-default cursor-default">
+              </div>
+              <div class="mt-2">
                 <span class="float-start"><fa-icon [icon]="faArrowDown" transform="rotate-45" style="color: #2ecc71"></fa-icon> Money In</span>
                 <span class="float-end">{{ year.earned | currencyFormat }}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="row flex-nowrap overflow-x-auto">
-        <div class="col-2">
-          <div class="card">
-            <div class="card-body">
-              <fa-icon [icon]="faPlus" size="2xl"></fa-icon>
-            </div>
-          </div>
-        </div>
-        <div class="col-2">
-          <div class="card">
-            <div class="card-body">
-              <fa-icon [icon]="faPlus" size="2xl"></fa-icon>
-            </div>
-          </div>
-        </div>
-        <div class="col-2">
-          <div class="card">
-            <div class="card-body">
-              <fa-icon [icon]="faPlus" size="2xl"></fa-icon>
-            </div>
-          </div>
-        </div>
-        <div class="col-2">
-          <div class="card">
-            <div class="card-body">
-              <fa-icon [icon]="faPlus" size="2xl"></fa-icon>
-            </div>
-          </div>
-        </div>
-        <div class="col-2">
-          <div class="card">
-            <div class="card-body">
-              <fa-icon [icon]="faPlus" size="2xl"></fa-icon>
-            </div>
-          </div>
-        </div>
-        <div class="col-2">
-          <div class="card">
-            <div class="card-body">
-              <fa-icon [icon]="faPlus" size="2xl"></fa-icon>
-            </div>
-          </div>
-        </div>
-        <div class="col-1">
-          <div class="card">
-            <div class="card-body">
-              <fa-icon [icon]="faPlus" size="2xl"></fa-icon>
+              </div>
             </div>
           </div>
         </div>
@@ -167,7 +154,7 @@
                 <h2>Latest transactions</h2>
               </div>
             </div>
-    
+
             <div class="table-responsive">
               <table mat-table [dataSource]="(transactions$ | async) || []" class="w-100">
                 <ng-container matColumnDef="date">
@@ -176,17 +163,16 @@
                     <div class="text-secondary">{{row.date | date: 'dd/MM/yyyy'}}</div>
                   </td>
                 </ng-container>
-      
+
                 <ng-container matColumnDef="description">
                   <th mat-header-cell *matHeaderCellDef> Description </th>
                   <td mat-cell *matCellDef="let row">
                     <div class="d-flex align-items-center py-3">
                       <div class="transaction-icon me-3">
-                        <fa-icon 
-                          [icon]="row.type === 'Income' ? faArrowDown : faArrowUp"
-                          transform="rotate-45"
-                          [style.color]="row.type === 'Income' ? '#2ecc71' : '#c0392b'"
-                          size="lg">
+                        <fa-icon [icon]="row.type === 'Income' ? faArrowDown : faArrowUp"
+                                 transform="rotate-45"
+                                 [style.color]="row.type === 'Income' ? '#2ecc71' : '#c0392b'"
+                                 size="lg">
                         </fa-icon>
                       </div>
                       <div>
@@ -205,9 +191,9 @@
                     </div>
                   </td>
                 </ng-container>
-            
+
                 <tr mat-header-row *matHeaderRowDef="['date', 'description', 'amount']" class="bg-light"></tr>
-                <tr mat-row *matRowDef="let row; columns: ['date', 'description', 'amount'];" 
+                <tr mat-row *matRowDef="let row; columns: ['date', 'description', 'amount'];"
                     class="hover-row"></tr>
               </table>
             </div>
