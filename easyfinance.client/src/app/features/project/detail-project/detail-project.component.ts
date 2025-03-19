@@ -165,7 +165,7 @@ export class DetailProjectComponent implements OnInit {
     this.dialog.open(PageModalComponent, {
       autoFocus: 'input',
       data: {
-        title: 'Create Category'
+        title: 'Create Expense Category'
       }
     }).afterClosed().subscribe((result) => {
       if (result) {

@@ -8,7 +8,7 @@ describe('EconoFlow - category add Tests', () => {
       cy.fixture('projects').then((projects) => {
         var project = projects.defaultProject;
 
-        cy.visit('/projects/' + project.id + '/categories')
+        cy.visit('/projects/' + project.id)
 
         cy.get('.btn-add').click();
 
