@@ -11,9 +11,11 @@ export class CurrencyFormatPipe implements PipeTransform {
 
   constructor(private currencyPipe: CurrencyPipe, private projectService: ProjectService, private globalService: GlobalService) { }
 
-  transform(amount: number): string | null {
+  transform(amount: number, withoutDecimals: boolean = false): string | null {
     const userProject = this.projectService.getSelectedUserProject();
 
-    return this.currencyPipe.transform(amount, userProject?.project.preferredCurrency, "symbol", '1.2-2', this.globalService.languageLoaded);
+    const digitsInfo = withoutDecimals ? '1.0-0' : '1.2-2';
+
+    return this.currencyPipe.transform(amount, userProject?.project.preferredCurrency, "symbol", digitsInfo, this.globalService.languageLoaded);
   }
 }

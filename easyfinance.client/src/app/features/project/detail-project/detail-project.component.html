@@ -10,10 +10,10 @@
       <div class="d-flex pe-3 mt-2 border-end">
         <div class="card" style="min-width: 100px" (click)="selectIncomes()">
           <div class="card-body">
-            <h3>Incomes</h3>
+            <h3>Total Income</h3>
             <div class="clearfix mt-1">
               <span class="success">
-                {{ month.earned | currencyFormat }}
+                {{ month.earned | currencyFormat: true }}
               </span>
             </div>
           </div>
@@ -28,7 +28,7 @@
                 <h3>{{ category.name }}</h3>
                 <div class="clearfix mt-1">
                   <span class="danger">
-                    {{ (category.getTotalSpend() + category.getTotalOverspend()) * -1 | currencyFormat }}
+                    {{ (category.getTotalSpend() + category.getTotalOverspend()) * -1 | currencyFormat: true }}
                   </span><br />
                   @if(!category.hasBudget()){
                   <span>set a budget</span>
@@ -38,7 +38,7 @@
                   </span>
                   } @else {
                   <span [ngClass]="getClassBasedOnCategory(category)">
-                    {{ category.getTotalRemaining() | currencyFormat }} remaining
+                    {{ category.getTotalRemaining() | currencyFormat: true }} remaining
                   </span>
                   }
                 </div>
@@ -80,37 +80,37 @@
             </button>
             <div class="clearfix mt-3">
               <span class="float-start">Budget:</span>
-              <span class="float-end" [ngClass]="getClassBasedOnPercentage(getPercentageSpend(month.spend + month.overspend, month.budget))">{{getTextBasedOnPercentage(getPercentageSpend(month.spend + month.overspend, month.budget))}} {{ month.remaining | currencyFormat }} left</span>
+              <span class="float-end" [ngClass]="getClassBasedOnPercentage(getPercentageSpend(month.spend + month.overspend, month.budget))">{{getTextBasedOnPercentage(getPercentageSpend(month.spend + month.overspend, month.budget))}} {{ month.remaining | currencyFormat: true }} left</span>
             </div>
             <div class="progress">
               <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
                    [ngClass]="getClassToProgressBar(getPercentageSpend(month.spend, month.budget + month.overspend))"
                    [style.width.%]="getPercentageSpend(month.spend, month.budget + month.overspend)"
                    [attr.aria-valuenow]="getPercentageSpend(month.spend, month.budget + month.overspend)">
-                {{ month.spend | currencyFormat }}
+                {{ month.spend | currencyFormat: true }}
               </div>
               <div class="progress-bar progress-bar-striped bg-danger" role="progressbar" aria-valuemin="0" aria-valuemax="100"
                    [style.width.%]="getPercentageSpend(month.overspend, month.budget + month.overspend)"
                    [attr.aria-valuenow]="getPercentageSpend(month.overspend, month.budget + month.overspend)">
-                {{ month.overspend | currencyFormat }}
+                {{ month.overspend | currencyFormat: true }}
               </div>
             </div>
             <div class="clearfix">
               @if (month.overspend > 0) {
-              <span class="float-end budget">of <s>{{ month.budget | currencyFormat }}</s> {{ month.budget + month.overspend | currencyFormat }}</span>
+              <span class="float-end budget">of <s>{{ month.budget | currencyFormat: true }}</s> {{ month.budget + month.overspend | currencyFormat: true }}</span>
               } @else {
-              <span class="float-end budget">of {{ month.budget | currencyFormat }}</span>
+              <span class="float-end budget">of {{ month.budget | currencyFormat: true }}</span>
               }
             </div>
             <hr class="solid" />
             <div class="d-grid label-money">
               <div class="mt-2">
                 <span class="float-start"><fa-icon [icon]="faArrowUp" transform="rotate-45" style="color: #c0392b"></fa-icon> Money Out</span>
-                <span class="float-end">-{{ month.spend + month.overspend | currencyFormat }}</span>
+                <span class="float-end">-{{ month.spend + month.overspend | currencyFormat: true }}</span>
               </div>
               <div class="mt-2">
                 <span class="float-start"><fa-icon [icon]="faArrowDown" transform="rotate-45" style="color: #2ecc71"></fa-icon> Money In</span>
-                <span class="float-end">{{ month.earned | currencyFormat }}</span>
+                <span class="float-end">{{ month.earned | currencyFormat: true }}</span>
               </div>
             </div>
           </div>
@@ -126,37 +126,37 @@
             </div>
             <div class="clearfix mt-3">
               <span class="float-start">Budget:</span>
-              <span class="float-end" [ngClass]="getClassBasedOnPercentage(getPercentageSpend(year.spend, year.budget + year.overspend))">{{getTextBasedOnPercentage(getPercentageSpend(year.spend, year.budget + year.overspend))}} {{ year.remaining | currencyFormat }} left</span>
+              <span class="float-end" [ngClass]="getClassBasedOnPercentage(getPercentageSpend(year.spend, year.budget + year.overspend))">{{getTextBasedOnPercentage(getPercentageSpend(year.spend, year.budget + year.overspend))}} {{ year.remaining | currencyFormat: true }} left</span>
             </div>
             <div class="progress">
               <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
                    [ngClass]="getClassToProgressBar(getPercentageSpend(year.spend, year.budget + year.overspend))"
                    [style.width.%]="getPercentageSpend(year.spend, year.budget + year.overspend)"
                    [attr.aria-valuenow]="getPercentageSpend(year.spend, year.budget + year.overspend)">
-                {{ year.spend | currencyFormat }}
+                {{ year.spend | currencyFormat: true }}
               </div>
               <div class="progress-bar progress-bar-striped bg-danger" role="progressbar" aria-valuemin="0" aria-valuemax="100"
                    [style.width.%]="getPercentageSpend(year.overspend, year.budget + year.overspend)"
                    [attr.aria-valuenow]="getPercentageSpend(year.overspend, year.budget + year.overspend)">
-                {{ year.overspend | currencyFormat }}
+                {{ year.overspend | currencyFormat: true }}
               </div>
             </div>
             <div class="clearfix">
               @if (year.overspend > 0) {
-              <span class="float-end budget">of <s>{{ year.budget | currencyFormat }}</s> {{ year.budget + year.overspend | currencyFormat }}</span>
+              <span class="float-end budget">of <s>{{ year.budget | currencyFormat: true }}</s> {{ year.budget + year.overspend | currencyFormat: true }}</span>
               } @else {
-              <span class="float-end budget">of {{ year.budget | currencyFormat }}</span>
+              <span class="float-end budget">of {{ year.budget | currencyFormat: true }}</span>
               }
             </div>
             <hr class="solid" />
             <div class="d-grid label-money">
               <div class="mt-2">
                 <span class="float-start"><fa-icon [icon]="faArrowUp" transform="rotate-45" style="color: #c0392b"></fa-icon> Money Out</span>
-                <span class="float-end">-{{ year.spend + year.overspend | currencyFormat }}</span>
+                <span class="float-end">-{{ year.spend + year.overspend | currencyFormat: true }}</span>
               </div>
               <div class="mt-2">
                 <span class="float-start"><fa-icon [icon]="faArrowDown" transform="rotate-45" style="color: #2ecc71"></fa-icon> Money In</span>
-                <span class="float-end">{{ year.earned | currencyFormat }}</span>
+                <span class="float-end">{{ year.earned | currencyFormat: true }}</span>
               </div>
             </div>
           </div>

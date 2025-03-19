@@ -231,7 +231,7 @@ export class DetailProjectComponent implements OnInit {
       return 'warning';
     }
 
-    return 'success';
+    return '';
   }
 
   copyPreviousBudget() {
