@@ -7,6 +7,7 @@ using EasyFinance.Application.Features.UserService;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Common.Tests.AccessControl;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Infrastructure.Authentication;
 using EasyFinance.Infrastructure.DTOs;
 using EasyFinance.Server.Controllers;
 using Microsoft.AspNetCore.Http;
@@ -25,11 +26,16 @@ namespace EasyFinance.Server.Tests.Controllers
         private readonly Mock<UserManager<User>> _userManagerMock;
         private readonly Mock<IAccessControlService> accessControlService;
         private readonly AccountController _controller;
+        private readonly TokenSettings tokenSettings;
 
         public AccountControllerTests()
         {
             _userStoreMock = new Mock<IUserStore<User>>();
             var emailSenderMock = new Mock<IEmailSender<User>>();
+            this.tokenSettings = new TokenSettings()
+            {
+                SecretKey = Guid.NewGuid().ToString()
+            };
 
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
             _userManagerMock = new Mock<UserManager<User>>(
@@ -61,7 +67,8 @@ namespace EasyFinance.Server.Tests.Controllers
                emailSender: emailSenderMock.Object,
                userService: Mock.Of<IUserService>(),
                linkGenerator: Mock.Of<LinkGenerator>(),
-               accessControlService: Mock.Of<IAccessControlService>()
+               accessControlService: Mock.Of<IAccessControlService>(),
+               tokenSettings: tokenSettings
                );
 
             var userJohn = new UserBuilder().AddFirstName("John").AddLastName("Doe").AddEmail("john@doe.com").Build();
