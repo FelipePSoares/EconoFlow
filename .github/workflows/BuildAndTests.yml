@@ -68,7 +68,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ./easyfinance.client/node_modules
-        key: node-modules-${{ runner.os }}-${{ hashFiles(github.workspace + '/easyfinance.client/node_modules/package-lock.json') }}
+        key: node-modules-${{ runner.os }}-${{ hashFiles(github.workspace '/easyfinance.client/node_modules/package-lock.json') }}
 
     - name: Run .Net tests
       run: dotnet test --configuration Release --verbosity normal --logger trx --collect:"XPlat Code Coverage"
@@ -111,13 +111,13 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ./easyfinance.client/node_modules
-        key: node-modules-${{ runner.os }}-${{ hashFiles(github.workspace + '/easyfinance.client/node_modules/package-lock.json') }}
+        key: node-modules-${{ runner.os }}-${{ hashFiles(github.workspace '/easyfinance.client/node_modules/package-lock.json') }}
 
     - name: Cache Cypress binary
       uses: actions/cache@v3
       with:
         path: ~/.cache/Cypress
-        key: cypress-${{ runner.os }}-${{ hashFiles(github.workspace + '/easyfinance.client/node_modules/package-lock.json') }}
+        key: cypress-${{ runner.os }}-${{ hashFiles(github.workspace '/easyfinance.client/node_modules/package-lock.json') }}
 
     - name: Build application
       run: dotnet build --configuration Debug
