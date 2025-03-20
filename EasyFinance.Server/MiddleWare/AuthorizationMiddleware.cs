@@ -24,7 +24,7 @@ namespace EasyFinance.Server.MiddleWare
                     return;
                 }
 
-                if (!Guid.TryParse(httpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier).Value, out var userId))
+                if (!Guid.TryParse(httpContext.User.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
                     httpContext.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
                     return;

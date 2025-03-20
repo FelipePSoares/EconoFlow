@@ -16,6 +16,6 @@ export class CurrencyFormatPipe implements PipeTransform {
 
     const digitsInfo = withoutDecimals ? '1.0-0' : '1.2-2';
 
-    return this.currencyPipe.transform(amount, userProject?.project.preferredCurrency, "symbol", digitsInfo, this.globalService.languageLoaded);
+    return this.currencyPipe.transform(amount, userProject?.project?.preferredCurrency ?? 'EUR', "symbol", digitsInfo, this.globalService.languageLoaded);
   }
 }

@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Net;
 using EasyFinance.Application;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Domain.AccessControl;
@@ -11,8 +10,6 @@ using EasyFinance.Server.Config;
 using EasyFinance.Server.Extensions;
 using EasyFinance.Server.Middleware;
 using EasyFinance.Server.MiddleWare;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
@@ -26,6 +23,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddApplicationServices();
+builder.Services.AddAuthenticationServices(builder.Configuration, builder.Environment);
 
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 
@@ -44,46 +42,6 @@ builder.Services.AddControllers(config =>
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwagger();
-
-builder.Services.AddAuthorizationBuilder();
-builder.Services.AddHttpContextAccessor();
-
-builder.Services
-    .AddAuthentication(IdentityConstants.ApplicationScheme)
-    .AddIdentityCookies();
-
-builder.Services.ConfigureApplicationCookie(options =>
-    {
-        options.Cookie.SameSite = SameSiteMode.Strict;
-        options.Cookie.Name = "AuthCookie";
-        options.ExpireTimeSpan = TimeSpan.FromDays(7);
-        options.Events.OnRedirectToAccessDenied = UnAuthorizedResponse;
-        options.Events.OnRedirectToLogin = UnAuthorizedResponse;
-    });
-
-builder.Services.AddIdentityCore<User>()
-    .AddEntityFrameworkStores<EasyFinanceDatabaseContext>()
-    .AddClaimsPrincipalFactory<CustomClaimsPrincipalFactory>()
-    .AddApiEndpoints();
-
-builder.Services.Configure<IdentityOptions>(options =>
-{
-    // Password settings.
-    options.Password.RequireDigit = true;
-    options.Password.RequireLowercase = true;
-    options.Password.RequireUppercase = true;
-    options.Password.RequireNonAlphanumeric = true;
-    options.Password.RequiredLength = 8;
-
-    // Lockout settings.
-    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-    options.Lockout.MaxFailedAccessAttempts = 5;
-    options.Lockout.AllowedForNewUsers = true;
-
-    // Default SignIn settings.
-    options.SignIn.RequireConfirmedEmail = false;
-    options.User.RequireUniqueEmail = true;
-});
 
 builder.Services.AddSendGrid(options =>
     options.ApiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY") ?? "abc"
@@ -197,9 +155,3 @@ app.MapFallbackToFile("/index.html");
 app.UseCustomExceptionHandler();
 
 app.Run();
-
-static Task UnAuthorizedResponse(RedirectContext<CookieAuthenticationOptions> context)
-{
-    context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-    return Task.CompletedTask;
-}

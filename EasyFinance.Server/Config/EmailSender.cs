@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity.UI.Services;
-using Newtonsoft.Json.Linq;
+﻿using EasyFinance.Domain.AccessControl;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using SendGrid;
 using SendGrid.Helpers.Mail;
 using System.Text.RegularExpressions;

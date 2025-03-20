@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, Subscription, concatMap, interval, map, switchMap } from 'rxjs';
+import { Observable, Subscription, concatMap, finalize, interval, map, switchMap } from 'rxjs';
 import { UserService } from '../services/user.service';
 import { User } from '../models/user';
 
@@ -23,13 +23,20 @@ export class AuthService {
       }));
   }
 
-  public signOut(): Observable<boolean> {
-    this.stopUserPolling();
-    this.userService.removeUserInfo();
+  public refreshToken(): Observable<User> {
+    return this.userService.refreshToken().pipe(map(user => {
+      return user;
+    }));
+  }
 
-    return this.http.post('/api/account/logout', null, {
+  public signOut(): void {
+    this.stopUserPolling();
+
+    this.http.post('/api/account/logout', null, {
       observe: 'response'
-    }).pipe<boolean>(map(res => res.ok));
+    });
+
+    this.userService.removeUserInfo();
   }
 
   public register(email: string, password: string, token?: string): Observable<User> {

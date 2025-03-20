@@ -5,7 +5,6 @@ import { BehaviorSubject, Observable, map } from 'rxjs';
 import { Operation } from 'fast-json-patch';
 import { YearExpensesSummaryDto } from '../../features/project/models/year-expenses-summary-dto';
 import { LocalService } from './local.service';
-import { safeJsonParse } from '../utils/json-parser';
 import { Transaction } from '../models/transaction';
 import { ProjectDto } from '../../features/project/models/project-dto';
 import { UserProject } from '../models/user-project';
@@ -83,7 +82,7 @@ export class ProjectService {
   }
 
   selectUserProject(userProject: UserProject) {
-    this.localService.saveData(PROJECT_DATA, JSON.stringify(userProject));
+    this.localService.saveData(PROJECT_DATA, userProject);
     this.selectedProjectSubject.next(userProject);
   }
 
@@ -91,8 +90,8 @@ export class ProjectService {
     let currentProject = this.selectedProjectSubject.value;
 
     if (!currentProject) {
-      let project = this.localService.getData(PROJECT_DATA);
-      currentProject = safeJsonParse<UserProject>(project);
+      let project = this.localService.getData<UserProject>(PROJECT_DATA);
+      currentProject = project;
       this.selectedProjectSubject.next(currentProject);
     }
 

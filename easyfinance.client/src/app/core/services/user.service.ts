@@ -6,8 +6,7 @@ import { tap } from 'rxjs';
 import { catchError, throwError } from 'rxjs';
 import { SnackbarComponent } from '../components/snackbar/snackbar.component';
 import { LocalService } from './local.service';
-import { UserProject } from '../models/user-project';
-const USER_DATA = "user_data";
+import { Token } from '../models/token';
 
 @Injectable({
   providedIn: 'root'
@@ -17,42 +16,54 @@ export class UserService {
   loggedUser$: Observable<User> = this.loggedUser.asObservable();
 
   constructor(private http: HttpClient, private snackbar: SnackbarComponent, private localService: LocalService) {
-    const user = localService.getData(USER_DATA);
+    const user = localService.getData<User>(localService.USER_DATA);
 
     if (user) {
-      this.loggedUser.next(JSON.parse(user));
+      this.loggedUser.next(user);
     }
   }
 
   public signIn(email: string, password: string): Observable<User> {
-    return this.http.post<User>('/api/account/login?useCookies=true', {
+    return this.http.post<Token>('/api/account/login', {
       email: email,
       password: password
     }, {
       observe: 'body',
       responseType: 'json'
     })
-      .pipe(map(user => {
-        this.loggedUser.next(user);
-        this.localService.saveData(USER_DATA, JSON.stringify(user));
-        return user;
-      }));
+      .pipe(
+        map(res => { this.localService.saveData(this.localService.TOKEN_DATA, res) }),
+        concatMap(() => this.refreshUserInfo())
+      );
+  }
+
+  public refreshToken(): Observable<User> {
+    var token = this.localService.getData<Token>(this.localService.TOKEN_DATA);
+
+    return this.http.post<Token>('/api/account/refresh-token', token, {
+      observe: 'body',
+      responseType: 'json'
+    })
+      .pipe(
+        map(res => { this.localService.saveData(this.localService.TOKEN_DATA, res) }),
+        concatMap(() => this.refreshUserInfo())
+      );
   }
 
   public register(email: string, password: string, token?: string): Observable<User> {
     var query = token ? `?token=${token}` : '';
 
-    return this.http.post<User>('/api/account/register' + query, {
+    return this.http.post<Token>('/api/account/register' + query, {
       email: email,
       password: password
     }, {
       observe: 'body',
       responseType: 'json'
-    }).pipe(map(user => {
-      this.loggedUser.next(user);
-      this.localService.saveData(USER_DATA, JSON.stringify(user));
-      return user;
-    }));
+    })
+      .pipe(
+        map(res => { this.localService.saveData(this.localService.TOKEN_DATA, res) }),
+        concatMap(() => this.refreshUserInfo())
+      );
   }
 
   public refreshUserInfo(): Observable<User> {
@@ -61,7 +72,7 @@ export class UserService {
       responseType: 'json'
     }).pipe(map(user => {
       this.loggedUser.next(user);
-      this.localService.saveData(USER_DATA, JSON.stringify(user));
+      this.localService.saveData(this.localService.USER_DATA, user);
       return user;
     }));
   }

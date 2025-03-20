@@ -6,31 +6,36 @@ import * as CryptoJS from 'crypto-js';
 })
 export class LocalService {
 
+  public USER_DATA = "user_data";
+  public TOKEN_DATA = "token_data";
+
   key = "123";
 
   constructor() { }
 
-  public saveData(key: string, value: string) {
-    localStorage.setItem(key, this.encrypt(value));
+  public saveData(key: string, value: any) {
+    localStorage.setItem(key, this.encrypt(JSON.stringify(value)));
   }
 
-  public getData(key: string) {
-    let data = localStorage.getItem(key) || "";
+  public getData<T>(key: string): T | undefined {
+    let data = localStorage.getItem(key);
 
-    try {
-      return this.decrypt(data);
-    }
-    catch (e) {
-      if (typeof e === "string") {
-        e.toUpperCase()
-      } else if (e instanceof Error) {
-        if (e.message === "Malformed UTF-8 data") {
-          this.removeData(key);
+    if (data) {
+      try {
+        return JSON.parse(this.decrypt(data));
+      }
+      catch (e) {
+        console.error(e);
+
+        if (e instanceof Error) {
+          if (e.message === "Malformed UTF-8 data") {
+            this.removeData(key);
+          }
         }
       }
-
-      return '';
     }
+
+    return undefined;
   }
 
   public removeData(key: string) {

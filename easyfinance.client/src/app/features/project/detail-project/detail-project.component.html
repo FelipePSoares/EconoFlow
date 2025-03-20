@@ -1,7 +1,7 @@
 <div class="container text-center">
   <div class="col text-center mt-3">
     <h2 class="mb-0">
-      {{ userProject.project.name }}
+      {{ userProject.project?.name }}
     </h2>
   </div>
   <app-current-date (dateUpdatedEvent)="updateDate($event)"></app-current-date>

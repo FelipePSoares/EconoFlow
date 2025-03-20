@@ -1,15 +1,19 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Net;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.RegularExpressions;
+using Azure.Core;
 using EasyFinance.Application.DTOs.AccessControl;
 using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Application.Features.UserService;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure;
+using EasyFinance.Infrastructure.Authentication;
 using EasyFinance.Infrastructure.DTOs;
+using EasyFinance.Server.Config;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
@@ -25,6 +29,9 @@ namespace EasyFinance.Server.Controllers
     [Route("api/[controller]")]
     public class AccountController : BaseController
     {
+        private readonly string tokenProvider = "REFRESHTOKENPROVIDER";
+        private readonly string tokenPurpose = "RefreshToken";
+
         // Validate the email address using DataAnnotations like the UserValidator does when RequireUniqueEmail = true.
         private static readonly EmailAddressAttribute emailAddressAttribute = new();
 
@@ -34,6 +41,7 @@ namespace EasyFinance.Server.Controllers
         private readonly IUserService userService;
         private readonly LinkGenerator linkGenerator;
         private readonly IAccessControlService accessControlService;
+        private readonly TokenSettings tokenSettings;
 
         public AccountController(
             UserManager<User> userManager,
@@ -41,7 +49,8 @@ namespace EasyFinance.Server.Controllers
             IEmailSender<User> emailSender,
             IUserService userService,
             LinkGenerator linkGenerator,
-            IAccessControlService accessControlService)
+            IAccessControlService accessControlService,
+            TokenSettings tokenSettings)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
@@ -49,6 +58,7 @@ namespace EasyFinance.Server.Controllers
             this.userService = userService;
             this.linkGenerator = linkGenerator;
             this.accessControlService = accessControlService;
+            this.tokenSettings = tokenSettings;
         }
 
         [HttpGet]
@@ -169,26 +179,25 @@ namespace EasyFinance.Server.Controllers
 
             await SendConfirmationEmailAsync(user, HttpContext, email);
 
-            await signInManager.SignInAsync(user, isPersistent: true);
-
-            return Ok(new UserResponseDTO(user));
+            return Ok(await GenerateUserToken(user));
         }
 
         [HttpPost("login")]
         [AllowAnonymous]
-        public async Task<IActionResult> SignInAsync([FromBody] LoginRequest login, [FromQuery] bool? useCookies, [FromQuery] bool? useSessionCookies)
+        public async Task<IActionResult> SignInAsync([FromBody] LoginRequest login)
         {
-            var useCookieScheme = (useCookies == true) || (useSessionCookies == true);
-            var isPersistent = (useCookies == true) && (useSessionCookies != true);
-            signInManager.AuthenticationScheme = useCookieScheme ? IdentityConstants.ApplicationScheme : IdentityConstants.BearerScheme;
+            var user = await userManager.FindByEmailAsync(login.Email);
 
-            var result = await signInManager.PasswordSignInAsync(login.Email, login.Password, isPersistent, lockoutOnFailure: true);
+            if (user == null || !user.Enabled)
+                return Unauthorized();
+
+            var result = await signInManager.CheckPasswordSignInAsync(user, login.Password, lockoutOnFailure: true);
 
             if (result.RequiresTwoFactor)
             {
                 if (!string.IsNullOrEmpty(login.TwoFactorCode))
                 {
-                    result = await signInManager.TwoFactorAuthenticatorSignInAsync(login.TwoFactorCode, isPersistent, rememberClient: isPersistent);
+                    result = await signInManager.TwoFactorAuthenticatorSignInAsync(login.TwoFactorCode, isPersistent: false, rememberClient: false);
                 }
                 else if (!string.IsNullOrEmpty(login.TwoFactorRecoveryCode))
                 {
@@ -201,13 +210,40 @@ namespace EasyFinance.Server.Controllers
                 return Unauthorized(result.ToString());
             }
 
-            return await this.GetUserAsync();
+            return Ok(await GenerateUserToken(user));
+        }
+
+        [HttpPost("refresh-token")]
+        [AllowAnonymous]
+        public async Task<IActionResult> RefreshTokenAsync([FromBody] TokenRequestDTO request)
+        {
+            if (string.IsNullOrEmpty(request.AccessToken))
+                return Unauthorized();
+
+            var principal = TokenUtil.GetPrincipalFromExpiredToken(this.tokenSettings, request.AccessToken);
+            if (principal == null || principal.FindFirst(ClaimTypes.NameIdentifier)?.Value == null)
+                return Unauthorized();
+
+            var user = await this.userManager.GetUserAsync(principal);
+
+            if (user == null && !user.Enabled)
+                return Unauthorized();
+
+            if (!await this.userManager.VerifyUserTokenAsync(user, this.tokenProvider, this.tokenPurpose, request.RefreshToken))
+                return Unauthorized();
+
+            return Ok(await GenerateUserToken(user));
         }
 
         [HttpPost("logout")]
         public async Task<IActionResult> SignOutAsync()
         {
-            await this.signInManager.SignOutAsync();
+            var user = await this.userManager.GetUserAsync(this.HttpContext.User);
+
+            if (user == null)
+                return Ok();
+
+            await this.userManager.RemoveAuthenticationTokenAsync(user, this.tokenProvider, this.tokenPurpose);
 
             return Ok();
         }
@@ -465,6 +501,34 @@ namespace EasyFinance.Server.Controllers
                 Email = await userManager.GetEmailAsync(user) ?? throw new NotSupportedException("Users must have an email."),
                 IsEmailConfirmed = await userManager.IsEmailConfirmedAsync(user),
             };
+        }
+
+        private async Task<TokenResponseDTO> GenerateUserToken(User user)
+        {
+            var result = await this.GenerateTokenAsync(user);
+
+            return new TokenResponseDTO(result.AccessToken, result.RefreshToken);
+        }
+
+        private async Task<TokenResponseDTO> GenerateRefreshToken(User user)
+        {
+            var result = await this.GenerateTokenAsync(user);
+
+            return new TokenResponseDTO(result.AccessToken, result.RefreshToken);
+        }
+
+        private async Task<(string AccessToken, string RefreshToken)> GenerateTokenAsync(User user)
+        {
+            var userRoles = await this.userManager.GetRolesAsync(user);
+            var claims = userRoles.Select(userRole => new Claim(ClaimTypes.Role, userRole)).ToList();
+
+            var token = TokenUtil.GetToken(tokenSettings, user, claims);
+
+            await userManager.RemoveAuthenticationTokenAsync(user, this.tokenProvider, this.tokenPurpose);
+            var refreshToken = await userManager.GenerateUserTokenAsync(user, this.tokenProvider, this.tokenPurpose);
+            await userManager.SetAuthenticationTokenAsync(user, this.tokenProvider, this.tokenPurpose, refreshToken);
+
+            return (AccessToken: token, RefreshToken: refreshToken);
         }
     }
 }
