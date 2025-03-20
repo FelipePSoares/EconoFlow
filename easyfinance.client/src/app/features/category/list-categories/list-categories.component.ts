@@ -3,25 +3,26 @@ import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, map } from 'rxjs';
+import { compare } from 'fast-json-patch';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faPenToSquare, faBoxArchive, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
+import { MatButton } from "@angular/material/button";
+import { MatError, MatFormField, MatLabel } from "@angular/material/form-field";
+import { MatInput } from "@angular/material/input";
+import { MatDialog } from '@angular/material/dialog';
+import { TranslateModule } from '@ngx-translate/core';
 import { mapper } from '../../../core/utils/mappings/mapper';
 import { CategoryDto } from '../models/category-dto';
 import { Category } from '../../../core/models/category';
 import { CategoryService } from '../../../core/services/category.service';
-import { compare } from 'fast-json-patch';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPenToSquare, faBoxArchive, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
-import { MatButton } from "@angular/material/button";
-import { MatError, MatFormField, MatLabel } from "@angular/material/form-field";
-import { MatInput } from "@angular/material/input";
 import { ApiErrorResponse } from "../../../core/models/error";
 import { ErrorMessageService } from "../../../core/services/error-message.service";
 import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
-import { MatDialog } from '@angular/material/dialog';
 import { UserProjectDto } from '../../project/models/user-project-dto';
 import { ProjectService } from '../../../core/services/project.service';
 import { Role } from '../../../core/enums/Role';
@@ -42,7 +43,8 @@ import { Role } from '../../../core/enums/Role';
         MatError,
         MatFormField,
         MatInput,
-        MatLabel
+        MatLabel,
+        TranslateModule
     ],
     templateUrl: './list-categories.component.html',
     styleUrl: './list-categories.component.css'

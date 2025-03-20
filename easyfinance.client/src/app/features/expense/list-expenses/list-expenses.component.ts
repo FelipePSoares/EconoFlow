@@ -1,33 +1,34 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { ExpenseDto } from '../models/expense-dto';
-import { Expense } from '../../../core/models/expense';
 import { map } from 'rxjs/internal/operators/map';
-import { mapper } from '../../../core/utils/mappings/mapper';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
 import { Observable } from 'rxjs/internal/Observable';
-import { ExpenseService } from '../../../core/services/expense.service';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { compare } from 'fast-json-patch';
-import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
-import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
-import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPenToSquare, faTrash, faFloppyDisk, faPlus } from '@fortawesome/free-solid-svg-icons';
-import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
-import { dateUTC } from '../../../core/utils/date';
 import { MatFormField } from '@angular/material/form-field';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatButton } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { ApiErrorResponse } from 'src/app/core/models/error';
+import { CurrencyMaskModule } from 'ng2-currency-mask';
+import { MatDialog } from '@angular/material/dialog';
+import { TranslateModule } from '@ngx-translate/core';
+import { ExpenseDto } from '../models/expense-dto';
+import { Expense } from '../../../core/models/expense';
+import { mapper } from '../../../core/utils/mappings/mapper';
+import { ExpenseService } from '../../../core/services/expense.service';
+import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
+import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
+import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
+import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
+import { dateUTC } from '../../../core/utils/date';
 import { ErrorMessageService } from 'src/app/core/services/error-message.service';
 import { GlobalService } from '../../../core/services/global.service';
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
-import { CurrencyMaskModule } from 'ng2-currency-mask';
-import { MatDialog } from '@angular/material/dialog';
 import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
 import { UserProjectDto } from '../../project/models/user-project-dto';
 import { ProjectService } from '../../../core/services/project.service';
@@ -50,7 +51,8 @@ import { Role } from '../../../core/enums/Role';
         MatButton,
         MatDatepickerModule,
         CurrencyFormatPipe,
-        CurrencyMaskModule
+        CurrencyMaskModule,
+        TranslateModule
     ],
     templateUrl: './list-expenses.component.html',
     styleUrl: './list-expenses.component.css'

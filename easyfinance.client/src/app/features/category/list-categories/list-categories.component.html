@@ -82,7 +82,7 @@
                       <input matInput id="name" placeholder="Personal" formControlName="name"
                              [class.is-invalid]="name?.invalid && name?.touched">
                       @if ((name?.invalid && name?.touched) || httpErrors) {
-                        <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error }}</mat-error>
+                        <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error |  translate }}</mat-error>
                       }
                     </mat-form-field>
 

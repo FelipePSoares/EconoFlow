@@ -10,14 +10,15 @@ import { AsyncPipe, CommonModule } from '@angular/common';
 import { compare } from 'fast-json-patch';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPenToSquare, faTrash, faFloppyDisk, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { MatInput } from "@angular/material/input";
+import { MatButton } from "@angular/material/button";
+import { TranslateModule } from '@ngx-translate/core';
+import { MatDatepickerModule } from "@angular/material/datepicker";
+import { MatError, MatFormField, MatLabel, MatSuffix } from "@angular/material/form-field";
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
-import { MatDatepickerModule } from "@angular/material/datepicker";
-import { MatError, MatFormField, MatLabel, MatSuffix } from "@angular/material/form-field";
-import { MatInput } from "@angular/material/input";
-import { MatButton } from "@angular/material/button";
 import { ApiErrorResponse } from "../../../core/models/error";
 import { ErrorMessageService } from "../../../core/services/error-message.service";
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
@@ -49,7 +50,8 @@ import { Role } from '../../../core/enums/Role';
         MatLabel,
         MatSuffix,
         MatButton,
-        CurrencyMaskModule
+        CurrencyMaskModule,
+        TranslateModule
     ],
     templateUrl: './list-incomes.component.html',
     styleUrl: './list-incomes.component.css'

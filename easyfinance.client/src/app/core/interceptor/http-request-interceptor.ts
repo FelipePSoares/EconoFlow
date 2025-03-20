@@ -68,6 +68,7 @@ export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
       } else if (err.status === 401 && err.url?.includes('login')) {
         apiErrorResponse.errors['general'] = 'Incorrect login information!';
       } else {
+        console.error(err.error);
         apiErrorResponse.errors['general'] = 'An unexpected error occurs, try again...';
       }
 

@@ -1,10 +1,13 @@
 import { Injectable } from "@angular/core";
 import { AbstractControl, ValidationErrors, FormGroup } from "@angular/forms";
+import { TranslateService } from "@ngx-translate/core";
 
 @Injectable({
   providedIn: 'root'
 })
 export class ErrorMessageService {
+  constructor(private translate: TranslateService) { }
+
   getFormFieldErrors(form: FormGroup<any>, fieldName: string): string[] {
     const control = form.get(fieldName);
     const errors: string[] = [];
@@ -14,22 +17,22 @@ export class ErrorMessageService {
         if (control.errors.hasOwnProperty(key)) {
           switch (key) {
             case 'required':
-              errors.push('This field is required.');
+              errors.push('RequiredField');
               break;
             case 'email':
-              errors.push('Invalid email format.');
+              errors.push('');
               break;
             case 'pattern':
               if (fieldName === 'budget') {
-                errors.push('Only numbers is valid.');
+                errors.push('OnlyNumbersIsValid');
               }
               errors.push('');
               break;
             case 'min':
-              errors.push(`The value should be greater than ${control.errors[key].min}.`);
+              errors.push(this.translate.instant('ValueShouldBeGreaterThan', { value: control.errors[key].min }));
               break;
             default:
-              errors.push(control.errors ? control.errors[key] : 'an error occours!');
+              errors.push(control.errors ? control.errors[key] : 'GenericError');
           }
         }
       }

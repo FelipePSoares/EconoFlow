@@ -7,6 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIcon } from "@angular/material/icon";
 import { CommonModule } from '@angular/common';
 import confetti from 'canvas-confetti';
+import { TranslateModule } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
 import { passwordMatchValidator } from '../../../core/utils/custom-validators/password-match-validator';
 import { ApiErrorResponse } from '../../../core/models/error';
@@ -22,6 +23,7 @@ import { ErrorMessageService } from '../../../core/services/error-message.servic
         MatFormFieldModule,
         MatInputModule,
         MatIcon,
+        TranslateModule
     ],
     templateUrl: './register.component.html',
     styleUrls: ['./register.component.css']

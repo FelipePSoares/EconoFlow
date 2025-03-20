@@ -8,6 +8,8 @@ import { take } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import {MatIcon} from "@angular/material/icon";
+import { TranslateModule } from '@ngx-translate/core';
+import { ErrorMessageService } from '../../../core/services/error-message.service';
 
 @Component({
     selector: 'app-login',
@@ -19,6 +21,7 @@ import {MatIcon} from "@angular/material/icon";
         MatFormFieldModule,
         MatInputModule,
         MatIcon,
+        TranslateModule
     ],
     templateUrl: './login.component.html',
     styleUrls: ['./login.component.css']
@@ -29,7 +32,7 @@ export class LoginComponent implements OnInit {
   errors!: { [key: string]: string };
   hide = true;
 
-  constructor(private authService: AuthService, private router: Router, private route: ActivatedRoute) {
+  constructor(private authService: AuthService, private router: Router, private route: ActivatedRoute, private errorMessageService: ErrorMessageService) {
     this.authService.isSignedIn$.pipe(take(1)).subscribe(value => {
       if (value) {
         this.router.navigate(['/']);
@@ -77,54 +80,13 @@ export class LoginComponent implements OnInit {
           this.httpErrors = true;
           this.errors = response.errors;
 
-          this.setFormErrors(this.errors);
+          this.errorMessageService.setFormErrors(this.loginForm, this.errors);
         }
       });
     }
   }
 
-  setFormErrors(errors: { [key: string]: string }) {
-    for (let key in errors) {
-      if (key.indexOf("Password") > -1) {
-        const formControl = this.loginForm.get('password');
-        this.setErrorFormControl(formControl, { [key]: errors[key] });
-      }
-      if (key.indexOf("Email") > -1) {
-        const formControl = this.loginForm.get('email');
-        this.setErrorFormControl(formControl, { [key]: errors[key] });
-      }
-    }
-  }
-
-  setErrorFormControl(formControl: AbstractControl | null, errors: ValidationErrors) {
-    if (formControl) {
-      const currentErrors = formControl.errors || {};
-      const updatedErrors = { ...currentErrors, ...errors };
-      formControl.setErrors(updatedErrors);
-    }
-  }
-
   getFormFieldErrors(fieldName: string): string[] {
-    const control = this.loginForm.get(fieldName);
-    const errors: string[] = [];
-
-    if (control && control.errors) {
-      for (const key in control.errors) {
-        if (control.errors.hasOwnProperty(key)) {
-          switch (key) {
-            case 'required':
-              errors.push('This field is required.');
-              break;
-            case 'email':
-              errors.push('Invalid email format.');
-              break;
-            default:
-              errors.push(control.errors[key]);
-          }
-        }
-      }
-    }
-
-    return errors;
+    return this.errorMessageService.getFormFieldErrors(this.loginForm, fieldName);
   }
 }

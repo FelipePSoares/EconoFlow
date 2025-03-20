@@ -2,13 +2,7 @@ import { Component, OnInit, ViewChild  } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faCheck, faCircleCheck, faCircleXmark, faFloppyDisk, faPenToSquare, faEnvelopeOpenText } from '@fortawesome/free-solid-svg-icons';
-import { UserService } from '../../../core/services/user.service';
-import { Observable, pairwise, startWith } from 'rxjs';
-import { DeleteUser, User } from '../../../core/models/user';
-import { AsyncPipe, CommonModule } from '@angular/common';
-import { ApiErrorResponse } from '../../../core/models/error';
-import { ErrorMessageService } from '../../../core/services/error-message.service';
-import { passwordMatchValidator } from '../../../core/utils/custom-validators/password-match-validator';
+import { Observable } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -16,6 +10,13 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatIcon } from "@angular/material/icon";
 import { Router } from '@angular/router'; 
+import { TranslateModule } from '@ngx-translate/core';
+import { UserService } from '../../../core/services/user.service';
+import { DeleteUser, User } from '../../../core/models/user';
+import { AsyncPipe, CommonModule } from '@angular/common';
+import { ApiErrorResponse } from '../../../core/models/error';
+import { ErrorMessageService } from '../../../core/services/error-message.service';
+import { passwordMatchValidator } from '../../../core/utils/custom-validators/password-match-validator';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
@@ -33,6 +34,7 @@ import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/
         MatOptionModule,
         MatIcon,
         ConfirmDialogComponent,
+        TranslateModule
     ],
     templateUrl: './detail-user.component.html',
     styleUrl: './detail-user.component.css'

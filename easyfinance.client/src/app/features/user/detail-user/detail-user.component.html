@@ -20,7 +20,7 @@
               <mat-label>First Name</mat-label>
               <input matInput formControlName="firstName">
               @if (firstName?.invalid && firstName?.touched){
-              <mat-error *ngFor="let error of getFormFieldErrors(userForm, 'firstName')">{{ error }}</mat-error>
+              <mat-error *ngFor="let error of getFormFieldErrors(userForm, 'firstName')">{{ error |  translate }}</mat-error>
               }
             </mat-form-field>
           </div>
@@ -30,7 +30,7 @@
               <mat-label>Last Name</mat-label>
               <input matInput formControlName="lastName">
               @if (lastName?.invalid && lastName?.touched){
-              <mat-error *ngFor="let error of getFormFieldErrors(userForm, 'lastName')">{{ error }}</mat-error>
+              <mat-error *ngFor="let error of getFormFieldErrors(userForm, 'lastName')">{{ error |  translate }}</mat-error>
               }
             </mat-form-field>
           </div>
@@ -41,7 +41,7 @@
             <mat-label>Email</mat-label>
             <input matInput formControlName="email">
             @if (email?.invalid && email?.touched){
-            <mat-error *ngFor="let error of getFormFieldErrors(userForm, 'email')">{{ error }}</mat-error>
+            <mat-error *ngFor="let error of getFormFieldErrors(userForm, 'email')">{{ error |  translate }}</mat-error>
             }
             <ng-container matIconSuffix *ngIf="user$ | async as user">
               <fa-icon class="emailCheck"

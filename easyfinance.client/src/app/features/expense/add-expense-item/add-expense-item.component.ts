@@ -1,27 +1,28 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ExpenseService } from '../../../core/services/expense.service';
-import { ExpenseItemDto } from '../models/expense-item-dto';
 import { map } from 'rxjs';
-import { Expense } from '../../../core/models/expense';
-import { mapper } from '../../../core/utils/mappings/mapper';
-import { ExpenseDto } from '../models/expense-dto';
 import { compare } from 'fast-json-patch';
-import { ErrorMessageService } from '../../../core/services/error-message.service';
-import { ApiErrorResponse } from '../../../core/models/error';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
+import { CurrencyMaskModule } from 'ng2-currency-mask';
+import { TranslateModule } from '@ngx-translate/core';
+import { ExpenseService } from '../../../core/services/expense.service';
+import { ExpenseItemDto } from '../models/expense-item-dto';
+import { Expense } from '../../../core/models/expense';
+import { mapper } from '../../../core/utils/mappings/mapper';
+import { ExpenseDto } from '../models/expense-dto';
+import { ErrorMessageService } from '../../../core/services/error-message.service';
+import { ApiErrorResponse } from '../../../core/models/error';
 import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.component';
 import { MatNativeDateModule } from '@angular/material/core';
 import { todayUTC } from '../../../core/utils/date';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { GlobalService } from '../../../core/services/global.service';
-import { CurrencyMaskModule } from 'ng2-currency-mask';
 
 @Component({
     selector: 'app-add-expense-item',
@@ -35,7 +36,8 @@ import { CurrencyMaskModule } from 'ng2-currency-mask';
         MatIconModule,
         MatDatepickerModule,
         MatNativeDateModule,
-        CurrencyMaskModule
+        CurrencyMaskModule,
+        TranslateModule
     ],
     templateUrl: './add-expense-item.component.html',
     styleUrl: './add-expense-item.component.css'

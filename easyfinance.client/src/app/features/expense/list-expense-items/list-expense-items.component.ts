@@ -1,37 +1,32 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { BehaviorSubject, Observable, map } from 'rxjs';
-import { ExpenseItemDto } from '../models/expense-item-dto';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { compare } from 'fast-json-patch';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faPenToSquare, faTrash, faFloppyDisk, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { MatError, MatFormField, MatInput, MatLabel, MatSuffix } from '@angular/material/input';
+import { MatButton } from '@angular/material/button';
+import { MatDatepicker, MatDatepickerInput, MatDatepickerToggle } from "@angular/material/datepicker";
+import { CurrencyMaskModule } from 'ng2-currency-mask';
+import { MatDialog } from '@angular/material/dialog';
+import { TranslateModule } from '@ngx-translate/core';
+import { ExpenseItemDto } from '../models/expense-item-dto';
 import { ExpenseService } from '../../../core/services/expense.service';
 import { mapper } from '../../../core/utils/mappings/mapper';
 import { Expense } from '../../../core/models/expense';
 import { ExpenseDto } from '../models/expense-dto';
-import { Router } from '@angular/router';
-import { compare } from 'fast-json-patch';
 import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPenToSquare, faTrash, faFloppyDisk, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
-import {
-  MatError,
-  MatFormField,
-  MatInput,
-  MatLabel,
-  MatSuffix
-} from '@angular/material/input';
-import { MatButton } from '@angular/material/button';
-import { MatDatepicker, MatDatepickerInput, MatDatepickerToggle } from "@angular/material/datepicker";
 import { CurrentDateComponent } from "../../../core/components/current-date/current-date.component";
 import { ApiErrorResponse } from "../../../core/models/error";
 import { ErrorMessageService } from "../../../core/services/error-message.service";
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
 import { dateUTC } from '../../../core/utils/date';
 import { GlobalService } from '../../../core/services/global.service';
-import { CurrencyMaskModule } from 'ng2-currency-mask';
 import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
-import { MatDialog } from '@angular/material/dialog';
 import { UserProjectDto } from '../../project/models/user-project-dto';
 import { ProjectService } from '../../../core/services/project.service';
 import { Role } from '../../../core/enums/Role';
@@ -57,7 +52,8 @@ import { Role } from '../../../core/enums/Role';
         MatSuffix,
         MatButton,
         CurrentDateComponent,
-        CurrencyMaskModule
+        CurrencyMaskModule,
+        TranslateModule
     ],
     templateUrl: './list-expense-items.component.html',
     styleUrl: './list-expense-items.component.css'

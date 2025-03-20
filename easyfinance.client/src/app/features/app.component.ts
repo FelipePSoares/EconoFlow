@@ -12,6 +12,7 @@ import {
   MAT_DATE_LOCALE,
 } from '@angular/material/core';
 import * as moment from 'moment';
+import { TranslateModule } from '@ngx-translate/core';
 
 export const MY_FORMATS = {
   parse: {
@@ -31,7 +32,7 @@ export const MY_FORMATS = {
         CommonModule,
         RouterOutlet,
         NavBarComponent,
-        SpinnerComponent,
+        SpinnerComponent
     ],
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.css'],

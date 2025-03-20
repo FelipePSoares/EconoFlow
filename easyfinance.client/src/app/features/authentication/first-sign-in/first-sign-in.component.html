@@ -16,7 +16,7 @@
                 <mat-label>First Name</mat-label>
                 <input matInput formControlName="firstName">
                 @if (firstName?.invalid && firstName?.touched){
-                <mat-error *ngFor="let error of getFormFieldErrors('firstName')">{{ error }}</mat-error>
+                <mat-error *ngFor="let error of getFormFieldErrors('firstName')">{{ error |  translate }}</mat-error>
                 }
               </mat-form-field>
 
@@ -25,7 +25,7 @@
                 <mat-label>Last Name</mat-label>
                 <input matInput formControlName="lastName">
                 @if (lastName?.invalid && lastName?.touched){
-                <mat-error *ngFor="let error of getFormFieldErrors('lastName')">{{ error }}</mat-error>
+                <mat-error *ngFor="let error of getFormFieldErrors('lastName')">{{ error |  translate }}</mat-error>
                 }
               </mat-form-field>
 

@@ -1,7 +1,6 @@
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BehaviorSubject, map, Observable } from 'rxjs';
-import { mapper } from '../../../core/utils/mappings/mapper';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -10,6 +9,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { compare, Operation } from 'fast-json-patch';
+import { mapper } from '../../../core/utils/mappings/mapper';
+import { TranslateModule } from '@ngx-translate/core';
 import { ProjectService } from '../../../core/services/project.service';
 import { UserProjectDto } from '../models/user-project-dto';
 import { UserProject } from '../../../core/models/user-project';
@@ -31,6 +32,7 @@ import { User } from '../../../core/models/user';
     MatFormFieldModule,
     MatSelectModule,
     MatIconModule,
+    TranslateModule
   ],
   templateUrl: './access-control-project.component.html',
   styleUrl: './access-control-project.component.css'

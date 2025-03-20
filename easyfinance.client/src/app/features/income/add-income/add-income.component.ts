@@ -1,10 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { IncomeService } from '../../../core/services/income.service';
 import { Router } from '@angular/router';
-import { IncomeDto } from '../models/income-dto';
-import { ApiErrorResponse } from '../../../core/models/error';
-import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,10 +8,15 @@ import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { CurrencyMaskModule } from 'ng2-currency-mask';
+import { TranslateModule } from '@ngx-translate/core';
+import { IncomeService } from '../../../core/services/income.service';
+import { IncomeDto } from '../models/income-dto';
+import { ApiErrorResponse } from '../../../core/models/error';
+import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { todayUTC } from '../../../core/utils/date';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { GlobalService } from '../../../core/services/global.service';
-import { CurrencyMaskModule } from 'ng2-currency-mask';
 
 @Component({
     selector: 'app-add-income',
@@ -29,7 +30,8 @@ import { CurrencyMaskModule } from 'ng2-currency-mask';
         MatIconModule,
         MatDatepickerModule,
         MatNativeDateModule,
-        CurrencyMaskModule
+        CurrencyMaskModule,
+        TranslateModule
     ],
     templateUrl: './add-income.component.html',
     styleUrl: './add-income.component.css'

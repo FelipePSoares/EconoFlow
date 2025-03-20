@@ -19,7 +19,7 @@
           <mat-label>Email address</mat-label>
           <input placeholder="name@example.com" matInput formControlName="email">
           @if ((email?.invalid && email?.touched) || httpErrors){
-          <mat-error *ngFor="let error of getFormFieldErrors('email')">{{ error }}</mat-error>
+          <mat-error *ngFor="let error of getFormFieldErrors('email')">{{ error |  translate }}</mat-error>
           }
         </mat-form-field>
 
@@ -52,7 +52,7 @@
           <input placeholder="Password" matInput formControlName="confirmPassword" [type]="hideConfirmPassword ? 'password' : 'text'">
           <mat-icon matSuffix (click)="hideConfirmPassword = !hideConfirmPassword">{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
           @if ((confirmPassword?.invalid && confirmPassword?.touched) || httpErrors){
-          <mat-error *ngFor="let error of getFormFieldErrors('confirmPassword')">{{ error }}</mat-error>
+          <mat-error *ngFor="let error of getFormFieldErrors('confirmPassword')">{{ error |  translate }}</mat-error>
           }
         </mat-form-field>
 

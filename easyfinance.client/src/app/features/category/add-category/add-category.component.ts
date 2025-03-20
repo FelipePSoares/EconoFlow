@@ -6,12 +6,13 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
-import { CategoryService } from '../../../core/services/category.service';
+import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { CategoryService } from '../../../core/services/category.service';
 import { CategoryDto } from '../models/category-dto';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { ApiErrorResponse } from '../../../core/models/error';
-import { CommonModule } from '@angular/common';
 
 @Component({
     selector: 'app-add-category',
@@ -22,7 +23,8 @@ import { CommonModule } from '@angular/common';
         MatButtonModule,
         MatAutocompleteModule,
         MatInputModule,
-        MatFormFieldModule
+        MatFormFieldModule,
+        TranslateModule
     ],
     templateUrl: './add-category.component.html',
     styleUrl: './add-category.component.css'

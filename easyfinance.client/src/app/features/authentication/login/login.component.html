@@ -13,36 +13,36 @@
       </span>
       <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
         <div class="form-floating mb-1">
-          <p>Please sign in</p>
+          <p>{{ 'PleaseSignIn' | translate }}</p>
         </div>
 
         <mat-form-field class="mb-2" [style.width.%]="100">
-          <mat-label>Email address</mat-label>
-          <input id="email" placeholder="name@example.com" matInput formControlName="email">
+          <mat-label>{{ 'FieldEmailAddress' | translate }}</mat-label>
+          <input id="email" [attr.placeholder]="'PlaceholderEmailAddress' | translate" matInput formControlName="email">
           @if ((email?.invalid && email?.touched) || httpErrors) {
-          <mat-error *ngFor="let error of getFormFieldErrors('email')">{{ error }}</mat-error>
+          <mat-error *ngFor="let error of getFormFieldErrors('email')">{{ error | translate }}</mat-error>
           }
         </mat-form-field>
 
         <mat-form-field [style.width.%]="100">
-          <mat-label>Password</mat-label>
-          <input id="password" placeholder="Password" matInput formControlName="password"
+          <mat-label>{{ 'FieldPassword' | translate }}</mat-label>
+          <input id="password" [attr.placeholder]="'PlaceholderPassword' | translate" matInput formControlName="password"
                  [type]="hide ? 'password' : 'text'">
           <mat-icon matSuffix (click)="hide = !hide">{{ hide ? 'visibility_off' : 'visibility' }}</mat-icon>
           @if ((password?.invalid && password?.touched) || httpErrors) {
-          <mat-error *ngFor="let error of getFormFieldErrors('password')">{{ error }}</mat-error>
+          <mat-error *ngFor="let error of getFormFieldErrors('password')">{{ error | translate }}</mat-error>
           }
         </mat-form-field>
 
-        <a [routerLink]="['/recovery']" class="float-end mb-2" routerLinkActive="active">Forgot password?</a>
-        <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="loginForm.invalid">Sign in</button>
+        <a [routerLink]="['/recovery']" class="float-end mb-2" routerLinkActive="active">{{ 'ForgotPassword' | translate }}</a>
+        <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="loginForm.invalid">{{ 'SignIn' | translate }}</button>
         <div *ngIf="httpErrors && errors?.['general']">
           <p class="mt-5 mb-3 text-danger text-center">{{ errors['general'] }}</p>
         </div>
       </form>
       <span class="login-footer">
-        Need an account?
-        <a [routerLink]="['/register']" routerLinkActive="active">Sign up</a>
+        {{ 'NeedAccount' | translate }}
+        <a [routerLink]="['/register']" routerLinkActive="active">{{ 'SignUp' | translate }}</a>
       </span>
     </div>
   </div>

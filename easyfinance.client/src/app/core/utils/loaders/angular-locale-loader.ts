@@ -1,32 +1,20 @@
 import { registerLocaleData } from '@angular/common';
 import { GlobalService } from '../../services/global.service';
+import { TranslateService } from '@ngx-translate/core';
 
-export async function loadAngularLocale(globalService: GlobalService): Promise<void> {
+export async function loadAngularLocale(globalService: GlobalService, translate: TranslateService): Promise<void> {
+  translate.setDefaultLang('en');
   const locale = navigator.language || globalService.languageLoaded;
   try {
     globalService.languageLoaded = locale;
 
     switch (locale) {
-      case 'de':
-      case 'de-AT':
-      case 'de-DE':
-        const { default: de } = await import('@angular/common/locales/de');
-        registerLocaleData(de, 'de');
-        break;
-      case 'pl':
-        const { default: pl } = await import('@angular/common/locales/pl');
-        registerLocaleData(pl, 'pl');
-        break;
-      case 'fr':
-      case 'fr-FR':
-        const { default: fr } = await import('@angular/common/locales/fr');
-        registerLocaleData(fr, 'fr');
-        break;
       case 'pt':
       case 'pt-BR':
       case 'pt-PT':
         const { default: pt } = await import('@angular/common/locales/pt');
         registerLocaleData(pt, 'pt');
+        translate.use('pt');
         break;
       case 'en':
       case 'en-US':

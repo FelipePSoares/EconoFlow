@@ -4,7 +4,7 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { routes } from './app/features/app-routing.module';
 import { HttpRequestInterceptor } from './app/core/interceptor/http-request-interceptor';
 import { LoadingInterceptor } from './app/core/interceptor/loading.interceptor';
@@ -34,21 +34,37 @@ import { TransactionDto } from './app/features/project/models/transaction-dto';
 import { UserProject } from './app/core/models/user-project';
 import { UserProjectDto } from './app/features/project/models/user-project-dto';
 import { MatNativeDateModule } from '@angular/material/core';
+import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateHttpLoader } from './app/core/utils/loaders/translate-http-loader';
+import { Observable } from 'rxjs';
 
 bootstrapApplication(AppComponent, {
   providers: [
     CurrencyPipe,
     DecimalPipe,
-    provideAppInitializer(() => {
-        const initializerFn = (appInitializerFactory)(inject(GlobalService));
-        return initializerFn();
-      }),
+    GlobalService,
     provideAnimations(),
     provideRouter(routes, withComponentInputBinding()),
-    importProvidersFrom(MatNativeDateModule),
+    importProvidersFrom(
+      MatNativeDateModule,
+      TranslateModule.forRoot({
+        loader: {
+          provide: TranslateLoader,
+          useFactory: (http: HttpClient) => new TranslateHttpLoader(http),
+          deps: [HttpClient]
+        },
+        defaultLanguage: 'en'
+      })
+    ),
     provideHttpClient(
-      withInterceptors([HttpRequestInterceptor, LoadingInterceptor])), provideAnimationsAsync()],
-});
+      withInterceptors([
+        HttpRequestInterceptor,
+        LoadingInterceptor])
+    ),
+    provideAnimationsAsync(),
+    provideAppInitializer(appInitializerFactory())
+  ],
+}).catch(err => console.error(err));
 
 createMap(mapper, Project, ProjectDto);
 createMap(mapper, Income, IncomeDto);
@@ -58,9 +74,12 @@ createMap(mapper, ExpenseItem, ExpenseItemDto);
 createMap(mapper, Transaction, TransactionDto);
 createMap(mapper, UserProject, UserProjectDto);
 
-function appInitializerFactory(globalService: GlobalService): () => Promise<void> {
+function appInitializerFactory(): () => Promise<void> {
   return async () => {
-    await loadAngularLocale(globalService);
+    const translate = inject(TranslateService);
+    const globalService = inject(GlobalService);
+
+    await loadAngularLocale(globalService, translate);
     await loadMomentLocale(globalService.languageLoaded);
 
     const formatter = new Intl.NumberFormat(globalService.languageLoaded);

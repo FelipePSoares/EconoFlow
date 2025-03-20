@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { compare } from 'fast-json-patch';
 import { Router } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 import { ProjectService } from '../../../core/services/project.service';
 import { ProjectDto } from '../models/project-dto';
 import { ApiErrorResponse } from '../../../core/models/error';
@@ -24,7 +25,8 @@ import { CurrencyService } from '../../../core/services/currency.service';
     MatSelectModule,
     MatInputModule,
     MatButtonModule,
-    MatIconModule
+    MatIconModule,
+    TranslateModule
   ],
   templateUrl: './add-edit-project.component.html',
   styleUrl: './add-edit-project.component.css'

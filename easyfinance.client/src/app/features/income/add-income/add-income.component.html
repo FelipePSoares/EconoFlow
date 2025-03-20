@@ -7,7 +7,7 @@
         <mat-label>Name</mat-label>
         <input matInput id="name" placeholder="E.g., Salary, Side Job, Investment Returns" formControlName="name">
         @if (name?.invalid && name?.touched){
-        <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error }}</mat-error>
+        <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error |  translate }}</mat-error>
         }
       </mat-form-field>
 
@@ -18,7 +18,7 @@
         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
         <mat-datepicker #picker></mat-datepicker>
         @if (date?.invalid && date?.touched){
-        <mat-error *ngFor="let error of getFormFieldErrors('date')">{{ error }}</mat-error>
+        <mat-error *ngFor="let error of getFormFieldErrors('date')">{{ error |  translate }}</mat-error>
         }
       </mat-form-field>
 
@@ -32,7 +32,7 @@
           [options]="{ prefix: currencySymbol, allowNegative: false, thousands: thousandSeparator, decimal: decimalSeparator, precision: 2 }"
           formControlName="amount">
         @if (amount?.invalid && amount?.touched){
-        <mat-error *ngFor="let error of getFormFieldErrors('amount')">{{ error }}</mat-error>
+        <mat-error *ngFor="let error of getFormFieldErrors('amount')">{{ error |  translate }}</mat-error>
         }
       </mat-form-field>
 

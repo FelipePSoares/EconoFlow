@@ -10,7 +10,7 @@
                 formControlName="name"
                 [matAutocomplete]="auto" />
         @if (name?.invalid && name?.touched){
-        <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error }}</mat-error>
+        <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error |  translate }}</mat-error>
         }
 
         <mat-autocomplete #auto="matAutocomplete">

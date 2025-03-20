@@ -1,16 +1,17 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { UserService } from '../../../core/services/user.service';
 import { CommonModule } from '@angular/common';
 import { take } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatOptionModule } from '@angular/material/core';
+import { MatSelectModule } from '@angular/material/select';
+import { TranslateModule } from '@ngx-translate/core';
+import { UserService } from '../../../core/services/user.service';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
-import { MatSelectModule } from '@angular/material/select';
 
 @Component({
     selector: 'app-first-sign-in',
@@ -23,6 +24,7 @@ import { MatSelectModule } from '@angular/material/select';
         MatButtonModule,
         MatSelectModule,
         MatOptionModule,
+        TranslateModule
     ],
     templateUrl: './first-sign-in.component.html',
     styleUrls: ['./first-sign-in.component.css']

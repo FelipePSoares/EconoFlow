@@ -1,0 +1,19 @@
+{
+  "FieldEmailAddress": "Email address",
+  "FieldPassword": "Password",
+
+  "PlaceholderEmailAddress": "name@example.com",
+  "PlaceholderPassword": "Senha",
+
+  "RequiredField": "This field is required.",
+  "InvalidEmailFormat": "Invalid email format.",
+  "OnlyNumbersIsValid": "Only numbers is valid.",
+  "GenericError": "an error occours!",
+  "ValueShouldBeGreaterThan": "The value should be greater than {{value}}.",
+
+  "PleaseSignIn": "Please sign in",
+  "SignIn": "Sign in",
+  "SignUp": "Sign Up",
+  "ForgotPassword": "Forgot Password?",
+  "NeedAccount": "Need an account?"
+}
