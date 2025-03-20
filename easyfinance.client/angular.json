@@ -35,8 +35,7 @@
               "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
               "node_modules/moment/min/moment-with-locales.min.js"
             ],
-            "browser": "src/main.ts",
-            "localize": true
+            "browser": "src/main.ts"
           },
           "configurations": {
             "production": {
