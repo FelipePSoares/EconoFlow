@@ -2,7 +2,7 @@ Cypress.Commands.add('login', (username, password) => {
   cy.session(
     username,
     () => {
-      cy.intercept('POST', '/api/account/login?useCookies=true').as('postAccount')
+      cy.intercept('POST', '/api/account/login').as('postAccount')
       cy.visit('/login')
       cy.get('input[formControlName=email]').type(username)
       cy.get('input[formControlName=password]').type(`${password}{enter}`, { log: false })
@@ -11,7 +11,7 @@ Cypress.Commands.add('login', (username, password) => {
     },
     {
       validate: () => {
-        cy.getCookie('AuthCookie').should('exist')
+        expect(localStorage.getItem("token_data")).to.be.a("string");
       }
     }
   )

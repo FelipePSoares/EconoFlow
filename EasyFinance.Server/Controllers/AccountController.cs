@@ -78,13 +78,12 @@ namespace EasyFinance.Server.Controllers
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
             if (user == null)
-                BadRequest("User not found!");
+                return BadRequest("User not found!");
 
             user.SetFirstName(userDTO.FirstName);
             user.SetLastName(userDTO.LastName);
 
             await this.userManager.UpdateAsync(user);
-            await this.signInManager.RefreshSignInAsync(user);
 
             return Ok(new UserResponseDTO(user));
         }
@@ -108,7 +107,7 @@ namespace EasyFinance.Server.Controllers
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
             if (user == null)
-                BadRequest("User not found!");
+                return BadRequest("User not found!");
 
 #if DEBUG
             var secretKey = "DevSecret_SCXbtFO7XfcVWdBg4FsCwDz8u&D$Hp%$7Eo";
@@ -226,7 +225,7 @@ namespace EasyFinance.Server.Controllers
 
             var user = await this.userManager.GetUserAsync(principal);
 
-            if (user == null && !user.Enabled)
+            if (user == null || !user.Enabled)
                 return Unauthorized();
 
             if (!await this.userManager.VerifyUserTokenAsync(user, this.tokenProvider, this.tokenPurpose, request.RefreshToken))
