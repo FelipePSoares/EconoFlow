@@ -35,16 +35,12 @@ jobs:
       with:
         path: ./easyfinance.client/node_modules
         key: node-modules-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          node-modules-${{ runner.os }}-
             
     - name: Cache Cypress binary
       uses: actions/cache@v3
       with:
         path: ~/.cache/Cypress
         key: cypress-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          cypress-${{ runner.os }}-
 
     - name: Restore dependencies
       run: dotnet restore
@@ -73,8 +69,6 @@ jobs:
       with:
         path: ./easyfinance.client/node_modules
         key: node-modules-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          node-modules-${{ runner.os }}-
 
     - name: Run .Net tests
       run: dotnet test --configuration Release --verbosity normal --logger trx --collect:"XPlat Code Coverage"
@@ -118,16 +112,12 @@ jobs:
       with:
         path: ./easyfinance.client/node_modules
         key: node-modules-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          node-modules-${{ runner.os }}-
 
     - name: Cache Cypress binary
       uses: actions/cache@v3
       with:
         path: ~/.cache/Cypress
         key: cypress-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          cypress-${{ runner.os }}-
 
     - name: Build application
       run: dotnet build --configuration Debug

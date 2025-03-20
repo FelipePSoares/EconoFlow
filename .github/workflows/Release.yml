@@ -20,8 +20,6 @@ jobs:
         with:
           path: ./easyfinance.client/node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            node-modules-${{ runner.os }}-
 
       - name: Publish
         run: dotnet publish --configuration Release
