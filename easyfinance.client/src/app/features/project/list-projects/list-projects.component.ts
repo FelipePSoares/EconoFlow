@@ -1,16 +1,17 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { ProjectService } from '../../../core/services/project.service';
 import { BehaviorSubject, Observable, map } from 'rxjs';
-import { ProjectDto } from '../models/project-dto';
-import { mapper } from 'src/app/core/utils/mappings/mapper';
 import { Router } from '@angular/router';
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPlus, faEllipsis } from '@fortawesome/free-solid-svg-icons';
 import { UserService } from 'src/app/core/services/user.service';
 import { MatDialog } from '@angular/material/dialog';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { mapper } from 'src/app/core/utils/mappings/mapper';
+import { ProjectService } from '../../../core/services/project.service';
+import { ProjectDto } from '../models/project-dto';
+import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
 import { UserProject } from '../../../core/models/user-project';
 import { UserProjectDto } from '../models/user-project-dto';
@@ -23,6 +24,7 @@ import { Role } from '../../../core/enums/Role';
     AsyncPipe,
     MatGridListModule,
     FontAwesomeModule,
+    TranslateModule
   ],
   templateUrl: './list-projects.component.html',
   styleUrl: './list-projects.component.css'
@@ -36,7 +38,12 @@ export class ListProjectsComponent implements OnInit {
   faPlus = faPlus;
   faEllipsis = faEllipsis;
 
-  constructor(public projectService: ProjectService, private userService: UserService, private dialog: MatDialog, private router: Router) {
+  constructor(
+    private projectService: ProjectService,
+    private userService: UserService,
+    private dialog: MatDialog,
+    private router: Router,
+    private translateService: TranslateService) {
     this.defaultProjectId$ = userService.loggedUser$.pipe(map(user => user.defaultProjectId));
   }
 
@@ -61,7 +68,7 @@ export class ListProjectsComponent implements OnInit {
     this.dialog.open(PageModalComponent, {
       autoFocus: 'input',
       data: {
-        title: 'Create Project'
+        title: this.translateService.instant('CreateProject')
       }
     }).afterClosed().subscribe((result) => {
       if (result) {
@@ -82,7 +89,7 @@ export class ListProjectsComponent implements OnInit {
     this.dialog.open(PageModalComponent, {
       autoFocus: 'input',
       data: {
-        title: 'Manage Permission'
+        title: this.translateService.instant('ManageAccess')
       }
     }).afterClosed().subscribe();
   }
@@ -94,7 +101,7 @@ export class ListProjectsComponent implements OnInit {
     this.dialog.open(PageModalComponent, {
       autoFocus: 'input',
       data: {
-        title: 'Edit Project'
+        title: this.translateService.instant('EditProject')
       }
     }).afterClosed().subscribe((result) => {
       if (result) {

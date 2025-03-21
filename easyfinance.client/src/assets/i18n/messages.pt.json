@@ -2,9 +2,24 @@
   "FieldEmailAddress": "Endereço de email",
   "FieldPassword": "Senha",
   "FieldConfirmPassword": "Confirme a senha",
+  "FieldFirstName": "Primeiro Nome",
+  "FieldLastName": "Sobrenome",
 
   "PlaceholderEmailAddress": "nome@exemplo.com",
   "PlaceholderPassword": "Senha",
+  "PlaceholderFirstName": "João",
+  "PlaceholderLastName": "da Silva",
+
+  "ButtonSignIn": "Logar",
+  "ButtonSignUp": "Cadastrar",
+  "ButtonSignOut": "Deslogar",
+  "ButtonSend": "Enviar",
+  "ButtonSendInstructions": "Enviar instruções",
+  "ButtonResetPassword": "Redefenir senha",
+  "ButtonMyProfile": "Meu Perfil",
+  "ButtonEdit": "Editar Projeto",
+  "ButtonSetDefault": "Definir como Padrão",
+  "ButtonAccessControl": "Gerenciar Acessos",
 
   "RequiredField": "Este campo é obrigatório.",
   "InvalidEmailFormat": "Email com formato inválido.",
@@ -15,8 +30,7 @@
 
   "PleaseSignIn": "Realize o login",
   "PleaseSignUp": "Faça o cadastro",
-  "SignIn": "Logar",
-  "SignUp": "Cadastrar",
+  "PleaseTellUs": "Por favor, nos conte",
   "ForgotPassword": "Esqueceu a senha?",
   "NeedAccount": "Precisa de uma conta?",
   "AlreadyHaveAccount": "Já tem conta?",
@@ -28,11 +42,16 @@
   "EightCharacters": "Pelo menos 8 dígitos",
   "PasswordReset": "Redefinição de senha",
   "ResetPasswordInstructions": "Insira o e-mail associado à sua conta e enviaremos um e-mail com instruções para redefinir sua senha.",
-  "SendInstructions": "Enviar instruções",
   "CheckYourEmail": "Verifique seu email",
   "WeSentInstructions": "Enviamos instruções de recuperação de senha para seu e-mail.",
+  "WeWantCallYourName": "Nós queremos lhe chamar pelo nome",
   "DidNotReceiveEmail": "Não recebeu o email? Verifique a pasta de Spam, ou",
   "TryAnotherEmail": "tente outro email.",
   "CreateNewPassword": "Criar nova senha",
-  "ResetPassword": "Redefenir senha"
+  "Greet": "Olá",
+  "ProjectOverview": "Visão Geral",
+  "Projects": "Projetos",
+  "CreateProject": "Criar Projeto",
+  "ManageAccess": "Gerenciar Acessos",
+  "EditProject": "Editar Projeto"
 }

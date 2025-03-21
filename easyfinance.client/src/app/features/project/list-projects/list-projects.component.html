@@ -14,12 +14,12 @@
                   <fa-icon [icon]="faEllipsis"></fa-icon>
                 </button>
                 <ul class="dropdown-menu">
-                  <li><button type="button" class="edit dropdown-item" (click)="edit(userProject.project)">Edit</button></li>
+                  <li><button type="button" class="edit dropdown-item" (click)="edit(userProject.project)">{{ 'ButtonEdit' | translate }}</button></li>
                   @if (userProject?.project?.id && (defaultProjectId$ | async) != userProject.project.id){
-                  <li><button type="button" class="dropdown-item" (click)="setAsDefault(userProject.project)">Set as Default</button></li>
+                  <li><button type="button" class="dropdown-item" (click)="setAsDefault(userProject.project)">{{ 'ButtonSetDefault' | translate }}</button></li>
                   }
                   @if (isAdmin(userProject)){
-                  <li><button type="button" class="dropdown-item" (click)="managePermission(userProject.project)">Access Control</button></li>
+                  <li><button type="button" class="dropdown-item" (click)="managePermission(userProject.project)">{{ 'ButtonAccessControl' | translate }}</button></li>
                   }
                 </ul>
               </div>

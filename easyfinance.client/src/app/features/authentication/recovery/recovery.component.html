@@ -16,7 +16,7 @@
           }
         </mat-form-field>
 
-        <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="recoveryForm.invalid">{{ 'SendInstructions' | translate }}</button>
+        <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="recoveryForm.invalid">{{ 'ButtonSendInstructions' | translate }}</button>
         <div *ngIf="httpErrors && errors?.['general']">
           <p class="mb-3 text-danger text-center">{{errors['general']}}</p>
         </div>
@@ -61,7 +61,7 @@
         <div *ngIf="resetPasswordForm.errors?.['passwordMismatch'] && (resetPasswordForm.touched || resetPasswordForm.dirty)">
           <p class="mb-3 text-danger text-center">{{ 'PasswordMustMatch' | translate }}</p>
         </div>
-        <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="resetPasswordForm.invalid">{{ 'ResetPassword' | translate }}</button>
+        <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="resetPasswordForm.invalid">{{ 'ButtonResetPassword' | translate }}</button>
         <div *ngIf="httpErrors && errors?.['general']">
           <p class="mb-3 text-danger text-center">{{errors['general']}}</p>
         </div>

@@ -61,11 +61,11 @@
           <p class="mb-3 text-danger text-center">{{errors['general']}}
           </p>
         </div>
-        <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="registerForm.invalid">{{ 'SignUp' | translate }}</button>
+        <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="registerForm.invalid">{{ 'ButtonSignUp' | translate }}</button>
       </form>
       <span class="register-footer">
         {{ 'AlreadyHaveAccount' | translate }}
-        <a [routerLink]="['/login']" routerLinkActive="active">{{ 'SignIn' | translate }}</a>
+        <a [routerLink]="['/login']" routerLinkActive="active">{{ 'ButtonSignIn' | translate }}</a>
       </span>
     </div>
   </div>

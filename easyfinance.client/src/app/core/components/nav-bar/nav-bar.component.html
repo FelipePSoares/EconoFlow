@@ -19,21 +19,23 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
-          <a [routerLink]="defaultLink" class="nav-link">Home</a>
+          <a [routerLink]="['/projects']" class="nav-link">{{ 'Projects' | translate }}</a>
         </li>
+        @if (defaultLink) {
         <li class="nav-item">
-          <a [routerLink]="['/projects']" class="nav-link">Projects</a>
+          <a [routerLink]="defaultLink" class="nav-link">{{ 'ProjectOverview' | translate }}</a>
         </li>
+        }
       </ul>
       <ul class="navbar-nav ms-auto">
         <li class="nav-item dropdown">
           <button class="nav-link dropdown-toggle" type="button" id="dropdownMenuProfile" data-bs-toggle="dropdown" aria-expanded="false">
-            Hi, {{ firstName$ | async }} {{ lastName$ | async }}
+            {{ 'Greet' | translate }}, {{ firstName$ | async }} {{ lastName$ | async }}
           </button>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-            <li><a class="dropdown-item btn-default" [routerLink]="['/user']">My Profile</a></li>
+            <li><a class="dropdown-item btn-default" [routerLink]="['/user']">{{ 'ButtonMyProfile' | translate }}</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item btn-default" [routerLink]="['/logout']">Sign out</a></li>
+            <li><a class="dropdown-item btn-default" [routerLink]="['/logout']">{{ 'ButtonSignOut' | translate }}</a></li>
           </ul>
         </li>
       </ul>
