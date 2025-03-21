@@ -14,7 +14,7 @@
               <!-- First Name Field -->
               <mat-form-field appearance="fill" class="w-100">
                 <mat-label>{{ 'FieldFirstName' |  translate }}</mat-label>
-                <input matInput [attr.placeholder]="'PlaceholderFirstName' | translate" formControlName="firstName">
+                <input matInput placeholder="{{ 'PlaceholderFirstName' | translate }}" formControlName="firstName">
                 @if (firstName?.invalid && firstName?.touched){
                 <mat-error *ngFor="let error of getFormFieldErrors('firstName')">{{ error |  translate }}</mat-error>
                 }
@@ -23,7 +23,7 @@
               <!-- Last Name Field -->
               <mat-form-field appearance="fill" class="w-100">
                 <mat-label>{{ 'FieldLastName' |  translate }}</mat-label>
-                <input matInput [attr.placeholder]="'PlaceholderLastName' | translate" formControlName="lastName">
+                <input matInput placeholder="{{ 'PlaceholderLastName' | translate }}" formControlName="lastName">
                 @if (lastName?.invalid && lastName?.touched){
                 <mat-error *ngFor="let error of getFormFieldErrors('lastName')">{{ error |  translate }}</mat-error>
                 }

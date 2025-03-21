@@ -4,8 +4,8 @@
 
       <!-- Name Field -->
       <mat-form-field appearance="fill" class="w-100">
-        <mat-label>Name</mat-label>
-        <input matInput id="name" placeholder="E.g., Family, Econoflow" formControlName="name">
+        <mat-label>{{ 'FieldProjectName' | translate }}</mat-label>
+        <input matInput id="name" placeholder="{{ 'PlaceholderProjectName' | translate }}" formControlName="name">
         @if (name?.invalid && name?.touched){
         <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error |  translate }}</mat-error>
         }
@@ -13,7 +13,7 @@
 
       <!-- Preferred Currency Field -->
       <mat-form-field appearance="fill" class="w-100">
-        <mat-label>Preferred Currency</mat-label>
+        <mat-label>{{ 'FieldCurrency' | translate }}</mat-label>
         <mat-select formControlName="preferredCurrency">
           @for (currency of getCurrencies(); track currency) {
           <mat-option [value]="currency">{{currency}}</mat-option>
@@ -22,6 +22,9 @@
           <mat-error *ngFor="let error of getFormFieldErrors('preferredCurrency')">{{ error |  translate }}</mat-error>
           }
         </mat-select>
+        @if (preferredCurrency?.invalid && preferredCurrency?.touched){
+        <mat-error *ngFor="let error of getFormFieldErrors('preferredCurrency')">{{ error |  translate }}</mat-error>
+        }
       </mat-form-field>
 
       <!-- General Error Display -->
@@ -32,7 +35,7 @@
       <!-- Submit Button -->
       <div class="float-end">
         <button mat-raised-button color="primary" type="submit" [disabled]="projectForm.invalid">
-          {{ editingProject.id ? 'Update' : 'Create' }}
+          {{ (editingProject.id ? 'ButtonUpdate' : 'ButtonCreate') | translate }}
         </button>
       </div>
     </form>

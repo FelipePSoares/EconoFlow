@@ -10,9 +10,9 @@
       <div class="d-flex pe-3 mt-2 border-end">
         <div class="card" style="min-width: 100px" (click)="selectIncomes()">
           <div class="card-body">
-            <h3>Total Income</h3>
-            <div class="clearfix mt-1">
-              <span class="success">
+            <h3 class="card-title">Total Income</h3>
+            <div class="clearfix">
+              <span class="card-value success">
                 {{ month.earned | currencyFormat: true }}
               </span>
             </div>
@@ -25,19 +25,19 @@
           <li class="slide me-1">
             <div class="card" (click)="selectCategory(category.id)">
               <div class="card-body">
-                <h3>{{ category.name }}</h3>
-                <div class="clearfix mt-1">
-                  <span class="danger">
-                    {{ (category.getTotalSpend() + category.getTotalOverspend()) * -1 | currencyFormat: true }}
-                  </span><br />
+                <h3 class="card-title">{{ category.name }}</h3>
+                <div class="clearfix">
+                  <span class="card-value danger d-block">
+                    {{ (category.getTotalSpend() + category.getTotalOverspend()) | currencyFormat: true }}
+                  </span>
                   @if(!category.hasBudget()){
-                  <span>set a budget</span>
+                  <span class="card-small-text">set a budget</span>
                   } @else if (category.hasOverspend()){
-                  <span class="danger">
+                  <span class="card-small-text danger">
                     budget exceeded
                   </span>
                   } @else {
-                  <span [ngClass]="getClassBasedOnCategory(category)">
+                  <span class="card-small-text" [ngClass]="getClassBasedOnCategory(category)">
                     {{ category.getTotalRemaining() | currencyFormat: true }} remaining
                   </span>
                   }

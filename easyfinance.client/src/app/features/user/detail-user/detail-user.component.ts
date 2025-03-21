@@ -105,12 +105,9 @@ export class DetailUserComponent implements OnInit {
 
   resetPasswordForm() {
     this.passwordForm = new FormGroup({
-      oldPassword: new FormControl('', []),
-      password: new FormControl('', [
-        (control: AbstractControl): ValidationErrors | null => 
-          control.value ? Validators.pattern(/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_])(?!.* ).{8,}$/)(control) : null
-      ]),
-      confirmPassword: new FormControl('', [])
+      oldPassword: new FormControl('', [Validators.required]),
+      password: new FormControl('', [Validators.required, Validators.pattern(/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_])(?!.* ).{8,}$/)]),
+      confirmPassword: new FormControl('', [Validators.required])
     }, { validators: passwordMatchValidator });
 
     this.passwordForm.valueChanges.subscribe(value => {

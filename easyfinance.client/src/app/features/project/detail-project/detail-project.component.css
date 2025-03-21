@@ -43,6 +43,28 @@
   height: 100px;
 }
 
+  .card.btn-add .card-body {
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+  }
+
 .card-body {
+  text-align: start;
+  align-items: start;
+  justify-content: start;
   color: #000;
+}
+
+.card-title{
+  margin-bottom: 20px;
+}
+
+.card-value {
+  font-size: 18px;
+  margin-bottom: -5px;
+}
+
+.card-small-text {
+    font-size: 11px;
 }

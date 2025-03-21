@@ -4,9 +4,9 @@
 
       <!-- User Input with Autocomplete -->
       <mat-form-field appearance="fill" class="w-100">
-        <mat-label>User Email</mat-label>
+        <mat-label>{{ 'FieldUserEmail' | translate }}</mat-label>
         <input matInput
-               placeholder="user@provider.com"
+               placeholder="{{ 'PlaceholderEmailAddress' | translate }}"
                id="user"
                formControlName="user"
                [matAutocomplete]="auto" />
@@ -23,9 +23,9 @@
 
       <!-- Role Input -->
       <mat-form-field appearance="fill" class="w-100">
-        <mat-label>Role</mat-label>
+        <mat-label>{{ 'FieldRole' | translate }}</mat-label>
         <mat-select formControlName="role">
-          <mat-option *ngFor="let role of roles" [value]="role">{{ role2LabelMapping[role] }}</mat-option>
+          <mat-option *ngFor="let role of roles" [value]="role">{{ role2LabelMapping[role] | translate }}</mat-option>
         </mat-select>
         <mat-error *ngIf="role?.invalid && role?.touched">
           <span *ngFor="let error of getFormFieldErrors('role')">{{ error |  translate }}</span>
@@ -40,19 +40,20 @@
       <!-- Submit Button -->
       <div class="float-end">
         <button mat-raised-button color="primary" type="submit" [disabled]="accessForm.invalid">
-          Invite
+          {{ 'ButtonInvite' | translate }}
         </button>
       </div>
     </form>
   </div>
+  <hr />
   <div class="list-users table-responsive" style="max-width: 100%; overflow-x: auto;">
     <table class="table table-striped" style="min-width: 100%; width: auto;">
       <thead>
         <tr>
-          <th>User</th>
-          <th>Role</th>
-          <th class="d-none d-sm-table-cell">Accepted</th>
-          <th>Actions</th>
+          <th>{{ 'User' | translate }}</th>
+          <th>{{ 'Role' | translate }}</th>
+          <th class="d-none d-sm-table-cell">{{ 'Accepted' | translate }}</th>
+          <th>{{ 'Actions' | translate }}</th>
         </tr>
       </thead>
       <tbody>
@@ -64,13 +65,12 @@
           }
           <td>
             <mat-form-field appearance="outline" style="max-width: 115px; width: 100%;">
-              <mat-label>Role</mat-label>
               <mat-select [(ngModel)]="user.role" (selectionChange)="updateUserRole()">
-                <mat-option *ngFor="let role of roles" [value]="role2LabelMapping[role]">{{ role2LabelMapping[role] }}</mat-option>
+                <mat-option *ngFor="let role of roles" [value]="role">{{ role2LabelMapping[role] | translate }}</mat-option>
               </mat-select>
             </mat-form-field>
           </td>
-          <td class="d-none d-sm-table-cell">{{ user.accepted ? 'Yes' : 'No' }}</td>
+          <td class="d-none d-sm-table-cell">{{ (user.accepted ? 'Yes' : 'No') | translate }}</td>
           <td>
             <button mat-icon-button color="warn" (click)="removeUser(user.id)">
               <mat-icon>delete</mat-icon>

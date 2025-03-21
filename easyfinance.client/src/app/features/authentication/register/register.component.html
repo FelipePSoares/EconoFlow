@@ -17,7 +17,7 @@
 
         <mat-form-field class="mb-2" [style.width.%]="100">
           <mat-label>{{ 'FieldEmailAddress' | translate }}</mat-label>
-          <input [attr.placeholder]="'PlaceholderEmailAddress' | translate" matInput formControlName="email">
+          <input placeholder="{{ 'PlaceholderEmailAddress' | translate }}" matInput formControlName="email">
           @if ((email?.invalid && email?.touched) || httpErrors){
           <mat-error *ngFor="let error of getFormFieldErrors('email')">{{ error |  translate }}</mat-error>
           }
@@ -25,7 +25,7 @@
 
         <mat-form-field class="mb-2" [style.width.%]="100">
           <mat-label>{{ 'FieldPassword' | translate }}</mat-label>
-          <input [attr.placeholder]="'PlaceholderPassword' | translate" matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'">
+          <input placeholder="{{ 'PlaceholderPassword' | translate }}" matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'">
           <mat-icon matSuffix (click)="hidePassword = !hidePassword">{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
           @if ((password?.invalid && password?.touched) || httpErrors){
           <mat-error *ngFor="let error of getFormFieldErrors('password')">{{ error | translate }}</mat-error>
@@ -47,7 +47,7 @@
 
         <mat-form-field class="mb-2" [style.width.%]="100">
           <mat-label>{{ 'FieldConfirmPassword' | translate }}</mat-label>
-          <input [attr.placeholder]="'PlaceholderPassword' | translate" matInput formControlName="confirmPassword" [type]="hideConfirmPassword ? 'password' : 'text'">
+          <input placeholder="{{ 'PlaceholderPassword' | translate }}" matInput formControlName="confirmPassword" [type]="hideConfirmPassword ? 'password' : 'text'">
           <mat-icon matSuffix (click)="hideConfirmPassword = !hideConfirmPassword">{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
           @if ((confirmPassword?.invalid && confirmPassword?.touched) || httpErrors){
           <mat-error *ngFor="let error of getFormFieldErrors('confirmPassword')">{{ error | translate }}</mat-error>

@@ -8,7 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { compare } from 'fast-json-patch';
 import { Router } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ProjectService } from '../../../core/services/project.service';
 import { ProjectDto } from '../models/project-dto';
 import { ApiErrorResponse } from '../../../core/models/error';
@@ -37,7 +37,11 @@ export class AddEditProjectComponent implements OnInit {
   errors!: { [key: string]: string };
   editingProject!: ProjectDto;
 
-  constructor(private projectService: ProjectService, private currencyService: CurrencyService, private router: Router, private errorMessageService: ErrorMessageService) { }
+  constructor(
+    private projectService: ProjectService,
+    private currencyService: CurrencyService,
+    private router: Router,
+    private errorMessageService: ErrorMessageService) { }
 
   ngOnInit(): void {
     this.editingProject = this.projectService.getEditingProject();
