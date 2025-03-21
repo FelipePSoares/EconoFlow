@@ -1,6 +1,7 @@
 {
   "FieldEmailAddress": "Email address",
   "FieldPassword": "Password",
+  "FieldConfirmPassword": "Confirm Password",
 
   "PlaceholderEmailAddress": "name@example.com",
   "PlaceholderPassword": "Senha",
@@ -10,10 +11,19 @@
   "OnlyNumbersIsValid": "Only numbers is valid.",
   "GenericError": "an error occours!",
   "ValueShouldBeGreaterThan": "The value should be greater than {{value}}.",
+  "PasswordMustMatch": "Password must match",
 
-  "PleaseSignIn": "Please sign in",
+  "PleaseSignIn": "Please Sign In",
+  "PleaseSignUp": "Please Sign Up",
   "SignIn": "Sign in",
   "SignUp": "Sign Up",
   "ForgotPassword": "Forgot Password?",
-  "NeedAccount": "Need an account?"
+  "NeedAccount": "Need an account?",
+  "AlreadyHaveAccount": "Already have an account?",
+  "PasswordMustHave": "Password must have:",
+  "OneLowercaseCharacter": "One lowercase character",
+  "OneUppercaseCharacter": "One uppercase character",
+  "OneNumber": "One number",
+  "OneSpecialCharacter": "One special character",
+  "EightCharacters": "minimum eight characters"
 }

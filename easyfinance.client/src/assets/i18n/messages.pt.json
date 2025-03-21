@@ -1,6 +1,7 @@
 {
   "FieldEmailAddress": "Endereço de email",
   "FieldPassword": "Senha",
+  "FieldConfirmPassword": "Confirme a senha",
 
   "PlaceholderEmailAddress": "nome@exemplo.com",
   "PlaceholderPassword": "Senha",
@@ -10,10 +11,19 @@
   "OnlyNumbersIsValid": "Apenas números são aceitos.",
   "GenericError": "Ocorreu um erro!",
   "ValueShouldBeGreaterThan": "O valor deve ser maior que {{value}}",
+  "PasswordMustMatch": "As senhas devem ser iguais.",
 
-  "PleaseSignIn": "Logue por favor",
+  "PleaseSignIn": "Realize o login",
+  "PleaseSignUp": "Faça o cadastro",
   "SignIn": "Logar",
   "SignUp": "Cadastrar",
   "ForgotPassword": "Esqueceu a senha?",
-  "NeedAccount": "Precisa de uma conta?"
+  "NeedAccount": "Precisa de uma conta?",
+  "AlreadyHaveAccount": "Já tem conta?",
+  "PasswordMustHave": "A senha deve ter:",
+  "OneLowercaseCharacter": "Pelo menos uma letra minuscula",
+  "OneUppercaseCharacter": "Pelo menos uma letra maiscula",
+  "OneNumber": "Pelo menos um número",
+  "OneSpecialCharacter": "Pelo menos um caracter especial",
+  "EightCharacters": "Pelo menos 8 dígitos"
 }

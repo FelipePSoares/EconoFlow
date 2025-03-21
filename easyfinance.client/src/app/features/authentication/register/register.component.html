@@ -12,61 +12,60 @@
       </span>
       <form class="register-form" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
         <div class="form-floating mb-1">
-          <p>Please sign up</p>
+          <p>{{ 'PleaseSignUp' | translate }}</p>
         </div>
 
         <mat-form-field class="mb-2" [style.width.%]="100">
-          <mat-label>Email address</mat-label>
-          <input placeholder="name@example.com" matInput formControlName="email">
+          <mat-label>{{ 'FieldEmailAddress' | translate }}</mat-label>
+          <input [attr.placeholder]="'PlaceholderEmailAddress' | translate" matInput formControlName="email">
           @if ((email?.invalid && email?.touched) || httpErrors){
           <mat-error *ngFor="let error of getFormFieldErrors('email')">{{ error |  translate }}</mat-error>
           }
         </mat-form-field>
 
         <mat-form-field class="mb-2" [style.width.%]="100">
-          <mat-label>Password</mat-label>
-          <input placeholder="Password" matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'">
+          <mat-label>{{ 'FieldPassword' | translate }}</mat-label>
+          <input [attr.placeholder]="'PlaceholderPassword' | translate" matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'">
           <mat-icon matSuffix (click)="hidePassword = !hidePassword">{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          @if ((password?.invalid && password?.touched) || httpErrors){
+          <mat-error *ngFor="let error of getFormFieldErrors('password')">{{ error | translate }}</mat-error>
+          }
         </mat-form-field>
-        <div *ngIf="password?.invalid && password?.touched">
-          <ul>
-            <li *ngFor="let error of getFormFieldErrors('password')" class="text-danger" [innerHtml]="error"></li>
-          </ul>
-        </div>
 
         <div class="row g-2 mb-2">
           <div class="col-md">
-            Password must have:
-              <ul>
-                <li [style.color]="hasLowerCase ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">One lowercase character</li>
-                <li [style.color]="hasUpperCase ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">One uppercase character</li>
-                <li [style.color]="hasOneNumber ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">One number</li>
-                <li [style.color]="hasOneSpecial ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">One special character</li>
-                <li [style.color]="hasMinCharacteres ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">8 characters minimum</li>
-              </ul>
+            {{ 'PasswordMustHave' | translate }}
+            <ul>
+              <li [style.color]="hasLowerCase ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">{{ 'OneLowercaseCharacter' | translate }}</li>
+              <li [style.color]="hasUpperCase ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">{{ 'OneUppercaseCharacter' | translate }}</li>
+              <li [style.color]="hasOneNumber ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">{{ 'OneNumber' | translate }}</li>
+              <li [style.color]="hasOneSpecial ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">{{ 'OneSpecialCharacter' | translate }}</li>
+              <li [style.color]="hasMinCharacteres ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">{{ 'EightCharacters' | translate }}</li>
+            </ul>
           </div>
         </div>
 
         <mat-form-field class="mb-2" [style.width.%]="100">
-          <mat-label>Confirm Password</mat-label>
-          <input placeholder="Password" matInput formControlName="confirmPassword" [type]="hideConfirmPassword ? 'password' : 'text'">
+          <mat-label>{{ 'FieldConfirmPassword' | translate }}</mat-label>
+          <input [attr.placeholder]="'PlaceholderPassword' | translate" matInput formControlName="confirmPassword" [type]="hideConfirmPassword ? 'password' : 'text'">
           <mat-icon matSuffix (click)="hideConfirmPassword = !hideConfirmPassword">{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
           @if ((confirmPassword?.invalid && confirmPassword?.touched) || httpErrors){
-          <mat-error *ngFor="let error of getFormFieldErrors('confirmPassword')">{{ error |  translate }}</mat-error>
+          <mat-error *ngFor="let error of getFormFieldErrors('confirmPassword')">{{ error | translate }}</mat-error>
           }
         </mat-form-field>
 
         <div *ngIf="registerForm.errors?.['passwordMismatch'] && (registerForm.touched || registerForm.dirty)">
-          <p class="mb-3 text-danger text-center">Password must match</p>
+          <p class="mb-3 text-danger text-center">{{ 'PasswordMustMatch' | translate }}</p>
         </div>
         <div *ngIf="httpErrors && errors?.['general']">
-          <p class="mb-3 text-danger text-center">{{errors['general']}}</p>
+          <p class="mb-3 text-danger text-center">{{errors['general']}}
+          </p>
         </div>
-        <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="registerForm.invalid">Sign up</button>
+        <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="registerForm.invalid">{{ 'SignUp' | translate }}</button>
       </form>
       <span class="register-footer">
-        Already have an account?
-        <a [routerLink]="['/login']" routerLinkActive="active">Sign in</a>
+        {{ 'AlreadyHaveAccount' | translate }}
+        <a [routerLink]="['/login']" routerLinkActive="active">{{ 'SignIn' | translate }}</a>
       </span>
     </div>
   </div>
