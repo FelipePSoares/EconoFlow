@@ -108,14 +108,11 @@ export class AddExpenseItemComponent implements OnInit {
       let name = this.name?.value;
       let date = this.date?.value.toISOString().split("T")[0];
       let amount = this.amount?.value;
-      if (isNaN(amount)) {
-        amount = this.amount?.value.replace('.', '')?.replace(',', '.');
-      }
 
       var newExpenseItem = <ExpenseItemDto>({
         name: name,
         date: date,
-        amount: amount === "" ? 0 : amount,
+        amount: amount === "" || amount === null ? 0 : amount,
       });
 
       let newExpense = structuredClone(this.expense)
@@ -139,26 +136,6 @@ export class AddExpenseItemComponent implements OnInit {
   }
 
   getFormFieldErrors(fieldName: string): string[] {
-    const control = this.expenseItemForm.get(fieldName);
-    const errors: string[] = [];
-
-    if (control && control.errors) {
-      for (const key in control.errors) {
-        if (control.errors.hasOwnProperty(key)) {
-          switch (key) {
-            case 'required':
-              errors.push('This field is required.');
-              break;
-            case 'min':
-              errors.push(`The value should be greater than ${control.errors[key].min}.`);
-              break;
-            default:
-              errors.push(control.errors[key]);
-          }
-        }
-      }
-    }
-
-    return errors;
+    return this.errorMessageService.getFormFieldErrors(this.expenseItemForm, fieldName);
   }
 }

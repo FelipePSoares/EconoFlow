@@ -5,13 +5,13 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router } from '@angular/router';
 import { compare } from 'fast-json-patch';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPenToSquare, faTrash, faFloppyDisk, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faPenToSquare, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { MatError, MatFormField, MatInput, MatLabel, MatSuffix } from '@angular/material/input';
 import { MatButton } from '@angular/material/button';
 import { MatDatepicker, MatDatepickerInput, MatDatepickerToggle } from "@angular/material/datepicker";
 import { CurrencyMaskModule } from 'ng2-currency-mask';
 import { MatDialog } from '@angular/material/dialog';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ExpenseItemDto } from '../models/expense-item-dto';
 import { ExpenseService } from '../../../core/services/expense.service';
 import { mapper } from '../../../core/utils/mappings/mapper';
@@ -62,13 +62,15 @@ export class ListExpenseItemsComponent implements OnInit {
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
 
   faPenToSquare = faPenToSquare;
-  faFloppyDisk = faFloppyDisk;
   faTrash = faTrash;
   faPlus = faPlus;
 
   private _expenseId!: string;
+
   private expense: BehaviorSubject<ExpenseDto> = new BehaviorSubject<ExpenseDto>(new ExpenseDto());
   expense$: Observable<ExpenseDto> = this.expense.asObservable();
+  expenseName$: Observable<string> = this.expense.asObservable().pipe(map(e => e.name));
+
   expenseItemForm!: FormGroup;
   editingExpenseItem: ExpenseItemDto = new ExpenseItemDto();
   itemToDelete!: string;
@@ -104,7 +106,8 @@ export class ListExpenseItemsComponent implements OnInit {
     private errorMessageService: ErrorMessageService,
     private globalService: GlobalService,
     private dialog: MatDialog,
-    private projectService: ProjectService
+    private projectService: ProjectService,
+    private translateService: TranslateService
   ) {
     this.thousandSeparator = this.globalService.groupSeparator;
     this.decimalSeparator = this.globalService.decimalSeparator;
@@ -168,7 +171,7 @@ export class ListExpenseItemsComponent implements OnInit {
         if (expenseItem.id == id) {
           expenseItem.name = name;
           expenseItem.date = date;
-          expenseItem.amount = amount;
+          expenseItem.amount = amount === "" || amount === null ? 0 : amount;
         }
       })
 
@@ -219,7 +222,7 @@ export class ListExpenseItemsComponent implements OnInit {
     this.dialog.open(PageModalComponent, {
       autoFocus: 'input',
       data: {
-        title: 'Create Expense Item'
+        title: this.translateService.instant('CreateExpense')
       }
     }).afterClosed().subscribe((result) => {
       if (result) {
@@ -251,7 +254,7 @@ export class ListExpenseItemsComponent implements OnInit {
 
   triggerDelete(itemId: string): void {
     this.itemToDelete = itemId;
-    this.ConfirmDialog.openModal('Delete Item', 'Are you sure you want to delete this item?', 'Delete');
+    this.ConfirmDialog.openModal(this.translateService.instant('DeleteExpense'), this.translateService.instant('AreYouSureYouWantDeleteThisExpense'), 'ButtonDelete');
   }
 
   handleConfirmation(result: boolean): void {

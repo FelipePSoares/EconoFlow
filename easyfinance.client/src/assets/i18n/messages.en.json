@@ -14,6 +14,9 @@
   "FieldIncomeName": "Income Name",
   "FieldDate": "Date",
   "FieldAmount": "Amount",
+  "FieldCategoryName": "Category Name",
+  "FieldExpenseName": "Expense Name",
+  "FieldBudget": "Budget",
 
   "PlaceholderEmailAddress": "name@example.com",
   "PlaceholderPassword": "Password",
@@ -23,6 +26,7 @@
   "PlaceholderLastName": "Smith",
   "PlaceholderProjectName": "E.g., Personal, Family, Econoflow",
   "PlaceholderIncomeName": "E.g., Salary, Side Job, Investment Returns",
+  "PlaceholderExpenseName": "E.g., Rent, Grocery Shopping, Internet Bill",
 
   "ButtonSignIn": "Sign in",
   "ButtonSignUp": "Sign Up",
@@ -111,5 +115,9 @@
   "Incomes": "Incomes",
   "DeleteIncome": "Delete Income",
   "AreYouSureYouWantDeleteThisIncome": "Are you sure you want to delete this income?",
-  "CreateIncome": "Create Income"
+  "CreateIncome": "Create Income",
+  "CreateExpenseCategory": "Create Expense Category",
+  "DeleteExpense": "Delete Expense",
+  "AreYouSureYouWantDeleteThisExpense": "Are you sure you want to delete this expense?",
+  "CreateExpense": "Create Expense"
 }

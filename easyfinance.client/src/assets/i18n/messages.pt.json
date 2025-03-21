@@ -14,6 +14,9 @@
   "FieldIncomeName": "Nome da Renda",
   "FieldDate": "Data",
   "FieldAmount": "Valor",
+  "FieldCategoryName": "Nome da Categoria",
+  "FieldExpenseName": "Nome da Despesa",
+  "FieldBudget": "Orçamento",
 
   "PlaceholderEmailAddress": "nome@exemplo.com",
   "PlaceholderPassword": "Senha",
@@ -23,6 +26,7 @@
   "PlaceholderLastName": "da Silva",
   "PlaceholderProjectName": "Ex: Pessoal, Famíliar, Econoflow",
   "PlaceholderIncomeName": "Ex: Salário, Retorno Investimentos, Renda Extra",
+  "PlaceholderExpenseName": "Ex: Aluguel, Mercado, Internet",
 
   "ButtonSignIn": "Logar",
   "ButtonSignUp": "Cadastrar",
@@ -111,5 +115,9 @@
   "Incomes": "Rendas",
   "DeleteIncome": "Deletar Renda",
   "AreYouSureYouWantDeleteThisIncome": "Você tem certeza que quer deletar essa renda?",
-  "CreateIncome": "Criar Renda"
+  "CreateIncome": "Criar Renda",
+  "CreateExpenseCategory": "Criar Categoria de Despesa",
+  "DeleteExpense": "Deletar Despesa",
+  "AreYouSureYouWantDeleteThisExpense": "Você tem certeza que quer deletar essa despesa?",
+  "CreateExpense": "Criar Despesa"
 }

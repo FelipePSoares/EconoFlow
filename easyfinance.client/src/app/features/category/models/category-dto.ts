@@ -25,7 +25,7 @@ export class CategoryDto {
   }
 
   public getTotalSpend(): number {
-    return (this.expenses?.reduce((sum, current) => sum + current.amount, 0) ?? 0) - this.getTotalOverspend();
+    return (this.expenses?.reduce((sum, current) => sum + current.getSpend(), 0) ?? 0);
   }
 
   public getTotalBudget(): number {
@@ -33,14 +33,11 @@ export class CategoryDto {
   }
 
   public getTotalOverspend(): number {
-    return this.expenses?.map(e => {
-      let overspend = e.budget - e.amount;
-      return overspend < 0 ? overspend * -1 : 0;
-    }).reduce((sum, current) => sum + current, 0) ?? 0;
+    return this.expenses?.reduce((sum, current) => sum + current.getOverspend(), 0) ?? 0;
   }
 
   public getTotalRemaining(): number {
-    return this.getTotalBudget() - this.getTotalSpend();
+    return this.expenses?.reduce((sum, current) => sum + current.getRemaining(), 0) ?? 0;
   }
 
   public getPercentageSpend(): number | undefined {

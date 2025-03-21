@@ -15,15 +15,16 @@ export class ExpenseDto {
   @AutoMap(() => [ExpenseItemDto])
   items!: ExpenseItemDto[];
 
-  public getTotalAmount(): number {
-    if (this.items?.length > 0) {
-      return this.items.reduce((sum, current) => sum + current.getTotalAmount(), 0);
-    }
-
-    return this.amount;
+  public getSpend(): number {
+    return this.amount - this.getOverspend();
   }
 
-  public getPercentageWaste(): number {
-    return this.getTotalAmount() * 100 / this.budget;
+  public getOverspend(): number {
+    const overspend = this.amount - this.budget;
+    return overspend > 0 ? overspend : 0;
+  }
+
+  public getRemaining(): number {
+    return this.budget - this.getSpend();
   }
 }

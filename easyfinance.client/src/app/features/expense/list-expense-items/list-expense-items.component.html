@@ -11,7 +11,7 @@
 
           <!-- Centered title -->
           <div class="col text-center mt-3 mb-3">
-            <h2>Expense Items</h2>
+            <h2>{{ expenseName$ | async }}</h2>
           </div>
         </div>
       </div>
@@ -25,8 +25,8 @@
               <div>
                 <h3 class="mb-1 name">{{ expenseItem.name }}</h3>
                 <p class="mb-1 info">
-                  date: {{ expenseItem.date | date: 'dd/MM/yyyy' }}
-                  amount: {{ expenseItem.getTotalAmount() | currencyFormat }}
+                  {{ 'FieldDate' | translate }}: {{ expenseItem.date | date: 'dd/MM/yyyy' }}
+                  {{ 'FieldAmount' | translate }}: {{ expenseItem.getTotalAmount() | currencyFormat }}
                 </p>
               </div>
 
@@ -48,8 +48,8 @@
 
               <div class="row">
                 <mat-form-field appearance="fill" class="col-md-6">
-                  <mat-label>Expense Name</mat-label>
-                  <input matInput id="name" placeholder="Personal" formControlName="name"
+                  <mat-label>{{ 'FieldExpenseName' | translate }} </mat-label>
+                  <input matInput id="name" placeholder="{{ 'PlaceholderExpenseName' | translate }}" formControlName="name"
                          [class.is-invalid]="name?.invalid && name?.touched">
                   @if ((name?.invalid && name?.touched) || httpErrors) {
                   <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error |  translate }}</mat-error>
@@ -57,7 +57,7 @@
                 </mat-form-field>
 
                 <mat-form-field appearance="fill" class="col-md-6">
-                  <mat-label>Date</mat-label>
+                  <mat-label>{{ 'FieldDate' | translate }}</mat-label>
                   <input matInput [matDatepicker]="picker" formControlName="date">
                   <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                   <mat-datepicker #picker></mat-datepicker>
@@ -69,7 +69,7 @@
 
               <div class="row">
                 <mat-form-field appearance="fill" class="col-md-6">
-                  <mat-label>Amount</mat-label>
+                  <mat-label>{{ 'FieldAmount' | translate }}</mat-label>
                   <input matInput
                          inputmode="decimal"
                          type="text"
@@ -83,10 +83,8 @@
               </div>
 
               <div class="btn-group">
-                <button mat-button type="button" (click)="cancelEdit()">Cancel</button>
-                <button mat-raised-button color="primary" type="submit" [disabled]="expenseItemForm.invalid">
-                  <fa-icon [icon]="faFloppyDisk"></fa-icon>
-                </button>
+                <button mat-button type="button" (click)="cancelEdit()">{{ 'ButtonCancel' | translate }}</button>
+                <button mat-raised-button color="primary" type="submit" [disabled]="expenseItemForm.invalid">{{ 'ButtonSave' | translate }}</button>
               </div>
 
             </form>

@@ -12,7 +12,7 @@
 
           <!-- Centered title -->
           <div class="col text-center mt-3 mb-3">
-            <h2>Expenses</h2>
+            <h2>{{ categoryName$ | async }}</h2>
           </div>
         </div>
       </div>
@@ -36,32 +36,20 @@
               </button>
             </div>
             }
-            <div class="clearfix mt-3">
-              <span class="float-start">Budget:</span>
-              <span class="float-end" [ngClass]="getClassBasedOnPercentage(getPercentageWaste(expense.getTotalAmount(), expense.budget))">{{getTextBasedOnPercentage(getPercentageWaste(expense.getTotalAmount(), expense.budget))}} {{ expense.budget - expense.getTotalAmount() | currencyFormat }} left</span>
-            </div>
-            <div class="progress">
-              <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-                   [ngClass]="getClassToProgressBar(getPercentageWaste(expense.getTotalAmount(), expense.budget))"
-                   [style.width.%]="getPercentageWaste(expense.getTotalAmount(), expense.budget)"
-                   [attr.aria-valuenow]="getPercentageWaste(expense.getTotalAmount(), expense.budget)">
-                {{ expense.getTotalAmount() | currencyFormat }}
-              </div>
-            </div>
-            <div class="clearfix">
-              @if (!expense?.items?.length) {
-              <span class="float-start date">{{ expense.date | date: 'dd/MM/yyyy' }}</span>
-              }
-              <span class="float-end budget">of {{ expense.budget | currencyFormat }}</span>
-            </div>
+            <app-budget-bar [spend]="expense.getSpend()"
+                            [budget]="expense.budget"
+                            [overspend]="expense.getOverspend()"
+                            [remaining]="expense.getRemaining()"
+                            [date]="expense?.items && expense.items.length > 0 ? undefined : expense.date">
+            </app-budget-bar>
           </div>
           } @else {
           <div>
             <form [formGroup]="expenseForm" (ngSubmit)="save()">
               <div class="row">
                 <mat-form-field appearance="fill" class="col-md-6">
-                  <mat-label>Expense Name</mat-label>
-                  <input matInput id="name" placeholder="Personal" formControlName="name"
+                  <mat-label>{{ 'FieldExpenseName' | translate }} </mat-label>
+                  <input matInput id="name" placeholder="{{ 'PlaceholderExpenseName' | translate }}" formControlName="name"
                          [class.is-invalid]="name?.invalid && name?.touched">
                   @if ((name?.invalid && name?.touched) || httpErrors){
                   <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error |  translate }}</mat-error>
@@ -69,7 +57,7 @@
                 </mat-form-field>
 
                 <mat-form-field appearance="fill" class="col-md-6">
-                  <mat-label>Date</mat-label>
+                  <mat-label>{{ 'FieldDate' | translate }}</mat-label>
                   <input matInput [matDatepicker]="picker" formControlName="date">
                   <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                   <mat-datepicker #picker></mat-datepicker>
@@ -81,7 +69,7 @@
 
               <div class="row">
                 <mat-form-field appearance="fill" class="col-md-6">
-                  <mat-label>Budget</mat-label>
+                  <mat-label>{{ 'FieldBudget' | translate }}</mat-label>
                   <span matTextPrefix>{{ currencySymbol }}&nbsp;</span>
                   <input matInput type="number" step="1" min="0" id="budget" formControlName="budget">
                   @if ((budget?.invalid && budget?.touched) || httpErrors){
@@ -90,7 +78,7 @@
                 </mat-form-field>
 
                 <mat-form-field appearance="fill" class="col-md-6">
-                  <mat-label>Amount</mat-label>
+                  <mat-label>{{ 'FieldAmount' | translate }}</mat-label>
                   <input matInput
                          type="text"
                          inputmode="decimal"
@@ -104,10 +92,8 @@
               </div>
 
               <div class="btn-group">
-                <button mat-button type="button" (click)="cancelEdit()">Cancel</button>
-                <button mat-raised-button color="primary" type="submit" [disabled]="expenseForm.invalid">
-                  <fa-icon [icon]="faFloppyDisk"></fa-icon>
-                </button>
+                <button mat-button type="button" (click)="cancelEdit()">{{ 'ButtonCancel' | translate }}</button>
+                <button mat-raised-button color="primary" type="submit" [disabled]="expenseForm.invalid">{{ 'ButtonSave' | translate }}</button>
               </div>
             </form>
             @if (httpErrors){

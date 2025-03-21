@@ -100,8 +100,8 @@ export class AddExpenseComponent implements OnInit {
       var newExpense = <ExpenseDto>({
         name: name,
         date: date,
-        amount: amount === "" ? 0 : amount,
-        budget: budget === "" ? 0 : budget
+        amount: amount === "" || amount === null ? 0 : amount,
+        budget: budget === "" || budget === null ? 0 : budget
       });
 
       this.expenseService.add(this.projectId, this.categoryId, newExpense).subscribe({
@@ -119,31 +119,6 @@ export class AddExpenseComponent implements OnInit {
   }
 
   getFormFieldErrors(fieldName: string): string[] {
-    const control = this.expenseForm.get(fieldName);
-    const errors: string[] = [];
-
-    if (control && control.errors) {
-      for (const key in control.errors) {
-        if (control.errors.hasOwnProperty(key)) {
-          switch (key) {
-            case 'required':
-              errors.push('This field is required.');
-              break;
-            case 'pattern':
-              if (fieldName === 'budget') {
-                errors.push('Only numbers is valid.');
-              }
-              break;
-            case 'min':
-              errors.push(`The value should be greater than ${control.errors[key].min}.`);
-              break;
-            default:
-              errors.push(control.errors[key]);
-          }
-        }
-      }
-    }
-
-    return errors;
+    return this.errorMessageService.getFormFieldErrors(this.expenseForm, fieldName);
   }
 }

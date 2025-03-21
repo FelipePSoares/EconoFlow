@@ -4,8 +4,8 @@
 
       <!-- Name Field -->
       <mat-form-field appearance="fill" class="w-100">
-        <mat-label>Name</mat-label>
-        <input matInput id="name" placeholder="E.g., Rent, Grocery Shopping, Internet Bill" formControlName="name">
+        <mat-label>{{ 'FieldExpenseName' | translate }} </mat-label>
+        <input matInput id="name" placeholder="{{ 'PlaceholderExpenseName' | translate }}" formControlName="name">
         @if (name?.invalid && name?.touched){
         <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error |  translate }}</mat-error>
         }
@@ -13,7 +13,7 @@
 
       <!-- Date Field with Date Picker -->
       <mat-form-field appearance="fill" class="w-100">
-        <mat-label>Date</mat-label>
+        <mat-label>{{ 'FieldDate' | translate }}</mat-label>
         <input matInput [matDatepicker]="picker" formControlName="date">
         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
         <mat-datepicker #picker></mat-datepicker>
@@ -24,7 +24,7 @@
 
       <!-- Amount Field -->
       <mat-form-field appearance="fill" class="w-100">
-        <mat-label>Amount</mat-label>
+        <mat-label>{{ 'FieldAmount' | translate }}</mat-label>
         <input matInput
                inputmode="decimal"
                type="text"
@@ -44,7 +44,7 @@
       <!-- Submit Button -->
       <div class="float-end">
         <button mat-raised-button color="primary" type="submit" [disabled]="expenseItemForm.invalid">
-          Create
+          {{ 'ButtonCreate' | translate }}
         </button>
       </div>
     </form>

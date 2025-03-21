@@ -4,7 +4,7 @@
 
       <!-- Name Input with Autocomplete -->
       <mat-form-field appearance="fill" class="w-100">
-        <mat-label>Name</mat-label>
+        <mat-label>{{ 'FieldCategoryName' | translate }}</mat-label>
         <input matInput
                 id="name"
                 formControlName="name"
@@ -28,7 +28,7 @@
       <!-- Submit Button -->
       <div class="float-end">
         <button mat-raised-button color="primary" type="submit" [disabled]="categoryForm.invalid">
-          Create
+          {{ 'ButtonCreate' | translate }}
         </button>
       </div>
     </form>

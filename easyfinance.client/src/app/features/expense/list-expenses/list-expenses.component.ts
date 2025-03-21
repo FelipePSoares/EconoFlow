@@ -7,7 +7,7 @@ import { AsyncPipe, CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { compare } from 'fast-json-patch';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPenToSquare, faTrash, faFloppyDisk, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faPenToSquare, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { MatFormField } from '@angular/material/form-field';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
@@ -16,7 +16,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { ApiErrorResponse } from 'src/app/core/models/error';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
 import { MatDialog } from '@angular/material/dialog';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ExpenseDto } from '../models/expense-dto';
 import { Expense } from '../../../core/models/expense';
 import { mapper } from '../../../core/utils/mappings/mapper';
@@ -33,26 +33,31 @@ import { PageModalComponent } from '../../../core/components/page-modal/page-mod
 import { UserProjectDto } from '../../project/models/user-project-dto';
 import { ProjectService } from '../../../core/services/project.service';
 import { Role } from '../../../core/enums/Role';
+import { CategoryDto } from '../../category/models/category-dto';
+import { CategoryService } from '../../../core/services/category.service';
+import { Category } from '../../../core/models/category';
+import { BudgetBarComponent } from '../../../core/components/budget-bar/budget-bar.component';
 
 @Component({
     selector: 'app-list-expenses',
     imports: [
-        CommonModule,
-        AsyncPipe,
-        ReactiveFormsModule,
-        CurrentDateComponent,
-        AddButtonComponent,
-        ReturnButtonComponent,
-        FontAwesomeModule,
-        ConfirmDialogComponent,
-        MatFormField,
-        MatFormFieldModule,
-        MatInput,
-        MatButton,
-        MatDatepickerModule,
-        CurrencyFormatPipe,
-        CurrencyMaskModule,
-        TranslateModule
+      CommonModule,
+      AsyncPipe,
+      ReactiveFormsModule,
+      CurrentDateComponent,
+      AddButtonComponent,
+      ReturnButtonComponent,
+      ConfirmDialogComponent,
+      BudgetBarComponent,
+      FontAwesomeModule,
+      MatFormField,
+      MatFormFieldModule,
+      MatInput,
+      MatButton,
+      MatDatepickerModule,
+      CurrencyFormatPipe,
+      CurrencyMaskModule,
+      TranslateModule
     ],
     templateUrl: './list-expenses.component.html',
     styleUrl: './list-expenses.component.css'
@@ -61,14 +66,18 @@ export class ListExpensesComponent implements OnInit {
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
 
   faPenToSquare = faPenToSquare;
-  faFloppyDisk = faFloppyDisk;
   faTrash = faTrash;
   faPlus = faPlus;
 
   thousandSeparator!: string; 
-  decimalSeparator!: string; 
+  decimalSeparator!: string;
+
   private expenses: BehaviorSubject<ExpenseDto[]> = new BehaviorSubject<ExpenseDto[]>([new ExpenseDto()]);
   expenses$: Observable<ExpenseDto[]> = this.expenses.asObservable();
+
+  private category: BehaviorSubject<CategoryDto> = new BehaviorSubject<CategoryDto>(new CategoryDto());
+  categoryName$: Observable<string> = this.category.asObservable().pipe(map(c => c.name));
+
   expenseForm!: FormGroup;
   editingExpense: ExpenseDto = new ExpenseDto();
   itemToDelete!: string;
@@ -85,11 +94,13 @@ export class ListExpensesComponent implements OnInit {
 
   constructor(
     private expenseService: ExpenseService,
+    private categoryService: CategoryService,
     private router: Router,
     private errorMessageService: ErrorMessageService,
     private globalService: GlobalService,
     private dialog: MatDialog,
-    private projectService: ProjectService
+    private projectService: ProjectService,
+    private translateService: TranslateService
   ) {
     this.thousandSeparator = this.globalService.groupSeparator;
     this.decimalSeparator = this.globalService.decimalSeparator;
@@ -108,6 +119,13 @@ export class ListExpensesComponent implements OnInit {
           });
       }
     });
+
+    this.categoryService.getById(this.projectId, this.categoryId)
+      .pipe(map(category => mapper.map(category, Category, CategoryDto)))
+      .subscribe(res => {
+        this.category.next(res);
+      }
+    )
 
     this.fillData(CurrentDateComponent.currentDate);
     this.edit(new ExpenseDto());
@@ -154,8 +172,8 @@ export class ListExpensesComponent implements OnInit {
         id: id,
         name: name,
         date: date,
-        amount: amount,
-        budget: budget,
+        amount: amount === "" || amount === null ? 0 : amount,
+        budget: budget === "" || budget === null ? 0 : budget,
         items: this.editingExpense.items
       })
 
@@ -224,7 +242,7 @@ export class ListExpensesComponent implements OnInit {
     this.dialog.open(PageModalComponent, {
       autoFocus: 'input',
       data: {
-        title: 'Create Expense'
+        title: this.translateService.instant('CreateExpense')
       }
     }).afterClosed().subscribe((result) => {
       if (result) {
@@ -239,7 +257,7 @@ export class ListExpensesComponent implements OnInit {
 
   triggerDelete(itemId: string): void {
     this.itemToDelete = itemId;
-    this.ConfirmDialog.openModal('Delete Item', 'Are you sure you want to delete this item?', 'Delete');
+    this.ConfirmDialog.openModal(this.translateService.instant('DeleteExpense'), this.translateService.instant('AreYouSureYouWantDeleteThisExpense'), 'ButtonDelete');
   }
 
   handleConfirmation(result: boolean): void {
