@@ -4,19 +4,19 @@
       @if (!sent && !token) {
       <form class="recovery-form" [formGroup]="recoveryForm" (ngSubmit)="onSubmit()">
         <div class="form-floating mb-5">
-          <h3>Password reset</h3>
-          <p>Enter the email associated with your account and we'll send an email with instructions to reset your password.</p>
+          <h3>{{ 'PasswordReset' | translate }}</h3>
+          <p>{{ 'ResetPasswordInstructions' | translate }}</p>
         </div>
-        <div class="form-floating mb-3">
-          <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com" formControlName="email" [class.is-invalid]="email?.invalid && email?.touched">
-          <label for="floatingInput">Email address</label>
-          <div *ngIf="email?.invalid && email?.touched">
-            <ul>
-              <li *ngFor="let error of getFormFieldErrors('email')" class="text-danger" [innerHtml]="error"></li>
-            </ul>
-          </div>
-        </div>
-        <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="recoveryForm.invalid">Send Instructions</button>
+
+        <mat-form-field class="mb-2" [style.width.%]="100">
+          <mat-label>{{ 'FieldEmailAddress' | translate }}</mat-label>
+          <input id="email" [attr.placeholder]="'PlaceholderEmailAddress' | translate" matInput formControlName="email">
+          @if ((email?.invalid && email?.touched) || httpErrors) {
+          <mat-error *ngFor="let error of getFormFieldErrors('email')">{{ error | translate }}</mat-error>
+          }
+        </mat-form-field>
+
+        <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="recoveryForm.invalid">{{ 'SendInstructions' | translate }}</button>
         <div *ngIf="httpErrors && errors?.['general']">
           <p class="mb-3 text-danger text-center">{{errors['general']}}</p>
         </div>
@@ -24,25 +24,44 @@
       } @else if (token) {
       <form class="recovery-form" [formGroup]="resetPasswordForm" (ngSubmit)="resetPassword()">
         <div class="form-floating mb-5">
-          <h3>Create new password</h3>
+          <h3>{{ 'CreateNewPassword' | translate}}</h3>
         </div>
-        <div class="form-floating mb-3">
-          <input type="password" class="form-control" id="password" placeholder="Password" formControlName="password" [class.is-invalid]="password?.invalid && password?.touched">
-          <label for="password">Password</label>
-          <div *ngIf="password?.invalid && password?.touched">
+
+        <mat-form-field class="mb-2" [style.width.%]="100">
+          <mat-label>{{ 'FieldPassword' | translate }}</mat-label>
+          <input [attr.placeholder]="'PlaceholderPassword' | translate" matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'">
+          <mat-icon matSuffix (click)="hidePassword = !hidePassword">{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          @if ((password?.invalid && password?.touched) || httpErrors){
+          <mat-error *ngFor="let error of getFormFieldErrors('password')">{{ error | translate }}</mat-error>
+          }
+        </mat-form-field>
+
+        <div class="row g-2 mb-2">
+          <div class="col-md">
+            {{ 'PasswordMustHave' | translate }}
             <ul>
-              <li *ngFor="let error of getFormFieldErrors('password')" class="text-danger" [innerHtml]="error"></li>
+              <li [style.color]="hasLowerCase ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">{{ 'OneLowercaseCharacter' | translate }}</li>
+              <li [style.color]="hasUpperCase ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">{{ 'OneUppercaseCharacter' | translate }}</li>
+              <li [style.color]="hasOneNumber ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">{{ 'OneNumber' | translate }}</li>
+              <li [style.color]="hasOneSpecial ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">{{ 'OneSpecialCharacter' | translate }}</li>
+              <li [style.color]="hasMinCharacteres ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">{{ 'EightCharacters' | translate }}</li>
             </ul>
           </div>
         </div>
-        <div class="form-floating mb-3">
-          <input type="password" class="form-control" id="confirmPassword" placeholder="Password" formControlName="confirmPassword" [class.is-invalid]="confirmPassword?.invalid && confirmPassword?.touched">
-          <label for="confirmPassword">Confirm Password</label>
-          <div *ngIf="confirmPassword?.invalid && confirmPassword?.touched">
-            <div *ngIf="confirmPassword?.errors?.['required']" class="text-danger">Password is required.</div>
-          </div>
+
+        <mat-form-field class="mb-2" [style.width.%]="100">
+          <mat-label>{{ 'FieldConfirmPassword' | translate }}</mat-label>
+          <input [attr.placeholder]="'PlaceholderPassword' | translate" matInput formControlName="confirmPassword" [type]="hideConfirmPassword ? 'password' : 'text'">
+          <mat-icon matSuffix (click)="hideConfirmPassword = !hideConfirmPassword">{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          @if ((confirmPassword?.invalid && confirmPassword?.touched) || httpErrors){
+          <mat-error *ngFor="let error of getFormFieldErrors('confirmPassword')">{{ error | translate }}</mat-error>
+          }
+        </mat-form-field>
+
+        <div *ngIf="resetPasswordForm.errors?.['passwordMismatch'] && (resetPasswordForm.touched || resetPasswordForm.dirty)">
+          <p class="mb-3 text-danger text-center">{{ 'PasswordMustMatch' | translate }}</p>
         </div>
-        <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="resetPasswordForm.invalid">Reset Password</button>
+        <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="resetPasswordForm.invalid">{{ 'ResetPassword' | translate }}</button>
         <div *ngIf="httpErrors && errors?.['general']">
           <p class="mb-3 text-danger text-center">{{errors['general']}}</p>
         </div>
@@ -50,12 +69,12 @@
       } @else {
       <div class="text-center">
         <fa-icon class="fa-4x" [icon]="faEnvelopeOpenText"></fa-icon>
-        <h3>Check your email</h3>
-        <p>We have sent a password recover instructions to your email.</p>
+        <h3>{{ 'CheckYourEmail' | translate }}</h3>
+        <p>{{ 'WeSentInstructions' | translate }}</p>
       </div>
       <div class="footer text-center">
-        <p>Did not receive the email? Check your spam filter, or</p>
-        <a (click)="reset()">try another email address</a>
+        <p>{{ 'DidNotReceiveEmail' | translate }}</p>
+        <a (click)="reset()" style="cursor: pointer">{{ 'TryAnotherEmail' | translate }}</a>
       </div>
       }
     </div>

@@ -25,5 +25,14 @@
   "OneUppercaseCharacter": "One uppercase character",
   "OneNumber": "One number",
   "OneSpecialCharacter": "One special character",
-  "EightCharacters": "minimum eight characters"
+  "EightCharacters": "minimum eight characters",
+  "PasswordReset": "Password reset",
+  "ResetPasswordInstructions": "Enter the email associated with your account and we'll send an email with instructions to reset your password.",
+  "SendInstructions": "Send Instructions",
+  "CheckYourEmail": "Check your email",
+  "WeSentInstructions": "We have sent a password recover instructions to your email.",
+  "DidNotReceiveEmail": "Did not receive the email? Check your spam filter, or",
+  "TryAnotherEmail": "try another email address",
+  "CreateNewPassword": "Create new password",
+  "ResetPassword": "Reset Password"
 }

@@ -1,16 +1,30 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faEnvelopeOpenText } from '@fortawesome/free-solid-svg-icons';
+import { TranslateModule } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { passwordMatchValidator } from '../../../core/utils/custom-validators/password-match-validator';
+import { ErrorMessageService } from '../../../core/services/error-message.service';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatIcon } from '@angular/material/icon';
 
 @Component({
     selector: 'app-recovery',
-    imports: [CommonModule, FormsModule, ReactiveFormsModule, FontAwesomeModule],
+    imports: [
+      CommonModule,
+      FormsModule,
+      ReactiveFormsModule,
+      FontAwesomeModule,
+      TranslateModule,
+      MatFormFieldModule,
+      MatInputModule,
+      MatIcon,
+    ],
     templateUrl: './recovery.component.html',
     styleUrl: './recovery.component.css'
 })
@@ -23,8 +37,16 @@ export class RecoveryComponent implements OnInit {
   serverEmail!: string;
   httpErrors = false;
   errors!: { [key: string]: string };
+  hidePassword = true;
+  hideConfirmPassword = true;
 
-  constructor(private authService: AuthService, private route: ActivatedRoute, private router: Router) { }
+  hasLowerCase = false;
+  hasUpperCase = false;
+  hasOneNumber = false;
+  hasOneSpecial = false;
+  hasMinCharacteres = false;
+
+  constructor(private authService: AuthService, private route: ActivatedRoute, private router: Router, private errorMessageService: ErrorMessageService) { }
 
   ngOnInit(): void {
     const queryParams = this.route.snapshot.queryParams;
@@ -43,9 +65,17 @@ export class RecoveryComponent implements OnInit {
 
   buildResetPasswordForm() {
     this.resetPasswordForm = new FormGroup({
-      password: new FormControl('', [Validators.required, Validators.pattern(/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,}$/)]),
+      password: new FormControl('', [Validators.required, Validators.pattern(/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_])(?!.* ).{8,}$/)]),
       confirmPassword: new FormControl('', [Validators.required])
     }, { validators: passwordMatchValidator });
+
+    this.resetPasswordForm.valueChanges.subscribe(value => {
+      this.hasLowerCase = /[a-z]/.test(value.password);
+      this.hasUpperCase = /[A-Z]/.test(value.password);
+      this.hasOneNumber = /[0-9]/.test(value.password);
+      this.hasOneSpecial = /[\W_]/.test(value.password);
+      this.hasMinCharacteres = /^.{8,}$/.test(value.password);
+    });
   }
 
   onSubmit() {
@@ -60,7 +90,7 @@ export class RecoveryComponent implements OnInit {
           this.httpErrors = true;
           this.errors = response.errors;
 
-          this.setFormErrors(this.recoveryForm, this.errors);
+          this.errorMessageService.setFormErrors(this.recoveryForm, this.errors);
         }
       });
     }
@@ -78,32 +108,12 @@ export class RecoveryComponent implements OnInit {
           this.httpErrors = true;
           this.errors = response.errors;
 
-          this.setFormErrors(this.resetPasswordForm, this.errors);
+          this.errorMessageService.setFormErrors(this.resetPasswordForm, this.errors);
         }
       });
     }
   }
 
-  setFormErrors(form: FormGroup<any>, errors: { [key: string]: string }) {
-    for (let key in errors) {
-      if (key.indexOf("Password") > -1) {
-        const formControl = form.get('password');
-        this.setErrorFormControl(formControl, { [key]: errors[key] });
-      }
-      if (key.indexOf("Email") > -1) {
-        const formControl = form.get('email');
-        this.setErrorFormControl(formControl, { [key]: errors[key] });
-      }
-    }
-  }
-
-  setErrorFormControl(formControl: AbstractControl | null, errors: ValidationErrors) {
-    if (formControl) {
-      const currentErrors = formControl.errors || {};
-      const updatedErrors = { ...currentErrors, ...errors };
-      formControl.setErrors(updatedErrors);
-    }
-  }
 
   reset() {
     var emailField = this.recoveryForm.get('email');
@@ -126,31 +136,9 @@ export class RecoveryComponent implements OnInit {
 
   getFormFieldErrors(fieldName: string): string[] {
     let control = this.recoveryForm.get(fieldName);
-    if (!control) {
-      control = this.resetPasswordForm.get(fieldName);
+    if (control) {
+      return this.errorMessageService.getFormFieldErrors(this.recoveryForm, fieldName);
     }
-    const errors: string[] = [];
-
-    if (control && control.errors) {
-      for (const key in control.errors) {
-        if (control.errors.hasOwnProperty(key)) {
-          switch (key) {
-            case 'required':
-              errors.push('This field is required.');
-              break;
-            case 'email':
-              errors.push('Invalid email format.');
-              break;
-            case 'pattern':
-              errors.push('Password must have:<ul><li>One lowercase character</li><li>One uppercase character</li><li>One number</li><li>One special character</li><li>8 characters minimum</li></ul>');
-              break;
-            default:
-              errors.push(control.errors[key]);
-          }
-        }
-      }
-    }
-
-    return errors;
+    return this.errorMessageService.getFormFieldErrors(this.resetPasswordForm, fieldName);
   }
 }

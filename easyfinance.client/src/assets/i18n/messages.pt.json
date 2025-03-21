@@ -25,5 +25,14 @@
   "OneUppercaseCharacter": "Pelo menos uma letra maiscula",
   "OneNumber": "Pelo menos um número",
   "OneSpecialCharacter": "Pelo menos um caracter especial",
-  "EightCharacters": "Pelo menos 8 dígitos"
+  "EightCharacters": "Pelo menos 8 dígitos",
+  "PasswordReset": "Redefinição de senha",
+  "ResetPasswordInstructions": "Insira o e-mail associado à sua conta e enviaremos um e-mail com instruções para redefinir sua senha.",
+  "SendInstructions": "Enviar instruções",
+  "CheckYourEmail": "Verifique seu email",
+  "WeSentInstructions": "Enviamos instruções de recuperação de senha para seu e-mail.",
+  "DidNotReceiveEmail": "Não recebeu o email? Verifique a pasta de Spam, ou",
+  "TryAnotherEmail": "tente outro email.",
+  "CreateNewPassword": "Criar nova senha",
+  "ResetPassword": "Redefenir senha"
 }
