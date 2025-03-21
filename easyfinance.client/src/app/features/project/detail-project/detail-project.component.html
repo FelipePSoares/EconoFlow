@@ -10,8 +10,8 @@
       <div class="d-flex pe-3 mt-2 border-end">
         <div class="card" style="min-width: 100px" (click)="selectIncomes()">
           <div class="card-body">
-            <h3 class="card-title">Total Income</h3>
-            <div class="clearfix">
+            <h3 class="card-title">{{ 'TotalIncome' | translate }}</h3>
+            <div>
               <span class="card-value success">
                 {{ month.earned | currencyFormat: true }}
               </span>
@@ -26,19 +26,20 @@
             <div class="card" (click)="selectCategory(category.id)">
               <div class="card-body">
                 <h3 class="card-title">{{ category.name }}</h3>
-                <div class="clearfix">
+                
+                <div>
                   <span class="card-value danger d-block">
                     {{ (category.getTotalSpend() + category.getTotalOverspend()) | currencyFormat: true }}
                   </span>
                   @if(!category.hasBudget()){
-                  <span class="card-small-text">set a budget</span>
+                  <span class="card-small-text">{{ 'SetBudget' | translate }}</span>
                   } @else if (category.hasOverspend()){
                   <span class="card-small-text danger">
-                    budget exceeded
+                    {{ 'BudgetExceeded' | translate }}
                   </span>
                   } @else {
                   <span class="card-small-text" [ngClass]="getClassBasedOnCategory(category)">
-                    {{ category.getTotalRemaining() | currencyFormat: true }} remaining
+                    {{ category.getTotalRemaining() | currencyFormat: true }} {{ 'Remaining' | translate }}
                   </span>
                   }
                 </div>
@@ -76,11 +77,12 @@
             <button class="btn btn-primary"
                     (click)="copyPreviousBudget()"
                     *ngIf="showCopyPreviousButton">
-              Copy Previous Budget
+              {{ 'ButtonClonePreviousBudget' | translate }}
+
             </button>
             <div class="clearfix mt-3">
-              <span class="float-start">Budget:</span>
-              <span class="float-end" [ngClass]="getClassBasedOnPercentage(getPercentageSpend(month.spend + month.overspend, month.budget))">{{getTextBasedOnPercentage(getPercentageSpend(month.spend + month.overspend, month.budget))}} {{ month.remaining | currencyFormat: true }} left</span>
+              <span class="float-start">{{ 'Budget' | translate }}:</span>
+              <span class="float-end" [ngClass]="getClassBasedOnPercentage(getPercentageSpend(month.spend + month.overspend, month.budget))">{{getTextBasedOnPercentage(getPercentageSpend(month.spend + month.overspend, month.budget)) | translate }} {{ month.remaining | currencyFormat: true }} {{ 'Left' | translate }}</span>
             </div>
             <div class="progress">
               <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
@@ -97,19 +99,19 @@
             </div>
             <div class="clearfix">
               @if (month.overspend > 0) {
-              <span class="float-end budget">of <s>{{ month.budget | currencyFormat: true }}</s> {{ month.budget + month.overspend | currencyFormat: true }}</span>
+              <span class="float-end budget">{{ 'Of' | translate }} <s>{{ month.budget | currencyFormat: true }}</s> {{ month.budget + month.overspend | currencyFormat: true }}</span>
               } @else {
-              <span class="float-end budget">of {{ month.budget | currencyFormat: true }}</span>
+              <span class="float-end budget">{{ 'Of' | translate }} {{ month.budget | currencyFormat: true }}</span>
               }
             </div>
             <hr class="solid" />
             <div class="d-grid label-money">
               <div class="mt-2">
-                <span class="float-start"><fa-icon [icon]="faArrowUp" transform="rotate-45" style="color: #c0392b"></fa-icon> Money Out</span>
+                <span class="float-start"><fa-icon [icon]="faArrowUp" transform="rotate-45" style="color: #c0392b"></fa-icon> {{ 'MoneyOut' | translate }}</span>
                 <span class="float-end">-{{ month.spend + month.overspend | currencyFormat: true }}</span>
               </div>
               <div class="mt-2">
-                <span class="float-start"><fa-icon [icon]="faArrowDown" transform="rotate-45" style="color: #2ecc71"></fa-icon> Money In</span>
+                <span class="float-start"><fa-icon [icon]="faArrowDown" transform="rotate-45" style="color: #2ecc71"></fa-icon> {{ 'MoneyIn' | translate }}</span>
                 <span class="float-end">{{ month.earned | currencyFormat: true }}</span>
               </div>
             </div>
@@ -125,8 +127,8 @@
               </div>
             </div>
             <div class="clearfix mt-3">
-              <span class="float-start">Budget:</span>
-              <span class="float-end" [ngClass]="getClassBasedOnPercentage(getPercentageSpend(year.spend, year.budget + year.overspend))">{{getTextBasedOnPercentage(getPercentageSpend(year.spend, year.budget + year.overspend))}} {{ year.remaining | currencyFormat: true }} left</span>
+              <span class="float-start">{{ 'Budget' | translate }}:</span>
+              <span class="float-end" [ngClass]="getClassBasedOnPercentage(getPercentageSpend(year.spend, year.budget + year.overspend))">{{getTextBasedOnPercentage(getPercentageSpend(year.spend, year.budget + year.overspend)) | translate}} {{ year.remaining | currencyFormat: true }} {{ 'Left' | translate }}</span>
             </div>
             <div class="progress">
               <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
@@ -143,19 +145,19 @@
             </div>
             <div class="clearfix">
               @if (year.overspend > 0) {
-              <span class="float-end budget">of <s>{{ year.budget | currencyFormat: true }}</s> {{ year.budget + year.overspend | currencyFormat: true }}</span>
+              <span class="float-end budget">{{ 'Of' | translate }} <s>{{ year.budget | currencyFormat: true }}</s> {{ year.budget + year.overspend | currencyFormat: true }}</span>
               } @else {
-              <span class="float-end budget">of {{ year.budget | currencyFormat: true }}</span>
+              <span class="float-end budget">{{ 'Of' | translate }} {{ year.budget | currencyFormat: true }}</span>
               }
             </div>
             <hr class="solid" />
             <div class="d-grid label-money">
               <div class="mt-2">
-                <span class="float-start"><fa-icon [icon]="faArrowUp" transform="rotate-45" style="color: #c0392b"></fa-icon> Money Out</span>
+                <span class="float-start"><fa-icon [icon]="faArrowUp" transform="rotate-45" style="color: #c0392b"></fa-icon> {{ 'MoneyOut' | translate }}</span>
                 <span class="float-end">-{{ year.spend + year.overspend | currencyFormat: true }}</span>
               </div>
               <div class="mt-2">
-                <span class="float-start"><fa-icon [icon]="faArrowDown" transform="rotate-45" style="color: #2ecc71"></fa-icon> Money In</span>
+                <span class="float-start"><fa-icon [icon]="faArrowDown" transform="rotate-45" style="color: #2ecc71"></fa-icon> {{ 'MoneyIn' | translate }}</span>
                 <span class="float-end">{{ year.earned | currencyFormat: true }}</span>
               </div>
             </div>
@@ -167,21 +169,20 @@
           <div class="wrap">
             <div class="row align-items-center">
               <div class="col text-center mt-3 mb-3 month">
-                <h2>Latest transactions</h2>
+                <h2>{{ 'LatestTransactions' | translate }}</h2>
               </div>
             </div>
-
             <div class="table-responsive">
               <table mat-table [dataSource]="(transactions$ | async) || []" class="w-100">
                 <ng-container matColumnDef="date">
-                  <th mat-header-cell *matHeaderCellDef class="ps-4"> Date </th>
+                  <th mat-header-cell *matHeaderCellDef class="ps-4"> {{ 'Date' | translate }} </th>
                   <td mat-cell *matCellDef="let row" class="ps-4">
-                    <div class="text-secondary">{{row.date | date: 'dd/MM/yyyy'}}</div>
+                    <div class="text-secondary">{{row.date | date: 'dd/MM/yyyy' }}</div>
                   </td>
                 </ng-container>
 
                 <ng-container matColumnDef="description">
-                  <th mat-header-cell *matHeaderCellDef> Description </th>
+                  <th mat-header-cell *matHeaderCellDef> {{ 'Description' | translate }} </th>
                   <td mat-cell *matCellDef="let row">
                     <div class="d-flex align-items-center py-3">
                       <div class="transaction-icon me-3">
@@ -193,14 +194,14 @@
                       </div>
                       <div>
                         <div class="fw-medium">{{ row.name }}</div>
-                        <div class="text-secondary small">{{ row.type }}</div>
+                        <div class="text-secondary small">{{ row.type | translate }}</div>
                       </div>
                     </div>
                   </td>
                 </ng-container>
 
                 <ng-container matColumnDef="amount">
-                  <th mat-header-cell *matHeaderCellDef class="pe-4 text-end"> Amount </th>
+                  <th mat-header-cell *matHeaderCellDef class="pe-4 text-end"> {{ 'Amount' | translate }} </th>
                   <td mat-cell *matCellDef="let row" class="pe-4 text-end">
                     <div [class]="row.type === 'Income' ? 'text-success fw-medium' : 'text-danger fw-medium'">
                       {{ row.amount | currencyFormat }}

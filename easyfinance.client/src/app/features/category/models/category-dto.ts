@@ -44,6 +44,6 @@ export class CategoryDto {
   }
 
   public getPercentageSpend(): number | undefined {
-    return this.getTotalBudget() == 0 ? undefined : this.getTotalSpend() * 100 / this.getTotalBudget();
+    return this.getTotalBudget() == 0 ? undefined : (this.getTotalSpend() + this.getTotalOverspend()) * 100 / this.getTotalBudget();
   }
 }

@@ -36,6 +36,7 @@
   "ButtonCancel": "Cancelar",
   "ButtonSave": "Salvar",
   "ButtonDeleteAccount": "Deletar Conta",
+  "ButtonClonePreviousBudget": "Clonar Orçamento Anterior",
 
   "RequiredField": "Este campo é obrigatório.",
   "InvalidEmailFormat": "Email com formato inválido.",
@@ -84,5 +85,22 @@
   "No": "Não",
   "MyProfile": "Meu Perfil",
   "DangerZone": "Zona Perigosa",
-  "DeleteAccountMessage": "A exclusão da sua conta é permanente e não pode ser desfeita."
+  "DeleteAccountMessage": "A exclusão da sua conta é permanente e não pode ser desfeita.",
+  "TotalIncome": "Renda Total",
+  "SetBudget": "defina um orçamento",
+  "BudgetExceeded": "Orçamento excedido",
+  "Remaining": "restante",
+  "Budget": "Orçamento",
+  "Overspend": "Gasto excessivo",
+  "RiskOverspend": "Risco de gasto excessivo",
+  "Left": "restante",
+  "Of": "de",
+  "MoneyOut": "Saídas",
+  "MoneyIn": "Entradas",
+  "LatestTransactions": "Últimas transções",
+  "Income": "Renda",
+  "Expense": "Despesa",
+  "Date": "Data",
+  "Description": "Descrição",
+  "Amount": "Valor"
 }
