@@ -4,8 +4,8 @@
 
       <!-- Name Field -->
       <mat-form-field appearance="fill" class="w-100">
-        <mat-label>Name</mat-label>
-        <input matInput id="name" placeholder="E.g., Salary, Side Job, Investment Returns" formControlName="name">
+        <mat-label>{{ 'FieldIncomeName' |  translate }}</mat-label>
+        <input matInput id="name" placeholder="{{ 'PlaceholderIncomeName' | translate }}" formControlName="name">
         @if (name?.invalid && name?.touched){
         <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error |  translate }}</mat-error>
         }
@@ -13,7 +13,7 @@
 
       <!-- Date Field with Date Picker -->
       <mat-form-field appearance="fill" class="w-100">
-        <mat-label>Date</mat-label>
+        <mat-label>{{ 'FieldDate' | translate }}</mat-label>
         <input matInput id="date" [matDatepicker]="picker" formControlName="date">
         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
         <mat-datepicker #picker></mat-datepicker>
@@ -24,13 +24,13 @@
 
       <!-- Amount Field -->
       <mat-form-field appearance="fill" class="w-100">
-        <mat-label>Amount</mat-label>
+        <mat-label>{{ 'FieldAmount' | translate }}</mat-label>
         <input matInput
-          type="text"
-          inputmode="decimal"
-          currencyMask
-          [options]="{ prefix: currencySymbol, allowNegative: false, thousands: thousandSeparator, decimal: decimalSeparator, precision: 2 }"
-          formControlName="amount">
+               type="text"
+               inputmode="decimal"
+               currencyMask
+               [options]="{ prefix: currencySymbol, allowNegative: false, thousands: thousandSeparator, decimal: decimalSeparator, precision: 2 }"
+               formControlName="amount">
         @if (amount?.invalid && amount?.touched){
         <mat-error *ngFor="let error of getFormFieldErrors('amount')">{{ error |  translate }}</mat-error>
         }
@@ -44,7 +44,7 @@
       <!-- Submit Button -->
       <div class="float-end">
         <button mat-raised-button color="primary" type="submit" [disabled]="incomeForm.invalid">
-          Create
+          {{ 'ButtonCreate' | translate }}
         </button>
       </div>
     </form>

@@ -1,11 +1,13 @@
 import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { MatButton } from '@angular/material/button';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { TranslateModule } from '@ngx-translate/core';
 
 declare var bootstrap: any;
 
 @Component({
-    selector: 'app-confirm-dialog',
-    imports: [],
+  selector: 'app-confirm-dialog',
+  imports: [TranslateModule, MatButton],
     templateUrl: './confirm-dialog.component.html',
     styleUrl: './confirm-dialog.component.css'
 })

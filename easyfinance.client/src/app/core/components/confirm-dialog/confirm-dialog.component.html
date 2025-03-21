@@ -8,8 +8,8 @@
       <div class="modal-body" [innerHTML]="message">
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="cancel()">Cancel</button>
-        <button type="button" class="btn btn-danger" (click)="confirm()">{{ action }}</button>
+        <button mat-button type="button" (click)="cancel()">{{ 'ButtonCancel' | translate }}</button>
+        <button mat-raised-button color="warn" type="submit" (click)="confirm()">{{ action | translate }}</button>
       </div>
     </div>
   </div>

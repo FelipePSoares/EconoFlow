@@ -77,14 +77,11 @@ export class AddIncomeComponent implements OnInit {
       const name = this.name?.value;
       const date = this.date?.value.toISOString().split("T")[0];
       let amount = this.amount?.value;
-      if (isNaN(amount)) {
-        amount = this.amount?.value.replace('.', '')?.replace(',', '.');
-      }
 
       var newIncome = <IncomeDto>({
         name: name,
         date: date,
-        amount: amount === "" ? 0 : amount
+        amount: amount === "" || amount === null ? 0 : amount,
       });
 
       this.incomeService.add(this.projectId, newIncome).subscribe({
@@ -102,27 +99,7 @@ export class AddIncomeComponent implements OnInit {
   }
 
   getFormFieldErrors(fieldName: string): string[] {
-    const control = this.incomeForm.get(fieldName);
-    const errors: string[] = [];
-
-    if (control && control.errors) {
-      for (const key in control.errors) {
-        if (control.errors.hasOwnProperty(key)) {
-          switch (key) {
-            case 'required':
-              errors.push('This field is required.');
-              break;
-            case 'min':
-              errors.push(`The value should be greater than ${control.errors[key].min}.`);
-              break;
-            default:
-              errors.push(control.errors[key]);
-          }
-        }
-      }
-    }
-
-    return errors;
+    return this.errorMessageService.getFormFieldErrors(this.incomeForm, fieldName);
   }
 
   get name() {

@@ -11,6 +11,9 @@
   "FieldCurrency": "Moeda",
   "FieldUserEmail": "Email do Usuário",
   "FieldRole": "Nivel de Acesso",
+  "FieldIncomeName": "Nome da Renda",
+  "FieldDate": "Data",
+  "FieldAmount": "Valor",
 
   "PlaceholderEmailAddress": "nome@exemplo.com",
   "PlaceholderPassword": "Senha",
@@ -19,6 +22,7 @@
   "PlaceholderFirstName": "João",
   "PlaceholderLastName": "da Silva",
   "PlaceholderProjectName": "Ex: Pessoal, Famíliar, Econoflow",
+  "PlaceholderIncomeName": "Ex: Salário, Retorno Investimentos, Renda Extra",
 
   "ButtonSignIn": "Logar",
   "ButtonSignUp": "Cadastrar",
@@ -34,6 +38,7 @@
   "ButtonUpdate": "Editar",
   "ButtonInvite": "Convidar",
   "ButtonCancel": "Cancelar",
+  "ButtonDelete": "Deletar",
   "ButtonSave": "Salvar",
   "ButtonDeleteAccount": "Deletar Conta",
   "ButtonClonePreviousBudget": "Clonar Orçamento Anterior",
@@ -97,10 +102,14 @@
   "Of": "de",
   "MoneyOut": "Saídas",
   "MoneyIn": "Entradas",
-  "LatestTransactions": "Últimas transções",
+  "LatestTransactions": "Últimas transações",
   "Income": "Renda",
   "Expense": "Despesa",
   "Date": "Data",
   "Description": "Descrição",
-  "Amount": "Valor"
+  "Amount": "Valor",
+  "Incomes": "Rendas",
+  "DeleteIncome": "Deletar Renda",
+  "AreYouSureYouWantDeleteThisIncome": "Você tem certeza que quer deletar essa renda?",
+  "CreateIncome": "Criar Renda"
 }

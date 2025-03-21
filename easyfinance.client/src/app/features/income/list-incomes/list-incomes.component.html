@@ -11,7 +11,7 @@
           </div>
           <!-- Centered title -->
           <div class="col text-center mt-3 mb-3">
-            <h2>Incomes</h2>
+            <h2>{{ 'Incomes' | translate }}</h2>
           </div>
         </div>
       </div>
@@ -45,8 +45,8 @@
 
               <div class="row">
                 <mat-form-field appearance="fill" class="col-md-6">
-                  <mat-label>Income Name</mat-label>
-                  <input matInput id="name" placeholder="Personal" formControlName="name"
+                  <mat-label>{{ 'FieldIncomeName' |  translate }}</mat-label>
+                  <input matInput id="name" placeholder="{{ 'PlaceholderIncomeName' | translate }}" formControlName="name"
                          [class.is-invalid]="name?.invalid && name?.touched">
                   @if ((name?.invalid && name?.touched) || httpErrors){
                   <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error |  translate }}</mat-error>
@@ -54,7 +54,7 @@
                 </mat-form-field>
 
                 <mat-form-field appearance="fill" class="col-md-6">
-                  <mat-label>Date</mat-label>
+                  <mat-label>{{ 'FieldDate' | translate }}</mat-label>
                   <input matInput [matDatepicker]="picker" formControlName="date" id="date">
                   <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                   <mat-datepicker #picker></mat-datepicker>
@@ -66,7 +66,7 @@
 
               <div class="row">
                 <mat-form-field appearance="fill" class="col-md-6">
-                  <mat-label>Amount</mat-label>
+                  <mat-label>{{ 'FieldAmount' | translate }}</mat-label>
                   <input matInput
                          type="text"
                          inputmode="decimal"
@@ -80,10 +80,8 @@
               </div>
 
               <div class="btn-group">
-                <button mat-button type="button" (click)="cancelEdit()">Cancel</button>
-                <button mat-raised-button color="primary" type="submit" [disabled]="incomeForm.invalid">
-                  <fa-icon [icon]="faFloppyDisk"></fa-icon>
-                </button>
+                <button mat-button type="button" (click)="cancelEdit()">{{ 'ButtonCancel' | translate }}</button>
+                <button mat-raised-button color="primary" type="submit" [disabled]="incomeForm.invalid">{{ 'ButtonSave' | translate }}</button>
               </div>
             </form>
             <div *ngIf="httpErrors">

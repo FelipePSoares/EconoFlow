@@ -11,6 +11,9 @@
   "FieldCurrency": "Currency",
   "FieldUserEmail": "User Email",
   "FieldRole": "Role",
+  "FieldIncomeName": "Income Name",
+  "FieldDate": "Date",
+  "FieldAmount": "Amount",
 
   "PlaceholderEmailAddress": "name@example.com",
   "PlaceholderPassword": "Password",
@@ -19,6 +22,7 @@
   "PlaceholderFirstName": "John",
   "PlaceholderLastName": "Smith",
   "PlaceholderProjectName": "E.g., Personal, Family, Econoflow",
+  "PlaceholderIncomeName": "E.g., Salary, Side Job, Investment Returns",
 
   "ButtonSignIn": "Sign in",
   "ButtonSignUp": "Sign Up",
@@ -34,6 +38,7 @@
   "ButtonUpdate": "Update",
   "ButtonInvite": "Invite",
   "ButtonCancel": "Cancel",
+  "ButtonDelete": "Delete",
   "ButtonSave": "Save",
   "ButtonDeleteAccount": "Delete Account",
   "ButtonClonePreviousBudget": "Clone Previous Budget",
@@ -102,5 +107,9 @@
   "Expense": "Expense",
   "Date": "Date",
   "Description": "Description",
-  "Amount": "Amount"
+  "Amount": "Amount",
+  "Incomes": "Incomes",
+  "DeleteIncome": "Delete Income",
+  "AreYouSureYouWantDeleteThisIncome": "Are you sure you want to delete this income?",
+  "CreateIncome": "Create Income"
 }

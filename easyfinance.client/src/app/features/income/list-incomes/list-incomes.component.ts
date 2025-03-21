@@ -9,10 +9,10 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { compare } from 'fast-json-patch';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPenToSquare, faTrash, faFloppyDisk, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faPenToSquare, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { MatInput } from "@angular/material/input";
 import { MatButton } from "@angular/material/button";
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MatDatepickerModule } from "@angular/material/datepicker";
 import { MatError, MatFormField, MatLabel, MatSuffix } from "@angular/material/form-field";
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
@@ -61,7 +61,6 @@ export class ListIncomesComponent implements OnInit {
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
 
   faPenToSquare = faPenToSquare;
-  faFloppyDisk = faFloppyDisk;
   faTrash = faTrash;
   faPlus = faPlus;
 
@@ -86,7 +85,8 @@ export class ListIncomesComponent implements OnInit {
     private errorMessageService: ErrorMessageService,
     private globalService: GlobalService,
     private dialog: MatDialog,
-    private projectService: ProjectService
+    private projectService: ProjectService,
+    private translateService: TranslateService
   ) {
     this.thousandSeparator = this.globalService.groupSeparator;
     this.decimalSeparator = this.globalService.decimalSeparator;
@@ -142,7 +142,7 @@ export class ListIncomesComponent implements OnInit {
       var newIncome = <IncomeDto>({
         id: id,
         name: name,
-        amount: amount,
+        amount: amount === "" || amount === null ? 0 : amount,
         date: date
       })
       var patch = compare(this.editingIncome, newIncome);
@@ -170,7 +170,7 @@ export class ListIncomesComponent implements OnInit {
     this.dialog.open(PageModalComponent, {
       autoFocus: 'input',
       data: {
-        title: 'Create Income'
+        title: this.translateService.instant('CreateIncome')
       }
     }).afterClosed().subscribe((result) => {
       if (result) {
@@ -210,7 +210,7 @@ export class ListIncomesComponent implements OnInit {
 
   triggerDelete(itemId: string): void {
     this.itemToDelete = itemId;
-    this.ConfirmDialog.openModal('Delete Item', 'Are you sure you want to delete this item?', 'Delete');
+    this.ConfirmDialog.openModal(this.translateService.instant('DeleteIncome'), this.translateService.instant('AreYouSureYouWantDeleteThisIncome'), 'ButtonDelete');
   }
 
   handleConfirmation(result: boolean): void {
