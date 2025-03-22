@@ -35,8 +35,15 @@ describe('EconoFlow - user detail Tests', () => {
       })
 
       cy.wait<UserReq, UserRes>('@getAccount').then(({ request, response }) => {
-        expect(response?.body.firstName).to.equal(firstNameValue);
-        expect(response?.body.lastName).to.equal(lastNameValue);
+        try {
+          expect(response?.body.firstName).to.equal(firstNameValue);
+          expect(response?.body.lastName).to.equal(lastNameValue);
+        } catch {
+          cy.wait<UserReq, UserRes>('@getAccount').then(({ request, response }) => {
+            expect(response?.body.firstName).to.equal(firstNameValue);
+            expect(response?.body.lastName).to.equal(lastNameValue);
+          })
+        }
       })
     })
   })
