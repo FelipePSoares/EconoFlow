@@ -50,9 +50,13 @@
   "RequiredField": "Este campo é obrigatório.",
   "InvalidEmailFormat": "Email com formato inválido.",
   "OnlyNumbersIsValid": "Apenas números são aceitos.",
-  "GenericError": "Ocorreu um erro!",
+  "GenericError": "Ocorreu um erro!, Por favor, tente novamente...",
   "ValueShouldBeGreaterThan": "O valor deve ser maior que {{value}}",
   "PasswordMustMatch": "As senhas devem ser iguais.",
+  "NetworkError": "Sem internet. Por favor, verifique a sua conexão.",
+  "LoginError": "Informações inválidas!",
+  "UserBlocked": "Usuário Bloqueado!",
+  "FailToDeleteAccount": "Falha ao deletar a conta! Por favor, tente novamente mais tarde.",
 
   "PleaseSignIn": "Realize o login",
   "PleaseSignUp": "Faça o cadastro",
@@ -119,5 +123,7 @@
   "CreateExpenseCategory": "Criar Categoria de Despesa",
   "DeleteExpense": "Deletar Despesa",
   "AreYouSureYouWantDeleteThisExpense": "Você tem certeza que quer deletar essa despesa?",
-  "CreateExpense": "Criar Despesa"
+  "CreateExpense": "Criar Despesa",
+  "CreatedSuccess": "Criado com Sucesso!",
+  "DeletedSuccess": "Deletado com Sucesso!"
 }

@@ -50,9 +50,13 @@
   "RequiredField": "This field is required.",
   "InvalidEmailFormat": "Invalid email format.",
   "OnlyNumbersIsValid": "Only numbers is valid.",
-  "GenericError": "an error occours!",
+  "GenericError": "an error occours! Please, try again...",
   "ValueShouldBeGreaterThan": "The value should be greater than {{value}}.",
   "PasswordMustMatch": "Password must match",
+  "NetworkError": "Network error. Please check your connection.",
+  "LoginError": "Incorrect login information!",
+  "UserBlocked": "User blocked!",
+  "FailToDeleteAccount": "Failed to delete account! Please try again later.",
 
   "PleaseSignIn": "Please Sign In",
   "PleaseSignUp": "Please Sign Up",
@@ -119,5 +123,7 @@
   "CreateExpenseCategory": "Create Expense Category",
   "DeleteExpense": "Delete Expense",
   "AreYouSureYouWantDeleteThisExpense": "Are you sure you want to delete this expense?",
-  "CreateExpense": "Create Expense"
+  "CreateExpense": "Create Expense",
+  "CreatedSuccess": "Created Successfully!",
+  "DeletedSuccess": "Deleted successfully!"
 }

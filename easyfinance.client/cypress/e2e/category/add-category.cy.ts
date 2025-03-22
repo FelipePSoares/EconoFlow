@@ -33,7 +33,7 @@ describe('EconoFlow - category add Tests', () => {
 
         const incomeCreated = response?.body
 
-        cy.get("mat-snack-bar-container").should("be.visible").contains('Created successfully!')
+        cy.get("mat-snack-bar-container").should("be.visible").contains('Created Successfully!')
 
         cy.wait<CategoryReq, CategoryRes[]>('@getCategories').then(response => {
           const exists = response.response?.body.some(item => item.id == incomeCreated?.id)

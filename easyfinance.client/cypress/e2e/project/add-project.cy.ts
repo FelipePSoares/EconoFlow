@@ -17,6 +17,8 @@ describe('EconoFlow - project add Tests', () => {
     cy.intercept('GET', '**/projects*').as('getProjects')
     cy.intercept('POST', '**/projects*').as('postProjects')
 
+    cy.wait('@getProjects');
+
     cy.fixture('projects').then((projects) => {
       var project = projects.testPersonalProject;
 
@@ -31,9 +33,10 @@ describe('EconoFlow - project add Tests', () => {
 
         const projectCreated = response?.body
 
-        cy.get("mat-snack-bar-container").should("be.visible").contains('Created successfully!');
+        cy.get("mat-snack-bar-container").should("be.visible").contains('Created Successfully!');
 
         cy.wait<UserProjectReq, UserProjectRes[]>('@getProjects').then(response => {
+          console.log(JSON.stringify(response.response?.body));
           const exists = response.response?.body.some(item => item.project.id == projectCreated?.id)
           expect(exists).to.be.true
         })

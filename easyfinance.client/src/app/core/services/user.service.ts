@@ -1,10 +1,9 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, Subject, concatMap, map } from 'rxjs';
-import { DeleteUser, User } from '../models/user';
 import { tap } from 'rxjs';
+import { DeleteUser, User } from '../models/user';
 import { catchError, throwError } from 'rxjs';
-import { SnackbarComponent } from '../components/snackbar/snackbar.component';
 import { LocalService } from './local.service';
 import { Token } from '../models/token';
 
@@ -15,7 +14,7 @@ export class UserService {
   private loggedUser: Subject<User> = new BehaviorSubject<User>(new User());
   loggedUser$: Observable<User> = this.loggedUser.asObservable();
 
-  constructor(private http: HttpClient, private snackbar: SnackbarComponent, private localService: LocalService) {
+  constructor(private http: HttpClient, private localService: LocalService) {
     const user = localService.getData<User>(localService.USER_DATA);
 
     if (user) {
@@ -118,7 +117,6 @@ export class UserService {
       tap(() => console.log('Delete request sent')),
       catchError((error) => {
         console.error('Error occurred during deletion:', error);
-        this.snackbar.openErrorSnackbar('Failed to delete account. Please try again later');
         return throwError(() => error);
       })
     );

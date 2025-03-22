@@ -10,7 +10,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatIcon } from "@angular/material/icon";
 import { Router } from '@angular/router'; 
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { UserService } from '../../../core/services/user.service';
 import { DeleteUser, User } from '../../../core/models/user';
 import { AsyncPipe, CommonModule } from '@angular/common';
@@ -18,6 +18,7 @@ import { ApiErrorResponse } from '../../../core/models/error';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { passwordMatchValidator } from '../../../core/utils/custom-validators/password-match-validator';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
+import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.component';
 
 @Component({
     selector: 'app-detail-user',
@@ -80,7 +81,9 @@ export class DetailUserComponent implements OnInit {
   constructor(
     private userService: UserService,
     private router: Router,
-    private errorMessageService: ErrorMessageService
+    private errorMessageService: ErrorMessageService,
+    private translateService: TranslateService,
+    private snackbar: SnackbarComponent
   ) {
     this.user$ = this.userService.loggedUser$;
   }
@@ -125,9 +128,12 @@ export class DetailUserComponent implements OnInit {
       next: (response: DeleteUser) => {
         if (response?.confirmationToken) {
           this.ConfirmDialog.openModal('Confirm Deletion', response.confirmationMessage, 'Delete');
-          this.deleteToken = response.confirmationToken; 
+          this.deleteToken = response.confirmationToken;
         }
       },
+      error: () => {
+        this.snackbar.openErrorSnackbar(this.translateService.instant('FailToDeleteAccount'));
+      }
     });
   }
 

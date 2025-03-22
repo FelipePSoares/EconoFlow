@@ -39,7 +39,7 @@ describe('EconoFlow - income add Tests', () => {
 
         const incomeCreated = response?.body
 
-        cy.get("mat-snack-bar-container").should("be.visible").contains('Created successfully!');
+        cy.get("mat-snack-bar-container").should("be.visible").contains('Created Successfully!');
 
         cy.wait<IncomeReq, IncomeRes[]>('@getIncomes').then(({ request, response }) => {
           const exists = response?.body.some(item => item.id == incomeCreated?.id)

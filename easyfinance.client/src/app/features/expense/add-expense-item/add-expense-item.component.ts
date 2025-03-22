@@ -10,7 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ExpenseService } from '../../../core/services/expense.service';
 import { ExpenseItemDto } from '../models/expense-item-dto';
 import { Expense } from '../../../core/models/expense';
@@ -66,7 +66,8 @@ export class AddExpenseItemComponent implements OnInit {
     private router: Router,
     private errorMessageService: ErrorMessageService,
     private snackBar: SnackbarComponent,
-    private globalService: GlobalService
+    private globalService: GlobalService,
+    private translateService: TranslateService
   ) {
     this.thousandSeparator = this.globalService.groupSeparator;
     this.decimalSeparator = this.globalService.decimalSeparator;
@@ -122,7 +123,7 @@ export class AddExpenseItemComponent implements OnInit {
 
       this.expenseService.update(this.projectId, this.categoryId, this.expenseId, patch).subscribe({
         next: response => {
-          this.snackBar.openSuccessSnackbar('Created successfully!');
+          this.snackBar.openSuccessSnackbar(this.translateService.instant('CreatedSuccess'));
           this.router.navigate([{ outlets: { modal: null } }]);
         },
         error: (response: ApiErrorResponse) => {

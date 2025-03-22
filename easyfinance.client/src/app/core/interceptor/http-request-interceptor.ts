@@ -1,8 +1,9 @@
 import { HttpInterceptorFn, HttpResponse } from '@angular/common/http';
-import { catchError, finalize, of, switchMap, take, tap, throwError } from 'rxjs';
+import { catchError, of, switchMap, take, tap, throwError } from 'rxjs';
 import { Router } from '@angular/router';
-import { inject } from '@angular/core';
+import { inject, Injector } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../services/auth.service';
 import { ApiErrorResponse } from '../models/error';
 import { SnackbarComponent } from '../components/snackbar/snackbar.component';
@@ -15,6 +16,7 @@ export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
   var localService = inject(LocalService);
   var snackBar = inject(SnackbarComponent);
   var matDialog = inject(MatDialog);
+  var injector = inject(Injector);
 
   const token = localService.getData<Token>(localService.TOKEN_DATA);
 
@@ -28,16 +30,19 @@ export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
     tap((event) => {
       if (event instanceof HttpResponse) {
         if (event.status === 201) {
-          snackBar.openSuccessSnackbar('Created successfully!');
+          let translateService = injector.get(TranslateService);
+          snackBar.openSuccessSnackbar(translateService.instant('CreatedSuccess'));
         }
-        if (req.method === 'DELETE' && event.status === 204) {
-          snackBar.openSuccessSnackbar('Deleted successfully!');
+        if (req.method === 'DELETE' && event.status === 200) {
+          let translateService = injector.get(TranslateService);
+          snackBar.openSuccessSnackbar(translateService.instant('DeletedSuccess'));
         }
       }
     }),
     catchError(err => {
       if (err.status === 0) {
-        snackBar.openErrorSnackbar('Network error. Please check your connection.');
+        let translateService = injector.get(TranslateService);
+        snackBar.openErrorSnackbar(translateService.instant('NetworkError'));
       }
       if (err.status === 401 && token && !err.url?.includes('refresh-token') && !err.url?.includes('logout') && !err.url?.includes('login')) {
         return authService.refreshToken().pipe(
@@ -63,13 +68,13 @@ export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
 
       if (err.error?.errors) {
         apiErrorResponse = err.error as ApiErrorResponse;
-      } else if (err.status === 401 && err.url?.includes('login') && err.error?.detail === 'LockedOut') {
-        apiErrorResponse.errors['general'] = 'User blocked!';
+      } else if (err.status === 401 && err.url?.includes('login') && err.error === 'LockedOut') {
+        apiErrorResponse.errors['general'] = 'UserBlocked';
       } else if (err.status === 401 && err.url?.includes('login')) {
-        apiErrorResponse.errors['general'] = 'Incorrect login information!';
+        apiErrorResponse.errors['general'] = 'LoginError';
       } else {
-        console.error(err.error);
-        apiErrorResponse.errors['general'] = 'An unexpected error occurs, try again...';
+        console.error(`GenericError: ${JSON.stringify(err?.error)}`);
+        apiErrorResponse.errors['general'] = 'GenericError';
       }
 
       return throwError(() => apiErrorResponse);
