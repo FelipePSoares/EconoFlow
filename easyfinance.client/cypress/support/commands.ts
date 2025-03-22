@@ -11,7 +11,10 @@ Cypress.Commands.add('login', (username, password) => {
     },
     {
       validate: () => {
+        cy.intercept('GET', '/projects').as('getProjects')
         expect(localStorage.getItem("token_data")).to.be.a("string");
+        cy.visit('/projects')
+        cy.wait('@getProjects')
       }
     }
   )

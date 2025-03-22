@@ -10,7 +10,7 @@ export class ErrorMessageService {
 
   getFormFieldErrors(form: FormGroup<any>, fieldName: string): string[] {
     const control = form.get(fieldName);
-    const errors: string[] = [];
+    let errors: string[] = [];
 
     if (control && control.errors) {
       for (const key in control.errors) {
@@ -32,7 +32,7 @@ export class ErrorMessageService {
               errors.push(this.translate.instant('ValueShouldBeGreaterThan', { value: control.errors[key].min }));
               break;
             default:
-              errors.push(control.errors ? control.errors[key] : 'GenericError');
+              errors = errors.concat(control.errors ? control.errors[key] : ['GenericError']);
           }
         }
       }

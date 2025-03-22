@@ -3,8 +3,6 @@ describe('EconoFlow - user detail Tests', () => {
 
   it('Should edit user infos', () => {
     cy.fixture('users').then((users) => {
-      currenciesAvailable = users.currencies;
-
       const user = users.testUser;
 
       cy.login(user.username, user.password)
@@ -31,9 +29,11 @@ describe('EconoFlow - user detail Tests', () => {
       cy.wait<UserReq, UserRes>('@putAccount').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(200)
       })
+
       cy.wait<UserReq, UserRes>('@postAccount').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(200)
       })
+
       cy.wait<UserReq, UserRes>('@getAccount').then(({ request, response }) => {
         expect(response?.body.firstName).to.equal(firstNameValue);
         expect(response?.body.lastName).to.equal(lastNameValue);
@@ -46,13 +46,13 @@ describe('EconoFlow - user detail Tests', () => {
       const user = users.userToDelete;
 
       cy.intercept('DELETE', '**/account*').as('deleteAccount')
-
+      cy.visit('/logout')
       cy.register(user.username, user.password)
       cy.visit('/user')
       cy.get('.btn').contains('Delete Account').click();
       cy.wait('@deleteAccount').then((interception) => {
         expect(interception?.response?.statusCode).to.equal(202)
-        cy.get('.modal-dialog .btn').contains('Delete').click();
+        cy.get('.modal-dialog button').contains('Delete').click();
 
         cy.wait('@deleteAccount').then((interception2) => {
           expect(interception2?.response?.statusCode).to.equal(200)
@@ -67,12 +67,13 @@ describe('EconoFlow - user detail Tests', () => {
 
       cy.intercept('DELETE', '**/account*').as('deleteAccount')
 
+      cy.visit('/logout')
       cy.register(user.username, user.password)
       cy.visit('/user')
       cy.get('.btn').contains('Delete Account').click();
       cy.wait('@deleteAccount').then((interception) => {
         expect(interception?.response?.statusCode).to.equal(202)
-        cy.get('.modal-dialog .btn').contains('Cancel').click();
+        cy.get('.modal-dialog button').contains('Cancel').click();
 
         cy.visit('/')
         cy.url().should('not.contain', 'login')

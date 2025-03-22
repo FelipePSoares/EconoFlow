@@ -4,7 +4,7 @@ describe('EconoFlow - project detail Tests', () => {
     attempts = 0;
   });
 
-  it('should copy budget from previous month', () => {
+  it('should clone budget from previous month', () => {
     cy.fixture('users').then((users) => {
       const user = users.testUser;
 
@@ -17,7 +17,7 @@ describe('EconoFlow - project detail Tests', () => {
 
         findNextMonthWithoutBudget();
 
-        cy.get('.btn-primary').contains('Copy Previous Budget').click();
+        cy.get('.btn-primary').contains('Clone Previous Budget').click();
 
         cy.wait<CategoryReq, CategoryRes[]>('@getCategories').then(({ request, response }) => {
           const exists = response?.body.some(category => category.expenses.some(expense => expense.budget > 0))
