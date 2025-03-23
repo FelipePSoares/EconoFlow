@@ -248,6 +248,7 @@ export class ListExpensesComponent implements OnInit {
       if (result) {
         this.fillData(CurrentDateComponent.currentDate);
       }
+      this.router.navigate([{ outlets: { modal: null } }]);
     });
   }
 

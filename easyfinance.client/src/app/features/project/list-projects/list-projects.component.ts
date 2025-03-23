@@ -66,14 +66,12 @@ export class ListProjectsComponent implements OnInit {
     this.router.navigate([{ outlets: { modal: ['add-edit-project'] } }]);
 
     this.dialog.open(PageModalComponent, {
-      autoFocus: 'input',
-      data: {
-        title: this.translateService.instant('CreateProject')
-      }
+      autoFocus: 'input'
     }).afterClosed().subscribe((result) => {
       if (result) {
         this.loadProjects();
       }
+      this.router.navigate([{ outlets: { modal: null } }]);
     });
   }
 
@@ -87,10 +85,7 @@ export class ListProjectsComponent implements OnInit {
     this.router.navigate([{ outlets: { modal: ['projects', project.id, 'users'] } }]);
 
     this.dialog.open(PageModalComponent, {
-      autoFocus: 'input',
-      data: {
-        title: this.translateService.instant('ManageAccess')
-      }
+      autoFocus: 'input'
     }).afterClosed().subscribe();
   }
 
@@ -99,10 +94,7 @@ export class ListProjectsComponent implements OnInit {
     this.router.navigate([{ outlets: { modal: ['add-edit-project'] } }]);
 
     this.dialog.open(PageModalComponent, {
-      autoFocus: 'input',
-      data: {
-        title: this.translateService.instant('EditProject')
-      }
+      autoFocus: 'input'
     }).afterClosed().subscribe((result) => {
       if (result) {
         this.loadProjects();

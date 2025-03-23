@@ -5,7 +5,8 @@ import { LoaderService } from '../services/loader.service';
 
 const exceptions: any = [
   { method: 'GET', url: '/api/account/' },
-  { method: 'GET', url: '/api/account/search' }
+  { method: 'GET', url: '/api/account/search' },
+  { method: 'GET', url: '/DefaultCategories' }
 ];
 
 var totalRequests = 0;
@@ -32,6 +33,6 @@ export const LoadingInterceptor: HttpInterceptorFn = (req, next) => {
 
 const isException = (req: any) => {
   return exceptions.some((exception: any) => {
-    return exception.method === req.method && req.url === exception.url;
+    return exception.method === req.method && req.url.indexOf(exception.url) >= 0;
   });
 }

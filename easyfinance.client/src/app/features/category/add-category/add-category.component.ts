@@ -86,7 +86,7 @@ export class AddCategoryComponent implements OnInit {
 
       this.categoryService.add(this.projectId, newCategory).subscribe({
         next: response => {
-          this.router.navigate([{ outlets: { modal: null } }]);
+          this.router.navigate([{ outlets: { modal: ['projects', this.projectId, 'categories'] } }]);
         },
         error: (response: ApiErrorResponse) => {
           this.httpErrors = true;

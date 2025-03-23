@@ -1,114 +1,64 @@
-<div class="container text-center">
-  <app-current-date (dateUpdatedEvent)="updateDate($event)"></app-current-date>
-  <div class="row justify-content-center">
-    <div class="wrap col-lg-8">
-
-      <div class="container position-relative">
-        <div class="row align-items-center">
-          <!-- Back button on the left -->
-          <div class="col-auto position-absolute start-0">
-            <app-return-button (returnButtonEvent)="previous()"></app-return-button>
-          </div>
-
-          <!-- Centered title -->
-          <div class="col text-center mt-3 mb-3">
-            <h2>Categories</h2>
-          </div>
-
-          <!-- Right button on the far right -->
+<div class="container">
+  <div class="row">
+    <div class="list-group list-group-flush">
+      @for (category of (categories$ | async); track category.id) {
+      <div class="list-group-item">
+        @if (category.id != this.editingCategory.id) {
+        <div class="d-flex justify-content-between">
+          <h3 class="category-name">{{ category.name }}</h3>
           @if (canAddOrEdit()){
-          <div class="col-auto position-absolute end-0">
-            <app-add-button (clickedEvent)="add()"></app-add-button>
+          <div class="btn-group actions">
+            <button class="btn btn-secondary" (click)="edit(category); $event.stopPropagation();">
+              <fa-icon [icon]="faPenToSquare"></fa-icon>
+            </button>
+            <button class="btn btn-danger" (click)="triggerDelete(category.id); $event.stopPropagation();">
+              <fa-icon [icon]="faBoxArchive"></fa-icon>
+            </button>
           </div>
           }
         </div>
-      </div>
-
-      <div class="list-group list-group-flush">
-        @for (category of (categories$ | async); track category.id) {
-          <button class="list-group-item" [ngClass]="{
-                'list-group-item-action': category.id != this.editingCategory.id,
-                'btn-default': category.id != this.editingCategory.id
-              }">
-            @if (category.id != this.editingCategory.id) {
-            <div (click)="select(category.id)">
-              <h3 class="mb-1">{{ category.name }}</h3>
-              @if (canAddOrEdit()){
-              <div class="btn-group" style="position: absolute; right: 15px; top: 10px;">
-                <button class="btn btn-secondary" (click)="edit(category); $event.stopPropagation();">
-                  <fa-icon [icon]="faPenToSquare"></fa-icon>
-                </button>
-                <button class="btn btn-danger" (click)="triggerDelete(category.id); $event.stopPropagation();">
-                  <fa-icon [icon]="faBoxArchive"></fa-icon>
-                </button>
-              </div>
+        } @else {
+        <div>
+          <form [formGroup]="categoryForm" (ngSubmit)="save()">
+            <!-- Name Input with Autocomplete -->
+            <mat-form-field appearance="fill" class="w-100">
+              <mat-label>{{ 'FieldCategoryName' | translate }}</mat-label>
+              <input matInput
+                     id="name"
+                     formControlName="name"
+                     [matAutocomplete]="auto" />
+              @if (name?.invalid && name?.touched){
+              <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error |  translate }}</mat-error>
               }
-              <div class="clearfix mt-3">
-                <span class="float-start">Budget:</span>
-                <span class="float-end"
-                      [ngClass]="getClassBasedOnPercentage(getPercentageSpend(category.getTotalSpend() + category.getTotalOverspend(), category.getTotalBudget()))">
-                  {{ getTextBasedOnPercentage(getPercentageSpend(category.getTotalSpend() + category.getTotalOverspend(), category.getTotalBudget())) }} {{ category.getTotalRemaining() | currencyFormat }}
-                  left
-                </span>
-              </div>
-              <div class="progress">
-                <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-                     [ngClass]="getClassToProgressBar(getPercentageSpend(category.getTotalSpend(), category.getTotalBudget()))"
-                     [style.width.%]="getPercentageSpend(category.getTotalSpend(), category.getTotalBudget())"
-                     [attr.aria-valuenow]="getPercentageSpend(category.getTotalSpend(), category.getTotalBudget())">
-                  {{ category.getTotalSpend() | currencyFormat }}
-                </div>
-                <div class="progress-bar progress-bar-striped bg-danger" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-                     [style.width.%]="getPercentageSpend(category.getTotalOverspend(), category.getTotalBudget())"
-                     [attr.aria-valuenow]="getPercentageSpend(category.getTotalOverspend(), category.getTotalBudget())">
-                  {{ category.getTotalOverspend() | currencyFormat }}
-                </div>
-              </div>
-              <div class="clearfix">
-                @if (category.getTotalOverspend() > 0) {
-                <span class="float-end budget">of <s>{{ category.getTotalBudget() | currencyFormat }}</s> {{ category.getTotalBudget() + category.getTotalOverspend() | currencyFormat }}</span>
-                } @else {
-                <span class="float-end">of {{ category.getTotalBudget() | currencyFormat }}</span>
-                }
-              </div>
+
+              <mat-autocomplete #auto="matAutocomplete">
+                <mat-option *ngFor="let option of filteredCategories$ | async" [value]="option">
+                  {{ option }}
+                </mat-option>
+              </mat-autocomplete>
+            </mat-form-field>
+
+            <div class="d-flex justify-content-end">
+              <button mat-button type="button" (click)="cancelEdit()">Cancel</button>
+              <button mat-raised-button color="primary" type="submit" [disabled]="categoryForm.invalid">
+                {{ 'ButtonSave' | translate }}
+              </button>
             </div>
-            } @else {
-              <div>
-                <form [formGroup]="categoryForm" (ngSubmit)="save()">
-                  <div class="row">
-
-                    <mat-form-field appearance="fill" class="col-md-12">
-                      <mat-label>Category Name</mat-label>
-                      <input matInput id="name" placeholder="Personal" formControlName="name"
-                             [class.is-invalid]="name?.invalid && name?.touched">
-                      @if ((name?.invalid && name?.touched) || httpErrors) {
-                        <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error |  translate }}</mat-error>
-                      }
-                    </mat-form-field>
-
-                  </div>
-
-                  <div class="btn-group">
-                    <button mat-button type="button" (click)="cancelEdit()">Cancel</button>
-                    <button mat-raised-button color="primary" type="submit" [disabled]="categoryForm.invalid">
-                      <fa-icon [icon]="faFloppyDisk"></fa-icon>
-                    </button>
-                  </div>
-                </form>
-                @if (httpErrors) {
-                  <div>
-                    <p class="mt-5 mb-3 text-danger text-center">{{ errors.statusText }}</p>
-                  </div>
-                }
-              </div>
-            }
-          </button>
-        } @empty {
-          <div class="text-center">
-            No category created yet.
+          </form>
+          @if (httpErrors) {
+          <div>
+            <p class="mt-5 mb-3 text-danger text-center">{{ errors.statusText }}</p>
           </div>
+          }
+        </div>
         }
       </div>
+      }
+      @if (canAddOrEdit()){
+      <button class="list-group-item btn-default btn-add" (click)="add()" style="height: 100px">
+        <fa-icon class="btn btn-primary btn-circle" [icon]="faPlus" size="2xl"></fa-icon>
+      </button>
+      }
     </div>
   </div>
 </div>

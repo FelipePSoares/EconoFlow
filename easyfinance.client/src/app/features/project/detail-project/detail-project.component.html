@@ -49,9 +49,10 @@
           }
           @if (canAddOrEdit()){
           <li class="slide">
-            <div class="card btn-add" style="min-width: 100px;" (click)="addCategory()">
-              <div class="card-body">
-                <fa-icon [icon]="faPlus" size="2xl"></fa-icon>
+            <div class="card btn-add" style="min-width: 100px;" (click)="listCategories()">
+              <div class="card-body"> 
+                <fa-icon class="btn btn-primary btn-circle" [icon]="faPlus" size="2xl"></fa-icon>
+                <span class="mt-2">{{ 'AddAndEdit' | translate }}</span>
               </div>
             </div>
           </li>

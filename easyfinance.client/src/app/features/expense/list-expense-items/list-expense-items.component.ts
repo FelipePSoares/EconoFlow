@@ -220,14 +220,12 @@ export class ListExpenseItemsComponent implements OnInit {
     this.router.navigate([{ outlets: { modal: ['projects', this.projectId, 'categories', this.categoryId, 'expenses', this.expenseId, 'add-expense-item'] } }]);
 
     this.dialog.open(PageModalComponent, {
-      autoFocus: 'input',
-      data: {
-        title: this.translateService.instant('CreateExpense')
-      }
+      autoFocus: 'input'
     }).afterClosed().subscribe((result) => {
       if (result) {
         this.fillData();
       }
+      this.router.navigate([{ outlets: { modal: null } }]);
     });
   }
 

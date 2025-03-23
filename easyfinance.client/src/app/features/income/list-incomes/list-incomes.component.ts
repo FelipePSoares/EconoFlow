@@ -168,14 +168,12 @@ export class ListIncomesComponent implements OnInit {
     this.router.navigate([{ outlets: { modal: ['projects', this.projectId, 'add-income'] } }]);
 
     this.dialog.open(PageModalComponent, {
-      autoFocus: 'input',
-      data: {
-        title: this.translateService.instant('CreateIncome')
-      }
+      autoFocus: 'input'
     }).afterClosed().subscribe((result) => {
       if (result) {
         this.fillData(CurrentDateComponent.currentDate);
       }
+      this.router.navigate([{ outlets: { modal: null } }]);
     });
   }
 

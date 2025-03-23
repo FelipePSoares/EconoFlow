@@ -84,7 +84,7 @@
   "Greet": "Olá",
   "ProjectOverview": "Visão Geral",
   "Projects": "Projetos",
-  "CreateProject": "Criar Projeto",
+  "CreateEditProject": "Criar/Editar Projeto",
   "ManageAccess": "Gerenciar Acessos",
   "EditProject": "Editar Projeto",
   "Viewer": "Observador",
@@ -125,5 +125,7 @@
   "AreYouSureYouWantDeleteThisExpense": "Você tem certeza que quer deletar essa despesa?",
   "CreateExpense": "Criar Despesa",
   "CreatedSuccess": "Criado com Sucesso!",
-  "DeletedSuccess": "Deletado com Sucesso!"
+  "DeletedSuccess": "Deletado com Sucesso!",
+  "AddAndEdit": "Add/Edit",
+  "ListCategories": "Categorias"
 }

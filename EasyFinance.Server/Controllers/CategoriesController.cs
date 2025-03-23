@@ -19,7 +19,7 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get(Guid projectId, DateOnly from, DateOnly to)
+        public async Task<IActionResult> Get(Guid projectId, DateOnly? from, DateOnly? to)
         {
             var categories = await categoryService.GetAsync(projectId, from, to);
             return ValidateResponse(categories, HttpStatusCode.OK);

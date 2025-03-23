@@ -84,9 +84,8 @@
   "Greet": "Hi",
   "ProjectOverview": "Overview",
   "Projects": "Projects",
-  "CreateProject": "Create Project",
+  "CreateEditProject": "Create/Edit Project",
   "ManageAccess": "Manage Access",
-  "EditProject": "Edit Project",
   "Viewer": "Viewer",
   "Manager": "Manager",
   "Admin": "Admin",
@@ -125,5 +124,7 @@
   "AreYouSureYouWantDeleteThisExpense": "Are you sure you want to delete this expense?",
   "CreateExpense": "Create Expense",
   "CreatedSuccess": "Created Successfully!",
-  "DeletedSuccess": "Deleted successfully!"
+  "DeletedSuccess": "Deleted successfully!",
+  "AddAndEdit": "Add & Edit",
+  "ListCategories": "Categories"
 }

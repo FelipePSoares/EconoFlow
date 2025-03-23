@@ -1,35 +1,47 @@
-import { Component, Inject, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, OnDestroy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
+import { MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
-import { filter, Subscription } from 'rxjs';
+import { TranslateModule } from '@ngx-translate/core';
+import { BehaviorSubject, filter, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-page-modal',
   imports: [
+    CommonModule,
     MatButtonModule,
     MatIconModule,
     MatDialogTitle,
     MatDialogContent,
     MatDialogActions,
     MatDialogClose,
-    RouterOutlet
+    RouterOutlet,
+    TranslateModule
   ],
   templateUrl: './page-modal.component.html',
   styleUrl: './page-modal.component.css'
 })
 export class PageModalComponent implements OnDestroy {
   private routeSub: Subscription;
+  private routeSub2: Subscription;
+
+  title: string = '';
+
   constructor(
     private dialogRef: MatDialogRef<PageModalComponent>,
     private router: Router,
-    private route: ActivatedRoute,
-    @Inject(MAT_DIALOG_DATA) public data: { title: string; }) {
+    private route: ActivatedRoute) {
+
+    this.routeSub2 = this.router.events.subscribe(event => {
+      const outletRoute = this.router.routerState.root.children.find(route => route.outlet === 'modal');
+      this.title = outletRoute?.snapshot.data['title'] || 'test';
+    });
 
     this.routeSub = this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(event => {
       if (!this.route.children.some(child => child.outlet === 'modal')) {
-          this.close(true);
+        this.close(true);
       }
     });
   }
@@ -40,5 +52,6 @@ export class PageModalComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.routeSub.unsubscribe();
+    this.routeSub2.unsubscribe();
   }
 }

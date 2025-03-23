@@ -1,16 +1,16 @@
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, map } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
+import { BehaviorSubject, Observable, map, combineLatest } from 'rxjs';
 import { compare } from 'fast-json-patch';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPenToSquare, faBoxArchive, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
+import { faPenToSquare, faBoxArchive, faFloppyDisk, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { MatButton } from "@angular/material/button";
 import { MatError, MatFormField, MatLabel } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
 import { MatDialog } from '@angular/material/dialog';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { mapper } from '../../../core/utils/mappings/mapper';
 import { CategoryDto } from '../models/category-dto';
 import { Category } from '../../../core/models/category';
@@ -22,40 +22,51 @@ import { CurrentDateComponent } from '../../../core/components/current-date/curr
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
 import { ApiErrorResponse } from "../../../core/models/error";
 import { ErrorMessageService } from "../../../core/services/error-message.service";
-import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
 import { UserProjectDto } from '../../project/models/user-project-dto';
 import { ProjectService } from '../../../core/services/project.service';
 import { Role } from '../../../core/enums/Role';
+import { startWith } from 'rxjs/operators';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 @Component({
     selector: 'app-list-categories',
     imports: [
-        CommonModule,
-        AsyncPipe,
-        ReactiveFormsModule,
-        FontAwesomeModule,
-        ConfirmDialogComponent,
-        AddButtonComponent,
-        ReturnButtonComponent,
-        CurrentDateComponent,
-        CurrencyFormatPipe,
-        MatButton,
-        MatError,
-        MatFormField,
-        MatInput,
-        MatLabel,
-        TranslateModule
+      CommonModule,
+      AsyncPipe,
+      ReactiveFormsModule,
+      FontAwesomeModule,
+      ConfirmDialogComponent,
+      AddButtonComponent,
+      ReturnButtonComponent,
+      CurrentDateComponent,
+      CurrencyFormatPipe,
+      MatButton,
+      MatError,
+      MatFormField,
+      MatInput,
+      MatLabel,
+      MatAutocompleteModule,
+      TranslateModule
     ],
     templateUrl: './list-categories.component.html',
     styleUrl: './list-categories.component.css'
 })
 export class ListCategoriesComponent implements OnInit {
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
+
   faPenToSquare = faPenToSquare;
   faBoxArchive = faBoxArchive;
   faFloppyDisk = faFloppyDisk;
+  faPlus = faPlus;
+
   private categories: BehaviorSubject<CategoryDto[]> = new BehaviorSubject<CategoryDto[]>([new CategoryDto()]);
   categories$: Observable<CategoryDto[]> = this.categories.asObservable();
+
+  private defaultCategories: BehaviorSubject<string[]> = new BehaviorSubject<string[]>([]);
+  defaultCategories$: Observable<string[]> = this.defaultCategories.asObservable();
+
+  filteredCategories$: Observable<string[]> = new Observable<string[]>();
+
   categoryForm!: FormGroup;
   editingCategory: CategoryDto = new CategoryDto();
   itemToDelete!: string;
@@ -68,10 +79,12 @@ export class ListCategoriesComponent implements OnInit {
 
   constructor(
     public categoryService: CategoryService,
+    private route: ActivatedRoute,
     private router: Router,
     private errorMessageService: ErrorMessageService,
     private dialog: MatDialog,
-    private projectService: ProjectService
+    private projectService: ProjectService,
+    private translateService: TranslateService
   ) {
   }
 
@@ -88,12 +101,22 @@ export class ListCategoriesComponent implements OnInit {
       }
     });
 
+    this.categoryService.getDefaultCategories(this.projectId).subscribe({
+      next: (categories) => {
+        const categoryNames = categories.map((category: any) => category.name);
+        this.defaultCategories.next(categoryNames);
+      },
+      error: (error) => {
+        console.error('Error fetching categories:', error);
+      }
+    });
+
     this.edit(new CategoryDto());
-    this.fillData(CurrentDateComponent.currentDate);
+    this.fillData();
   }
 
-  fillData(date: Date) {
-    this.categoryService.get(this.projectId, date)
+  fillData() {
+    this.categoryService.get(this.projectId)
       .pipe(map(categories => mapper.mapArray(categories, Category, CategoryDto)))
       .subscribe(
         {
@@ -109,10 +132,6 @@ export class ListCategoriesComponent implements OnInit {
 
   get name() {
     return this.categoryForm.get('name');
-  }
-
-  select(id: string): void {
-    this.router.navigate(['/projects', this.projectId, 'categories', id, 'expenses']);
   }
 
   save(): void {
@@ -144,17 +163,13 @@ export class ListCategoriesComponent implements OnInit {
 
   add() {
     this.router.navigate([{ outlets: { modal: ['projects', this.projectId, 'add-category'] } }]);
+  }
 
-    this.dialog.open(PageModalComponent, {
-      autoFocus: 'input',
-      data: {
-        title: 'Create Category'
-      }
-    }).afterClosed().subscribe((result) => {
-      if (result) {
-        this.fillData(CurrentDateComponent.currentDate);
-      }
-    });
+  private filterCategories(value: string, categories: string[]): string[] {
+    const filterValue = value.toLowerCase();
+    return categories.filter(category =>
+      category.toLowerCase().includes(filterValue)
+    );
   }
 
   edit(category: CategoryDto): void {
@@ -163,6 +178,13 @@ export class ListCategoriesComponent implements OnInit {
       id: new FormControl(category.id),
       name: new FormControl(category.name, [Validators.required])
     });
+
+    this.filteredCategories$ = combineLatest([
+      this.name!.valueChanges.pipe(startWith('')),
+      this.defaultCategories$
+    ]).pipe(
+      map(([searchValue, categories]) => this.filterCategories(searchValue || '', categories))
+    );
   }
 
   cancelEdit(): void {
@@ -196,53 +218,11 @@ export class ListCategoriesComponent implements OnInit {
     }
   }
 
-  updateDate(newDate: Date) {
-    this.fillData(newDate);
-  }
-
-  previous() {
-    this.router.navigate(['/projects', this.projectId]);
-  }
-
-  getPercentageSpend(waste: number, budget: number): number {
-    return budget === 0 ? waste !== 0 ? 101 : 0 : waste * 100 / budget;
-  }
-
-  getClassToProgressBar(percentage: number): string {
-    if (percentage <= 75) {
-      return 'bg-info';
-    } else if (percentage <= 100) {
-      return 'bg-warning';
-    }
-
-    return 'bg-danger';
-  }
-
-  getTextBasedOnPercentage(percentage: number): string {
-    if (percentage <= 75) {
-      return 'Expenses';
-    } else if (percentage <= 100) {
-      return 'Risk of overspend';
-    }
-
-    return 'Overspend /';
-  }
-
-  getClassBasedOnPercentage(percentage: number): string {
-    if (percentage <= 75) {
-      return '';
-    } else if (percentage <= 100) {
-      return 'warning';
-    }
-
-    return 'danger';
+  canAddOrEdit(): boolean {
+    return this.userProject.role === Role.Admin || this.userProject.role === Role.Manager;
   }
 
   getFormFieldErrors(fieldName: string): string[] {
     return this.errorMessageService.getFormFieldErrors(this.categoryForm, fieldName);
-  }
-
-  canAddOrEdit(): boolean {
-    return this.userProject.role === Role.Admin || this.userProject.role === Role.Manager;
   }
 }

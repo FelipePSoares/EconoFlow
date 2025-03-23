@@ -73,17 +73,27 @@ namespace EasyFinance.Application.Features.CategoryService
             return AppResponse<ICollection<CategoryResponseDTO>>.Success(result);
         }
 
-        public async Task<AppResponse<ICollection<CategoryResponseDTO>>> GetAsync(Guid projectId, DateOnly from, DateOnly to)
+        public async Task<AppResponse<ICollection<CategoryResponseDTO>>> GetAsync(Guid projectId, DateOnly? from, DateOnly? to)
         {
-            var result = (await this.unitOfWork.ProjectRepository.NoTrackable()
-                    .Include(p => p.Categories)
-                    .ThenInclude(c => c.Expenses.Where(e => e.Date >= from && e.Date < to))
-                    .FirstOrDefaultAsync(p => p.Id == projectId))?
-                    .Categories
-                    .ToDTO()
-                    .ToList();
+            ICollection<CategoryResponseDTO> categories = default;
 
-            return AppResponse<ICollection<CategoryResponseDTO>>.Success(result);
+            if (from.HasValue && to.HasValue)
+                categories = (await this.unitOfWork.ProjectRepository.NoTrackable()
+                        .Include(p => p.Categories)
+                        .ThenInclude(c => c.Expenses.Where(e => e.Date >= from && e.Date < to))
+                        .FirstOrDefaultAsync(p => p.Id == projectId))?
+                        .Categories
+                        .ToDTO()
+                        .ToList();
+            else
+                categories = (await this.unitOfWork.ProjectRepository.NoTrackable()
+                        .Include(p => p.Categories)
+                        .FirstOrDefaultAsync(p => p.Id == projectId))?
+                        .Categories
+                        .ToDTO()
+                        .ToList();
+
+            return AppResponse<ICollection<CategoryResponseDTO>>.Success(categories);
         }
 
         public async Task<AppResponse<ICollection<CategoryResponseDTO>>> GetDefaultCategoriesAsync(Guid projectId)

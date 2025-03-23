@@ -9,7 +9,7 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { CdkTableDataSourceInput } from '@angular/cdk/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { CategoryService } from '../../../core/services/category.service';
@@ -82,8 +82,7 @@ export class DetailProjectComponent implements OnInit {
     private projectService: ProjectService,
     private categoryService: CategoryService,
     private incomeService: IncomeService,
-    private dialog: MatDialog,
-    private translateService: TranslateService
+    private dialog: MatDialog
   ) {
   }
 
@@ -115,35 +114,7 @@ export class DetailProjectComponent implements OnInit {
         }
       })
 
-    this.categoryService.get(this.projectId, date)
-      .pipe(map(categories => mapper.mapArray(categories, Category, CategoryDto)))
-      .subscribe({
-        next: res => {
-          this.categories.next(res);
-
-          this.month.budget = res.map(c => c.getTotalBudget()).reduce((acc, value) => acc + value, 0);
-          this.month.spend = res.map(c => c.getTotalSpend()).reduce((acc, value) => acc + value, 0);
-          this.month.overspend = res.map(c => c.getTotalOverspend()).reduce((acc, value) => acc + value, 0);
-
-          this.month.remaining = res.map(c => c.getTotalRemaining()).reduce((acc, value) => acc + value, 0);
-
-          if (this.month.budget === 0) {
-            var newDate = dateUTC(CurrentDateComponent.currentDate);
-            newDate.setMonth(CurrentDateComponent.currentDate.getMonth() - 1, 1);
-
-            this.categoryService.get(this.projectId, newDate)
-              .pipe(map(categories => mapper.mapArray(categories, Category, CategoryDto)))
-              .subscribe({
-                next: res => {
-                  let previousBudget = res.map(c => c.getTotalBudget()).reduce((acc, value) => acc + value, 0);
-                  this.showCopyPreviousButton = previousBudget !== 0;
-                }
-              });
-          } else {
-            this.showCopyPreviousButton = false;
-          }
-        }
-      });
+    this.fillCategoriesData(date);
 
     this.incomeService.get(this.projectId, date)
       .pipe(map(incomes => mapper.mapArray(incomes, Income, IncomeDto)))
@@ -161,22 +132,50 @@ export class DetailProjectComponent implements OnInit {
         });
   }
 
+  fillCategoriesData(date: Date) {
+    this.categoryService.get(this.projectId, date)
+    .pipe(map(categories => mapper.mapArray(categories, Category, CategoryDto)))
+    .subscribe({
+      next: res => {
+        this.categories.next(res);
+
+        this.month.budget = res.map(c => c.getTotalBudget()).reduce((acc, value) => acc + value, 0);
+        this.month.spend = res.map(c => c.getTotalSpend()).reduce((acc, value) => acc + value, 0);
+        this.month.overspend = res.map(c => c.getTotalOverspend()).reduce((acc, value) => acc + value, 0);
+
+        this.month.remaining = res.map(c => c.getTotalRemaining()).reduce((acc, value) => acc + value, 0);
+
+        if (this.month.budget === 0) {
+          var newDate = dateUTC(CurrentDateComponent.currentDate);
+          newDate.setMonth(CurrentDateComponent.currentDate.getMonth() - 1, 1);
+
+          this.categoryService.get(this.projectId, newDate)
+            .pipe(map(categories => mapper.mapArray(categories, Category, CategoryDto)))
+            .subscribe({
+              next: res => {
+                let previousBudget = res.map(c => c.getTotalBudget()).reduce((acc, value) => acc + value, 0);
+                this.showCopyPreviousButton = previousBudget !== 0;
+              }
+            });
+        } else {
+          this.showCopyPreviousButton = false;
+        }
+      }
+    });
+  }
+
   updateDate(newDate: Date) {
     this.fillData(newDate);
   }
 
-  addCategory(): void {
-    this.router.navigate([{ outlets: { modal: ['projects', this.projectId, 'add-category'] } }]);
+  listCategories(): void {
+    this.router.navigate([{ outlets: { modal: ['projects', this.projectId, 'categories'] } }]);
 
     this.dialog.open(PageModalComponent, {
-      autoFocus: 'input',
-      data: {
-        title: this.translateService.instant('CreateExpenseCategory')
-      }
+      autoFocus: 'input'
     }).afterClosed().subscribe((result) => {
-      if (result) {
-        this.fillData(CurrentDateComponent.currentDate);
-      }
+      this.fillCategoriesData(CurrentDateComponent.currentDate);
+      this.router.navigate([{ outlets: { modal: null } }]);
     });
   }
 
