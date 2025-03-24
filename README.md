@@ -12,15 +12,6 @@
 
 ---
 
-## Table of Contents
-
-* [💡 Introduction](#-introduction)
-* [🗺️ Roadmap](#️-roadmap)
-* [🛠️ Development Guide](#️-development-guide)
-* [Contributors](#contributors)
-
----
-
 ## 💡 Introduction
 
 The objective with EconoFlow is create a simple system to track your expenses and incomes to stay in your budget. 
