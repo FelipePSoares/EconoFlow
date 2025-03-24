@@ -5,7 +5,7 @@ import { MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDi
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
-import { BehaviorSubject, filter, Subscription } from 'rxjs';
+import { filter, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-page-modal',

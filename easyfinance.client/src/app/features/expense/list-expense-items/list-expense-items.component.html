@@ -35,7 +35,7 @@
                 <button class="btn btn-secondary" name="edit" (click)="edit(expenseItem)">
                   <fa-icon [icon]="faPenToSquare"></fa-icon>
                 </button>
-                <button class="btn btn-danger" name="remove" (click)="triggerDelete(expenseItem.id)">
+                <button class="btn btn-danger" name="remove" (click)="triggerDelete(expenseItem)">
                   <fa-icon [icon]="faTrash"></fa-icon>
                 </button>
               </div>
@@ -106,4 +106,3 @@
     </div>
   </div>
 </div>
-<app-confirm-dialog (confirmed)="handleConfirmation($event)"></app-confirm-dialog>

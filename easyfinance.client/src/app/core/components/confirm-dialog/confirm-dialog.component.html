@@ -1,16 +1,14 @@
-<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true" #confirmationModal>
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h1 class="modal-title text-danger" id="confirmationModalLabel">{{ title }}</h1>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" [innerHTML]="message">
-      </div>
-      <div class="modal-footer">
-        <button mat-button type="button" (click)="cancel()">{{ 'ButtonCancel' | translate }}</button>
-        <button mat-raised-button color="warn" type="submit" (click)="confirm()">{{ action | translate }}</button>
-      </div>
-    </div>
-  </div>
+<div class="dialog-header">
+  <h2>{{ data.title | translate }}</h2>
+  <button mat-icon-button (click)="close(false)" class="float-end" aria-label="Close" type="button">
+    <mat-icon>close</mat-icon>
+  </button>
 </div>
+<mat-dialog-content>
+  <div [innerHTML]="data.message"></div>
+  <hr />
+  <div class="dialog-footer d-flex justify-content-end">
+    <button mat-button type="button" (click)="close(false)">{{ 'ButtonCancel' | translate }}</button>
+    <button mat-raised-button color="warn" type="submit" cdk-focus-start (click)="close(true)">{{ data.action | translate }}</button>
+  </div>
+</mat-dialog-content>

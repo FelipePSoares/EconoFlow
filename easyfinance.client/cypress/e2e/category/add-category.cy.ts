@@ -11,6 +11,7 @@ describe('EconoFlow - category add Tests', () => {
         cy.visit('/projects/' + project.id)
 
         cy.get('.btn-add').click();
+        cy.get('app-list-categories .btn-add').click();
 
         cy.focused().should('have.attr', 'formControlName', 'name')
       })

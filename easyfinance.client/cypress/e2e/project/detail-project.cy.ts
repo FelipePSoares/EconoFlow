@@ -43,7 +43,7 @@ describe('EconoFlow - project detail Tests', () => {
 
         cy.wait<CategoryReq, CategoryRes[]>('@getCategories').then(({ request, response }) => {
           cy.wait<CategoryReq, CategoryRes[]>('@getCategories').then(({ request, response }) => {
-            cy.get('.btn-primary').should('not.exist');
+            cy.get('.btn-primary').contains('Clone Previous Budget').should('not.exist');
           });
         });
       })

@@ -58,8 +58,6 @@ import { Role } from '../../../core/enums/Role';
 })
 
 export class ListIncomesComponent implements OnInit {
-  @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
-
   faPenToSquare = faPenToSquare;
   faTrash = faTrash;
   faPlus = faPlus;
@@ -206,15 +204,17 @@ export class ListIncomesComponent implements OnInit {
     })
   }
 
-  triggerDelete(itemId: string): void {
-    this.itemToDelete = itemId;
-    this.ConfirmDialog.openModal(this.translateService.instant('DeleteIncome'), this.translateService.instant('AreYouSureYouWantDeleteThisIncome'), 'ButtonDelete');
-  }
+  triggerDelete(income: IncomeDto): void {
+    this.itemToDelete = income.id;
+    var message = this.translateService.instant('AreYouSureYouWantDeleteIncome', { value: income.name });
 
-  handleConfirmation(result: boolean): void {
-    if (result) {
-      this.remove(this.itemToDelete);
-    }
+    this.dialog.open(ConfirmDialogComponent, {
+      data: { title: 'DeleteIncome', message: message, action: 'ButtonDelete' },
+    }).afterClosed().subscribe((result) => {
+      if (result) {
+        this.remove(this.itemToDelete);
+      }
+    });
   }
 
   updateDate(newDate: Date) {

@@ -8,10 +8,10 @@
           <h3 class="category-name">{{ category.name }}</h3>
           @if (canAddOrEdit()){
           <div class="btn-group actions">
-            <button class="btn btn-secondary" (click)="edit(category); $event.stopPropagation();">
+            <button class="btn btn-secondary" (click)="edit(category);">
               <fa-icon [icon]="faPenToSquare"></fa-icon>
             </button>
-            <button class="btn btn-danger" (click)="triggerDelete(category.id); $event.stopPropagation();">
+            <button class="btn btn-danger" (click)="triggerDelete(category);">
               <fa-icon [icon]="faBoxArchive"></fa-icon>
             </button>
           </div>
@@ -62,4 +62,3 @@
     </div>
   </div>
 </div>
-<app-confirm-dialog (confirmed)="handleConfirmation($event)"></app-confirm-dialog>

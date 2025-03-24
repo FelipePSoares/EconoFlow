@@ -46,6 +46,7 @@
   "ButtonSave": "Save",
   "ButtonDeleteAccount": "Delete Account",
   "ButtonClonePreviousBudget": "Clone Previous Budget",
+  "ButtonArchive": "Archive",
 
   "RequiredField": "This field is required.",
   "InvalidEmailFormat": "Invalid email format.",
@@ -117,14 +118,17 @@
   "Amount": "Amount",
   "Incomes": "Incomes",
   "DeleteIncome": "Delete Income",
-  "AreYouSureYouWantDeleteThisIncome": "Are you sure you want to delete this income?",
+  "AreYouSureYouWantDeleteIncome": "Are you sure you want to delete the <b>{{value}}</b> income?",
   "CreateIncome": "Create Income",
   "CreateExpenseCategory": "Create Expense Category",
   "DeleteExpense": "Delete Expense",
-  "AreYouSureYouWantDeleteThisExpense": "Are you sure you want to delete this expense?",
+  "AreYouSureYouWantDeleteExpense": "Are you sure you want to delete the <b>{{value}}</b> expense?",
   "CreateExpense": "Create Expense",
   "CreatedSuccess": "Created Successfully!",
   "DeletedSuccess": "Deleted successfully!",
   "AddAndEdit": "Add & Edit",
-  "ListCategories": "Categories"
+  "ListCategories": "Categories",
+  "ArchiveCategory": "Archive Category",
+  "AreYouSureYouWantArchiveCategory": "Are you sure you want to archive the <b>{{value}}</b> category?",
+  "ConfirmDeletion": "Confirm Deletion"
 }

@@ -1,5 +1,8 @@
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
-import { MatButton } from '@angular/material/button';
+import { CommonModule } from '@angular/common';
+import { Component, Inject } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 
@@ -7,38 +10,34 @@ declare var bootstrap: any;
 
 @Component({
   selector: 'app-confirm-dialog',
-  imports: [TranslateModule, MatButton],
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatIconModule,
+    MatDialogTitle,
+    MatDialogContent,
+    MatDialogActions,
+    MatDialogClose,
+    TranslateModule
+  ],
     templateUrl: './confirm-dialog.component.html',
     styleUrl: './confirm-dialog.component.css'
 })
 export class ConfirmDialogComponent {
-  @ViewChild('confirmationModal') confirmationModal!: ElementRef;
-  @Output() confirmed = new EventEmitter<boolean>();
-
   title!: string;
   message!: SafeHtml;
   action!: string;
   modalInstance: any;
 
-  constructor(private sanitizer: DomSanitizer) { }
-
-  openModal(title: string, customMessage: string, actionText: string): void {
-    this.title = title;
-    this.message = this.sanitizer.bypassSecurityTrustHtml(customMessage);
-    this.action = actionText;
-
-    const modalElement = this.confirmationModal.nativeElement;
-    this.modalInstance = new bootstrap.Modal(modalElement);
-    this.modalInstance.show();
+  constructor(
+    private dialogRef: MatDialogRef<ConfirmDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: { title: string, message: string, action: string}) {
+    //this.title = title;
+    //this.message = this.sanitizer.bypassSecurityTrustHtml(customMessage);
+    //this.action = actionText;
   }
 
-  confirm(): void {
-    this.confirmed.emit(true); 
-    this.modalInstance.hide();
-  }
-
-  cancel(): void {
-    this.confirmed.emit(false);
-    this.modalInstance.hide();
+  close(isSuccess: boolean): void {
+    this.dialogRef.close(isSuccess);
   }
 }

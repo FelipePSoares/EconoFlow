@@ -256,9 +256,17 @@ export class ListExpensesComponent implements OnInit {
     this.router.navigate(['/projects', this.projectId]);
   }
 
-  triggerDelete(itemId: string): void {
-    this.itemToDelete = itemId;
-    this.ConfirmDialog.openModal(this.translateService.instant('DeleteExpense'), this.translateService.instant('AreYouSureYouWantDeleteThisExpense'), 'ButtonDelete');
+  triggerDelete(expense: ExpenseDto): void {
+    this.itemToDelete = expense.id;
+    var message = this.translateService.instant('AreYouSureYouWantDeleteExpense', { value: expense.name });
+
+    this.dialog.open(ConfirmDialogComponent, {
+      data: { title: 'DeleteExpense', message: message, action: 'ButtonDelete' },
+    }).afterClosed().subscribe((result) => {
+      if (result) {
+        this.remove(this.itemToDelete);
+      }
+    });
   }
 
   handleConfirmation(result: boolean): void {

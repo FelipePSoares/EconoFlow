@@ -207,15 +207,17 @@ export class ListCategoriesComponent implements OnInit {
     })
   }
 
-  triggerDelete(itemId: string): void {
-    this.itemToDelete = itemId;
-    this.ConfirmDialog.openModal('Archive Item', 'Are you sure you want to archive this item?', 'Archive');
-  }
-
-  handleConfirmation(result: boolean): void {
-    if (result) {
-      this.remove(this.itemToDelete);
-    }
+  triggerDelete(category: CategoryDto): void {
+    this.itemToDelete = category.id
+    var message = this.translateService.instant('AreYouSureYouWantArchiveCategory', { value: category.name });
+    ;
+    this.dialog.open(ConfirmDialogComponent, {
+      data: { title: 'ArchiveCategory', message: message, action: 'ButtonArchive' },
+    }).afterClosed().subscribe((result) => {
+      if (result) {
+        this.remove(this.itemToDelete);
+      }
+    });
   }
 
   canAddOrEdit(): boolean {

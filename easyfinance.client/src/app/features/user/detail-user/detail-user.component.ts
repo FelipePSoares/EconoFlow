@@ -19,6 +19,7 @@ import { ErrorMessageService } from '../../../core/services/error-message.servic
 import { passwordMatchValidator } from '../../../core/utils/custom-validators/password-match-validator';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
     selector: 'app-detail-user',
@@ -83,7 +84,8 @@ export class DetailUserComponent implements OnInit {
     private router: Router,
     private errorMessageService: ErrorMessageService,
     private translateService: TranslateService,
-    private snackbar: SnackbarComponent
+    private snackbar: SnackbarComponent,
+    private dialog: MatDialog
   ) {
     this.user$ = this.userService.loggedUser$;
   }
@@ -127,25 +129,25 @@ export class DetailUserComponent implements OnInit {
     this.userService.deleteUser().subscribe({
       next: (response: DeleteUser) => {
         if (response?.confirmationToken) {
-          this.ConfirmDialog.openModal('Confirm Deletion', response.confirmationMessage, 'Delete');
           this.deleteToken = response.confirmationToken;
+          this.dialog.open(ConfirmDialogComponent, {
+            data: { title: 'ConfirmDeletion', message: response.confirmationMessage, action: 'ButtonDelete' },
+          }).afterClosed().subscribe((result) => {
+            if (result && this.deleteToken) {
+              this.userService.deleteUser(this.deleteToken).subscribe({
+                next: (response) => {
+                  this.userService.removeUserInfo();
+                  this.router.navigate(['/']);
+                },
+              });
+            }
+          });
         }
       },
       error: () => {
         this.snackbar.openErrorSnackbar(this.translateService.instant('FailToDeleteAccount'));
       }
     });
-  }
-
-  confirmDeletion(result: boolean): void {
-    if (result && this.deleteToken) {
-      this.userService.deleteUser(this.deleteToken).subscribe({
-        next: (response) => {
-          this.userService.removeUserInfo();
-          this.router.navigate(['/']);
-        },
-      });
-    }
   }
 
   /** Getters for Form Controls **/
@@ -199,10 +201,5 @@ export class DetailUserComponent implements OnInit {
 
   getFormFieldErrors(form: FormGroup<any>, fieldName: string): string[] {
     return this.errorMessageService.getFormFieldErrors(form, fieldName);
-  }
-
-  /** UI Actions **/
-  confirm(result: boolean): void {
-    this.confirmDeletion(result);
   }
 }
