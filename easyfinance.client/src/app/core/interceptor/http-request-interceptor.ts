@@ -11,8 +11,6 @@ import { LocalService } from '../services/local.service';
 import { Token } from '../models/token';
 
 export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
-  var router = inject(Router);
-  var authService = inject(AuthService);
   var localService = inject(LocalService);
   var snackBar = inject(SnackbarComponent);
   var matDialog = inject(MatDialog);
@@ -40,6 +38,8 @@ export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
       }
     }),
     catchError(err => {
+      let authService = injector.get(AuthService);
+
       if (err.status === 0) {
         let translateService = injector.get(TranslateService);
         snackBar.openErrorSnackbar(translateService.instant('NetworkError'));
@@ -50,13 +50,18 @@ export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
           switchMap(() => {
             const newToken = localService.getData<Token>(localService.TOKEN_DATA);
 
-            return next(req.clone({
-              headers: req.headers.set('Authorization', `Bearer ${newToken?.accessToken}`),
-            }));
+            if (newToken) {
+              return next(req.clone({
+                headers: req.headers.set('Authorization', `Bearer ${newToken.accessToken}`),
+              }));
+            }
+
+            return throwError(err);
           })
         );
       }
       else if ((err.status === 401 || err.status === 403) && !err.url?.includes('logout') && !err.url?.includes('login')) {
+        var router = injector.get(Router);
         matDialog.closeAll();
 
         authService.signOut();

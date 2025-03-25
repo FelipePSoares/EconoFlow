@@ -1,6 +1,8 @@
 import { Routes, mapToCanActivate } from '@angular/router';
 import { AuthGuard } from '../core/guards/auth-guard';
 
+import { IndexComponent } from './index/index.component';
+
 import { LoginComponent } from './authentication/login/login.component';
 import { RegisterComponent } from './authentication/register/register.component';
 import { LogoutComponent } from './authentication/logout/logout.component';
@@ -27,7 +29,7 @@ import { ListExpensesComponent } from './expense/list-expenses/list-expenses.com
 import { DetailUserComponent } from './user/detail-user/detail-user.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'projects', pathMatch: 'full' },
+  { path: '', component: IndexComponent },
   { path: 'login', component: LoginComponent },
   { path: 'recovery', component: RecoveryComponent },
   { path: 'register', component: RegisterComponent },

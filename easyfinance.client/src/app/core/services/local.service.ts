@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import * as CryptoJS from 'crypto-js';
 
 @Injectable({
@@ -11,25 +12,29 @@ export class LocalService {
 
   key = "123";
 
-  constructor() { }
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) { }
 
   public saveData(key: string, value: any) {
-    localStorage.setItem(key, this.encrypt(JSON.stringify(value)));
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem(key, this.encrypt(JSON.stringify(value)));
+    }
   }
 
   public getData<T>(key: string): T | undefined {
-    let data = localStorage.getItem(key);
+    if (isPlatformBrowser(this.platformId)) {
+      let data = localStorage.getItem(key);
 
-    if (data) {
-      try {
-        return JSON.parse(this.decrypt(data));
-      }
-      catch (e) {
-        console.error(e);
+      if (data) {
+        try {
+          return JSON.parse(this.decrypt(data));
+        }
+        catch (e) {
+          console.error(e);
 
-        if (e instanceof Error) {
-          if (e.message === "Malformed UTF-8 data") {
-            this.removeData(key);
+          if (e instanceof Error) {
+            if (e.message === "Malformed UTF-8 data") {
+              this.removeData(key);
+            }
           }
         }
       }
@@ -39,11 +44,15 @@ export class LocalService {
   }
 
   public removeData(key: string) {
-    localStorage.removeItem(key);
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem(key);
+    }
   }
 
   public clearData() {
-    localStorage.clear();
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.clear();
+    }
   }
 
   private encrypt(txt: string): string {

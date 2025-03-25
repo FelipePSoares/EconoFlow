@@ -8,7 +8,8 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "start:windows": "ng serve --host=127.0.0.1",
-    "start:default": "ng serve --host=127.0.0.1"
+    "start:default": "ng serve --host=127.0.0.1",
+    "lint": "ng lint"
   },
   "private": true,
   "dependencies": {
@@ -27,6 +28,7 @@
     "@automapper/core": "^8.8.1",
     "@fortawesome/angular-fontawesome": "^1.0.0",
     "@fortawesome/free-solid-svg-icons": "^6.5.2",
+    "@nguniversal/express-engine": "^7.0.1",
     "@ngx-translate/core": "^16.0.4",
     "bootstrap": "^5.3.2",
     "bootstrap-icons": "^1.11.3",
@@ -49,14 +51,16 @@
     "@types/bootstrap": "^5.2.10",
     "@types/crypto-js": "^4.2.2",
     "@types/jasmine": "~4.3.0",
+    "angular-eslint": "19.3.0",
     "cypress": "^13.15.0",
-    "eslint": "^9.18.0",
+    "eslint": "^9.23.0",
     "jasmine-core": "~4.6.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
-    "typescript": "~5.5.4"
+    "typescript": "~5.5.4",
+    "typescript-eslint": "8.27.0"
   }
 }
