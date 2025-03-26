@@ -140,7 +140,6 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseMigration();
-    app.MapHealthChecks("/healthcheck/readness");
 }
 
 app.UseHttpsRedirection();

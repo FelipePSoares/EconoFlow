@@ -9,7 +9,8 @@
     "test": "ng test",
     "start:windows": "ng serve --host=127.0.0.1",
     "start:default": "ng serve --host=127.0.0.1",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "serve:ssr:easyfinance.client": "node dist/easyfinance.client/server/server.mjs"
   },
   "private": true,
   "dependencies": {
@@ -23,7 +24,9 @@
     "@angular/material-moment-adapter": "^19.1.1",
     "@angular/platform-browser": "^19.1.3",
     "@angular/platform-browser-dynamic": "^19.1.3",
+    "@angular/platform-server": "^19.1.3",
     "@angular/router": "^19.1.3",
+    "@angular/ssr": "^19.2.4",
     "@automapper/classes": "^8.8.1",
     "@automapper/core": "^8.8.1",
     "@fortawesome/angular-fontawesome": "^1.0.0",
@@ -34,6 +37,7 @@
     "bootstrap-icons": "^1.11.3",
     "canvas-confetti": "^1.9.3",
     "crypto-js": "^4.2.0",
+    "express": "^4.18.2",
     "fast-json-patch": "^3.1.1",
     "jest-editor-support": "*",
     "ng2-currency-mask": "^13.0.3",
@@ -50,7 +54,9 @@
     "@angular/localize": "^19.1.3",
     "@types/bootstrap": "^5.2.10",
     "@types/crypto-js": "^4.2.2",
+    "@types/express": "^4.17.17",
     "@types/jasmine": "~4.3.0",
+    "@types/node": "^18.18.0",
     "angular-eslint": "19.3.0",
     "cypress": "^13.15.0",
     "eslint": "^9.23.0",

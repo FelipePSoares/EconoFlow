@@ -7,17 +7,33 @@
   <meta name="description" content="EconoFlow: Gerencie suas finanças pessoais de forma simples, inteligente e eficaz. Controle gastos, planeje orçamentos e alcance seus objetivos financeiros.">
   <meta name="keywords" content="finanças pessoais, controle de gastos, orçamento, gestão financeira, aplicativo financeiro">
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+  <style>    
+    .text-sky-600 {
+      color: oklch(0.588 0.158 241.966);
+    }
+
+    .text-sky-900 {
+      color: oklch(0.391 0.09 240.876);
+    }
+
+    .bg-sky-600 {
+      background-color: oklch(0.588 0.158 241.966);
+    }
+
+    .bg-white-custom{
+      background-color: #fff;
+    }
+  </style>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans leading-normal tracking-normal">
   <header class="bg-white shadow-md">
     <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
       <div class="flex items-center">
-        <img src="/api/placeholder/50/50" alt="EconoFlow Logo" class="h-10 w-10 mr-3">
-        <span class="text-2xl font-bold text-blue-600">EconoFlow</span>
+        <img src="/assets/images/logo-sem-texto-100-100.png" alt="EconoFlow Logo" class="h-10 w-10 mr-3">
+        <span class="text-2xl font-bold text-sky-600">EconoFlow</span>
       </div>
       <div>
-        <a href="/login" class="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition duration-300">
+        <a href="/login" class="bg-sky-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition duration-300">
           Entrar
         </a>
       </div>
@@ -26,14 +42,14 @@
 
   <main class="container mx-auto px-6 mt-16">
     <section class="text-center">
-      <h1 class="text-5xl font-extrabold mb-6 text-blue-900">
+      <h1 class="text-5xl font-extrabold mb-6 text-sky-900">
         Transforme Sua Vida Financeira
       </h1>
       <p class="text-xl text-gray-600 max-w-2xl mx-auto mb-10">
         Gerencie seus gastos, planeje seu futuro e conquiste seus sonhos com o EconoFlow - Seu parceiro inteligente em finanças pessoais.
       </p>
 
-      <a href="/register" class="bg-blue-600 text-white text-xl px-10 py-4 rounded-full hover:bg-blue-700 transition duration-300 inline-block mb-16 shadow-lg">
+      <a href="/register" class="bg-sky-600 text-white text-xl px-10 py-4 rounded-full hover:bg-blue-700 transition duration-300 inline-block mb-16 shadow-lg">
         Criar uma Conta Grátis
       </a>
 
@@ -42,7 +58,7 @@
           <div class="bg-white p-4 rounded-lg shadow-md">
             <img src="/api/placeholder/300/500" alt="Dashboard de Finanças" class="rounded-lg mb-4 w-full">
             <h3 class="text-xl font-bold mb-2">Dashboard Intuitivo</h3>
-            <p class="text-gray-600">Visualize seus gastos de um único golpe</p>
+            <p class="text-gray-600">Visualize seus gastos de um único ponto</p>
           </div>
           <div class="bg-white p-4 rounded-lg shadow-md">
             <img src="/api/placeholder/300/500" alt="Gráficos de Gastos" class="rounded-lg mb-4 w-full">
@@ -51,7 +67,7 @@
           </div>
           <div class="bg-white p-4 rounded-lg shadow-md">
             <img src="/api/placeholder/300/500" alt="Categorização de Gastos" class="rounded-lg mb-4 w-full">
-            <h3 class="text-xl font-bold mb-2">Categorização Automática</h3>
+            <h3 class="text-xl font-bold mb-2">Categorização</h3>
             <p class="text-gray-600">Organize suas finanças sem esforço</p>
           </div>
         </div>
@@ -87,13 +103,13 @@
         </div>
         <div class="bg-white p-6 rounded-lg shadow-md">
           <div class="bg-green-100 text-green-600 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4 text-2xl font-bold">2</div>
-          <h4 class="font-bold mb-2">Adicione Finanças</h4>
-          <p class="text-gray-600">Cadastre rendas e despesas facilmente</p>
+          <h4 class="font-bold mb-2">Categorize</h4>
+          <p class="text-gray-600">Organize seus gastos por categorias</p>
         </div>
         <div class="bg-white p-6 rounded-lg shadow-md">
           <div class="bg-purple-100 text-purple-600 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4 text-2xl font-bold">3</div>
-          <h4 class="font-bold mb-2">Categorize</h4>
-          <p class="text-gray-600">Organize seus gastos por categorias</p>
+          <h4 class="font-bold mb-2">Adicione Finanças</h4>
+          <p class="text-gray-600">Cadastre rendas e despesas facilmente</p>
         </div>
         <div class="bg-white p-6 rounded-lg shadow-md">
           <div class="bg-red-100 text-red-600 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4 text-2xl font-bold">4</div>
@@ -103,10 +119,10 @@
       </div>
     </section>
 
-    <section class="mt-24 text-center bg-blue-600 text-white p-16 rounded-lg">
+    <section class="mt-24 text-center bg-sky-600 text-white p-16 rounded-lg">
       <h2 class="text-4xl font-bold mb-6">Comece Agora Sua Jornada Financeira</h2>
       <p class="text-xl mb-10">Transforme sua relação com o dinheiro. Sem complicação, sem stress.</p>
-      <a href="/register" class="bg-white text-blue-600 text-xl px-10 py-4 rounded-full hover:bg-gray-100 transition duration-300 inline-block">
+      <a href="/register" class="bg-white-custom text-sky-600 text-xl px-10 py-4 rounded-full hover:bg-gray-200 transition duration-300 inline-block">
         Criar uma Conta Grátis
       </a>
     </section>
@@ -115,10 +131,10 @@
   <footer class="bg-gray-900 text-white py-12 mt-16">
     <div class="container mx-auto px-6 text-center">
       <p>&copy; 2024 EconoFlow. Todos os direitos reservados.</p>
-      <div class="mt-4">
+      <!-- <div class="mt-4">
         <a href="#" class="mx-2 hover:text-blue-400">Política de Privacidade</a>
         <a href="#" class="mx-2 hover:text-blue-400">Termos de Uso</a>
-      </div>
+      </div> -->
     </div>
   </footer>
 

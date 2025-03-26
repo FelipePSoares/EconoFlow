@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, Subscription, concatMap, finalize, interval, map, switchMap } from 'rxjs';
+import { Observable, Subscription, interval, map, switchMap } from 'rxjs';
 import { UserService } from '../services/user.service';
 import { User } from '../models/user';
 

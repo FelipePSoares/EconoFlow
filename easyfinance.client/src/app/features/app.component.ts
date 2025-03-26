@@ -1,10 +1,12 @@
-import { Component } from '@angular/core';
-import { AuthService } from '../core/services/auth.service';
-import { CommonModule } from '@angular/common';
+import { Component, Inject, Injector, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
+import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
+import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
+import { Observable } from 'rxjs/internal/Observable';
+import { AuthService } from '../core/services/auth.service';
 import { NavBarComponent } from '../core/components/nav-bar/nav-bar.component';
 import { SpinnerComponent } from '../core/components/spinner/spinner.component';
-import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 
 import {
   DateAdapter,
@@ -12,7 +14,6 @@ import {
   MAT_DATE_LOCALE,
 } from '@angular/material/core';
 import * as moment from 'moment';
-import { TranslateModule } from '@ngx-translate/core';
 
 export const MY_FORMATS = {
   parse: {
@@ -48,10 +49,19 @@ export const MY_FORMATS = {
 })
 
 export class AppComponent {
+  private isSignedIn: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  isSignedIn$: Observable<boolean> = this.isSignedIn.asObservable();
 
-  constructor(public authService: AuthService) {
-    if (this.authService.isSignedIn$){
-      this.authService.startUserPolling();
+  constructor(private injector: Injector, @Inject(PLATFORM_ID) private platformId: object) {   
+    if (isPlatformBrowser(this.platformId)) {
+      const authService = injector.get(AuthService);
+      this.isSignedIn$ = authService.isSignedIn$;
+
+      authService.isSignedIn$.subscribe(isSignedIn => {
+        if (isSignedIn){
+          authService.startUserPolling();
+        }
+      });
     }
   }
 }
