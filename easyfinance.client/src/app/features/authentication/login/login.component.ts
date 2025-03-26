@@ -35,7 +35,7 @@ export class LoginComponent implements OnInit {
   constructor(private authService: AuthService, private router: Router, private route: ActivatedRoute, private errorMessageService: ErrorMessageService) {
     this.authService.isSignedIn$.pipe(take(1)).subscribe(value => {
       if (value) {
-        this.router.navigate(['/']);
+        this.router.navigate(['/projects']);
       }
     });
   }
@@ -73,7 +73,7 @@ export class LoginComponent implements OnInit {
           } else if (response.defaultProjectId) {
             this.router.navigate(['/projects', response.defaultProjectId]);
           } else {
-            this.router.navigate(['/']);
+            this.router.navigate(['/projects']);
           }
         },
         error: (response: ApiErrorResponse) => {

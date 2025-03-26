@@ -7,7 +7,11 @@ describe('EconoFlow - project detail Tests', () => {
 
       cy.intercept('GET', 'api/projects/').as('getProjects')
 
-      cy.visit('/projects/')
+      cy.visit('/projects')
+      
+      cy.wait('@getProjects')
+    
+      cy.visit('/projects')
 
       cy.wait('@getProjects').then(({ request, response }) => {
         cy.get('.more').first().click()

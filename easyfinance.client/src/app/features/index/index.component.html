@@ -23,18 +23,27 @@
     .bg-white-custom{
       background-color: #fff;
     }
+
+    .github {
+      height: 50px;
+      filter: invert(73%) sepia(22%) saturate(290%) hue-rotate(155deg) brightness(84%) contrast(86%);
+    }
+
+    .github:hover {
+      filter: invert(55%) sepia(51%) saturate(432%) hue-rotate(163deg) brightness(101%) contrast(87%);
+    }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans leading-normal tracking-normal">
   <header class="bg-white shadow-md">
     <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
       <div class="flex items-center">
-        <img src="/assets/images/logo-sem-texto-100-100.png" alt="EconoFlow Logo" class="h-10 w-10 mr-3">
+        <img src="/assets/images/logo-sem-texto-100-100.webp" alt="EconoFlow Logo" class="h-10 w-10 mr-3">
         <span class="text-2xl font-bold text-sky-600">EconoFlow</span>
       </div>
       <div>
         <a href="/login" class="bg-sky-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition duration-300">
-          Entrar
+          {{ 'ButtonLogIn' | translate }}
         </a>
       </div>
     </nav>
@@ -43,32 +52,32 @@
   <main class="container mx-auto px-6 mt-16">
     <section class="text-center">
       <h1 class="text-5xl font-extrabold mb-6 text-sky-900">
-        Transforme Sua Vida Financeira
+        {{ 'TransformYourFinancialLife' | translate }}
       </h1>
       <p class="text-xl text-gray-600 max-w-2xl mx-auto mb-10">
-        Gerencie seus gastos, planeje seu futuro e conquiste seus sonhos com o EconoFlow - Seu parceiro inteligente em finanças pessoais.
+        {{ 'ShortIndexWebSiteDescription' | translate }}
       </p>
 
       <a href="/register" class="bg-sky-600 text-white text-xl px-10 py-4 rounded-full hover:bg-blue-700 transition duration-300 inline-block mb-16 shadow-lg">
-        Criar uma Conta Grátis
+        {{ 'ButtonCreateFreeAccount' | translate }}
       </a>
 
       <div class="flex justify-center mb-16">
         <div class="grid md:grid-cols-3 gap-8 max-w-5xl">
           <div class="bg-white p-4 rounded-lg shadow-md">
-            <img src="/assets/images/dashboard.jpg" alt="Dashboard de Finanças" class="rounded-lg mb-4 w-full">
-            <h3 class="text-xl font-bold mb-2">Dashboard Intuitivo</h3>
-            <p class="text-gray-600">Visualize seus gastos de um único ponto</p>
+            <img src="/assets/images/dashboard.webp" alt="Dashboard de Finanças" class="rounded-lg mb-4 w-full">
+            <h3 class="text-xl font-bold mb-2">{{ 'IntuitiveDashboard' | translate }}</h3>
+            <p class="text-gray-600">{{ 'ViewYourExpensesSinglePoint' | translate   }}</p>
           </div>
           <div class="bg-white p-4 rounded-lg shadow-md">
-            <img src="/assets/images/analysis.jpg" alt="Gráficos de Gastos" class="rounded-lg mb-4 w-full">
-            <h3 class="text-xl font-bold mb-2">Análise Detalhada</h3>
-            <p class="text-gray-600">Gráficos e relatórios personalizados</p>
+            <img src="/assets/images/analysis.webp" alt="Gráficos de Gastos" class="rounded-lg mb-4 w-full">
+            <h3 class="text-xl font-bold mb-2">{{ 'DetailedAnalysis' | translate }}</h3>
+            <p class="text-gray-600">{{ 'CustomChartsReports' | translate }}</p>
           </div>
           <div class="bg-white p-4 rounded-lg shadow-md">
-            <img src="/assets/images/categories.jpg" alt="Categorização de Gastos" class="rounded-lg mb-4 w-full">
-            <h3 class="text-xl font-bold mb-2">Categorização</h3>
-            <p class="text-gray-600">Organize suas finanças sem esforço</p>
+            <img src="/assets/images/categories.webp" alt="Categorização de Gastos" class="rounded-lg mb-4 w-full">
+            <h3 class="text-xl font-bold mb-2">{{ 'Categorization' | translate }}</h3>
+            <p class="text-gray-600">{{ 'OrganizeYourFinances' | translate }}</p>
           </div>
         </div>
       </div>
@@ -76,70 +85,94 @@
       <div class="grid md:grid-cols-3 gap-8 text-center">
         <div class="bg-white p-8 rounded-lg shadow-md">
           <i data-feather="pie-chart" class="w-16 h-16 mx-auto text-blue-600 mb-4"></i>
-          <h3 class="text-xl font-bold mb-4">Visualização Clara</h3>
-          <p class="text-gray-600">Gráficos intuitivos que mostram exatamente para onde vai seu dinheiro.</p>
+          <h3 class="text-xl font-bold mb-4">{{ 'ClearView' | translate }}</h3>
+          <p class="text-gray-600">{{ 'DescriptionClearView' | translate }}</p>
         </div>
         <div class="bg-white p-8 rounded-lg shadow-md">
           <i data-feather="calendar" class="w-16 h-16 mx-auto text-green-600 mb-4"></i>
-          <h3 class="text-xl font-bold mb-4">Planejamento Simples</h3>
-          <p class="text-gray-600">Crie orçamentos mensais e acompanhe suas metas financeiras.</p>
+          <h3 class="text-xl font-bold mb-4">{{ 'SimplePlanning' | translate }}</h3>
+          <p class="text-gray-600">{{ 'DescriptionSimplePlanning' | translate }}</p>
         </div>
         <div class="bg-white p-8 rounded-lg shadow-md">
           <i data-feather="lock" class="w-16 h-16 mx-auto text-purple-600 mb-4"></i>
-          <h3 class="text-xl font-bold mb-4">100% Seguro</h3>
-          <p class="text-gray-600">Seus dados protegidos com criptografia de ponta.</p>
+          <h3 class="text-xl font-bold mb-4">{{ '100Safe' | translate }}</h3>
+          <p class="text-gray-600">{{ 'Description100Safe' | translate }}</p>
         </div>
       </div>
     </section>
 
-    <section class="mt-24 text-center">
-      <h2 class="text-4xl font-bold mb-12 text-blue-900">Como Funciona</h2>
+    <section class="mt-12 text-center">
+      <h2 class="text-4xl font-bold text-blue-900">{{ 'HowItWorks' | translate }}</h2>
 
-      <div class="grid md:grid-cols-4 gap-6">
+      <div class="grid md:grid-cols-4 gap-6 mt-12">
         <div class="bg-white p-6 rounded-lg shadow-md">
           <div class="bg-blue-100 text-blue-600 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4 text-2xl font-bold">1</div>
-          <h4 class="font-bold mb-2">Cadastre-se</h4>
-          <p class="text-gray-600">Crie sua conta gratuitamente em minutos</p>
+          <h4 class="font-bold mb-2">{{ 'SignUp' | translate }}</h4>
+          <p class="text-gray-600">{{ 'DescriptionSignUp' | translate }}</p>
         </div>
         <div class="bg-white p-6 rounded-lg shadow-md">
           <div class="bg-green-100 text-green-600 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4 text-2xl font-bold">2</div>
-          <h4 class="font-bold mb-2">Categorize</h4>
-          <p class="text-gray-600">Organize seus gastos por categorias</p>
+          <h4 class="font-bold mb-2">{{ 'Categorize' | translate }}</h4>
+          <p class="text-gray-600">{{ 'DescriptionCategorize' | translate }}</p>
         </div>
         <div class="bg-white p-6 rounded-lg shadow-md">
           <div class="bg-purple-100 text-purple-600 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4 text-2xl font-bold">3</div>
-          <h4 class="font-bold mb-2">Adicione Finanças</h4>
-          <p class="text-gray-600">Cadastre rendas e despesas facilmente</p>
+          <h4 class="font-bold mb-2">{{ 'AddFinancesInfo' | translate }}</h4>
+          <p class="text-gray-600">{{ 'DescriptionAddFinancesInfo' | translate }}</p>
         </div>
         <div class="bg-white p-6 rounded-lg shadow-md">
           <div class="bg-red-100 text-red-600 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4 text-2xl font-bold">4</div>
-          <h4 class="font-bold mb-2">Analise</h4>
-          <p class="text-gray-600">Visualize relatórios e insights financeiros</p>
+          <h4 class="font-bold mb-2">{{ 'Analysis' | translate }}</h4>
+          <p class="text-gray-600">{{ 'DescriptionAnalysis' | translate }}</p>
         </div>
       </div>
     </section>
 
     <section class="mt-24 text-center bg-sky-600 text-white p-16 rounded-lg">
-      <h2 class="text-4xl font-bold mb-6">Comece Agora Sua Jornada Financeira</h2>
-      <p class="text-xl mb-10">Transforme sua relação com o dinheiro. Sem complicação, sem stress.</p>
+      <h2 class="text-4xl font-bold mb-6">{{ 'StartNowYourJourney' | translate }}</h2>
+      <p class="text-xl mb-10">{{ 'StartNowYourJourneySubText' | translate }}</p>
       <a href="/register" class="bg-white-custom text-sky-600 text-xl px-10 py-4 rounded-full hover:bg-gray-200 transition duration-300 inline-block">
-        Criar uma Conta Grátis
+        {{ 'ButtonCreateFreeAccount' | translate }}
       </a>
     </section>
   </main>
 
   <footer class="bg-gray-900 text-white py-12 mt-16">
-    <div class="container mx-auto px-6 text-center">
-      <p>&copy; 2024 EconoFlow. Todos os direitos reservados.</p>
-      <!-- <div class="mt-4">
-        <a href="#" class="mx-2 hover:text-blue-400">Política de Privacidade</a>
-        <a href="#" class="mx-2 hover:text-blue-400">Termos de Uso</a>
-      </div> -->
+    <div class="container mx-auto px-6">
+      <div class="grid md:grid-cols-3 gap-8">
+        <div>
+          <h4 class="text-xl font-bold mb-4">EconoFlow</h4>
+          <p class="text-gray-400">{{ 'EconoFlowShortDescription' | translate }}</p>
+        </div>
+        <div>
+          <h4 class="text-xl font-bold mb-4">{{ 'UsefulLinks' | translate }}</h4>
+          <ul>
+            <li><a href="#" class="hover:text-blue-400">{{ 'PrivacyPolicy' | translate }}</a></li>
+            <li><a href="#" class="hover:text-blue-400">{{ 'UseTerms' | translate }}</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-xl font-bold mb-4">{{ 'Community' | translate }}</h4>
+          <div class="flex space-x-4">
+            <a href="https://github.com/FelipePSoares/EconoFlow" target="_blank" class="text-2xl">
+              <svg class="github" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M448 96c0-35.3-28.7-64-64-64H64C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V96zM265.8 407.7c0-1.8 0-6 .1-11.6c.1-11.4 .1-28.8 .1-43.7c0-15.6-5.2-25.5-11.3-30.7c37-4.1 76-9.2 76-73.1c0-18.2-6.5-27.3-17.1-39c1.7-4.3 7.4-22-1.7-45c-13.9-4.3-45.7 17.9-45.7 17.9c-13.2-3.7-27.5-5.6-41.6-5.6s-28.4 1.9-41.6 5.6c0 0-31.8-22.2-45.7-17.9c-9.1 22.9-3.5 40.6-1.7 45c-10.6 11.7-15.6 20.8-15.6 39c0 63.6 37.3 69 74.3 73.1c-4.8 4.3-9.1 11.7-10.6 22.3c-9.5 4.3-33.8 11.7-48.3-13.9c-9.1-15.8-25.5-17.1-25.5-17.1c-16.2-.2-1.1 10.2-1.1 10.2c10.8 5 18.4 24.2 18.4 24.2c9.7 29.7 56.1 19.7 56.1 19.7c0 9 .1 21.7 .1 30.6c0 4.8 .1 8.6 .1 10c0 4.3-3 9.5-11.5 8C106 393.6 59.8 330.8 59.8 257.4c0-91.8 70.2-161.5 162-161.5s166.2 69.7 166.2 161.5c.1 73.4-44.7 136.3-110.7 158.3c-8.4 1.5-11.5-3.7-11.5-8zm-90.5-54.8c-.2-1.5 1.1-2.8 3-3.2c1.9-.2 3.7 .6 3.9 1.9c.3 1.3-1 2.6-3 3c-1.9 .4-3.7-.4-3.9-1.7zm-9.1 3.2c-2.2 .2-3.7-.9-3.7-2.4c0-1.3 1.5-2.4 3.5-2.4c1.9-.2 3.7 .9 3.7 2.4c0 1.3-1.5 2.4-3.5 2.4zm-14.3-2.2c-1.9-.4-3.2-1.9-2.8-3.2s2.4-1.9 4.1-1.5c2 .6 3.3 2.1 2.8 3.4c-.4 1.3-2.4 1.9-4.1 1.3zm-12.5-7.3c-1.5-1.3-1.9-3.2-.9-4.1c.9-1.1 2.8-.9 4.3 .6c1.3 1.3 1.8 3.3 .9 4.1c-.9 1.1-2.8 .9-4.3-.6zm-8.5-10c-1.1-1.5-1.1-3.2 0-3.9c1.1-.9 2.8-.2 3.7 1.3c1.1 1.5 1.1 3.3 0 4.1c-.9 .6-2.6 0-3.7-1.5zm-6.3-8.8c-1.1-1.3-1.3-2.8-.4-3.5c.9-.9 2.4-.4 3.5 .6c1.1 1.3 1.3 2.8 .4 3.5c-.9 .9-2.4 .4-3.5-.6zm-6-6.4c-1.3-.6-1.9-1.7-1.5-2.6c.4-.6 1.5-.9 2.8-.4c1.3 .7 1.9 1.8 1.5 2.6c-.4 .9-1.7 1.1-2.8 .4z" /></svg>
+            </a>
+          </div>
+          <p class="mt-4 text-sm text-gray-400">{{ 'ContributeProject' | translate }}</p>
+        </div>
+      </div>
+      <div class="border-t border-gray-700 mt-8 pt-6 text-center">
+        <p class="text-sm">
+          &copy; 2024 EconoFlow.
+          <a href="https://github.com/FelipePSoares/EconoFlow"
+             target="_blank"
+             class="ml-2 text-blue-400 hover:underline">
+            {{ 'OpenSource' | translate }}
+            <i class="fab fa-github ml-1"></i>
+          </a>
+        </p>
+      </div>
     </div>
   </footer>
-
-  <script>
-        feather.replace();
-  </script>
 </body>
 </html>

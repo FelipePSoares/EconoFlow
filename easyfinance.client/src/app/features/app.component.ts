@@ -1,6 +1,6 @@
 import { Component, Inject, Injector, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
 import { Observable } from 'rxjs/internal/Observable';
@@ -52,7 +52,10 @@ export class AppComponent {
   private isSignedIn: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   isSignedIn$: Observable<boolean> = this.isSignedIn.asObservable();
 
-  constructor(private injector: Injector, @Inject(PLATFORM_ID) private platformId: object) {   
+  constructor(
+    private router: Router,
+    private injector: Injector,
+    @Inject(PLATFORM_ID) private platformId: object) {   
     if (isPlatformBrowser(this.platformId)) {
       const authService = injector.get(AuthService);
       this.isSignedIn$ = authService.isSignedIn$;
@@ -63,5 +66,9 @@ export class AppComponent {
         }
       });
     }
+  }
+
+  isIndex(): boolean {
+    return this.router.url === '/';
   }
 }

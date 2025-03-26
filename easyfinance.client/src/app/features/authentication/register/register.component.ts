@@ -47,7 +47,7 @@ export class RegisterComponent implements OnInit {
   ngOnInit() {
     this.authService.isSignedIn$.pipe(take(1)).subscribe(value => {
       if (value) {
-        this.router.navigate(['/']);
+        this.router.navigate(['/projects']);
       }
     });
 

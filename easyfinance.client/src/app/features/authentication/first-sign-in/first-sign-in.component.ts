@@ -63,7 +63,7 @@ export class FirstSignInComponent implements OnInit {
 
       this.userService.setUserInfo(firstName, lastName).pipe(take(1)).subscribe({
         next: response => {
-          this.router.navigate(['/']);
+          this.router.navigate(['/projects']);
         },
         error: (response: ApiErrorResponse) => {
           this.httpErrors = true;

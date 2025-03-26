@@ -161,7 +161,7 @@ export class DetailUserComponent implements OnInit {
   /** Save User Information **/
   save() {
     if (this.userForm.valid) {
-      const { firstName, lastName, email, preferredCurrency } = this.userForm.value;
+      const { firstName, lastName, email } = this.userForm.value;
 
       if (firstName !== this.editingUser.firstName || lastName !== this.editingUser.lastName) {
         this.userService.setUserInfo(firstName, lastName).subscribe({

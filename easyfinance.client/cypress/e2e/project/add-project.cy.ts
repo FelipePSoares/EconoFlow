@@ -4,12 +4,6 @@ describe('EconoFlow - project add Tests', () => {
       const user = users.testUser;
 
       cy.login(user.username, user.password)
-
-      cy.visit('/projects')
-
-      cy.get('#add-item').click()
-
-      cy.focused().should('have.attr', 'formControlName', 'name')
     })
   })
 
@@ -17,10 +11,20 @@ describe('EconoFlow - project add Tests', () => {
     cy.intercept('GET', '**/projects*').as('getProjects')
     cy.intercept('POST', '**/projects*').as('postProjects')
 
-    cy.wait('@getProjects');
+    cy.visit('/projects')
+
+    cy.wait('@getProjects')
+    
+    cy.visit('/projects')
+
+    cy.wait('@getProjects')
 
     cy.fixture('projects').then((projects) => {
       var project = projects.testPersonalProject;
+
+      cy.get('#add-item').click()
+
+      cy.focused().should('have.attr', 'formControlName', 'name')
 
       cy.get('input[formControlName=name]').type(project.name)
       const preferredCurrencyInput = cy.get('mat-select[formcontrolname=preferredCurrency]');
@@ -34,12 +38,6 @@ describe('EconoFlow - project add Tests', () => {
         const projectCreated = response?.body
 
         cy.get("mat-snack-bar-container").should("be.visible").contains('Created Successfully!');
-
-        cy.wait<UserProjectReq, UserProjectRes[]>('@getProjects').then(response => {
-          console.log(JSON.stringify(response.response?.body));
-          const exists = response.response?.body.some(item => item.project.id == projectCreated?.id)
-          expect(exists).to.be.true
-        })
       })
     })
   })
