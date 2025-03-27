@@ -147,6 +147,8 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 app.UseProjectAuthorization();
 
+app.UseLocationMiddleware();
+
 app.MapControllers();
 
 app.MapFallbackToFile("/index.html");

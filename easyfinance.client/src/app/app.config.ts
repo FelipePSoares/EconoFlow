@@ -15,6 +15,7 @@ import { loadAngularLocale } from './core/utils/loaders/angular-locale-loader';
 import { loadMomentLocale } from './core/utils/loaders/moment-locale-loader';
 import { GlobalService } from './core/services/global.service';
 import { TranslateHttpLoader } from './core/utils/loaders/translate-http-loader';
+import { LanguageInterceptor } from './core/interceptor/language-interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -38,7 +39,8 @@ export const appConfig: ApplicationConfig = {
       withFetch(),
       withInterceptors([
         HttpRequestInterceptor,
-        LoadingInterceptor])
+        LoadingInterceptor,
+        LanguageInterceptor])
     ),
     provideAnimationsAsync(),
     provideAppInitializer(appInitializerFactory()), provideClientHydration(withEventReplay())

@@ -118,120 +118,121 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="Forbidden" xml:space="preserve">
-    <value>You don't have access to do this action</value>
+    <value>Você não tem acesso para realizar esta ação</value>
   </data>
   <data name="GoalDefinedCantBeLessThanExpensesGoal" xml:space="preserve">
-    <value>Goal defined to category ({0}) can't be less than the sum of the expenses goal ({1})</value>
+    <value>Meta definida para a categoria ({0}) não pode ser menor que a soma da meta de despesas ({1})</value>
   </data>
   <data name="InvalidDate" xml:space="preserve">
-    <value>Invalid date</value>
+    <value>Data inválida</value>
   </data>
   <data name="PropertyCantBeLessOrEqualThanZero" xml:space="preserve">
-    <value>{0} can't be less or equal than zero</value>
+    <value>{0} não pode ser menor ou igual a zero.</value>
   </data>
   <data name="PropertyCantBeLessThanZero" xml:space="preserve">
-    <value>{0} can't be less than zero</value>
+    <value>{0} não pode ser menor que zero.</value>
   </data>
   <data name="PropertyCantBeNull" xml:space="preserve">
-    <value>{0} can't be null</value>
+    <value>{0} não pode ser nulo.</value>
   </data>
   <data name="PropertyCantBeNullOrEmpty" xml:space="preserve">
-    <value>{0} can't be null or empty</value>
+    <value>{0} não pode ser nulo ou vazio.</value>
   </data>
   <data name="CantAddFutureExpenseIncome" xml:space="preserve">
-    <value>You can't add future expense/income</value>
+    <value>Você não pode adicionar despesa/receita futura</value>
   </data>
   <data name="CantAddExpenseOlderThanYears" xml:space="preserve">
-    <value>You can't add expense older than {0} years</value>
+    <value>Você não pode adicionar despesa mais antiga que {0} anos</value>
   </data>
   <data name="CantImportBudgetBecauseAlreadyExists" xml:space="preserve">
-    <value>Can't import budget because already exists</value>
+    <value>Não é possível importar o orçamento porque já existe.</value>
   </data>
   <data name="CantAddExpenseItemWithDifferentYearOrMonthFromExpense" xml:space="preserve">
-    <value>Can't add an expense item with different year o r month from expense</value>
+    <value>Não é possível adicionar um item de despesa com ano ou mês diferente da despesa.</value>
   </data>
   <data name="InvalidCurrencyCode" xml:space="preserve">
-    <value>Invalid currency code</value>
+    <value>Código de moeda inválido</value>
   </data>
   <data name="WarningMessageToUserWhoWantsToDeleteAccount" xml:space="preserve">
-    <value>This action is permanent and cannot be undone. Are you sure you want to delete your account?</value>
+    <value>Esta ação é permanente e não pode ser desfeita. Tem certeza de que deseja excluir sua conta?</value>
   </data>
   <data name="WarningMessageToAdminUserWhoWantsToDeleteAccount" xml:space="preserve">
-    <value>&lt;p&gt;This action is permanent and cannot be undone. Are you sure you want to delete your account?&lt;/p&gt;&lt;p&gt;&lt;span style="color: #ff0000;"&gt;You are associated as a sole administrator of the projects below:&lt;/span&gt;&lt;/p&gt;&lt;ul&gt;{0}&lt;/ul&gt;&lt;p&gt;Please transfer the administration to another user before deleting your account. Otherwise, the project(s) will be deleted also.&lt;/p&gt;</value>
+    <value>&lt;p&gt;Esta ação é permanente e não pode ser desfeita. Tem certeza de que deseja excluir sua conta?&lt;/p&gt;&lt;p&gt;&lt;span style="color: #ff0000;"&gt;Você está associado como administrador único dos projetos abaixo:&lt;/span&gt;&lt;/p&gt;&lt;ul&gt;{0}&lt;/ul&gt;&lt;p&gt;Por favor, transfira a administração para outro usuário antes de excluir sua conta. Caso contrário, o(s) projeto(s) também será(ão) excluído(s).&lt;/p&gt;</value>
   </data>
   <data name="InvalidDeleteToken" xml:space="preserve">
-    <value>Delete token expired, please start the delete process again.</value>
+    <value>Token de exclusão expirado, por favor inicie o processo de exclusão novamente.
+Categoria não encontrada.</value>
   </data>
   <data name="EitherUserOrEmailMustBeProvided" xml:space="preserve">
-    <value>Either a User or an Email must be provided.</value>
+    <value>Um Usuário ou um E-mail deve ser fornecido.</value>
   </data>
   <data name="CantAcceptExpiredInvitation" xml:space="preserve">
-    <value>Can't accept expired invitation</value>
+    <value>Não é possível aceitar convite expirado.</value>
   </data>
   <data name="ExpenseNotFound" xml:space="preserve">
-    <value>Expense not found.</value>
+    <value>Despesa não encontrada.</value>
   </data>
   <data name="InvalidDateRange" xml:space="preserve">
-    <value>Invalid date range.</value>
+    <value>Intervalo de data inválido.</value>
   </data>
   <data name="CategoryNotFound" xml:space="preserve">
-    <value>Category not found.</value>
+    <value>Categoria não encontrada.</value>
   </data>
   <data name="InvalidExpenseId" xml:space="preserve">
-    <value>ExpenseId is not valid.</value>
+    <value>Id de Despesa inválido.</value>
   </data>
   <data name="NotFound" xml:space="preserve">
-    <value>Not found.</value>
+    <value>Não encontrado.</value>
   </data>
   <data name="InvalidExpenseItemId" xml:space="preserve">
-    <value>ExpenseItemId is not valid.</value>
+    <value>Id de Item de Despesa inválido.</value>
   </data>
   <data name="InvalidCategoryId" xml:space="preserve">
-    <value>Invalid CategoryId.</value>
+    <value>Id de Categoria inválido.</value>
   </data>
   <data name="InvalidIncomeId" xml:space="preserve">
-    <value>IncomeId is not valid.</value>
+    <value>Id de Receita inválido.</value>
   </data>
   <data name="IncomeNotFound" xml:space="preserve">
-    <value>Income not found.</value>
+    <value>Receita não encontrada.</value>
   </data>
   <data name="InvalidProjectId" xml:space="preserve">
-    <value>ProjectId is not valid.</value>
+    <value>Id do Projeto inválido.</value>
   </data>
   <data name="ProjectNotFound" xml:space="preserve">
-    <value>Project not found.</value>
+    <value>Projeto não encontrado.</value>
   </data>
   <data name="ExpenseItemNotFound" xml:space="preserve">
-    <value>Expense item not found.</value>
+    <value>Item de despesa não encontrado.</value>
   </data>
   <data name="ProjectNotFoundOrInsufficientUserPermissions" xml:space="preserve">
-    <value>Project not found or insufficient user permissions.</value>
+    <value>Projeto não encontrado ou permissões de usuário insuficientes.</value>
   </data>
   <data name="AdminRequired" xml:space="preserve">
-    <value>At least one admin is required in the project.</value>
+    <value>Pelo menos um administrador é necessário no projeto..</value>
   </data>
   <data name="OldPasswordRequired" xml:space="preserve">
-    <value>The old password is required to set a new password. If the old password is forgotten, use forget my password.</value>
+    <value>A senha antiga é necessária para definir uma nova senha. Se a senha antiga for esquecida, use "Esqueci minha senha".</value>
   </data>
   <data name="DuplicateUser" xml:space="preserve">
-    <value>User already exists in the project.</value>
+    <value>Usuário já existe no projeto.</value>
   </data>
   <data name="InvalidUserProjectId" xml:space="preserve">
-    <value>Invalid UserProjectId.</value>
+    <value>ID de Usuário-Projeto inválido.</value>
   </data>
   <data name="FixedExpenses" xml:space="preserve">
-    <value>FixedExpenses</value>
+    <value>Despesas Fixas</value>
   </data>
   <data name="Comfort" xml:space="preserve">
-    <value>Comfort</value>
+    <value>Conforto</value>
   </data>
   <data name="Pleasures" xml:space="preserve">
-    <value>Pleasures</value>
+    <value>Prazeres</value>
   </data>
   <data name="YourFuture" xml:space="preserve">
-    <value>Your Future</value>
+    <value>Seu Futuro</value>
   </data>
   <data name="SelfImprovement" xml:space="preserve">
-    <value>Self-Improvement</value>
+    <value>Aprendizado</value>
   </data>
 </root>
