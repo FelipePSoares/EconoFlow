@@ -47,7 +47,7 @@ namespace EasyFinance.Application.Features.AccessControlService
         {
             AppResponse result;
 
-            var userProject = unitOfWork.UserProjectRepository.Trackable().Include(up => up.Project).Include(up => up.User).FirstOrDefault(up => up.Token == token);
+            var userProject = unitOfWork.UserProjectRepository.Trackable().IgnoreQueryFilters().Include(up => up.Project).Include(up => up.User).FirstOrDefault(up => up.Token == token && !up.Accepted);
             if (userProject == default)
                 return AppResponse.Error(ValidationMessages.NotFound);
 

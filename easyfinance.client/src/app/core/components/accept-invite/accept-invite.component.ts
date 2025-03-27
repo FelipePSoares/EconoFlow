@@ -15,8 +15,10 @@ export class AcceptInviteComponent implements OnInit {
   constructor(private projectService: ProjectService, private router: Router) { }
 
   ngOnInit(): void {
-    this.projectService.acceptInvite(this.token).subscribe(() => {
-      this.router.navigate(['/projects']);
+    this.projectService.acceptInvite(this.token).subscribe({
+      complete: () => {
+        this.router.navigate(['/projects']);
+      }
     });
   }
 }
