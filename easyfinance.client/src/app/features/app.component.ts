@@ -81,8 +81,4 @@ export class AppComponent {
   isRecovery(): boolean {
     return this.router.url === '/recovery';
   }
-
-  isNoTAuthenticatedArea(): boolean {
-    return this.router.url.indexOf('/login') >= 0;
-  }
 }
