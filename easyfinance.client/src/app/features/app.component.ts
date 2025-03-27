@@ -70,10 +70,6 @@ export class AppComponent {
     }
   }
 
-  isIndex(): boolean {
-    return this.router.url === '/';
-  }
-
   isLogin(): boolean {
     return this.router.url === '/login';
   }
@@ -84,5 +80,9 @@ export class AppComponent {
 
   isRecovery(): boolean {
     return this.router.url === '/recovery';
+  }
+
+  isNoTAuthenticatedArea(): boolean {
+    return this.router.url.indexOf('/login') >= 0;
   }
 }
