@@ -7,6 +7,7 @@ import { Observable } from 'rxjs/internal/Observable';
 import { AuthService } from '../core/services/auth.service';
 import { NavBarComponent } from '../core/components/nav-bar/nav-bar.component';
 import { SpinnerComponent } from '../core/components/spinner/spinner.component';
+import { TranslateModule } from '@ngx-translate/core';
 
 import {
   DateAdapter,
@@ -33,7 +34,8 @@ export const MY_FORMATS = {
         CommonModule,
         RouterOutlet,
         NavBarComponent,
-        SpinnerComponent
+        SpinnerComponent,
+        TranslateModule
     ],
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.css'],

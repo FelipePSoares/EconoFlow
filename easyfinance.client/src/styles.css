@@ -7,6 +7,10 @@ body {
   font-family: Roboto, "Helvetica Neue", sans-serif;
 }
 
+.main-container {
+  min-height: 90vh;
+}
+
 .mat-mdc-snack-bar-container.success-snackbar {
   --mdc-snackbar-container-color: #2ecc71;
   --mat-mdc-snack-bar-button-color: #fff;
@@ -128,4 +132,13 @@ body {
 
   ::-webkit-scrollbar-thumb:hover {
     background-color: #495057; /* Cor quando o mouse passa por cima */
+  }
+
+.github {
+  height: 50px;
+  filter: invert(46%) sepia(20%) saturate(201%) hue-rotate(166deg) brightness(93%) contrast(88%);
+}
+
+  .github:hover {
+    filter: invert(36%) sepia(9%) saturate(345%) hue-rotate(138deg) brightness(93%) contrast(86%);
   }
