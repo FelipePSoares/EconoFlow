@@ -1,7 +1,9 @@
 import { Routes, mapToCanActivate } from '@angular/router';
 import { AuthGuard } from '../core/guards/auth-guard';
 
-import { IndexComponent } from './index/index.component';
+import { IndexComponent } from './not-authenticated-area/index/index.component';
+import { PrivacyPolicyComponent } from './not-authenticated-area/privacy-policy/privacy-policy.component';
+import { UseTermsComponent } from './not-authenticated-area/use-terms/use-terms.component';
 
 import { LoginComponent } from './authentication/login/login.component';
 import { RegisterComponent } from './authentication/register/register.component';
@@ -30,6 +32,8 @@ import { DetailUserComponent } from './user/detail-user/detail-user.component';
 
 export const routes: Routes = [
   { path: '', component: IndexComponent },
+  { path: 'privacy-policy', component: PrivacyPolicyComponent },
+  { path: 'use-terms', component: UseTermsComponent },
   { path: 'login', component: LoginComponent },
   { path: 'recovery', component: RecoveryComponent },
   { path: 'register', component: RegisterComponent },

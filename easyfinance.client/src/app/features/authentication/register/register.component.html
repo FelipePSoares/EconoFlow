@@ -1,10 +1,10 @@
-<div class="limiter">
-  <div class="container-register">
-    <div class="wrap-register">
-      <span class="register-form-title mb-4">
+<div class="container text-center">
+  <div class="d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+    <div class="wrap col-xl-4 col-lg-5 col-md-7 col-sm-9 p-4">
+      <span>
         <img src="/assets/images/logo-300-220.webp" alt="EconoFlow Logo" class="h-10 w-10 mr-3 img-fluid">
       </span>
-      <form class="register-form" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+      <form class="register-form mt-4 mb-2 text-start" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
         <div class="form-floating mb-1">
           <p>{{ 'PleaseSignUp' | translate }}</p>
         </div>
@@ -26,7 +26,7 @@
           }
         </mat-form-field>
 
-        <div class="row g-2 mb-2">
+        <div *ngIf="password?.dirty" class="row g-2 mb-2">
           <div class="col-md">
             {{ 'PasswordMustHave' | translate }}
             <ul>
@@ -52,15 +52,19 @@
           <p class="mb-3 text-danger text-center">{{ 'PasswordMustMatch' | translate }}</p>
         </div>
         <div *ngIf="httpErrors && errors?.['general']">
-          <p class="mb-3 text-danger text-center">{{errors['general']}}
+          <p class="mb-3 text-danger text-center">
+            {{errors['general']}}
           </p>
         </div>
         <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="registerForm.invalid">{{ 'ButtonSignUp' | translate }}</button>
       </form>
       <span class="register-footer">
-        {{ 'AlreadyHaveAccount' | translate }}
-        <a [routerLink]="['/login']" routerLinkActive="active">{{ 'ButtonSignIn' | translate }}</a>
+        <p class="text-secondary text-start"><small [innerHtml]="'RegisterAdvice' | translate : { termslink: '/use-terms', privacylink: '/privacy-policy' }"></small></p>
       </span>
+    </div>
+    <div class="position-absolute top-0 end-0 pt-3 pe-4">
+      {{ 'AlreadyHaveAccount' | translate }}
+      <a [routerLink]="['/login']" routerLinkActive="active">{{ 'ButtonSignIn' | translate }} -> </a>
     </div>
   </div>
 </div>

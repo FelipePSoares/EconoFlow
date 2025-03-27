@@ -12,6 +12,7 @@ import { ErrorMessageService } from '../../../core/services/error-message.servic
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIcon } from '@angular/material/icon';
+import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 
 @Component({
     selector: 'app-recovery',
@@ -24,6 +25,7 @@ import { MatIcon } from '@angular/material/icon';
       MatFormFieldModule,
       MatInputModule,
       MatIcon,
+      ReturnButtonComponent
     ],
     templateUrl: './recovery.component.html',
     styleUrl: './recovery.component.css'
@@ -140,5 +142,9 @@ export class RecoveryComponent implements OnInit {
       return this.errorMessageService.getFormFieldErrors(this.recoveryForm, fieldName);
     }
     return this.errorMessageService.getFormFieldErrors(this.resetPasswordForm, fieldName);
+  }
+
+  previous() {
+    this.router.navigate(['/login']);
   }
 }

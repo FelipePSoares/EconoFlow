@@ -73,4 +73,16 @@ export class AppComponent {
   isIndex(): boolean {
     return this.router.url === '/';
   }
+
+  isLogin(): boolean {
+    return this.router.url === '/login';
+  }
+
+  isRegister(): boolean {
+    return this.router.url === '/register';
+  }
+
+  isRecovery(): boolean {
+    return this.router.url === '/recovery';
+  }
 }

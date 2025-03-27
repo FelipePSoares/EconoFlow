@@ -1,13 +1,30 @@
 <div class="main">
   <main>
     <app-nav-bar *ngIf="(isSignedIn$ | async) && !isIndex()"></app-nav-bar>
+    <header *ngIf="!(isSignedIn$ | async) && !isLogin() && !isRegister() && !isRecovery()" class="bg-white shadow-sm">
+      <nav class="container py-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center">
+            <a href="/" class="link-underline link-underline-opacity-0">
+              <img src="/assets/images/logo-sem-texto-100-100.webp" alt="EconoFlow Logo" class="me-3" style="height: 40px; width: 40px;">
+              <span class="fs-4 fw-bold text-primary align-middle">EconoFlow</span>
+            </a>
+          </div>
+          <div>
+            <a href="/login" class="btn btn-primary rounded-pill">
+              {{ 'ButtonLogIn' | translate }}
+            </a>
+          </div>
+        </div>
+      </nav>
+    </header>
   </main>
 
   <div class="main-container">
     <router-outlet></router-outlet>
   </div>
 
-  <footer *ngIf="(isSignedIn$ | async) && !isIndex()" class="bg-dark text-white py-5 mt-5">
+  <footer *ngIf="!isLogin() && !isRegister() && !isRecovery()" class="bg-dark text-white py-5 mt-5">
     <div class="container">
       <div class="row g-4">
         <div class="col-md-4">
@@ -17,8 +34,9 @@
         <div class="col-md-4">
           <h4 class="mb-3">{{ 'UsefulLinks' | translate }}</h4>
           <ul class="list-unstyled">
-            <li><a href="#" class="link-secondary">{{ 'PrivacyPolicy' | translate }}</a></li>
-            <li><a href="#" class="link-secondary">{{ 'UseTerms' | translate }}</a></li>
+            <li><a href="/" class="link-secondary">{{ 'HomePage' | translate }}</a></li>
+            <li><a href="/privacy-policy" class="link-secondary">{{ 'PrivacyPolicy' | translate }}</a></li>
+            <li><a href="/use-terms" class="link-secondary">{{ 'UseTerms' | translate }}</a></li>
           </ul>
         </div>
         <div class="col-md-4">

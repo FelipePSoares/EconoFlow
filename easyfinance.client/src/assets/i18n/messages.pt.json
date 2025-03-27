@@ -165,5 +165,7 @@
   "Community": "Comunidade",
   "ContributeProject": "Contribua para o projeto",
   "OpenSource": "Código Aberto",
-  "LoadingData": "Carregando dados financeiros..."
+  "LoadingData": "Carregando dados financeiros...",
+  "HomePage": "Página Principal",
+  "RegisterAdvice": "Ao criar uma conta, você concorda com os <a href='{{termslink}}' target='_blank'>Termos de Serviço</a>. Para obter mais informações sobre as práticas de privacidade da EconoFlow, consulte a <a href='{{privacylink}}' target='_blank'>Declaração de Privacidade da EconoFlow</a>. Ocasionalmente, enviaremos e-mails relacionados à conta."
 }

@@ -1,10 +1,10 @@
-<div class="limiter">
-  <div class="container-login">
-    <div class="wrap-login">
-      <span class="login-form-title mb-4">
+<div class="container text-center">
+  <div class="row d-flex justify-content-center align-items-center" style="min-height: 100vh">
+    <div class="wrap col-xl-4 col-lg-5 col-md-7 col-sm-9 p-4">   
+      <span>
         <img src="/assets/images/logo-300-220.webp" alt="EconoFlow Logo" class="h-10 w-10 mr-3 img-fluid">
       </span>
-      <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <form class="login-form mt-4 mb-2 text-start" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
         <div class="form-floating mb-1">
           <p>{{ 'PleaseSignIn' | translate }}</p>
         </div>
@@ -33,7 +33,7 @@
           <p class="mt-5 mb-3 text-danger text-center">{{ errors['general'] | translate }}</p>
         </div>
       </form>
-      <span class="login-footer">
+      <span>
         {{ 'NeedAccount' | translate }}
         <a [routerLink]="['/register']" routerLinkActive="active">{{ 'ButtonSignUp' | translate }}</a>
       </span>
