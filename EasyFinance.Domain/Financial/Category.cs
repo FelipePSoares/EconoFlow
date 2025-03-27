@@ -9,11 +9,11 @@ namespace EasyFinance.Domain.Financial
 {
     public class Category : BaseEntity
     {
-        public static readonly Category FixedExpenses = new Category("Fixed Expenses");
-        public static readonly Category Comfort = new Category("Comfort");
-        public static readonly Category Pleasures = new Category("Pleasures");
-        public static readonly Category YourFuture = new Category("Your Future");
-        public static readonly Category SelfImprovement = new Category("Self-Improvement");
+        public static readonly Category FixedExpenses = new Category(ValidationMessages.FixedExpenses);
+        public static readonly Category Comfort = new Category(ValidationMessages.Comfort);
+        public static readonly Category Pleasures = new Category(ValidationMessages.Pleasures);
+        public static readonly Category YourFuture = new Category(ValidationMessages.YourFuture);
+        public static readonly Category SelfImprovement = new Category(ValidationMessages.SelfImprovement);
 
         private Category() { }
 
@@ -29,10 +29,11 @@ namespace EasyFinance.Domain.Financial
         public decimal TotalBudget => Expenses.Sum(e => e.Budget);
         public decimal TotalWaste => Expenses.Sum(e => e.Amount);
 
-
-
-        // Optional: Method to get all the defined categories
-        public static IEnumerable<Category> GetAll()
+        /// <summary>
+        /// Get All Default Categories
+        /// </summary>
+        /// <returns></returns>
+        public static IEnumerable<Category> GetAllDefaultCategories()
         {
             return new[] { FixedExpenses, Comfort, Pleasures, YourFuture, SelfImprovement };
         }

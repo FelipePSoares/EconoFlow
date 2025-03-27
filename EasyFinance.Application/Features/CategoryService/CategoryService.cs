@@ -106,9 +106,8 @@ namespace EasyFinance.Application.Features.CategoryService
                 .Include(p => p.Categories)
                 .FirstOrDefaultAsync(p => p.Id == projectId);
 
-            // Extract the category names
             var categoryNames = project.Categories.Select(c => c.Name).ToList();
-            var defaultCategories = Category.GetAll();
+            var defaultCategories = Category.GetAllDefaultCategories();
             var filteredCategories = defaultCategories
                 .Where(dc => !categoryNames.Contains(dc.Name))
                 .ToDTO()

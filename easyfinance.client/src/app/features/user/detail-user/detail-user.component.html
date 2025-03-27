@@ -96,7 +96,7 @@
           </div>
         </div>
 
-        <div class="row g-2 mb-2">
+        <div *ngIf="password?.dirty" class="row g-2 mb-2">
           <div class="col-md">
             {{ 'PasswordMustHave' | translate }}
             <ul>

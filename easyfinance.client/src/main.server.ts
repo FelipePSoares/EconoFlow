@@ -6,6 +6,7 @@ import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { HttpClient, provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { TranslateHttpLoader } from './app/core/utils/loaders/translate-http-loader';
 import { LoadingInterceptor } from './app/core/interceptor/loading.interceptor';
+import { LanguageInterceptor } from './app/core/interceptor/language-interceptor';
 
 const bootstrap = () => bootstrapApplication(AppComponent, {
     providers: [
@@ -22,7 +23,7 @@ const bootstrap = () => bootstrapApplication(AppComponent, {
       ),
       provideHttpClient(
         withFetch(),
-        withInterceptors([LoadingInterceptor])
+        withInterceptors([LoadingInterceptor, LanguageInterceptor])
       )
     ]
   });
