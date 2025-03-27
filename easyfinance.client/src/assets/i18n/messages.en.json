@@ -164,5 +164,6 @@
   "UseTerms": "Terms of Use",
   "Community": "Community",
   "ContributeProject": "Contribute to the project",
-  "OpenSource": "Open Source"
+  "OpenSource": "Open Source",
+  "LoadingData": "Loading financial data..."
 }

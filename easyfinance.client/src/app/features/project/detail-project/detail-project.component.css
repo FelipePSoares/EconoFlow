@@ -68,3 +68,15 @@
 .card-small-text {
     font-size: 11px;
 }
+
+.card-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  max-height: 100px;
+  height: 0;
+  width: 100%;
+  opacity: 0.2;
+  border-radius: var(--bs-border-radius);
+  transition: height 3s ease;
+}

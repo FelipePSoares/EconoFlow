@@ -1,3 +1,12 @@
 <div *ngIf="this.loader.getLoading()" class="cssload-container">
   <div class="cssload-speeding-wheel"></div>
+  <div class="loader">
+    <fa-icon class="loader-icon" [icon]="faChartPie"></fa-icon>
+    <div class="coins-container">
+      <fa-icon class="coin" [icon]="faCoins"></fa-icon>
+      <fa-icon class="coin" [icon]="faCoins"></fa-icon>
+      <fa-icon class="coin" [icon]="faCoins"></fa-icon>
+    </div>
+    <p class="loader-text">{{ 'LoadingData' | translate }}</p>
+  </div>
 </div>

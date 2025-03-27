@@ -203,10 +203,21 @@ namespace EasyFinance.Application.Features.AccessControlService
             if (userProjectId == Guid.Empty)
                 AppResponse<ExpenseResponseDTO>.Error(code: nameof(userProjectId), description: ValidationMessages.InvalidUserProjectId);
 
-            var userProject = unitOfWork.UserProjectRepository.Trackable().IgnoreQueryFilters().FirstOrDefault(e => e.Id == userProjectId);
+            var userProject = unitOfWork.UserProjectRepository
+                .Trackable()
+                .IgnoreQueryFilters()
+                .Include(up => up.User)
+                .Include(up => up.Project)
+                .FirstOrDefault(e => e.Id == userProjectId);
 
             if (userProject == null)
                 return AppResponse.Error(code: ValidationMessages.NotFound, ValidationMessages.NotFound);
+
+            if (userProject.User.DefaultProjectId == userProject.Project.Id)
+            {
+                userProject.User.SetDefaultProject(null);
+                await userManager.UpdateAsync(userProject.User);
+            }
 
             unitOfWork.UserProjectRepository.Delete(userProject);
             await unitOfWork.CommitAsync();

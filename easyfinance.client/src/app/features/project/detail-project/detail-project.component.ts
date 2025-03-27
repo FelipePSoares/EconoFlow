@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { AfterViewInit, Component, Input, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { BehaviorSubject, map, Observable } from 'rxjs';
@@ -47,7 +47,7 @@ import { BudgetBarComponent } from '../../../core/components/budget-bar/budget-b
     styleUrl: './detail-project.component.css'
 })
 
-export class DetailProjectComponent implements OnInit {
+export class DetailProjectComponent implements OnInit, AfterViewInit {
   @Input({ required: true })
   projectId!: string;
 
@@ -63,6 +63,7 @@ export class DetailProjectComponent implements OnInit {
   year: { budget: number, spend: number, overspend: number, remaining: number, earned: number; } = { budget: 0, spend: 0, overspend: 0, remaining: 0, earned: 0 };
   buttons: string[] = [this.btnIncome, this.btnCategory];
   showCopyPreviousButton = false;
+  setHeight = false;
 
   private dataSource = new MatTableDataSource<TransactionDto>();
   private transactions: BehaviorSubject<TransactionDto[]> = new BehaviorSubject<TransactionDto[]>([new TransactionDto()]);
@@ -98,6 +99,12 @@ export class DetailProjectComponent implements OnInit {
       });
 
     this.fillData(CurrentDateComponent.currentDate);
+  }
+
+  ngAfterViewInit() {
+    setTimeout(() => {
+      this.setHeight = true;
+    }, 300);
   }
 
   fillData(date: Date) {
@@ -200,6 +207,18 @@ export class DetailProjectComponent implements OnInit {
       return 'danger';
     } else if (category.hasRisk()) {
       return 'warning';
+    }
+
+    return '';
+  }
+
+  getBgClassBasedOnCategory(category: CategoryDto): string {
+    if (category.hasRisk()) {
+      return 'bg-warning';
+    } else if (category.hasOverspend()) {
+      return 'bg-danger';
+    } else if (category.hasBudget()) {
+      return 'bg-success';
     }
 
     return '';

@@ -33,12 +33,24 @@ body {
   color: #198754;
 }
 
+.bg-success {
+  background-color: #198754;
+}
+
 .warning {
   color: #ffc107;
 }
 
+.bg-warning {
+  background-color: #ffc107;
+}
+
 .danger {
   color: #dc3545;
+}
+
+.bg-danger {
+  background-color: #dc3545;
 }
 
 .btn-default:hover {

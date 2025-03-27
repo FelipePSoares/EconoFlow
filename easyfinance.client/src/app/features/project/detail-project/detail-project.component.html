@@ -24,9 +24,12 @@
           @for (category of (categories$ | async); track category.id) {
           <li class="slide me-1">
             <div class="card" (click)="selectCategory(category.id)">
+              <div class="card-fill"
+                   [ngClass]="getBgClassBasedOnCategory(category)"
+                   [style.height]="setHeight ? category.getPercentageSpend() + 'px' : '0px'"></div>
               <div class="card-body">
                 <h3 class="card-title">{{ category.name }}</h3>
-                
+
                 <div>
                   <span class="card-value danger d-block">
                     {{ (category.getTotalSpend() + category.getTotalOverspend()) | currencyFormat: true }}
