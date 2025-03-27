@@ -20,7 +20,7 @@ export class ErrorMessageService {
               errors.push('RequiredField');
               break;
             case 'email':
-              errors.push('');
+              errors.push('InvalidEmailFormat');
               break;
             case 'pattern':
               if (fieldName === 'budget') {

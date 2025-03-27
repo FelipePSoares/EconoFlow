@@ -19,6 +19,7 @@ import { Role, Role2LabelMapping } from '../../../core/enums/Role';
 import { UserService } from '../../../core/services/user.service';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { User } from '../../../core/models/user';
+import { conditionalEmailValidator } from '../../../core/utils/custom-validators/conditional-email-validator';
 
 @Component({
   selector: 'app-access-control-project',
@@ -57,7 +58,7 @@ export class AccessControlProjectComponent implements OnInit {
 
   ngOnInit(): void {
     this.accessForm = new FormGroup({
-      user: new FormControl<string | UserProjectDto>('', [Validators.required]),
+      user: new FormControl<string | UserProjectDto>('', [Validators.required, conditionalEmailValidator()]),
       role: new FormControl('', [Validators.required])
     });
 
