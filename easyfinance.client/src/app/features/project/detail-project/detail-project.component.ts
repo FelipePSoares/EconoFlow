@@ -47,7 +47,7 @@ import { BudgetBarComponent } from '../../../core/components/budget-bar/budget-b
     styleUrl: './detail-project.component.css'
 })
 
-export class DetailProjectComponent implements OnInit, AfterViewInit {
+export class DetailProjectComponent implements OnInit {
   @Input({ required: true })
   projectId!: string;
 
@@ -101,12 +101,6 @@ export class DetailProjectComponent implements OnInit, AfterViewInit {
     this.fillData(CurrentDateComponent.currentDate);
   }
 
-  ngAfterViewInit() {
-    setTimeout(() => {
-      this.setHeight = true;
-    }, 300);
-  }
-
   fillData(date: Date) {
     this.projectService.getYearlyInfo(this.projectId, date.getFullYear())
       .subscribe({
@@ -144,6 +138,10 @@ export class DetailProjectComponent implements OnInit, AfterViewInit {
     .pipe(map(categories => mapper.mapArray(categories, Category, CategoryDto)))
     .subscribe({
       next: res => {
+        setTimeout(() => {
+          this.setHeight = true;
+        }, 100);
+
         this.categories.next(res);
 
         this.month.budget = res.map(c => c.getTotalBudget()).reduce((acc, value) => acc + value, 0);
