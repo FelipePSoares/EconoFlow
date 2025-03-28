@@ -5,6 +5,10 @@ describe('EconoFlow - project add Tests', () => {
 
       cy.login(user.username, user.password)
 
+      cy.window().then((win) => {
+        win.sessionStorage.setItem("visited", "true");
+      });
+
       cy.visit('/projects')
     })
   })
