@@ -13,12 +13,12 @@ export class CategoryService {
   constructor(private http: HttpClient) { }
 
   get(projectId: string, currentDate?: Date) {
-    var year = currentDate?.getFullYear();
-    var month = currentDate?.getMonth();
+    const year = currentDate?.getFullYear() ?? -1;
+    const month = currentDate?.getMonth() ?? -1;
 
     let queryParams = new HttpParams();
 
-    if (year && month) {
+    if (year >= 0 && month >= 0) {
       queryParams = queryParams.append("from", formatDate(dateUTC(year, month)).substring(0, 10));
       queryParams = queryParams.append("to", formatDate(dateUTC(year, month + 1)).substring(0, 10));
     }
