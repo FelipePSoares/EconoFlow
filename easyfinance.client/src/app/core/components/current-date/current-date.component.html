@@ -4,6 +4,5 @@
   <h3>{{ getCurrentDate() | date: 'MMM yyyy'}}</h3>
   <mat-datepicker-toggle matIconSuffix (click)="picker.open()" [for]="picker"></mat-datepicker-toggle>
   <fa-icon [icon]="faArrowRight" class="btn" id="next" (click)="nextMonth()"></fa-icon>
-
 </div>
 <mat-datepicker #picker (monthSelected)="setMonthAndYear($event, picker)" startView="year"></mat-datepicker>

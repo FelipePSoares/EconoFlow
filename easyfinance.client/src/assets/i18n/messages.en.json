@@ -50,6 +50,7 @@
   "ButtonLogIn": "Log In",
   "ButtonCreateFreeAccount": "Create Free Account",
   "ButtonAddIncome": "Add Income",
+  "ButtonAddExpense": "Add Expense",
 
   "RequiredField": "This field is required.",
   "InvalidEmailFormat": "Invalid email format.",

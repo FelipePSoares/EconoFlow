@@ -37,6 +37,7 @@ import { CategoryDto } from '../../category/models/category-dto';
 import { CategoryService } from '../../../core/services/category.service';
 import { Category } from '../../../core/models/category';
 import { BudgetBarComponent } from '../../../core/components/budget-bar/budget-bar.component';
+import { MatCardModule } from '@angular/material/card';
 
 @Component({
     selector: 'app-list-expenses',
@@ -52,6 +53,7 @@ import { BudgetBarComponent } from '../../../core/components/budget-bar/budget-b
       FontAwesomeModule,
       MatFormField,
       MatFormFieldModule,
+      MatCardModule,
       MatInput,
       MatButton,
       MatDatepickerModule,

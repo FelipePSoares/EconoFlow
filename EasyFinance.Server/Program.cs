@@ -59,100 +59,111 @@ if (!builder.Environment.IsDevelopment())
         keys.ProtectKeysWithCertificate(Environment.GetEnvironmentVariable("EconoFlow_CERT_THUMBPRINT"));
 }
 
-var app = builder.Build();
-
-app.UseDefaultFiles();
-app.UseStaticFiles();
-
-app.UseSerilogRequestLogging();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+try
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    var app = builder.Build();
 
-    using var serviceScope = app.Services.CreateScope();
-    var unitOfWork = serviceScope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-    var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<User>>();
-    var user = new User(firstName: "Test", lastName: "Admin", enabled: true)
+    app.UseDefaultFiles();
+    app.UseStaticFiles();
+
+    app.UseSerilogRequestLogging();
+
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment())
     {
-        UserName = "test@test.com",
-        Email = "test@test.com",
-        EmailConfirmed = true
-    };
-    userManager.CreateAsync(user, "Passw0rd!").GetAwaiter().GetResult();
+        app.UseSwagger();
+        app.UseSwaggerUI();
 
-    var user2 = new User(firstName: "Second", lastName: "User", enabled: true)
+        using var serviceScope = app.Services.CreateScope();
+        var unitOfWork = serviceScope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<User>>();
+        var user = new User(firstName: "Test", lastName: "Admin", enabled: true)
+        {
+            UserName = "test@test.com",
+            Email = "test@test.com",
+            EmailConfirmed = true
+        };
+        userManager.CreateAsync(user, "Passw0rd!").GetAwaiter().GetResult();
+
+        var user2 = new User(firstName: "Second", lastName: "User", enabled: true)
+        {
+            UserName = "test1@test.com",
+            Email = "test1@test.com",
+            EmailConfirmed = true
+        };
+        userManager.CreateAsync(user2, "Passw0rd!").GetAwaiter().GetResult();
+
+        var income = new Income("Investiments", DateOnly.FromDateTime(DateTime.Now), 3000, user);
+        income.SetId(new Guid("0bb277f9-a858-4306-148f-08dcf739f7a1"));
+        unitOfWork.IncomeRepository.Insert(income);
+
+        var income2 = new Income("Investiments", DateOnly.FromDateTime(DateTime.Now.AddMonths(-1)), 3000, user);
+        unitOfWork.IncomeRepository.InsertOrUpdate(income2);
+
+        var expense = new Expense("Rent", DateOnly.FromDateTime(DateTime.Now), 700, user, budget: 700);
+        unitOfWork.ExpenseRepository.InsertOrUpdate(expense);
+
+        var expense2 = new Expense("Groceries", DateOnly.FromDateTime(DateTime.Now), 0, user, budget: 450);
+        var expenseItem = new ExpenseItem("Pingo Doce", DateOnly.FromDateTime(DateTime.Now), 100, user);
+        expenseItem.SetId(new Guid("16ddf6c1-6b33-4563-dac4-08dcf73a4157"));
+        var expenseItem2 = new ExpenseItem("Continente", DateOnly.FromDateTime(DateTime.Now), 150, user);
+        expense2.SetId(new Guid("75436cec-70f6-420f-ee8a-08dce6424079"));
+        expense2.AddItem(expenseItem);
+        expense2.AddItem(expenseItem2);
+        unitOfWork.ExpenseRepository.Insert(expense2);
+
+        var category = new Category("Fixed Costs");
+        category.SetId(new Guid("ac795272-1ee2-456c-1fa2-08dcbc8250c1"));
+        category.AddExpense(expense);
+        category.AddExpense(expense2);
+        unitOfWork.CategoryRepository.Insert(category);
+
+        var ri = new RegionInfo("pt");
+        var project = new Project(name: "Family", preferredCurrency: ri.ISOCurrencySymbol);
+        project.SetId(new Guid("bf060bc8-48bf-4f5b-3761-08dc54ba19f4"));
+        project.AddIncome(income);
+        project.AddIncome(income2);
+        project.AddCategory(category);
+        unitOfWork.ProjectRepository.Insert(project);
+
+        var userProject = new UserProject(user, project, Role.Admin);
+        userProject.SetAccepted();
+        unitOfWork.UserProjectRepository.InsertOrUpdate(userProject);
+
+        var userProject2 = new UserProject(user2, project, Role.Manager);
+        userProject2.SetAccepted();
+        unitOfWork.UserProjectRepository.InsertOrUpdate(userProject2);
+
+        unitOfWork.CommitAsync().GetAwaiter().GetResult();
+
+        user.SetDefaultProject(project.Id);
+        userManager.UpdateAsync(user).GetAwaiter().GetResult();
+    }
+    else
     {
-        UserName = "test1@test.com",
-        Email = "test1@test.com",
-        EmailConfirmed = true
-    };
-    userManager.CreateAsync(user2, "Passw0rd!").GetAwaiter().GetResult();
+        app.UseMigration();
+    }
 
-    var income = new Income("Investiments", DateOnly.FromDateTime(DateTime.Now), 3000, user);
-    income.SetId(new Guid("0bb277f9-a858-4306-148f-08dcf739f7a1"));
-    unitOfWork.IncomeRepository.Insert(income);
+    app.UseHttpsRedirection();
 
-    var income2 = new Income("Investiments", DateOnly.FromDateTime(DateTime.Now.AddMonths(-1)), 3000, user);
-    unitOfWork.IncomeRepository.InsertOrUpdate(income2);
+    app.UseAuthorization();
+    app.UseProjectAuthorization();
 
-    var expense = new Expense("Rent", DateOnly.FromDateTime(DateTime.Now), 700, user, budget: 700);
-    unitOfWork.ExpenseRepository.InsertOrUpdate(expense);
+    app.UseLocationMiddleware();
 
-    var expense2 = new Expense("Groceries", DateOnly.FromDateTime(DateTime.Now), 0, user, budget: 450);
-    var expenseItem = new ExpenseItem("Pingo Doce", DateOnly.FromDateTime(DateTime.Now), 100, user);
-    expenseItem.SetId(new Guid("16ddf6c1-6b33-4563-dac4-08dcf73a4157"));
-    var expenseItem2 = new ExpenseItem("Continente", DateOnly.FromDateTime(DateTime.Now), 150, user);
-    expense2.SetId(new Guid("75436cec-70f6-420f-ee8a-08dce6424079"));
-    expense2.AddItem(expenseItem);
-    expense2.AddItem(expenseItem2);
-    unitOfWork.ExpenseRepository.Insert(expense2);
+    app.MapControllers();
 
-    var category = new Category("Fixed Costs");
-    category.SetId(new Guid("ac795272-1ee2-456c-1fa2-08dcbc8250c1"));
-    category.AddExpense(expense);
-    category.AddExpense(expense2);
-    unitOfWork.CategoryRepository.Insert(category);
+    app.MapFallbackToFile("/index.html");
 
-    var ri = new RegionInfo("pt");
-    var project = new Project(name: "Family", preferredCurrency: ri.ISOCurrencySymbol);
-    project.SetId(new Guid("bf060bc8-48bf-4f5b-3761-08dc54ba19f4"));
-    project.AddIncome(income);
-    project.AddIncome(income2);
-    project.AddCategory(category);
-    unitOfWork.ProjectRepository.Insert(project);
+    app.UseCustomExceptionHandler();
 
-    var userProject = new UserProject(user, project, Role.Admin);
-    userProject.SetAccepted();
-    unitOfWork.UserProjectRepository.InsertOrUpdate(userProject);
-
-    var userProject2 = new UserProject(user2, project, Role.Manager);
-    userProject2.SetAccepted();
-    unitOfWork.UserProjectRepository.InsertOrUpdate(userProject2);
-
-    unitOfWork.CommitAsync().GetAwaiter().GetResult();
-
-    user.SetDefaultProject(project.Id);
-    userManager.UpdateAsync(user).GetAwaiter().GetResult();
+    app.Run();
 }
-else
+catch (Exception ex)
 {
-    app.UseMigration();
+    Log.Fatal(ex, "A aplicação falhou ao iniciar.");
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-app.UseProjectAuthorization();
-
-app.UseLocationMiddleware();
-
-app.MapControllers();
-
-app.MapFallbackToFile("/index.html");
-
-app.UseCustomExceptionHandler();
-
-app.Run();
+finally
+{
+    Log.CloseAndFlush(); // Fecha e envia todos os logs pendentes
+}
