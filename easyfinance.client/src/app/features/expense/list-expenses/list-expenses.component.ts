@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { map } from 'rxjs/internal/operators/map';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
@@ -7,7 +7,7 @@ import { AsyncPipe, CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { compare } from 'fast-json-patch';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPenToSquare, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faPenToSquare, faTrash, faPlus, faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { MatFormField } from '@angular/material/form-field';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
@@ -17,6 +17,7 @@ import { ApiErrorResponse } from 'src/app/core/models/error';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
 import { MatDialog } from '@angular/material/dialog';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { MatCardModule } from '@angular/material/card';
 import { ExpenseDto } from '../models/expense-dto';
 import { Expense } from '../../../core/models/expense';
 import { mapper } from '../../../core/utils/mappings/mapper';
@@ -37,11 +38,13 @@ import { CategoryDto } from '../../category/models/category-dto';
 import { CategoryService } from '../../../core/services/category.service';
 import { Category } from '../../../core/models/category';
 import { BudgetBarComponent } from '../../../core/components/budget-bar/budget-bar.component';
-import { MatCardModule } from '@angular/material/card';
+import { ExpenseItemDto } from '../models/expense-item-dto';
+import { ExpenseItemComponent } from '../expense-item/expense-item.component';
 
 @Component({
     selector: 'app-list-expenses',
-    imports: [
+  imports: [
+      ExpenseItemComponent,
       CommonModule,
       AsyncPipe,
       ReactiveFormsModule,
@@ -65,14 +68,14 @@ import { MatCardModule } from '@angular/material/card';
     styleUrl: './list-expenses.component.css'
 })
 export class ListExpensesComponent implements OnInit {
-  @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
+  private expandedExpenses: Set<string> = new Set<string>();
 
   faPenToSquare = faPenToSquare;
   faTrash = faTrash;
   faPlus = faPlus;
+  faChevronDown = faChevronDown;
+  faChevronRight = faChevronRight;
 
-  thousandSeparator!: string; 
-  decimalSeparator!: string;
 
   private expenses: BehaviorSubject<ExpenseDto[]> = new BehaviorSubject<ExpenseDto[]>([new ExpenseDto()]);
   expenses$: Observable<ExpenseDto[]> = this.expenses.asObservable();
@@ -82,9 +85,10 @@ export class ListExpensesComponent implements OnInit {
 
   expenseForm!: FormGroup;
   editingExpense: ExpenseDto = new ExpenseDto();
-  itemToDelete!: string;
   httpErrors = false;
-  errors: any;
+  errors!: { [key: string]: string };
+  thousandSeparator!: string; 
+  decimalSeparator!: string;
   currencySymbol!: string;
   userProject!: UserProjectDto;
 
@@ -234,6 +238,18 @@ export class ListExpensesComponent implements OnInit {
     })
   }
 
+  triggerDelete(expense: ExpenseDto): void {
+    const message = this.translateService.instant('AreYouSureYouWantDeleteExpense', { value: expense.name });
+
+    this.dialog.open(ConfirmDialogComponent, {
+      data: { title: 'DeleteExpense', message: message, action: 'ButtonDelete' },
+    }).afterClosed().subscribe((result) => {
+      if (result) {
+        this.remove(expense.id);
+      }
+    });
+  }
+
   updateDate(newDate: Date) {
     this.fillData(newDate);
   }
@@ -256,25 +272,6 @@ export class ListExpensesComponent implements OnInit {
 
   previous() {
     this.router.navigate(['/projects', this.projectId]);
-  }
-
-  triggerDelete(expense: ExpenseDto): void {
-    this.itemToDelete = expense.id;
-    var message = this.translateService.instant('AreYouSureYouWantDeleteExpense', { value: expense.name });
-
-    this.dialog.open(ConfirmDialogComponent, {
-      data: { title: 'DeleteExpense', message: message, action: 'ButtonDelete' },
-    }).afterClosed().subscribe((result) => {
-      if (result) {
-        this.remove(this.itemToDelete);
-      }
-    });
-  }
-
-  handleConfirmation(result: boolean): void {
-    if (result) {
-      this.remove(this.itemToDelete);
-    }
   }
 
   getPercentageWaste(waste: number, budget: number): number {
@@ -317,5 +314,34 @@ export class ListExpensesComponent implements OnInit {
 
   canAddOrEdit(): boolean {
     return this.userProject.role === Role.Admin || this.userProject.role === Role.Manager;
+  }
+
+  toggleExpand(expenseId: string) {
+    if (this.expandedExpenses.has(expenseId)) {
+      this.expandedExpenses.delete(expenseId);
+    } else {
+      this.expandedExpenses.add(expenseId);
+    }
+  }
+
+  isExpanded(expenseId: string): boolean {
+    return this.expandedExpenses.has(expenseId);
+  }
+
+  addSubExpense(parentExpense: Expense) {
+    this.router.navigate([{ outlets: { modal: ['projects', this.projectId, 'categories', this.categoryId, 'expenses', parentExpense.id, 'add-expense-item'] } }]);
+
+    this.dialog.open(PageModalComponent, {
+      autoFocus: 'input'
+    }).afterClosed().subscribe((result) => {
+      if (result) {
+        this.fillData(CurrentDateComponent.currentDate);
+      }
+      this.router.navigate([{ outlets: { modal: null } }]);
+    });
+  }
+
+  updateExpense(): void {
+    this.fillData(CurrentDateComponent.currentDate);
   }
 }

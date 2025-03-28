@@ -1,0 +1,77 @@
+@if (subExpense.id != this.editingSubExpense.id) {
+<div class="d-flex align-items-center mb-2">
+  <div class="flex-grow-1">
+    <span class="fw-normal name-sub">{{ subExpense.name }}</span>
+    <p class="text-muted fs-6">
+      <span class="me-3 date-sub">
+        <i class="bi bi-calendar me-1"></i>
+        {{ subExpense.date | date: 'dd/MM/yyyy' }}
+      </span>
+      <span class="text-nowrap amount-sub">
+        <i class="bi bi-cash-coin me-1"></i>
+        {{ subExpense.amount | currencyFormat }}
+      </span>
+    </p>
+  </div>
+  @if (canAddOrEdit){
+  <div class="btn-group btn-group-sm">
+    <button name="edit-sub" class="btn btn-outline-secondary" (click)="edit(subExpense)">
+      <fa-icon [icon]="faPenToSquare"></fa-icon>
+    </button>
+    <button name="delete-sub" class="btn btn-outline-danger" (click)="triggerDeleteSubExpense(expense, subExpense)">
+      <fa-icon [icon]="faTrash"></fa-icon>
+    </button>
+  </div>
+  }
+</div>
+} @else {
+<form [formGroup]="expenseItemForm" (ngSubmit)="save()">
+
+  <div class="row">
+    <mat-form-field appearance="fill" class="col-md-6">
+      <mat-label>{{ 'FieldExpenseName' | translate }} </mat-label>
+      <input matInput id="name" placeholder="{{ 'PlaceholderExpenseName' | translate }}" formControlName="name"
+             [class.is-invalid]="name?.invalid && name?.touched">
+      @if ((name?.invalid && name?.touched) || httpErrors) {
+      <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error |  translate }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="col-md-6">
+      <mat-label>{{ 'FieldDate' | translate }}</mat-label>
+      <input matInput [matDatepicker]="picker" formControlName="date">
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+      @if ((date?.invalid && date?.touched) || httpErrors) {
+      <mat-error *ngFor="let error of getFormFieldErrors('date')">{{ error |  translate }}</mat-error>
+      }
+    </mat-form-field>
+  </div>
+
+  <div class="row">
+    <mat-form-field appearance="fill" class="col-md-6">
+      <mat-label>{{ 'FieldAmount' | translate }}</mat-label>
+      <input matInput
+             inputmode="decimal"
+             type="text"
+             currencyMask
+             [options]="{ prefix: currencySymbol, allowNegative: false, thousands: thousandSeparator, decimal: decimalSeparator, precision: 2 }"
+             formControlName="amount">
+      @if ((amount?.invalid && amount?.touched) || httpErrors) {
+      <mat-error *ngFor="let error of getFormFieldErrors('amount')">{{ error |  translate }}</mat-error>
+      }
+    </mat-form-field>
+  </div>
+
+  <div class="col-12 d-flex justify-content-end">
+    <button mat-stroked-button type="button" class="me-2" (click)="cancelEdit()">{{ 'ButtonCancel' | translate }}</button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="expenseItemForm.invalid">{{ 'ButtonSave' | translate }}</button>
+  </div>
+
+</form>
+@if (httpErrors && errors['general']) {
+<div class="alert alert-danger mt-3 text-center">
+  {{ errors['general'] | translate }}
+</div>
+}
+}

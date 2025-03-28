@@ -71,7 +71,7 @@ export class ListCategoriesComponent implements OnInit {
   editingCategory: CategoryDto = new CategoryDto();
   itemToDelete!: string;
   httpErrors = false;
-  errors: any;
+  errors!: { [key: string]: string };
   userProject!: UserProjectDto;
 
   @Input({ required: true })
@@ -139,11 +139,11 @@ export class ListCategoriesComponent implements OnInit {
       const id = this.id?.value;
       const name = this.name?.value;
 
-      const newCategory = <CategoryDto>({
+      const newCategory = ({
         id: id,
         name: name,
         expenses: this.editingCategory.expenses
-      });
+      }) as CategoryDto;
       const patch = compare(this.editingCategory, newCategory);
 
       this.categoryService.update(this.projectId, id, patch).subscribe({
@@ -209,8 +209,8 @@ export class ListCategoriesComponent implements OnInit {
 
   triggerDelete(category: CategoryDto): void {
     this.itemToDelete = category.id
-    var message = this.translateService.instant('AreYouSureYouWantArchiveCategory', { value: category.name });
-    ;
+    const message = this.translateService.instant('AreYouSureYouWantArchiveCategory', { value: category.name });
+
     this.dialog.open(ConfirmDialogComponent, {
       data: { title: 'ArchiveCategory', message: message, action: 'ButtonArchive' },
     }).afterClosed().subscribe((result) => {

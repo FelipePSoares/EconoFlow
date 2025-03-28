@@ -1,0 +1,10 @@
+.btn-link fa-icon {
+  display: block;
+  width: 19px;
+}
+
+@media (max-width: 768px) {
+  .mat-mdc-card-content {
+    padding: 0;
+  }
+}

@@ -10,5 +10,6 @@
   <ItemGroup>
     <Folder Include="src\app\core\interfaces\" />
     <Folder Include="src\app\features\category\models\" />
+    <Folder Include="src\app\features\expense\expense-item\" />
   </ItemGroup>
 </Project>

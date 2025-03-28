@@ -27,19 +27,19 @@ export class PageModalComponent implements OnDestroy {
   private routeSub: Subscription;
   private routeSub2: Subscription;
 
-  title: string = '';
+  title = '';
 
   constructor(
     private dialogRef: MatDialogRef<PageModalComponent>,
     private router: Router,
     private route: ActivatedRoute) {
 
-    this.routeSub2 = this.router.events.subscribe(event => {
+    this.routeSub2 = this.router.events.subscribe(() => {
       const outletRoute = this.router.routerState.root.children.find(route => route.outlet === 'modal');
-      this.title = outletRoute?.snapshot.data['title'] || 'test';
+      this.title = outletRoute?.snapshot?.data['title'] || '';
     });
 
-    this.routeSub = this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(event => {
+    this.routeSub = this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(() => {
       if (!this.route.children.some(child => child.outlet === 'modal')) {
         this.close(true);
       }

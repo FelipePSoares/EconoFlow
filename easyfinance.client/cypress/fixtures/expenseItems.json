@@ -1,6 +1,6 @@
 {
     "testSomeExpenseItem": {
-        "name": "Some",
+        "name": "Expense Item",
         "amount": 50
     }
 }

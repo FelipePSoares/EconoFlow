@@ -6,9 +6,8 @@
 </div>
 <mat-dialog-content>
   <div [innerHTML]="data.message"></div>
-  <hr />
-  <div class="dialog-footer d-flex justify-content-end">
-    <button mat-button type="button" (click)="close(false)">{{ 'ButtonCancel' | translate }}</button>
+  <div class="dialog-footer d-flex justify-content-end mt-4">
+    <button mat-stroked-button type="button" class="me-2" (click)="close(false)">{{ 'ButtonCancel' | translate }}</button>
     <button mat-raised-button color="warn" type="submit" cdk-focus-start (click)="close(true)">{{ data.action | translate }}</button>
   </div>
 </mat-dialog-content>

@@ -1,7 +1,7 @@
 <div class="container py-4">
   <div class="row justify-content-center">
     <div class="col-12 col-md-10 col-lg-8">
-      <!-- Header Section -->
+      <!-- Header Section (unchanged) -->
       <div class="d-flex justify-content-between align-items-center mb-4">
         <app-return-button (returnButtonEvent)="previous()"></app-return-button>
 
@@ -14,96 +14,128 @@
         <mat-card-content>
           <div class="list-group list-group-flush">
             @for (expense of (expenses$ | async); track expense.id){
-            <button class="list-group-item" [ngClass]="{
-          'list-group-item-action': expense.id != this.editingExpense.id,
-          'btn-default': expense.id != this.editingExpense.id
-        }">
-              @if(expense.id != this.editingExpense.id) {
-              <div (click)="select(expense.id)">
-                <h2 class="mb-1 fw-bold name mb-3">{{ expense.name }}</h2>
+            <div class="list-group-item">
+              <div class="d-flex align-items-center expense-item">
+                @if(canAddOrEdit() || (expense.items && expense.items.length > 0)) {
+                <button class="btn btn-link p-0 me-3"
+                        (click)="toggleExpand(expense.id)"
+                        [attr.aria-expanded]="isExpanded(expense.id)">
+                  <fa-icon [icon]="isExpanded(expense.id) ? faChevronDown : faChevronRight"></fa-icon>
+                </button>
+                }
+                <div class="flex-grow-1">
+                  @if(expense.id != this.editingExpense.id) {
+                  <div>
+                    <h2 class="mb-1 fw-bold name mb-3">{{ expense.name }}</h2>
+                    @if (canAddOrEdit()){
+                    <div class="btn-group" style="position: absolute; right: 15px; top: 10px;">
+                      <button name="edit" class="btn btn-outline-secondary" (click)="edit(expense); $event.stopPropagation();">
+                        <fa-icon [icon]="faPenToSquare"></fa-icon>
+                      </button>
+                      <button name="delete" class="btn btn-outline-danger" (click)="triggerDelete(expense); $event.stopPropagation();">
+                        <fa-icon [icon]="faTrash"></fa-icon>
+                      </button>
+                    </div>
+                    }
+                    <app-budget-bar [spend]="expense.getSpend()"
+                                    [budget]="expense.budget"
+                                    [overspend]="expense.getOverspend()"
+                                    [remaining]="expense.getRemaining()"
+                                    [date]="expense?.items && expense.items.length > 0 ? undefined : expense.date">
+                    </app-budget-bar>
+                  </div>
+                  } @else {
+                  <form [formGroup]="expenseForm" (ngSubmit)="save()">
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <mat-form-field appearance="fill" class="w-100">
+                          <mat-label>{{ 'FieldExpenseName' | translate }} </mat-label>
+                          <input matInput id="name" placeholder="{{ 'PlaceholderExpenseName' | translate }}" formControlName="name"
+                                 [class.is-invalid]="name?.invalid && name?.touched">
+                          @if ((name?.invalid && name?.touched) || httpErrors){
+                          <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error |  translate }}</mat-error>
+                          }
+                        </mat-form-field>
+                      </div>
+
+                      <div class="col-md-6">
+                        <mat-form-field appearance="fill" class="w-100">
+                          <mat-label>{{ 'FieldDate' | translate }}</mat-label>
+                          <input matInput [matDatepicker]="picker" formControlName="date">
+                          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                          <mat-datepicker #picker></mat-datepicker>
+                          @if ((date?.invalid && date?.touched) || httpErrors){
+                          <mat-error *ngFor="let error of getFormFieldErrors('date')">{{ error |  translate }}</mat-error>
+                          }
+                        </mat-form-field>
+                      </div>
+
+                      <div class="col-md-6">
+                        <mat-form-field appearance="fill" class="w-100">
+                          <mat-label>{{ 'FieldBudget' | translate }}</mat-label>
+                          <span matTextPrefix>{{ currencySymbol }}&nbsp;</span>
+                          <input matInput type="number" step="1" min="0" id="budget" formControlName="budget">
+                          @if ((budget?.invalid && budget?.touched) || httpErrors){
+                          <mat-error *ngFor="let error of getFormFieldErrors('budget')">{{ error |  translate }}</mat-error>
+                          }
+                        </mat-form-field>
+                      </div>
+
+                      <div class="col-md-6">
+                        <mat-form-field appearance="fill" class="w-100">
+                          <mat-label>{{ 'FieldAmount' | translate }}</mat-label>
+                          <input matInput
+                                 type="text"
+                                 inputmode="decimal"
+                                 currencyMask
+                                 [options]="{ prefix: currencySymbol, allowNegative: false, thousands: thousandSeparator, decimal: decimalSeparator, precision: 2 }"
+                                 formControlName="amount">
+                          @if ((amount?.invalid && amount?.touched) || httpErrors){
+                          <mat-error *ngFor="let error of getFormFieldErrors('amount')">{{ error |  translate }}</mat-error>
+                          }
+                        </mat-form-field>
+                      </div>
+
+                      <div class="col-12 d-flex justify-content-end">
+                        <button mat-stroked-button type="button" class="me-2" (click)="cancelEdit()">{{ 'ButtonCancel' | translate }}</button>
+                        <button mat-raised-button color="primary" type="submit" [disabled]="expenseForm.invalid">{{ 'ButtonSave' | translate }}</button>
+                      </div>
+                    </div>
+                  </form>
+                  @if (httpErrors && errors['general']) {
+                  <div class="alert alert-danger mt-3 text-center">
+                    {{ errors['general'] | translate }}
+                  </div>
+                  }
+                  }
+                </div>
+              </div>
+
+              <!-- Sublist Section -->
+              @if (isExpanded(expense.id)) {
+              <div class="sublist mt-2 ms-4 border-top pt-2">
+                @for (subExpense of expense.items; track subExpense.id) {
+                <app-expense-item [projectId]="projectId"
+                                  [categoryId]="categoryId"
+                                  [expense]="expense"
+                                  [subExpense]="subExpense"
+                                  [canAddOrEdit]="canAddOrEdit()"
+                                  (expenseUpdateEvent)="updateExpense()">
+                </app-expense-item>
+                }
                 @if (canAddOrEdit()){
-                <div class="btn-group" style="position: absolute; right: 15px; top: 10px;">
-                  <button name="edit" class="btn btn-outline-secondary" (click)="edit(expense); $event.stopPropagation();">
-                    <fa-icon [icon]="faPenToSquare"></fa-icon>
-                  </button>
-                  <button name="delete" class="btn btn-outline-danger" (click)="triggerDelete(expense); $event.stopPropagation();">
-                    <fa-icon [icon]="faTrash"></fa-icon>
+                <div class="mt-2">
+                  <button class="btn btn-sm btn-outline-primary" (click)="addSubExpense(expense)">
+                    <fa-icon [icon]="faPlus" class="me-1"></fa-icon>
+                    {{ 'ButtonAddItem' | translate }}
                   </button>
                 </div>
                 }
-                <app-budget-bar [spend]="expense.getSpend()"
-                                [budget]="expense.budget"
-                                [overspend]="expense.getOverspend()"
-                                [remaining]="expense.getRemaining()"
-                                [date]="expense?.items && expense.items.length > 0 ? undefined : expense.date">
-                </app-budget-bar>
-              </div>
-              } @else {
-              <form [formGroup]="expenseForm" (ngSubmit)="save()">
-                <div class="row g-3">
-                  <div class="col-md-6">
-                    <mat-form-field appearance="fill" class="w-100">
-                      <mat-label>{{ 'FieldExpenseName' | translate }} </mat-label>
-                      <input matInput id="name" placeholder="{{ 'PlaceholderExpenseName' | translate }}" formControlName="name"
-                             [class.is-invalid]="name?.invalid && name?.touched">
-                      @if ((name?.invalid && name?.touched) || httpErrors){
-                      <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error |  translate }}</mat-error>
-                      }
-                    </mat-form-field>
-                  </div>
-
-                  <div class="col-md-6">
-                    <mat-form-field appearance="fill" class="w-100">
-                      <mat-label>{{ 'FieldDate' | translate }}</mat-label>
-                      <input matInput [matDatepicker]="picker" formControlName="date">
-                      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-                      <mat-datepicker #picker></mat-datepicker>
-                      @if ((date?.invalid && date?.touched) || httpErrors){
-                      <mat-error *ngFor="let error of getFormFieldErrors('date')">{{ error |  translate }}</mat-error>
-                      }
-                    </mat-form-field>
-                  </div>
-
-                  <div class="col-md-6">
-                    <mat-form-field appearance="fill" class="w-100">
-                      <mat-label>{{ 'FieldBudget' | translate }}</mat-label>
-                      <span matTextPrefix>{{ currencySymbol }}&nbsp;</span>
-                      <input matInput type="number" step="1" min="0" id="budget" formControlName="budget">
-                      @if ((budget?.invalid && budget?.touched) || httpErrors){
-                      <mat-error *ngFor="let error of getFormFieldErrors('budget')">{{ error |  translate }}</mat-error>
-                      }
-                    </mat-form-field>
-                  </div>
-
-                  <div class="col-md-6">
-                    <mat-form-field appearance="fill" class="w-100">
-                      <mat-label>{{ 'FieldAmount' | translate }}</mat-label>
-                      <input matInput
-                             type="text"
-                             inputmode="decimal"
-                             currencyMask
-                             [options]="{ prefix: currencySymbol, allowNegative: false, thousands: thousandSeparator, decimal: decimalSeparator, precision: 2 }"
-                             formControlName="amount">
-                      @if ((amount?.invalid && amount?.touched) || httpErrors){
-                      <mat-error *ngFor="let error of getFormFieldErrors('amount')">{{ error |  translate }}</mat-error>
-                      }
-                    </mat-form-field>
-                  </div>
-
-                  <div class="col-12 d-flex justify-content-end">
-                    <button mat-stroked-button type="button" class="me-2" (click)="cancelEdit()">{{ 'ButtonCancel' | translate }}</button>
-                    <button mat-raised-button color="primary" type="submit" [disabled]="expenseForm.invalid">{{ 'ButtonSave' | translate }}</button>
-                  </div>
-                </div>
-              </form>
-              @if (httpErrors){
-              <div class="alert alert-danger mt-3 text-center">
-                {{errors.statusText}}
               </div>
               }
-              }
-            </button>
+            </div>
             }
+
             @if (canAddOrEdit()){
             <div class="list-group-item text-center">
               <button class="btn btn-primary btn-add btn-lg w-100 d-flex justify-content-center align-items-center"
