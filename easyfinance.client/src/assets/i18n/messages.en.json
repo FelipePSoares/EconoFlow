@@ -49,6 +49,7 @@
   "ButtonArchive": "Archive",
   "ButtonLogIn": "Log In",
   "ButtonCreateFreeAccount": "Create Free Account",
+  "ButtonAddIncome": "Add Income",
 
   "RequiredField": "This field is required.",
   "InvalidEmailFormat": "Invalid email format.",

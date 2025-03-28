@@ -15,6 +15,7 @@ import { MatButton } from "@angular/material/button";
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MatDatepickerModule } from "@angular/material/datepicker";
 import { MatError, MatFormField, MatLabel, MatSuffix } from "@angular/material/form-field";
+import { MatCardModule } from '@angular/material/card';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
@@ -37,6 +38,7 @@ import { Role } from '../../../core/enums/Role';
         CommonModule,
         AsyncPipe,
         ReactiveFormsModule,
+        MatCardModule,
         FontAwesomeModule,
         ConfirmDialogComponent,
         AddButtonComponent,

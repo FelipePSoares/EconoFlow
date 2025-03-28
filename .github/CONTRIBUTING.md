@@ -36,8 +36,8 @@ e2e tests:
 
 ## Running on VS Code
 to run on VS Code you will need to run the following command line on root path:
-`dotnet dev-certs https` (just the first time)
-`dotnet run --project ./EasyFinance.Server --urls https://localhost:7003/`
+* `dotnet dev-certs https` (just the first time)
+* `dotnet run --project ./EasyFinance.Server --urls https://localhost:7003/`
 
 ### Running tests
 We have 3 type of tests in our application, backend unit tests, frontend unit tests and e2e tests.
