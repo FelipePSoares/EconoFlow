@@ -33,8 +33,8 @@ jobs:
 
       - name: Substituir valor no appsettings.json
         run: |
-          sed -i 's|"sourceToken": ".*"|"sourceToken": "${{ secrets.BETTERSTACK_SOURCE_TOKEN }}"|' appsettings.json |
-          sed -i 's|"betterStackEndpoint": ".*"|"betterStackEndpoint": "${{ secrets.BETTERSTACK_ENDPOINT }}"|' appsettings.json
+          sed -i 's|"sourceToken": ".*"|"sourceToken": "${{ secrets.BETTERSTACK_SOURCE_TOKEN }}"|' ${{ github.workspace }}\EasyFinance.Server\bin\Release\net8.0\publish\appsettings.json |
+          sed -i 's|"betterStackEndpoint": ".*"|"betterStackEndpoint": "${{ secrets.BETTERSTACK_ENDPOINT }}"|' ${{ github.workspace }}\EasyFinance.Server\bin\Release\net8.0\publish\appsettings.json
 
       - name: Deploy
         uses: ChristopheLav/iis-deploy@v1
