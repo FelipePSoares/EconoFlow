@@ -30,7 +30,8 @@ namespace EasyFinance.Server.Middleware
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unhandled exception occurred while processing request {Path}", httpContext.Request.Path);
+                var sanitizedPath = httpContext.Request.Path.Value?.Replace(Environment.NewLine, "").Replace("\n", "").Replace("\r", "");
+                _logger.LogError(ex, "Unhandled exception occurred while processing request {Path}", sanitizedPath);
                 await HandleExceptionAsync(httpContext, ex);
             }
         }
