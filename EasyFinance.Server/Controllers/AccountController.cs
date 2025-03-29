@@ -412,7 +412,7 @@ namespace EasyFinance.Server.Controllers
             }
             catch (FormatException)
             {
-                this.logger.LogWarning($"Invalid code format for user {userId}.");
+                this.logger.LogWarning($"Invalid code format for user {userId.Replace(Environment.NewLine, "").Replace("\n", "").Replace("\r", "")}.");
                 return Unauthorized();
             }
 
