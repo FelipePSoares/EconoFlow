@@ -1,15 +1,15 @@
-<div class="container text-center">
-  <div class="row justify-content-md-center">
+<div class="container">
+  <div class="row justify-content-center">
     <form [formGroup]="accessForm" (ngSubmit)="addUser()">
 
       <!-- User Input with Autocomplete -->
       <mat-form-field appearance="fill" class="w-100">
         <mat-label>{{ 'FieldUserEmail' | translate }}</mat-label>
         <input matInput
-               placeholder="{{ 'PlaceholderEmailAddress' | translate }}"
-               id="user"
-               formControlName="user"
-               [matAutocomplete]="auto" />
+                placeholder="{{ 'PlaceholderEmailAddress' | translate }}"
+                id="user"
+                formControlName="user"
+                [matAutocomplete]="auto" />
         @if (user?.invalid && user?.touched){
         <mat-error *ngFor="let error of getFormFieldErrors('user')">{{ error |  translate }}</mat-error>
         }
@@ -45,39 +45,56 @@
       </div>
     </form>
   </div>
-  <hr />
-  <div class="list-users table-responsive" style="max-width: 100%; overflow-x: auto;">
-    <table class="table table-striped" style="min-width: 100%; width: auto;">
-      <thead>
-        <tr>
-          <th>{{ 'User' | translate }}</th>
-          <th>{{ 'Role' | translate }}</th>
-          <th class="d-none d-sm-table-cell">{{ 'Accepted' | translate }}</th>
-          <th>{{ 'Actions' | translate }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let user of currentUsers$ | async">
-          @if (user.userName){
-          <td>{{ user.userName }}<br />{{ user.userEmail }}</td>
-          } @else {
-          <td>{{ user.userEmail }}</td>
-          }
-          <td>
-            <mat-form-field appearance="outline" style="max-width: 115px; width: 100%;">
-              <mat-select [(ngModel)]="user.role" (selectionChange)="updateUserRole()">
-                <mat-option *ngFor="let role of roles" [value]="role">{{ role2LabelMapping[role] | translate }}</mat-option>
-              </mat-select>
-            </mat-form-field>
-          </td>
-          <td class="d-none d-sm-table-cell">{{ (user.accepted ? 'Yes' : 'No') | translate }}</td>
-          <td>
-            <button mat-icon-button color="warn" (click)="removeUser(user.id)">
-              <mat-icon>delete</mat-icon>
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+
+  <hr class="mb-4" />
+
+  <!-- List of User -->
+  <div class="row">
+    <div class="col-12">
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>{{ 'User' | translate }}</th>
+              <th>{{ 'Role' | translate }}</th>
+              <th class="d-none d-md-table-cell">{{ 'Accepted' | translate }}</th>
+              <th>{{ 'Actions' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let user of currentUsers$ | async">
+              <!-- User -->
+              <td class="text-break">
+                @if (user.userName){
+                <div>{{ user.userName }}</div>
+                <small class="text-muted">{{ user.userEmail }}</small>
+                } @else {
+                <div>{{ user.userEmail }}</div>
+                }
+              </td>
+
+              <!-- Role -->
+              <td>
+                <mat-form-field appearance="outline" class="mat-form-field-sm w-100" style="max-width: 115px;">
+                  <mat-select [(ngModel)]="user.role" (selectionChange)="updateUserRole()">
+                    <mat-option *ngFor="let role of roles" [value]="role">{{ role2LabelMapping[role] | translate }}</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </td>
+
+              <!-- Accepted -->
+              <td class="d-none d-md-table-cell">{{ (user.accepted ? 'Yes' : 'No') | translate }}</td>
+
+              <!-- Actions -->
+              <td>
+                <button mat-icon-button color="warn" (click)="removeUser(user.id)" aria-label="Remover usuário">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
