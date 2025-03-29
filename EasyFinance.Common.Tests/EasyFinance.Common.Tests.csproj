@@ -8,11 +8,13 @@
   <ItemGroup>
     <PackageReference Include="AutoFixture" Version="4.18.1" />
     <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="8.0.12" />
+    <PackageReference Include="xunit.extensibility.core" Version="2.9.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\EasyFinance.Application\EasyFinance.Application.csproj" />
     <ProjectReference Include="..\EasyFinance.Domain\EasyFinance.Domain.csproj" />
+    <ProjectReference Include="..\EasyFinance.Persistence\EasyFinance.Persistence.csproj" />
   </ItemGroup>
 
 </Project>

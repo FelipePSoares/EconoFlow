@@ -109,10 +109,10 @@ namespace EasyFinance.Server.Controllers
             return ValidateResponse(updateResult, HttpStatusCode.OK);
         }
 
-        [HttpDelete("{projectId}")]
-        public async Task<IActionResult> DeleteProjectAsync(Guid projectId)
+        [HttpPut("{projectId}/archive")]
+        public async Task<IActionResult> ArchiveProjectAsync(Guid projectId)
         {
-            var deleteResult = await projectService.DeleteAsync(projectId);
+            var deleteResult = await projectService.ArchiveAsync(projectId);
 
             return ValidateResponse(deleteResult, HttpStatusCode.NoContent);
         }
@@ -145,7 +145,7 @@ namespace EasyFinance.Server.Controllers
             var hasAuthorization = accessControlService.HasAuthorization(user.Id, projectId, Role.Admin);
 
             if (!hasAuthorization)
-                return ValidateResponse(AppResponse<IEnumerable<UserProjectResponseDTO>>.Error(ValidationMessages.Forbidden, ValidationMessages.Forbidden), HttpStatusCode.OK);
+                throw new UnauthorizedAccessException();
 
             var updateResult = await accessControlService.UpdateAccessAsync(user, projectId, userProjectDto);
 
@@ -183,7 +183,7 @@ namespace EasyFinance.Server.Controllers
             var hasAuthorization = accessControlService.HasAuthorization(user.Id, projectId, Role.Admin);
 
             if (!hasAuthorization)
-                return ValidateResponse(AppResponse<IEnumerable<UserProjectResponseDTO>>.Error(ValidationMessages.Forbidden, ValidationMessages.Forbidden), HttpStatusCode.OK);
+                throw new UnauthorizedAccessException();
 
             AppResponse result = await this.accessControlService.RemoveAccessAsync(userProjectId);
 

@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.Exceptions;
+using EasyFinance.Infrastructure.Extensions;
+using EasyFinance.Infrastructure.DTOs;
 
 namespace EasyFinance.Domain.Financial
 {
@@ -21,63 +22,66 @@ namespace EasyFinance.Domain.Financial
             SetDate(date == default ? DateOnly.FromDateTime(DateTime.Today) : date);
             SetAmount(amount);
             SetCreatedBy(createdBy ?? new User());
-            SetAttachments(attachments ?? new List<Attachment>());
+            SetAttachments(attachments ?? []);
         }
 
         public string Name { get; private set; } = string.Empty;
         public DateOnly Date { get; private set; }
-        public decimal Amount { get; private set; }
+        public virtual decimal Amount { get; private set; }
         public string CreatorName { get; private set; }
         public User CreatedBy { get; private set; } = new User();
-        public ICollection<Attachment> Attachments { get; private set; } = new List<Attachment>();
+        public ICollection<Attachment> Attachments { get; private set; } = [];
 
-        public void SetName(string name)
+        public override AppResponse Validate
         {
-            if (string.IsNullOrEmpty(name))
-                throw new ValidationException(nameof(Name), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(Name)));
+            get
+            {
+                var response = AppResponse.Success();
 
-            Name = name;
+                if (string.IsNullOrEmpty(Name))
+                    response.AddErrorMessage(nameof(Name), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(Name)));
+
+                if (Date < DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-5)))
+                    response.AddErrorMessage(nameof(Date), string.Format(ValidationMessages.CantAddExpenseOlderThanYears, 5));
+
+                if (Date > DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddDays(1)) && Amount > 0)
+                    response.AddErrorMessage(nameof(Date), ValidationMessages.CantAddFutureExpenseIncome);
+
+                if (Amount < 0)
+                    response.AddErrorMessage(nameof(Amount), string.Format(ValidationMessages.PropertyCantBeLessThanZero, nameof(Amount)));
+
+                if (string.IsNullOrEmpty(CreatorName) && CreatedBy == default)
+                    response.AddErrorMessage(nameof(CreatedBy), string.Format(ValidationMessages.PropertyCantBeNull, nameof(CreatedBy)));
+
+                if (string.IsNullOrEmpty(CreatorName))
+                {
+                    var userValidation = CreatedBy.Validate;
+                    if (userValidation.Failed)
+                        response.AddErrorMessage(userValidation.Messages.AddPrefix(nameof(CreatedBy)));
+                }
+
+                return response;
+            }
         }
 
-        public void SetDate(DateOnly date)
+        public void SetName(string name) => Name = name;
+
+        public void SetDate(DateOnly date) => Date = date;
+
+        public void SetAmount(decimal amount) => Amount = amount;
+
+        public void SetCreatedBy(User createdBy) 
+            => CreatedBy = createdBy ?? throw new ArgumentNullException(null, string.Format(ValidationMessages.PropertyCantBeNull, nameof(createdBy)));
+
+        public void RemoveUserLink()
         {
-            if (date > DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddDays(1)) && Amount > 0)
-                throw new ValidationException(nameof(Date), ValidationMessages.CantAddFutureExpenseIncome);
-
-            if (date < DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-5)))
-                throw new ValidationException(nameof(Date), string.Format(ValidationMessages.CantAddExpenseOlderThanYears, 5));
-
-            Date = date;
-        }
-
-        public void SetAmount(decimal amount)
-        {
-            if (amount < 0)
-                throw new ValidationException(nameof(Amount), string.Format(ValidationMessages.PropertyCantBeLessThanZero, nameof(Amount)));
-
-            if (Date > DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddDays(1)) && amount > 0)
-                throw new ValidationException(nameof(Date), ValidationMessages.CantAddFutureExpenseIncome);
-
-            Amount = amount;
-        }
-
-        public void SetCreatedBy(User createdBy)
-        {
-            CreatedBy = createdBy ?? throw new ValidationException(nameof(CreatedBy), string.Format(ValidationMessages.PropertyCantBeNull, nameof(CreatedBy)));
-        }
-
-        public void RemoveUserLink(string creatorName)
-        {
-            if (string.IsNullOrEmpty(creatorName))
-                throw new ValidationException(nameof(creatorName), string.Format(ValidationMessages.PropertyCantBeNull, nameof(creatorName)));
-
+            CreatorName = this.CreatedBy.FullName;
             CreatedBy = null;
-            CreatorName = creatorName;
         }
 
         public void SetAttachments(ICollection<Attachment> attachments)
         {
-            Attachments = attachments ?? throw new ValidationException(nameof(Attachments), string.Format(ValidationMessages.PropertyCantBeNull, nameof(Attachments)));
+            Attachments = attachments ?? throw new ArgumentNullException(null, string.Format(ValidationMessages.PropertyCantBeNull, nameof(attachments)));
         }
     }
 }

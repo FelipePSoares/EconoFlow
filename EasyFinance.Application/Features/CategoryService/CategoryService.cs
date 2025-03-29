@@ -33,27 +33,35 @@ namespace EasyFinance.Application.Features.CategoryService
             if (categoryExistent != default)
                 return AppResponse<CategoryResponseDTO>.Success(categoryExistent.ToDTO());
 
-            this.unitOfWork.CategoryRepository.InsertOrUpdate(category);
-            project.Categories.Add(category);
-            this.unitOfWork.ProjectRepository.InsertOrUpdate(project);
+            var savedCategory = this.unitOfWork.CategoryRepository.InsertOrUpdate(category);
+            if (savedCategory.Failed)
+                return AppResponse<CategoryResponseDTO>.Error(savedCategory.Messages);
+
+            project.Categories.Add(savedCategory.Data);
+
+            var savedProject = this.unitOfWork.ProjectRepository.InsertOrUpdate(project);
+            if (savedProject.Failed)
+                return AppResponse<CategoryResponseDTO>.Error(savedProject.Messages);
 
             await unitOfWork.CommitAsync();
-            return AppResponse<CategoryResponseDTO>.Success(category.ToDTO());
+            return AppResponse<CategoryResponseDTO>.Success(savedCategory.Data.ToDTO());
         }
 
-        public async Task<AppResponse> DeleteAsync(Guid categoryId)
+        public async Task<AppResponse> ArchiveAsync(Guid categoryId)
         {
             if (categoryId == Guid.Empty)
                 return AppResponse.Error(code: nameof(categoryId), description: ValidationMessages.InvalidCategoryId);
 
-            var category = await unitOfWork.CategoryRepository.Trackable().FirstOrDefaultAsync(category => category.Id == categoryId);
-
-            if (category == null)
-                return AppResponse.Error(code: ValidationMessages.NotFound, description: ValidationMessages.CategoryNotFound);
+            var category = await unitOfWork.CategoryRepository
+                .Trackable()
+                .FirstOrDefaultAsync(category => category.Id == categoryId) ?? throw new KeyNotFoundException(ValidationMessages.CategoryNotFound);
 
             category.SetArchive();
 
-            unitOfWork.CategoryRepository.InsertOrUpdate(category);
+            var savedCategory = unitOfWork.CategoryRepository.InsertOrUpdate(category);
+            if (savedCategory.Failed)
+                return AppResponse.Error(savedCategory.Messages);
+
             await unitOfWork.CommitAsync();
 
             return AppResponse.Success();
@@ -145,7 +153,10 @@ namespace EasyFinance.Application.Features.CategoryService
             if (category == default)
                 return AppResponse<CategoryResponseDTO>.Error(code: nameof(category), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(category)));
 
-            unitOfWork.CategoryRepository.InsertOrUpdate(category);
+            var savedCategory = unitOfWork.CategoryRepository.InsertOrUpdate(category);
+            if (savedCategory.Failed)
+                return AppResponse<CategoryResponseDTO>.Error(savedCategory.Messages);
+
             await unitOfWork.CommitAsync();
 
             return AppResponse<CategoryResponseDTO>.Success(category.ToDTO());
@@ -160,10 +171,7 @@ namespace EasyFinance.Application.Features.CategoryService
                await unitOfWork.CategoryRepository
                .Trackable()
                .Include(c => c.Expenses)
-               .FirstOrDefaultAsync(p => p.Id == categoryId);
-
-            if (existingCategory == null)
-                return AppResponse<CategoryResponseDTO>.Error(code: nameof(categoryId), description: string.Format(ValidationMessages.CategoryNotFound, nameof(categoryId)));
+               .FirstOrDefaultAsync(p => p.Id == categoryId) ?? throw new KeyNotFoundException(ValidationMessages.CategoryNotFound);
 
             var dto = existingCategory.ToRequestDTO();
             categoryDto.ApplyTo(dto);

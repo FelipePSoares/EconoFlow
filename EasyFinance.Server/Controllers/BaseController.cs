@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,20 +22,20 @@ namespace EasyFinance.Server.Controllers
             return ValidateResponse(appResponse);
         }
 
-        private IActionResult ValidateResponse(AppResponse appResponse)
+        protected IActionResult ValidateResponse<T>(string actionName, object routeValues, AppResponse<T> appResponse)
         {
-            if (appResponse.Messages.Any(message => message.Code == ValidationMessages.NotFound))
-                return NotFound();
+            if (appResponse.Failed)
+                return this.ValidateResponse(appResponse);
 
-            if (appResponse.Messages.Any(message => message.Code == ValidationMessages.Forbidden))
-                return Forbid();
-
-            return BadRequest(new { errors = appResponse.Messages.ToDictionary(m => m.Code, m => m.Description) });
-        }
-
-        public IActionResult ValidateResponse<T>(string actionName, object routeValues, AppResponse<T> appResponse)
-        {
             return CreatedAtAction(actionName: actionName, routeValues: routeValues, value: appResponse.Data);
         }
+
+        private BadRequestObjectResult ValidateResponse(AppResponse appResponse)
+            => BadRequest(new
+            {
+                errors = appResponse.Messages
+                .GroupBy(m => m.Code)
+                .ToDictionary(m => m.Key, m => m.Select(s => s.Description))
+            });
     }
 }

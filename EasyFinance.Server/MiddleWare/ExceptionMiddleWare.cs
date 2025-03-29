@@ -1,76 +1,98 @@
-﻿using System.Net;
+﻿using System.Diagnostics;
+using System.Net;
 using System.Text.Json;
-using EasyFinance.Infrastructure.Exceptions;
-using Serilog;
+using EasyFinance.Infrastructure;
 
 namespace EasyFinance.Server.Middleware
 {
+
     public class ExceptionMiddleware
     {
-        private readonly RequestDelegate next;
-        private readonly IHostEnvironment environment;
+        private readonly RequestDelegate _next;
+        private readonly IHostEnvironment _environment;
+        private readonly ILogger<ExceptionMiddleware> _logger;
 
-        public ExceptionMiddleware(RequestDelegate next, IHostEnvironment environment)
+        public ExceptionMiddleware(
+            RequestDelegate next,
+            IHostEnvironment environment,
+            ILogger<ExceptionMiddleware> logger)
         {
-            this.next = next;
-            this.environment = environment;
+            _next = next;
+            _environment = environment;
+            _logger = logger;
         }
 
         public async Task InvokeAsync(HttpContext httpContext)
         {
             try
             {
-                await next(httpContext);
-            }
-            catch (ValidationException ex)
-            {
-                Log.Error(ex, ex.Message);
-
-                await HandleValidationExceptionAsync(httpContext, ex);
+                await _next(httpContext);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, ex.Message);
-
+                _logger.LogError(ex, "Unhandled exception occurred while processing request {Path}", httpContext.Request.Path);
                 await HandleExceptionAsync(httpContext, ex);
             }
         }
 
-        private async Task HandleValidationExceptionAsync(HttpContext httpContext, ValidationException ex)
+        private async Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
-            httpContext.Response.ContentType = "application/json";
-            httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+            context.Response.ContentType = "application/json";
 
-            var response = new
+            var statusCode = GetStatusCode(exception);
+            var errorDetails = GetErrorDetails(exception, statusCode);
+
+            context.Response.StatusCode = statusCode;
+
+            var options = new JsonSerializerOptions
             {
-                Errors = new Dictionary<string, string>
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+
+            var json = JsonSerializer.Serialize(errorDetails, options);
+            await context.Response.WriteAsync(json);
+        }
+
+        private object GetErrorDetails(Exception exception, int statusCode)
+        {
+            if (_environment.IsDevelopment())
+            {
+                return new
                 {
-                    { ex.Property, ex.Message }
-                }
-            };
+                    StatusCode = statusCode,
+                    Message = exception.Message,
+                    Type = exception.GetType().Name,
+                    StackTrace = exception.StackTrace,
+                    TraceId = Activity.Current?.Id ?? Guid.NewGuid().ToString(),
+                    Path = Activity.Current?.OperationName,
+                    Timestamp = DateTime.UtcNow
+                };
+            }
 
-            var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-            var json = JsonSerializer.Serialize(response, options);
-
-            await httpContext.Response.WriteAsync(json);
-        }
-
-        private async Task HandleExceptionAsync(HttpContext httpContext, Exception ex)
-        {
-            httpContext.Response.ContentType = "application/json";
-            httpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-
-            var response = new
+            return new
             {
-                Message = ex.Message,
-                StackTrace = this.environment.IsDevelopment() ? ex.StackTrace?.ToString() : "Internal Server Error"
+                StatusCode = statusCode,
+                Message = GetUserFriendlyMessage(exception),
+                TraceId = Activity.Current?.Id ?? Guid.NewGuid().ToString(),
+                Timestamp = DateTime.UtcNow
             };
-
-            var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-            var json = JsonSerializer.Serialize(response, options);
-
-            await httpContext.Response.WriteAsync(json);
         }
+
+        private static int GetStatusCode(Exception exception) => exception switch
+        {
+            ArgumentException => (int)HttpStatusCode.BadRequest,
+            UnauthorizedAccessException => (int)HttpStatusCode.Unauthorized,
+            KeyNotFoundException => (int)HttpStatusCode.NotFound,
+            _ => (int)HttpStatusCode.InternalServerError
+        };
+
+        private static string GetUserFriendlyMessage(Exception exception) => exception switch
+        {
+            ArgumentException => ValidationMessages.InvalidData,
+            UnauthorizedAccessException => ValidationMessages.YouDontHavePermission,
+            KeyNotFoundException => ValidationMessages.ResourceNotFound,
+            _ => ValidationMessages.GenericError
+        };
     }
 
     public static class ExceptionMiddlewareExtensions

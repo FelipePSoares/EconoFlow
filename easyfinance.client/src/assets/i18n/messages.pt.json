@@ -52,6 +52,7 @@
   "ButtonAddIncome": "Adicionar Receita",
   "ButtonAddExpense": "Adicionar Despesa",
   "ButtonAddItem": "Adicionar Item",
+  "ButtonAddCategory": "Adicionar Categoria",
 
   "RequiredField": "Este campo é obrigatório.",
   "InvalidEmailFormat": "Email com formato inválido.",

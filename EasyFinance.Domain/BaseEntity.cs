@@ -1,6 +1,5 @@
 ﻿using System;
-using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.Exceptions;
+using EasyFinance.Infrastructure.DTOs;
 
 namespace EasyFinance.Domain
 {
@@ -16,8 +15,7 @@ namespace EasyFinance.Domain
 
         public void SetId(Guid id)
         {
-            if (id == default)
-                throw new ValidationException(nameof(Id), string.Format(ValidationMessages.PropertyCantBeNull, nameof(Id)));
+            ArgumentNullException.ThrowIfNull(id);
 
             Id = id;
         }
@@ -25,5 +23,7 @@ namespace EasyFinance.Domain
         public Guid Id { get; private set; } = default;
         public DateTime CreatedDate { get; set; } = DateTime.Now;
         public DateTime ModifiedAt { get; set; } = DateTime.Now;
+
+        public abstract AppResponse Validate { get; }
     }
 }

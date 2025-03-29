@@ -7,6 +7,7 @@ using EasyFinance.Common.Tests.FinancialProject;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Infrastructure;
+using EasyFinance.Infrastructure.DTOs;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -55,6 +56,10 @@ namespace EasyFinance.Application.Tests
             unitOfWork.Setup(uw => uw.ProjectRepository).Returns(this.ProjectRepository.Object);
 
             this.accessControlService = new AccessControlService(unitOfWork.Object, this.userManagerMock.Object, this.emailSender.Object, this.logger.Object);
+
+            this.userProjectRepository.Setup(upr => upr.InsertOrUpdate(It.IsAny<UserProject>()))
+                .Returns((UserProject up) => AppResponse<UserProject>.Success(up));
+            this.unitOfWork.Setup(u => u.GetAffectedUsers(It.IsAny<EntityState[]>())).Returns([]);
         }
 
         [Fact]
@@ -143,8 +148,6 @@ namespace EasyFinance.Application.Tests
             this.ProjectRepository.Setup(pr => pr.Trackable()).Returns(new List<Project> { new Project(projectId) }.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.NoTrackable()).Returns(userProjectAuthorization.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.Trackable()).Returns(userProjects.AsQueryable());
-            this.userProjectRepository.Setup(upr => upr.InsertOrUpdate(It.IsAny<UserProject>())).Returns((UserProject up) => up);
-            this.unitOfWork.Setup(u => u.GetAffectedUsers(It.IsAny<EntityState[]>())).Returns([]);
 
             // Act
             var result = await this.accessControlService.UpdateAccessAsync(user, projectId, userProjectDto);
@@ -195,8 +198,6 @@ namespace EasyFinance.Application.Tests
             this.ProjectRepository.Setup(pr => pr.Trackable()).Returns(new List<Project> { project }.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.NoTrackable()).Returns(userProjectAuthorization.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.Trackable()).Returns(userProjects.AsQueryable());
-            this.userProjectRepository.Setup(upr => upr.InsertOrUpdate(It.IsAny<UserProject>())).Returns((UserProject up) => up);
-            this.unitOfWork.Setup(u => u.GetAffectedUsers(It.IsAny<EntityState[]>())).Returns([]);
 
             // Act
             var result = await this.accessControlService.UpdateAccessAsync(inviterUser, project.Id, userProjectDto);
@@ -240,8 +241,6 @@ namespace EasyFinance.Application.Tests
             this.ProjectRepository.Setup(pr => pr.Trackable()).Returns(new List<Project> { project }.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.NoTrackable()).Returns(userProjectAuthorization.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.Trackable()).Returns(userProjects.AsQueryable());
-            this.userProjectRepository.Setup(upr => upr.InsertOrUpdate(It.IsAny<UserProject>())).Returns((UserProject up) => up);
-            this.unitOfWork.Setup(u => u.GetAffectedUsers(It.IsAny<EntityState[]>())).Returns([]);
 
             // Act
             var result = await this.accessControlService.UpdateAccessAsync(inviterUser, project.Id, userProjectDto);
@@ -301,11 +300,10 @@ namespace EasyFinance.Application.Tests
             this.userProjectRepository.Setup(upr => upr.Trackable()).Returns(userProjects.AsQueryable());
 
             // Act
-            var result = await this.accessControlService.UpdateAccessAsync(user, projectId, userProjectDto);
+            var action = async () => await this.accessControlService.UpdateAccessAsync(user, projectId, userProjectDto);
 
             // Assert
-            result.Succeeded.Should().BeFalse();
-            result.Messages.Should().ContainSingle(e => e.Code == ValidationMessages.Forbidden && e.Description == ValidationMessages.Forbidden);
+            await action.Should().ThrowAsync<UnauthorizedAccessException>();
         }
 
         [Fact]
@@ -545,8 +543,6 @@ namespace EasyFinance.Application.Tests
             this.ProjectRepository.Setup(pr => pr.Trackable()).Returns(new List<Project> { project }.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.NoTrackable()).Returns(userProjectAuthorization.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.Trackable()).Returns(userProjects.AsQueryable());
-            this.userProjectRepository.Setup(upr => upr.InsertOrUpdate(It.IsAny<UserProject>())).Returns((UserProject up) => up);
-            this.unitOfWork.Setup(u => u.GetAffectedUsers(It.IsAny<EntityState[]>())).Returns([]);
 
             // Act
             var result = await this.accessControlService.UpdateAccessAsync(inviterUser, project.Id, userProjectDto);
@@ -589,8 +585,6 @@ namespace EasyFinance.Application.Tests
             this.ProjectRepository.Setup(pr => pr.Trackable()).Returns(new List<Project> { project }.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.NoTrackable()).Returns(userProjectAuthorization.AsQueryable());
             this.userProjectRepository.Setup(upr => upr.Trackable()).Returns(userProjects.AsQueryable());
-            this.userProjectRepository.Setup(upr => upr.InsertOrUpdate(It.IsAny<UserProject>())).Returns((UserProject up) => up);
-            this.unitOfWork.Setup(u => u.GetAffectedUsers(It.IsAny<EntityState[]>())).Returns([]);
 
             // Act
             var result = await this.accessControlService.UpdateAccessAsync(inviterUser, project.Id, userProjectDto);

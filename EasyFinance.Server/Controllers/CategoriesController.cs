@@ -57,12 +57,12 @@ namespace EasyFinance.Server.Controllers
             return ValidateResponse(updateResult, HttpStatusCode.OK);
         }
 
-        [HttpDelete("{categoryId}")]
+        [HttpPut("{categoryId}/Archive")]
         public async Task<IActionResult> Delete(Guid categoryId)
         {
-            var deleteResult = await categoryService.DeleteAsync(categoryId);
+            var archiveResult = await categoryService.ArchiveAsync(categoryId);
 
-            return ValidateResponse(deleteResult, HttpStatusCode.NoContent);
+            return ValidateResponse(archiveResult, HttpStatusCode.NoContent);
         }
     }
 }

@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Forbidden" xml:space="preserve">
-    <value>Você não tem acesso para realizar esta ação</value>
-  </data>
   <data name="GoalDefinedCantBeLessThanExpensesGoal" xml:space="preserve">
     <value>Meta definida para a categoria ({0}) não pode ser menor que a soma da meta de despesas ({1})</value>
   </data>
@@ -139,7 +136,7 @@
     <value>{0} não pode ser nulo ou vazio.</value>
   </data>
   <data name="CantAddFutureExpenseIncome" xml:space="preserve">
-    <value>Você não pode adicionar despesa/receita futura</value>
+    <value>Uma despesa/receita futura não pode ter um valor</value>
   </data>
   <data name="CantAddExpenseOlderThanYears" xml:space="preserve">
     <value>Você não pode adicionar despesa mais antiga que {0} anos</value>
@@ -169,20 +166,11 @@ Categoria não encontrada.</value>
   <data name="CantAcceptExpiredInvitation" xml:space="preserve">
     <value>Não é possível aceitar convite expirado.</value>
   </data>
-  <data name="ExpenseNotFound" xml:space="preserve">
-    <value>Despesa não encontrada.</value>
-  </data>
   <data name="InvalidDateRange" xml:space="preserve">
     <value>Intervalo de data inválido.</value>
   </data>
-  <data name="CategoryNotFound" xml:space="preserve">
-    <value>Categoria não encontrada.</value>
-  </data>
   <data name="InvalidExpenseId" xml:space="preserve">
     <value>Id de Despesa inválido.</value>
-  </data>
-  <data name="NotFound" xml:space="preserve">
-    <value>Não encontrado.</value>
   </data>
   <data name="InvalidExpenseItemId" xml:space="preserve">
     <value>Id de Item de Despesa inválido.</value>
@@ -193,20 +181,8 @@ Categoria não encontrada.</value>
   <data name="InvalidIncomeId" xml:space="preserve">
     <value>Id de Receita inválido.</value>
   </data>
-  <data name="IncomeNotFound" xml:space="preserve">
-    <value>Receita não encontrada.</value>
-  </data>
   <data name="InvalidProjectId" xml:space="preserve">
     <value>Id do Projeto inválido.</value>
-  </data>
-  <data name="ProjectNotFound" xml:space="preserve">
-    <value>Projeto não encontrado.</value>
-  </data>
-  <data name="ExpenseItemNotFound" xml:space="preserve">
-    <value>Item de despesa não encontrado.</value>
-  </data>
-  <data name="ProjectNotFoundOrInsufficientUserPermissions" xml:space="preserve">
-    <value>Projeto não encontrado ou permissões de usuário insuficientes.</value>
   </data>
   <data name="AdminRequired" xml:space="preserve">
     <value>Pelo menos um administrador é necessário no projeto..</value>
@@ -234,5 +210,40 @@ Categoria não encontrada.</value>
   </data>
   <data name="SelfImprovement" xml:space="preserve">
     <value>Aprendizado</value>
+  </data>
+  <data name="ThankYouConfirmEmailRedirect" xml:space="preserve">
+    <value>Obrigado por confirmar seu e-mail.
+
+Você será redirecionado em 5 segundos...</value>
+  </data>
+  <data name="InvalidData" xml:space="preserve">
+    <value>Dados inválidos fornecidos para esta operação.</value>
+  </data>
+  <data name="YouDontHavePermission" xml:space="preserve">
+    <value>Você não tem permissão para acessar este recurso.</value>
+  </data>
+  <data name="ResourceNotFound" xml:space="preserve">
+    <value>O recurso solicitado não foi encontrado.</value>
+  </data>
+  <data name="GenericError" xml:space="preserve">
+    <value>Ocorreu um erro ao processar sua solicitação.</value>
+  </data>
+  <data name="InviteNotFound" xml:space="preserve">
+    <value>Convite não encontrado.</value>
+  </data>
+  <data name="CategoryNotFound" xml:space="preserve">
+    <value>Categoria não encontrada.</value>
+  </data>
+  <data name="ExpenseNotFound" xml:space="preserve">
+    <value>Despesa não encontrada.</value>
+  </data>
+  <data name="IncomeNotFound" xml:space="preserve">
+    <value>Renda não encontrada.</value>
+  </data>
+  <data name="ProjectNotFound" xml:space="preserve">
+    <value>Projeto não encontrado.</value>
+  </data>
+  <data name="ProjectNotFoundOrInsufficientUserPermissions" xml:space="preserve">
+    <value>Projeto não encontrado ou permissões de usuário insuficientes.</value>
   </data>
 </root>

@@ -52,6 +52,7 @@
   "ButtonAddIncome": "Add Income",
   "ButtonAddExpense": "Add Expense",
   "ButtonAddItem": "Add Item",
+  "ButtonAddCategory": "Add Category",
 
   "RequiredField": "This field is required.",
   "InvalidEmailFormat": "Invalid email format.",

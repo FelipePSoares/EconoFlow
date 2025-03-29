@@ -34,7 +34,7 @@ builder.Services.AddControllers(config =>
                      .RequireAuthenticatedUser()
                      .Build();
     config.Filters.Add(new AuthorizeFilter(policy));
-    config.SuppressAsyncSuffixInActionNames = false;
+    config.SuppressAsyncSuffixInActionNames = false; 
 })
     .AddNewtonsoftJson(setup =>
         setup.SerializerSettings.Converters.Add(new StringEnumConverter()));
@@ -98,10 +98,10 @@ try
         unitOfWork.IncomeRepository.Insert(income);
 
         var income2 = new Income("Investiments", DateOnly.FromDateTime(DateTime.Now.AddMonths(-1)), 3000, user);
-        unitOfWork.IncomeRepository.InsertOrUpdate(income2);
+        unitOfWork.IncomeRepository.Insert(income2);
 
         var expense = new Expense("Rent", DateOnly.FromDateTime(DateTime.Now), 700, user, budget: 700);
-        unitOfWork.ExpenseRepository.InsertOrUpdate(expense);
+        unitOfWork.ExpenseRepository.Insert(expense);
 
         var expense2 = new Expense("Groceries", DateOnly.FromDateTime(DateTime.Now), 0, user, budget: 450);
         var expenseItem = new ExpenseItem("Pingo Doce", DateOnly.FromDateTime(DateTime.Now), 100, user);
@@ -128,11 +128,11 @@ try
 
         var userProject = new UserProject(user, project, Role.Admin);
         userProject.SetAccepted();
-        unitOfWork.UserProjectRepository.InsertOrUpdate(userProject);
+        unitOfWork.UserProjectRepository.Insert(userProject);
 
         var userProject2 = new UserProject(user2, project, Role.Manager);
         userProject2.SetAccepted();
-        unitOfWork.UserProjectRepository.InsertOrUpdate(userProject2);
+        unitOfWork.UserProjectRepository.Insert(userProject2);
 
         unitOfWork.CommitAsync().GetAwaiter().GetResult();
 

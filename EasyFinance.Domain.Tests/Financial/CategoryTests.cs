@@ -1,6 +1,5 @@
 ﻿using EasyFinance.Common.Tests.Financial;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.Exceptions;
 using FluentAssertions;
 
 namespace EasyFinance.Domain.Tests.Financial
@@ -12,11 +11,18 @@ namespace EasyFinance.Domain.Tests.Financial
         [InlineData("")]
         public void AddName_SendNullAndEmpty_ShouldThrowException(string name)
         {
-            var action = () => new CategoryBuilder().AddName(name).Build();
+            // Arrange
+            var category = new CategoryBuilder().AddName(name).Build();
 
-            action.Should().Throw<ValidationException>()
-                .WithMessage(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, "Name"))
-                .And.Property.Should().Be("Name");
+            // Act
+            var result = category.Validate;
+
+            // Assert
+            result.Failed.Should().BeTrue();
+
+            var message = result.Messages.Should().ContainSingle().Subject;
+            message.Code.Should().Be("Name");
+            message.Description.Should().Be(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, "Name"));
         }
 
         [Fact]
@@ -24,16 +30,13 @@ namespace EasyFinance.Domain.Tests.Financial
         {
             var action = () => new CategoryBuilder().AddExpenses(null).Build();
 
-            action.Should().Throw<ValidationException>()
-                .WithMessage(string.Format(ValidationMessages.PropertyCantBeNull, "Expenses"))
-                .And.Property.Should().Be("Expenses");
+            action.Should().Throw<ArgumentNullException>().WithParameterName("expenses");
         }
 
-        public static IEnumerable<object[]> InvalidDates =>
-            new List<object[]>
-            {
-            new object[] { DateTime.Now.AddDays(1) },
-            new object[] { DateTime.Now.AddYears(-200) }
-            };
+        public static TheoryData<DateTime> InvalidDates =>
+            [
+                DateTime.Now.AddDays(1),
+                DateTime.Now.AddYears(-200)
+            ];
     }
 }

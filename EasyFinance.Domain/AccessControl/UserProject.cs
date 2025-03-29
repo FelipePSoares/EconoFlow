@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Reflection.Metadata.Ecma335;
 using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
-using EasyFinance.Infrastructure.Exceptions;
 
 namespace EasyFinance.Domain.AccessControl
 {
@@ -17,7 +15,8 @@ namespace EasyFinance.Domain.AccessControl
             Role role = default,
             string email = default)
         {
-            SetUser(user, email);
+            SetUser(user);
+            SetUser(email);
             SetProject(project);
             SetRole(role);
         }
@@ -33,33 +32,28 @@ namespace EasyFinance.Domain.AccessControl
         public DateTime ExpiryDate { get; private set; } = DateTime.UtcNow.AddDays(7);
         public bool InvitationEmailSent { get; private set; }
 
-        public AppResponse SetUser(User user, string email = "")
+        public override AppResponse Validate
         {
-            if (user == default && string.IsNullOrEmpty(email))
-                return AppResponse.Error(nameof(User), ValidationMessages.EitherUserOrEmailMustBeProvided);
+            get
+            {
+                var response = AppResponse.Success();
 
-            if (user == default)
-                Email = email;
-            else
-                User = user;
+                if (User?.Id == default && string.IsNullOrEmpty(Email))
+                    response.AddErrorMessage(nameof(User), ValidationMessages.EitherUserOrEmailMustBeProvided);
 
-            return AppResponse.Success();
+                if (Project == default)
+                    response.AddErrorMessage(nameof(Project), string.Format(ValidationMessages.PropertyCantBeNull, nameof(Project)));
+
+                return response;
+            }
         }
 
-        public AppResponse SetProject(Project project)
-        {
-            if (project == default)
-                return AppResponse.Error(nameof(Project), string.Format(ValidationMessages.PropertyCantBeNull, nameof(Project)));
+        public void SetUser(User user) => User = user;
+        public void SetUser(string email) => Email = email;
 
-            Project = project;
+        public void SetProject(Project project) => Project = project;
 
-            return AppResponse.Success();
-        }
-
-        public void SetRole(Role role)
-        {
-            Role = role;
-        }
+        public void SetRole(Role role) => Role = role;
 
         public AppResponse SetAccepted()
         {
@@ -72,9 +66,6 @@ namespace EasyFinance.Domain.AccessControl
             return AppResponse.Success();
         }
 
-        public void SetInvitationEmailSent()
-        {
-            InvitationEmailSent = true;
-        }
+        public void SetInvitationEmailSent() => InvitationEmailSent = true;
     }
 }

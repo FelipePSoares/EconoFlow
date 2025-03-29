@@ -55,7 +55,7 @@ export class ProjectService {
   }
 
   removeProject(id: string): Observable<boolean> {
-    return this.http.delete('/api/projects/' + id, {
+    return this.http.put('/api/projects/' + id + '/archive', {}, {
       observe: 'response'
     }).pipe(map(res => res.ok));
   }

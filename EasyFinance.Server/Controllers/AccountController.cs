@@ -27,7 +27,15 @@ namespace EasyFinance.Server.Controllers
     [ApiController]
     [Tags("AccessControl")]
     [Route("api/[controller]")]
-    public class AccountController : BaseController
+    public class AccountController(
+        UserManager<User> userManager,
+        SignInManager<User> signInManager,
+        IEmailSender<User> emailSender,
+        IUserService userService,
+        LinkGenerator linkGenerator,
+        IAccessControlService accessControlService,
+        TokenSettings tokenSettings,
+        ILogger<AccountController> logger) : BaseController
     {
         private readonly string tokenProvider = "REFRESHTOKENPROVIDER";
         private readonly string tokenPurpose = "RefreshToken";
@@ -35,31 +43,14 @@ namespace EasyFinance.Server.Controllers
         // Validate the email address using DataAnnotations like the UserValidator does when RequireUniqueEmail = true.
         private static readonly EmailAddressAttribute emailAddressAttribute = new();
 
-        private readonly UserManager<User> userManager;
-        private readonly SignInManager<User> signInManager;
-        private readonly IEmailSender<User> emailSender;
-        private readonly IUserService userService;
-        private readonly LinkGenerator linkGenerator;
-        private readonly IAccessControlService accessControlService;
-        private readonly TokenSettings tokenSettings;
-
-        public AccountController(
-            UserManager<User> userManager,
-            SignInManager<User> signInManager,
-            IEmailSender<User> emailSender,
-            IUserService userService,
-            LinkGenerator linkGenerator,
-            IAccessControlService accessControlService,
-            TokenSettings tokenSettings)
-        {
-            this.userManager = userManager;
-            this.signInManager = signInManager;
-            this.emailSender = emailSender;
-            this.userService = userService;
-            this.linkGenerator = linkGenerator;
-            this.accessControlService = accessControlService;
-            this.tokenSettings = tokenSettings;
-        }
+        private readonly UserManager<User> userManager = userManager;
+        private readonly SignInManager<User> signInManager = signInManager;
+        private readonly IEmailSender<User> emailSender = emailSender;
+        private readonly IUserService userService = userService;
+        private readonly LinkGenerator linkGenerator = linkGenerator;
+        private readonly IAccessControlService accessControlService = accessControlService;
+        private readonly TokenSettings tokenSettings = tokenSettings;
+        private readonly ILogger<AccountController> logger = logger;
 
         [HttpGet]
         public async Task<IActionResult> GetUserAsync()
@@ -82,6 +73,10 @@ namespace EasyFinance.Server.Controllers
 
             user.SetFirstName(userDTO.FirstName);
             user.SetLastName(userDTO.LastName);
+
+            var result = user.Validate;
+            if (result.Failed)
+                this.ValidateResponse(result, HttpStatusCode.OK);
 
             await this.userManager.UpdateAsync(user);
 
@@ -382,15 +377,14 @@ namespace EasyFinance.Server.Controllers
             if (!knowUsers.Succeeded)
                 return this.ValidateResponse(knowUsers, HttpStatusCode.OK);
 
-            searchTerm = Regex.Escape(searchTerm).ToLower();
-
+            searchTerm = Regex.Escape(searchTerm);
 
             var users = knowUsers.Data
                 .Where(u => !filterUsers.Contains(u.Id))
                 .Where(u =>
-                    u.FirstName.ToLower().Contains(searchTerm) ||
-                    u.LastName.ToLower().Contains(searchTerm) ||
-                    u.Email.ToLower().Contains(searchTerm))
+                    u.FirstName.Contains(searchTerm, StringComparison.InvariantCultureIgnoreCase) ||
+                    u.LastName.Contains(searchTerm, StringComparison.InvariantCultureIgnoreCase) ||
+                    u.Email.Contains(searchTerm, StringComparison.InvariantCultureIgnoreCase))
                 .OrderBy(u => u.FirstName)
                 .Take(5)
                 .ToSearchResponseDTO()
@@ -403,6 +397,12 @@ namespace EasyFinance.Server.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> ConfirmEmailAsync([FromQuery] string userId, [FromQuery] string code, [FromQuery] string? changedEmail)
         {
+            if (string.IsNullOrEmpty(userId))
+                throw new ArgumentException(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(userId)));
+
+            if (string.IsNullOrEmpty(code))
+                throw new ArgumentException(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(code)));
+
             if (await userManager.FindByIdAsync(userId) is not { } user)
                 return Unauthorized();
 
@@ -412,6 +412,7 @@ namespace EasyFinance.Server.Controllers
             }
             catch (FormatException)
             {
+                this.logger.LogWarning($"Invalid code format for user {userId}.");
                 return Unauthorized();
             }
 
@@ -438,7 +439,8 @@ namespace EasyFinance.Server.Controllers
                 return Unauthorized();
             }
 
-            return Ok("Thank you for confirming your email.");
+            Response.Headers.Append("Refresh", $"5;url={Request.Scheme}://{Request.Host}");
+            return Content(ValidationMessages.ThankYouConfirmEmailRedirect);
         }
 
         private async Task SendConfirmationEmailAsync(User user, HttpContext context, string email, bool isChange = false)

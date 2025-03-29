@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using EasyFinance.Domain;
+using EasyFinance.Infrastructure.DTOs;
 
 namespace EasyFinance.Application.Contracts.Persistence
 {
@@ -8,7 +9,7 @@ namespace EasyFinance.Application.Contracts.Persistence
         IQueryable<T> Trackable();
         IQueryable<T> NoTrackable();
         T Insert(T entity);
-        T InsertOrUpdate(T entity);
+        AppResponse<T> InsertOrUpdate(T entity);
         T Delete(T entity);
     }
 }

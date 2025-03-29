@@ -69,12 +69,16 @@ namespace EasyFinance.Application.Features.ProjectService
                     return AppResponse<ProjectResponseDTO>.Success(projectExistent.ToDTO());
             }
 
-            unitOfWork.ProjectRepository.InsertOrUpdate(project);
+            var savedProject = unitOfWork.ProjectRepository.InsertOrUpdate(project);
+            if (savedProject.Failed)
+                return AppResponse<ProjectResponseDTO>.Error(savedProject.Messages);
 
             var userProject = new UserProject(user, project, Role.Admin);
             userProject.SetAccepted();
 
-            unitOfWork.UserProjectRepository.InsertOrUpdate(userProject);
+            var savedUserProject = unitOfWork.UserProjectRepository.InsertOrUpdate(userProject);
+            if (savedUserProject.Failed)
+                return AppResponse<ProjectResponseDTO>.Error(savedUserProject.Messages);
 
             await unitOfWork.CommitAsync();
 
@@ -92,7 +96,10 @@ namespace EasyFinance.Application.Features.ProjectService
             if (project == default)
                 return AppResponse<ProjectResponseDTO>.Error(code: nameof(project), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(project)));
 
-            unitOfWork.ProjectRepository.InsertOrUpdate(project);
+            var savedProject = unitOfWork.ProjectRepository.InsertOrUpdate(project);
+            if (savedProject.Failed)
+                return AppResponse<ProjectResponseDTO>.Error(savedProject.Messages);
+
             await unitOfWork.CommitAsync();
 
             return AppResponse<ProjectResponseDTO>.Success(project.ToDTO());
@@ -100,10 +107,9 @@ namespace EasyFinance.Application.Features.ProjectService
 
         public async Task<AppResponse<ProjectResponseDTO>> UpdateAsync(Guid projectId, JsonPatchDocument<ProjectRequestDTO> projectDto)
         {
-            var existingProject = unitOfWork.ProjectRepository.Trackable().FirstOrDefault(up => up.Id == projectId);
-
-            if (existingProject == null) 
-                return AppResponse<ProjectResponseDTO>.Error(code: ValidationMessages.NotFound, description: ValidationMessages.ProjectNotFound);
+            var existingProject = unitOfWork.ProjectRepository
+                .Trackable()
+                .FirstOrDefault(up => up.Id == projectId) ?? throw new KeyNotFoundException(ValidationMessages.ProjectNotFound);
 
             var dto = existingProject.ToRequestDTO();
 
@@ -116,19 +122,21 @@ namespace EasyFinance.Application.Features.ProjectService
             return AppResponse<ProjectResponseDTO>.Success(result.ToDTO());
         }
 
-        public async Task<AppResponse> DeleteAsync(Guid id)
+        public async Task<AppResponse> ArchiveAsync(Guid id)
         {
             if (id == Guid.Empty)
                 return AppResponse.Error(code: nameof(id), description: ValidationMessages.InvalidProjectId);
 
-            var project = unitOfWork.ProjectRepository.Trackable().FirstOrDefault(product => product.Id == id);
-
-            if (project == null)
-                return AppResponse.Error(code: ValidationMessages.NotFound, description: ValidationMessages.ProjectNotFound);
+            var project = unitOfWork.ProjectRepository
+                .Trackable()
+                .FirstOrDefault(product => product.Id == id) ?? throw new KeyNotFoundException(ValidationMessages.ProjectNotFound);
 
             project.SetArchive();
 
-            unitOfWork.ProjectRepository.InsertOrUpdate(project);
+            var savedProject = unitOfWork.ProjectRepository.InsertOrUpdate(project);
+            if (savedProject.Failed)
+                return AppResponse<ProjectResponseDTO>.Error(savedProject.Messages);
+
             await unitOfWork.CommitAsync();
 
             return AppResponse.Success();

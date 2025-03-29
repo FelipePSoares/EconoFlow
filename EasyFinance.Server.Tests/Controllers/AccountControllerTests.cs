@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Security.Claims;
 using System.Security.Principal;
+using Castle.Core.Logging;
 using EasyFinance.Application.DTOs.AccessControl;
 using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Application.Features.UserService;
@@ -14,6 +15,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Shouldly;
 
@@ -68,7 +70,8 @@ namespace EasyFinance.Server.Tests.Controllers
                userService: Mock.Of<IUserService>(),
                linkGenerator: Mock.Of<LinkGenerator>(),
                accessControlService: Mock.Of<IAccessControlService>(),
-               tokenSettings: tokenSettings
+               tokenSettings: tokenSettings,
+               logger: Mock.Of<ILogger<AccountController>>()
                );
 
             var userJohn = new UserBuilder().AddFirstName("John").AddLastName("Doe").AddEmail("john@doe.com").Build();
@@ -179,7 +182,9 @@ namespace EasyFinance.Server.Tests.Controllers
             };
 
             _userManagerMock.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(new User(Guid.NewGuid()));
-            this.accessControlService.Setup(a => a.GetUsers(It.IsAny<User>(), It.IsAny<Guid>())).ReturnsAsync(new AppResponse<IEnumerable<UserProjectResponseDTO>>());
+
+            this.accessControlService.Setup(a => a.GetUsers(It.IsAny<User>(), It.IsAny<Guid>()))
+                .ReturnsAsync(AppResponse<IEnumerable<UserProjectResponseDTO>>.Success([]));
 
             // Act
             var result = await _controller.SearchUsers(searchTerm, Guid.Empty, this.accessControlService.Object);
@@ -211,7 +216,8 @@ namespace EasyFinance.Server.Tests.Controllers
             };
 
             _userManagerMock.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(new User(Guid.NewGuid()));
-            this.accessControlService.Setup(a => a.GetUsers(It.IsAny<User>(), It.IsAny<Guid>())).ReturnsAsync(new AppResponse<IEnumerable<UserProjectResponseDTO>>());
+            this.accessControlService.Setup(a => a.GetUsers(It.IsAny<User>(), It.IsAny<Guid>()))
+                .ReturnsAsync(AppResponse<IEnumerable<UserProjectResponseDTO>>.Success([]));
 
 
             // Act

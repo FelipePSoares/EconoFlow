@@ -29,8 +29,7 @@ namespace EasyFinance.Persistence.Mapping.AccessControl
                 .IsRequired();
 
             builder.Property(p => p.Email)
-                .HasMaxLength(256)
-                .IsRequired();
+                .HasMaxLength(256);
 
             builder.HasOne(p => p.User)
                 .WithMany();

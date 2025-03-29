@@ -1,6 +1,5 @@
 ﻿using EasyFinance.Common.Tests.Financial;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.Exceptions;
 using FluentAssertions;
 
 namespace EasyFinance.Domain.Tests.Financial
@@ -12,11 +11,18 @@ namespace EasyFinance.Domain.Tests.Financial
         [InlineData("")]
         public void AddName_SendNullAndEmpty_ShouldThrowException(string name)
         {
-            var action = () => new AttachmentBuilder().AddName(name).Build();
+            // Arrange
+            var attachment = new AttachmentBuilder().AddName(name).Build();
 
-            action.Should().Throw<ValidationException>()
-                .WithMessage(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, "Name"))
-                .And.Property.Should().Be("Name");
+            // Act
+            var result = attachment.Validate;
+
+            // Assert
+            result.Failed.Should().BeTrue();
+
+            var message = result.Messages.Should().ContainSingle().Subject;
+            message.Code.Should().Be("Name");
+            message.Description.Should().Be(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, "Name"));
         }
 
         [Fact]
@@ -24,9 +30,8 @@ namespace EasyFinance.Domain.Tests.Financial
         {
             var action = () => new AttachmentBuilder().AddCreatedBy(null).Build();
 
-            action.Should().Throw<ValidationException>()
-                .WithMessage(string.Format(ValidationMessages.PropertyCantBeNull, "CreatedBy"))
-                .And.Property.Should().Be("CreatedBy");
+            action.Should().Throw<ArgumentNullException>()
+                .WithMessage(string.Format(ValidationMessages.PropertyCantBeNull, "CreatedBy"));
         }
     }
 }

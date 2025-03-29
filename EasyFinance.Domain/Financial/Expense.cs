@@ -25,16 +25,22 @@ namespace EasyFinance.Domain.Financial
 
         public int Budget { get; private set; }
 
-        public AppResponse SetBudget(int budget)
+        public override AppResponse Validate
         {
-            if (budget < 0)
-                return AppResponse.Error(code: nameof(budget), description: string.Format(ValidationMessages.PropertyCantBeLessThanZero, nameof(Budget)));
+            get
+            {
+                var response = base.Validate;
 
-            Budget = budget;
-            return AppResponse.Success();
+                if (Budget < 0)
+                    response.AddErrorMessage(nameof(Budget), string.Format(ValidationMessages.PropertyCantBeLessThanZero, nameof(Budget)));
+
+                return response;
+            }
         }
 
-        public AppResponse<Expense> CopyBudgetToCurrentMonth(User createdBy)
+        public void SetBudget(int budget) => Budget = budget;
+
+        public AppResponse<Expense> CopyBudgetToNextMonth(User createdBy)
         {
             var expense = new Expense(name: Name, date: Date.AddMonths(1), createdBy: createdBy, budget: Budget);
             return AppResponse<Expense>.Success(expense);

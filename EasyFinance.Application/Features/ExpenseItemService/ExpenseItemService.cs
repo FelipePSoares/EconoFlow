@@ -1,14 +1,11 @@
-﻿using EasyFinance.Application.Contracts.Persistence;
-using EasyFinance.Application.DTOs.Financial;
-using EasyFinance.Application.Mappers;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace EasyFinance.Application.Features.ExpenseItemService
 {
@@ -29,7 +26,7 @@ namespace EasyFinance.Application.Features.ExpenseItemService
             var expenseItem = unitOfWork.ExpenseItemRepository.Trackable().FirstOrDefault(e => e.Id == expenseItemId);
 
             if (expenseItem == null)
-                return AppResponse.Error(code: ValidationMessages.NotFound, description: ValidationMessages.ExpenseItemNotFound);
+                return AppResponse.Success();
 
             unitOfWork.ExpenseItemRepository.Delete(expenseItem);
             await unitOfWork.CommitAsync();
@@ -39,18 +36,24 @@ namespace EasyFinance.Application.Features.ExpenseItemService
 
         public async Task<AppResponse> RemoveLinkAsync(User user)
         {
-            var expenseItems = unitOfWork.ExpenseItemRepository.Trackable().Where(expenseItem => expenseItem.CreatedBy.Id == user.Id).ToList();
+            var response = AppResponse.Success();
 
+            var expenseItems = unitOfWork.ExpenseItemRepository
+                .Trackable()
+                .Include(e => e.CreatedBy)
+                .Where(expenseItem => expenseItem.CreatedBy.Id == user.Id).ToList();
 
             foreach (var expenseItem in expenseItems)
             {
-                expenseItem.RemoveUserLink($"{user.FirstName} {user.LastName}");
-                unitOfWork.ExpenseItemRepository.InsertOrUpdate(expenseItem);
+                expenseItem.RemoveUserLink();
+                var expenseItemSaved = unitOfWork.ExpenseItemRepository.InsertOrUpdate(expenseItem);
+                if (expenseItemSaved.Failed)
+                    response.AddErrorMessage(expenseItemSaved.Messages);
             }
 
             await unitOfWork.CommitAsync();
             
-            return AppResponse.Success();
+            return response;
         }
     }
 }

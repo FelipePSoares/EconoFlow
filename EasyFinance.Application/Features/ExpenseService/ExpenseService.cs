@@ -11,16 +11,19 @@ using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace EasyFinance.Application.Features.ExpenseService
 {
     public class ExpenseService : IExpenseService
     {
         private readonly IUnitOfWork unitOfWork;
+        private readonly ILogger<ExpenseService> logger;
 
-        public ExpenseService(IUnitOfWork unitOfWork)
+        public ExpenseService(IUnitOfWork unitOfWork, ILogger<ExpenseService> logger)
         {
             this.unitOfWork = unitOfWork;
+            this.logger = logger;
         }
 
         public async Task<AppResponse<IEnumerable<ExpenseResponseDTO>>> GetAsync(Guid categoryId, DateOnly from, DateOnly to)
@@ -33,10 +36,7 @@ namespace EasyFinance.Application.Features.ExpenseService
                 .Include(p => p.Expenses.Where(e => e.Date >= from && e.Date < to))
                 .ThenInclude(e => e.Items.Where(i => i.Date >= from && i.Date < to)
                 .OrderBy(item => item.Date))
-                .FirstOrDefaultAsync(p => p.Id == categoryId);
-
-            if (category == null)
-                return AppResponse<IEnumerable<ExpenseResponseDTO>>.Error(code: ValidationMessages.NotFound, description: ValidationMessages.CategoryNotFound);
+                .FirstOrDefaultAsync(p => p.Id == categoryId) ?? throw new KeyNotFoundException(ValidationMessages.CategoryNotFound);
 
             var expenses = category.Expenses;
 
@@ -50,10 +50,7 @@ namespace EasyFinance.Application.Features.ExpenseService
                 .ThenInclude(e => e.CreatedBy)
                 .Include(e => e.Attachments)
                 .Include(e => e.CreatedBy)
-                .FirstOrDefaultAsync(p => p.Id == expenseId);
-
-            if (expense == null)
-                return AppResponse<ExpenseResponseDTO>.Error(code: ValidationMessages.NotFound, description: ValidationMessages.ExpenseNotFound);
+                .FirstOrDefaultAsync(p => p.Id == expenseId) ?? throw new KeyNotFoundException(ValidationMessages.ExpenseNotFound); 
 
             return AppResponse<ExpenseResponseDTO>.Success(expense.ToDTO());
         }
@@ -74,9 +71,15 @@ namespace EasyFinance.Application.Features.ExpenseService
                 .ThenInclude(e => e.Items)
                 .FirstOrDefault(p => p.Id == categoryId);
 
-            unitOfWork.ExpenseRepository.InsertOrUpdate(expense);
-            category.AddExpense(expense);
-            unitOfWork.CategoryRepository.InsertOrUpdate(category);
+            var savedExpense = unitOfWork.ExpenseRepository.InsertOrUpdate(expense);
+            if (savedExpense.Failed)
+                return AppResponse<ExpenseResponseDTO>.Error(savedExpense.Messages);
+
+            category.AddExpense(savedExpense.Data);
+            
+            var savedCategory = unitOfWork.CategoryRepository.InsertOrUpdate(category);
+            if (savedCategory.Failed)
+                return AppResponse<ExpenseResponseDTO>.Error(savedCategory.Messages);
 
             await unitOfWork.CommitAsync();
 
@@ -94,7 +97,7 @@ namespace EasyFinance.Application.Features.ExpenseService
 
             var existingExpense = await this.unitOfWork.ExpenseRepository.Trackable()
                .Include(e => e.Items.OrderBy(item => item.Date))
-               .ThenInclude(e => e.CreatedBy)
+                    .ThenInclude(e => e.CreatedBy)
                .Include(e => e.Attachments)
                .Include(e => e.CreatedBy)
                .FirstOrDefaultAsync(p => p.Id == expenseId);
@@ -113,7 +116,10 @@ namespace EasyFinance.Application.Features.ExpenseService
                 expenseItem.SetCreatedBy(user);
             }
 
-            unitOfWork.ExpenseRepository.InsertOrUpdate(existingExpense);
+            var savedExpense = unitOfWork.ExpenseRepository.InsertOrUpdate(existingExpense);
+            if (savedExpense.Failed)
+                return AppResponse<ExpenseResponseDTO>.Error(savedExpense.Messages);
+
             await unitOfWork.CommitAsync();
 
             return AppResponse<ExpenseResponseDTO>.Success(existingExpense.ToDTO());
@@ -127,7 +133,10 @@ namespace EasyFinance.Application.Features.ExpenseService
             var expense = unitOfWork.ExpenseRepository.Trackable().FirstOrDefault(e => e.Id == expenseId);
 
             if (expense == null)
-                return AppResponse.Error(code: ValidationMessages.NotFound, ValidationMessages.ExpenseNotFound);
+            {
+                logger.LogWarning("Expense not found for deletion!");
+                return AppResponse.Success();
+            }
 
             unitOfWork.ExpenseRepository.Delete(expense);
             await unitOfWork.CommitAsync();
@@ -137,6 +146,8 @@ namespace EasyFinance.Application.Features.ExpenseService
 
         public async Task<AppResponse> RemoveLinkAsync(User user)
         {
+            var response = AppResponse.Success();
+
             var expenses = unitOfWork.ExpenseRepository
                 .Trackable()
                 .Include(e => e.CreatedBy)
@@ -145,12 +156,14 @@ namespace EasyFinance.Application.Features.ExpenseService
 
             foreach (var expense in expenses)
             {
-                expense.RemoveUserLink($"{user.FirstName} {user.LastName}");
-                unitOfWork.ExpenseRepository.InsertOrUpdate(expense);
+                expense.RemoveUserLink();
+                var savedExpense = unitOfWork.ExpenseRepository.InsertOrUpdate(expense);
+                if (savedExpense.Failed)
+                    response.AddErrorMessage(savedExpense.Messages);
             }
 
             await unitOfWork.CommitAsync();
-            return AppResponse.Success();
+            return response;
         }
     }
 }

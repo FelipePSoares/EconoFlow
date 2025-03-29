@@ -55,9 +55,13 @@
       </div>
       }
       @if (canAddOrEdit()){
-      <button class="list-group-item btn-default btn-add" (click)="add()" style="height: 100px">
-        <fa-icon class="btn btn-primary btn-circle" [icon]="faPlus" size="2xl"></fa-icon>
-      </button>
+      <div class="list-group-item text-center">
+        <button class="btn btn-primary btn-add btn-lg w-100 d-flex justify-content-center align-items-center"
+                (click)="add()">
+          <fa-icon [icon]="faPlus" class="me-2"></fa-icon>
+          {{ 'ButtonAddCategory' | translate }}
+        </button>
+      </div>
       }
     </div>
   </div>

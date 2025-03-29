@@ -17,24 +17,16 @@ using Microsoft.Extensions.Logging;
 
 namespace EasyFinance.Application.Features.AccessControlService
 {
-    public class AccessControlService : IAccessControlService
+    public class AccessControlService(
+        IUnitOfWork unitOfWork,
+        UserManager<User> userManager,
+        IEmailSender emailSender,
+        ILogger<AccessControlService> logger) : IAccessControlService
     {
-        private readonly IUnitOfWork unitOfWork;
-        private readonly UserManager<User> userManager;
-        private readonly IEmailSender emailSender;
-        private readonly ILogger<AccessControlService> logger;
-
-        public AccessControlService(
-            IUnitOfWork unitOfWork,
-            UserManager<User> userManager,
-            IEmailSender emailSender,
-            ILogger<AccessControlService> logger)
-        {
-            this.unitOfWork = unitOfWork;
-            this.userManager = userManager;
-            this.emailSender = emailSender;
-            this.logger = logger;
-        }
+        private readonly IUnitOfWork unitOfWork = unitOfWork;
+        private readonly UserManager<User> userManager = userManager;
+        private readonly IEmailSender emailSender = emailSender;
+        private readonly ILogger<AccessControlService> logger = logger;
 
         public bool HasAuthorization(Guid userId, Guid projectId, Role accessNeeded)
         {
@@ -45,24 +37,24 @@ namespace EasyFinance.Application.Features.AccessControlService
 
         public async Task<AppResponse> AcceptInvitationAsync(User user, Guid token)
         {
-            AppResponse result;
-
             var userProject = unitOfWork.UserProjectRepository.Trackable().IgnoreQueryFilters().Include(up => up.Project).Include(up => up.User).FirstOrDefault(up => up.Token == token && !up.Accepted);
             if (userProject == default)
-                return AppResponse.Error(ValidationMessages.NotFound);
+                throw new KeyNotFoundException(ValidationMessages.InviteNotFound);
 
             if (userProject.User?.Id != user.Id && userProject.Email != user.Email)
-                return AppResponse.Error(ValidationMessages.Forbidden, ValidationMessages.Forbidden);
+                throw new UnauthorizedAccessException();
 
-            result = userProject.SetUser(user);
-            if (!result.Succeeded)
+            userProject.SetUser(user);
+
+            var resultSetAccepted = userProject.SetAccepted();
+            if (!resultSetAccepted.Succeeded)
+                return resultSetAccepted;
+
+            var result = unitOfWork.UserProjectRepository.InsertOrUpdate(userProject);
+
+            if (result.Failed)
                 return result;
 
-            result = userProject.SetAccepted();
-            if (!result.Succeeded)
-                return result;
-
-            unitOfWork.UserProjectRepository.InsertOrUpdate(userProject);
             await this.unitOfWork.CommitAsync();
             return AppResponse.Success();
         }
@@ -70,7 +62,7 @@ namespace EasyFinance.Application.Features.AccessControlService
         public async Task<AppResponse<IEnumerable<UserProjectResponseDTO>>> UpdateAccessAsync(User inviterUser, Guid projectId, JsonPatchDocument<IList<UserProjectRequestDTO>> userProjectsDto)
         {
             if (!this.HasAuthorization(inviterUser.Id, projectId, Role.Admin))
-                return AppResponse<IEnumerable<UserProjectResponseDTO>>.Error(code: ValidationMessages.Forbidden, description: ValidationMessages.Forbidden);
+                throw new UnauthorizedAccessException();
 
             var project = unitOfWork.ProjectRepository.Trackable().FirstOrDefault(up => up.Id == projectId);
             var existingUserProject = unitOfWork.UserProjectRepository.Trackable().IgnoreQueryFilters().Include(up => up.User).Where(up => up.Project.Id == projectId && (up.User == null || up.User.Id != inviterUser.Id)).ToList();
@@ -87,7 +79,9 @@ namespace EasyFinance.Application.Features.AccessControlService
             // Get modified users to send them an email
             var affectedUsers = unitOfWork.GetAffectedUsers(EntityState.Modified);
 
-            await InsertOrUpdateUserProjects(entities);
+            var savedUserProjects = await InsertOrUpdateUserProjects(entities);
+            if (savedUserProjects.Failed)
+                return AppResponse<IEnumerable<UserProjectResponseDTO>>.Error(savedUserProjects.Messages);
 
             // Get added users to send them an email
             affectedUsers = [.. affectedUsers, .. unitOfWork.GetAffectedUsers(EntityState.Added)];
@@ -102,8 +96,10 @@ namespace EasyFinance.Application.Features.AccessControlService
             return AppResponse<IEnumerable<UserProjectResponseDTO>>.Success(entities.ToDTO());
         }
 
-        private async Task InsertOrUpdateUserProjects(IEnumerable<UserProject> entities)
+        private async Task<AppResponse> InsertOrUpdateUserProjects(IEnumerable<UserProject> entities)
         {
+            AppResponse appResponse = AppResponse.Success();
+
             foreach (var userProject in entities)
             {
                 if (userProject.User == null || userProject.User.Id == default)
@@ -118,8 +114,13 @@ namespace EasyFinance.Application.Features.AccessControlService
                     if (user != default)
                         userProject.SetUser(user);
                 }
-                unitOfWork.UserProjectRepository.InsertOrUpdate(userProject);
+                var savedUserProject = unitOfWork.UserProjectRepository.InsertOrUpdate(userProject);
+
+                if (savedUserProject.Failed)
+                    appResponse.AddErrorMessage(savedUserProject.Messages);
             }
+
+            return appResponse;
         }
 
         private async Task SendEmailsToAffectedUsersAsync(User inviterUser, IEnumerable<UserProject> userProjects, ICollection<Guid> affectedUsers)
@@ -154,7 +155,7 @@ namespace EasyFinance.Application.Features.AccessControlService
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, ex.Message);
+                logger.LogError(ex, message: ex.Message);
             }
         }
 
@@ -211,7 +212,7 @@ namespace EasyFinance.Application.Features.AccessControlService
                 .FirstOrDefault(e => e.Id == userProjectId);
 
             if (userProject == null)
-                return AppResponse.Error(code: ValidationMessages.NotFound, ValidationMessages.NotFound);
+                return AppResponse.Success();
 
             if (userProject.User.DefaultProjectId == userProject.Project.Id)
             {

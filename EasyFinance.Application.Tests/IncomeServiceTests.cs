@@ -1,37 +1,25 @@
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.Features.IncomeService;
-using EasyFinance.Common.Tests.AccessControl;
-using EasyFinance.Common.Tests.Financial;
-using EasyFinance.Common.Tests.FinancialProject;
+using EasyFinance.Common.Tests;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Financial;
 using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Infrastructure;
-using EasyFinance.Persistence.DatabaseContext;
-using EasyFinance.Persistence.Repositories;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace EasyFinance.Application.Tests
 {
     [Collection("Sequential")]
-    public class IncomeServiceTests
+    public class IncomeServiceTests : BaseTests
     {
-        private ServiceProvider serviceProvider;
-
-        private readonly User user1;
-        private readonly User user2;
-        private readonly User user3;
-        private readonly Project project1;
-        private readonly Project project2;
-        private readonly Project project3;
-
         private readonly IncomeService IncomeService;
         private readonly Mock<IGenericRepository<Project>> ProjectRepository;
-        private Mock<IGenericRepository<Income>> IncomeRepository;
+        private readonly Mock<IGenericRepository<Income>> IncomeRepository;
 
         public IncomeServiceTests()
         {
@@ -41,69 +29,9 @@ namespace EasyFinance.Application.Tests
             this.IncomeRepository = new Mock<IGenericRepository<Income>>();
             unitOfWork.Setup(uw => uw.IncomeRepository).Returns(this.IncomeRepository.Object);
 
-            this.IncomeService = new IncomeService(unitOfWork.Object);
+            this.IncomeService = new IncomeService(unitOfWork.Object, new Mock<ILogger<IncomeService>>().Object);
 
-            var services = new ServiceCollection();
-            services.AddDbContext<EasyFinanceDatabaseContext>(options =>
-                options.UseInMemoryDatabase("TestDb"));
-
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
-            services.AddScoped<IGenericRepository<Project>, GenericRepository<Project>>();
-            services.AddScoped<IIncomeService, IncomeService>();
-            services.AddIdentityCore<User>()
-                    .AddEntityFrameworkStores<EasyFinanceDatabaseContext>();
-
-            serviceProvider = services.BuildServiceProvider();
-
-            using var scope = this.serviceProvider.CreateScope();
-            var scopedServices = scope.ServiceProvider;
-            var unitOfWork2 = scopedServices.GetRequiredService<IUnitOfWork>();
-            var userManager = scopedServices.GetRequiredService<UserManager<User>>();
-            var context = scopedServices.GetRequiredService<EasyFinanceDatabaseContext>();
-
-            context.Database.EnsureDeleted();
-
-            user1 = new UserBuilder().Build();
-            userManager.CreateAsync(user1, "Passw0rd!").GetAwaiter().GetResult();
-            user2 = new UserBuilder().Build();
-            userManager.CreateAsync(user2, "Passw0rd!").GetAwaiter().GetResult();
-            user3 = new UserBuilder().Build();
-            userManager.CreateAsync(user3, "Passw0rd!").GetAwaiter().GetResult();
-
-            var expenseItem1 = new ExpenseItemBuilder().AddName("Expense Item").AddCreatedBy(user3).AddDate(DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1))).Build();
-            var expense1 = new ExpenseBuilder().AddName("Expense").AddCreatedBy(user2).AddDate(DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1))).Build();
-            expense1.SetItems([expenseItem1]);
-            var category1 = new CategoryBuilder().AddName("Category").AddExpenses(new List<Expense>() { expense1 }).Build();
-            var income1 = new IncomeBuilder().AddName("Income").AddCreatedBy(user1).AddDate(DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1))).Build();
-            project1 = unitOfWork2.ProjectRepository.Insert(new ProjectBuilder().AddCategory(category1).AddIncome(income1).Build());
-
-            var expenseItem2 = new ExpenseItemBuilder().AddName("Expense Item").AddCreatedBy(user2).AddDate(DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1))).Build();
-            var expense2 = new ExpenseBuilder().AddName("Expense").AddCreatedBy(user1).AddDate(DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1))).Build();
-            expense2.SetItems([expenseItem2]);
-            var category2 = new CategoryBuilder().AddName("Category").AddExpenses(new List<Expense>() { expense2 }).Build();
-            var income2 = new IncomeBuilder().AddName("Income").AddCreatedBy(user2).AddDate(DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1))).Build();
-            project2 = unitOfWork2.ProjectRepository.Insert(new ProjectBuilder().AddCategory(category2).AddIncome(income2).Build());
-
-            var expenseItem3 = new ExpenseItemBuilder().AddName("Expense Item").AddCreatedBy(user1).AddDate(DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1))).Build();
-            var expense3 = new ExpenseBuilder().AddName("Expense").AddCreatedBy(user3).AddDate(DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1))).Build();
-            expense3.SetItems([expenseItem3]);
-            var category3 = new CategoryBuilder().AddName("Category").AddExpenses(new List<Expense>() { expense3 }).Build();
-            var income3 = new IncomeBuilder().AddName("Income").AddCreatedBy(user3).AddDate(DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1))).Build();
-            project3 = unitOfWork2.ProjectRepository.Insert(new ProjectBuilder().AddCategory(category3).AddIncome(income3).Build());
-
-            unitOfWork2.UserProjectRepository.Insert(new UserProjectBuilder().AddProject(project1).AddUser(user1).AddRole(Role.Admin).Build());
-            unitOfWork2.UserProjectRepository.Insert(new UserProjectBuilder().AddProject(project2).AddUser(user1).AddRole(Role.Admin).Build());
-            unitOfWork2.UserProjectRepository.Insert(new UserProjectBuilder().AddProject(project3).AddUser(user1).AddRole(Role.Admin).Build());
-
-            unitOfWork2.UserProjectRepository.Insert(new UserProjectBuilder().AddProject(project1).AddUser(user2).AddRole(Role.Manager).Build());
-            unitOfWork2.UserProjectRepository.Insert(new UserProjectBuilder().AddProject(project2).AddUser(user2).AddRole(Role.Viewer).Build());
-            unitOfWork2.UserProjectRepository.Insert(new UserProjectBuilder().AddProject(project3).AddUser(user2).AddRole(Role.Admin).Build());
-
-            unitOfWork2.UserProjectRepository.Insert(new UserProjectBuilder().AddProject(project1).AddUser(user3).AddRole(Role.Viewer).Build());
-            unitOfWork2.UserProjectRepository.Insert(new UserProjectBuilder().AddProject(project2).AddUser(user3).AddRole(Role.Viewer).Build());
-            unitOfWork2.UserProjectRepository.Insert(new UserProjectBuilder().AddProject(project3).AddUser(user3).AddRole(Role.Viewer).Build());
-
-            unitOfWork2.CommitAsync();
+            PrepareInMemoryDatabase();
         }
 
         [Fact]

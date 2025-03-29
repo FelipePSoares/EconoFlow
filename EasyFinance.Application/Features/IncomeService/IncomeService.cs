@@ -11,16 +11,19 @@ using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace EasyFinance.Application.Features.IncomeService
 {
     public class IncomeService : IIncomeService
     {
         private readonly IUnitOfWork unitOfWork;
+        private readonly ILogger<IncomeService> logger;
 
-        public IncomeService(IUnitOfWork unitOfWork)
+        public IncomeService(IUnitOfWork unitOfWork, ILogger<IncomeService> logger)
         {
             this.unitOfWork = unitOfWork;
+            this.logger = logger;
         }
 
         public AppResponse<ICollection<IncomeResponseDTO>> GetAll(Guid projectId)
@@ -85,9 +88,15 @@ namespace EasyFinance.Application.Features.IncomeService
 
             var project = unitOfWork.ProjectRepository.Trackable().Include(p => p.Incomes).FirstOrDefault(p => p.Id == projectId);
 
-            this.unitOfWork.IncomeRepository.InsertOrUpdate(income);
+            var savedIncome = this.unitOfWork.IncomeRepository.InsertOrUpdate(income);
+            if (savedIncome.Failed)
+                return AppResponse<IncomeResponseDTO>.Error(savedIncome.Messages);
+
             project.Incomes.Add(income);
-            this.unitOfWork.ProjectRepository.InsertOrUpdate(project);
+
+            var savedProject = this.unitOfWork.ProjectRepository.InsertOrUpdate(project);
+            if (savedProject.Failed)
+                return AppResponse<IncomeResponseDTO>.Error(savedProject.Messages);
 
             await unitOfWork.CommitAsync();
 
@@ -99,7 +108,10 @@ namespace EasyFinance.Application.Features.IncomeService
             if (income == default)
                 return AppResponse<IncomeResponseDTO>.Error(code: nameof(income), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(income)));
 
-            unitOfWork.IncomeRepository.InsertOrUpdate(income);
+            var savedIncome = this.unitOfWork.IncomeRepository.InsertOrUpdate(income);
+            if (savedIncome.Failed)
+                return AppResponse<IncomeResponseDTO>.Error(savedIncome.Messages);
+
             await unitOfWork.CommitAsync();
 
             return AppResponse<IncomeResponseDTO>.Success(income.ToDTO());
@@ -107,10 +119,11 @@ namespace EasyFinance.Application.Features.IncomeService
 
         public async Task<AppResponse<IncomeResponseDTO>> UpdateAsync(Guid incomeId, JsonPatchDocument<IncomeRequestDTO> incomeDto)
         {
-            var existingIncome = unitOfWork.IncomeRepository.Trackable().FirstOrDefault(p => p.Id == incomeId);
-
-            if (existingIncome == null)
-                return AppResponse<IncomeResponseDTO>.Error(code: ValidationMessages.NotFound, description: ValidationMessages.IncomeNotFound);
+            var existingIncome = unitOfWork.IncomeRepository
+                .Trackable()
+                .Include(e => e.Attachments)
+                .Include(e => e.CreatedBy)
+                .FirstOrDefault(p => p.Id == incomeId) ?? throw new KeyNotFoundException(ValidationMessages.IncomeNotFound);
 
             var dto = existingIncome.ToRequestDTO();
 
@@ -129,7 +142,10 @@ namespace EasyFinance.Application.Features.IncomeService
             var income = unitOfWork.IncomeRepository.Trackable().FirstOrDefault(i => i.Id == incomeId);
 
             if (income == null)
-                return AppResponse.Error(code: ValidationMessages.NotFound, description: ValidationMessages.IncomeNotFound);
+            {
+                logger.LogWarning("Expense not found for deletion!");
+                return AppResponse.Success();
+            }
 
             unitOfWork.IncomeRepository.Delete(income);
             await unitOfWork.CommitAsync();
@@ -139,16 +155,23 @@ namespace EasyFinance.Application.Features.IncomeService
 
         public async Task<AppResponse> RemoveLinkAsync(User user)
         {
-            var incomes = unitOfWork.IncomeRepository.Trackable().Where(income => income.CreatedBy.Id == user.Id).ToList();
+            var result = AppResponse.Success();
+
+            var incomes = unitOfWork.IncomeRepository
+                .Trackable()
+                .Include(e => e.CreatedBy)
+                .Where(income => income.CreatedBy.Id == user.Id).ToList();
 
             foreach (var income in incomes)
             {
-                income.RemoveUserLink($"{user.FirstName} {user.LastName}");
-                unitOfWork.IncomeRepository.InsertOrUpdate(income);
+                income.RemoveUserLink();
+                var savedIncome = unitOfWork.IncomeRepository.InsertOrUpdate(income);
+                if (savedIncome.Failed)
+                    result.AddErrorMessage(savedIncome.Messages);
             }
 
             await unitOfWork.CommitAsync();
-            return AppResponse.Success();
+            return result;
         }
     }
 }

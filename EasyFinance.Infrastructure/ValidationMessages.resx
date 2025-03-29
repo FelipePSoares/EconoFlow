@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Forbidden" xml:space="preserve">
-    <value>You don't have access to do this action</value>
-  </data>
   <data name="GoalDefinedCantBeLessThanExpensesGoal" xml:space="preserve">
     <value>Goal defined to category ({0}) can't be less than the sum of the expenses goal ({1})</value>
   </data>
@@ -139,7 +136,7 @@
     <value>{0} can't be null or empty</value>
   </data>
   <data name="CantAddFutureExpenseIncome" xml:space="preserve">
-    <value>You can't add future expense/income</value>
+    <value>A future expense/income can't have a amount</value>
   </data>
   <data name="CantAddExpenseOlderThanYears" xml:space="preserve">
     <value>You can't add expense older than {0} years</value>
@@ -148,7 +145,7 @@
     <value>Can't import budget because already exists</value>
   </data>
   <data name="CantAddExpenseItemWithDifferentYearOrMonthFromExpense" xml:space="preserve">
-    <value>Can't add an expense item with different year o r month from expense</value>
+    <value>Can't add an expense item with different year or month from expense</value>
   </data>
   <data name="InvalidCurrencyCode" xml:space="preserve">
     <value>Invalid currency code</value>
@@ -168,20 +165,11 @@
   <data name="CantAcceptExpiredInvitation" xml:space="preserve">
     <value>Can't accept expired invitation</value>
   </data>
-  <data name="ExpenseNotFound" xml:space="preserve">
-    <value>Expense not found.</value>
-  </data>
   <data name="InvalidDateRange" xml:space="preserve">
     <value>Invalid date range.</value>
   </data>
-  <data name="CategoryNotFound" xml:space="preserve">
-    <value>Category not found.</value>
-  </data>
   <data name="InvalidExpenseId" xml:space="preserve">
     <value>ExpenseId is not valid.</value>
-  </data>
-  <data name="NotFound" xml:space="preserve">
-    <value>Not found.</value>
   </data>
   <data name="InvalidExpenseItemId" xml:space="preserve">
     <value>ExpenseItemId is not valid.</value>
@@ -192,20 +180,8 @@
   <data name="InvalidIncomeId" xml:space="preserve">
     <value>IncomeId is not valid.</value>
   </data>
-  <data name="IncomeNotFound" xml:space="preserve">
-    <value>Income not found.</value>
-  </data>
   <data name="InvalidProjectId" xml:space="preserve">
     <value>ProjectId is not valid.</value>
-  </data>
-  <data name="ProjectNotFound" xml:space="preserve">
-    <value>Project not found.</value>
-  </data>
-  <data name="ExpenseItemNotFound" xml:space="preserve">
-    <value>Expense item not found.</value>
-  </data>
-  <data name="ProjectNotFoundOrInsufficientUserPermissions" xml:space="preserve">
-    <value>Project not found or insufficient user permissions.</value>
   </data>
   <data name="AdminRequired" xml:space="preserve">
     <value>At least one admin is required in the project.</value>
@@ -220,7 +196,7 @@
     <value>Invalid UserProjectId.</value>
   </data>
   <data name="FixedExpenses" xml:space="preserve">
-    <value>FixedExpenses</value>
+    <value>Fixed Expenses</value>
   </data>
   <data name="Comfort" xml:space="preserve">
     <value>Comfort</value>
@@ -233,5 +209,40 @@
   </data>
   <data name="SelfImprovement" xml:space="preserve">
     <value>Self-Improvement</value>
+  </data>
+  <data name="ThankYouConfirmEmailRedirect" xml:space="preserve">
+    <value>Thank you for confirming your email.
+
+You will be redirect in 5 seconds ...</value>
+  </data>
+  <data name="InvalidData" xml:space="preserve">
+    <value>Invalid data provided for this operation.</value>
+  </data>
+  <data name="YouDontHavePermission" xml:space="preserve">
+    <value>You do not have permission to access this resource.</value>
+  </data>
+  <data name="ResourceNotFound" xml:space="preserve">
+    <value>The requested resource was not found.</value>
+  </data>
+  <data name="GenericError" xml:space="preserve">
+    <value>An error occurred while processing your request.</value>
+  </data>
+  <data name="InviteNotFound" xml:space="preserve">
+    <value>Invite not found.</value>
+  </data>
+  <data name="CategoryNotFound" xml:space="preserve">
+    <value>Category not found.</value>
+  </data>
+  <data name="ExpenseNotFound" xml:space="preserve">
+    <value>Expense not found.</value>
+  </data>
+  <data name="IncomeNotFound" xml:space="preserve">
+    <value>Income not found.</value>
+  </data>
+  <data name="ProjectNotFound" xml:space="preserve">
+    <value>Project not found.</value>
+  </data>
+  <data name="ProjectNotFoundOrInsufficientUserPermissions" xml:space="preserve">
+    <value>Project not found or insufficient user permissions.</value>
   </data>
 </root>

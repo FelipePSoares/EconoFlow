@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.Exceptions;
+using EasyFinance.Infrastructure.DTOs;
+using EasyFinance.Infrastructure.Extensions;
 
 namespace EasyFinance.Domain.Financial
 {
@@ -20,34 +21,39 @@ namespace EasyFinance.Domain.Financial
             ICollection<ExpenseItem> items = default)
             : base(name, date, amount, createdBy, attachments)
         {
-            SetItems(items ?? new List<ExpenseItem>());
+            SetItems(items ?? []);
         }
 
-        public ICollection<ExpenseItem> Items { get; private set; } = new List<ExpenseItem>();
+        public override decimal Amount => Items.Count > 0 ? Items.Sum(e => e.Amount) : base.Amount;
+        public ICollection<ExpenseItem> Items { get; private set; } = [];
+
+        public override AppResponse Validate
+        {
+            get
+            {
+                var response = base.Validate;
+
+                var itemsValidation = Items.Select(c => c.Validate).ToList();
+                if (itemsValidation.Any(c => c.Failed))
+                    response.AddErrorMessage(itemsValidation.SelectMany(c => c.Messages.AddPrefix(nameof(this.Items))));
+
+                if (Items.Any(item => Date.Year != item.Date.Year || Date.Month != item.Date.Month))
+                    response.AddErrorMessage(nameof(Date), ValidationMessages.CantAddExpenseItemWithDifferentYearOrMonthFromExpense);
+
+                return response;
+            }
+        }
 
         public void SetItems(ICollection<ExpenseItem> expenseItems)
         {
-            if (expenseItems == default)
-                throw new ValidationException(nameof(Items), string.Format(ValidationMessages.PropertyCantBeNull, nameof(Items)));
-
-            if (expenseItems.Count > 0)
-                SetAmount(expenseItems.Sum(e => e.Amount));
-
-            if (expenseItems.Any(item => Date.Year != item.Date.Year || Date.Month != item.Date.Month))
-                throw new ValidationException(nameof(Date), ValidationMessages.CantAddExpenseItemWithDifferentYearOrMonthFromExpense);
+            ArgumentNullException.ThrowIfNull(expenseItems);
 
             Items = expenseItems;
         }
 
         public void AddItem(ExpenseItem item)
         {
-            if (item == default)
-                throw new ValidationException(nameof(item), string.Format(ValidationMessages.PropertyCantBeNull, nameof(item)));
-
-            if (Date.Year != item.Date.Year || Date.Month != item.Date.Month)
-                throw new ValidationException(nameof(item.Date), ValidationMessages.CantAddExpenseItemWithDifferentYearOrMonthFromExpense);
-
-            SetAmount(Amount + item.Amount);
+            ArgumentNullException.ThrowIfNull(item);
 
             Items.Add(item);
         }

@@ -20,30 +20,21 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace EasyFinance.Application.Features.UserService
 {
-    public class UserService : IUserService
+    public class UserService(
+        UserManager<User> userManager,
+        IExpenseService expenseService,
+        IExpenseItemService expenseItemService,
+        IIncomeService incomeService,
+        IProjectService projectService,
+        IUnitOfWork unitOfWork
+        ) : IUserService
     {
-        private readonly UserManager<User> userManager;
-        private readonly IExpenseService expenseService;
-        private readonly IExpenseItemService expenseItemService;
-        private readonly IIncomeService incomeService;
-        private readonly IProjectService projectService;
-        private readonly IUnitOfWork unitOfWork;
-
-        public UserService(
-            UserManager<User> userManager,
-            IExpenseService expenseService,
-            IExpenseItemService expenseItemService,
-            IIncomeService incomeService,
-            IProjectService projectService,
-            IUnitOfWork unitOfWork
-        ){
-            this.userManager = userManager;
-            this.expenseService = expenseService;
-            this.expenseItemService = expenseItemService;
-            this.incomeService = incomeService;
-            this.projectService = projectService;
-            this.unitOfWork = unitOfWork;
-        }
+        private readonly UserManager<User> userManager = userManager;
+        private readonly IExpenseService expenseService = expenseService;
+        private readonly IExpenseItemService expenseItemService = expenseItemService;
+        private readonly IIncomeService incomeService = incomeService;
+        private readonly IProjectService projectService = projectService;
+        private readonly IUnitOfWork unitOfWork = unitOfWork;
 
         public async Task<string> GenerateConfirmationMessageAsync(User user)
         {
@@ -131,19 +122,12 @@ namespace EasyFinance.Application.Features.UserService
                     .Include(up => up.Project)
                     .Where(up => up.User.Id == user.Id)
                     .Select(up => up.Project)
-                    .FirstOrDefaultAsync(up => up.Id == defaultProjectId);
-
-                if (project == null)
-                    return AppResponse.Error(nameof(defaultProjectId), ValidationMessages.ProjectNotFoundOrInsufficientUserPermissions);
+                    .FirstOrDefaultAsync(up => up.Id == defaultProjectId) ?? throw new KeyNotFoundException(ValidationMessages.ProjectNotFoundOrInsufficientUserPermissions);
             }
 
-            var result = user.SetDefaultProject(project?.Id);
-
-            if (!result.Succeeded)
-                return AppResponse.Error(nameof(defaultProjectId), ValidationMessages.ProjectNotFoundOrInsufficientUserPermissions);
+            user.SetDefaultProject(project?.Id);
 
             await this.userManager.UpdateAsync(user);
-
             return AppResponse.Success();
         }
     }

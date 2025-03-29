@@ -59,7 +59,7 @@ export class CategoryService {
   }
 
   remove(projectId: string, id: string): Observable<boolean> {
-    return this.http.delete('/api/projects/' + projectId + '/categories/' + id, {
+    return this.http.put('/api/projects/' + projectId + '/categories/' + id + '/archive', {}, {
       observe: 'response'
     }).pipe(map(res => res.ok));
   }

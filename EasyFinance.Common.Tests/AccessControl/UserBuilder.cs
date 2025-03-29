@@ -5,18 +5,17 @@ using System.Net.Mail;
 
 namespace EasyFinance.Common.Tests.AccessControl
 {
-    public class UserBuilder : IBuilder<User>
+    public class UserBuilder : BaseTests, IBuilder<User>
     {
         private User user;
 
         public UserBuilder()
         {
-            var fixture = new Fixture();
-
             this.user = new User();
-            this.AddFirstName(fixture.Create<string>());
-            this.AddLastName(fixture.Create<string>());
-            this.AddEmail(fixture.Create<MailAddress>().Address);
+            this.user.UserName = Fixture.Create<string>();
+            this.AddFirstName(Fixture.Create<string>());
+            this.AddLastName(Fixture.Create<string>());
+            this.AddEmail(Fixture.Create<MailAddress>().Address);
             this.AddEnabled(true);
         }
 

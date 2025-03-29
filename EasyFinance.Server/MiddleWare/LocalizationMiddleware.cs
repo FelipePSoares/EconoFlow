@@ -19,21 +19,27 @@ namespace EasyFinance.Server.Middleware
 
             if (!string.IsNullOrWhiteSpace(userLanguage))
             {
-                try
-                {
-                    var culture = new CultureInfo(userLanguage);
-                    CultureInfo.CurrentCulture = culture;
-                    CultureInfo.CurrentUICulture = culture;
+                var languages = userLanguage.Split(',');
 
-                    _logger.LogInformation($"Language set to: {culture.Name}");
-                }
-                catch (CultureNotFoundException)
+                foreach (var lang in languages)
                 {
-                    _logger.LogWarning($"Language not found: {userLanguage}");
+                    var cultureCode = lang.Split(';')[0].Trim();
+
+                    try
+                    {
+                        var culture = new CultureInfo(cultureCode);
+                        CultureInfo.CurrentCulture = culture;
+                        CultureInfo.CurrentUICulture = culture;
+
+                        _logger.LogInformation($"Language set to: {culture.Name}");
+                    }
+                    catch (CultureNotFoundException)
+                    {
+                        _logger.LogWarning($"Language not found: {cultureCode}");
+                        continue;
+                    }
                 }
-            }
-            else
-            {
+            } else {
                 _logger.LogInformation("No language identified, using default en-US.");
                 CultureInfo.CurrentCulture = new CultureInfo("en-US");
                 CultureInfo.CurrentUICulture = new CultureInfo("en-US");

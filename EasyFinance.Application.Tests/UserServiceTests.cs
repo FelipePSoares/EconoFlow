@@ -86,12 +86,11 @@ namespace EasyFinance.Application.Tests
                 .Returns(userProjectRepository.Object);
 
             // Act
-            var result = await this.userService.SetDefaultProjectAsync(user, projectId);
+            var action = async () => await this.userService.SetDefaultProjectAsync(user, projectId);
 
             // Assert
-            result.Succeeded.Should().BeFalse();
-            result.Messages.Should().HaveCount(1);
-            result.Messages.Should().ContainEquivalentOf(new AppMessage("defaultProjectId", ValidationMessages.ProjectNotFoundOrInsufficientUserPermissions));
+            await action.Should().ThrowAsync<KeyNotFoundException>()
+                .WithMessage(ValidationMessages.ProjectNotFoundOrInsufficientUserPermissions);
         }
         
         [Fact]
@@ -119,12 +118,11 @@ namespace EasyFinance.Application.Tests
                 .Returns(userProjectRepository.Object);
 
             // Act
-            var result = await this.userService.SetDefaultProjectAsync(user, projectId);
+            var action = async () => await this.userService.SetDefaultProjectAsync(user, projectId);
 
             // Assert
-            result.Succeeded.Should().BeFalse();
-            result.Messages.Should().HaveCount(1);
-            result.Messages.Should().ContainEquivalentOf(new AppMessage("defaultProjectId", ValidationMessages.ProjectNotFoundOrInsufficientUserPermissions));
+            await action.Should().ThrowAsync<KeyNotFoundException>()
+                .WithMessage(ValidationMessages.ProjectNotFoundOrInsufficientUserPermissions);
         }
         
         [Fact]

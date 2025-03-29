@@ -1,44 +1,65 @@
-﻿using EasyFinance.Common.Tests.Financial;
+﻿using EasyFinance.Common.Tests;
+using EasyFinance.Common.Tests.Financial;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.Exceptions;
 using FluentAssertions;
 
 namespace EasyFinance.Domain.Tests.Financial
 {
-    public class IncomeTests
+    public class IncomeTests : BaseTests
     {
         [Theory]
         [InlineData(null)]
         [InlineData("")]
         public void AddName_SendNullAndEmpty_ShouldThrowException(string name)
         {
-            var action = () => new IncomeBuilder().AddName(name).Build();
+            // Arrange
+            var expense = new IncomeBuilder().AddName(name).Build();
 
-            action.Should().Throw<ValidationException>()
-                .WithMessage(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, "Name"))
-                .And.Property.Should().Be("Name");
+            // Act
+            var result = expense.Validate;
+
+            // Assert
+            result.Failed.Should().BeTrue();
+
+            var message = result.Messages.Should().ContainSingle().Subject;
+            message.Code.Should().Be("Name");
+            message.Description.Should().Be(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, "Name"));
         }
 
         [Theory]
         [MemberData(nameof(OlderDates))]
         public void AddDate_SendTooOldDate_ShouldThrowException(DateOnly date)
         {
-            var action = () => new IncomeBuilder().AddDate(date).Build();
+            // Arrange
+            var expense = new IncomeBuilder().AddDate(date).Build();
 
-            action.Should().Throw<ValidationException>()
-                .WithMessage(string.Format(ValidationMessages.CantAddExpenseOlderThanYears, 5))
-                .And.Property.Should().Be("Date");
+            // Act
+            var result = expense.Validate;
+
+            // Assert
+            result.Failed.Should().BeTrue();
+
+            var message = result.Messages.Should().ContainSingle().Subject;
+            message.Code.Should().Be("Date");
+            message.Description.Should().Be(string.Format(ValidationMessages.CantAddExpenseOlderThanYears, 5));
         }
 
         [Theory]
         [MemberData(nameof(FutureDates))]
         public void AddDate_SendFutureDate_ShouldThrowException(DateOnly date)
         {
-            var action = () => new IncomeBuilder().AddAmount(1).AddDate(date).Build();
+            // Arrange
+            var expense = new IncomeBuilder().AddDate(date).Build();
 
-            action.Should().Throw<ValidationException>()
-                .WithMessage(ValidationMessages.CantAddFutureExpenseIncome)
-                .And.Property.Should().Be("Date");
+            // Act
+            var result = expense.Validate;
+
+            // Assert
+            result.Failed.Should().BeTrue();
+
+            var message = result.Messages.Should().ContainSingle().Subject;
+            message.Code.Should().Be("Date");
+            message.Description.Should().Be(ValidationMessages.CantAddFutureExpenseIncome);
         }
 
         [Theory]
@@ -46,11 +67,18 @@ namespace EasyFinance.Domain.Tests.Financial
         [InlineData(-250)]
         public void AddAmount_SendNegative_ShouldThrowException(decimal amount)
         {
-            var action = () => new IncomeBuilder().AddAmount(amount).Build();
+            // Arrange
+            var expense = new IncomeBuilder().AddAmount(amount).Build();
 
-            action.Should().Throw<ValidationException>()
-                .WithMessage(string.Format(ValidationMessages.PropertyCantBeLessThanZero, "Amount"))
-                .And.Property.Should().Be("Amount");
+            // Act
+            var result = expense.Validate;
+
+            // Assert
+            result.Failed.Should().BeTrue();
+
+            var message = result.Messages.Should().ContainSingle().Subject;
+            message.Code.Should().Be("Amount");
+            message.Description.Should().Be(string.Format(ValidationMessages.PropertyCantBeLessThanZero, "Amount"));
         }
 
         [Fact]
@@ -58,33 +86,17 @@ namespace EasyFinance.Domain.Tests.Financial
         {
             var action = () => new IncomeBuilder().AddCreatedBy(null).Build();
 
-            action.Should().Throw<ValidationException>()
-                .WithMessage(string.Format(ValidationMessages.PropertyCantBeNull, "CreatedBy"))
-                .And.Property.Should().Be("CreatedBy");
+            action.Should().Throw<ArgumentNullException>()
+                .WithMessage(string.Format(ValidationMessages.PropertyCantBeNull, "CreatedBy"));
         }
 
         [Fact]
         public void AddAttachments_SendNull_ShouldThrowException()
         {
-            var action = () => new ExpenseItemBuilder().AddAttachments(null).Build();
+            var action = () => new IncomeBuilder().AddAttachments(null).Build();
 
-            action.Should().Throw<ValidationException>()
-                .WithMessage(string.Format(ValidationMessages.PropertyCantBeNull, "Attachments"))
-                .And.Property.Should().Be("Attachments");
+            action.Should().Throw<ArgumentNullException>()
+                .WithMessage(string.Format(ValidationMessages.PropertyCantBeNull, "Attachments"));
         }
-
-        public static IEnumerable<object[]> OlderDates =>
-            new List<object[]>
-            {
-                new object[] { DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-5).AddDays(-2)) },
-                new object[] { DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-15)) },
-                new object[] { DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-200)) }
-            };
-        public static IEnumerable<object[]> FutureDates =>
-            new List<object[]>
-            {
-                new object[] { DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddDays(2)) },
-                new object[] { DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddDays(5)) },
-            };
     }
 }

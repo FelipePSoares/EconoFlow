@@ -5,103 +5,74 @@ namespace EasyFinance.Infrastructure.DTOs
 {
     public class AppResponse
     {
-        private static readonly AppResponse success = new AppResponse { Succeeded = true };
         private readonly List<AppMessage> messages = new List<AppMessage>();
 
-        public bool Succeeded { get; protected set; }
+        public bool Succeeded => messages.Count == 0;
+        public bool Failed => !Succeeded;
 
         public IEnumerable<AppMessage> Messages => messages;
 
-        public static AppResponse Success() => success;
-        public static AppResponse Success(string code, string description)
-        {
-            var result = success;
-            return AddMessage(result, new AppMessage(code, description));
-        }
-        public static AppResponse Success(params AppMessage[] messages)
-        {
-            var result = success;
-            return AddMessage(result, messages);
-        }
+        protected AppResponse() { }
 
-        public static AppResponse Error(string description)
-        {
-            var result = new AppResponse() { Succeeded = false };
-            return AddMessage(result, new AppMessage("General", description));
-        }
-        public static AppResponse Error(string code, string description)
-        {
-            var result = new AppResponse() { Succeeded = false };
-            return AddMessage(result, new AppMessage(code, description));
-        }
-        public static AppResponse Error(params AppMessage[] messages)
-        {
-            var result = new AppResponse() { Succeeded = false };
-            return AddMessage(result, messages);
-        }
-        public static AppResponse Error(IEnumerable<AppMessage> messages)
-        {
-            var result = new AppResponse() { Succeeded = false };
-            return AddMessage(result, messages);
-        }
+        public static AppResponse Success() => new AppResponse();
 
-        protected static T AddMessage<T>(T appResponse, params AppMessage[] messages) where T : AppResponse
-            => AddMessage(appResponse, messages.ToList());
+        public static AppResponse Error(string description) 
+            => new AppResponse().AddErrorMessage(description);
+        public static AppResponse Error(string code, string description) 
+            => new AppResponse().AddErrorMessage(code, description);
+        public static AppResponse Error(params AppMessage[] messages) 
+            => new AppResponse().AddErrorMessage(messages);
+        public static AppResponse Error(IEnumerable<AppMessage> messages) 
+            => new AppResponse().AddErrorMessage(messages);
 
-        protected static T AddMessage<T>(T appResponse, IEnumerable<AppMessage> messages)
-            where T : AppResponse
+        public AppResponse AddErrorMessage(string description)
+            => AddErrorMessage(new AppMessage("General", description));
+        public AppResponse AddErrorMessage(string code, string description)
+            => AddErrorMessage(new AppMessage(code, description));
+        public AppResponse AddErrorMessage(params AppMessage[] messages)
+            => AddErrorMessage(messages.ToList());
+        public AppResponse AddErrorMessage(IEnumerable<AppMessage> messages)
         {
             if (messages != null)
-                appResponse.messages.AddRange(messages);
+                this.messages.AddRange(messages);
 
-            return appResponse;
+            return this;
         }
     }
 
     public class AppResponse<T> : AppResponse
     {
-        private static readonly AppResponse<T> success = new AppResponse<T> { Succeeded = true };
-
         public T Data { get; private set; } = default!;
 
-        public static AppResponse<T> Success(T data)
-        {
-            var result = success;
-            result.Data = data;
-            return result;
-        }
-        public static AppResponse<T> Success(T data, string code, string description)
-        {
-            var result = success;
-            result.Data = data;
-            return AddMessage(result, new AppMessage(code, description));
-        }
-        public static AppResponse<T> Success(T data, params AppMessage[] messages)
-        {
-            var result = success;
-            result.Data = data;
-            return AddMessage(result, messages);
-        }
+        private AppResponse() { }
+        private AppResponse(T data) => Data = data;
+
+        public static AppResponse<T> Success(T data) => new AppResponse<T>(data);
 
         public new static AppResponse<T> Error(string description)
-        {
-            var result = new AppResponse<T>() { Succeeded = false };
-            return AddMessage(result, new AppMessage("General", description));
-        }
+            => new AppResponse<T>().AddErrorMessage(description);
         public new static AppResponse<T> Error(string code, string description)
-        {
-            var result = new AppResponse<T>() { Succeeded = false };
-            return AddMessage(result, new AppMessage(code, description));
-        }
+            => new AppResponse<T>().AddErrorMessage(code, description);
         public new static AppResponse<T> Error(params AppMessage[] messages)
-        {
-            var result = new AppResponse<T>() { Succeeded = false };
-            return AddMessage(result, messages);
-        }
+            => new AppResponse<T>().AddErrorMessage(messages);
         public new static AppResponse<T> Error(IEnumerable<AppMessage> messages)
+            => new AppResponse<T>().AddErrorMessage(messages);
+
+        public new AppResponse<T> AddErrorMessage(string description)
         {
-            var result = new AppResponse<T>() { Succeeded = false };
-            return AddMessage(result, messages);
+            base.AddErrorMessage(description);
+
+            return this;
+        }
+        public new AppResponse<T> AddErrorMessage(string code, string description)
+            => AddErrorMessage(new AppMessage(code, description));
+        public new AppResponse<T> AddErrorMessage(params AppMessage[] messages)
+            => AddErrorMessage(messages.ToList());
+        public new AppResponse<T> AddErrorMessage(IEnumerable<AppMessage> messages)
+        {
+            base.AddErrorMessage(messages);
+
+            return this;
         }
     }
 }

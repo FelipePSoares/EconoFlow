@@ -1,15 +1,19 @@
-﻿using EasyFinance.Domain.AccessControl;
+﻿using AutoFixture;
+using EasyFinance.Common.Tests.AccessControl;
+using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Financial;
 
 namespace EasyFinance.Common.Tests.Financial
 {
-    public class AttachmentBuilder : IBuilder<Attachment>
+    public class AttachmentBuilder : BaseTests, IBuilder<Attachment>
     {
         private Attachment attachment;
 
         public AttachmentBuilder()
         { 
             this.attachment = new Attachment();
+            this.attachment.SetName(Fixture.Create<string>());
+            this.attachment.SetCreatedBy(new UserBuilder().Build());
         }
 
         public AttachmentBuilder AddName(string name)
