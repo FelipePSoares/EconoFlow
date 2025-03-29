@@ -35,7 +35,8 @@ namespace EasyFinance.Server.Middleware
                     }
                     catch (CultureNotFoundException)
                     {
-                        _logger.LogWarning($"Language not found: {cultureCode}");
+                        var sanitizedCultureCode = cultureCode.Replace(Environment.NewLine, "").Replace("\n", "").Replace("\r", "");
+                        _logger.LogWarning($"Language not found: {sanitizedCultureCode}");
                         continue;
                     }
                 }
