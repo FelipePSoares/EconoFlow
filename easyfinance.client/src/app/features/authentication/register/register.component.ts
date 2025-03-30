@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { take } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -31,7 +31,7 @@ import { ErrorMessageService } from '../../../core/services/error-message.servic
 export class RegisterComponent implements OnInit {
   registerForm!: FormGroup;
   httpErrors = false;
-  errors!: { [key: string]: string };
+  errors!: Record<string, string[]>;
   hidePassword = true;
   hideConfirmPassword = true;
 
@@ -104,7 +104,6 @@ export class RegisterComponent implements OnInit {
   getFormFieldErrors(fieldName: string): string[] {
     return this.errorMessageService.getFormFieldErrors(this.registerForm, fieldName);
   }
-
 
   celebrate() {
     confetti({

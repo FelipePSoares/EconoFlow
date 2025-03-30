@@ -41,8 +41,8 @@ export class ErrorMessageService {
     return errors;
   }
 
-  setFormErrors(form: FormGroup<any>, errors: { [key: string]: string }) {
-    for (let key in errors) {
+  setFormErrors(form: FormGroup<any>, errors: Record<string, string[]>) {
+    for (const key in errors) {
       const formControl = form.get(key.toLowerCase());
       this.setErrorFormControl(formControl, { [key]: errors[key] });
     }

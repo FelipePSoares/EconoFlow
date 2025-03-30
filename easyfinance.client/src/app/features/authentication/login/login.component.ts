@@ -29,7 +29,7 @@ import { ErrorMessageService } from '../../../core/services/error-message.servic
 export class LoginComponent implements OnInit {
   loginForm!: FormGroup;
   httpErrors = false;
-  errors!: { [key: string]: string };
+  errors!: Record<string, string[]>;
   hide = true;
 
   constructor(private authService: AuthService, private router: Router, private route: ActivatedRoute, private errorMessageService: ErrorMessageService) {

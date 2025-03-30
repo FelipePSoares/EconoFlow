@@ -86,7 +86,7 @@ export class ListExpensesComponent implements OnInit {
   expenseForm!: FormGroup;
   editingExpense: ExpenseDto = new ExpenseDto();
   httpErrors = false;
-  errors!: { [key: string]: string };
+  errors!: Record<string, string[]>;
   thousandSeparator!: string; 
   decimalSeparator!: string;
   currencySymbol!: string;

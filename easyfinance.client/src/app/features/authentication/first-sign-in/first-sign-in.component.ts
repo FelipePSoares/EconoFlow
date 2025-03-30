@@ -33,7 +33,7 @@ export class FirstSignInComponent implements OnInit {
 
   userForm!: FormGroup;
   httpErrors = false;
-  errors!: { [key: string]: string };
+  errors!: Record<string, string[]>;
 
   constructor(private userService: UserService, private router: Router, private errorMessageService: ErrorMessageService) { }
 

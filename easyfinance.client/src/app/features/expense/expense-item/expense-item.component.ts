@@ -72,7 +72,7 @@ export class ExpenseItemComponent {
   decimalSeparator!: string;
   currencySymbol!: string;
   httpErrors = false;
-  errors!: { [key: string]: string };
+  errors!: Record<string, string[]>;
 
   constructor(
     private expenseService: ExpenseService,

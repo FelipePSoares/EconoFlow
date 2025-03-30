@@ -43,7 +43,7 @@ export class AccessControlProjectComponent implements OnInit {
   public roles = Object.values(Role) as Role[];
   accessForm!: FormGroup;
   httpErrors = false;
-  errors!: { [key: string]: string };
+  errors!: Record<string, string[]>;
   private listCurrentUsersToCompare!: UserProjectDto[];
 
   @Input({ required: true }) projectId!: string;

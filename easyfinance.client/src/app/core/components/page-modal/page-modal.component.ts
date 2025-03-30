@@ -28,6 +28,7 @@ export class PageModalComponent implements OnDestroy {
   private routeSub2: Subscription;
 
   title = '';
+  hasClose = true;
 
   constructor(
     private dialogRef: MatDialogRef<PageModalComponent>,
@@ -37,6 +38,8 @@ export class PageModalComponent implements OnDestroy {
     this.routeSub2 = this.router.events.subscribe(() => {
       const outletRoute = this.router.routerState.root.children.find(route => route.outlet === 'modal');
       this.title = outletRoute?.snapshot?.data['title'] || '';
+      this.hasClose = outletRoute?.snapshot?.data['hasCloseButton'] ?? true;
+      this.dialogRef.disableClose = !this.hasClose;
     });
 
     this.routeSub = this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(() => {

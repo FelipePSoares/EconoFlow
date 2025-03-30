@@ -32,7 +32,7 @@ import { ApiErrorResponse } from '../../../core/models/error';
 export class AddCategoryComponent implements OnInit {
   categoryForm!: FormGroup;
   httpErrors = false;
-  errors!: { [key: string]: string };
+  errors!: Record<string, string[]>;
 
   @Input({ required: true }) projectId!: string;
 

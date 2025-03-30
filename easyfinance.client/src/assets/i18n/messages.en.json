@@ -171,5 +171,6 @@
   "OpenSource": "Open Source",
   "LoadingData": "Loading financial data...",
   "HomePage": "Home Page",
-  "RegisterAdvice": "By creating an account, you agree to the <a href='{{termslink}}' target='_blank'>Terms of Service</a>. For more information about EconoFlow's privacy practices, see the <a href='{{privacylink}}' target='_blank'>EconoFlow Privacy Statement</a>. We'll occasionally send you account-related emails."
+  "RegisterAdvice": "By creating an account, you agree to the <a href='{{termslink}}' target='_blank'>Terms of Service</a>. For more information about EconoFlow's privacy practices, see the <a href='{{privacylink}}' target='_blank'>EconoFlow Privacy Statement</a>. We'll occasionally send you account-related emails.",
+  "SmartSetup": "Smart Setup"
 }

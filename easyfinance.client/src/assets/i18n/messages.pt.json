@@ -61,7 +61,7 @@
   "ValueShouldBeGreaterThan": "O valor deve ser maior que {{value}}",
   "PasswordMustMatch": "As senhas devem ser iguais.",
   "NetworkError": "Sem internet. Por favor, verifique a sua conexão.",
-  "LoginError": "Informações inválidas!",
+  "LoginError": "Login ou senha inválidos!",
   "UserBlocked": "Usuário Bloqueado!",
   "FailToDeleteAccount": "Falha ao deletar a conta! Por favor, tente novamente mais tarde.",
 
@@ -171,5 +171,6 @@
   "OpenSource": "Código Aberto",
   "LoadingData": "Carregando dados financeiros...",
   "HomePage": "Página Principal",
-  "RegisterAdvice": "Ao criar uma conta, você concorda com os <a href='{{termslink}}' target='_blank'>Termos de Serviço</a>. Para obter mais informações sobre as práticas de privacidade da EconoFlow, consulte a <a href='{{privacylink}}' target='_blank'>Declaração de Privacidade da EconoFlow</a>. Ocasionalmente, enviaremos e-mails relacionados à conta."
+  "RegisterAdvice": "Ao criar uma conta, você concorda com os <a href='{{termslink}}' target='_blank'>Termos de Serviço</a>. Para obter mais informações sobre as práticas de privacidade da EconoFlow, consulte a <a href='{{privacylink}}' target='_blank'>Declaração de Privacidade da EconoFlow</a>. Ocasionalmente, enviaremos e-mails relacionados à conta.",
+  "SmartSetup": "Configuração inteligente"
 }

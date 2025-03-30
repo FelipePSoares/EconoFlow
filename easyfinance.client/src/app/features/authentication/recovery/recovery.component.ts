@@ -38,7 +38,7 @@ export class RecoveryComponent implements OnInit {
   token!: string;
   serverEmail!: string;
   httpErrors = false;
-  errors!: { [key: string]: string };
+  errors!: Record<string, string[]>;
   hidePassword = true;
   hideConfirmPassword = true;
 

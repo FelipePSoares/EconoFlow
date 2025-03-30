@@ -68,9 +68,6 @@ export class ListProjectsComponent implements OnInit {
     this.dialog.open(PageModalComponent, {
       autoFocus: 'input'
     }).afterClosed().subscribe((result) => {
-      if (result) {
-        this.loadProjects();
-      }
       this.router.navigate([{ outlets: { modal: null } }]);
     });
   }

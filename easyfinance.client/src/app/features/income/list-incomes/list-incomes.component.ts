@@ -72,7 +72,7 @@ export class ListIncomesComponent implements OnInit {
   httpErrors = false;
   thousandSeparator!: string; 
   decimalSeparator !: string; 
-  errors!: { [key: string]: string };
+  errors!: Record<string, string[]>;
   currencySymbol!: string;
   userProject!: UserProjectDto;
 

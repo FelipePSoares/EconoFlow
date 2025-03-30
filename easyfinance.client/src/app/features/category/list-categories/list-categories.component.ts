@@ -71,7 +71,7 @@ export class ListCategoriesComponent implements OnInit {
   editingCategory: CategoryDto = new CategoryDto();
   itemToDelete!: string;
   httpErrors = false;
-  errors!: { [key: string]: string };
+  errors!: Record<string, string[]>;
   userProject!: UserProjectDto;
 
   @Input({ required: true })

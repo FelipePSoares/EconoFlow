@@ -34,7 +34,7 @@
 
       <!-- General Error Display -->
       <div *ngIf="httpErrors && errors['general']">
-        <p class="mb-3 text-danger text-center">{{ errors['general'] | translate }}</p>
+        <p *ngFor="let error of errors['general']" class="mb-3 text-danger text-center">{{ error | translate }}</p>
       </div>
 
       <!-- Submit Button -->

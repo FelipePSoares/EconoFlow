@@ -1,5 +1,5 @@
 import { ApplicationConfig, PLATFORM_ID } from '@angular/core';
-import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
 import { MatNativeDateModule } from '@angular/material/core';
 import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
@@ -23,7 +23,11 @@ export const appConfig: ApplicationConfig = {
     DecimalPipe,
     GlobalService,
     provideAnimations(),
-    provideRouter(routes, withComponentInputBinding()),
+    provideRouter(
+      routes,
+      withComponentInputBinding(),
+      withInMemoryScrolling({ scrollPositionRestoration: 'top' })
+    ),
     importProvidersFrom(
       MatNativeDateModule,
       TranslateModule.forRoot({

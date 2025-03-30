@@ -49,7 +49,7 @@ export class AddExpenseItemComponent implements OnInit {
   thousandSeparator!: string; 
   decimalSeparator!: string; 
   httpErrors = false;
-  errors!: { [key: string]: string };
+  errors!: Record<string, string[]>;
   currencySymbol!: string;
 
   @Input({ required: true })

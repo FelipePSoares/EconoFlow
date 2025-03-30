@@ -16,6 +16,7 @@ import { AddEditProjectComponent } from './project/add-edit-project/add-edit-pro
 import { DetailProjectComponent } from './project/detail-project/detail-project.component';
 import { AcceptInviteComponent } from '../core/components/accept-invite/accept-invite.component';
 import { AccessControlProjectComponent } from './project/access-control-project/access-control-project.component';
+import { SmartSetupComponent } from './project/smart-setup/smart-setup.component';
 
 import { ListIncomesComponent } from './income/list-incomes/list-incomes.component';
 import { AddIncomeComponent } from './income/add-income/add-income.component';
@@ -42,6 +43,7 @@ export const routes: Routes = [
   { path: 'add-edit-project', component: AddEditProjectComponent, canActivate: mapToCanActivate([AuthGuard]), outlet: 'modal', data: { title: 'CreateEditProject' } },
   { path: 'projects', component: ListProjectsComponent, canActivate: mapToCanActivate([AuthGuard]) },
   { path: 'projects/:projectId', component: DetailProjectComponent, canActivate: mapToCanActivate([AuthGuard]) },
+  { path: 'projects/:projectId/smart-setup', component: SmartSetupComponent, canActivate: mapToCanActivate([AuthGuard]), outlet: 'modal', data: { title: 'SmartSetup', hasCloseButton: false } },
   { path: 'projects/:projectId/users', component: AccessControlProjectComponent, canActivate: mapToCanActivate([AuthGuard]), outlet: 'modal', data: { title: 'ManageAccess' } },
   { path: 'projects/:token/accept', component: AcceptInviteComponent, canActivate: mapToCanActivate([AuthGuard]) },
   { path: 'projects/:projectId/incomes', component: ListIncomesComponent, canActivate: mapToCanActivate([AuthGuard]) },

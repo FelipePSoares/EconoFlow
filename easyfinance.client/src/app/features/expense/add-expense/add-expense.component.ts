@@ -42,7 +42,7 @@ export class AddExpenseComponent implements OnInit {
   private currentDate!: Date;
   expenseForm!: FormGroup;
   httpErrors = false;
-  errors!: { [key: string]: string };
+  errors!: Record<string, string[]>;
   currencySymbol!: string;
   thousandSeparator!: string; 
   decimalSeparator!: string; 

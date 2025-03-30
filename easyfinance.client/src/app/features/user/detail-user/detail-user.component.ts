@@ -69,7 +69,7 @@ export class DetailUserComponent implements OnInit {
 
   // Error Handling
   httpErrors = false;
-  errors!: { [key: string]: string };
+  errors!: Record<string, string[]>;
 
   // Icons
   faCheck = faCheck;

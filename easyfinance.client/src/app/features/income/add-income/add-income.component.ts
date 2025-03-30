@@ -40,7 +40,7 @@ export class AddIncomeComponent implements OnInit {
   private currentDate!: Date;
   incomeForm!: FormGroup;
   httpErrors = false;
-  errors!: { [key: string]: string };
+  errors!: Record<string, string[]>;
   currencySymbol!: string;
   thousandSeparator!: string; 
   decimalSeparator !: string; 
@@ -76,13 +76,13 @@ export class AddIncomeComponent implements OnInit {
     if (this.incomeForm.valid) {
       const name = this.name?.value;
       const date = this.date?.value.toISOString().split("T")[0];
-      let amount = this.amount?.value;
+      const amount = this.amount?.value;
 
-      var newIncome = <IncomeDto>({
+      const newIncome = ({
         name: name,
         date: date,
         amount: amount === "" || amount === null ? 0 : amount,
-      });
+      }) as IncomeDto;
 
       this.incomeService.add(this.projectId, newIncome).subscribe({
         next: response => {

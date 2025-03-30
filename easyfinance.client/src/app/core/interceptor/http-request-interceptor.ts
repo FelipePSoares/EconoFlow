@@ -69,17 +69,17 @@ export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
 
         return of(err.message);
       }
-      let apiErrorResponse: ApiErrorResponse = <ApiErrorResponse>{ errors: {} };
+      let apiErrorResponse: ApiErrorResponse = { errors: {} } as ApiErrorResponse;
 
       if (err.error?.errors) {
         apiErrorResponse = err.error as ApiErrorResponse;
       } else if (err.status === 401 && err.url?.includes('login') && err.error === 'LockedOut') {
-        apiErrorResponse.errors['general'] = 'UserBlocked';
+        apiErrorResponse.errors['general'] = ['UserBlocked'];
       } else if (err.status === 401 && err.url?.includes('login')) {
-        apiErrorResponse.errors['general'] = 'LoginError';
+        apiErrorResponse.errors['general'] = ['LoginError'];
       } else {
         console.error(`GenericError: ${JSON.stringify(err?.error)}`);
-        apiErrorResponse.errors['general'] = 'GenericError';
+        apiErrorResponse.errors['general'] = ['GenericError']; 
       }
 
       return throwError(() => apiErrorResponse);
