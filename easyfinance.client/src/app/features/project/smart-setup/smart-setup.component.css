@@ -1,0 +1,4 @@
+.categories {
+  overflow: hidden;
+  transition: max-height 2s ease-in-out;
+}
