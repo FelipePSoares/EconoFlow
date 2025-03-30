@@ -36,8 +36,8 @@ export class ProjectService {
     });
   }
 
-  addProject(project: Project): Observable<Project> {
-    return this.http.post<Project>('/api/projects/', project, {
+  addProject(project: Project): Observable<UserProject> {
+    return this.http.post<UserProject>('/api/projects/', project, {
       observe: 'body',
       responseType: 'json'
     }).pipe(map(project => {

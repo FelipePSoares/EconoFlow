@@ -42,7 +42,16 @@ namespace EasyFinance.Domain.Financial
             }
         }
 
-        public static IEnumerable<Category> GetAllDefaultCategories() => [FixedExpenses, Comfort, Pleasures, YourFuture, SelfImprovement];
+        public static IEnumerable<(Category category, int percentage)> GetAllDefaultCategories()
+        {
+            return [
+                (category: FixedExpenses, percentage: 30),
+                (category: Comfort, percentage: 20),
+                (category: Pleasures, percentage: 20),
+                (category: YourFuture, percentage: 25),
+                (category: SelfImprovement, percentage: 5)
+                ];
+        }
 
         public void SetName(string name) => this.Name = name;
 

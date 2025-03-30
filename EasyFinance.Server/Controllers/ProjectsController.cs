@@ -96,7 +96,7 @@ namespace EasyFinance.Server.Controllers
 
             var createdProject = await projectService.CreateAsync(user, projectDto.FromDTO());
 
-            return ValidateResponse(actionName: nameof(GetProjectByIdAsync), routeValues: new { projectId = createdProject.Data.Id }, appResponse: createdProject);
+            return ValidateResponse(actionName: nameof(GetProjectByIdAsync), routeValues: new { projectId = createdProject.Data.Project.Id }, appResponse: createdProject);
         }
 
         [HttpPatch("{projectId}")]

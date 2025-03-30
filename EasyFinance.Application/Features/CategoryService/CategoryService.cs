@@ -104,10 +104,10 @@ namespace EasyFinance.Application.Features.CategoryService
             return AppResponse<ICollection<CategoryResponseDTO>>.Success(categories);
         }
 
-        public async Task<AppResponse<ICollection<CategoryResponseDTO>>> GetDefaultCategoriesAsync(Guid projectId)
+        public async Task<AppResponse<ICollection<CategoryWithPercentageResponseDTO>>> GetDefaultCategoriesAsync(Guid projectId)
         {
             if (projectId == Guid.Empty)
-                return AppResponse<ICollection<CategoryResponseDTO>>.Error(code: nameof(projectId), description: ValidationMessages.PropertyCantBeNullOrEmpty);
+                return AppResponse<ICollection<CategoryWithPercentageResponseDTO>>.Error(code: nameof(projectId), description: ValidationMessages.PropertyCantBeNullOrEmpty);
 
             var project = await unitOfWork.ProjectRepository
                 .NoTrackable()
@@ -117,11 +117,15 @@ namespace EasyFinance.Application.Features.CategoryService
             var categoryNames = project.Categories.Select(c => c.Name).ToList();
             var defaultCategories = Category.GetAllDefaultCategories();
             var filteredCategories = defaultCategories
-                .Where(dc => !categoryNames.Contains(dc.Name))
-                .ToDTO()
+                .Where(dc => !categoryNames.Contains(dc.category.Name))
+                .Select(c => new CategoryWithPercentageResponseDTO()
+                {
+                    Name = c.category.Name,
+                    Percentage = c.percentage
+                })
                 .ToList();
 
-            return AppResponse<ICollection<CategoryResponseDTO>>.Success(filteredCategories);
+            return AppResponse<ICollection<CategoryWithPercentageResponseDTO>>.Success(filteredCategories);
         }
 
         public async Task<AppResponse<ICollection<CategoryResponseDTO>>> GetAsync(Guid projectId, int year)

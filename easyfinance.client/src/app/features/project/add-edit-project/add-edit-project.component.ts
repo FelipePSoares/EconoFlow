@@ -71,8 +71,8 @@ export class AddEditProjectComponent implements OnInit {
         this.projectService.addProject(newProject).subscribe({
           next: response => {
             this.celebrate();
-            this.router.navigate([{ outlets: { modal: ['projects', response.id, 'smart-setup'] } }]);
-            //this.router.navigate(['/projects', response.id]);
+            this.projectService.selectUserProject(response);
+            this.router.navigate([{ outlets: { modal: ['projects', response.project.id, 'smart-setup'] } }]);
           },
           error: (response: ApiErrorResponse) => {
             this.httpErrors = true;

@@ -4,6 +4,7 @@ import { Observable, map } from 'rxjs';
 import { Operation } from 'fast-json-patch';
 import { Category } from '../models/category';
 import { dateUTC, formatDate } from '../utils/date';
+import { DefaultCategory } from '../models/default-category';
 
 @Injectable({
   providedIn: 'root'
@@ -37,8 +38,8 @@ export class CategoryService {
     })
   }
 
-  getDefaultCategories(projectId: string): Observable<Category[]> {
-    return this.http.get<Category[]>('/api/projects/' + projectId + '/categories/DefaultCategories', {
+  getDefaultCategories(projectId: string): Observable<DefaultCategory[]> {
+    return this.http.get<DefaultCategory[]>('/api/projects/' + projectId + '/categories/DefaultCategories', {
       observe: 'body',
       responseType: 'json',
     });

@@ -17,6 +17,7 @@
   "FieldCategoryName": "Category Name",
   "FieldExpenseName": "Expense Name",
   "FieldBudget": "Budget",
+  "FieldAnnualIncome": "Average annual income",
 
   "PlaceholderEmailAddress": "name@example.com",
   "PlaceholderPassword": "Password",
@@ -53,6 +54,7 @@
   "ButtonAddExpense": "Add Expense",
   "ButtonAddItem": "Add Item",
   "ButtonAddCategory": "Add Category",
+  "ButtonSkipSmartSetup": "Skip Smart Setup",
 
   "RequiredField": "This field is required.",
   "InvalidEmailFormat": "Invalid email format.",

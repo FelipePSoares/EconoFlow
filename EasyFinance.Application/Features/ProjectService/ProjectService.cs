@@ -49,13 +49,13 @@ namespace EasyFinance.Application.Features.ProjectService
             return AppResponse<UserProjectResponseDTO>.Success(result);
         }
 
-        public async Task<AppResponse<ProjectResponseDTO>> CreateAsync(User user, Project project)
+        public async Task<AppResponse<UserProjectResponseDTO>> CreateAsync(User user, Project project)
         {
             if (project == default)
-                return AppResponse<ProjectResponseDTO>.Error(code: nameof(project), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(project)));
+                return AppResponse<UserProjectResponseDTO>.Error(code: nameof(project), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(project)));
 
             if (user == default)
-                return AppResponse<ProjectResponseDTO>.Error(code: nameof(user), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(user)));
+                return AppResponse<UserProjectResponseDTO>.Error(code: nameof(user), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(user)));
 
             var existentUserProjects = unitOfWork.UserProjectRepository.NoTrackable().Include(up => up.Project).Where(up => up.User.Id == user.Id);
 
@@ -63,22 +63,22 @@ namespace EasyFinance.Application.Features.ProjectService
 
             if (!isFirstProject)
             {
-                var projectExistent = await existentUserProjects.Select(up => up.Project).FirstOrDefaultAsync(p => p.Name == project.Name);
+                var projectExistent = await existentUserProjects.FirstOrDefaultAsync(p => p.Project.Name == project.Name);
 
                 if (projectExistent != default)
-                    return AppResponse<ProjectResponseDTO>.Success(projectExistent.ToDTO());
+                    return AppResponse<UserProjectResponseDTO>.Success(projectExistent.ToDTO());
             }
 
             var savedProject = unitOfWork.ProjectRepository.InsertOrUpdate(project);
             if (savedProject.Failed)
-                return AppResponse<ProjectResponseDTO>.Error(savedProject.Messages);
+                return AppResponse<UserProjectResponseDTO>.Error(savedProject.Messages);
 
             var userProject = new UserProject(user, project, Role.Admin);
             userProject.SetAccepted();
 
             var savedUserProject = unitOfWork.UserProjectRepository.InsertOrUpdate(userProject);
             if (savedUserProject.Failed)
-                return AppResponse<ProjectResponseDTO>.Error(savedUserProject.Messages);
+                return AppResponse<UserProjectResponseDTO>.Error(savedUserProject.Messages);
 
             await unitOfWork.CommitAsync();
 
@@ -88,7 +88,7 @@ namespace EasyFinance.Application.Features.ProjectService
                 await userManager.UpdateAsync(user);
             }
 
-            return AppResponse<ProjectResponseDTO>.Success(project.ToDTO());
+            return AppResponse<UserProjectResponseDTO>.Success(savedUserProject.Data.ToDTO());
         }
 
         public async Task<AppResponse<ProjectResponseDTO>> UpdateAsync(Project project)
