@@ -26,17 +26,19 @@
                 <div class="flex-grow-1">
                   @if(expense.id != this.editingExpense.id) {
                   <div>
-                    <h2 class="mb-1 fw-bold name mb-3">{{ expense.name }}</h2>
-                    @if (canAddOrEdit()){
-                    <div class="btn-group" style="position: absolute; right: 15px; top: 10px;">
-                      <button name="edit" class="btn btn-outline-secondary" (click)="edit(expense); $event.stopPropagation();">
-                        <fa-icon [icon]="faPenToSquare"></fa-icon>
-                      </button>
-                      <button name="delete" class="btn btn-outline-danger" (click)="triggerDelete(expense); $event.stopPropagation();">
-                        <fa-icon [icon]="faTrash"></fa-icon>
-                      </button>
+                    <div class="d-flex justify-content-between align-items-center">
+                      <h2 class="mb-1 fw-bold name mb-3">{{ expense.name }}</h2>
+                      @if (canAddOrEdit()){
+                      <div class="btn-group">
+                        <button name="edit" class="btn btn-outline-secondary" (click)="edit(expense); $event.stopPropagation();">
+                          <fa-icon [icon]="faPenToSquare"></fa-icon>
+                        </button>
+                        <button name="delete" class="btn btn-outline-danger" (click)="triggerDelete(expense); $event.stopPropagation();">
+                          <fa-icon [icon]="faTrash"></fa-icon>
+                        </button>
+                      </div>
+                      }
                     </div>
-                    }
                     <app-budget-bar [spend]="expense.getSpend()"
                                     [budget]="expense.budget"
                                     [overspend]="expense.getOverspend()"
