@@ -23,6 +23,12 @@ namespace EasyFinance.Domain.Financial
             SetExpenses(expenses ?? []);
         }
 
+        public Category(string name = "default", params Expense[] expenses)
+        {
+            SetName(name);
+            SetExpenses(expenses);
+        }
+
         public string Name { get; private set; } = string.Empty;
         public bool IsArchived { get; private set; }
         public ICollection<Expense> Expenses { get; private set; } = [];
@@ -87,6 +93,164 @@ namespace EasyFinance.Domain.Financial
             SetExpenses(Expenses.Concat(newExpenses).ToList());
 
             return newExpenses;
+        }
+
+        public static Category CreateDefaultCategoryWithExpense(User user, string name, int percentage, decimal annualIncome){
+            var today = DateTime.Today.ToUniversalTime();
+            var monthIncome = annualIncome / 12;
+
+            if (name == FixedExpenses.Name)
+            {
+                var categoryBudget = Convert.ToInt32(monthIncome) * percentage / 100;
+
+                return new Category(
+                    name,
+                    new Expense(
+                        ValidationMessages.Housing,
+                        new DateOnly(today.Year, today.Month, today.Day),
+                        0,
+                        user,
+                        budget: categoryBudget * 50 / 100),
+                    new Expense(
+                        ValidationMessages.BasicUtilities,
+                        new DateOnly(today.Year, today.Month, today.Day),
+                        0,
+                        user,
+                        budget: categoryBudget * 17 / 100),
+                    new Expense(
+                        ValidationMessages.Transportation,
+                        new DateOnly(today.Year, today.Month, today.Day),
+                        0,
+                        user,
+                        budget: categoryBudget * 17 / 100),
+                    new Expense(
+                        ValidationMessages.Healthcare,
+                        new DateOnly(today.Year, today.Month, today.Day),
+                        0,
+                        user,
+                        budget: categoryBudget * 16 / 100)
+                );
+            }
+            else if (name == Comfort.Name)
+            {
+                var categoryBudget = Convert.ToInt32(monthIncome) * percentage / 100;
+
+                return new Category(
+                    name,
+                    new Expense(
+                        ValidationMessages.ExtraFood,
+                        new DateOnly(today.Year, today.Month, today.Day),
+                        0,
+                        user,
+                        budget: categoryBudget * 40 / 100),
+                    new Expense(
+                        ValidationMessages.HomeImprovements,
+                        new DateOnly(today.Year, today.Month, today.Day),
+                        0,
+                        user,
+                        budget: categoryBudget * 25 / 100),
+                    new Expense(
+                        ValidationMessages.SubscriptionsServices,
+                        new DateOnly(today.Year, today.Month, today.Day),
+                        0,
+                        user,
+                        budget: categoryBudget * 25 / 100),
+                    new Expense(
+                        ValidationMessages.OtherPersonalComforts,
+                        new DateOnly(today.Year, today.Month, today.Day),
+                        0,
+                        user,
+                        budget: categoryBudget * 10 / 100)
+                );
+            }
+            else if (name == Pleasures.Name)
+            {
+                var categoryBudget = Convert.ToInt32(monthIncome) * percentage / 100;
+
+                return new Category(
+                    name,
+                    new Expense(
+                        ValidationMessages.TravelTrips,
+                        new DateOnly(today.Year, today.Month, today.Day),
+                        0,
+                        user,
+                        budget: categoryBudget * 50 / 100),
+                    new Expense(
+                        ValidationMessages.Entertainment,
+                        new DateOnly(today.Year, today.Month, today.Day),
+                        0,
+                        user,
+                        budget: categoryBudget * 25 / 100),
+                    new Expense(
+                        ValidationMessages.GoingOutwithFriendsFamily,
+                        new DateOnly(today.Year, today.Month, today.Day),
+                        0,
+                        user,
+                        budget: categoryBudget * 25 / 100)
+                );
+            }
+            else if (name == YourFuture.Name)
+            {
+                var categoryBudget = Convert.ToInt32(monthIncome) * percentage / 100;
+
+                return new Category(
+                    name,
+                    new Expense(
+                        ValidationMessages.Investments,
+                        new DateOnly(today.Year, today.Month, today.Day),
+                        0,
+                        user,
+                        budget: categoryBudget * 40 / 100),
+                    new Expense(
+                        ValidationMessages.EmergencyFund,
+                        new DateOnly(today.Year, today.Month, today.Day),
+                        0,
+                        user,
+                        budget: categoryBudget * 20 / 100),
+                    new Expense(
+                        ValidationMessages.RetirementSavings,
+                        new DateOnly(today.Year, today.Month, today.Day),
+                        0,
+                        user,
+                        budget: categoryBudget * 20 / 100),
+                    new Expense(
+                        ValidationMessages.BigProjects,
+                        new DateOnly(today.Year, today.Month, today.Day),
+                        0,
+                        user,
+                        budget: categoryBudget * 20 / 100)
+                );
+            }
+            else if (name == SelfImprovement.Name)
+            {
+                var categoryBudget = Convert.ToInt32(monthIncome) * percentage / 100;
+
+                return new Category(
+                    name,
+                    new Expense(
+                        ValidationMessages.Education,
+                        new DateOnly(today.Year, today.Month, today.Day),
+                        0,
+                        user,
+                        budget: categoryBudget * 60 / 100),
+                    new Expense(
+                        ValidationMessages.MentalPhysicalHealth,
+                        new DateOnly(today.Year, today.Month, today.Day),
+                        0,
+                        user,
+                        budget: categoryBudget * 40 / 100)
+                );}
+            else{
+                return new Category(
+                    name,
+                    new Expense(
+                        ValidationMessages.ExampleExpense,
+                        new DateOnly(today.Year, today.Month, today.Day),
+                        0,
+                        user,
+                        budget: Convert.ToInt32(monthIncome) * percentage / 100
+                ));
+            }
         }
     }
 }

@@ -9,6 +9,7 @@ using EasyFinance.Application.DTOs.FinancialProject;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.FinancialProject;
+using EasyFinance.Domain.Financial;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Identity;
@@ -245,8 +246,6 @@ namespace EasyFinance.Application.Features.ProjectService
                 .NoTrackable()
                 .Include(p => p.Incomes)
                 .Include(p => p.Categories)
-                    .ThenInclude(c => c.Expenses)
-                        .ThenInclude(e => e.Items)
                 .FirstOrDefaultAsync(p => p.Id == projectId);
 
             result.AddRange(
@@ -297,6 +296,49 @@ namespace EasyFinance.Application.Features.ProjectService
             result = result.OrderByDescending(i => i.Date).Take(numberOfTransactions).ToList();
 
             return AppResponse<ICollection<TransactionResponseDTO>>.Success(result);
+        }
+
+        public async Task<AppResponse> SmartSetupAsync(User user, Guid projectId, SmartSetupRequestDTO smartRequest)
+        {
+            var project = await unitOfWork.ProjectRepository
+                .NoTrackable()
+                .Include(p => p.Incomes)
+                .Include(p => p.Categories)
+                .FirstOrDefaultAsync(p => p.Id == projectId);
+
+            if (project.Categories.Count > 0)
+                return AppResponse.Error(ValidationMessages.SmartSetupNotAvailable);
+                
+            var categories = smartRequest.DefaultCategories.Select(c => Category.CreateDefaultCategoryWithExpense(user, c.Name, c.Percentage, smartRequest.AnnualIncome));
+
+            var result = AppResponse.Success();
+
+            foreach (var category in categories)
+            {
+                foreach (var expense in category.Expenses)
+                {
+                    var savedExpense = this.unitOfWork.ExpenseRepository.InsertOrUpdate(expense);
+                    if (savedExpense.Failed)
+                        result.AddErrorMessage(savedExpense.Messages);
+                }
+
+                var savedCategory = this.unitOfWork.CategoryRepository.InsertOrUpdate(category);
+                if (savedCategory.Failed)
+                    result.AddErrorMessage(savedCategory.Messages);
+
+                project.Categories.Add(savedCategory.Data);
+            }
+
+            var savedProject = this.unitOfWork.ProjectRepository.InsertOrUpdate(project);
+            if (savedProject.Failed)
+                result.AddErrorMessage(savedProject.Messages);
+
+            if (result.Failed)
+                return result;
+
+            await unitOfWork.CommitAsync();
+
+            return result;            
         }
     }
 }

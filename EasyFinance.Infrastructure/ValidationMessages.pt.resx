@@ -246,4 +246,61 @@ Você será redirecionado em 5 segundos...</value>
   <data name="ProjectNotFoundOrInsufficientUserPermissions" xml:space="preserve">
     <value>Projeto não encontrado ou permissões de usuário insuficientes.</value>
   </data>
+  <data name="SmartSetupNotAvailable" xml:space="preserve">
+    <value>Não é possível usar a configuração inteligentes em projetos já em uso.</value>
+  </data>
+  <data name="Housing" xml:space="preserve">
+    <value>Moradia</value>
+  </data>
+  <data name="BasicUtilities" xml:space="preserve">
+    <value>Contas básicas</value>
+  </data>
+  <data name="Transportation" xml:space="preserve">
+    <value>Transporte</value>
+  </data>
+  <data name="Healthcare" xml:space="preserve">
+    <value>Saúde</value>
+  </data>
+  <data name="ExtraFood" xml:space="preserve">
+    <value>Alimentação extra</value>
+  </data>
+  <data name="HomeImprovements" xml:space="preserve">
+    <value>Melhorias na casa</value>
+  </data>
+  <data name="SubscriptionsServices" xml:space="preserve">
+    <value>Assinaturas e Serviços</value>
+  </data>
+  <data name="OtherPersonalComforts" xml:space="preserve">
+    <value>Outros confortos pessoais</value>
+  </data>
+  <data name="TravelTrips" xml:space="preserve">
+    <value>Viagens e Passeios</value>
+  </data>
+  <data name="Entertainment" xml:space="preserve">
+    <value>Entretenimento</value>
+  </data>
+  <data name="GoingOutwithFriendsFamily" xml:space="preserve">
+    <value>Saídas com amigos e família</value>
+  </data>
+  <data name="Investments" xml:space="preserve">
+    <value>Investimentos</value>
+  </data>
+  <data name="EmergencyFund" xml:space="preserve">
+    <value>Reserva de emergência</value>
+  </data>
+  <data name="RetirementSavings" xml:space="preserve">
+    <value>Previdência privada/Aposentadoria</value>
+  </data>
+  <data name="BigProjects" xml:space="preserve">
+    <value>Grandes projetos</value>
+  </data>
+  <data name="Education" xml:space="preserve">
+    <value>Educação</value>
+  </data>
+  <data name="MentalPhysicalHealth" xml:space="preserve">
+    <value>Saúde mental e física</value>
+  </data>
+  <data name="ExampleExpense" xml:space="preserve">
+    <value>Despesa de exemplo</value>
+  </data>
 </root>

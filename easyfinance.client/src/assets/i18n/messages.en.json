@@ -66,6 +66,7 @@
   "LoginError": "Incorrect login information!",
   "UserBlocked": "User blocked!",
   "FailToDeleteAccount": "Failed to delete account! Please try again later.",
+  "AttentionTotalExceeds": "Attention: Total exceeds 100%",
 
   "PleaseSignIn": "Please Sign In",
   "PleaseSignUp": "Please Sign Up",
@@ -174,5 +175,9 @@
   "LoadingData": "Loading financial data...",
   "HomePage": "Home Page",
   "RegisterAdvice": "By creating an account, you agree to the <a href='{{termslink}}' target='_blank'>Terms of Service</a>. For more information about EconoFlow's privacy practices, see the <a href='{{privacylink}}' target='_blank'>EconoFlow Privacy Statement</a>. We'll occasionally send you account-related emails.",
-  "SmartSetup": "Smart Setup"
+  "SmartSetup": "Smart Setup",
+  "FullDistribution": "Full distribution!",
+  "Total": "Total",
+  "MonthlyDistribution": "Monthly distribution",
+  "PleaseInformUsAverageAnnualIncomeThisProject": "Please, inform for us the average annual income for this project."
 }

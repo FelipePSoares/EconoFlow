@@ -6,10 +6,15 @@ import { getCurrencySymbol } from '@angular/common';
   providedIn: 'root',
 })
 export class GlobalService {
-  public languageLoaded: string = 'en-US';
-  public groupSeparator: string = '.';
-  public decimalSeparator: string = ',';
-  public currencySymbol: string = getCurrencySymbol(this.projectService.getSelectedUserProject()?.project?.preferredCurrency ?? 'EUR', "narrow");
+  public languageLoaded = 'en-US';
+  public groupSeparator = '.';
+  public decimalSeparator = ',';
 
   constructor(private projectService: ProjectService) { }
+
+  get currencySymbol(): string {
+    const currency = this.projectService.getSelectedUserProject()?.project?.preferredCurrency;
+
+    return getCurrencySymbol(currency ?? 'EUR', "narrow");
+  }
 }

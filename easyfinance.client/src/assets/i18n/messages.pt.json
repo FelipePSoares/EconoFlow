@@ -66,6 +66,7 @@
   "LoginError": "Login ou senha inválidos!",
   "UserBlocked": "Usuário Bloqueado!",
   "FailToDeleteAccount": "Falha ao deletar a conta! Por favor, tente novamente mais tarde.",
+  "AttentionTotalExceeds": "Atenção: O total excede 100%",
 
   "PleaseSignIn": "Realize o login",
   "PleaseSignUp": "Faça o cadastro",
@@ -174,5 +175,9 @@
   "LoadingData": "Carregando dados financeiros...",
   "HomePage": "Página Principal",
   "RegisterAdvice": "Ao criar uma conta, você concorda com os <a href='{{termslink}}' target='_blank'>Termos de Serviço</a>. Para obter mais informações sobre as práticas de privacidade da EconoFlow, consulte a <a href='{{privacylink}}' target='_blank'>Declaração de Privacidade da EconoFlow</a>. Ocasionalmente, enviaremos e-mails relacionados à conta.",
-  "SmartSetup": "Configuração inteligente"
+  "SmartSetup": "Configuração inteligente",
+  "FullDistribution": "Distribuição completa!",
+  "Total": "Total",
+  "MonthlyDistribution": "Distribuição mensal",
+  "PleaseInformUsAverageAnnualIncomeThisProject": "Por favor, informe-nos a renda média anual deste projeto."
 }

@@ -70,8 +70,8 @@ export class AddEditProjectComponent implements OnInit {
       } else {
         this.projectService.addProject(newProject).subscribe({
           next: response => {
-            this.celebrate();
             this.projectService.selectUserProject(response);
+            this.celebrate();
             this.router.navigate([{ outlets: { modal: ['projects', response.project.id, 'smart-setup'] } }]);
           },
           error: (response: ApiErrorResponse) => {

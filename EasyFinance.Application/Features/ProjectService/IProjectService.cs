@@ -31,5 +31,7 @@ namespace EasyFinance.Application.Features.ProjectService
         Task<AppResponse<IList<string>>> GetProjectsWhereUserIsSoleAdminAsync(User user);
 
         Task<AppResponse<ICollection<TransactionResponseDTO>>> GetLatestAsync(Guid projectId, int numberOfTransactions);
+
+        Task<AppResponse> SmartSetupAsync(User user, Guid projectId, SmartSetupRequestDTO smartRequest);
     }
 }

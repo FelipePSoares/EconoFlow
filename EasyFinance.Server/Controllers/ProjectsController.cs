@@ -2,13 +2,13 @@
 using System.Security.Claims;
 using EasyFinance.Application.DTOs.AccessControl;
 using EasyFinance.Application.DTOs.FinancialProject;
+using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Application.Features.CategoryService;
 using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
-using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
@@ -186,6 +186,21 @@ namespace EasyFinance.Server.Controllers
                 throw new UnauthorizedAccessException();
 
             AppResponse result = await this.accessControlService.RemoveAccessAsync(userProjectId);
+
+            return ValidateResponse(result, HttpStatusCode.OK);
+        }
+
+        [HttpPost("{projectId}/smart-setup")]
+        public async Task<IActionResult> SmartSetupAsync(Guid projectId, SmartSetupRequestDTO smartRequest)
+        {
+            var user = await this.userManager.GetUserAsync(this.HttpContext.User);
+
+            var hasAuthorization = accessControlService.HasAuthorization(user.Id, projectId, Role.Manager);
+
+            if (!hasAuthorization)
+                throw new UnauthorizedAccessException();
+            
+            AppResponse result = await this.projectService.SmartSetupAsync(user, projectId, smartRequest);
 
             return ValidateResponse(result, HttpStatusCode.OK);
         }

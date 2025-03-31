@@ -9,6 +9,7 @@ import { Transaction } from '../models/transaction';
 import { ProjectDto } from '../../features/project/models/project-dto';
 import { UserProject } from '../models/user-project';
 import { UserService } from './user.service';
+import { DefaultCategory } from '../models/default-category';
 const PROJECT_DATA = "project_data";
 
 @Injectable({
@@ -131,5 +132,14 @@ export class ProjectService {
     return this.http.delete('/api/projects/' + id + '/access/' + userProjectId, {
       observe: 'response'
     }).pipe(map(res => res.ok));
+  }
+
+  smartSetup(id: string, annualIncome: number, defaultCategories: DefaultCategory[]) {
+    return this.http.post('/api/projects/' + id + '/smart-setup/', {
+      annualIncome: annualIncome,
+      defaultCategories: defaultCategories
+    }, {
+      observe: 'response'
+    });
   }
 }

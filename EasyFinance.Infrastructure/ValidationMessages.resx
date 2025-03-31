@@ -245,4 +245,61 @@ You will be redirect in 5 seconds ...</value>
   <data name="ProjectNotFoundOrInsufficientUserPermissions" xml:space="preserve">
     <value>Project not found or insufficient user permissions.</value>
   </data>
+  <data name="SmartSetupNotAvailable" xml:space="preserve">
+    <value>You cannot use smart configuration on projects already in use.</value>
+  </data>
+  <data name="Housing" xml:space="preserve">
+    <value>Housing</value>
+  </data>
+  <data name="BasicUtilities" xml:space="preserve">
+    <value>Basic Utilities</value>
+  </data>
+  <data name="Transportation" xml:space="preserve">
+    <value>Transportation</value>
+  </data>
+  <data name="Healthcare" xml:space="preserve">
+    <value>Healthcare</value>
+  </data>
+  <data name="ExtraFood" xml:space="preserve">
+    <value>Extra Food</value>
+  </data>
+  <data name="HomeImprovements" xml:space="preserve">
+    <value>Home Improvements</value>
+  </data>
+  <data name="SubscriptionsServices" xml:space="preserve">
+    <value>Subscriptions &amp; Services</value>
+  </data>
+  <data name="OtherPersonalComforts" xml:space="preserve">
+    <value>Other Personal Comforts</value>
+  </data>
+  <data name="TravelTrips" xml:space="preserve">
+    <value>Travel &amp; Trips</value>
+  </data>
+  <data name="Entertainment" xml:space="preserve">
+    <value>Entertainment</value>
+  </data>
+  <data name="GoingOutwithFriendsFamily" xml:space="preserve">
+    <value>Going Out with Friends &amp; Family</value>
+  </data>
+  <data name="Investments" xml:space="preserve">
+    <value>Investments</value>
+  </data>
+  <data name="EmergencyFund" xml:space="preserve">
+    <value>Emergency Fund</value>
+  </data>
+  <data name="RetirementSavings" xml:space="preserve">
+    <value>Retirement Savings</value>
+  </data>
+  <data name="BigProjects" xml:space="preserve">
+    <value>Big Projects</value>
+  </data>
+  <data name="Education" xml:space="preserve">
+    <value>Education</value>
+  </data>
+  <data name="MentalPhysicalHealth" xml:space="preserve">
+    <value>Mental &amp; Physical Health</value>
+  </data>
+  <data name="ExampleExpense" xml:space="preserve">
+    <value>Example Expense</value>
+  </data>
 </root>
