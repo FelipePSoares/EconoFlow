@@ -9,7 +9,6 @@ Cypress.Commands.add('login', (username, password) => {
       cy.get('input[formControlName=password]').type(`${password}{enter}`, { force: true, log: false })
       cy.wait('@postAccount')
       cy.visit('/')
-      cy.wait('@getAccount')
     },
     {
       validate: () => {

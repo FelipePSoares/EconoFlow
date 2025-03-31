@@ -127,7 +127,7 @@ jobs:
       run: dotnet run --project ./EasyFinance.Server --urls https://localhost:7003/ &
 
     - name: wait application startup
-      run: sleep 6s
+      run: sleep 10s
       shell: bash
 
     - name: Run Cypress tests

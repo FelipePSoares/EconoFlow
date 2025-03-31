@@ -1,8 +1,8 @@
 ﻿using System.Net;
 using System.Security.Claims;
 using EasyFinance.Application.DTOs.AccessControl;
-using EasyFinance.Application.DTOs.FinancialProject;
 using EasyFinance.Application.DTOs.Financial;
+using EasyFinance.Application.DTOs.FinancialProject;
 using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Application.Features.CategoryService;
 using EasyFinance.Application.Features.IncomeService;
@@ -94,7 +94,17 @@ namespace EasyFinance.Server.Controllers
 
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
-            var createdProject = await projectService.CreateAsync(user, projectDto.FromDTO());
+            var existentUserProjects = this.projectService.GetAll(user.Id);
+
+            if (existentUserProjects.Data.Count > 0)
+            {
+                var projectExistent = existentUserProjects.Data.FirstOrDefault(p => p.Project.Name == projectDto.Name);
+
+                if (projectExistent != default)
+                    return ValidateResponse(AppResponse<UserProjectResponseDTO>.Success(projectExistent), HttpStatusCode.OK);
+            }
+
+            var createdProject = await projectService.CreateAsync(user, projectDto.FromDTO(), existentUserProjects.Data.Count == 0);
 
             return ValidateResponse(actionName: nameof(GetProjectByIdAsync), routeValues: new { projectId = createdProject.Data.Project.Id }, appResponse: createdProject);
         }

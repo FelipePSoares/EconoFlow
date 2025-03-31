@@ -247,7 +247,7 @@ Você será redirecionado em 5 segundos...</value>
     <value>Projeto não encontrado ou permissões de usuário insuficientes.</value>
   </data>
   <data name="SmartSetupNotAvailable" xml:space="preserve">
-    <value>Não é possível usar a configuração inteligentes em projetos já em uso.</value>
+    <value>Não é possível usar a configuração inteligente em projetos já em uso.</value>
   </data>
   <data name="Housing" xml:space="preserve">
     <value>Moradia</value>

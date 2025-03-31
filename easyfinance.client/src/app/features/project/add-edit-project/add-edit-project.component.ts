@@ -15,6 +15,8 @@ import { ApiErrorResponse } from '../../../core/models/error';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { CurrencyService } from '../../../core/services/currency.service';
 import confetti from 'canvas-confetti';
+import { MatDialogRef } from '@angular/material/dialog';
+import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
 
 @Component({
   selector: 'app-add-edit-project',
@@ -39,6 +41,7 @@ export class AddEditProjectComponent implements OnInit {
   editingProject!: ProjectDto;
 
   constructor(
+    private dialogRef: MatDialogRef<PageModalComponent>,
     private projectService: ProjectService,
     private currencyService: CurrencyService,
     private router: Router,
@@ -70,9 +73,18 @@ export class AddEditProjectComponent implements OnInit {
       } else {
         this.projectService.addProject(newProject).subscribe({
           next: response => {
-            this.projectService.selectUserProject(response);
-            this.celebrate();
-            this.router.navigate([{ outlets: { modal: ['projects', response.project.id, 'smart-setup'] } }]);
+            const userProject = response.body;
+
+            if (userProject) {
+              if (response.status == 201) {
+                this.projectService.selectUserProject(userProject);
+                this.celebrate();
+                this.router.navigate([{ outlets: { modal: ['projects', userProject.project.id, 'smart-setup'] } }]);
+              } else {
+                this.dialogRef.close();
+                this.router.navigate(['projects', userProject.project.id]);
+              }
+            }
           },
           error: (response: ApiErrorResponse) => {
             this.httpErrors = true;

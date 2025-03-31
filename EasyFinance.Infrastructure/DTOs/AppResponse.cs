@@ -26,7 +26,7 @@ namespace EasyFinance.Infrastructure.DTOs
             => new AppResponse().AddErrorMessage(messages);
 
         public AppResponse AddErrorMessage(string description)
-            => AddErrorMessage(new AppMessage("General", description));
+            => AddErrorMessage(new AppMessage("general", description));
         public AppResponse AddErrorMessage(string code, string description)
             => AddErrorMessage(new AppMessage(code, description));
         public AppResponse AddErrorMessage(params AppMessage[] messages)
