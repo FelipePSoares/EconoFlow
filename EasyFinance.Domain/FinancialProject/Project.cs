@@ -13,13 +13,14 @@ namespace EasyFinance.Domain.FinancialProject
     {
         private Project() { }
 
-        public Project(Guid id = default, string name = "default", string preferredCurrency = "EUR", ICollection<Category> categories = default, ICollection<Income> incomes = default)
+        public Project(Guid id = default, string name = "default", string preferredCurrency = "EUR", ProjectTypes projectType = ProjectTypes.Personal, ICollection<Category> categories = default, ICollection<Income> incomes = default)
             : base(id)
         {
             SetName(name);
             SetCategories(categories ?? []);
             SetPreferredCurrency(preferredCurrency);
             SetIncomes(incomes ?? []);
+            SetType(projectType);
         }
 
         public string Name { get; private set; } = string.Empty;
@@ -27,6 +28,7 @@ namespace EasyFinance.Domain.FinancialProject
         public string PreferredCurrency { get; private set; } = string.Empty;
         public ICollection<Category> Categories { get; private set; } = [];
         public ICollection<Income> Incomes { get; private set; } = [];
+        public ProjectTypes Type { get; private set; } = ProjectTypes.Personal;
 
         public override AppResponse Validate
         {
@@ -87,6 +89,11 @@ namespace EasyFinance.Domain.FinancialProject
         public void SetArchive()
         {
             IsArchived = true;
+        }
+
+        public void SetType(ProjectTypes type)
+        {
+            Type = type;
         }
     }
 }

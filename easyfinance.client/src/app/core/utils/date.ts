@@ -19,7 +19,7 @@ export function formatDate(input: Date): string {
 };
 
 export function todayUTC(): Date {
-  let newDate = new Date();
+  const newDate = new Date();
   return dateUTC(newDate);
 }
 

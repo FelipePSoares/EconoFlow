@@ -5,8 +5,9 @@
     <mat-form-field appearance="fill" class="w-100">
       <mat-label>{{ 'FieldAnnualIncome' | translate }}</mat-label>
       <input matInput
+             id="annualIncome"
              type="text"
-             inputmode="decimal"
+             inputmode="numeric"
              currencyMask
              [(ngModel)]="annualIncome"
              [options]="{ prefix: currencySymbol, allowNegative: false, thousands: thousandSeparator, decimal: decimalSeparator, precision: 0 }">

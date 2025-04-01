@@ -27,7 +27,7 @@
         <mat-label>{{ 'FieldAmount' | translate }}</mat-label>
         <input matInput
                type="text"
-               inputmode="decimal"
+               inputmode="numeric"
                currencyMask
                [options]="{ prefix: currencySymbol, allowNegative: false, thousands: thousandSeparator, decimal: decimalSeparator, precision: 2 }"
                formControlName="amount">

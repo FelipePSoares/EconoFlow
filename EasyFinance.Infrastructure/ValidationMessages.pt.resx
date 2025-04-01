@@ -303,4 +303,7 @@ Você será redirecionado em 5 segundos...</value>
   <data name="ExampleExpense" xml:space="preserve">
     <value>Despesa de exemplo</value>
   </data>
+  <data name="CompanyProjectNotAllowed" xml:space="preserve">
+    <value>A criação de projetos empresariais não é permitida para sua conta.</value>
+  </data>
 </root>

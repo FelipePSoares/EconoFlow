@@ -10,6 +10,7 @@ import { ProjectDto } from '../../features/project/models/project-dto';
 import { UserProject } from '../models/user-project';
 import { UserService } from './user.service';
 import { DefaultCategory } from '../models/default-category';
+import { CurrentDateComponent } from '../components/current-date/current-date.component';
 const PROJECT_DATA = "project_data";
 
 @Injectable({
@@ -82,6 +83,7 @@ export class ProjectService {
   }
 
   selectUserProject(userProject: UserProject) {
+    CurrentDateComponent.resetDateToday();
     this.localService.saveData(PROJECT_DATA, userProject);
     this.selectedProjectSubject.next(userProject);
   }
@@ -90,7 +92,7 @@ export class ProjectService {
     let currentProject = this.selectedProjectSubject.value;
 
     if (!currentProject) {
-      let project = this.localService.getData<UserProject>(PROJECT_DATA);
+      const project = this.localService.getData<UserProject>(PROJECT_DATA);
       currentProject = project;
       this.selectedProjectSubject.next(currentProject);
     }
@@ -133,10 +135,11 @@ export class ProjectService {
     }).pipe(map(res => res.ok));
   }
 
-  smartSetup(id: string, annualIncome: number, defaultCategories: DefaultCategory[]): Observable<HttpResponse<unknown>> {
+  smartSetup(id: string, annualIncome: number, date: Date, defaultCategories: DefaultCategory[]): Observable<HttpResponse<unknown>> {
     return this.http.post('/api/projects/' + id + '/smart-setup/', {
       annualIncome: annualIncome,
-      defaultCategories: defaultCategories
+      defaultCategories: defaultCategories,
+      date: date.toISOString().split("T")[0]
     }, {
       observe: 'response'
     });

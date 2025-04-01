@@ -52,7 +52,7 @@
     <mat-form-field appearance="fill" class="col-md-6">
       <mat-label>{{ 'FieldAmount' | translate }}</mat-label>
       <input matInput
-             inputmode="decimal"
+             inputmode="numeric"
              type="text"
              currencyMask
              [options]="{ prefix: currencySymbol, allowNegative: false, thousands: thousandSeparator, decimal: decimalSeparator, precision: 2 }"

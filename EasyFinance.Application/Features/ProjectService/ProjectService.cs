@@ -58,6 +58,9 @@ namespace EasyFinance.Application.Features.ProjectService
             if (user == default)
                 return AppResponse<UserProjectResponseDTO>.Error(code: nameof(user), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(user)));
 
+            if (project.Type == ProjectTypes.Company && user.SubscriptionLevel < SubscriptionLevels.Enterprise)
+                return AppResponse<UserProjectResponseDTO>.Error(description: ValidationMessages.CompanyProjectNotAllowed);
+
             var savedProject = unitOfWork.ProjectRepository.InsertOrUpdate(project);
             if (savedProject.Failed)
                 return AppResponse<UserProjectResponseDTO>.Error(savedProject.Messages);
@@ -105,6 +108,12 @@ namespace EasyFinance.Application.Features.ProjectService
             projectDto.ApplyTo(dto);
 
             var result = dto.FromDTO(existingProject);
+
+            var userProject = await unitOfWork.UserProjectRepository.NoTrackable()
+                .FirstOrDefaultAsync(up => up.Project.Id == projectId && up.User.SubscriptionLevel >= SubscriptionLevels.Enterprise);
+
+            if (result.Type == ProjectTypes.Company && userProject == default)
+                return AppResponse<ProjectResponseDTO>.Error(description: ValidationMessages.CompanyProjectNotAllowed);
 
             await UpdateAsync(result);
 
@@ -232,9 +241,29 @@ namespace EasyFinance.Application.Features.ProjectService
 
             var project = await unitOfWork.ProjectRepository
                 .NoTrackable()
-                .Include(p => p.Incomes)
-                .Include(p => p.Categories)
-                .FirstOrDefaultAsync(p => p.Id == projectId);
+                .Where(p => p.Id == projectId)
+                .Select(p => new
+                {
+                    Project = p,
+                    Incomes = p.Incomes.OrderByDescending(i => i.Date).Take(5).ToList(),
+                    Categories = p.Categories.Select(c => new
+                    {
+                        c.Name,
+                        Expenses = c.Expenses.OrderByDescending(e => e.Date).Take(5).Select(e => new
+                        {
+                            e.Name,
+                            e.Date,
+                            e.Amount,
+                            Expense = e,
+                            Items = e.Items.OrderByDescending(i => i.Date).Take(5).Select(i => new {
+                                i.Name,
+                                i.Date,
+                                i.Amount
+                            })
+                        }).ToList()
+                    }).ToList()
+                })
+                .FirstOrDefaultAsync();
 
             result.AddRange(
                 project
@@ -256,12 +285,11 @@ namespace EasyFinance.Application.Features.ProjectService
                 .Where(e => e.Amount > 0 && !e.Items.Any())
                 .OrderByDescending(i => i.Date)
                 .Take(numberOfTransactions)
-                .Select(income => new TransactionResponseDTO()
+                .Select(expense => new TransactionResponseDTO()
                 {
-                    Id = income.Id,
-                    Amount = income.Amount,
-                    Date = income.Date,
-                    Name = income.Name,
+                    Name = expense.Name,
+                    Date = expense.Date,
+                    Amount = expense.Amount,
                     Type = TransactionType.Expense
                 }));
 
@@ -269,15 +297,14 @@ namespace EasyFinance.Application.Features.ProjectService
                 project.Categories
                 .SelectMany(c => c.Expenses)
                 .SelectMany(e => e.Items)
-                .Where(e => e.Amount > 0 && !e.Items.Any())
+                .Where(e => e.Amount > 0)
                 .OrderByDescending(i => i.Date)
                 .Take(numberOfTransactions)
-                .Select(income => new TransactionResponseDTO()
+                .Select(expenseItem => new TransactionResponseDTO()
                 {
-                    Id = income.Id,
-                    Amount = income.Amount,
-                    Date = income.Date,
-                    Name = income.Name,
+                    Name = expenseItem.Name,
+                    Date = expenseItem.Date,
+                    Amount = expenseItem.Amount,
                     Type = TransactionType.Expense
                 }));
 
@@ -297,7 +324,7 @@ namespace EasyFinance.Application.Features.ProjectService
             if (project.Categories.Count > 0)
                 return AppResponse.Error(ValidationMessages.SmartSetupNotAvailable);
                 
-            var categories = smartRequest.DefaultCategories.Select(c => Category.CreateDefaultCategoryWithExpense(user, c.Name, c.Percentage, smartRequest.AnnualIncome));
+            var categories = smartRequest.DefaultCategories.Select(c => Category.CreateDefaultCategoryWithExpense(user, c.Name, c.Percentage, smartRequest.AnnualIncome, smartRequest.Date));
 
             var result = AppResponse.Success();
 

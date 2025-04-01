@@ -18,6 +18,7 @@
   "FieldExpenseName": "Nome da Despesa",
   "FieldBudget": "Orçamento",
   "FieldAnnualIncome": "Renda média anual",
+  "FieldCompanyProject": "Projeto de empresa",
 
   "PlaceholderEmailAddress": "nome@exemplo.com",
   "PlaceholderPassword": "Senha",

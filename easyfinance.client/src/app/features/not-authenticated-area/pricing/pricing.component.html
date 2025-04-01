@@ -1,0 +1,247 @@
+<main class="container mt-5">
+  <section class="text-center">
+    <h1 class="display-5 fw-bold mb-4 text-primary">
+      {{ 'ChooseThePerfectPlan' | translate }}
+    </h1>
+    <p class="lead text-muted mb-5 mx-auto" style="max-width: 800px;">
+      {{ 'FindThePlanThatFitsYourNeeds' | translate }}
+    </p>
+
+    <div class="row justify-content-center mb-5">
+      <div class="col-md-10">
+        <div class="row g-4">
+          <div class="col-md-4">
+            <div class="card p-4 h-100 border-primary border-opacity-25">
+              <div class="card-body text-center">
+                <h3 class="card-title text-dark mb-4">{{ 'Free' | translate }}</h3>
+                <h2 class="display-6 mb-3">$0</h2>
+                <p class="text-muted mb-4">{{ 'ForPersonalUse' | translate }}</p>
+                <ul class="list-unstyled text-start mb-4">
+                  <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>{{ 'BasicFeatures' | translate }}</li>
+                  <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>{{ 'PersonalProjects' | translate }}</li>
+                  <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>{{ 'CollaborateOnCompanyProjects' | translate }}</li>
+                  <li class="mb-2 text-muted"><i class="bi bi-dash-circle-fill text-secondary me-2"></i>{{ 'IncludesAds' | translate }}</li>
+                </ul>
+                <a href="/register" class="btn btn-outline-primary btn-lg rounded-pill w-100">
+                  {{ 'ButtonGetStarted' | translate }}
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card p-4 h-100 border-primary shadow">
+              <div class="card-body text-center">
+                <div class="ribbon ribbon-top-right"><span>{{ 'Popular' | translate }}</span></div>
+                <h3 class="card-title text-dark mb-4">{{ 'Premium' | translate }}</h3>
+                <h2 class="display-6 mb-3">$9.99<small class="text-muted">/{{ 'month' | translate }}</small></h2>
+                <p class="text-muted mb-4">{{ 'ForEnhancedExperience' | translate }}</p>
+                <ul class="list-unstyled text-start mb-4">
+                  <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>{{ 'AllBasicFeatures' | translate }}</li>
+                  <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>{{ 'PersonalProjects' | translate }}</li>
+                  <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>{{ 'CollaborateOnCompanyProjects' | translate }}</li>
+                  <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>{{ 'NoAds' | translate }}</li>
+                </ul>
+                <a href="/register?plan=premium" class="btn btn-primary btn-lg rounded-pill w-100">
+                  {{ 'ButtonChoosePlan' | translate }}
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card p-4 h-100 border-primary border-opacity-25">
+              <div class="card-body text-center">
+                <h3 class="card-title text-dark mb-4">{{ 'Enterprise' | translate }}</h3>
+                <h2 class="display-6 mb-3">$29.99<small class="text-muted">/{{ 'month' | translate }}</small></h2>
+                <p class="text-muted mb-4">{{ 'ForBusinesses' | translate }}</p>
+                <ul class="list-unstyled text-start mb-4">
+                  <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>{{ 'AllPremiumFeatures' | translate }}</li>
+                  <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>{{ 'PersonalProjects' | translate }}</li>
+                  <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>{{ 'CreateCompanyProjects' | translate }}</li>
+                  <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>{{ 'AdvancedFeatures' | translate }}</li>
+                </ul>
+                <a href="/register?plan=enterprise" class="btn btn-outline-primary btn-lg rounded-pill w-100">
+                  {{ 'ButtonContactSales' | translate }}
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mt-5 text-center">
+    <h2 class="display-6 fw-bold text-primary mb-5">{{ 'PlanComparison' | translate }}</h2>
+
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">{{ 'Features' | translate }}</th>
+            <th scope="col" class="text-center">{{ 'Free' | translate }}</th>
+            <th scope="col" class="text-center">{{ 'Premium' | translate }}</th>
+            <th scope="col" class="text-center">{{ 'Enterprise' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ 'BasicDashboard' | translate }}</td>
+            <td class="text-center"><i class="bi bi-check-lg text-success"></i></td>
+            <td class="text-center"><i class="bi bi-check-lg text-success"></i></td>
+            <td class="text-center"><i class="bi bi-check-lg text-success"></i></td>
+          </tr>
+          <tr>
+            <td>{{ 'PersonalProjects' | translate }}</td>
+            <td class="text-center"><i class="bi bi-check-lg text-success"></i></td>
+            <td class="text-center"><i class="bi bi-check-lg text-success"></i></td>
+            <td class="text-center"><i class="bi bi-check-lg text-success"></i></td>
+          </tr>
+          <tr>
+            <td>{{ 'CollaborateOnCompanyProjects' | translate }}</td>
+            <td class="text-center"><i class="bi bi-check-lg text-success"></i></td>
+            <td class="text-center"><i class="bi bi-check-lg text-success"></i></td>
+            <td class="text-center"><i class="bi bi-check-lg text-success"></i></td>
+          </tr>
+          <tr>
+            <td>{{ 'AdFreeExperience' | translate }}</td>
+            <td class="text-center"><i class="bi bi-x-lg text-secondary"></i></td>
+            <td class="text-center"><i class="bi bi-check-lg text-success"></i></td>
+            <td class="text-center"><i class="bi bi-check-lg text-success"></i></td>
+          </tr>
+          <tr>
+            <td>{{ 'CreateCompanyProjects' | translate }}</td>
+            <td class="text-center"><i class="bi bi-x-lg text-secondary"></i></td>
+            <td class="text-center"><i class="bi bi-x-lg text-secondary"></i></td>
+            <td class="text-center"><i class="bi bi-check-lg text-success"></i></td>
+          </tr>
+          <tr>
+            <td>{{ 'AdvancedAnalytics' | translate }}</td>
+            <td class="text-center"><i class="bi bi-x-lg text-secondary"></i></td>
+            <td class="text-center"><i class="bi bi-x-lg text-secondary"></i></td>
+            <td class="text-center"><i class="bi bi-check-lg text-success"></i></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="mt-5 text-center">
+    <h2 class="display-6 fw-bold text-primary mb-5">{{ 'ProjectTypes' | translate }}</h2>
+
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="card p-4 h-100">
+          <div class="card-body text-center">
+            <div class="mb-3 text-center">
+              <i class="bi bi-person-fill fs-1 text-primary mb-3"></i>
+            </div>
+            <h3 class="mb-3">{{ 'PersonalProjects' | translate }}</h3>
+            <p class="text-muted">{{ 'DescriptionPersonalProjects' | translate }}</p>
+            <div class="mt-4 pt-3 border-top">
+              <p class="mb-0 text-dark fw-bold">{{ 'AvailableToAllUsers' | translate }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card p-4 h-100">
+          <div class="card-body text-center">
+            <div class="mb-3 text-center">
+              <i class="bi bi-building fs-1 text-success mb-3"></i>
+            </div>
+            <h3 class="mb-3">{{ 'CompanyProjects' | translate }}</h3>
+            <p class="text-muted">{{ 'DescriptionCompanyProjects' | translate }}</p>
+            <div class="mt-4 pt-3 border-top">
+              <p class="mb-0 text-dark fw-bold">{{ 'OnlyEnterpriseCanCreate' | translate }}</p>
+              <p class="mb-0 text-muted small">{{ 'AllUsersCanCollaborate' | translate }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mt-5 bg-primary text-white rounded p-5 text-center">
+    <h2 class="display-6 fw-bold mb-4">{{ 'ReadyToStartYourFinancialJourney' | translate }}</h2>
+    <p class="lead mb-5">{{ 'ChooseThePlanThatMatchesYourNeeds' | translate }}</p>
+    <a href="/register" class="btn btn-light btn-lg rounded-pill text-primary">
+      {{ 'ButtonGetStartedNow' | translate }}
+    </a>
+  </section>
+
+  <section class="mt-5 mb-5 text-center">
+    <h2 class="display-6 fw-bold text-primary mb-5">{{ 'FrequentlyAskedQuestions' | translate }}</h2>
+
+    <div class="row justify-content-center">
+      <div class="col-md-10">
+        <div class="accordion" id="faqAccordion">
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="faqOne">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                {{ 'WhatIsTheDifferenceBetweenPlans' | translate }}
+              </button>
+            </h2>
+            <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="faqOne" data-bs-parent="#faqAccordion">
+              <div class="accordion-body text-start">
+                {{ 'PlanDifferencesExplanation' | translate }}
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="faqTwo">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                {{ 'CanICollaborateWithNonEnterpriseUsers' | translate }}
+              </button>
+            </h2>
+            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="faqTwo" data-bs-parent="#faqAccordion">
+              <div class="accordion-body text-start">
+                {{ 'CollaborationExplanation' | translate }}
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="faqThree">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                {{ 'WhatAreCompanyProjects' | translate }}
+              </button>
+            </h2>
+            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="faqThree" data-bs-parent="#faqAccordion">
+              <div class="accordion-body text-start">
+                {{ 'CompanyProjectsExplanation' | translate }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    .ribbon {
+      position: absolute;
+      right: -5px;
+      top: -5px;
+      z-index: 1;
+      overflow: hidden;
+      width: 75px;
+      height: 75px;
+      text-align: right;
+    }
+
+      .ribbon span {
+        font-size: 10px;
+        font-weight: bold;
+        color: #FFF;
+        text-transform: uppercase;
+        text-align: center;
+        line-height: 20px;
+        transform: rotate(45deg);
+        width: 100px;
+        display: block;
+        background: #0d6efd;
+        position: absolute;
+        top: 19px;
+        right: -21px;
+      }
+  </style>
+</main>

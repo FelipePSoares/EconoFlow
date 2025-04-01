@@ -1,4 +1,4 @@
-describe('EconoFlow - project detail Tests', () => {
+describe('EconoFlow - List Projects Tests', () => {
   beforeEach(() => {
     cy.fixture('users').then((users) => {
       const user = users.testUser;

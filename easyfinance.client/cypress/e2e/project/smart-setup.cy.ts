@@ -1,4 +1,4 @@
-describe('EconoFlow - Add Project Tests', () => {
+describe('EconoFlow - Smart Setup Tests', () => {
   beforeEach(() => {
     cy.fixture('users').then((users) => {
       const user = users.testUser;
@@ -10,21 +10,17 @@ describe('EconoFlow - Add Project Tests', () => {
       });
 
       cy.visit('/projects')
-    })
-  })
 
-  it('should add a new project', () => {
-    cy.intercept('GET', '**/projects*').as('getProjects')
-    cy.intercept('POST', '**/projects*').as('postProjects')
-
-    cy.fixture('projects').then((projects) => {
-      var project = projects.testPersonalProject;
+      cy.intercept('GET', '**/projects*').as('getProjects')
+      cy.intercept('POST', '**/projects*').as('postProjects')
 
       cy.get('#add-item').click()
 
       cy.focused().should('have.attr', 'formControlName', 'name')
 
-      cy.get('input[formControlName=name]').type(project.name)
+      const name = `name_${Math.random()}`;
+
+      cy.get('input[formControlName=name]').type(name)
       const preferredCurrencyInput = cy.get('mat-select[formcontrolname=preferredCurrency]');
       preferredCurrencyInput.click().get('mat-option').contains('EUR').click()
 
@@ -33,10 +29,15 @@ describe('EconoFlow - Add Project Tests', () => {
       cy.wait<ProjectReq, ProjectRes>('@postProjects').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(201)
 
-        const projectCreated = response?.body
-
         cy.get("mat-snack-bar-container").should("be.visible").contains('Created Successfully!');
       })
     })
+  })
+
+  it('should setup using smart setup and all expense should be created', () => {
+    cy.get('#annualIncome').type('60000')
+    cy.get('button').contains('Save').click()
+
+    cy.get('.slider-container .card-small-text').should('not.contain.text', 'set a budget')
   })
 })

@@ -24,6 +24,10 @@ namespace EasyFinance.Persistence.Mapping.AccessControl
             builder.Property(p => p.Enabled)
                 .IsRequired();
 
+            builder.Property(p => p.SubscriptionLevel)
+                .HasDefaultValue(SubscriptionLevels.Free)
+                .IsRequired();
+
             builder.HasOne<Project>()
                 .WithMany()
                 .HasForeignKey(p => p.DefaultProjectId)

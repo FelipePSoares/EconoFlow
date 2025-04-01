@@ -21,6 +21,7 @@ import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pi
 import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
 import { ProjectService } from 'src/app/core/services/project.service';
 import { ApiErrorResponse } from '../../../core/models/error';
+import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 
 @Component({
   selector: 'app-smart-setup',
@@ -99,7 +100,7 @@ export class SmartSetupComponent implements OnInit {
   }
 
   save(): void {
-    this.projectService.smartSetup(this.projectId, this.annualIncome, this.categories.value)
+    this.projectService.smartSetup(this.projectId, this.annualIncome, CurrentDateComponent.currentDate, this.categories.value)
     .subscribe(
       {
         next: () => {

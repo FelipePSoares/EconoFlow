@@ -27,6 +27,8 @@ namespace EasyFinance.Domain.AccessControl
         public bool Enabled { get; set; } = true;
         public bool HasIncompletedInformation => string.IsNullOrEmpty(FirstName) || string.IsNullOrEmpty(LastName);
         public Guid? DefaultProjectId { get; private set; } = default;
+        public SubscriptionLevels SubscriptionLevel { get; private set; } = SubscriptionLevels.Free;
+
 
         public AppResponse Validate
         {
@@ -63,6 +65,11 @@ namespace EasyFinance.Domain.AccessControl
         public void SetDefaultProject(Guid? projectId)
         {
             this.DefaultProjectId = projectId;
+        }
+
+        public void SetSubscriptionLevel(SubscriptionLevels subscriptionLevel)
+        {
+            SubscriptionLevel = subscriptionLevel;
         }
     }
 }

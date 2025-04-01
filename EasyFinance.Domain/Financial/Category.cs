@@ -95,8 +95,7 @@ namespace EasyFinance.Domain.Financial
             return newExpenses;
         }
 
-        public static Category CreateDefaultCategoryWithExpense(User user, string name, int percentage, decimal annualIncome){
-            var today = DateTime.Today.ToUniversalTime();
+        public static Category CreateDefaultCategoryWithExpense(User user, string name, int percentage, decimal annualIncome, DateOnly date){
             var monthIncome = annualIncome / 12;
 
             if (name == FixedExpenses.Name)
@@ -107,25 +106,25 @@ namespace EasyFinance.Domain.Financial
                     name,
                     new Expense(
                         ValidationMessages.Housing,
-                        new DateOnly(today.Year, today.Month, today.Day),
+                        date,
                         0,
                         user,
                         budget: categoryBudget * 50 / 100),
                     new Expense(
                         ValidationMessages.BasicUtilities,
-                        new DateOnly(today.Year, today.Month, today.Day),
+                        date,
                         0,
                         user,
                         budget: categoryBudget * 17 / 100),
                     new Expense(
                         ValidationMessages.Transportation,
-                        new DateOnly(today.Year, today.Month, today.Day),
+                        date,
                         0,
                         user,
                         budget: categoryBudget * 17 / 100),
                     new Expense(
                         ValidationMessages.Healthcare,
-                        new DateOnly(today.Year, today.Month, today.Day),
+                        date,
                         0,
                         user,
                         budget: categoryBudget * 16 / 100)
@@ -139,25 +138,25 @@ namespace EasyFinance.Domain.Financial
                     name,
                     new Expense(
                         ValidationMessages.ExtraFood,
-                        new DateOnly(today.Year, today.Month, today.Day),
+                        date,
                         0,
                         user,
                         budget: categoryBudget * 40 / 100),
                     new Expense(
                         ValidationMessages.HomeImprovements,
-                        new DateOnly(today.Year, today.Month, today.Day),
+                        date,
                         0,
                         user,
                         budget: categoryBudget * 25 / 100),
                     new Expense(
                         ValidationMessages.SubscriptionsServices,
-                        new DateOnly(today.Year, today.Month, today.Day),
+                        date,
                         0,
                         user,
                         budget: categoryBudget * 25 / 100),
                     new Expense(
                         ValidationMessages.OtherPersonalComforts,
-                        new DateOnly(today.Year, today.Month, today.Day),
+                        date,
                         0,
                         user,
                         budget: categoryBudget * 10 / 100)
@@ -171,19 +170,19 @@ namespace EasyFinance.Domain.Financial
                     name,
                     new Expense(
                         ValidationMessages.TravelTrips,
-                        new DateOnly(today.Year, today.Month, today.Day),
+                        date,
                         0,
                         user,
                         budget: categoryBudget * 50 / 100),
                     new Expense(
                         ValidationMessages.Entertainment,
-                        new DateOnly(today.Year, today.Month, today.Day),
+                        date,
                         0,
                         user,
                         budget: categoryBudget * 25 / 100),
                     new Expense(
                         ValidationMessages.GoingOutwithFriendsFamily,
-                        new DateOnly(today.Year, today.Month, today.Day),
+                        date,
                         0,
                         user,
                         budget: categoryBudget * 25 / 100)
@@ -197,25 +196,25 @@ namespace EasyFinance.Domain.Financial
                     name,
                     new Expense(
                         ValidationMessages.Investments,
-                        new DateOnly(today.Year, today.Month, today.Day),
+                        date,
                         0,
                         user,
                         budget: categoryBudget * 40 / 100),
                     new Expense(
                         ValidationMessages.EmergencyFund,
-                        new DateOnly(today.Year, today.Month, today.Day),
+                        date,
                         0,
                         user,
                         budget: categoryBudget * 20 / 100),
                     new Expense(
                         ValidationMessages.RetirementSavings,
-                        new DateOnly(today.Year, today.Month, today.Day),
+                        date,
                         0,
                         user,
                         budget: categoryBudget * 20 / 100),
                     new Expense(
                         ValidationMessages.BigProjects,
-                        new DateOnly(today.Year, today.Month, today.Day),
+                        date,
                         0,
                         user,
                         budget: categoryBudget * 20 / 100)
@@ -229,13 +228,13 @@ namespace EasyFinance.Domain.Financial
                     name,
                     new Expense(
                         ValidationMessages.Education,
-                        new DateOnly(today.Year, today.Month, today.Day),
+                        date,
                         0,
                         user,
                         budget: categoryBudget * 60 / 100),
                     new Expense(
                         ValidationMessages.MentalPhysicalHealth,
-                        new DateOnly(today.Year, today.Month, today.Day),
+                        date,
                         0,
                         user,
                         budget: categoryBudget * 40 / 100)
@@ -245,7 +244,7 @@ namespace EasyFinance.Domain.Financial
                     name,
                     new Expense(
                         ValidationMessages.ExampleExpense,
-                        new DateOnly(today.Year, today.Month, today.Day),
+                        date,
                         0,
                         user,
                         budget: Convert.ToInt32(monthIncome) * percentage / 100

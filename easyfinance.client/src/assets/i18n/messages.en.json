@@ -18,6 +18,7 @@
   "FieldExpenseName": "Expense Name",
   "FieldBudget": "Budget",
   "FieldAnnualIncome": "Average annual income",
+  "FieldCompanyProject": "Company Project",
 
   "PlaceholderEmailAddress": "name@example.com",
   "PlaceholderPassword": "Password",
