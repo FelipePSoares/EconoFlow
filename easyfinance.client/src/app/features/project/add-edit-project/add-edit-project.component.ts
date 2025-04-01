@@ -57,7 +57,7 @@ export class AddEditProjectComponent implements OnInit {
 
   ngOnInit(): void {
     this.userService.loggedUser$.subscribe(user => {
-      this.hasAccessToCompanyProjects = user.subscriptionLevel >= SubscriptionLevel.Enterprise;
+      this.hasAccessToCompanyProjects = user.subscriptionLevel == SubscriptionLevel.Enterprise;
     });
     this.editingProject = this.projectService.getEditingProject();
     this.projectService.setEditingProject(new ProjectDto());

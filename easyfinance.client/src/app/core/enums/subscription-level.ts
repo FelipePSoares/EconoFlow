@@ -1,7 +1,7 @@
 export enum SubscriptionLevel {
-  Free = 0,
-  Premium = 10,
-  Enterprise = 20
+  Free = "Free",
+  Premium = "Premium",
+  Enterprise = "Enterprise"
 }
 
 export const SubscriptionLevel2LabelMapping: Record<SubscriptionLevel, string> = {
