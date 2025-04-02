@@ -248,13 +248,15 @@ namespace EasyFinance.Application.Features.ProjectService
                     .OrderByDescending(i => i.Date)
                     .Take(numberOfTransactions)
                     .Select(i => new {
+                        i.Id,
                         i.Name,
                         i.Date,
                         i.Amount
-                    }),
+                    }).ToList(),
                     Expenses = p.Categories.SelectMany(c => c.Expenses
                     .Where(e => e.Amount > 0 && e.Items.Count == 0)
                     .Select(e => new {
+                        e.Id,
                         e.Name,
                         e.Date,
                         e.Amount
@@ -264,6 +266,7 @@ namespace EasyFinance.Application.Features.ProjectService
                         .SelectMany(e => e.Items
                             .Where(i => i.Amount > 0)
                             .Select(i => new {
+                                    i.Id,
                                     i.Name,
                                     i.Date,
                                     i.Amount
@@ -272,6 +275,7 @@ namespace EasyFinance.Application.Features.ProjectService
                     ))
                     .OrderByDescending(e => e.Date)
                     .Take(numberOfTransactions)
+                    .ToList()
                 })
                 .FirstOrDefaultAsync();
 
@@ -282,6 +286,7 @@ namespace EasyFinance.Application.Features.ProjectService
                 .Incomes
                 .Select(income => new TransactionResponseDTO()
                 {
+                    Id = income.Id,
                     Amount = income.Amount,
                     Date = income.Date,
                     Name = income.Name,
@@ -293,6 +298,7 @@ namespace EasyFinance.Application.Features.ProjectService
                 .Expenses
                 .Select(expense => new TransactionResponseDTO()
                 {
+                    Id = expense.Id,
                     Name = expense.Name,
                     Date = expense.Date,
                     Amount = expense.Amount,
