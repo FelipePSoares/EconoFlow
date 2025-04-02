@@ -237,13 +237,10 @@ namespace EasyFinance.Application.Features.ProjectService
 
         public async Task<AppResponse<ICollection<TransactionResponseDTO>>> GetLatestAsync(Guid projectId, int numberOfTransactions)
         {
-            var project = await unitOfWork.ProjectRepository
+            var incomes = await unitOfWork.ProjectRepository
                 .NoTrackable()
                 .Where(p => p.Id == projectId)
-                .Select(p => new
-                {
-                    Project = p,
-                    Incomes = p.Incomes
+                .SelectMany(p => p.Incomes
                     .Where(i => i.Amount > 0)
                     .OrderByDescending(i => i.Date)
                     .Take(numberOfTransactions)
@@ -252,38 +249,46 @@ namespace EasyFinance.Application.Features.ProjectService
                         i.Name,
                         i.Date,
                         i.Amount
-                    }).ToList(),
-                    Expenses = p.Categories.SelectMany(c => c.Expenses
+                    })
+                ).ToListAsync();
+
+            var expenses = await unitOfWork.ProjectRepository
+                .NoTrackable()
+                .Where(p => p.Id == projectId)
+                .SelectMany(p => p.Categories.SelectMany(c => c.Expenses
                     .Where(e => e.Amount > 0 && e.Items.Count == 0)
+                    .OrderByDescending(i => i.Date)
+                    .Take(numberOfTransactions)
                     .Select(e => new {
                         e.Id,
                         e.Name,
                         e.Date,
                         e.Amount
                     })
-                    .Concat(c.Expenses
-                        .Where(e => e.Items.Count > 0)
-                        .SelectMany(e => e.Items
-                            .Where(i => i.Amount > 0)
-                            .Select(i => new {
-                                    i.Id,
-                                    i.Name,
-                                    i.Date,
-                                    i.Amount
-                                })
-                        )
-                    ))
-                    .OrderByDescending(e => e.Date)
+                )).ToListAsync();
+
+            var expenseItems = await unitOfWork.ProjectRepository
+                .NoTrackable()
+                .Where(p => p.Id == projectId)
+                .SelectMany(p => p.Categories.SelectMany(c => c.Expenses
+                    .Where(e => e.Items.Count > 0)
+                    .OrderByDescending(i => i.Date)
                     .Take(numberOfTransactions)
-                    .ToList()
-                })
-                .FirstOrDefaultAsync();
+                    .SelectMany(e => e.Items
+                        .Where(i => i.Amount > 0)
+                        .Select(i => new {
+                                i.Id,
+                                i.Name,
+                                i.Date,
+                                i.Amount
+                            })
+                    ))
+                ).ToListAsync();
 
             var result = new List<TransactionResponseDTO>();
             
             result.AddRange(
-                project
-                .Incomes
+                incomes
                 .Select(income => new TransactionResponseDTO()
                 {
                     Id = income.Id,
@@ -294,8 +299,18 @@ namespace EasyFinance.Application.Features.ProjectService
                 }));
 
             result.AddRange(
-                project
-                .Expenses
+                expenses
+                .Select(expense => new TransactionResponseDTO()
+                {
+                    Id = expense.Id,
+                    Name = expense.Name,
+                    Date = expense.Date,
+                    Amount = expense.Amount,
+                    Type = TransactionType.Expense
+                }));
+
+            result.AddRange(
+                expenseItems
                 .Select(expense => new TransactionResponseDTO()
                 {
                     Id = expense.Id,
