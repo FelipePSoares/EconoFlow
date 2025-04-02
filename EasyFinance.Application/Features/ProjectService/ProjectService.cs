@@ -245,17 +245,17 @@ namespace EasyFinance.Application.Features.ProjectService
                 .Select(p => new
                 {
                     Project = p,
-                    Incomes = p.Incomes.OrderByDescending(i => i.Date).Take(5).ToList(),
+                    Incomes = p.Incomes.Where(i => i.Amount > 0).OrderByDescending(i => i.Date).Take(5).ToList(),
                     Categories = p.Categories.Select(c => new
                     {
                         c.Name,
-                        Expenses = c.Expenses.OrderByDescending(e => e.Date).Take(5).Select(e => new
+                        Expenses = c.Expenses.Where(e => e.Amount > 0).OrderByDescending(e => e.Date).Take(5).Select(e => new
                         {
                             e.Name,
                             e.Date,
                             e.Amount,
                             Expense = e,
-                            Items = e.Items.OrderByDescending(i => i.Date).Take(5).Select(i => new {
+                            Items = e.Items.Where(i => i.Amount > 0).OrderByDescending(i => i.Date).Take(5).Select(i => new {
                                 i.Name,
                                 i.Date,
                                 i.Amount
@@ -282,7 +282,6 @@ namespace EasyFinance.Application.Features.ProjectService
             result.AddRange(
                 project.Categories
                 .SelectMany(c => c.Expenses)
-                .Where(e => e.Amount > 0 && !e.Items.Any())
                 .OrderByDescending(i => i.Date)
                 .Take(numberOfTransactions)
                 .Select(expense => new TransactionResponseDTO()
@@ -297,7 +296,6 @@ namespace EasyFinance.Application.Features.ProjectService
                 project.Categories
                 .SelectMany(c => c.Expenses)
                 .SelectMany(e => e.Items)
-                .Where(e => e.Amount > 0)
                 .OrderByDescending(i => i.Date)
                 .Take(numberOfTransactions)
                 .Select(expenseItem => new TransactionResponseDTO()

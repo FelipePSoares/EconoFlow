@@ -25,6 +25,7 @@ export class ProjectService {
   }
 
   getUserProjects(): Observable<UserProject[]> {
+    CurrentDateComponent.resetDateToday();
     return this.http.get<UserProject[]>('/api/projects/', {
       observe: 'body',
       responseType: 'json'
@@ -83,7 +84,6 @@ export class ProjectService {
   }
 
   selectUserProject(userProject: UserProject) {
-    CurrentDateComponent.resetDateToday();
     this.localService.saveData(PROJECT_DATA, userProject);
     this.selectedProjectSubject.next(userProject);
   }
