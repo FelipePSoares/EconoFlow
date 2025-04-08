@@ -60,7 +60,7 @@ This commands are **not required to run the application** when you change some o
 #### VS Code
 * First you need to go to Persistence project folder
 * Then you can execute the following command line:
-	* `dotnet ef migrations add {YourMigrationName} --context EasyFinanceDatabaseContext --configuration release -s ../EasyFinance.Server`
+	* `dotnet ef migrations add {YourMigrationName} --context EasyFinanceDatabaseContext --project EasyFinance.Persistence --configuration release -s ./EasyFinance.Server`
 
 #### Visual Studio
 * Open Package Manager Console

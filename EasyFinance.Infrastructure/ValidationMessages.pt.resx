@@ -243,6 +243,9 @@ Você será redirecionado em 5 segundos...</value>
   <data name="ProjectNotFound" xml:space="preserve">
     <value>Projeto não encontrado.</value>
   </data>
+  <data name="ClientNotFound" xml:space="preserve">
+    <value>Cliente não encontrado.</value>
+  </data>
   <data name="ProjectNotFoundOrInsufficientUserPermissions" xml:space="preserve">
     <value>Projeto não encontrado ou permissões de usuário insuficientes.</value>
   </data>

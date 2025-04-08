@@ -13,13 +13,14 @@ namespace EasyFinance.Domain.FinancialProject
     {
         private Project() { }
 
-        public Project(Guid id = default, string name = "default", string preferredCurrency = "EUR", ProjectTypes projectType = ProjectTypes.Personal, ICollection<Category> categories = default, ICollection<Income> incomes = default)
+        public Project(Guid id = default, string name = "default", string preferredCurrency = "EUR", ProjectTypes projectType = ProjectTypes.Personal, ICollection<Category> categories = default, ICollection<Income> incomes = default, ICollection<Client> clients = default)
             : base(id)
         {
             SetName(name);
             SetCategories(categories ?? []);
             SetPreferredCurrency(preferredCurrency);
             SetIncomes(incomes ?? []);
+            SetClients(clients ?? []);
             SetType(projectType);
         }
 
@@ -28,6 +29,7 @@ namespace EasyFinance.Domain.FinancialProject
         public string PreferredCurrency { get; private set; } = string.Empty;
         public ICollection<Category> Categories { get; private set; } = [];
         public ICollection<Income> Incomes { get; private set; } = [];
+        public ICollection<Client> Clients { get; private set; } = [];
         public ProjectTypes Type { get; private set; } = ProjectTypes.Personal;
 
         public override AppResponse Validate
@@ -52,6 +54,10 @@ namespace EasyFinance.Domain.FinancialProject
                 if (incomesValidation.Any(c => c.Failed))
                     response.AddErrorMessage(incomesValidation.SelectMany(c => c.Messages.AddPrefix(nameof(this.Incomes))));
 
+                var clientsValidation = Clients.Select(c => c.Validate).ToList();
+                if (clientsValidation.Any(c => c.Failed))
+                    response.AddErrorMessage(clientsValidation.SelectMany(c => c.Messages.AddPrefix(nameof(this.Clients))));
+
                 return response;
             }
         }
@@ -74,6 +80,11 @@ namespace EasyFinance.Domain.FinancialProject
         public void SetIncomes(ICollection<Income> incomes)
         {
             Incomes = incomes ?? throw new ArgumentNullException(null, string.Format(ValidationMessages.PropertyCantBeNull, nameof(incomes)));
+        }
+
+        public void SetClients(ICollection<Client> clients)
+        {
+            Clients = clients ?? throw new ArgumentNullException(null, string.Format(ValidationMessages.PropertyCantBeNull, nameof(clients)));
         }
 
         public void SetPreferredCurrency(string preferredCurrency)

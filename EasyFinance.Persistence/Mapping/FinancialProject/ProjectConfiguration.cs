@@ -35,6 +35,10 @@ namespace EasyFinance.Persistence.Mapping.FinancialProject
             builder.HasMany(p => p.Incomes)
                 .WithOne()
                 .IsRequired();
+
+            builder.HasMany(p => p.Clients)
+                .WithOne()
+                .IsRequired();
         }
     }
 }

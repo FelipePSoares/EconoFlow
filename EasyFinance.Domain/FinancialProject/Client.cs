@@ -1,8 +1,6 @@
 ﻿using System;
-using EasyFinance.Domain.Financial;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
-using EasyFinance.Infrastructure.Validators;
 
 namespace EasyFinance.Domain.FinancialProject
 {
@@ -10,9 +8,20 @@ namespace EasyFinance.Domain.FinancialProject
     {
         private Client() { }
 
-        public Client(Guid Id, string Name = "") : base(Id)
+        public Client(
+            Guid id,
+            string name = "Default",
+            string email = "",
+            string phone = "",
+            bool isActive = true,
+            string description = "") : base(id)
         {
-            
+            SetName(name);
+            SetEmail(email);
+            SetPhone(phone);
+            SetDescription(description);
+
+            this.IsActive = isActive;
         }
 
         public string Name { get; private set; } = string.Empty;
@@ -20,6 +29,7 @@ namespace EasyFinance.Domain.FinancialProject
         public string Phone { get; private set; } = string.Empty;
         public bool IsActive { get; private set; } = true;
         public string Description { get; private set; } = string.Empty;
+        public bool IsArchived { get; private set; } = false;
 
         public override AppResponse Validate
         {
@@ -32,6 +42,34 @@ namespace EasyFinance.Domain.FinancialProject
 
                 return response;
             }
+        }
+
+        public void SetName(string name){
+            this.Name = name;
+        }
+
+        public void SetEmail(string email){
+            this.Email = email;
+        }
+
+        public void SetPhone(string phone){
+            this.Phone = phone;
+        }
+
+        public void SetDescription(string description){
+            this.Description = description;
+        }
+
+        public void SetActive(){
+            this.IsActive = true;
+        }
+
+        public void SetDeative(){
+            this.IsActive = false;
+        }
+
+        public void SetArchived(){
+            this.IsArchived = true;
         }
     }
 }

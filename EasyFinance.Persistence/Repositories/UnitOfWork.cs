@@ -12,6 +12,7 @@ namespace EasyFinance.Persistence.Repositories
     {
         private bool disposed = false;
         private readonly EasyFinanceDatabaseContext context;
+        private readonly Lazy<IGenericRepository<Client>> clientRepository;
         private readonly Lazy<IGenericRepository<Project>> projectRepository;
         private readonly Lazy<IGenericRepository<UserProject>> userProjectRepository;
         private readonly Lazy<IGenericRepository<Income>> incomeRepository;
@@ -22,6 +23,7 @@ namespace EasyFinance.Persistence.Repositories
         public UnitOfWork(EasyFinanceDatabaseContext dbContext)
         {
             this.context = dbContext;
+            this.clientRepository = new Lazy<IGenericRepository<Client>>(() => new GenericRepository<Client>(this.context));
             this.projectRepository = new Lazy<IGenericRepository<Project>>(() => new GenericRepository<Project>(this.context));
             this.userProjectRepository = new Lazy<IGenericRepository<UserProject>>(() => new GenericRepository<UserProject>(this.context));
             this.incomeRepository = new Lazy<IGenericRepository<Income>>(() => new GenericRepository<Income>(this.context));
@@ -30,6 +32,7 @@ namespace EasyFinance.Persistence.Repositories
             this.expenseItemRepository = new Lazy<IGenericRepository<ExpenseItem>>(() => new GenericRepository<ExpenseItem>(this.context));
         }
 
+        public IGenericRepository<Client> ClientRepository => this.clientRepository.Value;
         public IGenericRepository<Project> ProjectRepository => this.projectRepository.Value;
         public IGenericRepository<UserProject> UserProjectRepository => this.userProjectRepository.Value;
         public IGenericRepository<Income> IncomeRepository => this.incomeRepository.Value;
