@@ -1,7 +1,9 @@
 ﻿using System.Net;
 using System.Security.Claims;
 using EasyFinance.Application.Features.AccessControlService;
+using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.FinancialProject;
 
 namespace EasyFinance.Server.MiddleWare
 {
@@ -14,7 +16,7 @@ namespace EasyFinance.Server.MiddleWare
             this.next = next;
         }
 
-        public async Task InvokeAsync(HttpContext httpContext, IAccessControlService accessControlService)
+        public async Task InvokeAsync(HttpContext httpContext, IAccessControlService accessControlService, IProjectService projectService)
         {
             if (httpContext?.Request?.RouteValues != null && httpContext.Request.RouteValues.TryGetValue("projectId", out var projectIdValue))
             {
@@ -36,6 +38,17 @@ namespace EasyFinance.Server.MiddleWare
                     return;
                 }
 
+                if (httpContext.Request.Path.HasValue && httpContext.Request.Path.Value.Contains("/company"))
+                {
+                    var project = projectService.GetById(userId, projectId);
+
+                    if (project.Failed || project.Data.Project.Type != ProjectTypes.Company)
+                    {
+                        httpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                        return;
+                    }
+                }
+                
                 var accessNeeded = httpContext.Request.Method == "GET" ? Role.Viewer : Role.Manager;
 
                 var hasAuthorization = accessControlService.HasAuthorization(userId, projectId, accessNeeded);

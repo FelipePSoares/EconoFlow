@@ -25,5 +25,37 @@ namespace EasyFinance.Application.Mappers
                 IsActive = client.IsActive,
             };
         }
+
+        public static ClientRequestDTO ToRequestDTO(this Client client)
+        {
+            ArgumentNullException.ThrowIfNull(client);
+
+            return new ClientRequestDTO()
+            {
+                Name = client.Name,
+                Email = client.Email,
+                Phone = client.Phone,
+                Description = client.Description
+            };
+        }
+
+        public static IEnumerable<Client> FromDTO(this ICollection<ClientRequestDTO> clients) => clients.Select(c => c.FromDTO());
+
+        public static Client FromDTO(this ClientRequestDTO clientDTO, Client existingClient = null)
+        {
+            ArgumentNullException.ThrowIfNull(clientDTO);
+
+            if (existingClient != null)
+            {
+                existingClient.SetName(clientDTO.Name);
+                existingClient.SetEmail(clientDTO.Email);
+                existingClient.SetPhone(clientDTO.Phone);
+                existingClient.SetDescription(clientDTO.Description);
+                return existingClient;
+            }
+
+            return new Client(name: clientDTO.Name, email: clientDTO.Email, phone: clientDTO.Phone, description: clientDTO.Description);
+        }
+
     }
 }

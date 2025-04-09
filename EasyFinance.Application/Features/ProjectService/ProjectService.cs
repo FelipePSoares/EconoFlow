@@ -115,9 +115,7 @@ namespace EasyFinance.Application.Features.ProjectService
             if (result.Type == ProjectTypes.Company && userProject == default)
                 return AppResponse<ProjectResponseDTO>.Error(description: ValidationMessages.CompanyProjectNotAllowed);
 
-            await UpdateAsync(result);
-
-            return AppResponse<ProjectResponseDTO>.Success(result.ToDTO());
+            return await UpdateAsync(result);
         }
 
         public async Task<AppResponse> ArchiveAsync(Guid id)

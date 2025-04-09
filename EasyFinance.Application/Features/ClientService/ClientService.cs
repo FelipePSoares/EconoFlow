@@ -62,7 +62,31 @@ namespace EasyFinance.Application.Features.ProjectService
         }
         public async Task<AppResponse<ClientResponseDTO>> UpdateAsync(Guid clientId, JsonPatchDocument<ClientRequestDTO> clientDto)
         {
-            throw new NotImplementedException();
+            var existingClient = unitOfWork.ClientRepository
+                .Trackable()
+                .FirstOrDefault(c => c.Id == clientId) ?? throw new KeyNotFoundException(ValidationMessages.ClientNotFound);
+
+            var dto = existingClient.ToRequestDTO();
+
+            clientDto.ApplyTo(dto);
+
+            var result = dto.FromDTO(existingClient);
+
+            return await UpdateAsync(result);
+        }
+
+        public async Task<AppResponse<ClientResponseDTO>> UpdateAsync(Client client)
+        {
+            if (client == default)
+                return AppResponse<ClientResponseDTO>.Error(code: nameof(client), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(client)));
+
+            var savedProject = unitOfWork.ClientRepository.InsertOrUpdate(client);
+            if (savedProject.Failed)
+                return AppResponse<ClientResponseDTO>.Error(savedProject.Messages);
+
+            await unitOfWork.CommitAsync();
+
+            return AppResponse<ClientResponseDTO>.Success(client.ToDTO());
         }
 
         public async Task<AppResponse> ActivateAsync(Guid id)
