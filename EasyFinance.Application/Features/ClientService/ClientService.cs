@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.DTOs.FinancialProject;
 using EasyFinance.Application.Mappers;
-using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
@@ -89,7 +88,7 @@ namespace EasyFinance.Application.Features.ProjectService
             return AppResponse<ClientResponseDTO>.Success(client.ToDTO());
         }
 
-        public async Task<AppResponse> ActivateAsync(Guid id)
+        public async Task<AppResponse<ClientResponseDTO>> ActivateAsync(Guid id)
         {
             var client = await unitOfWork.ClientRepository.Trackable()
                 .FirstOrDefaultAsync(c => c.Id == id) ?? throw new KeyNotFoundException(ValidationMessages.ClientNotFound);
@@ -98,11 +97,11 @@ namespace EasyFinance.Application.Features.ProjectService
 
             var savedClient = unitOfWork.ClientRepository.InsertOrUpdate(client);
             if (savedClient.Failed)
-                return AppResponse.Error(savedClient.Messages);
+                return AppResponse<ClientResponseDTO>.Error(savedClient.Messages);
 
             await unitOfWork.CommitAsync();
 
-            return AppResponse.Success();
+            return AppResponse<ClientResponseDTO>.Success(savedClient.Data.ToDTO());
         }
         public async Task<AppResponse> DeactivateAsync(Guid id)
         {

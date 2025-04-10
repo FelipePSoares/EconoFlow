@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using EasyFinance.Application.DTOs.FinancialProject;
-using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.JsonPatch;
@@ -17,7 +16,7 @@ namespace EasyFinance.Application.Features.ProjectService
         Task<AppResponse<ClientResponseDTO>> CreateAsync(Guid projectId, Client client);
         Task<AppResponse<ClientResponseDTO>> UpdateAsync(Guid clientId, JsonPatchDocument<ClientRequestDTO> clientDto);
 
-        Task<AppResponse> ActivateAsync(Guid id);
+        Task<AppResponse<ClientResponseDTO>> ActivateAsync(Guid id);
         Task<AppResponse> DeactivateAsync(Guid id);
         Task<AppResponse> ArchiveAsync(Guid id);
     }

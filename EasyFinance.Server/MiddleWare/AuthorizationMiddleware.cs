@@ -38,7 +38,7 @@ namespace EasyFinance.Server.MiddleWare
                     return;
                 }
 
-                if (httpContext.Request.Path.HasValue && httpContext.Request.Path.Value.Contains("/company"))
+                if (httpContext.Request.Path.HasValue && httpContext.Request.Path.Value.Contains("/company", StringComparison.InvariantCultureIgnoreCase))
                 {
                     var project = projectService.GetById(userId, projectId);
 

@@ -83,6 +83,7 @@ jobs:
 
     - name: Publish Test Summary
       uses: dorny/test-reporter@v1
+      continue-on-error: true
       if: always()
       with:
         name: Test Results
