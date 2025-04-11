@@ -1,5 +1,6 @@
 import { Routes, mapToCanActivate } from '@angular/router';
 import { AuthGuard } from '../core/guards/auth-guard';
+import { AccessGuard } from '../core/guards/access-guard';
 
 import { IndexComponent } from './not-authenticated-area/index/index.component';
 import { PrivacyPolicyComponent } from './not-authenticated-area/privacy-policy/privacy-policy.component';
@@ -29,6 +30,8 @@ import { AddExpenseComponent } from './expense/add-expense/add-expense.component
 import { AddExpenseItemComponent } from './expense/add-expense-item/add-expense-item.component';
 import { ListExpensesComponent } from './expense/list-expenses/list-expenses.component';
 
+import { ClientComponent } from './client/client.component';
+
 import { DetailUserComponent } from './user/detail-user/detail-user.component';
 
 export const routes: Routes = [
@@ -55,5 +58,6 @@ export const routes: Routes = [
   { path: 'projects/:projectId/categories/:categoryId/add-expense', component: AddExpenseComponent, canActivate: mapToCanActivate([AuthGuard]), outlet: 'modal', data: { title: 'CreateExpense' } },
   { path: 'projects/:projectId/categories/:categoryId/expenses', component: ListExpensesComponent, canActivate: mapToCanActivate([AuthGuard]) },
   { path: 'projects/:projectId/categories/:categoryId/expenses/:expenseId/add-expense-item', component: AddExpenseItemComponent, canActivate: mapToCanActivate([AuthGuard]), outlet: 'modal', data: { title: 'CreateExpense' } },
+  { path: 'projects/:projectId/clients', component: ClientComponent, canActivate: mapToCanActivate([AuthGuard, AccessGuard]) },
   { path: '**', redirectTo: 'projects' },
 ];
