@@ -1,6 +1,4 @@
 ﻿using System.Net;
-using System.Security.Claims;
-using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.DTOs.FinancialProject;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Application.Mappers;
@@ -11,7 +9,7 @@ namespace EasyFinance.Server.Controllers
 {
     [ApiController]
     [Route("api/Projects/{projectId}/Company/[controller]")]
-    public class ClientController(IClientService clientService) : BaseController
+    public class ClientsController(IClientService clientService) : BaseController
     {
         private readonly IClientService clientService = clientService;
 
@@ -63,7 +61,7 @@ namespace EasyFinance.Server.Controllers
         {
             var result = await clientService.ActivateAsync(clientId);
 
-            return ValidateResponse(result, HttpStatusCode.NoContent);
+            return ValidateResponse(result, HttpStatusCode.OK);
         }
 
         [HttpPut("{clientId}/archive")]

@@ -124,6 +124,7 @@ try
         project.AddIncome(income);
         project.AddIncome(income2);
         project.AddCategory(category);
+        project.SetType(ProjectTypes.Company);
         unitOfWork.ProjectRepository.Insert(project);
 
         var userProject = new UserProject(user, project, Role.Admin);

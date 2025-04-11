@@ -3,6 +3,7 @@
 * Node v18.19 or higher
 * .NET SDK v8.0
 * Cypress for E2E tests
+* Angular Cli (to generate new components)
 
 We do not recommend use the VS for mac because microsoft stopped the support after Aug 31, 2024	and it didn't support .Net 8 officially.
 https://learn.microsoft.com/en-us/visualstudio/releases/2022/what-happened-to-vs-for-mac?view=vsmac-2022
