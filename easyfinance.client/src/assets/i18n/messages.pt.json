@@ -19,6 +19,9 @@
   "FieldBudget": "Orçamento",
   "FieldAnnualIncome": "Renda média anual",
   "FieldCompanyProject": "Projeto de empresa",
+  "FieldClientName": "Nome",
+  "FieldPhone": "Telefone",
+  "FieldDescription": "Descrição",
 
   "PlaceholderEmailAddress": "nome@exemplo.com",
   "PlaceholderPassword": "Senha",
@@ -29,6 +32,9 @@
   "PlaceholderProjectName": "Ex: Pessoal, Famíliar, Econoflow",
   "PlaceholderIncomeName": "Ex: Salário, Retorno Investimentos, Renda Extra",
   "PlaceholderExpenseName": "Ex: Aluguel, Mercado, Internet",
+  "PlaceholderClientName": "João da Silva",
+  "PlaceholderPhone": "11912345678",
+  "PlaceholderDescription": "Anotações sobre o cliente",
 
   "ButtonSignIn": "Logar",
   "ButtonSignUp": "Cadastrar",
@@ -56,6 +62,7 @@
   "ButtonAddItem": "Adicionar Item",
   "ButtonAddCategory": "Adicionar Categoria",
   "ButtonSkipSmartSetup": "Pular Configuração Inteligente",
+  "ButtonAddClient": "Adicionar Cliente",
 
   "RequiredField": "Este campo é obrigatório.",
   "InvalidEmailFormat": "Email com formato inválido.",

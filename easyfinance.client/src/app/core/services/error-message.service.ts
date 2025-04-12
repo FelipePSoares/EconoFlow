@@ -23,10 +23,15 @@ export class ErrorMessageService {
               errors.push('InvalidEmailFormat');
               break;
             case 'pattern':
-              if (fieldName === 'budget') {
-                errors.push('OnlyNumbersIsValid');
+              switch (fieldName) {
+                case 'phone':
+                case 'budget':
+                  errors.push('OnlyNumbersIsValid');
+                  break;
+                default:
+                  errors.push('');
+                  break;
               }
-              errors.push('');
               break;
             case 'min':
               errors.push(this.translate.instant('ValueShouldBeGreaterThan', { value: control.errors[key].min }));

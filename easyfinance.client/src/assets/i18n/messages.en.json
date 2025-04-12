@@ -19,6 +19,9 @@
   "FieldBudget": "Budget",
   "FieldAnnualIncome": "Average annual income",
   "FieldCompanyProject": "Company Project",
+  "FieldClientName": "Name",
+  "FieldPhone": "Phone",
+  "FieldDescription": "Description",
 
   "PlaceholderEmailAddress": "name@example.com",
   "PlaceholderPassword": "Password",
@@ -29,6 +32,9 @@
   "PlaceholderProjectName": "E.g., Personal, Family, Econoflow",
   "PlaceholderIncomeName": "E.g., Salary, Side Job, Investment Returns",
   "PlaceholderExpenseName": "E.g., Rent, Grocery Shopping, Internet Bill",
+  "PlaceholderClientName": "John Smith",
+  "PlaceholderPhone": "11912345678",
+  "PlaceholderDescription": "Some notes about the client",
 
   "ButtonSignIn": "Sign in",
   "ButtonSignUp": "Sign Up",
@@ -56,6 +62,7 @@
   "ButtonAddItem": "Add Item",
   "ButtonAddCategory": "Add Category",
   "ButtonSkipSmartSetup": "Skip Smart Setup",
+  "ButtonAddClient": "Add Client",
 
   "RequiredField": "This field is required.",
   "InvalidEmailFormat": "Invalid email format.",
@@ -181,5 +188,5 @@
   "Total": "Total",
   "MonthlyDistribution": "Monthly distribution",
   "PleaseInformUsAverageAnnualIncomeThisProject": "Please, inform for us the average annual income for this project.",
-  "Clients": "Clients",
+  "Clients": "Clients"
 }

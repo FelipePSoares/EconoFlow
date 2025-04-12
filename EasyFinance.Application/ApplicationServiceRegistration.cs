@@ -20,6 +20,7 @@ namespace EasyFinance.Application
             services.AddScoped<IExpenseService, ExpenseService>();
             services.AddScoped<IExpenseItemService, ExpenseItemService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IClientService, ClientService>();
 
             return services;
         }

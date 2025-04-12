@@ -3,8 +3,6 @@
     <div class="col-12 col-md-10 col-lg-8">
       <!-- Header Section -->
       <div class="d-flex justify-content-between align-items-center mb-4">
-        <app-return-button (returnButtonEvent)="previous()"></app-return-button>
-
         <h2 class="text-center flex-grow-1 m-0">{{ 'Clients' | translate }}</h2>
       </div>
 
@@ -12,7 +10,7 @@
       <mat-card class="mb-4">
         <mat-card-content>
           <div class="list-group list-group-flush">
-            @for (client of (clients$ | async); track income.id) {
+            @for (client of (clients$ | async); track client.id) {
             <div class="list-group-item">
               @if (client.id != this.editingClient.id) {
               <div class="d-flex w-100 justify-content-between align-items-center">
@@ -21,18 +19,24 @@
                     <div class="flex-grow-1">
                       <h2 class="mb-1 fw-bold name">{{ client.name }}</h2>
                       <p class="text-muted fs-6">
+                        @if (client.email){
                         <span class="me-3 date">
-                          <i class="bi bi-calendar me-1"></i>
+                          <i class="bi bi-envelope-at me-1"></i>
                           {{ client.email }}
                         </span>
+                        }
+                        @if (client.phone){
                         <span class="text-nowrap amount">
-                          <i class="bi bi-cash-coin me-1"></i>
+                          <i class="bi bi-telephone me-1"></i>
                           {{ client.phone }}
                         </span>
+                        }
+                        @if (client.description){
                         <span class="text-nowrap amount">
-                          <i class="bi bi-cash-coin me-1"></i>
+                          <i class="bi bi-card-text me-1"></i>
                           {{ client.description }}
                         </span>
+                        }
                       </p>
                     </div>
                   </div>
@@ -45,24 +49,19 @@
                           (click)="edit(client)">
                     <fa-icon [icon]="faPenToSquare"></fa-icon>
                   </button>
-                  <button name="delete"
-                          class="btn btn-outline-danger"
-                          (click)="triggerDelete(client)">
-                    <fa-icon [icon]="faTrash"></fa-icon>
-                  </button>
                 </div>
                 }
               </div>
               } @else {
               <!-- Inline Edit Form -->
-              <form [formGroup]="incomeForm" (ngSubmit)="save()">
+              <form [formGroup]="clientForm" (ngSubmit)="save()">
                 <div class="row g-3">
                   <div class="col-md-6">
                     <mat-form-field appearance="fill" class="w-100">
-                      <mat-label>{{ 'FieldIncomeName' | translate }}</mat-label>
+                      <mat-label>{{ 'FieldClientName' | translate }}</mat-label>
                       <input matInput
                              id="name"
-                             placeholder="{{ 'PlaceholderIncomeName' | translate }}"
+                             placeholder="{{ 'PlaceholderClientName' | translate }}"
                              formControlName="name">
                       @if ((name?.invalid && name?.touched) || httpErrors) {
                       <mat-error *ngFor="let error of getFormFieldErrors('name')">
@@ -74,15 +73,13 @@
 
                   <div class="col-md-6">
                     <mat-form-field appearance="fill" class="w-100">
-                      <mat-label>{{ 'FieldDate' | translate }}</mat-label>
+                      <mat-label>{{ 'FieldEmailAddress' | translate }}</mat-label>
                       <input matInput
-                             [matDatepicker]="picker"
-                             formControlName="date"
-                             id="date">
-                      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-                      <mat-datepicker #picker></mat-datepicker>
-                      @if ((date?.invalid && date?.touched) || httpErrors) {
-                      <mat-error *ngFor="let error of getFormFieldErrors('date')">
+                             id="email"
+                             placeholder="{{ 'PlaceholderEmailAddress' | translate }}"
+                             formControlName="email">
+                      @if ((email?.invalid && email?.touched) || httpErrors) {
+                      <mat-error *ngFor="let error of getFormFieldErrors('email')">
                         {{ error | translate }}
                       </mat-error>
                       }
@@ -91,21 +88,28 @@
 
                   <div class="col-md-6">
                     <mat-form-field appearance="fill" class="w-100">
-                      <mat-label>{{ 'FieldAmount' | translate }}</mat-label>
+                      <mat-label>{{ 'FieldPhone' | translate }}</mat-label>
                       <input matInput
-                             type="text"
-                             inputmode="numeric"
-                             currencyMask
-                             [options]="{
-                              prefix: currencySymbol,
-                              allowNegative: false,
-                              thousands: thousandSeparator,
-                              decimal: decimalSeparator,
-                              precision: 2
-                            }"
-                             formControlName="amount">
-                      @if ((amount?.invalid && amount?.touched) || httpErrors) {
-                      <mat-error *ngFor="let error of getFormFieldErrors('amount')">
+                             id="phone"
+                             placeholder="{{ 'PlaceholderPhone' | translate }}"
+                             formControlName="phone">
+                      @if ((phone?.invalid && phone?.touched) || httpErrors) {
+                      <mat-error *ngFor="let error of getFormFieldErrors('phone')">
+                        {{ error | translate }}
+                      </mat-error>
+                      }
+                    </mat-form-field>
+                  </div>
+
+                  <div class="col-md-6">
+                    <mat-form-field appearance="fill" class="w-100">
+                      <mat-label>{{ 'FieldDescription' | translate }}</mat-label>
+                      <input matInput
+                             id="description"
+                             placeholder="{{ 'PlaceholderDescription' | translate }}"
+                             formControlName="description">
+                      @if ((description?.invalid && description?.touched) || httpErrors) {
+                      <mat-error *ngFor="let error of getFormFieldErrors('description')">
                         {{ error | translate }}
                       </mat-error>
                       }
@@ -122,7 +126,7 @@
                     <button mat-raised-button
                             color="primary"
                             type="submit"
-                            [disabled]="incomeForm.invalid">
+                            [disabled]="clientForm.invalid">
                       {{ 'ButtonSave' | translate }}
                     </button>
                   </div>
@@ -141,7 +145,7 @@
               <button class="btn btn-primary btn-add btn-lg w-100 d-flex justify-content-center align-items-center"
                       (click)="add()">
                 <fa-icon [icon]="faPlus" class="me-2"></fa-icon>
-                {{ 'ButtonAddIncome' | translate }}
+                {{ 'ButtonAddClient' | translate }}
               </button>
             </div>
             }
