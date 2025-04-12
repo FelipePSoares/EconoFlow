@@ -88,7 +88,8 @@ namespace EasyFinance.Application.Features.CategoryService
             if (from.HasValue && to.HasValue)
                 categories = (await this.unitOfWork.ProjectRepository.NoTrackable()
                         .Include(p => p.Categories)
-                        .ThenInclude(c => c.Expenses.Where(e => e.Date >= from && e.Date < to))
+                            .ThenInclude(c => c.Expenses.Where(e => e.Date >= from && e.Date < to))
+                                .ThenInclude(e => e.Items)
                         .FirstOrDefaultAsync(p => p.Id == projectId))?
                         .Categories
                         .ToDTO()
