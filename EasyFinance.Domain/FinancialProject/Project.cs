@@ -82,6 +82,11 @@ namespace EasyFinance.Domain.FinancialProject
             Incomes = incomes ?? throw new ArgumentNullException(null, string.Format(ValidationMessages.PropertyCantBeNull, nameof(incomes)));
         }
 
+        public void AddClient(Client client)
+        {
+            Clients.Add(client ?? throw new ArgumentNullException(null, string.Format(ValidationMessages.PropertyCantBeNull, nameof(client))));
+        }
+
         public void SetClients(ICollection<Client> clients)
         {
             Clients = clients ?? throw new ArgumentNullException(null, string.Format(ValidationMessages.PropertyCantBeNull, nameof(clients)));

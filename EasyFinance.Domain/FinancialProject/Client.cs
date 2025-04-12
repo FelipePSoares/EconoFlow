@@ -9,12 +9,11 @@ namespace EasyFinance.Domain.FinancialProject
         private Client() { }
 
         public Client(
-            Guid id = default,
             string name = "Default",
             string email = default,
             string phone = default,
             bool isActive = true,
-            string description = default) : base(id)
+            string description = default)
         {
             SetName(name);
             SetEmail(email);

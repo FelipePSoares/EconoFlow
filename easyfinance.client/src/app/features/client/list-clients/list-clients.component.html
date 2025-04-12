@@ -1,0 +1,153 @@
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-10 col-lg-8">
+      <!-- Header Section -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <app-return-button (returnButtonEvent)="previous()"></app-return-button>
+
+        <h2 class="text-center flex-grow-1 m-0">{{ 'Clients' | translate }}</h2>
+      </div>
+
+      <!-- Clients List -->
+      <mat-card class="mb-4">
+        <mat-card-content>
+          <div class="list-group list-group-flush">
+            @for (client of (clients$ | async); track income.id) {
+            <div class="list-group-item">
+              @if (client.id != this.editingClient.id) {
+              <div class="d-flex w-100 justify-content-between align-items-center">
+                <div class="flex-grow-1">
+                  <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                      <h2 class="mb-1 fw-bold name">{{ client.name }}</h2>
+                      <p class="text-muted fs-6">
+                        <span class="me-3 date">
+                          <i class="bi bi-calendar me-1"></i>
+                          {{ client.email }}
+                        </span>
+                        <span class="text-nowrap amount">
+                          <i class="bi bi-cash-coin me-1"></i>
+                          {{ client.phone }}
+                        </span>
+                        <span class="text-nowrap amount">
+                          <i class="bi bi-cash-coin me-1"></i>
+                          {{ client.description }}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                @if (canAddOrEdit()) {
+                <div class="btn-group ms-3">
+                  <button name="edit"
+                          class="btn btn-outline-secondary"
+                          (click)="edit(client)">
+                    <fa-icon [icon]="faPenToSquare"></fa-icon>
+                  </button>
+                  <button name="delete"
+                          class="btn btn-outline-danger"
+                          (click)="triggerDelete(client)">
+                    <fa-icon [icon]="faTrash"></fa-icon>
+                  </button>
+                </div>
+                }
+              </div>
+              } @else {
+              <!-- Inline Edit Form -->
+              <form [formGroup]="incomeForm" (ngSubmit)="save()">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <mat-form-field appearance="fill" class="w-100">
+                      <mat-label>{{ 'FieldIncomeName' | translate }}</mat-label>
+                      <input matInput
+                             id="name"
+                             placeholder="{{ 'PlaceholderIncomeName' | translate }}"
+                             formControlName="name">
+                      @if ((name?.invalid && name?.touched) || httpErrors) {
+                      <mat-error *ngFor="let error of getFormFieldErrors('name')">
+                        {{ error | translate }}
+                      </mat-error>
+                      }
+                    </mat-form-field>
+                  </div>
+
+                  <div class="col-md-6">
+                    <mat-form-field appearance="fill" class="w-100">
+                      <mat-label>{{ 'FieldDate' | translate }}</mat-label>
+                      <input matInput
+                             [matDatepicker]="picker"
+                             formControlName="date"
+                             id="date">
+                      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                      <mat-datepicker #picker></mat-datepicker>
+                      @if ((date?.invalid && date?.touched) || httpErrors) {
+                      <mat-error *ngFor="let error of getFormFieldErrors('date')">
+                        {{ error | translate }}
+                      </mat-error>
+                      }
+                    </mat-form-field>
+                  </div>
+
+                  <div class="col-md-6">
+                    <mat-form-field appearance="fill" class="w-100">
+                      <mat-label>{{ 'FieldAmount' | translate }}</mat-label>
+                      <input matInput
+                             type="text"
+                             inputmode="numeric"
+                             currencyMask
+                             [options]="{
+                              prefix: currencySymbol,
+                              allowNegative: false,
+                              thousands: thousandSeparator,
+                              decimal: decimalSeparator,
+                              precision: 2
+                            }"
+                             formControlName="amount">
+                      @if ((amount?.invalid && amount?.touched) || httpErrors) {
+                      <mat-error *ngFor="let error of getFormFieldErrors('amount')">
+                        {{ error | translate }}
+                      </mat-error>
+                      }
+                    </mat-form-field>
+                  </div>
+
+                  <div class="col-12 d-flex justify-content-end">
+                    <button mat-stroked-button
+                            type="button"
+                            class="me-2"
+                            (click)="cancelEdit()">
+                      {{ 'ButtonCancel' | translate }}
+                    </button>
+                    <button mat-raised-button
+                            color="primary"
+                            type="submit"
+                            [disabled]="incomeForm.invalid">
+                      {{ 'ButtonSave' | translate }}
+                    </button>
+                  </div>
+                </div>
+              </form>
+
+              <div *ngIf="httpErrors && errors['general']">
+                <p *ngFor="let error of errors['general']" class="mb-3 text-danger text-center">{{ error | translate }}</p>
+              </div>
+              }
+            </div>
+            }
+
+            @if (canAddOrEdit()) {
+            <div class="list-group-item text-center">
+              <button class="btn btn-primary btn-add btn-lg w-100 d-flex justify-content-center align-items-center"
+                      (click)="add()">
+                <fa-icon [icon]="faPlus" class="me-2"></fa-icon>
+                {{ 'ButtonAddIncome' | translate }}
+              </button>
+            </div>
+            }
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>
