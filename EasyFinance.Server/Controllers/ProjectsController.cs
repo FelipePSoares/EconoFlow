@@ -114,7 +114,9 @@ namespace EasyFinance.Server.Controllers
         {
             if (projectDto == null) return BadRequest();
 
-            var updateResult = await projectService.UpdateAsync(projectId: projectId, projectDto: projectDto);
+            var user = await this.userManager.GetUserAsync(this.HttpContext.User);
+
+            var updateResult = await projectService.UpdateAsync(user, projectId, projectDto);
 
             return ValidateResponse(updateResult, HttpStatusCode.OK);
         }

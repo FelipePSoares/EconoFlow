@@ -83,21 +83,7 @@ namespace EasyFinance.Application.Features.ProjectService
             return AppResponse<UserProjectResponseDTO>.Success(savedUserProject.Data.ToDTO());
         }
 
-        public async Task<AppResponse<ProjectResponseDTO>> UpdateAsync(Project project)
-        {
-            if (project == default)
-                return AppResponse<ProjectResponseDTO>.Error(code: nameof(project), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(project)));
-
-            var savedProject = unitOfWork.ProjectRepository.InsertOrUpdate(project);
-            if (savedProject.Failed)
-                return AppResponse<ProjectResponseDTO>.Error(savedProject.Messages);
-
-            await unitOfWork.CommitAsync();
-
-            return AppResponse<ProjectResponseDTO>.Success(project.ToDTO());
-        }
-
-        public async Task<AppResponse<ProjectResponseDTO>> UpdateAsync(Guid projectId, JsonPatchDocument<ProjectRequestDTO> projectDto)
+        public async Task<AppResponse<ProjectResponseDTO>> UpdateAsync(User user, Guid projectId, JsonPatchDocument<ProjectRequestDTO> projectDto)
         {
             var existingProject = unitOfWork.ProjectRepository
                 .Trackable()
@@ -109,11 +95,11 @@ namespace EasyFinance.Application.Features.ProjectService
 
             var result = dto.FromDTO(existingProject);
 
-            var userProject = await unitOfWork.UserProjectRepository.NoTrackable()
-                .FirstOrDefaultAsync(up => up.Project.Id == projectId && up.User.SubscriptionLevel >= SubscriptionLevels.Enterprise);
-
-            if (result.Type == ProjectTypes.Company && userProject == default)
-                return AppResponse<ProjectResponseDTO>.Error(description: ValidationMessages.CompanyProjectNotAllowed);
+            if (projectDto.Operations.Any(op => op.path == "/type"))
+            {
+                if (result.Type == ProjectTypes.Company && user.SubscriptionLevel < SubscriptionLevels.Enterprise)
+                    return AppResponse<ProjectResponseDTO>.Error(description: ValidationMessages.CompanyProjectNotAllowed);
+            }
 
             return await UpdateAsync(result);
         }
@@ -363,7 +349,21 @@ namespace EasyFinance.Application.Features.ProjectService
 
             await unitOfWork.CommitAsync();
 
-            return result;            
+            return result;
+        }
+
+        private async Task<AppResponse<ProjectResponseDTO>> UpdateAsync(Project project)
+        {
+            if (project == default)
+                return AppResponse<ProjectResponseDTO>.Error(code: nameof(project), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(project)));
+
+            var savedProject = unitOfWork.ProjectRepository.InsertOrUpdate(project);
+            if (savedProject.Failed)
+                return AppResponse<ProjectResponseDTO>.Error(savedProject.Messages);
+
+            await unitOfWork.CommitAsync();
+
+            return AppResponse<ProjectResponseDTO>.Success(project.ToDTO());
         }
     }
 }

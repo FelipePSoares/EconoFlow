@@ -19,8 +19,7 @@ namespace EasyFinance.Application.Features.ProjectService
 
         Task<AppResponse<UserProjectResponseDTO>> CreateAsync(User user, Project project, bool isFirstProject);
 
-        Task<AppResponse<ProjectResponseDTO>> UpdateAsync(Project project);
-        Task<AppResponse<ProjectResponseDTO>> UpdateAsync(Guid projectId, JsonPatchDocument<ProjectRequestDTO> projectDto);
+        Task<AppResponse<ProjectResponseDTO>> UpdateAsync(User user, Guid projectId, JsonPatchDocument<ProjectRequestDTO> projectDto);
 
         Task<AppResponse> ArchiveAsync(Guid id);
 
