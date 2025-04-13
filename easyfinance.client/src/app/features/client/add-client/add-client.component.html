@@ -1,0 +1,74 @@
+<div class="container text-center">
+  <div class="row justify-content-md-center">
+    <form [formGroup]="clientForm" (ngSubmit)="save()">
+
+      <!-- Name Field -->
+      <mat-form-field appearance="fill" class="w-100">
+        <mat-label>{{ 'FieldClientName' | translate }}</mat-label>
+        <input matInput
+               id="name"
+               placeholder="{{ 'PlaceholderClientName' | translate }}"
+               formControlName="name">
+        @if (name?.invalid && name?.touched) {
+        <mat-error *ngFor="let error of getFormFieldErrors('name')">
+          {{ error | translate }}
+        </mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Email Field -->
+      <mat-form-field appearance="fill" class="w-100">
+        <mat-label>{{ 'FieldEmailAddress' | translate }}</mat-label>
+        <input matInput
+               id="email"
+               placeholder="{{ 'PlaceholderEmailAddress' | translate }}"
+               formControlName="email">
+        @if (email?.invalid && email?.touched) {
+        <mat-error *ngFor="let error of getFormFieldErrors('email')">
+          {{ error | translate }}
+        </mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Phone Field -->
+      <mat-form-field appearance="fill" class="w-100">
+        <mat-label>{{ 'FieldPhone' | translate }}</mat-label>
+        <input matInput
+               id="phone"
+               placeholder="{{ 'PlaceholderPhone' | translate }}"
+               formControlName="phone">
+        @if (phone?.invalid && phone?.touched) {
+        <mat-error *ngFor="let error of getFormFieldErrors('phone')">
+          {{ error | translate }}
+        </mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Description Field -->
+      <mat-form-field appearance="fill" class="w-100">
+        <mat-label>{{ 'FieldDescription' | translate }}</mat-label>
+        <input matInput
+               id="description"
+               placeholder="{{ 'PlaceholderDescription' | translate }}"
+               formControlName="description">
+        @if (description?.invalid && description?.touched) {
+        <mat-error *ngFor="let error of getFormFieldErrors('description')">
+          {{ error | translate }}
+        </mat-error>
+        }
+      </mat-form-field>
+
+      <!-- General Error Display -->
+      <div *ngIf="httpErrors && errors['general']">
+        <p *ngFor="let error of errors['general']" class="mb-3 text-danger text-center">{{ error | translate }}</p>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="float-end">
+        <button mat-raised-button color="primary" type="submit" [disabled]="clientForm.invalid">
+          {{ 'ButtonCreate' | translate }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

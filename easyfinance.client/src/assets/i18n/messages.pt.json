@@ -22,6 +22,7 @@
   "FieldClientName": "Nome",
   "FieldPhone": "Telefone",
   "FieldDescription": "Descrição",
+  "FieldSearchClients": "Filtrar Clientes",
 
   "PlaceholderEmailAddress": "nome@exemplo.com",
   "PlaceholderPassword": "Senha",
@@ -35,6 +36,7 @@
   "PlaceholderClientName": "João da Silva",
   "PlaceholderPhone": "11912345678",
   "PlaceholderDescription": "Anotações sobre o cliente",
+  "PlaceholderSearchClients": "E.g., João, 11912345678, nome@exemplo.com",
 
   "ButtonSignIn": "Logar",
   "ButtonSignUp": "Cadastrar",
@@ -188,5 +190,10 @@
   "Total": "Total",
   "MonthlyDistribution": "Distribuição mensal",
   "PleaseInformUsAverageAnnualIncomeThisProject": "Por favor, informe-nos a renda média anual deste projeto.",
-  "Clients": "Clientes"
+  "Clients": "Clientes",
+  "CreateClient": "Criar Cliente",
+  "Active": "Ativo",
+  "Inactive": "Inativo",
+  "ArchiveClient": "Arquivar Cliente",
+  "AreYouSureYouWantArchiveClient": "Você tem certeza que quer arquivar o cliente <b>{{value}}</b>?"
 }

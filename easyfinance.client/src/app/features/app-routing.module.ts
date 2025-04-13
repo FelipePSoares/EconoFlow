@@ -31,6 +31,7 @@ import { AddExpenseItemComponent } from './expense/add-expense-item/add-expense-
 import { ListExpensesComponent } from './expense/list-expenses/list-expenses.component';
 
 import { ListClientsComponent } from './client/list-clients/list-clients.component';
+import { AddClientComponent } from './client/add-client/add-client.component';
 
 import { DetailUserComponent } from './user/detail-user/detail-user.component';
 
@@ -59,5 +60,6 @@ export const routes: Routes = [
   { path: 'projects/:projectId/categories/:categoryId/expenses', component: ListExpensesComponent, canActivate: mapToCanActivate([AuthGuard]) },
   { path: 'projects/:projectId/categories/:categoryId/expenses/:expenseId/add-expense-item', component: AddExpenseItemComponent, canActivate: mapToCanActivate([AuthGuard]), outlet: 'modal', data: { title: 'CreateExpense' } },
   { path: 'projects/:projectId/clients', component: ListClientsComponent, canActivate: mapToCanActivate([AuthGuard, AccessGuard]) },
+  { path: 'projects/:projectId/add-client', component: AddClientComponent, canActivate: mapToCanActivate([AuthGuard, AccessGuard]), outlet: 'modal', data: { title: 'CreateClient' } },
   { path: '**', redirectTo: 'projects' },
 ];

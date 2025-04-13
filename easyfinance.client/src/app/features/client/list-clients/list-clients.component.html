@@ -6,51 +6,93 @@
         <h2 class="text-center flex-grow-1 m-0">{{ 'Clients' | translate }}</h2>
       </div>
 
+      <!-- Search Field -->
+      <div class="mb-1">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>{{ 'FieldSearchClients' | translate }}</mat-label>
+          <input matInput
+                 type="text"
+                 [(ngModel)]="searchText"
+                 (input)="filterClients()"
+                 placeholder="{{ 'PlaceholderSearchClients' | translate }}">
+          <button *ngIf="searchText"
+                  matSuffix
+                  mat-icon-button
+                  aria-label="Clear"
+                  (click)="clearSearch()">
+            <mat-icon>close</mat-icon>
+          </button>
+          <mat-icon matPrefix>search</mat-icon>
+        </mat-form-field>
+      </div>
+
       <!-- Clients List -->
       <mat-card class="mb-4">
         <mat-card-content>
           <div class="list-group list-group-flush">
             @for (client of (clients$ | async); track client.id) {
-            <div class="list-group-item">
+            <div class="list-group-item" [class]="{ 'list-group-item-secondary':!client.isActive }">
               @if (client.id != this.editingClient.id) {
-              <div class="d-flex w-100 justify-content-between align-items-center">
-                <div class="flex-grow-1">
-                  <div class="d-flex align-items-center">
-                    <div class="flex-grow-1">
-                      <h2 class="mb-1 fw-bold name">{{ client.name }}</h2>
-                      <p class="text-muted fs-6">
-                        @if (client.email){
-                        <span class="me-3 date">
-                          <i class="bi bi-envelope-at me-1"></i>
-                          {{ client.email }}
-                        </span>
-                        }
-                        @if (client.phone){
-                        <span class="text-nowrap amount">
-                          <i class="bi bi-telephone me-1"></i>
-                          {{ client.phone }}
-                        </span>
-                        }
-                        @if (client.description){
-                        <span class="text-nowrap amount">
-                          <i class="bi bi-card-text me-1"></i>
-                          {{ client.description }}
-                        </span>
-                        }
-                      </p>
-                    </div>
-                  </div>
+              <div class="client-card p-1">
+                <!-- Header with name and status toggle -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h2 class="fw-bold m-0">{{ client.name }}</h2>
+
+                  @if (canAddOrEdit()) {
+                  <mat-slide-toggle [checked]="client.isActive"
+                                    (click)="changeStatus(client)"
+                                    color="primary">
+                    <span class="ms-1 text-muted small">{{ (client.isActive ? 'Active' : 'Inactive') | translate }}</span>
+                  </mat-slide-toggle>
+                  }
                 </div>
 
-                @if (canAddOrEdit()) {
-                <div class="btn-group ms-3">
-                  <button name="edit"
-                          class="btn btn-outline-secondary"
-                          (click)="edit(client)">
-                    <fa-icon [icon]="faPenToSquare"></fa-icon>
-                  </button>
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <div class="d-flex flex-wrap">
+                    <!-- Contact information with clear icons -->
+                    <div class="contact-info me-3">
+                      @if (client.email){
+                      <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-envelope-at text-primary me-2"></i>
+                        <span>{{ client.email }}</span>
+                      </div>
+                      }
+                      @if (client.phone){
+                      <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-telephone text-primary me-2"></i>
+                        <span>{{ client.phone }}</span>
+                      </div>
+                      }
+                    </div>
+
+                    <!-- Description section -->
+                    @if (client.description){
+                    <div class="description-section mb-3">
+                      <div class="d-flex align-items-start">
+                        <i class="bi bi-card-text text-primary me-2 mt-1"></i>
+                        <p class="m-0">{{ client.description }}</p>
+                      </div>
+                    </div>
+                    }
+                  </div>
+
+                  <!-- Action buttons in footer -->
+                  @if (canAddOrEdit()) {
+                  <div class="btn-group actions mt-3">
+                    <button name="edit"
+                            class="btn btn-outline-secondary"
+                            (click)="edit(client)">
+                      <fa-icon [icon]="faPenToSquare" class="me-1"></fa-icon>
+                    </button>
+                    <button name="archive"
+                            class="btn btn-outline-danger"
+                            (click)="triggerArchive(client)">
+                      <fa-icon [icon]="faBoxArchive" class="me-1"></fa-icon>
+                    </button>
+                  </div>
+                  }
                 </div>
-                }
               </div>
               } @else {
               <!-- Inline Edit Form -->
@@ -63,7 +105,7 @@
                              id="name"
                              placeholder="{{ 'PlaceholderClientName' | translate }}"
                              formControlName="name">
-                      @if ((name?.invalid && name?.touched) || httpErrors) {
+                      @if (name?.invalid && name?.touched) {
                       <mat-error *ngFor="let error of getFormFieldErrors('name')">
                         {{ error | translate }}
                       </mat-error>
@@ -78,7 +120,7 @@
                              id="email"
                              placeholder="{{ 'PlaceholderEmailAddress' | translate }}"
                              formControlName="email">
-                      @if ((email?.invalid && email?.touched) || httpErrors) {
+                      @if (email?.invalid && email?.touched) {
                       <mat-error *ngFor="let error of getFormFieldErrors('email')">
                         {{ error | translate }}
                       </mat-error>
@@ -93,7 +135,7 @@
                              id="phone"
                              placeholder="{{ 'PlaceholderPhone' | translate }}"
                              formControlName="phone">
-                      @if ((phone?.invalid && phone?.touched) || httpErrors) {
+                      @if (phone?.invalid && phone?.touched) {
                       <mat-error *ngFor="let error of getFormFieldErrors('phone')">
                         {{ error | translate }}
                       </mat-error>
@@ -108,7 +150,7 @@
                              id="description"
                              placeholder="{{ 'PlaceholderDescription' | translate }}"
                              formControlName="description">
-                      @if ((description?.invalid && description?.touched) || httpErrors) {
+                      @if (description?.invalid && description?.touched) {
                       <mat-error *ngFor="let error of getFormFieldErrors('description')">
                         {{ error | translate }}
                       </mat-error>

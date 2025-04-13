@@ -1,16 +1,19 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { BehaviorSubject, map, Observable } from 'rxjs';
-import { faPenToSquare, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faBoxArchive, faPenToSquare, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { MatDialog } from '@angular/material/dialog';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MatCardModule } from '@angular/material/card';
 import { CommonModule } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { Router } from '@angular/router';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButton } from '@angular/material/button';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatButton, MatButtonModule } from '@angular/material/button';
 import { MatFormField, MatFormFieldModule } from '@angular/material/form-field';
-import { MatInput } from '@angular/material/input';
+import { MatInput, MatInputModule } from '@angular/material/input';
+import { compare } from 'fast-json-patch';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { ClientService } from '../../../core/services/client.service';
 import { ProjectService } from '../../../core/services/project.service';
 import { mapper } from '../../../core/utils/mappings/mapper';
@@ -20,21 +23,24 @@ import { ClientDto } from '../models/client-dto';
 import { UserProjectDto } from '../../project/models/user-project-dto';
 import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
-import { compare } from 'fast-json-patch';
 import { ApiErrorResponse } from '../../../core/models/error';
+import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-list-clients',
   imports: [
     CommonModule,
+    FormsModule,
     ReactiveFormsModule,
     TranslateModule,
     FontAwesomeModule,
     MatCardModule,
     MatFormField,
     MatFormFieldModule,
-    MatInput,
-    MatButton
+    MatIconModule,
+    MatButtonModule,
+    MatInputModule,
+    MatSlideToggleModule
   ],
   templateUrl: './list-clients.component.html',
   styleUrl: './list-clients.component.css'
@@ -42,7 +48,10 @@ import { ApiErrorResponse } from '../../../core/models/error';
 export class ListClientsComponent implements OnInit {
   faPlus = faPlus;
   faPenToSquare = faPenToSquare;
+  faBoxArchive = faBoxArchive;
 
+  searchText = '';
+  private allClients: Client[] = [];
   private clients: BehaviorSubject<ClientDto[]> = new BehaviorSubject<ClientDto[]>([new ClientDto()]);
   clients$: Observable<ClientDto[]> = this.clients.asObservable();
 
@@ -62,7 +71,9 @@ export class ListClientsComponent implements OnInit {
     private dialog: MatDialog,
     private translateService: TranslateService,
     private errorMessageService: ErrorMessageService
-  ) { }
+  ) {
+    this.edit(this.editingClient);
+  }
 
   ngOnInit(): void {
     this.projectService.selectedUserProject$.subscribe(userProject => {
@@ -85,7 +96,10 @@ export class ListClientsComponent implements OnInit {
       .pipe(map(clients => mapper.mapArray(clients, Client, ClientDto)))
       .subscribe(
         {
-          next: res => this.clients.next(res)
+          next: res => {
+            this.allClients = res;
+            this.clients.next(res)
+          }
         });
   }
 
@@ -146,6 +160,54 @@ export class ListClientsComponent implements OnInit {
     });
   }
 
+  changeStatus(client: ClientDto): void {
+    if (client.isActive) {
+      this.clientService.deactivate(this.projectId, client.id).subscribe({
+        next: res => {
+          if (res) {
+            client.isActive = false;
+          }
+        }
+      });
+    } else {
+      this.clientService.activate(this.projectId, client.id).subscribe({
+        next: res => {
+          if (res) {
+            client.isActive = true;
+          }
+        }
+      });
+    }
+  }
+
+  triggerArchive(client: ClientDto): void {
+    const message = this.translateService.instant('AreYouSureYouWantArchiveClient', { value: client.name });
+
+    this.dialog.open(ConfirmDialogComponent, {
+      data: { title: 'ArchiveClient', message: message, action: 'ButtonArchive' },
+    }).afterClosed().subscribe((result) => {
+      if (result) {
+        this.archive(client);
+      }
+    });
+  }
+
+  private archive(client: ClientDto): void {
+    this.clientService.archive(this.projectId, client.id).subscribe({
+      next: () => {
+        const clientsNewArray: ClientDto[] = this.clients.getValue();
+
+        clientsNewArray.forEach((item, index) => {
+          if (item.id === client.id) {
+            clientsNewArray.splice(index, 1);
+          }
+        });
+
+        this.clients.next(clientsNewArray);
+      }
+    });
+  }
+
   edit(client: ClientDto): void {
     this.editingClient = client;
     this.clientForm = new FormGroup({
@@ -159,6 +221,29 @@ export class ListClientsComponent implements OnInit {
 
   cancelEdit(): void {
     this.editingClient = new ClientDto();
+  }
+
+  filterClients() {
+    if (!this.searchText.trim()) {
+      this.clients.next(this.allClients);
+      return;
+    }
+
+    const searchTermLower = this.searchText.toLowerCase().trim();
+
+    const filteredClients = this.allClients.filter(client =>
+      client.name.toLowerCase().includes(searchTermLower) ||
+      (client.email && client.email.toLowerCase().includes(searchTermLower)) ||
+      (client.phone && client.phone.toLowerCase().includes(searchTermLower)) ||
+      (client.description && client.description.toLowerCase().includes(searchTermLower))
+    );
+
+    this.clients.next(filteredClients);
+  }
+
+  clearSearch() {
+    this.searchText = '';
+    this.filterClients();
   }
 
   getFormFieldErrors(fieldName: string): string[] {

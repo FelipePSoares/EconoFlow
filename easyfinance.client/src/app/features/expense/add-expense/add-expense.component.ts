@@ -11,7 +11,6 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { ExpenseService } from '../../../core/services/expense.service';
 import { ExpenseDto } from '../models/expense-dto';
-import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
@@ -25,7 +24,6 @@ import { GlobalService } from '../../../core/services/global.service';
         CommonModule,
         FormsModule,
         ReactiveFormsModule,
-        ReturnButtonComponent,
         MatFormFieldModule,
         MatInputModule,
         MatButtonModule,
