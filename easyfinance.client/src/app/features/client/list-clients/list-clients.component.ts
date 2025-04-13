@@ -214,7 +214,7 @@ export class ListClientsComponent implements OnInit {
       id: new FormControl(client.id),
       name: new FormControl(client.name, [Validators.required]),
       email: new FormControl(client.email, [Validators.email]),
-      phone: new FormControl(client.phone, [Validators.pattern('^(0|[1-9][0-9]*)$')]),
+      phone: new FormControl(client.phone, [Validators.pattern('^([0-9]*)$')]),
       description: new FormControl(client.description)
     });
   }

@@ -118,7 +118,7 @@ try
         category.AddExpense(expense2);
         unitOfWork.CategoryRepository.Insert(category);
 
-        var client = new Client("John Lenon", "John@test.com");
+        var client = new Client("John Smith", "John@test.com");
         unitOfWork.ClientRepository.Insert(client);
 
         var ri = new RegionInfo("pt");
