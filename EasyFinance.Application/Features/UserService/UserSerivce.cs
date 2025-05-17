@@ -98,6 +98,9 @@ namespace EasyFinance.Application.Features.UserService
 
         public async Task DeleteUserAsync(User user)
         {
+            user.SetDefaultProject(null);
+            await this.userManager.UpdateAsync(user);
+
             await this.projectService.DeleteOrRemoveLinkAsync(user);
 
             var tasks = new List<Task>
