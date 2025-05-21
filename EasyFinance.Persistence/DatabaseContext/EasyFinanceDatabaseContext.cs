@@ -2,6 +2,7 @@
 using EasyFinance.Persistence.Mapping.AccessControl;
 using EasyFinance.Persistence.Mapping.Financial;
 using EasyFinance.Persistence.Mapping.FinancialProject;
+using EasyFinance.Persistence.Mapping.Support;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +28,9 @@ namespace EasyFinance.Persistence.DatabaseContext
             // FinancialProject
             modelBuilder.ApplyConfiguration(new ProjectConfiguration());
             modelBuilder.ApplyConfiguration(new ClientConfiguration());
+
+            //Support
+            modelBuilder.ApplyConfiguration(new ContactUsConfiguration());
 
             base.OnModelCreating(modelBuilder);
         }

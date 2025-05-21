@@ -27,12 +27,15 @@ export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     tap((event) => {
       if (event instanceof HttpResponse) {
-        if (event.status === 201) {
-          let translateService = injector.get(TranslateService);
+        console.log(" type " , event.url);
+        let translateService = injector.get(TranslateService);
+        if (event.status === 201 && event.url?.includes('support')) {
+          snackBar.openSuccessSnackbar(translateService.instant('MessageSuccess'));
+        } 
+        else if (event.status === 201) {
           snackBar.openSuccessSnackbar(translateService.instant('CreatedSuccess'));
         }
         if (req.method === 'DELETE' && event.status === 200) {
-          let translateService = injector.get(TranslateService);
           snackBar.openSuccessSnackbar(translateService.instant('DeletedSuccess'));
         }
       }

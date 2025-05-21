@@ -1,0 +1,124 @@
+/* Container on top */
+.contact-section {
+    width: 100%;
+    background-color: #f2f2f2;
+    padding: 40px 20px;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  /* Flex container */
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+  
+  /* Left side info */
+  .contact-left {
+    flex: 1 1 320px;
+    text-align: center;
+    margin-left: auto;       
+    margin-right: 40px;        
+    align-self: center; 
+  }
+  .contact-left h3 {
+    margin-bottom: 20px;
+    font-weight: 700;
+    font-size: 1.8rem;
+    color:#0d6efd !important;
+  }
+  
+  .contact-left p {
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  
+  .contact-left a {
+    color: #007acc;
+    text-decoration: none;
+  }
+  
+  .contact-left a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Right side form */
+  .contact-right {
+    flex: 1 1 400px;
+    background-color: #fff;
+    padding: 25px 30px;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  .contact-right h3 {
+    margin-bottom: 25px;
+    font-weight: 700;
+    font-size: 1.8rem;
+    color:#0d6efd !important;
+  }
+  
+  .form-row {
+    margin-bottom: 18px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  label {
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #444;
+  }
+  
+  input,
+  textarea {
+    padding: 10px 14px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    transition: border-color 0.3s ease;
+  }
+  
+  input:focus,
+  textarea:focus {
+    outline: none;
+    border-color: #007acc;
+  }
+  
+  .error {
+    margin-top: 4px;
+    color: #d9534f;
+    font-size: 0.9rem;
+  }
+  
+  button {
+    width: 100%;
+    padding: 12px 0;
+    background-color: #0d6efd;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.25s ease;
+  }
+  
+  button:hover {
+    background-color: #005ea6;
+  }
+  
+  /* Responsive: stack on smaller screens */
+  @media (max-width: 768px) {
+    .container {
+      flex-direction: column;
+    }
+    
+    .contact-left,
+    .contact-right {
+      flex: 1 1 100%;
+    }
+  }
+  

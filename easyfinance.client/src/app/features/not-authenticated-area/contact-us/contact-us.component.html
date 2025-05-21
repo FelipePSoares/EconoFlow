@@ -1,0 +1,54 @@
+<section class="contact-section">
+    <div class="container">
+      <div class="contact-left">
+        <h3>{{ 'ContactUs' | translate }}</h3>
+        <p><i class="fas fa-map-marker-alt fa-2x"></i><br/><strong>Address:</strong><br />123 Main Street, City, Country</p>
+        <p><i class="fas fa-phone fa-lg"></i><br/><strong>Phone:</strong><br /><a href="tel:+1234567890">+1 234 567 890</a></p>
+        <p><i class="fas fa-envelope fa-lg"></i><br/><strong>Email:</strong><br /><a href="mailto:info@example.com">info&#64;example.com</a></p>
+      </div>
+  
+      <div class="contact-right">
+        <h3>Send Us a Message</h3>
+        <form [formGroup]="contactForm" (ngSubmit)="onSubmit()" novalidate>
+          <div class="form-row">
+            <label for="name">Name</label>
+            <input id="name" type="text" formControlName="name" />
+            <div class="error" *ngIf="(f['name'].touched || submitted) && f['name'].errors">
+              Name is required.
+            </div>
+          </div>
+  
+          <div class="form-row">
+            <label for="email">Email</label>
+            <input id="email" type="email" formControlName="email" />
+            <div class="error" *ngIf="(f['email'].touched || submitted) && f['email'].errors">
+              <div *ngIf="f['email'].errors['required']">Email is required.</div>
+              <div *ngIf="f['email'].errors['email']">Email is invalid.</div>
+            </div>
+          </div>
+  
+          <div class="form-row">
+            <label for="subject">Subject</label>
+            <input id="subject" type="text" formControlName="subject" />
+            <div class="error" *ngIf="(f['subject'].touched || submitted) && f['subject'].errors">
+              Subject is required.
+            </div>
+          </div>
+  
+          <div class="form-row">
+            <label for="message">Message</label>
+            <textarea id="message" rows="4" formControlName="message"></textarea>
+            <div class="error" *ngIf="(f['message'].touched || submitted) && f['message'].errors">
+              <div *ngIf="f['message'].errors['required']">Message is required.</div>
+              <div *ngIf="f['message'].errors['minlength']">
+                Message must be at least 10 characters.
+              </div>
+            </div>
+          </div>
+  
+          <button type="submit">Send Message</button>
+        </form>
+      </div>
+    </div>
+  </section>
+  
