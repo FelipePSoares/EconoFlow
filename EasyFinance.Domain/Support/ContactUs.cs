@@ -11,7 +11,7 @@ namespace EasyFinance.Domain.Support
         private ContactUs() { }
          public ContactUs(string email, string subject, string message, string name = "default", User createdBy = default)
         {
-            SetCreatedBy(name);
+            SetCreatedBy(createdBy);
             SetName(name);
             SetEmail(email);
             SetSubject(subject);
@@ -28,7 +28,7 @@ namespace EasyFinance.Domain.Support
         [Required]
         public string Message { get; set; }
 
-        public string CreatedBy { get; private set; }
+        public User? CreatedBy { get; private set; }
 
         public void SetName(string name)
         {
@@ -70,7 +70,7 @@ namespace EasyFinance.Domain.Support
                 return response;
             }
         }
-        public void SetCreatedBy(string createdBy)
+        public void SetCreatedBy(User createdBy)
         {
             CreatedBy = createdBy;
         }

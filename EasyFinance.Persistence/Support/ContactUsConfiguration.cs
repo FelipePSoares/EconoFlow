@@ -14,8 +14,8 @@ namespace EasyFinance.Persistence.Mapping.Support
                 .HasMaxLength(150)
                 .IsRequired();
 
-            builder.Property(p => p.CreatedBy)
-                .IsRequired(); // Specify the relationship if applicable
+            builder.HasOne(p => p.CreatedBy)
+                .WithMany(); // Specify the relationship if applicable
 
             builder.Property(p => p.Email)
                 .HasMaxLength(256);
