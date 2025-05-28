@@ -43,12 +43,16 @@ namespace EasyFinance.Server.Config
                 case "Your grant access level has been changed.":
                     msg = CreateDefaultEmail(toEmail, subject, message);
                     break;
+                case "New Support Message Received":
+                    msg = CreateDefaultEmail(toEmail, subject, message);
+                    break;
                 default:
                     msg = CreateDefaultEmail(toEmail, subject, message);
                     break;
             }
 
             var response = await sendGridClient.SendEmailAsync(msg);
+
             this.logger.LogInformation(response.IsSuccessStatusCode
                                    ? "Email queued successfully!"
                                    : "Failure in queuing email");
