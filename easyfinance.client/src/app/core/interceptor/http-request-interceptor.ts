@@ -27,7 +27,6 @@ export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     tap((event) => {
       if (event instanceof HttpResponse) {
-        console.log(" type " , event.url);
         let translateService = injector.get(TranslateService);
         if (event.status === 201 && event.url?.includes('support')) {
           snackBar.openSuccessSnackbar(translateService.instant('MessageSuccess'));

@@ -11,7 +11,7 @@ namespace EasyFinance.Domain.Support
         private ContactUs() { }
          public ContactUs(string email, string subject, string message, string name = "default", User createdBy = default)
         {
-            SetCreatedBy(createdBy);
+            SetCreatedBy(createdBy ?? new User());
             SetName(name);
             SetEmail(email);
             SetSubject(subject);
@@ -28,22 +28,14 @@ namespace EasyFinance.Domain.Support
         [Required]
         public string Message { get; set; }
 
-        public User? CreatedBy { get; private set; }
+        public User CreatedBy { get; private set; } = new User();
 
         public void SetName(string name)
         {
-        if (string.IsNullOrWhiteSpace(name))
-            {
-            throw new ArgumentException("Name cannot be empty.");
-            }
             Name = name;
         }
         public void SetEmail(string email)
         {
-            if (string.IsNullOrWhiteSpace(email))
-            {
-                throw new ArgumentException("Email cannot be empty.");
-            }
             Email = email;
         }
         public void SetSubject(string subject)

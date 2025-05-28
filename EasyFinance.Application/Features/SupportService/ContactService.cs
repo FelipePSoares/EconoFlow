@@ -32,20 +32,20 @@ namespace EasyFinance.Application.Features.SupportService
             this.logger = logger;
             this.emailSender = emailSender;
         }
-        public async Task<AppResponse<ContactUsResponseDTO>> CreateAsync(ContactUs contactUs)
+        public async Task<AppResponse<ContactUsResponseDTO>> CreateAsync(User user,ContactUs contactUs)
         {
             if (contactUs == default)
                 return AppResponse<ContactUsResponseDTO>.Error(code: nameof(contactUs), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(contactUs)));
 
-            contactUs.SetCreatedBy(contactUs.Name);
-
+            contactUs.SetCreatedBy(user);
+           
             var savedContact = this.unitOfWork.ContactUsRepository.InsertOrUpdate(contactUs);
             if (savedContact.Failed)
                 return AppResponse<ContactUsResponseDTO>.Error(savedContact.Messages);
             await unitOfWork.CommitAsync();
 
             // Send email notification asynchronously after saving the contact message
-            await emailSender.SendEmailAsync( "abc@gmail.com", "New Support Message Received",$"You have received a new message from {contactUs.Name} ({contactUs.Email}):\n\nSubject: {contactUs.Subject}\n\nMessage:\n{contactUs.Message}"
+            await emailSender.SendEmailAsync( "contact@econoflow.pt", "New Support Message Received",$"You have received a new message from {contactUs.Name} ({contactUs.Email}):\n\nSubject: {contactUs.Subject}\n\nMessage:\n{contactUs.Message}"
             );
 
             return AppResponse<ContactUsResponseDTO>.Success(contactUs.ToDTO());

@@ -1,4 +1,5 @@
 import { AutoMap } from "@automapper/classes";
+import { User } from "./user";
 
 export class ContactUs {
     @AutoMap()
@@ -14,5 +15,5 @@ export class ContactUs {
     @AutoMap()
     createdAt!: Date;
     @AutoMap()
-    createdBy!: string;
+    createdBy!: User | null;
 }

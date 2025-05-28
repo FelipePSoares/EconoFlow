@@ -15,10 +15,12 @@ namespace EasyFinance.Application.Mappers
 
             return new ContactUsResponseDTO()
             {
+                Id=contactUs.Id,
                 Name = contactUs.Name,
                 Email = contactUs.Email,
                 Subject = contactUs.Subject,
-                Message = contactUs.Message
+                Message = contactUs.Message,
+                createdBy = contactUs.CreatedBy
             };
         }
 

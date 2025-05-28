@@ -9,6 +9,7 @@ import { ApiErrorResponse } from 'src/app/core/models/error';
 import { ContactUs } from 'src/app/core/models/contact-us';
 import { ErrorMessageService } from 'src/app/core/services/error-message.service';
 import { ContactUsDto } from './models/contactus-dto';
+import { User } from 'src/app/core/models/user';
 
 @Component({
   selector: 'app-contact-us',
@@ -25,6 +26,7 @@ export class ContactUsComponent {
   isLoggedIn = false;
   errors!: Record<string, string[]>;
   messages: ContactUs[] = [];
+  _user = new User();
 
   constructor(
     private fb: FormBuilder,
@@ -44,6 +46,7 @@ export class ContactUsComponent {
   ngOnInit(): void {
     this.userService.loggedUser$.subscribe(user => {
       if (user && user.email) {
+        this._user = user;
         this.isLoggedIn = true;
         this.contactForm.patchValue({
           name: user.fullName,
@@ -68,7 +71,8 @@ export class ContactUsComponent {
         name: name,
         email: email,
         subject: subject,
-        message: message
+        message: message,
+        createdBy: this.isLoggedIn ? this._user : null
       }) as ContactUsDto;
 
       this.contactUsService.add(contactData).subscribe({

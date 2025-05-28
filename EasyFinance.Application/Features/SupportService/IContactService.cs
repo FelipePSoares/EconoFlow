@@ -10,8 +10,8 @@ namespace EasyFinance.Application.Features.SupportService
 {
     public interface IContactService
     {
-        Task<AppResponse<ContactUsResponseDTO>> CreateAsync(ContactUs contactUs);
-        AppResponse<ContactUsResponseDTO> GetById(Guid incomeId);
+        Task<AppResponse<ContactUsResponseDTO>> CreateAsync(User user,ContactUs contactUs);
+        AppResponse<ContactUsResponseDTO> GetById(Guid messageId);
     
     }
 }

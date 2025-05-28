@@ -1,35 +1,34 @@
-<section class="contact-section">
-    <div class="container">
-        <h3>Send Us a Message</h3>
-        <form [formGroup]="contactForm" (ngSubmit)="onSubmit()" novalidate>
-          <div class="form-row">
+<section class="contact-container">
+        <h2>Send Us a Message</h2>
+        <form [formGroup]="contactForm" (ngSubmit)="onSubmit()">
+          <div class="form-group">
             <label for="name">Name</label>
-            <input id="name" type="text" formControlName="name" />
+            <input formControlName="name" id="name" type="text" placeholder="Your name" />
             <div class="error" *ngIf="(f['name'].touched || submitted) && f['name'].errors">
               Name is required.
             </div>
           </div>
   
-          <div class="form-row">
+          <div class="form-group">
             <label for="email">Email</label>
-            <input id="email" type="email" formControlName="email" />
+            <input formControlName="email" id="email" type="email" placeholder="Your email" />
             <div class="error" *ngIf="(f['email'].touched || submitted) && f['email'].errors">
               <div *ngIf="f['email'].errors['required']">Email is required.</div>
               <div *ngIf="f['email'].errors['email']">Email is invalid.</div>
             </div>
           </div>
   
-          <div class="form-row">
+          <div class="form-group">
             <label for="subject">Subject</label>
-            <input id="subject" type="text" formControlName="subject" />
+            <input formControlName="subject" id="subject" type="text" placeholder="Subject" />
             <div class="error" *ngIf="(f['subject'].touched || submitted) && f['subject'].errors">
               Subject is required.
             </div>
           </div>
   
-          <div class="form-row">
+          <div class="form-group">
             <label for="message">Message</label>
-            <textarea id="message" rows="4" formControlName="message"></textarea>
+            <textarea formControlName="message" id="message" rows="4" placeholder="Your message"></textarea>
             <div class="error" *ngIf="(f['message'].touched || submitted) && f['message'].errors">
               <div *ngIf="f['message'].errors['required']">Message is required.</div>
               <div *ngIf="f['message'].errors['minlength']">
@@ -38,9 +37,8 @@
             </div>
           </div>
   
-          <button type="submit">Send Message</button>
+          <button type="submit"  [disabled]="contactForm.invalid">Send Message</button>
         </form>
    
-    </div>
   </section>
   
