@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EasyFinance.Persistence.Migrations
 {
     [DbContext(typeof(EasyFinanceDatabaseContext))]
-    [Migration("20250528193333_ContactUsDb")]
+    [Migration("20250602175434_ContactUsDb")]
     partial class ContactUsDb
     {
         /// <inheritdoc />
@@ -378,48 +378,6 @@ namespace EasyFinance.Persistence.Migrations
                     b.ToTable("Incomes", (string)null);
                 });
 
-            modelBuilder.Entity("EasyFinance.Domain.FinancialProject.Client", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Email")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsArchived")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.Property<string>("Phone")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("ProjectId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProjectId");
-
-                    b.ToTable("Clients", (string)null);
-                });
-
             modelBuilder.Entity("EasyFinance.Domain.FinancialProject.Project", b =>
                 {
                     b.Property<Guid>("Id")
@@ -739,15 +697,6 @@ namespace EasyFinance.Persistence.Migrations
                     b.Navigation("CreatedBy");
                 });
 
-            modelBuilder.Entity("EasyFinance.Domain.FinancialProject.Client", b =>
-                {
-                    b.HasOne("EasyFinance.Domain.FinancialProject.Project", null)
-                        .WithMany("Clients")
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("EasyFinance.Domain.Support.ContactUs", b =>
                 {
                     b.HasOne("EasyFinance.Domain.AccessControl.User", "CreatedBy")
@@ -835,8 +784,6 @@ namespace EasyFinance.Persistence.Migrations
             modelBuilder.Entity("EasyFinance.Domain.FinancialProject.Project", b =>
                 {
                     b.Navigation("Categories");
-
-                    b.Navigation("Clients");
 
                     b.Navigation("Incomes");
                 });
