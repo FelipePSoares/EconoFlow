@@ -36,6 +36,9 @@ export class ErrorMessageService {
             case 'min':
               errors.push(this.translate.instant('ValueShouldBeGreaterThan', { value: control.errors[key].min }));
               break;
+            case 'minlength':
+              errors.push(this.translate.instant('TextShouldBeGreaterThan', { value: control.errors[key].requiredLength }));
+              break;
             default:
               errors = errors.concat(control.errors ? control.errors[key] : ['GenericError']);
           }

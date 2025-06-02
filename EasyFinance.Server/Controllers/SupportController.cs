@@ -30,11 +30,11 @@ namespace EasyFinance.Server.Controllers
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
             var createdMessage = await contactUsService.CreateAsync(user, contactUsDto.FromDTO());
 
-            return ValidateResponse(actionName: nameof(GetById), routeValues: new { messageId = createdMessage.Data.Id }, appResponse:
-            createdMessage);
+            return ValidateResponse(actionName: nameof(GetMessageById), routeValues: createdMessage.Data.Id, appResponse: createdMessage);
         }
 
-        public IActionResult GetById(Guid messageId)
+        [HttpGet]
+        public IActionResult GetMessageById(Guid messageId)
         {
             var message = contactUsService.GetById(messageId);
 

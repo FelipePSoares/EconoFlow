@@ -1,5 +1,5 @@
-import { Component, inject } from '@angular/core';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { Component } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UserService } from 'src/app/core/services/user.service';
 import { CommonModule } from '@angular/common';
@@ -10,11 +10,19 @@ import { ContactUs } from 'src/app/core/models/contact-us';
 import { ErrorMessageService } from 'src/app/core/services/error-message.service';
 import { ContactUsDto } from './models/contactus-dto';
 import { User } from 'src/app/core/models/user';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatButtonModule } from '@angular/material/button';
+import { MatInputModule } from '@angular/material/input';
 
 @Component({
   selector: 'app-contact-us',
   imports: [
-    TranslateModule, ReactiveFormsModule, CommonModule
+    TranslateModule,
+    ReactiveFormsModule,
+    CommonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
   ],
   templateUrl: './contact-us.component.html',
   styleUrls: ['./contact-us.component.css']
@@ -100,5 +108,8 @@ export class ContactUsComponent {
   get f() {
     return this.contactForm.controls;
   }
-  
+
+  getFormFieldErrors(fieldName: string): string[] {
+    return this.errorMessageService.getFormFieldErrors(this.contactForm, fieldName);
+  }
 }
