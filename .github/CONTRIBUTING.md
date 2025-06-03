@@ -64,6 +64,7 @@ This commands are **not required to run the application** when you change some o
 	* `dotnet ef migrations add {YourMigrationName} --context EasyFinanceDatabaseContext --project EasyFinance.Persistence --configuration release -s ./EasyFinance.Server`
 
 #### Visual Studio
+* Change for `Release`
 * Open Package Manager Console
 * Select `EasyFinance.Pesistence` as Default Project
 * Then run the following command line:
