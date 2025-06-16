@@ -18,6 +18,7 @@
   "FieldExpenseName": "Expense Name",
   "FieldBudget": "Budget",
   "FieldAnnualIncome": "Please enter your average annual income (not monthly)",
+  "FieldAnnualIncomeTooltip": "We use this to calculate your monthly distribution. Please enter your yearly income.",
   "FieldCompanyProject": "Company Project",
   "FieldClientName": "Name",
   "FieldPhone": "Phone",

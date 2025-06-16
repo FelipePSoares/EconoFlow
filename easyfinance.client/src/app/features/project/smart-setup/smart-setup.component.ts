@@ -10,6 +10,7 @@ import { CurrencyMaskModule } from 'ng2-currency-mask';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { MatIcon } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { Router } from '@angular/router';
@@ -34,6 +35,7 @@ import { CurrentDateComponent } from '../../../core/components/current-date/curr
     MatFormFieldModule,
     MatSliderModule,
     MatCardModule,
+    MatTooltipModule,
     TranslateModule,
     CurrencyMaskModule,
     CurrencyFormatPipe,

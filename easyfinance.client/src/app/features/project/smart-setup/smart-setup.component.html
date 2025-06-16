@@ -6,14 +6,14 @@
     <mat-form-field appearance="fill" class="w-100">
       <mat-label>
         {{ 'FieldAnnualIncome' | translate }}
-        <button mat-icon-button
-                matTooltip="We use this to calculate your monthly distribution. Please enter your yearly income."
-                class="p-0 ms-1"
-                style="vertical-align: middle;"
-                tabindex="-1"
-                aria-label="Info">
-          <mat-icon style="font-size: 18px;">info</mat-icon>
-        </button>
+        <mat-icon matSuffix
+                  matTooltip="{{ 'FieldAnnualIncomeTooltip' | translate }}"
+                  class="p-0 ms-1"
+                  style="vertical-align: middle;"
+                  tabindex="-1"
+                  aria-label="Info">
+          info
+        </mat-icon>
       </mat-label>
 
       <input matInput
