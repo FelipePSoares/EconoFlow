@@ -23,7 +23,7 @@ import { CurrentDateComponent } from '../../../core/components/current-date/curr
 import { ApiErrorResponse } from "../../../core/models/error";
 import { ErrorMessageService } from "../../../core/services/error-message.service";
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
-import { dateUTC } from '../../../core/utils/date';
+import { formatDate } from '../../../core/utils/date';
 import { GlobalService } from '../../../core/services/global.service';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
 import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
@@ -136,16 +136,17 @@ export class ListIncomesComponent implements OnInit {
     if (this.incomeForm.valid) {
       const id = this.id?.value;
       const name = this.name?.value;
-      const date = this.date?.value.toISOString().split("T")[0];
-      let amount = this.amount?.value;
+      const date: any = formatDate(this.date?.value);
+      const amount = this.amount?.value;
 
-      var newIncome = <IncomeDto>({
+      const newIncome = ({
         id: id,
         name: name,
         amount: amount === "" || amount === null ? 0 : amount,
         date: date
-      })
-      var patch = compare(this.editingIncome, newIncome);
+      }) as IncomeDto;
+
+      const patch = compare(this.editingIncome, newIncome);
 
       this.incomeService.update(this.projectId, id, patch).subscribe({
         next: response => {
@@ -179,7 +180,7 @@ export class ListIncomesComponent implements OnInit {
 
   edit(income: IncomeDto): void {
     this.editingIncome = income;
-    let newDate = dateUTC(income.date);
+    const newDate = new Date(income.date);
     this.incomeForm = new FormGroup({
       id: new FormControl(income.id),
       name: new FormControl(income.name, [Validators.required]),
@@ -208,7 +209,7 @@ export class ListIncomesComponent implements OnInit {
 
   triggerDelete(income: IncomeDto): void {
     this.itemToDelete = income.id;
-    var message = this.translateService.instant('AreYouSureYouWantDeleteIncome', { value: income.name });
+    const message = this.translateService.instant('AreYouSureYouWantDeleteIncome', { value: income.name });
 
     this.dialog.open(ConfirmDialogComponent, {
       data: { title: 'DeleteIncome', message: message, action: 'ButtonDelete' },

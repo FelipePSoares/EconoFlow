@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Income } from '../models/income';
 import { Observable, map } from 'rxjs';
 import { Operation } from 'fast-json-patch';
-import { dateUTC, formatDate } from '../utils/date';
+import { formatDate, formatDateTime } from '../utils/date';
 
 @Injectable({
   providedIn: 'root'
@@ -13,12 +13,12 @@ export class IncomeService {
   constructor(private http: HttpClient) { }
   
   get(projectId: string, currentDate: Date) {
-    var year = currentDate.getFullYear();
-    var month = currentDate.getMonth();
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
 
     let queryParams = new HttpParams();
-    queryParams = queryParams.append("from", formatDate(dateUTC(year, month)).substring(0, 10));
-    queryParams = queryParams.append("to", formatDate(dateUTC(year, month + 1)).substring(0, 10));
+    queryParams = queryParams.append("from", formatDate(new Date(year, month, 1)).substring(0, 10));
+    queryParams = queryParams.append("to", formatDate(new Date(year, month + 1, 1)).substring(0, 10));
 
     return this.http.get<Income[]>('/api/projects/' + projectId + '/incomes', {
       observe: 'body',

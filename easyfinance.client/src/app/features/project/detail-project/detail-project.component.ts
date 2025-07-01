@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { BehaviorSubject, map, Observable } from 'rxjs';
@@ -21,7 +21,6 @@ import { Income } from '../../../core/models/income';
 import { IncomeDto } from '../../income/models/income-dto';
 import { ProjectService } from '../../../core/services/project.service';
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
-import { dateUTC } from '../../../core/utils/date';
 import { TransactionDto } from '../models/transaction-dto';
 import { Transaction } from 'src/app/core/models/transaction';
 import { UserProjectDto } from '../models/user-project-dto';
@@ -151,14 +150,14 @@ export class DetailProjectComponent implements OnInit {
         this.month.remaining = res.map(c => c.getTotalRemaining()).reduce((acc, value) => acc + value, 0);
 
         if (this.month.budget === 0) {
-          var newDate = dateUTC(CurrentDateComponent.currentDate);
+          const newDate = new Date(CurrentDateComponent.currentDate);
           newDate.setMonth(CurrentDateComponent.currentDate.getMonth() - 1, 1);
 
           this.categoryService.get(this.projectId, newDate)
             .pipe(map(categories => mapper.mapArray(categories, Category, CategoryDto)))
             .subscribe({
               next: res => {
-                let previousBudget = res.map(c => c.getTotalBudget()).reduce((acc, value) => acc + value, 0);
+                const previousBudget = res.map(c => c.getTotalBudget()).reduce((acc, value) => acc + value, 0);
                 this.showCopyPreviousButton = previousBudget !== 0;
               }
             });
