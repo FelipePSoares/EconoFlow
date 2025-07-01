@@ -20,7 +20,7 @@ import { ErrorMessageService } from '../../../core/services/error-message.servic
 import { ApiErrorResponse } from '../../../core/models/error';
 import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.component';
 import { MatNativeDateModule } from '@angular/material/core';
-import { todayUTC } from '../../../core/utils/date';
+import { formatDate } from '../../../core/utils/date';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { GlobalService } from '../../../core/services/global.service';
 
@@ -75,7 +75,7 @@ export class AddExpenseItemComponent implements OnInit {
    }
 
   ngOnInit(): void {
-    this.currentDate = todayUTC();
+    this.currentDate = new Date();
     if (CurrentDateComponent.currentDate.getFullYear() !== this.currentDate.getFullYear() || CurrentDateComponent.currentDate.getMonth() !== this.currentDate.getMonth()) {
       this.currentDate = CurrentDateComponent.currentDate;
     }
@@ -106,20 +106,20 @@ export class AddExpenseItemComponent implements OnInit {
 
   save() {
     if (this.expenseItemForm.valid) {
-      let name = this.name?.value;
-      let date = this.date?.value.toISOString().split("T")[0];
-      let amount = this.amount?.value;
+      const name = this.name?.value;
+      const date: any = formatDate(this.date?.value);
+      const amount = this.amount?.value;
 
-      var newExpenseItem = <ExpenseItemDto>({
+      const newExpenseItem = ({
         name: name,
         date: date,
         amount: amount === "" || amount === null ? 0 : amount,
-      });
+      }) as ExpenseItemDto;
 
-      let newExpense = structuredClone(this.expense)
+      const newExpense = structuredClone(this.expense)
       newExpense.items.push(newExpenseItem);
 
-      var patch = compare(this.expense, newExpense);
+      const patch = compare(this.expense, newExpense);
 
       this.expenseService.update(this.projectId, this.categoryId, this.expenseId, patch).subscribe({
         next: response => {

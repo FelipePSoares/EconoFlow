@@ -14,7 +14,7 @@ import { ExpenseDto } from '../models/expense-dto';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
-import { todayUTC } from '../../../core/utils/date';
+import { formatDate } from '../../../core/utils/date';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
 import { GlobalService } from '../../../core/services/global.service';
 
@@ -63,7 +63,7 @@ export class AddExpenseComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.currentDate = todayUTC();
+    this.currentDate = new Date();
     if (CurrentDateComponent.currentDate.getFullYear() !== this.currentDate.getFullYear() || CurrentDateComponent.currentDate.getMonth() !== this.currentDate.getMonth()) {
       this.currentDate = CurrentDateComponent.currentDate;
     }
@@ -90,17 +90,17 @@ export class AddExpenseComponent implements OnInit {
 
   save() {
     if (this.expenseForm.valid) {
-      let name = this.name?.value;
-      let date = this.date?.value.toISOString().split("T")[0];
-      let amount = this.amount?.value;
-      let budget = this.budget?.value;
+      const name = this.name?.value;
+      const date: any = formatDate(this.date?.value);
+      const amount = this.amount?.value;
+      const budget = this.budget?.value;
 
-      var newExpense = <ExpenseDto>({
+      const newExpense = {
         name: name,
         date: date,
         amount: amount === "" || amount === null ? 0 : amount,
         budget: budget === "" || budget === null ? 0 : budget
-      });
+      } as ExpenseDto;
 
       this.expenseService.add(this.projectId, this.categoryId, newExpense).subscribe({
         next: response => {

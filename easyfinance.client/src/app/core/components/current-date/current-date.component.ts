@@ -32,11 +32,11 @@ export class CurrentDateComponent {
 
   static resetDateToday(): void {
     const today = new Date();
-    CurrentDateComponent._currentDate = new Date(Date.UTC(
+    CurrentDateComponent._currentDate = new Date(
       today.getFullYear(),
       today.getMonth(),
       today.getDate()
-    ));
+    );
   }
 
   @Output() dateUpdatedEvent = new EventEmitter<Date>();
