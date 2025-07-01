@@ -81,6 +81,8 @@
   "FailToDeleteAccount": "Failed to delete account! Please try again later.",
   "AttentionTotalExceeds": "Attention: Total exceeds 100%",
 
+  "how-to-create-budget": "test <b>text</b>",
+
   "PleaseSignIn": "Please Sign In",
   "PleaseSignUp": "Please Sign Up",
   "PleaseTellUs": "Please tell us",

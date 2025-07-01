@@ -196,16 +196,16 @@
     <value>Invalid UserProjectId.</value>
   </data>
   <data name="FixedExpenses" xml:space="preserve">
-    <value>Fixed Expenses</value>
+    <value>Fixed Costs</value>
   </data>
   <data name="Comfort" xml:space="preserve">
     <value>Comfort</value>
   </data>
   <data name="Pleasures" xml:space="preserve">
-    <value>Pleasures</value>
+    <value>Enjoyment</value>
   </data>
   <data name="YourFuture" xml:space="preserve">
-    <value>Your Future</value>
+    <value>Financial Freedom</value>
   </data>
   <data name="SelfImprovement" xml:space="preserve">
     <value>Self-Improvement</value>
