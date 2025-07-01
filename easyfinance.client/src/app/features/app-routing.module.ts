@@ -8,6 +8,7 @@ import { PrivacyPolicyComponent } from './not-authenticated-area/privacy-policy/
 import { UseTermsComponent } from './not-authenticated-area/use-terms/use-terms.component';
 import { PricingComponent } from './not-authenticated-area/pricing/pricing.component';
 import { ContactUsComponent } from './not-authenticated-area/contact-us/contact-us.component';
+import { HowToComponent } from './not-authenticated-area/how-to/how-to.component';
 
 import { LoginComponent } from './authentication/login/login.component';
 import { RegisterComponent } from './authentication/register/register.component';
@@ -46,6 +47,7 @@ export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'recovery', component: RecoveryComponent },
   { path: 'register', component: RegisterComponent },
+  { path: 'how-to-create-budget', component: HowToComponent, data: { content: 'create-budget' } },
   { path: 'logout', component: LogoutComponent, canActivate: mapToCanActivate([AuthGuard]) },
   { path: 'first-signin', component: FirstSignInComponent, canActivate: mapToCanActivate([AuthGuard]) },
   { path: 'user', component: DetailUserComponent, canActivate: mapToCanActivate([AuthGuard]) },
