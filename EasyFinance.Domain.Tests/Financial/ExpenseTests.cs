@@ -144,7 +144,7 @@ namespace EasyFinance.Domain.Tests.Financial
         }
 
         [Fact]
-        public void AddItem_SendRandonAmount_ShouldHaveTheSameAmount()
+        public void AddItem_SendRandomAmount_ShouldHaveTheSameAmount()
         {
             var value = Convert.ToDecimal(random.NextDouble());
 
@@ -180,5 +180,25 @@ namespace EasyFinance.Domain.Tests.Financial
                 { DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-1)), DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-2)) },
                 { DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-2)), DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-1)) }
             };
+
+        [Fact]
+        public void AddItem_WithFutureDateFromExpense_ShouldBeAllowed()
+        {
+            // Arrange
+            var expense = new ExpenseBuilder().AddDate(new DateOnly(2025,07,25)).Build();
+
+            var item = new ExpenseItemBuilder().AddDate(new DateOnly(2025,07,14)).Build();
+
+            // Act
+            expense.AddItem(item);
+
+            var expenseResult = expense.Validate;
+            
+            var itemResult = item.Validate;
+
+            // Assert
+            expenseResult.Succeeded.Should().BeTrue();
+            itemResult.Succeeded.Should().BeTrue();
+        }
     }
 }
