@@ -185,9 +185,10 @@ namespace EasyFinance.Domain.Tests.Financial
         public void AddItem_WithFutureDateFromExpense_ShouldBeAllowed()
         {
             // Arrange
-            var expense = new ExpenseBuilder().AddDate(new DateOnly(2025,07,25)).Build();
+            var today = DateTime.Today;
+            var expense = new ExpenseBuilder().SetBudget(20).AddDate(new DateOnly(today.Year, today.Month, today.Day + 2)).Build();
 
-            var item = new ExpenseItemBuilder().AddDate(new DateOnly(2025,07,14)).Build();
+            var item = new ExpenseItemBuilder().AddDate(new DateOnly(today.Year, today.Month, today.Day - 1)).AddAmount(10).Build();
 
             // Act
             expense.AddItem(item);
