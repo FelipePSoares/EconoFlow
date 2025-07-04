@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Infrastructure;
+using EasyFinance.Infrastructure.DTOs;
 
 namespace EasyFinance.Domain.Financial
 {
@@ -16,6 +18,19 @@ namespace EasyFinance.Domain.Financial
             ICollection<Attachment> attachments = default)
             : base(name, date, amount, createdBy, attachments)
         {
+        }
+
+        public override AppResponse Validate
+        {
+            get
+            {
+                var response = base.Validate;
+
+                if (Date > DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddDays(1)) && Amount > 0)
+                    response.AddErrorMessage(nameof(Date), ValidationMessages.CantAddFutureExpenseIncome);
+
+                return response;
+            }
         }
     }
 }
