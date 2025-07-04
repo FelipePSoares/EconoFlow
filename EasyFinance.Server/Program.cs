@@ -171,5 +171,5 @@ catch (Exception ex)
 }
 finally
 {
-    Log.CloseAndFlush(); // Fecha e envia todos os logs pendentes
+    Log.CloseAndFlush(); // Close and send all pendent logs to betterstack
 }

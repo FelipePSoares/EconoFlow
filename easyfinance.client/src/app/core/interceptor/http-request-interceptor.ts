@@ -1,5 +1,5 @@
 import { HttpInterceptorFn, HttpResponse } from '@angular/common/http';
-import { catchError, of, switchMap, take, tap, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, filter, of, switchMap, take, tap, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { inject, Injector } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
@@ -9,6 +9,9 @@ import { ApiErrorResponse } from '../models/error';
 import { SnackbarComponent } from '../components/snackbar/snackbar.component';
 import { LocalService } from '../services/local.service';
 import { Token } from '../models/token';
+
+let isRefreshing = false;
+const refreshTokenSubject = new BehaviorSubject<string | null>(null);
 
 export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
   var localService = inject(LocalService);
@@ -47,18 +50,43 @@ export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
         snackBar.openErrorSnackbar(translateService.instant('NetworkError'));
       }
       if (err.status === 401 && token && !err.url?.includes('refresh-token') && !err.url?.includes('logout') && !err.url?.includes('login')) {
+        if (isRefreshing) {
+          // If a refresh is already in progress, wait for it to complete
+          return refreshTokenSubject.pipe(
+            filter(token => token !== null),
+            take(1),
+            switchMap((newToken) => {
+              if (newToken) {
+                return next(req.clone({
+                  headers: req.headers.set('Authorization', `Bearer ${newToken}`),
+                }));
+              }
+              return throwError(() => err);
+            })
+          );
+        }
+
+        isRefreshing = true;
+        refreshTokenSubject.next(null);
+
         return authService.refreshToken().pipe(
           take(1),
           switchMap(() => {
             const newToken = localService.getData<Token>(localService.TOKEN_DATA);
-
             if (newToken) {
+              isRefreshing = false;
+              refreshTokenSubject.next(newToken.accessToken);
+
               return next(req.clone({
                 headers: req.headers.set('Authorization', `Bearer ${newToken.accessToken}`),
               }));
             }
 
             return throwError(err);
+          }),
+          catchError(err => {
+            isRefreshing = false;
+            return throwError(() => err);
           })
         );
       }
