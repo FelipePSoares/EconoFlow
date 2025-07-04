@@ -182,7 +182,7 @@ namespace EasyFinance.Domain.Tests.Financial
             };
 
         [Fact]
-        public void AddItem_WithFutureDateFromExpense_ShouldBeAllowed()
+        public void SetBudget_WithFutureDate_AddItem_ShouldBeTrue()
         {
             // Arrange
             var today = DateTime.Today;
@@ -199,7 +199,25 @@ namespace EasyFinance.Domain.Tests.Financial
 
             // Assert
             expenseResult.Succeeded.Should().BeTrue();
+
             itemResult.Succeeded.Should().BeTrue();
+        }
+
+        [Fact]
+        public void SetBudget_WithFutureDate_NoExpense_ShouldBeFalse()
+        {
+            // Arrange
+            var today = DateTime.Today;
+            var expense = new ExpenseBuilder().SetBudget(20).AddDate(new DateOnly(today.Year, today.Month, today.Day + 2)).Build();
+
+            // Act
+            var result = expense.Validate;
+
+            // Assert
+            result.Succeeded.Should().BeFalse();
+            var message = result.Messages.Should().ContainSingle().Subject;
+            message.Code.Should().Be("Date");
+            message.Description.Should().Be(ValidationMessages.CantAddFutureExpenseIncome);
         }
     }
 }

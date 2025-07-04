@@ -40,6 +40,9 @@ namespace EasyFinance.Domain.Financial
                 if (Items.Any(item => Date.Year != item.Date.Year || Date.Month != item.Date.Month))
                     response.AddErrorMessage(nameof(Date), ValidationMessages.CantAddExpenseItemWithDifferentYearOrMonthFromExpense);
 
+                if (Date > DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddDays(1)) && Amount > 0 && Items.Count == 0)
+                    response.AddErrorMessage(nameof(Date), ValidationMessages.CantAddFutureExpenseIncome);
+
                 return response;
             }
         }
