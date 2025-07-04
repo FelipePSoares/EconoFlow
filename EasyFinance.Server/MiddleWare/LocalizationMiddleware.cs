@@ -15,13 +15,9 @@ namespace EasyFinance.Server.Middleware
 
         public async Task Invoke(HttpContext context)
         {
-            var userLanguage = context.Request.Headers["Accept-Language"].ToString();
-
-            if (!string.IsNullOrWhiteSpace(userLanguage))
+            if (context.Request.Headers.AcceptLanguage.Count != 0)
             {
-                var languages = userLanguage.Split(',');
-
-                foreach (var lang in languages)
+                foreach (var lang in context.Request.Headers.AcceptLanguage)
                 {
                     var cultureCode = lang.Split(';')[0].Trim();
 
@@ -30,18 +26,14 @@ namespace EasyFinance.Server.Middleware
                         var culture = new CultureInfo(cultureCode);
                         CultureInfo.CurrentCulture = culture;
                         CultureInfo.CurrentUICulture = culture;
-
-                        _logger.LogInformation($"Language set to: {culture.Name}");
+                        break; // Exit loop on first valid culture
                     }
                     catch (CultureNotFoundException)
                     {
-                        var sanitizedCultureCode = cultureCode.Replace(Environment.NewLine, "").Replace("\n", "").Replace("\r", "");
-                        _logger.LogWarning($"Language not found: {sanitizedCultureCode}");
                         continue;
                     }
                 }
             } else {
-                _logger.LogInformation("No language identified, using default en-US.");
                 CultureInfo.CurrentCulture = new CultureInfo("en-US");
                 CultureInfo.CurrentUICulture = new CultureInfo("en-US");
             }
