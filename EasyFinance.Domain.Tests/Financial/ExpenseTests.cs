@@ -144,7 +144,7 @@ namespace EasyFinance.Domain.Tests.Financial
         }
 
         [Fact]
-        public void AddItem_SendRandonAmount_ShouldHaveTheSameAmount()
+        public void AddItem_SendRandomAmount_ShouldHaveTheSameAmount()
         {
             var value = Convert.ToDecimal(random.NextDouble());
 
@@ -180,5 +180,44 @@ namespace EasyFinance.Domain.Tests.Financial
                 { DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-1)), DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-2)) },
                 { DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-2)), DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-1)) }
             };
+
+        [Fact]
+        public void SetBudget_WithFutureDate_AddItem_ShouldBeTrue()
+        {
+            // Arrange
+            var today = DateTime.Today;
+            var expense = new ExpenseBuilder().SetBudget(20).AddDate(new DateOnly(today.Year, today.Month, today.Day + 2)).Build();
+
+            var item = new ExpenseItemBuilder().AddDate(new DateOnly(today.Year, today.Month, today.Day - 1)).AddAmount(10).Build();
+
+            // Act
+            expense.AddItem(item);
+
+            var expenseResult = expense.Validate;
+            
+            var itemResult = item.Validate;
+
+            // Assert
+            expenseResult.Succeeded.Should().BeTrue();
+
+            itemResult.Succeeded.Should().BeTrue();
+        }
+
+        [Fact]
+        public void SetBudget_WithFutureDate_NoExpense_ShouldBeFalse()
+        {
+            // Arrange
+            var today = DateTime.Today;
+            var expense = new ExpenseBuilder().SetBudget(20).AddDate(new DateOnly(today.Year, today.Month, today.Day + 2)).Build();
+
+            // Act
+            var result = expense.Validate;
+
+            // Assert
+            result.Succeeded.Should().BeFalse();
+            var message = result.Messages.Should().ContainSingle().Subject;
+            message.Code.Should().Be("Date");
+            message.Description.Should().Be(ValidationMessages.CantAddFutureExpenseIncome);
+        }
     }
 }
