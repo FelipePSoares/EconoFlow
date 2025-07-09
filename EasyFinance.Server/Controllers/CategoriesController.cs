@@ -45,7 +45,7 @@ namespace EasyFinance.Server.Controllers
             if (categoryDTO == null) return BadRequest();
             var createdCategory = await categoryService.CreateAsync(projectId, categoryDTO.FromDTO());
 
-            return ValidateResponse(actionName: nameof(GetById), routeValues: new { projectId, categoryId = createdCategory.Data.Id }, appResponse: createdCategory);
+            return ValidateResponse(actionName: nameof(GetById), routeValues: new { projectId, categoryId = createdCategory?.Data?.Id }, appResponse: createdCategory);
         }        
 
         [HttpPatch("{categoryId}")]

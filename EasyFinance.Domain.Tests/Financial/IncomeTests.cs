@@ -59,7 +59,7 @@ namespace EasyFinance.Domain.Tests.Financial
 
             var message = result.Messages.Should().ContainSingle().Subject;
             message.Code.Should().Be("Date");
-            message.Description.Should().Be(ValidationMessages.CantAddFutureExpenseIncome);
+            message.Description.Should().Be(ValidationMessages.CantAddFutureIncome);
         }
 
         [Theory]

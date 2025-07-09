@@ -51,7 +51,7 @@ describe('EconoFlow - expense list Tests', () => {
 
       cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(400)
-        cy.get('mat-error').should('have.text', 'A future expense/income can\u0027t have a amount')
+        cy.get('mat-error').should('have.text', 'A future expense can\u0027t have a amount')
       })
     })
   

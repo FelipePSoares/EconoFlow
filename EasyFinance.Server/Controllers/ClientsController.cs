@@ -36,7 +36,7 @@ namespace EasyFinance.Server.Controllers
 
             var result = await clientService.CreateAsync(projectId, clientRequestDTO.FromDTO());
 
-            return ValidateResponse(actionName: nameof(GetById), routeValues: new { projectId, clientId = result.Data.Id }, appResponse: result);
+            return ValidateResponse(actionName: nameof(GetById), routeValues: new { projectId, clientId = result?.Data?.Id }, appResponse: result);
         }
 
         [HttpPatch("{clientId}")]

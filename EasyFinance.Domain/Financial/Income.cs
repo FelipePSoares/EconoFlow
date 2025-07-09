@@ -27,7 +27,7 @@ namespace EasyFinance.Domain.Financial
                 var response = base.Validate;
 
                 if (Date > DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddDays(1)) && Amount > 0)
-                    response.AddErrorMessage(nameof(Date), ValidationMessages.CantAddFutureExpenseIncome);
+                    response.AddErrorMessage(nameof(Date), ValidationMessages.CantAddFutureIncome);
 
                 return response;
             }
