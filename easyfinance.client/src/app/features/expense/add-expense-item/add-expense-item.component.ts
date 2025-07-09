@@ -128,7 +128,12 @@ export class AddExpenseItemComponent implements OnInit {
         },
         error: (response: ApiErrorResponse) => {
           this.httpErrors = true;
-          this.errors = response.errors;
+          this.errors = {};
+
+          Object.entries(response.errors).forEach(([key, value]) => {
+            const newKey = key.startsWith('Items.') ? key.replace(/^Items\./, '') : key;
+            this.errors[newKey] = value;
+          });
 
           this.errorMessageService.setFormErrors(this.expenseItemForm, this.errors);
         }

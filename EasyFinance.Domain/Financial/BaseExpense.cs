@@ -41,7 +41,7 @@ namespace EasyFinance.Domain.Financial
                     response.AddErrorMessage(nameof(Date), ValidationMessages.CantAddExpenseItemWithDifferentYearOrMonthFromExpense);
 
                 if (Date > DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddDays(1)) && Amount > 0 && Items.Count == 0)
-                    response.AddErrorMessage(nameof(Date), ValidationMessages.CantAddFutureExpenseIncome);
+                    response.AddErrorMessage(nameof(Date), ValidationMessages.CantAddFutureExpense);
 
                 return response;
             }

@@ -85,7 +85,7 @@ namespace EasyFinance.Domain.Tests.Financial
 
             var message = result.Messages.Should().ContainSingle().Subject;
             message.Code.Should().Be("Date");
-            message.Description.Should().Be(ValidationMessages.CantAddFutureExpenseIncome);
+            message.Description.Should().Be(ValidationMessages.CantAddFutureExpense);
         }
 
         [Theory]
@@ -217,7 +217,7 @@ namespace EasyFinance.Domain.Tests.Financial
             result.Succeeded.Should().BeFalse();
             var message = result.Messages.Should().ContainSingle().Subject;
             message.Code.Should().Be("Date");
-            message.Description.Should().Be(ValidationMessages.CantAddFutureExpenseIncome);
+            message.Description.Should().Be(ValidationMessages.CantAddFutureExpense);
         }
     }
 }
