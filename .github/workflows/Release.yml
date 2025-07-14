@@ -1,5 +1,9 @@
 name: Release
 
+permissions:
+  contents: read
+  secrets: read
+
 on:
   push:
     branches: [ "master" ]
@@ -31,7 +35,7 @@ jobs:
           path: ./EasyFinance.Server/bin/Release/net8.0/publish/
           retention-days: 5
 
-      - name: Substituir valor no appsettings.json
+      - name: Replace values on appsettings.json
         run: |
           sed -i 's|"sourceToken": ".*"|"sourceToken": "${{ secrets.BETTERSTACK_SOURCE_TOKEN }}"|' ${{ github.workspace }}\EasyFinance.Server\bin\Release\net8.0\publish\appsettings.json |
           sed -i 's|"betterStackEndpoint": ".*"|"betterStackEndpoint": "${{ secrets.BETTERSTACK_ENDPOINT }}"|' ${{ github.workspace }}\EasyFinance.Server\bin\Release\net8.0\publish\appsettings.json
