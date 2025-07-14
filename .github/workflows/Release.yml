@@ -1,8 +1,6 @@
 name: Release
 
-permissions:
-  contents: read
-  secrets: read
+permissions: read-all
 
 on:
   push:
