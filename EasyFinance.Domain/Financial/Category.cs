@@ -80,7 +80,7 @@ namespace EasyFinance.Domain.Financial
             IsArchived = true;
         }
 
-        public ICollection<Expense> CopyBudgetToCurrentMonth(User user, DateTime currentDate)
+        public ICollection<Expense> CopyBudgetToCurrentMonth(User user, DateOnly currentDate)
         {
             var previousDate = currentDate.AddMonths(-1);
 
