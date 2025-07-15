@@ -23,7 +23,7 @@ namespace EasyFinance.Application.Features.ProjectService
 
         Task<AppResponse> ArchiveAsync(Guid id);
 
-        Task<AppResponse<ICollection<ExpenseResponseDTO>>> CopyBudgetFromPreviousMonthAsync(User user, Guid id, DateTime currentDate);
+        Task<AppResponse<ICollection<ExpenseResponseDTO>>> CopyBudgetFromPreviousMonthAsync(User user, Guid id, DateOnly currentDate);
 
         Task<AppResponse> DeleteOrRemoveLinkAsync(User user);
 

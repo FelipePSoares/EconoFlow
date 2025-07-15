@@ -124,12 +124,12 @@ namespace EasyFinance.Application.Features.ProjectService
             return AppResponse.Success();
         }
 
-        public async Task<AppResponse<ICollection<ExpenseResponseDTO>>> CopyBudgetFromPreviousMonthAsync(User user, Guid id, DateTime currentDate)
+        public async Task<AppResponse<ICollection<ExpenseResponseDTO>>> CopyBudgetFromPreviousMonthAsync(User user, Guid id, DateOnly currentDate)
         {
             if (id == Guid.Empty)
                 return AppResponse<ICollection<ExpenseResponseDTO>>.Error(code: nameof(id), description: ValidationMessages.InvalidProjectId);
 
-            if (currentDate == DateTime.MinValue)
+            if (currentDate == DateOnly.MinValue)
                 return AppResponse<ICollection<ExpenseResponseDTO>>.Error(code: nameof(currentDate), description: ValidationMessages.InvalidDate);
 
             var project = await unitOfWork.ProjectRepository.Trackable()

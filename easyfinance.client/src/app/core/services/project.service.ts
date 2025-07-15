@@ -11,6 +11,7 @@ import { UserProject } from '../models/user-project';
 import { UserService } from './user.service';
 import { DefaultCategory } from '../models/default-category';
 import { CurrentDateComponent } from '../components/current-date/current-date.component';
+import { formatDate } from '../utils/date';
 const PROJECT_DATA = "project_data";
 
 @Injectable({
@@ -70,7 +71,7 @@ export class ProjectService {
   }
 
   copyBudgetPreviousMonth(id: string, currentDate: Date) {
-    return this.http.post('/api/projects/' + id + '/copy-budget-previous-month/', currentDate, {
+    return this.http.post('/api/projects/' + id + '/copy-budget-previous-month/' + formatDate(currentDate), {}, {
       observe: 'body',
       responseType: 'json'
     });

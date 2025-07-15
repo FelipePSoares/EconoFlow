@@ -129,8 +129,8 @@ namespace EasyFinance.Server.Controllers
             return ValidateResponse(deleteResult, HttpStatusCode.NoContent);
         }
 
-        [HttpPost("{projectId}/copy-budget-previous-month")]
-        public async Task<IActionResult> CopyFrom(Guid projectId, [FromBody] DateTime currentDate)
+        [HttpPost("{projectId}/copy-budget-previous-month/{currentDate}")]
+        public async Task<IActionResult> CopyFrom(Guid projectId, DateOnly currentDate)
         {
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
