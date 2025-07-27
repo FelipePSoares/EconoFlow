@@ -1,50 +1,37 @@
 ﻿using System.Globalization;
 using System.Text.RegularExpressions;
+using System.Threading.Channels;
 using EasyFinance.Application.DTOs.Email;
 using EasyFinance.Application.Features.CallbackService;
 using EasyFinance.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Identity.UI.Services;
-using Smtp2Go.Api;
-using Smtp2Go.Api.Models.Emails;
 
 namespace EasyFinance.Server.Config
 {
-    public class EmailSender : IEmailSender
+    public class EmailSender(ILogger<EmailSender> logger, Channel<EmailRequest> channel, ICallbackService callbackService) : IEmailSender
     {
         private static readonly Regex ConfirmationRegex = new(@"<a href='(.+?)'", RegexOptions.Compiled);
 
-        private readonly ILogger logger;
-        private readonly IApiService apiService;
-        private readonly ICallbackService callbackService;
-
-        public EmailSender(ILogger<EmailSender> logger, IApiService apiService, ICallbackService callbackService)
-        {
-            this.logger = logger;
-            this.apiService = apiService;
-            this.callbackService = callbackService;
-        }
+        private readonly ILogger logger = logger;
 
         public async Task SendEmailAsync(string toEmail, string subject, string message)
         {
-            EmailMessage msg = subject switch
+            EmailRequest msg = subject switch
             {
                 "Reset your password" => CreateResetPasswordEmail(toEmail, message),
                 "Confirm your email" => CreateConfirmationEmail(toEmail, message),
                 _ => CreateEmail(toEmail, subject, message),
             };
-            var response = await apiService.SendEmail(msg);
 
-            if (response.Data.Succeeded > 0)
-                this.logger.LogInformation("Email queued successfully!");
-            else
-                this.logger.LogWarning("Failure in queuing email");
+            await channel.Writer.WriteAsync(msg);
+            this.logger.LogInformation("Email queued with subject: {Subject}", subject);
         }
 
-        private EmailMessage CreateResetPasswordEmail(string toEmail, string body)
+        private EmailRequest CreateResetPasswordEmail(string toEmail, string body)
         {
             var token = body.Replace("Please reset your password using the following code: ", "");
 
-            var callbackUrl = this.callbackService.GenerateCallbackUrl("recovery", new Dictionary<string, string>
+            var callbackUrl = callbackService.GenerateCallbackUrl("recovery", new Dictionary<string, string>
             {
                 { "email", toEmail },
                 { "token", token }
@@ -57,7 +44,7 @@ namespace EasyFinance.Server.Config
             return CreateEmail(toEmail, subject, body);
         }
 
-        private EmailMessage CreateConfirmationEmail(string toEmail, string body)
+        private EmailRequest CreateConfirmationEmail(string toEmail, string body)
         {
             var url = ConfirmationRegex.Match(body);
             body = LoadHtmlTemplate(EmailTemplates.ConfirmEmail, ("callbackUrl", url.Groups[1].Value));
@@ -67,7 +54,7 @@ namespace EasyFinance.Server.Config
             return CreateEmail(toEmail, subject, body);
         }
 
-        private static EmailMessage CreateEmail(string toEmail, string subject, string bodyHtml) 
+        private static EmailRequest CreateEmail(string toEmail, string subject, string bodyHtml) 
             => new(bodyHtml, subject, "NoReply Econoflow <noreply@econoflow.pt>", toEmail);
 
         private static string LoadHtmlTemplate(EmailTemplates templateName, params (string token, string replaceWith)[] tokens)
