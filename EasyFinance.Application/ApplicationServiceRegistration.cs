@@ -1,4 +1,7 @@
-﻿using EasyFinance.Application.Features.AccessControlService;
+﻿using System.Threading.Channels;
+using EasyFinance.Application.BackgroundServices.EmailBackgroundService;
+using EasyFinance.Application.DTOs.Email;
+using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Application.Features.CallbackService;
 using EasyFinance.Application.Features.CategoryService;
 using EasyFinance.Application.Features.EmailService;
@@ -28,6 +31,13 @@ namespace EasyFinance.Application
             services.AddScoped<IClientService, ClientService>();
             services.AddScoped<IContactService, ContactService>();
             services.AddScoped<IEmailService, EmailService>();
+
+            // Background Services
+            services.AddHostedService<EmailBackgroundService>();
+
+            // Register Channels
+            var channel = Channel.CreateUnbounded<EmailRequest>();
+            services.AddSingleton(channel);
 
             return services;
         }
