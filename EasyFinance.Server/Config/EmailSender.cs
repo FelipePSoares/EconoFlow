@@ -24,7 +24,7 @@ namespace EasyFinance.Server.Config
             };
 
             await channel.Writer.WriteAsync(msg);
-            this.logger.LogInformation("Email queued for {Email} with subject: {Subject}", toEmail, subject);
+            this.logger.LogInformation("Email queued with subject: {Subject}", subject);
         }
 
         private EmailRequest CreateResetPasswordEmail(string toEmail, string body)

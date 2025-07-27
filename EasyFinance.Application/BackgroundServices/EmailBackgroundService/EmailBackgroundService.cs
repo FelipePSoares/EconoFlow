@@ -22,11 +22,11 @@ namespace EasyFinance.Application.BackgroundServices.EmailBackgroundService
                     if (response.Data.Succeeded > 0)
                         logger.LogInformation("Email sended successfully!");
                     else
-                        logger.LogError("Error sending email to {Email}", email.To);
+                        logger.LogError("Error sending Email with subject: {Subject}", email.Subject);
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Error sending email to {Email}", email.To);
+                    logger.LogError(ex, "Error sending Email with subject: {Subject}", email.Subject);
                 }
             }
         }
