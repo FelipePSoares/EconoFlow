@@ -1,5 +1,7 @@
 ﻿using EasyFinance.Application.Features.AccessControlService;
+using EasyFinance.Application.Features.CallbackService;
 using EasyFinance.Application.Features.CategoryService;
+using EasyFinance.Application.Features.EmailService;
 using EasyFinance.Application.Features.ExpenseItemService;
 using EasyFinance.Application.Features.ExpenseService;
 using EasyFinance.Application.Features.IncomeService;
@@ -14,6 +16,8 @@ namespace EasyFinance.Application
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
+            services.AddSingleton<ICallbackService, CallbackService>();
+
             services.AddScoped<IProjectService, ProjectService>();
             services.AddScoped<IAccessControlService, AccessControlService>();
             services.AddScoped<IIncomeService, IncomeService>();
@@ -22,7 +26,8 @@ namespace EasyFinance.Application
             services.AddScoped<IExpenseItemService, ExpenseItemService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IClientService, ClientService>();
-             services.AddScoped<IContactService, ContactService>();
+            services.AddScoped<IContactService, ContactService>();
+            services.AddScoped<IEmailService, EmailService>();
 
             return services;
         }

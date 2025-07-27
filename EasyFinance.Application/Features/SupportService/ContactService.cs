@@ -1,37 +1,25 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using EasyFinance.Application.Contracts.Persistence;
-using EasyFinance.Application.DTOs.Financial;
+using EasyFinance.Application.DTOs.Email;
 using EasyFinance.Application.DTOs.Support;
+using EasyFinance.Application.Features.EmailService;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
-using EasyFinance.Domain.Financial;
 using EasyFinance.Domain.Support;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace EasyFinance.Application.Features.SupportService
 {
-    public class ContactService : IContactService
+    public class ContactService(IUnitOfWork unitOfWork, ILogger<ContactService> logger, IEmailService emailService) : IContactService
     {
-        private readonly ILogger<ContactService> logger;
-        private readonly IUnitOfWork unitOfWork;
-        private readonly IEmailSender emailSender;
+        private readonly IUnitOfWork unitOfWork = unitOfWork;
+        private readonly ILogger<ContactService> logger = logger;
+        private readonly IEmailService emailService = emailService;
 
-        public ContactService(IUnitOfWork unitOfWork, ILogger<ContactService> logger, IEmailSender emailSender)
-        {
-            this.unitOfWork = unitOfWork;
-            this.logger = logger;
-            this.emailSender = emailSender;
-        }
         public async Task<AppResponse<ContactUsResponseDTO>> CreateAsync(User user,ContactUs contactUs)
         {
             if (contactUs == default)
@@ -41,11 +29,20 @@ namespace EasyFinance.Application.Features.SupportService
            
             var savedContact = this.unitOfWork.ContactUsRepository.InsertOrUpdate(contactUs);
             if (savedContact.Failed)
+            {
+                this.logger.LogError("Failed to save contact message: {Errors}", savedContact.Messages);
                 return AppResponse<ContactUsResponseDTO>.Error(savedContact.Messages);
+            }
+
             await unitOfWork.CommitAsync();
 
-            // Send email notification asynchronously after saving the contact message
-            await emailSender.SendEmailAsync( "contact@econoflow.pt", "New Support Message Received",$"You have received a new message from {contactUs.Name} ({contactUs.Email}):\n\nSubject: {contactUs.Subject}\n\nMessage:\n{contactUs.Message}"
+            await this.emailService.SendEmailAsync(
+                "contact@econoflow.pt",
+                EmailTemplates.NewSupportMessageReceived,
+                ("Name", contactUs.Name),
+                ("Email", contactUs.Email),
+                ("Subject", contactUs.Subject),
+                ("Message", contactUs.Message)
             );
 
             return AppResponse<ContactUsResponseDTO>.Success(contactUs.ToDTO());

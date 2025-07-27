@@ -16,15 +16,15 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Newtonsoft.Json.Converters;
-using SendGrid.Extensions.DependencyInjection;
 using Serilog;
+using Smtp2Go.Api;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddApplicationServices();
 builder.Services.AddAuthenticationServices(builder.Configuration, builder.Environment);
-
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 
 // Add services to the container.
@@ -43,9 +43,8 @@ builder.Services.AddControllers(config =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwagger();
 
-builder.Services.AddSendGrid(options =>
-    options.ApiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY") ?? "abc"
-);
+builder.Services.AddSingleton<IApiService, Smtp2GoApiService>(x 
+    => new Smtp2GoApiService(Environment.GetEnvironmentVariable("SMTP2GO_API_KEY") ?? "api-ADEE6A33004F4B178E20CEB4096CA4EA"));
 
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
