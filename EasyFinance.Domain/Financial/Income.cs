@@ -26,6 +26,9 @@ namespace EasyFinance.Domain.Financial
             {
                 var response = base.Validate;
 
+                if (string.IsNullOrEmpty(Name))
+                    response.AddErrorMessage(nameof(Name), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(Name)));
+
                 if (Date > DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddDays(1)) && Amount > 0)
                     response.AddErrorMessage(nameof(Date), ValidationMessages.CantAddFutureIncome);
 

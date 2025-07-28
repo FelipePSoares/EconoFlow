@@ -132,7 +132,7 @@ export class ExpenseItemComponent {
     const newDate = new Date(expenseItem.date);
     this.expenseItemForm = new FormGroup({
       id: new FormControl(expenseItem.id),
-      name: new FormControl(expenseItem.name, [Validators.required]),
+      name: new FormControl(expenseItem.name),
       date: new FormControl(newDate, [Validators.required]),
       amount: new FormControl(expenseItem.amount, [Validators.min(0)]),
     });
@@ -147,6 +147,7 @@ export class ExpenseItemComponent {
       next: () => {
         expense.items.forEach((item, index) => {
           if (item.id === subExpense.id) {
+            expense.amount -= subExpense.amount;
             expense.items.splice(index, 1);
           }
         });

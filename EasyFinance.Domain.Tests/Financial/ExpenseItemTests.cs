@@ -10,7 +10,7 @@ namespace EasyFinance.Domain.Tests.Financial
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void AddName_SendNullAndEmpty_ShouldThrowException(string name)
+        public void AddName_SendNullAndEmpty_ShouldBeSucceeded(string name)
         {
             // Arrange
             var expenseItem = new ExpenseItemBuilder().AddName(name).Build();
@@ -19,11 +19,7 @@ namespace EasyFinance.Domain.Tests.Financial
             var result = expenseItem.Validate;
 
             // Assert
-            result.Failed.Should().BeTrue();
-
-            var message = result.Messages.Should().ContainSingle().Subject;
-            message.Code.Should().Be("Name");
-            message.Description.Should().Be(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, "Name"));
+            result.Succeeded.Should().BeTrue();
         }
 
         [Theory]
