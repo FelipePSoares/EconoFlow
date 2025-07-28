@@ -147,6 +147,7 @@ export class ExpenseItemComponent {
       next: () => {
         expense.items.forEach((item, index) => {
           if (item.id === subExpense.id) {
+            expense.amount -= subExpense.amount;
             expense.items.splice(index, 1);
           }
         });
