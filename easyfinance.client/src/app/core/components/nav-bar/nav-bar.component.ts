@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -16,12 +16,16 @@ import { ProjectTypes } from '../../enums/project-types';
 })
 export class NavBarComponent {
   fullName$: Observable<string>;
-  selectedProject$!: Observable<Project | undefined>;
-  isCompany$!: Observable<boolean>;
+  selectedProject$: Observable<Project | undefined>;
+  isCompany$: Observable<boolean>;
+  readonly logoLink$: Observable<string[]>;
 
   constructor(public userService: UserService, private projectService: ProjectService) {
     this.fullName$ = userService.loggedUser$.pipe(map(user => user.fullName));
     this.selectedProject$ = projectService.selectedUserProject$.pipe(map(up => up?.project));
     this.isCompany$ = projectService.selectedUserProject$.pipe(map(up => up?.project.type === ProjectTypes.Company));
+    this.logoLink$ = this.selectedProject$.pipe(
+      map(project => project?.id ? ['/projects', project.id] : ['/projects'])
+    );
   }
 }
