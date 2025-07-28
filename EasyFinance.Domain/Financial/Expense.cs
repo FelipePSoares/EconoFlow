@@ -31,6 +31,9 @@ namespace EasyFinance.Domain.Financial
             {
                 var response = base.Validate;
 
+                if (string.IsNullOrEmpty(Name))
+                    response.AddErrorMessage(nameof(Name), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(Name)));
+
                 if (Budget < 0)
                     response.AddErrorMessage(nameof(Budget), string.Format(ValidationMessages.PropertyCantBeLessThanZero, nameof(Budget)));
 

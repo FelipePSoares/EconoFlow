@@ -81,7 +81,7 @@ export class AddExpenseItemComponent implements OnInit {
     }
 
     this.expenseItemForm = new FormGroup({
-      name: new FormControl('', [Validators.required]),
+      name: new FormControl(''),
       date: new FormControl(this.currentDate, [Validators.required]),
       amount: new FormControl(0, [Validators.min(0)])
     });

@@ -1,7 +1,11 @@
 @if (subExpense.id != this.editingSubExpense.id) {
 <div class="d-flex align-items-center mb-2">
   <div class="flex-grow-1">
+    @if (subExpense.name && subExpense.name.trim()) {
     <span class="fw-normal name-sub">{{ subExpense.name }}</span>
+    } @else {
+    <span class="fw-normal text-muted fst-italic name-sub-placeholder">{{ 'PlaceholderItemWithoutName' | translate }}</span>
+    }
     <p class="text-muted fs-6">
       <span class="me-3 date-sub">
         <i class="bi bi-calendar me-1"></i>

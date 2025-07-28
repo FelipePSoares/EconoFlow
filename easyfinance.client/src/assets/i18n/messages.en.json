@@ -38,6 +38,7 @@
   "PlaceholderPhone": "11912345678",
   "PlaceholderDescription": "Some notes about the client",
   "PlaceholderSearchClients": "E.g., John, 11912345678, name@exameple.com",
+  "PlaceholderItemWithoutName": "Item",
 
   "ButtonSignIn": "Sign in",
   "ButtonSignUp": "Sign Up",
