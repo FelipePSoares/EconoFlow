@@ -96,11 +96,11 @@
             <div class="d-grid label-money">
               <div class="mt-2">
                 <span class="float-start"><fa-icon [icon]="faArrowUp" transform="rotate-45" style="color: #c0392b"></fa-icon> {{ 'MoneyOut' | translate }}</span>
-                <span class="float-end">-{{ month.spend + month.overspend | currencyFormat: true }}</span>
+                <span class="float-end danger">{{ month.spend + month.overspend | currencyFormat: true }}</span>
               </div>
               <div class="mt-2">
                 <span class="float-start"><fa-icon [icon]="faArrowDown" transform="rotate-45" style="color: #2ecc71"></fa-icon> {{ 'MoneyIn' | translate }}</span>
-                <span class="float-end">{{ month.earned | currencyFormat: true }}</span>
+                <span class="float-end success">{{ month.earned | currencyFormat: true }}</span>
               </div>
             </div>
           </div>
@@ -126,11 +126,11 @@
             <div class="d-grid label-money">
               <div class="mt-2">
                 <span class="float-start"><fa-icon [icon]="faArrowUp" transform="rotate-45" style="color: #c0392b"></fa-icon> {{ 'MoneyOut' | translate }}</span>
-                <span class="float-end">-{{ year.spend + year.overspend | currencyFormat: true }}</span>
+                <span class="float-end danger">{{ year.spend + year.overspend | currencyFormat: true }}</span>
               </div>
               <div class="mt-2">
                 <span class="float-start"><fa-icon [icon]="faArrowDown" transform="rotate-45" style="color: #2ecc71"></fa-icon> {{ 'MoneyIn' | translate }}</span>
-                <span class="float-end">{{ year.earned | currencyFormat: true }}</span>
+                <span class="float-end success">{{ year.earned | currencyFormat: true }}</span>
               </div>
             </div>
           </div>
