@@ -6,6 +6,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faArrowLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 
 import { Moment } from 'moment';
+import { CurrentDateService } from '../../services/current-date.service';
 
 @Component({
   selector: 'app-current-date',
@@ -22,27 +23,13 @@ import { Moment } from 'moment';
 export class CurrentDateComponent {
   faArrowRight = faArrowRight;
   faArrowLeft = faArrowLeft;
-  private static _currentDate: Date;
-  static get currentDate(): Date {
-    if (!CurrentDateComponent._currentDate) {
-      this.resetDateToday();
-    }
-    return CurrentDateComponent._currentDate;
-  }
-
-  static resetDateToday(): void {
-    const today = new Date();
-    CurrentDateComponent._currentDate = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate()
-    );
-  }
 
   @Output() dateUpdatedEvent = new EventEmitter<Date>();
 
+  constructor(private currentDateService: CurrentDateService) { }
+
   getCurrentDate(): Date {
-    return CurrentDateComponent.currentDate;
+    return this.currentDateService.currentDate;
   }
 
   previousMonth(): void {
@@ -54,17 +41,17 @@ export class CurrentDateComponent {
   }
 
   changeDate(value: number) {
-    const currentDate = new Date(CurrentDateComponent.currentDate);
+    const currentDate = this.currentDateService.currentDate;
     currentDate.setDate(1);
     currentDate.setMonth(currentDate.getMonth() + value);
-    CurrentDateComponent._currentDate = currentDate;
-    this.dateUpdatedEvent.emit(CurrentDateComponent.currentDate);
+    this.currentDateService.currentDate = currentDate;
+    this.dateUpdatedEvent.emit(this.currentDateService.currentDate);
   }
 
   setMonthAndYear(event: Moment, datepicker: MatDatepicker<Moment>): void {
     const newDate = new Date(event.year(), event.month(), 1, 12);
-    CurrentDateComponent._currentDate = newDate;
-    this.dateUpdatedEvent.emit(CurrentDateComponent.currentDate);
+    this.currentDateService.currentDate = newDate;
+    this.dateUpdatedEvent.emit(this.currentDateService.currentDate);
     datepicker.close();
   }
 }

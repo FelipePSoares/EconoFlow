@@ -31,6 +31,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ProjectService } from '../../../core/services/project.service';
 import { UserProjectDto } from '../../project/models/user-project-dto';
 import { Role } from '../../../core/enums/Role';
+import { CurrentDateService } from '../../../core/services/current-date.service';
 
 @Component({
     selector: 'app-list-incomes',
@@ -86,7 +87,8 @@ export class ListIncomesComponent implements OnInit {
     private globalService: GlobalService,
     private dialog: MatDialog,
     private projectService: ProjectService,
-    private translateService: TranslateService
+    private translateService: TranslateService,
+    private currentDateService: CurrentDateService
   ) {
     this.thousandSeparator = this.globalService.groupSeparator;
     this.decimalSeparator = this.globalService.decimalSeparator;
@@ -106,7 +108,7 @@ export class ListIncomesComponent implements OnInit {
       }
     });
 
-    this.fillData(CurrentDateComponent.currentDate);
+    this.fillData(this.currentDateService.currentDate);
     this.edit(new IncomeDto());
   }
 
@@ -172,7 +174,7 @@ export class ListIncomesComponent implements OnInit {
       autoFocus: 'input'
     }).afterClosed().subscribe((result) => {
       if (result) {
-        this.fillData(CurrentDateComponent.currentDate);
+        this.fillData(this.currentDateService.currentDate);
       }
       this.router.navigate([{ outlets: { modal: null } }]);
     });
@@ -195,7 +197,7 @@ export class ListIncomesComponent implements OnInit {
 
   remove(id: string): void {
     this.incomeService.remove(this.projectId, id).subscribe({
-      next: response => {
+      next: () => {
         const incomesNewArray: IncomeDto[] = this.incomes.getValue();
 
         incomesNewArray.forEach((item, index) => {

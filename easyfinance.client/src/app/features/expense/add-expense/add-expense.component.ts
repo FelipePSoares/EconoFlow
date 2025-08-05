@@ -13,10 +13,10 @@ import { ExpenseService } from '../../../core/services/expense.service';
 import { ExpenseDto } from '../models/expense-dto';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { ApiErrorResponse } from '../../../core/models/error';
-import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { formatDate } from '../../../core/utils/date';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
 import { GlobalService } from '../../../core/services/global.service';
+import { CurrentDateService } from '../../../core/services/current-date.service';
 
 @Component({
     selector: 'app-add-expense',
@@ -55,7 +55,8 @@ export class AddExpenseComponent implements OnInit {
     private expenseService: ExpenseService,
     private router: Router,
     private errorMessageService: ErrorMessageService,
-    private globalService: GlobalService
+    private globalService: GlobalService,
+    private currentDateService: CurrentDateService
   ) {
     this.thousandSeparator = this.globalService.groupSeparator;
     this.decimalSeparator = this.globalService.decimalSeparator
@@ -64,8 +65,8 @@ export class AddExpenseComponent implements OnInit {
 
   ngOnInit(): void {
     this.currentDate = new Date();
-    if (CurrentDateComponent.currentDate.getFullYear() !== this.currentDate.getFullYear() || CurrentDateComponent.currentDate.getMonth() !== this.currentDate.getMonth()) {
-      this.currentDate = CurrentDateComponent.currentDate;
+    if (this.currentDateService.currentDate.getFullYear() !== this.currentDate.getFullYear() || this.currentDateService.currentDate.getMonth() !== this.currentDate.getMonth()) {
+      this.currentDate = this.currentDateService.currentDate;
     }
 
     this.expenseForm = new FormGroup({
@@ -103,7 +104,7 @@ export class AddExpenseComponent implements OnInit {
       } as ExpenseDto;
 
       this.expenseService.add(this.projectId, this.categoryId, newExpense).subscribe({
-        next: response => {
+        next: () => {
           this.router.navigate([{ outlets: { modal: null } }]);
         },
         error: (response: ApiErrorResponse) => {
