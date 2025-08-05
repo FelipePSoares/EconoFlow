@@ -21,8 +21,8 @@ import { ApiErrorResponse } from '../../../core/models/error';
 import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.component';
 import { MatNativeDateModule } from '@angular/material/core';
 import { formatDate } from '../../../core/utils/date';
-import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { GlobalService } from '../../../core/services/global.service';
+import { CurrentDateService } from '../../../core/services/current-date.service';
 
 @Component({
     selector: 'app-add-expense-item',
@@ -67,7 +67,8 @@ export class AddExpenseItemComponent implements OnInit {
     private errorMessageService: ErrorMessageService,
     private snackBar: SnackbarComponent,
     private globalService: GlobalService,
-    private translateService: TranslateService
+    private translateService: TranslateService,
+    private currentDateService: CurrentDateService
   ) {
     this.thousandSeparator = this.globalService.groupSeparator;
     this.decimalSeparator = this.globalService.decimalSeparator;
@@ -76,8 +77,8 @@ export class AddExpenseItemComponent implements OnInit {
 
   ngOnInit(): void {
     this.currentDate = new Date();
-    if (CurrentDateComponent.currentDate.getFullYear() !== this.currentDate.getFullYear() || CurrentDateComponent.currentDate.getMonth() !== this.currentDate.getMonth()) {
-      this.currentDate = CurrentDateComponent.currentDate;
+    if (this.currentDateService.currentDate.getFullYear() !== this.currentDate.getFullYear() || this.currentDateService.currentDate.getMonth() !== this.currentDate.getMonth()) {
+      this.currentDate = this.currentDateService.currentDate;
     }
 
     this.expenseItemForm = new FormGroup({
@@ -122,7 +123,7 @@ export class AddExpenseItemComponent implements OnInit {
       const patch = compare(this.expense, newExpense);
 
       this.expenseService.update(this.projectId, this.categoryId, this.expenseId, patch).subscribe({
-        next: response => {
+        next: () => {
           this.snackBar.openSuccessSnackbar(this.translateService.instant('CreatedSuccess'));
           this.router.navigate([{ outlets: { modal: null } }]);
         },

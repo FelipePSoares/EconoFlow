@@ -39,6 +39,7 @@ import { CategoryService } from '../../../core/services/category.service';
 import { Category } from '../../../core/models/category';
 import { BudgetBarComponent } from '../../../core/components/budget-bar/budget-bar.component';
 import { ExpenseItemComponent } from '../expense-item/expense-item.component';
+import { CurrentDateService } from '../../../core/services/current-date.service';
 
 @Component({
     selector: 'app-list-expenses',
@@ -105,7 +106,8 @@ export class ListExpensesComponent implements OnInit {
     private globalService: GlobalService,
     private dialog: MatDialog,
     private projectService: ProjectService,
-    private translateService: TranslateService
+    private translateService: TranslateService,
+    private currentDateService: CurrentDateService
   ) {
     this.thousandSeparator = this.globalService.groupSeparator;
     this.decimalSeparator = this.globalService.decimalSeparator;
@@ -132,7 +134,7 @@ export class ListExpensesComponent implements OnInit {
       }
     )
 
-    this.fillData(CurrentDateComponent.currentDate);
+    this.fillData(this.currentDateService.currentDate);
     this.edit(new ExpenseDto());
   }
 
@@ -162,7 +164,7 @@ export class ListExpensesComponent implements OnInit {
   }
 
   select(id: string): void {
-    this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, 'expenses', id, { currentDate: CurrentDateComponent.currentDate.toISOString().substring(0, 10) }]);
+    this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, 'expenses', id, { currentDate: this.currentDateService.currentDate.toISOString().substring(0, 10) }]);
   }
 
   save(): void {
@@ -225,7 +227,7 @@ export class ListExpensesComponent implements OnInit {
 
   remove(id: string): void {
     this.expenseService.remove(this.projectId, this.categoryId, id).subscribe({
-      next: response => {
+      next: () => {
         const expensesNewArray: ExpenseDto[] = this.expenses.getValue();
 
         expensesNewArray.forEach((item, index) => {
@@ -263,7 +265,7 @@ export class ListExpensesComponent implements OnInit {
       }
     }).afterClosed().subscribe((result) => {
       if (result) {
-        this.fillData(CurrentDateComponent.currentDate);
+        this.fillData(this.currentDateService.currentDate);
       }
       this.router.navigate([{ outlets: { modal: null } }]);
     });
@@ -334,13 +336,13 @@ export class ListExpensesComponent implements OnInit {
       autoFocus: 'input'
     }).afterClosed().subscribe((result) => {
       if (result) {
-        this.fillData(CurrentDateComponent.currentDate);
+        this.fillData(this.currentDateService.currentDate);
       }
       this.router.navigate([{ outlets: { modal: null } }]);
     });
   }
 
   updateExpense(): void {
-    this.fillData(CurrentDateComponent.currentDate);
+    this.fillData(this.currentDateService.currentDate);
   }
 }

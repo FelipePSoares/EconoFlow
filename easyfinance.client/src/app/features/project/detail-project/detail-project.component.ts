@@ -27,6 +27,7 @@ import { UserProjectDto } from '../models/user-project-dto';
 import { Role } from '../../../core/enums/Role';
 import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
 import { BudgetBarComponent } from '../../../core/components/budget-bar/budget-bar.component';
+import { CurrentDateService } from '../../../core/services/current-date.service';
 
 @Component({
     selector: 'app-detail-project',
@@ -82,7 +83,8 @@ export class DetailProjectComponent implements OnInit {
     private projectService: ProjectService,
     private categoryService: CategoryService,
     private incomeService: IncomeService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private currentDateService: CurrentDateService
   ) {
   }
 
@@ -97,7 +99,7 @@ export class DetailProjectComponent implements OnInit {
         this.userProject = res;
       });
 
-    this.fillData(CurrentDateComponent.currentDate);
+    this.fillData(this.currentDateService.currentDate);
   }
 
   fillData(date: Date) {
@@ -150,8 +152,8 @@ export class DetailProjectComponent implements OnInit {
         this.month.remaining = res.map(c => c.getTotalRemaining()).reduce((acc, value) => acc + value, 0);
 
         if (this.month.budget === 0) {
-          const newDate = new Date(CurrentDateComponent.currentDate);
-          newDate.setMonth(CurrentDateComponent.currentDate.getMonth() - 1, 1);
+          const newDate = new Date(this.currentDateService.currentDate);
+          newDate.setMonth(this.currentDateService.currentDate.getMonth() - 1, 1);
 
           this.categoryService.get(this.projectId, newDate)
             .pipe(map(categories => mapper.mapArray(categories, Category, CategoryDto)))
@@ -177,8 +179,8 @@ export class DetailProjectComponent implements OnInit {
 
     this.dialog.open(PageModalComponent, {
       autoFocus: 'input'
-    }).afterClosed().subscribe((result) => {
-      this.fillCategoriesData(CurrentDateComponent.currentDate);
+    }).afterClosed().subscribe(() => {
+      this.fillCategoriesData(this.currentDateService.currentDate);
       this.router.navigate([{ outlets: { modal: null } }]);
     });
   }
@@ -196,7 +198,7 @@ export class DetailProjectComponent implements OnInit {
   }
 
   getCurrentDate(): Date {
-    return CurrentDateComponent.currentDate;
+    return this.currentDateService.currentDate;
   }
 
   getClassBasedOnCategory(category: CategoryDto): string {
@@ -222,10 +224,10 @@ export class DetailProjectComponent implements OnInit {
   }
 
   copyPreviousBudget() {
-    this.projectService.copyBudgetPreviousMonth(this.projectId, CurrentDateComponent.currentDate)
+    this.projectService.copyBudgetPreviousMonth(this.projectId, this.currentDateService.currentDate)
       .subscribe({
-        next: res => {
-          this.fillData(CurrentDateComponent.currentDate);
+        next: () => {
+          this.fillData(this.currentDateService.currentDate);
         }
       });
   }

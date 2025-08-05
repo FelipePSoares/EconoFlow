@@ -10,8 +10,8 @@ import { ProjectDto } from '../../features/project/models/project-dto';
 import { UserProject } from '../models/user-project';
 import { UserService } from './user.service';
 import { DefaultCategory } from '../models/default-category';
-import { CurrentDateComponent } from '../components/current-date/current-date.component';
 import { formatDate } from '../utils/date';
+import { CurrentDateService } from './current-date.service';
 const PROJECT_DATA = "project_data";
 
 @Injectable({
@@ -22,11 +22,15 @@ export class ProjectService {
   private selectedProjectSubject = new BehaviorSubject<UserProject | undefined>(undefined);
   selectedUserProject$ = this.selectedProjectSubject.asObservable();
 
-  constructor(private http: HttpClient, private localService: LocalService, private userService: UserService) {
-  }
+  constructor(
+    private http: HttpClient,
+    private localService: LocalService,
+    private userService: UserService,
+    private currentDateService: CurrentDateService
+  ) { }
 
   getUserProjects(): Observable<UserProject[]> {
-    CurrentDateComponent.resetDateToday();
+    this.currentDateService.resetDateToday();
     return this.http.get<UserProject[]>('/api/projects/', {
       observe: 'body',
       responseType: 'json'

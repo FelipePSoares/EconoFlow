@@ -15,8 +15,8 @@ import { IncomeDto } from '../models/income-dto';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { formatDate } from '../../../core/utils/date';
-import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { GlobalService } from '../../../core/services/global.service';
+import { CurrentDateService } from '../../../core/services/current-date.service';
 
 @Component({
     selector: 'app-add-income',
@@ -52,7 +52,8 @@ export class AddIncomeComponent implements OnInit {
     private incomeService: IncomeService,
     private router: Router,
     private errorMessageService: ErrorMessageService,
-    private globalService: GlobalService
+    private globalService: GlobalService,
+    private currentDateService: CurrentDateService
   ) {
     this.thousandSeparator = this.globalService.groupSeparator;
     this.decimalSeparator = this.globalService.decimalSeparator;
@@ -61,8 +62,8 @@ export class AddIncomeComponent implements OnInit {
 
   ngOnInit(): void {
     this.currentDate = new Date();
-    if (CurrentDateComponent.currentDate.getFullYear() !== this.currentDate.getFullYear() || CurrentDateComponent.currentDate.getMonth() !== this.currentDate.getMonth()) {
-      this.currentDate = CurrentDateComponent.currentDate;
+    if (this.currentDateService.currentDate.getFullYear() !== this.currentDate.getFullYear() || this.currentDateService.currentDate.getMonth() !== this.currentDate.getMonth()) {
+      this.currentDate = this.currentDateService.currentDate;
     }
 
     this.incomeForm = new FormGroup({
@@ -85,7 +86,7 @@ export class AddIncomeComponent implements OnInit {
       }) as IncomeDto;
 
       this.incomeService.add(this.projectId, newIncome).subscribe({
-        next: response => {
+        next: () => {
           this.router.navigate([{ outlets: { modal: null } }]);
         },
         error: (response: ApiErrorResponse) => {
