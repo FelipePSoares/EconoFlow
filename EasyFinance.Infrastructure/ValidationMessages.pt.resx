@@ -246,9 +246,6 @@ Você será redirecionado em 5 segundos...</value>
   <data name="ProjectNotFound" xml:space="preserve">
     <value>Projeto não encontrado.</value>
   </data>
-  <data name="ClientNotFound" xml:space="preserve">
-    <value>Cliente não encontrado.</value>
-  </data>
   <data name="ProjectNotFoundOrInsufficientUserPermissions" xml:space="preserve">
     <value>Projeto não encontrado ou permissões de usuário insuficientes.</value>
   </data>
@@ -308,8 +305,5 @@ Você será redirecionado em 5 segundos...</value>
   </data>
   <data name="ExampleExpense" xml:space="preserve">
     <value>Despesa de exemplo</value>
-  </data>
-  <data name="CompanyProjectNotAllowed" xml:space="preserve">
-    <value>A criação de projetos empresariais não é permitida para sua conta.</value>
   </data>
 </root>

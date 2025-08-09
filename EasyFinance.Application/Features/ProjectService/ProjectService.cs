@@ -58,9 +58,6 @@ namespace EasyFinance.Application.Features.ProjectService
             if (user == default)
                 return AppResponse<UserProjectResponseDTO>.Error(code: nameof(user), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(user)));
 
-            if (project.Type == ProjectTypes.Company && user.SubscriptionLevel < SubscriptionLevels.Enterprise)
-                return AppResponse<UserProjectResponseDTO>.Error(description: ValidationMessages.CompanyProjectNotAllowed);
-
             var savedProject = unitOfWork.ProjectRepository.InsertOrUpdate(project);
             if (savedProject.Failed)
                 return AppResponse<UserProjectResponseDTO>.Error(savedProject.Messages);
@@ -94,12 +91,6 @@ namespace EasyFinance.Application.Features.ProjectService
             projectDto.ApplyTo(dto);
 
             var result = dto.FromDTO(existingProject);
-
-            if (projectDto.Operations.Any(op => op.path == "/type"))
-            {
-                if (result.Type == ProjectTypes.Company && user.SubscriptionLevel < SubscriptionLevels.Enterprise)
-                    return AppResponse<ProjectResponseDTO>.Error(description: ValidationMessages.CompanyProjectNotAllowed);
-            }
 
             return await UpdateAsync(result);
         }

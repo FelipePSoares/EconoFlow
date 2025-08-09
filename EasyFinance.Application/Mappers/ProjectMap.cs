@@ -19,8 +19,7 @@ namespace EasyFinance.Application.Mappers
             {
                 Id = project.Id,
                 Name = project.Name,
-                PreferredCurrency = project.PreferredCurrency,
-                Type = project.Type
+                PreferredCurrency = project.PreferredCurrency
             };
         }
 
@@ -31,8 +30,7 @@ namespace EasyFinance.Application.Mappers
             return new ProjectRequestDTO()
             {
                 Name = project.Name,
-                PreferredCurrency = project.PreferredCurrency,
-                Type = project.Type
+                PreferredCurrency = project.PreferredCurrency
             };
         }
 
@@ -46,11 +44,10 @@ namespace EasyFinance.Application.Mappers
             {
                 existingProject.SetName(projectDTO.Name);
                 existingProject.SetPreferredCurrency(projectDTO.PreferredCurrency);
-                existingProject.SetType(projectDTO.Type);
                 return existingProject;
             }
 
-            return new Project(name: projectDTO.Name, preferredCurrency: projectDTO.PreferredCurrency, projectType: projectDTO.Type);
+            return new Project(name: projectDTO.Name, preferredCurrency: projectDTO.PreferredCurrency);
         }
     }
 }

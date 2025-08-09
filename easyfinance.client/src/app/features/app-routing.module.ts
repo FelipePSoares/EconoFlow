@@ -1,12 +1,9 @@
 import { Routes, mapToCanActivate } from '@angular/router';
 import { AuthGuard } from '../core/guards/auth-guard';
-import { AccessGuard } from '../core/guards/access-guard';
-
 
 import { IndexComponent } from './not-authenticated-area/index/index.component';
 import { PrivacyPolicyComponent } from './not-authenticated-area/privacy-policy/privacy-policy.component';
 import { UseTermsComponent } from './not-authenticated-area/use-terms/use-terms.component';
-import { PricingComponent } from './not-authenticated-area/pricing/pricing.component';
 import { ContactUsComponent } from './not-authenticated-area/contact-us/contact-us.component';
 import { HowToComponent } from './not-authenticated-area/how-to/how-to.component';
 
@@ -33,9 +30,6 @@ import { AddExpenseComponent } from './expense/add-expense/add-expense.component
 import { AddExpenseItemComponent } from './expense/add-expense-item/add-expense-item.component';
 import { ListExpensesComponent } from './expense/list-expenses/list-expenses.component';
 
-import { ListClientsComponent } from './client/list-clients/list-clients.component';
-import { AddClientComponent } from './client/add-client/add-client.component';
-
 import { DetailUserComponent } from './user/detail-user/detail-user.component';
 
 export const routes: Routes = [
@@ -43,7 +37,6 @@ export const routes: Routes = [
   { path: 'privacy-policy', component: PrivacyPolicyComponent },
   { path: 'use-terms', component: UseTermsComponent },
   { path: 'contact-us', component: ContactUsComponent },
-  { path: 'pricing', component: PricingComponent },
   { path: 'login', component: LoginComponent },
   { path: 'recovery', component: RecoveryComponent },
   { path: 'register', component: RegisterComponent },
@@ -64,7 +57,5 @@ export const routes: Routes = [
   { path: 'projects/:projectId/categories/:categoryId/add-expense', component: AddExpenseComponent, canActivate: mapToCanActivate([AuthGuard]), outlet: 'modal', data: { title: 'CreateExpense' } },
   { path: 'projects/:projectId/categories/:categoryId/expenses', component: ListExpensesComponent, canActivate: mapToCanActivate([AuthGuard]) },
   { path: 'projects/:projectId/categories/:categoryId/expenses/:expenseId/add-expense-item', component: AddExpenseItemComponent, canActivate: mapToCanActivate([AuthGuard]), outlet: 'modal', data: { title: 'CreateExpense' } },
-  { path: 'projects/:projectId/clients', component: ListClientsComponent, canActivate: mapToCanActivate([AuthGuard, AccessGuard]) },
-  { path: 'projects/:projectId/add-client', component: AddClientComponent, canActivate: mapToCanActivate([AuthGuard, AccessGuard]), outlet: 'modal', data: { title: 'CreateClient' } },
   { path: '**', redirectTo: 'projects' },
 ];

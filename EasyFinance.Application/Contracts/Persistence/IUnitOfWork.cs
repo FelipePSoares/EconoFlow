@@ -12,7 +12,6 @@ namespace EasyFinance.Application.Contracts.Persistence
 {
     public interface IUnitOfWork
     {
-        IGenericRepository<Client> ClientRepository { get; }
         IGenericRepository<Project> ProjectRepository { get; }
         IGenericRepository<UserProject> UserProjectRepository { get; }
         IGenericRepository<Income> IncomeRepository { get; }

@@ -19,11 +19,6 @@
   "FieldBudget": "Budget",
   "FieldAnnualIncome": "Please enter your average annual income (not monthly)",
   "FieldAnnualIncomeTooltip": "We use this to calculate your monthly distribution. Please enter your yearly income.",
-  "FieldCompanyProject": "Company Project",
-  "FieldClientName": "Name",
-  "FieldPhone": "Phone",
-  "FieldDescription": "Description",
-  "FieldSearchClients": "Search Clients",
 
   "PlaceholderEmailAddress": "name@example.com",
   "PlaceholderPassword": "Password",
@@ -34,10 +29,6 @@
   "PlaceholderProjectName": "E.g., Personal, Family, Econoflow",
   "PlaceholderIncomeName": "E.g., Salary, Side Job, Investment Returns",
   "PlaceholderExpenseName": "E.g., Rent, Grocery Shopping, Internet Bill",
-  "PlaceholderClientName": "John Smith",
-  "PlaceholderPhone": "11912345678",
-  "PlaceholderDescription": "Some notes about the client",
-  "PlaceholderSearchClients": "E.g., John, 11912345678, name@exameple.com",
   "PlaceholderItemWithoutName": "Item",
 
   "ButtonSignIn": "Sign in",
@@ -66,7 +57,6 @@
   "ButtonAddItem": "Add Item",
   "ButtonAddCategory": "Add Category",
   "ButtonSkipSmartSetup": "Skip Smart Setup",
-  "ButtonAddClient": "Add Client",
   "ButtonSendMessage": "Send Message",
 
   "RequiredField": "This field is required.",
@@ -198,10 +188,6 @@
   "Total": "Total",
   "MonthlyDistribution": "Monthly distribution",
   "PleaseInformUsAverageAnnualIncomeThisProject": "Please, inform for us the average annual income for this project.",
-  "Clients": "Clients",
-  "CreateClient": "Create Client",
   "Active": "Active",
-  "Inactive": "Inactive",
-  "ArchiveClient": "Archive Client",
-  "AreYouSureYouWantArchiveClient": "Are you sure you want to archive the <b>{{value}}</b> client?"
+  "Inactive": "Inactive"
 }
