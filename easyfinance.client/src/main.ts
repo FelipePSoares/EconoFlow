@@ -13,7 +13,6 @@ import { Expense } from './app/core/models/expense';
 import { ExpenseItem } from './app/core/models/expense-item';
 import { Transaction } from './app/core/models/transaction';
 import { UserProject } from './app/core/models/user-project';
-import { Client } from './app/core/models/client';
 
 import { ProjectDto } from './app/features/project/models/project-dto';
 import { IncomeDto } from './app/features/income/models/income-dto';
@@ -22,7 +21,6 @@ import { ExpenseDto } from './app/features/expense/models/expense-dto';
 import { ExpenseItemDto } from './app/features/expense/models/expense-item-dto';
 import { TransactionDto } from './app/features/project/models/transaction-dto';
 import { UserProjectDto } from './app/features/project/models/user-project-dto';
-import { ClientDto } from './app/features/client/models/client-dto';
 
 import { appConfig } from './app/app.config';
 
@@ -35,4 +33,3 @@ createMap(mapper, Expense, ExpenseDto);
 createMap(mapper, ExpenseItem, ExpenseItemDto);
 createMap(mapper, Transaction, TransactionDto);
 createMap(mapper, UserProject, UserProjectDto);
-createMap(mapper, Client, ClientDto);

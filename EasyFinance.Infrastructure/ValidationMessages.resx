@@ -245,9 +245,6 @@ You will be redirect in 5 seconds ...</value>
   <data name="ProjectNotFound" xml:space="preserve">
     <value>Project not found.</value>
   </data>
-  <data name="ClientNotFound" xml:space="preserve">
-    <value>Client not found.</value>
-  </data>
   <data name="ProjectNotFoundOrInsufficientUserPermissions" xml:space="preserve">
     <value>Project not found or insufficient user permissions.</value>
   </data>
@@ -307,8 +304,5 @@ You will be redirect in 5 seconds ...</value>
   </data>
   <data name="ExampleExpense" xml:space="preserve">
     <value>Example Expense</value>
-  </data>
-  <data name="CompanyProjectNotAllowed" xml:space="preserve">
-    <value>Company project creation is not allowed for your account.</value>
   </data>
 </root>

@@ -21,11 +21,6 @@
           <a [routerLink]="['/projects', (selectedProject$ | async)?.id]" class="nav-link">{{ 'ProjectOverview' | translate }}</a>
         </li>
         }
-        @if (isCompany$ | async) {
-        <li class="nav-item">
-          <a [routerLink]="['/projects', (selectedProject$ | async)?.id, 'clients']" class="nav-link">{{ 'Clients' | translate }}</a>
-        </li>
-        }
       </ul>
       <ul class="navbar-nav ms-auto">
         <li class="nav-item dropdown">

@@ -1,5 +1,3 @@
-import { SubscriptionLevel } from "../enums/subscription-level";
-
 export class User {
   id!: string;
   email!: string;
@@ -11,7 +9,6 @@ export class User {
   emailConfirmed!: boolean;
   twoFactorEnabled!: boolean;
   defaultProjectId!: string;
-  subscriptionLevel!: SubscriptionLevel;
 }
 
 export class DeleteUser {

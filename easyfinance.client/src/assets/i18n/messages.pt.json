@@ -19,11 +19,6 @@
   "FieldBudget": "Orçamento",
   "FieldAnnualIncome": "Por favor, insira a sua renda média anual (Não Mensal)",
   "FieldAnnualIncomeTooltip": "Nós usamos este valor para calcular a distrubuição mensal. Por favor insira sua renda média anual.",
-  "FieldCompanyProject": "Projeto de empresa",
-  "FieldClientName": "Nome",
-  "FieldPhone": "Telefone",
-  "FieldDescription": "Descrição",
-  "FieldSearchClients": "Filtrar Clientes",
 
   "PlaceholderEmailAddress": "nome@exemplo.com",
   "PlaceholderPassword": "Senha",
@@ -34,10 +29,6 @@
   "PlaceholderProjectName": "Ex: Pessoal, Famíliar, Econoflow",
   "PlaceholderIncomeName": "Ex: Salário, Retorno Investimentos, Renda Extra",
   "PlaceholderExpenseName": "Ex: Aluguel, Mercado, Internet",
-  "PlaceholderClientName": "João da Silva",
-  "PlaceholderPhone": "11912345678",
-  "PlaceholderDescription": "Anotações sobre o cliente",
-  "PlaceholderSearchClients": "E.g., João, 11912345678, nome@exemplo.com",
   "PlaceholderItemWithoutName": "Item",
 
   "ButtonSignIn": "Logar",
@@ -66,7 +57,6 @@
   "ButtonAddItem": "Adicionar Item",
   "ButtonAddCategory": "Adicionar Categoria",
   "ButtonSkipSmartSetup": "Pular Configuração Inteligente",
-  "ButtonAddClient": "Adicionar Cliente",
   "ButtonSendMessage": "Enviar Mensagem",
 
   "RequiredField": "Este campo é obrigatório.",
@@ -197,10 +187,6 @@
   "Total": "Total",
   "MonthlyDistribution": "Distribuição mensal",
   "PleaseInformUsAverageAnnualIncomeThisProject": "Por favor, informe-nos a renda média anual deste projeto.",
-  "Clients": "Clientes",
-  "CreateClient": "Criar Cliente",
   "Active": "Ativo",
-  "Inactive": "Inativo",
-  "ArchiveClient": "Arquivar Cliente",
-  "AreYouSureYouWantArchiveClient": "Você tem certeza que quer arquivar o cliente <b>{{value}}</b>?"
+  "Inactive": "Inativo"
 }

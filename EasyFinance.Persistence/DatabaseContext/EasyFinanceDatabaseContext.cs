@@ -27,7 +27,6 @@ namespace EasyFinance.Persistence.DatabaseContext
 
             // FinancialProject
             modelBuilder.ApplyConfiguration(new ProjectConfiguration());
-            modelBuilder.ApplyConfiguration(new ClientConfiguration());
 
             //Support
             modelBuilder.ApplyConfiguration(new ContactUsConfiguration());

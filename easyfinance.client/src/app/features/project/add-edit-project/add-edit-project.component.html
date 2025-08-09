@@ -27,10 +27,6 @@
         }
       </mat-form-field>
 
-      @if (hasAccessToCompanyProjects){
-      <p><mat-slide-toggle labelPosition="before" formControlName="type" color="primary">{{ 'FieldCompanyProject' | translate }}</mat-slide-toggle></p>
-      }
-
       <!-- General Error Display -->
       <div *ngIf="httpErrors && errors['general']">
         <p *ngFor="let error of errors['general']" class="mb-3 text-danger text-center">{{ error | translate }}</p>
