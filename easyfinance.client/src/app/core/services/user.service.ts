@@ -1,11 +1,9 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, Subject, concatMap, map } from 'rxjs';
-import { tap } from 'rxjs';
+import { tap, catchError, throwError } from 'rxjs';
 import { DeleteUser, User } from '../models/user';
-import { catchError, throwError } from 'rxjs';
 import { LocalService } from './local.service';
-import { Token } from '../models/token';
 
 @Injectable({
   providedIn: 'root'
@@ -23,46 +21,41 @@ export class UserService {
   }
 
   public signIn(email: string, password: string): Observable<User> {
-    return this.http.post<Token>('/api/account/login', {
+    return this.http.post('/api/account/login', {
       email: email,
       password: password
     }, {
       observe: 'body',
       responseType: 'json'
     })
-      .pipe(
-        map(res => { this.localService.saveData(this.localService.TOKEN_DATA, res) }),
-        concatMap(() => this.refreshUserInfo())
-      );
+    .pipe(
+      concatMap(() => this.refreshUserInfo())
+    );
   }
 
   public refreshToken(): Observable<User> {
-    var token = this.localService.getData<Token>(this.localService.TOKEN_DATA);
-
-    return this.http.post<Token>('/api/account/refresh-token', token, {
+    return this.http.post('/api/Account/refresh-token', null, {
       observe: 'body',
       responseType: 'json'
     })
-      .pipe(
-        map(res => { this.localService.saveData(this.localService.TOKEN_DATA, res) }),
-        concatMap(() => this.refreshUserInfo())
-      );
+    .pipe(
+      concatMap(() => this.refreshUserInfo())
+    );
   }
 
   public register(email: string, password: string, token?: string): Observable<User> {
-    var query = token ? `?token=${token}` : '';
+    const query = token ? `?token=${token}` : '';
 
-    return this.http.post<Token>('/api/account/register' + query, {
+    return this.http.post('/api/account/register' + query, {
       email: email,
       password: password
     }, {
       observe: 'body',
       responseType: 'json'
     })
-      .pipe(
-        map(res => { this.localService.saveData(this.localService.TOKEN_DATA, res) }),
-        concatMap(() => this.refreshUserInfo())
-      );
+    .pipe(
+      concatMap(() => this.refreshUserInfo())
+    );
   }
 
   public refreshUserInfo(): Observable<User> {
@@ -85,23 +78,23 @@ export class UserService {
     return this.http.put('/api/account/', {
       firstName: firstName,
       lastName: lastName
-    }).pipe(concatMap(res => {
+    }).pipe(concatMap(() => {
         return this.refreshUserInfo();
       }));
   }
 
-  public manageInfo(newEmail: string = '', newPassword: string = '', oldPassword: string = '') {
+  public manageInfo(newEmail = '', newPassword = '', oldPassword = '') {
     return this.http.post('/api/account/manage/info/', {
       newEmail: newEmail,
       newPassword: newPassword,
       oldPassword: oldPassword
-    }).pipe(concatMap(res => {
+    }).pipe(concatMap(() => {
       return this.refreshUserInfo();
     }));
   }
 
   public setDefaultProject(projectId: string) {
-    return this.http.put(`/api/account/default-project/${projectId}`, {}).pipe(concatMap(res => {
+    return this.http.put(`/api/account/default-project/${projectId}`, {}).pipe(concatMap(() => {
       return this.refreshUserInfo();
     }));
   }

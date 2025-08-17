@@ -4,7 +4,6 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.RegularExpressions;
-using Azure.Core;
 using EasyFinance.Application.DTOs.AccessControl;
 using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Application.Features.UserService;
@@ -39,6 +38,8 @@ namespace EasyFinance.Server.Controllers
     {
         private readonly string tokenProvider = "REFRESHTOKENPROVIDER";
         private readonly string tokenPurpose = "RefreshToken";
+        private readonly string refreshTokenCookieName = "RefreshToken";
+        private readonly string accessTokenCookieName = "AuthToken";
 
         // Validate the email address using DataAnnotations like the UserValidator does when RequireUniqueEmail = true.
         private static readonly EmailAddressAttribute emailAddressAttribute = new();
@@ -172,8 +173,9 @@ namespace EasyFinance.Server.Controllers
             }
 
             await SendConfirmationEmailAsync(user, HttpContext, email);
+            await GenerateUserToken(user);
 
-            return Ok(await GenerateUserToken(user));
+            return Ok();
         }
 
         [HttpPost("login")]
@@ -204,29 +206,38 @@ namespace EasyFinance.Server.Controllers
                 return Unauthorized(result.ToString());
             }
 
-            return Ok(await GenerateUserToken(user));
+            await GenerateUserToken(user);
+
+            return Ok();
         }
 
         [HttpPost("refresh-token")]
         [AllowAnonymous]
-        public async Task<IActionResult> RefreshTokenAsync([FromBody] TokenRequestDTO request)
+        public async Task<IActionResult> RefreshTokenAsync()
         {
-            if (string.IsNullOrEmpty(request.AccessToken))
+            var accessToken = this.GetAccessTokenFromCookie();
+
+            if (string.IsNullOrEmpty(accessToken))
                 return Unauthorized();
 
-            var principal = TokenUtil.GetPrincipalFromExpiredToken(this.tokenSettings, request.AccessToken);
+            var principal = TokenUtil.GetPrincipalFromExpiredToken(this.tokenSettings, accessToken);
             if (principal == null || principal.FindFirst(ClaimTypes.NameIdentifier)?.Value == null)
                 return Unauthorized();
+
 
             var user = await this.userManager.GetUserAsync(principal);
 
             if (user == null || !user.Enabled)
                 return Unauthorized();
 
-            if (!await this.userManager.VerifyUserTokenAsync(user, this.tokenProvider, this.tokenPurpose, request.RefreshToken))
+            var refreshToken = this.GetRefreshTokenFromCookie();
+
+            if (string.IsNullOrEmpty(refreshToken) || !await this.userManager.VerifyUserTokenAsync(user, this.tokenProvider, this.tokenPurpose, refreshToken))
                 return Unauthorized();
 
-            return Ok(await GenerateUserToken(user));
+            await GenerateUserToken(user);
+
+            return Ok();
         }
 
         [HttpPost("logout")]
@@ -234,10 +245,14 @@ namespace EasyFinance.Server.Controllers
         {
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
+            Response.Cookies.Delete(refreshTokenCookieName);
+            Response.Cookies.Delete(accessTokenCookieName);
+
             if (user == null)
                 return Ok();
 
             await this.userManager.RemoveAuthenticationTokenAsync(user, this.tokenProvider, this.tokenPurpose);
+            await this.signInManager.SignOutAsync();
 
             return Ok();
         }
@@ -504,18 +519,12 @@ namespace EasyFinance.Server.Controllers
             };
         }
 
-        private async Task<TokenResponseDTO> GenerateUserToken(User user)
+        private async Task GenerateUserToken(User user)
         {
             var result = await this.GenerateTokenAsync(user);
 
-            return new TokenResponseDTO(result.AccessToken, result.RefreshToken);
-        }
-
-        private async Task<TokenResponseDTO> GenerateRefreshToken(User user)
-        {
-            var result = await this.GenerateTokenAsync(user);
-
-            return new TokenResponseDTO(result.AccessToken, result.RefreshToken);
+            SetRefreshTokenCookie(result.RefreshToken);
+            SetAccessTokenCookie(result.AccessToken);
         }
 
         private async Task<(string AccessToken, string RefreshToken)> GenerateTokenAsync(User user)
@@ -531,5 +540,35 @@ namespace EasyFinance.Server.Controllers
 
             return (AccessToken: token, RefreshToken: refreshToken);
         }
+
+        private void SetRefreshTokenCookie(string refreshToken)
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Path = Url.Action(nameof(RefreshTokenAsync), nameof(AccountController).Replace("Controller", "")),
+                Expires = DateTimeOffset.Now.AddSeconds(tokenSettings.RefreshTokenExpireSeconds)
+            };
+            Response.Cookies.Append(refreshTokenCookieName, refreshToken, cookieOptions);
+        }
+
+        private string GetRefreshTokenFromCookie() => Request.Cookies[refreshTokenCookieName] ?? string.Empty;
+
+        private void SetAccessTokenCookie(string accessToken)
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                // Keep the access token for the same duration as the refresh token to be possible get the user by the expired access token. The limitation is the JWT lifetime.
+                Expires = DateTimeOffset.Now.AddSeconds(tokenSettings.RefreshTokenExpireSeconds)
+            };
+            Response.Cookies.Append(accessTokenCookieName, accessToken, cookieOptions);
+        }
+
+        private string GetAccessTokenFromCookie() => Request.Cookies[accessTokenCookieName] ?? string.Empty;
     }
 }

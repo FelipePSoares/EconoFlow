@@ -3,6 +3,7 @@ using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure.Authentication;
 using EasyFinance.Persistence.DatabaseContext;
 using EasyFinance.Server.Extensions;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -64,8 +65,8 @@ namespace EasyFinance.Server.Middleware
                 })
                 .AddJwtBearer(config =>
                 {
-                    config.RequireHttpsMetadata = false;
-                    config.SaveToken = false;
+                    config.RequireHttpsMetadata = true;
+                    config.SaveToken = true;
                     config.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuerSigningKey = true,
@@ -76,6 +77,22 @@ namespace EasyFinance.Server.Middleware
                         ValidAudience = tokenSettings.Audience,
                         ClockSkew = TimeSpan.Zero
                     };
+                    config.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            // Check if token comes from Authorization header
+                            var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+                            if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+                                context.Token = authHeader.Substring("Bearer ".Length).Trim();
+                            // Fallback: get token from cookie
+                            else if (context.Request.Cookies.ContainsKey("AuthToken"))
+                                context.Token = context.Request.Cookies["AuthToken"];
+
+                            return Task.CompletedTask;
+                        }
+                    };
+
                 });
 
             return services;
