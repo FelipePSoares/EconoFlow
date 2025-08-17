@@ -8,11 +8,10 @@ import * as CryptoJS from 'crypto-js';
 export class LocalService {
 
   public USER_DATA = "user_data";
-  public TOKEN_DATA = "token_data";
 
   key = "123";
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) { }
+  constructor(@Inject(PLATFORM_ID) private platformId: object) { }
 
   public saveData(key: string, value: any) {
     if (isPlatformBrowser(this.platformId)) {
@@ -22,7 +21,7 @@ export class LocalService {
 
   public getData<T>(key: string): T | undefined {
     if (isPlatformBrowser(this.platformId)) {
-      let data = localStorage.getItem(key);
+      const data = localStorage.getItem(key);
 
       if (data) {
         try {

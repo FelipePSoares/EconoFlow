@@ -1,5 +1,5 @@
 import { HttpInterceptorFn, HttpResponse } from '@angular/common/http';
-import { BehaviorSubject, catchError, filter, of, switchMap, take, tap, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, of, switchMap, take, tap, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { inject, Injector } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
@@ -7,30 +7,22 @@ import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../services/auth.service';
 import { ApiErrorResponse } from '../models/error';
 import { SnackbarComponent } from '../components/snackbar/snackbar.component';
-import { LocalService } from '../services/local.service';
-import { Token } from '../models/token';
 
 let isRefreshing = false;
-const refreshTokenSubject = new BehaviorSubject<string | null>(null);
+const refreshTokenSubject = new BehaviorSubject<boolean>(false);
 
 export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
-  var localService = inject(LocalService);
-  var snackBar = inject(SnackbarComponent);
-  var matDialog = inject(MatDialog);
-  var injector = inject(Injector);
+  const snackBar = inject(SnackbarComponent);
+  const matDialog = inject(MatDialog);
+  const injector = inject(Injector);
 
-  const token = localService.getData<Token>(localService.TOKEN_DATA);
-
-  if (token) {
-    req = req.clone({
-      headers: req.headers.set('Authorization', `Bearer ${token.accessToken}`),
-    });
-  }
+  // Always add credentials
+  req = req.clone({ withCredentials: true });
 
   return next(req).pipe(
     tap((event) => {
       if (event instanceof HttpResponse) {
-        let translateService = injector.get(TranslateService);
+        const translateService = injector.get(TranslateService);
         if (event.status === 201 && event.url?.includes('support')) {
           snackBar.openSuccessSnackbar(translateService.instant('MessageSuccess'));
         } 
@@ -43,61 +35,55 @@ export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
       }
     }),
     catchError(err => {
-      let authService = injector.get(AuthService);
+      const authService = injector.get(AuthService);
 
+      // Network error
       if (err.status === 0) {
-        let translateService = injector.get(TranslateService);
+        const translateService = injector.get(TranslateService);
         snackBar.openErrorSnackbar(translateService.instant('NetworkError'));
       }
-      if (err.status === 401 && token && !err.url?.includes('refresh-token') && !err.url?.includes('logout') && !err.url?.includes('login')) {
+
+      // Token expired (401) → try refresh
+      if (err.status === 401 && !err.url?.includes('refresh-token') && !err.url?.includes('logout') && !err.url?.includes('login')) {
         if (isRefreshing) {
           // If a refresh is already in progress, wait for it to complete
           return refreshTokenSubject.pipe(
-            filter(token => token !== null),
             take(1),
-            switchMap((newToken) => {
-              if (newToken) {
-                return next(req.clone({
-                  headers: req.headers.set('Authorization', `Bearer ${newToken}`),
-                }));
-              }
+            switchMap(refreshed => {
+              if (refreshed)
+                return next(req);
+
               return throwError(() => err);
             })
           );
         }
 
         isRefreshing = true;
-        refreshTokenSubject.next(null);
 
         return authService.refreshToken().pipe(
           take(1),
           switchMap(() => {
-            const newToken = localService.getData<Token>(localService.TOKEN_DATA);
-            if (newToken) {
-              isRefreshing = false;
-              refreshTokenSubject.next(newToken.accessToken);
+            isRefreshing = false;
+            refreshTokenSubject.next(true);
 
-              return next(req.clone({
-                headers: req.headers.set('Authorization', `Bearer ${newToken.accessToken}`),
-              }));
-            }
-
-            return throwError(err);
+            // Retry the original request
+            return next(req);
           }),
           catchError(err => {
             isRefreshing = false;
+            refreshTokenSubject.next(false);
             return throwError(() => err);
           })
         );
       }
       else if ((err.status === 401 || err.status === 403) && !err.url?.includes('logout') && !err.url?.includes('login')) {
-        var router = injector.get(Router);
+        const router = injector.get(Router);
         matDialog.closeAll();
 
         authService.signOut();
         router.navigate(['login']);
 
-        return of(err.message);
+        return throwError(() => err);
       }
       let apiErrorResponse: ApiErrorResponse = { errors: {} } as ApiErrorResponse;
 
