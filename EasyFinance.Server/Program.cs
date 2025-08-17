@@ -55,7 +55,7 @@ if (!builder.Environment.IsDevelopment())
         .PersistKeysToDbContext<MyKeysContext>();
 
     if (bool.Parse(Environment.GetEnvironmentVariable("EconoFlow_KEY_ENCRYPT_ACTIVE")))
-        keys.ProtectKeysWithCertificate(Environment.GetEnvironmentVariable("EconoFlow_CERT_THUMBPRINT"));
+        keys.ProtectKeysWithDpapi(false);
 }
 
 try
