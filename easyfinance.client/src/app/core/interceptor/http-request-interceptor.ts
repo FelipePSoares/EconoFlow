@@ -1,5 +1,5 @@
 import { HttpInterceptorFn, HttpResponse } from '@angular/common/http';
-import { BehaviorSubject, catchError, of, switchMap, take, tap, throwError } from 'rxjs';
+import { catchError, Subject, switchMap, take, tap, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { inject, Injector } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
@@ -9,7 +9,9 @@ import { ApiErrorResponse } from '../models/error';
 import { SnackbarComponent } from '../components/snackbar/snackbar.component';
 
 let isRefreshing = false;
-const refreshTokenSubject = new BehaviorSubject<boolean>(false);
+
+// Use Subject instead of BehaviorSubject - only emits when refresh completes
+const refreshTokenSubject = new Subject<boolean>();
 
 export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
   const snackBar = inject(SnackbarComponent);
@@ -46,14 +48,17 @@ export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
       // Token expired (401) → try refresh
       if (err.status === 401 && !err.url?.includes('refresh-token') && !err.url?.includes('logout') && !err.url?.includes('login')) {
         if (isRefreshing) {
-          // If a refresh is already in progress, wait for it to complete
+          // Wait for the refresh to complete
           return refreshTokenSubject.pipe(
             take(1),
             switchMap(refreshed => {
-              if (refreshed)
+              if (refreshed) {
+                // Refresh succeeded, retry original request
                 return next(req);
-
-              return throwError(() => err);
+              } else {
+                // Refresh failed, propagate error
+                return throwError(() => err);
+              }
             })
           );
         }
@@ -63,6 +68,7 @@ export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
         return authService.refreshToken().pipe(
           take(1),
           switchMap(() => {
+            // Refresh successful
             isRefreshing = false;
             refreshTokenSubject.next(true);
 
@@ -70,6 +76,7 @@ export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
             return next(req);
           }),
           catchError(err => {
+            // Refresh failed
             isRefreshing = false;
             refreshTokenSubject.next(false);
             return throwError(() => err);
