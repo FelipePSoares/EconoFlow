@@ -229,6 +229,7 @@ namespace EasyFinance.Application.Features.ProjectService
 
             var expenses = await unitOfWork.ProjectRepository
                 .NoTrackable()
+                .IgnoreQueryFilters() // this removes filters from Projects + related Categories
                 .Where(p => p.Id == projectId)
                 .SelectMany(p => p.Categories.SelectMany(c => c.Expenses
                     .Where(e => e.Amount > 0 && e.Items.Count == 0)
@@ -244,6 +245,7 @@ namespace EasyFinance.Application.Features.ProjectService
 
             var expenseItems = await unitOfWork.ProjectRepository
                 .NoTrackable()
+                .IgnoreQueryFilters() // this removes filters from Projects + related Categories
                 .Where(p => p.Id == projectId)
                 .SelectMany(p => p.Categories.SelectMany(c => c.Expenses
                     .Where(e => e.Items.Count > 0)
