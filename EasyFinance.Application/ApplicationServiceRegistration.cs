@@ -1,4 +1,5 @@
-﻿using System.Threading.Channels;
+﻿using System;
+using System.Threading.Channels;
 using EasyFinance.Application.BackgroundServices.EmailBackgroundService;
 using EasyFinance.Application.DTOs.Email;
 using EasyFinance.Application.Features.AccessControlService;
@@ -10,6 +11,7 @@ using EasyFinance.Application.Features.ExpenseService;
 using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Application.Features.SupportService;
+using EasyFinance.Application.Features.UserKeyService;
 using EasyFinance.Application.Features.UserService;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,6 +21,8 @@ namespace EasyFinance.Application
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
+            var userKeySalt = Environment.GetEnvironmentVariable("EconoFlow_USER_KEY_SALT") ?? "Development_Key";
+
             services.AddSingleton<ICallbackService, CallbackService>();
 
             services.AddScoped<IProjectService, ProjectService>();
@@ -30,6 +34,7 @@ namespace EasyFinance.Application
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IContactService, ContactService>();
             services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IUserKeyService>(provider => new UserKeyService(userKeySalt));
 
             // Background Services
             services.AddHostedService<EmailBackgroundService>();
