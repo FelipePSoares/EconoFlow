@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -30,7 +30,7 @@ import { DefaultCategory } from '../../../core/models/default-category';
     templateUrl: './add-category.component.html',
     styleUrl: './add-category.component.css'
 })
-export class AddCategoryComponent implements OnInit {
+export class AddCategoryComponent implements OnInit, AfterViewInit {
   categoryForm!: FormGroup;
   httpErrors = false;
   errors!: Record<string, string[]>;
@@ -41,6 +41,8 @@ export class AddCategoryComponent implements OnInit {
   defaultCategories$: Observable<string[]> = this.defaultCategories.asObservable();
   
   filteredCategories$: Observable<string[]> = new Observable<string[]>();
+
+  @ViewChild('nameInput') nameInput!: ElementRef;
 
   constructor(
     private categoryService: CategoryService,
@@ -70,6 +72,10 @@ export class AddCategoryComponent implements OnInit {
     ]).pipe(
       map(([searchValue, categories]) => this.filterCategories(searchValue || '', categories))
     );
+  }
+
+  ngAfterViewInit(): void {
+    this.nameInput.nativeElement.focus();
   }
 
   private filterCategories(value: string, categories: string[]): string[] {
