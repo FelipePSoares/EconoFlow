@@ -6,9 +6,11 @@
       <mat-form-field appearance="fill" class="w-100">
         <mat-label>{{ 'FieldCategoryName' | translate }}</mat-label>
         <input matInput
-                id="name"
-                formControlName="name"
-                [matAutocomplete]="auto" />
+               id="name"
+               formControlName="name"
+               [matAutocomplete]="auto"
+               #nameInput
+               />
         @if (name?.invalid && name?.touched){
         <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error |  translate }}</mat-error>
         }

@@ -34,6 +34,7 @@ namespace EasyFinance.Application.Features.ExpenseService
 
             var category = await unitOfWork.CategoryRepository
                 .NoTrackable()
+                .IgnoreQueryFilters()
                 .Include(p => p.Expenses.Where(e => e.Date >= from && e.Date < to))
                 .ThenInclude(e => e.Items.Where(i => i.Date >= from && i.Date < to)
                 .OrderBy(item => item.Date))
