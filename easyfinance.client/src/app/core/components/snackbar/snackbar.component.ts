@@ -1,6 +1,5 @@
 import { Component, Injectable } from '@angular/core';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
-import { TranslateService } from '@ngx-translate/core';
 
 @Component({
     selector: 'app-snackbar',
@@ -11,14 +10,14 @@ import { TranslateService } from '@ngx-translate/core';
   providedIn: 'root',
 })
 export class SnackbarComponent {
-  constructor(private snackBar: MatSnackBar, private translateService: TranslateService) {}
+  constructor(private snackBar: MatSnackBar) {}
 
   openSuccessSnackbar(
     message: string,
     action = 'Close',
     config: MatSnackBarConfig = { duration: 3000, horizontalPosition: 'center', verticalPosition: 'bottom', panelClass: ['success-snackbar'] }
   ) {
-    this.snackBar.open(this.translateService.instant(message), action, config);
+    this.snackBar.open(message, action, config);
   }
 
   openErrorSnackbar(
@@ -26,6 +25,6 @@ export class SnackbarComponent {
     action = 'Close',
     config: MatSnackBarConfig = { duration: 5000, horizontalPosition: 'center', verticalPosition: 'bottom', panelClass: ['error-snackbar'] }
   ) {
-    this.snackBar.open(this.translateService.instant(message), action, config);
+    this.snackBar.open(message, action, config);
   }
 }

@@ -1,4 +1,4 @@
-import { bootstrapApplication } from '@angular/platform-browser';
+import { bootstrapApplication, provideClientHydration } from '@angular/platform-browser';
 import { AppComponent } from './app/features/app.component';
 import { provideServerRendering } from '@angular/platform-server';
 import { importProvidersFrom } from '@angular/core';
@@ -9,23 +9,24 @@ import { LoadingInterceptor } from './app/core/interceptor/loading.interceptor';
 import { LanguageInterceptor } from './app/core/interceptor/language-interceptor';
 
 const bootstrap = () => bootstrapApplication(AppComponent, {
-    providers: [
-      provideServerRendering(),
-      importProvidersFrom(
-        TranslateModule.forRoot({
-          loader: {
-            provide: TranslateLoader,
-            useFactory: (http: HttpClient) => new TranslateHttpLoader(http),
-            deps: [HttpClient]
-          },
-          defaultLanguage: 'en'
-        })
-      ),
-      provideHttpClient(
-        withFetch(),
-        withInterceptors([LoadingInterceptor, LanguageInterceptor])
-      )
-    ]
-  });
+  providers: [
+    provideServerRendering(),
+    importProvidersFrom(
+      TranslateModule.forRoot({
+        loader: {
+          provide: TranslateLoader,
+          useFactory: (http: HttpClient) => new TranslateHttpLoader(http),
+          deps: [HttpClient]
+        },
+        defaultLanguage: 'en'
+      })
+    ),
+    provideHttpClient(
+      withFetch(),
+      withInterceptors([LoadingInterceptor, LanguageInterceptor])
+    ),
+    provideClientHydration()
+  ]
+});
 
 export default bootstrap;
