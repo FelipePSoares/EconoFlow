@@ -12,17 +12,22 @@ export async function loadAngularLocale(globalService: GlobalService, translate:
       case 'pt':
       case 'pt-BR':
       case 'pt-PT':
-        const { default: pt } = await import('@angular/common/locales/pt');
-        registerLocaleData(pt, 'pt');
-        translate.use('pt');
-        break;
+        {
+          const { default: pt } = await import('@angular/common/locales/pt');
+          registerLocaleData(pt, 'pt');
+          translate.use('pt');
+          break;
+        }
       case 'en':
       case 'en-US':
+      case 'en-GB':
       default:
-        const { default: en } = await import('@angular/common/locales/en');
-        registerLocaleData(en, 'en');
-        globalService.languageLoaded = 'en';
-        break;
+        {
+          const { default: en } = await import('@angular/common/locales/en');
+          registerLocaleData(en, 'en');
+          globalService.languageLoaded = 'en';
+          break;
+        }
     }
   } catch (error) {
     console.error(`Error loading locale ${locale}:`, error);
