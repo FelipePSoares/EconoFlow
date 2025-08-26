@@ -13,11 +13,11 @@ export class UserService {
   loggedUser$: Observable<User> = this.loggedUser.asObservable();
 
   constructor(private http: HttpClient, private localService: LocalService) {
-    const user = localService.getData<User>(localService.USER_DATA);
-
-    if (user) {
-      this.loggedUser.next(user);
-    }
+    localService.getData<User>(localService.USER_DATA).subscribe(user => {
+      if (user) {
+        this.loggedUser.next(user);
+      }
+    });
   }
 
   public signIn(email: string, password: string): Observable<User> {
@@ -64,7 +64,7 @@ export class UserService {
       responseType: 'json'
     }).pipe(map(user => {
       this.loggedUser.next(user);
-      this.localService.saveData(this.localService.USER_DATA, user);
+      this.localService.saveData(this.localService.USER_DATA, user).subscribe();
       return user;
     }));
   }

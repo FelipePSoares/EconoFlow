@@ -24,8 +24,7 @@ const bootstrap = () => bootstrapApplication(AppComponent, {
     provideHttpClient(
       withFetch(),
       withInterceptors([LoadingInterceptor, LanguageInterceptor])
-    ),
-    provideClientHydration()
+    )
   ]
 });
 

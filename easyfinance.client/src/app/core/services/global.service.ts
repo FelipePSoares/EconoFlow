@@ -9,12 +9,15 @@ export class GlobalService {
   public languageLoaded = 'en-US';
   public groupSeparator = '.';
   public decimalSeparator = ',';
+  private currency: string | undefined;
 
-  constructor(private projectService: ProjectService) { }
+  constructor(private projectService: ProjectService) {
+    this.projectService.selectedUserProject$.subscribe(userProject => {
+      this.currency = userProject?.project.preferredCurrency;
+    });
+  }
 
   get currencySymbol(): string {
-    const currency = this.projectService.getSelectedUserProject()?.project?.preferredCurrency;
-
-    return getCurrencySymbol(currency ?? 'EUR', "narrow");
+    return getCurrencySymbol(this.currency ?? 'EUR', "narrow");
   }
 }

@@ -27,7 +27,10 @@ export class ProjectService {
     private localService: LocalService,
     private userService: UserService,
     private currentDateService: CurrentDateService
-  ) { }
+  ) {
+    this.localService.getData<UserProject>(PROJECT_DATA)
+      .subscribe(currentProject => this.selectedProjectSubject.next(currentProject));
+  }
 
   getUserProjects(): Observable<UserProject[]> {
     this.currentDateService.resetDateToday();
@@ -89,20 +92,8 @@ export class ProjectService {
   }
 
   selectUserProject(userProject: UserProject) {
-    this.localService.saveData(PROJECT_DATA, userProject);
+    this.localService.saveData(PROJECT_DATA, userProject).subscribe();
     this.selectedProjectSubject.next(userProject);
-  }
-
-  getSelectedUserProject(): UserProject | undefined {
-    let currentProject = this.selectedProjectSubject.value;
-
-    if (!currentProject) {
-      const project = this.localService.getData<UserProject>(PROJECT_DATA);
-      currentProject = project;
-      this.selectedProjectSubject.next(currentProject);
-    }
-
-    return currentProject;
   }
 
   setEditingProject(project: ProjectDto) {

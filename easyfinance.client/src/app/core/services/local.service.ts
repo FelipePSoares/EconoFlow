@@ -1,6 +1,8 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import * as CryptoJS from 'crypto-js';
+import { EncryptionService } from './encryption.service';
+import { map, Observable, of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -9,23 +11,23 @@ export class LocalService {
 
   public USER_DATA = "user_data";
 
-  key = "123";
+  constructor(@Inject(PLATFORM_ID) private platformId: object, private encryptionService: EncryptionService) { }
 
-  constructor(@Inject(PLATFORM_ID) private platformId: object) { }
-
-  public saveData(key: string, value: any) {
+  public saveData(key: string, value: any): Observable<void> {
     if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem(key, this.encrypt(JSON.stringify(value)));
+      return this.encrypt(JSON.stringify(value)).pipe(map(encryptedValue => localStorage.setItem(key, encryptedValue)))
     }
+
+    return of(undefined);
   }
 
-  public getData<T>(key: string): T | undefined {
+  public getData<T>(key: string): Observable<T | undefined> {
     if (isPlatformBrowser(this.platformId)) {
-      const data = localStorage.getItem(key);
+      const dataEncrypted = localStorage.getItem(key);
 
-      if (data) {
+      if (dataEncrypted) {
         try {
-          return JSON.parse(this.decrypt(data));
+          return this.decrypt(dataEncrypted).pipe(map(data => JSON.parse(data)));
         }
         catch (e) {
           console.error(e);
@@ -39,7 +41,7 @@ export class LocalService {
       }
     }
 
-    return undefined;
+    return of(undefined);
   }
 
   public removeData(key: string) {
@@ -54,11 +56,11 @@ export class LocalService {
     }
   }
 
-  private encrypt(txt: string): string {
-    return CryptoJS.AES.encrypt(txt, this.key).toString();
+  private encrypt(txt: string): Observable<string> {
+    return this.encryptionService.getKey().pipe(map(key => CryptoJS.AES.encrypt(txt, key).toString()));
   }
 
-  private decrypt(txtToDecrypt: string) {
-    return CryptoJS.AES.decrypt(txtToDecrypt, this.key).toString(CryptoJS.enc.Utf8);
+  private decrypt(txtToDecrypt: string): Observable<string> {
+    return this.encryptionService.getKey().pipe(map(key => CryptoJS.AES.decrypt(txtToDecrypt, key).toString(CryptoJS.enc.Utf8)));
   }
 }
