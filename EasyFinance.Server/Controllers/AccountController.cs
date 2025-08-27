@@ -77,7 +77,7 @@ namespace EasyFinance.Server.Controllers
 
             var result = user.Validate;
             if (result.Failed)
-                this.ValidateResponse(result, HttpStatusCode.OK);
+                return this.ValidateResponse(result, HttpStatusCode.OK);
 
             await this.userManager.UpdateAsync(user);
 
@@ -90,7 +90,7 @@ namespace EasyFinance.Server.Controllers
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
             if (user == null)
-                BadRequest("User not found!");
+                return BadRequest("User not found!");
 
             var result = await this.userService.SetDefaultProjectAsync(user, defaultProjectId);
 
@@ -137,9 +137,7 @@ namespace EasyFinance.Server.Controllers
         public async Task<IActionResult> Register([FromServices] IUserStore<User> userStore, [FromBody] RegisterRequest registration, [FromQuery] Guid? token = null)
         {
             if (!userManager.SupportsUserEmail)
-            {
                 throw new NotSupportedException($"{nameof(AccountController)} requires a user store with email support.");
-            }
 
             var emailStore = (IUserEmailStore<User>)userStore;
             var email = registration.Email;

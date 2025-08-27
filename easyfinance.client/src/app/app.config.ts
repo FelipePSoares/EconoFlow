@@ -53,26 +53,26 @@ export const appConfig: ApplicationConfig = {
 
 function appInitializerFactory(): () => Promise<void> {
   return async () => {
-    const translate = inject(TranslateService);
     const globalService = inject(GlobalService);
     const platformId = inject(PLATFORM_ID);
 
     if (isPlatformBrowser(platformId)) {
+      const translate = inject(TranslateService);
       await loadAngularLocale(globalService, translate);
       await loadMomentLocale(globalService.languageLoaded);
-    }
 
-    const formatter = new Intl.NumberFormat(globalService.languageLoaded);
-    const parts = formatter.formatToParts(1234.5);
+      const formatter = new Intl.NumberFormat(globalService.languageLoaded);
+      const parts = formatter.formatToParts(1234.5);
 
-    globalService.decimalSeparator = parts.find(part => part.type === 'decimal')?.value || globalService.decimalSeparator;
+      globalService.decimalSeparator = parts.find(part => part.type === 'decimal')?.value || globalService.decimalSeparator;
 
-    const groupSeparator = parts.find(part => part.type === 'group')?.value || '';
+      const groupSeparator = parts.find(part => part.type === 'group')?.value || '';
 
-    if (['.', ','].includes(groupSeparator)) {
-      globalService.groupSeparator = groupSeparator;
-    } else {
-      globalService.groupSeparator = globalService.decimalSeparator === '.' ? ',' : '.';
+      if (['.', ','].includes(groupSeparator)) {
+        globalService.groupSeparator = groupSeparator;
+      } else {
+        globalService.groupSeparator = globalService.decimalSeparator === '.' ? ',' : '.';
+      }
     }
   };
 }

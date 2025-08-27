@@ -8,14 +8,18 @@ import { ProjectService } from '../../services/project.service';
   standalone: true,
 })
 export class CurrencyFormatPipe implements PipeTransform {
+  private preferredCurrency: string | undefined;
 
-  constructor(private currencyPipe: CurrencyPipe, private projectService: ProjectService, private globalService: GlobalService) { }
+  constructor(private currencyPipe: CurrencyPipe, private projectService: ProjectService, private globalService: GlobalService) {
+    this.projectService.selectedUserProject$.subscribe(userProject => {
+      this.preferredCurrency = userProject?.project.preferredCurrency;
+    });
+  }
 
-  transform(amount: number, hideDecimals: boolean = false): string | null {
-    const userProject = this.projectService.getSelectedUserProject();
+  transform(amount: number, hideDecimals = false): string | null {
 
     const digitsInfo = hideDecimals ? '1.0-0' : '1.2-2';
 
-    return this.currencyPipe.transform(amount, userProject?.project?.preferredCurrency ?? 'EUR', "symbol", digitsInfo, this.globalService.languageLoaded);
+    return this.currencyPipe.transform(amount, this.preferredCurrency ?? 'EUR', "symbol", digitsInfo, this.globalService.languageLoaded);
   }
 }

@@ -22,14 +22,12 @@ import { ExpenseDto } from '../models/expense-dto';
 import { Expense } from '../../../core/models/expense';
 import { mapper } from '../../../core/utils/mappings/mapper';
 import { ExpenseService } from '../../../core/services/expense.service';
-import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 import { formatDate } from '../../../core/utils/date';
 import { ErrorMessageService } from 'src/app/core/services/error-message.service';
 import { GlobalService } from '../../../core/services/global.service';
-import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
 import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
 import { UserProjectDto } from '../../project/models/user-project-dto';
 import { ProjectService } from '../../../core/services/project.service';
@@ -49,9 +47,7 @@ import { CurrentDateService } from '../../../core/services/current-date.service'
       AsyncPipe,
       ReactiveFormsModule,
       CurrentDateComponent,
-      AddButtonComponent,
       ReturnButtonComponent,
-      ConfirmDialogComponent,
       BudgetBarComponent,
       FontAwesomeModule,
       MatFormField,
@@ -60,7 +56,6 @@ import { CurrentDateService } from '../../../core/services/current-date.service'
       MatInput,
       MatButton,
       MatDatepickerModule,
-      CurrencyFormatPipe,
       CurrencyMaskModule,
       TranslateModule
     ],

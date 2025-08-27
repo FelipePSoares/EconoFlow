@@ -2,8 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { CurrencyPipe } from '@angular/common';
 import { CurrencyFormatPipe } from './currency-format.pipe';
-import { User } from '../../models/user';
-import { UserService } from '../../services/user.service';
 import { GlobalService } from '../../services/global.service';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { ProjectService } from '../../services/project.service';

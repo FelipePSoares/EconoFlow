@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
+import { MatDialogContent, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
@@ -13,10 +13,7 @@ import { filter, Subscription } from 'rxjs';
     CommonModule,
     MatButtonModule,
     MatIconModule,
-    MatDialogTitle,
     MatDialogContent,
-    MatDialogActions,
-    MatDialogClose,
     RouterOutlet,
     TranslateModule
   ],

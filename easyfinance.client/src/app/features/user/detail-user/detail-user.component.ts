@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild  } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faCheck, faCircleCheck, faCircleXmark, faFloppyDisk, faPenToSquare, faEnvelopeOpenText } from '@fortawesome/free-solid-svg-icons';
 import { Observable } from 'rxjs';
@@ -10,7 +10,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatIcon } from "@angular/material/icon";
 import { Router } from '@angular/router'; 
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { UserService } from '../../../core/services/user.service';
 import { DeleteUser, User } from '../../../core/models/user';
 import { AsyncPipe, CommonModule } from '@angular/common';
@@ -35,7 +35,6 @@ import { MatDialog } from '@angular/material/dialog';
         MatSelectModule,
         MatOptionModule,
         MatIcon,
-        ConfirmDialogComponent,
         TranslateModule
     ],
     templateUrl: './detail-user.component.html',
@@ -83,7 +82,6 @@ export class DetailUserComponent implements OnInit {
     private userService: UserService,
     private router: Router,
     private errorMessageService: ErrorMessageService,
-    private translateService: TranslateService,
     private snackbar: SnackbarComponent,
     private dialog: MatDialog
   ) {
@@ -145,7 +143,7 @@ export class DetailUserComponent implements OnInit {
         }
       },
       error: () => {
-        this.snackbar.openErrorSnackbar(this.translateService.instant('FailToDeleteAccount'));
+        this.snackbar.openErrorSnackbar('FailToDeleteAccount');
       }
     });
   }

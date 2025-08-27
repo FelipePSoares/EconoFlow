@@ -1,12 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, Inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogContent, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { SafeHtml } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
-
-declare var bootstrap: any;
 
 @Component({
   selector: 'app-confirm-dialog',
@@ -14,10 +12,7 @@ declare var bootstrap: any;
     CommonModule,
     MatButtonModule,
     MatIconModule,
-    MatDialogTitle,
     MatDialogContent,
-    MatDialogActions,
-    MatDialogClose,
     TranslateModule
   ],
     templateUrl: './confirm-dialog.component.html',
