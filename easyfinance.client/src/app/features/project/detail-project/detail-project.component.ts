@@ -11,7 +11,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
-import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { CategoryService } from '../../../core/services/category.service';
 import { Category } from '../../../core/models/category';
 import { CategoryDto } from '../../category/models/category-dto';
@@ -28,13 +27,13 @@ import { Role } from '../../../core/enums/Role';
 import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
 import { BudgetBarComponent } from '../../../core/components/budget-bar/budget-bar.component';
 import { CurrentDateService } from '../../../core/services/current-date.service';
+import { ProjectDto } from '../models/project-dto';
 
 @Component({
     selector: 'app-detail-project',
     imports: [
       CommonModule,
       CurrentDateComponent,
-      ReturnButtonComponent,
       BudgetBarComponent,
       FontAwesomeModule,
       CurrencyFormatPipe,
@@ -90,7 +89,10 @@ export class DetailProjectComponent implements OnInit {
 
   ngOnInit(): void {
     this.projectService.selectedUserProject$.subscribe(userProject => {
-      this.userProject = userProject ?? new UserProjectDto();
+      const defaultProject = new UserProjectDto();
+      defaultProject.project = new ProjectDto();
+
+      this.userProject = userProject ?? defaultProject;
     });
 
     this.projectService.getUserProject(this.projectId)

@@ -32,11 +32,7 @@ export class LocalService {
         catch (e) {
           console.error(e);
 
-          if (e instanceof Error) {
-            if (e.message === "Malformed UTF-8 data") {
-              this.removeData(key);
-            }
-          }
+          this.removeData(key);
         }
       }
     }

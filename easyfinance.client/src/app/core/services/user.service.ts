@@ -13,11 +13,7 @@ export class UserService {
   loggedUser$: Observable<User> = this.loggedUser.asObservable();
 
   constructor(private http: HttpClient, private localService: LocalService) {
-    localService.getData<User>(localService.USER_DATA).subscribe(user => {
-      if (user) {
-        this.loggedUser.next(user);
-      }
-    });
+    localService.getData<User>(localService.USER_DATA).subscribe(user => this.loggedUser.next(user ?? new User()));
   }
 
   public signIn(email: string, password: string): Observable<User> {

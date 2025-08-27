@@ -35,7 +35,6 @@ import { MatDialog } from '@angular/material/dialog';
         MatSelectModule,
         MatOptionModule,
         MatIcon,
-        ConfirmDialogComponent,
         TranslateModule
     ],
     templateUrl: './detail-user.component.html',

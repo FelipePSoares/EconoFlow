@@ -41,8 +41,6 @@ import { CurrentDateService } from '../../../core/services/current-date.service'
         ReactiveFormsModule,
         MatCardModule,
         FontAwesomeModule,
-        ConfirmDialogComponent,
-        AddButtonComponent,
         ReturnButtonComponent,
         CurrentDateComponent,
         CurrencyFormatPipe,

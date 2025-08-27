@@ -7,7 +7,7 @@ import { UserKey } from '../models/user-key';
   providedIn: 'root'
 })
 export class EncryptionService {
-  private key: Subject<string | undefined> = new BehaviorSubject<string | undefined>("Test");
+  private key: Subject<string | undefined> = new BehaviorSubject<string | undefined>(undefined);
   private key$: Observable<string | undefined> = this.key.asObservable();
   private keyPromise?: Observable<string>;
 
