@@ -112,13 +112,16 @@ describe('EconoFlow - category add Tests', () => {
                 cy.wait<CategoryReq, CategoryRes[]>('@getCategories').then(({ request, response }) => {
                   const exists = response?.body.some(item => item.id == categoryCreated?.id)
                   expect(exists).to.be.false
+                  cy.get('.card').should('not.have.class', 'archived');
 
                   cy.get('#previous').click()
 
                   cy.wait<CategoryReq, CategoryRes[]>('@getCategories').then(({ request, response }) => {
-                    cy.log('categoryId: ' + categoryCreated?.id)
                     const exists2 = response?.body.some(item => item.id == categoryCreated?.id)
                     expect(exists2).to.be.true
+                    const category = response?.body.find(item => item.id == categoryCreated?.id);
+                    expect(category?.isArchived).to.be.true
+                    cy.get('.card').should('have.class', 'archived');
                   })
                 })
               })
