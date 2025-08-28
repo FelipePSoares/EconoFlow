@@ -15,7 +15,13 @@ export class LocalService {
 
   public saveData(key: string, value: any): Observable<void> {
     if (isPlatformBrowser(this.platformId)) {
-      return this.encrypt(JSON.stringify(value)).pipe(map(encryptedValue => localStorage.setItem(key, encryptedValue)))
+      try {
+        return this.encrypt(JSON.stringify(value)).pipe(map(encryptedValue => localStorage.setItem(key, encryptedValue)))
+      } catch (e) {
+        console.error(e);
+
+        this.removeData(key);
+      }
     }
 
     return of(undefined);
@@ -53,10 +59,20 @@ export class LocalService {
   }
 
   private encrypt(txt: string): Observable<string> {
-    return this.encryptionService.getKey().pipe(map(key => CryptoJS.AES.encrypt(txt, key).toString()));
+    return this.encryptionService.getKey().pipe(map(key => {
+      if (key)
+        return CryptoJS.AES.encrypt(txt, key).toString();
+
+      throw new Error("Can't load key");
+    }));
   }
 
   private decrypt(txtToDecrypt: string): Observable<string> {
-    return this.encryptionService.getKey().pipe(map(key => CryptoJS.AES.decrypt(txtToDecrypt, key).toString(CryptoJS.enc.Utf8)));
+    return this.encryptionService.getKey().pipe(map(key => {
+      if (key)
+        return CryptoJS.AES.decrypt(txtToDecrypt, key).toString(CryptoJS.enc.Utf8);
+
+      throw new Error("Can't load key");
+    }));
   }
 }

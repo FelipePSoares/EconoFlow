@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, Subject, concatMap, map } from 'rxjs';
+import { BehaviorSubject, Observable, concatMap, map, of, switchMap } from 'rxjs';
 import { tap, catchError, throwError } from 'rxjs';
 import { DeleteUser, User } from '../models/user';
 import { LocalService } from './local.service';
@@ -9,11 +9,23 @@ import { LocalService } from './local.service';
   providedIn: 'root'
 })
 export class UserService {
-  private loggedUser: Subject<User> = new BehaviorSubject<User>(new User());
-  loggedUser$: Observable<User> = this.loggedUser.asObservable();
+  private loggedUser = new BehaviorSubject<User | undefined>(undefined);
+  loggedUser$ = this.loggedUser.asObservable().pipe(switchMap(user => {
+    if (user)
+      return of(user);
+
+    return this.getLoggedUser();
+  }));
 
   constructor(private http: HttpClient, private localService: LocalService) {
-    localService.getData<User>(localService.USER_DATA).subscribe(user => this.loggedUser.next(user ?? new User()));
+    this.getLoggedUser().subscribe();
+  }
+
+  public getLoggedUser(): Observable<User> {
+    return this.localService.getData<User>(this.localService.USER_DATA).pipe(
+      map(user => user ?? new User()),
+      tap(user => this.loggedUser.next(user))
+    );
   }
 
   public signIn(email: string, password: string): Observable<User> {
@@ -58,10 +70,9 @@ export class UserService {
     return this.http.get<User>('/api/account/', {
       observe: 'body',
       responseType: 'json'
-    }).pipe(map(user => {
+    }).pipe(tap(user => {
       this.loggedUser.next(user);
       this.localService.saveData(this.localService.USER_DATA, user).subscribe();
-      return user;
     }));
   }
 
