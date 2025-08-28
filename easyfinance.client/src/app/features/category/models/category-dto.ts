@@ -9,6 +9,8 @@ export class CategoryDto {
   name!: string;
   @AutoMap(() => [ExpenseDto])
   expenses!: ExpenseDto[];
+  @AutoMap()
+  isArchived!: boolean;
 
   hasBudget(): boolean { return this.getStatus() != CategoryStatus.NotDefined; }
   hasOverspend(): boolean { return this.getStatus() == CategoryStatus.Exceeded; }

@@ -189,5 +189,6 @@
   "MonthlyDistribution": "Monthly distribution",
   "PleaseInformUsAverageAnnualIncomeThisProject": "Please, inform for us the average annual income for this project.",
   "Active": "Active",
-  "Inactive": "Inactive"
+  "Inactive": "Inactive",
+  "Archived": "Archived"
 }

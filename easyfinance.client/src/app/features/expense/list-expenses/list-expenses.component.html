@@ -11,7 +11,7 @@
       </div>
 
       <mat-card class="mb-4">
-        <mat-card-content>
+        <mat-card-content [class.archived]="(categoryIsArchived$ | async)">
           <div class="list-group list-group-flush">
             @for (expense of (expenses$ | async); track expense.id){
             <div class="list-group-item">
