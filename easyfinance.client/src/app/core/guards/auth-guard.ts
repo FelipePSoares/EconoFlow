@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
-import { map, of, switchMap, take } from 'rxjs';
-import { AuthService } from '../services/auth.service';
+import { map } from 'rxjs';
 import { UserService } from '../services/user.service';
 
 @Injectable({
@@ -33,10 +32,6 @@ export class AuthGuard implements CanActivate {
         this.router.navigate(['first-signin']);
         return false;
       }
-    } else if (currentUrl == '/projects' && !sessionStorage.getItem("visited") && user.defaultProjectId) {
-      sessionStorage.setItem("visited", "true");
-      this.router.navigate(['/projects', user.defaultProjectId]);
-      return false;
     }
 
     return true;
