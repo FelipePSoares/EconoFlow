@@ -65,6 +65,7 @@ try
     app.UseDefaultFiles();
     app.UseStaticFiles();
 
+    app.UseCorrelationId();
     app.UseSerilogRequestLogging();
 
     // Configure the HTTP request pipeline.

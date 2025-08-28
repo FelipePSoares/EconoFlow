@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Security.Claims;
+using System.Security.Principal;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.RegularExpressions;
@@ -40,6 +41,7 @@ namespace EasyFinance.Server.Controllers
         private readonly string tokenPurpose = "RefreshToken";
         private readonly string refreshTokenCookieName = "RefreshToken";
         private readonly string accessTokenCookieName = "AuthToken";
+        private readonly string correlationIdClaimType = "CorrelationId";
 
         // Validate the email address using DataAnnotations like the UserValidator does when RequireUniqueEmail = true.
         private static readonly EmailAddressAttribute emailAddressAttribute = new();
@@ -222,7 +224,6 @@ namespace EasyFinance.Server.Controllers
             if (principal == null || principal.FindFirst(ClaimTypes.NameIdentifier)?.Value == null)
                 return Unauthorized();
 
-
             var user = await this.userManager.GetUserAsync(principal);
 
             if (user == null || !user.Enabled)
@@ -233,7 +234,10 @@ namespace EasyFinance.Server.Controllers
             if (string.IsNullOrEmpty(refreshToken) || !await this.userManager.VerifyUserTokenAsync(user, this.tokenProvider, this.tokenPurpose, refreshToken))
                 return Unauthorized();
 
-            await GenerateUserToken(user);
+            var correlationId = principal.Claims.Where(c => c.Type == correlationIdClaimType)
+                               .Select(c => c.Value).SingleOrDefault();
+
+            await GenerateUserToken(user, correlationId);
 
             return Ok();
         }
@@ -517,18 +521,19 @@ namespace EasyFinance.Server.Controllers
             };
         }
 
-        private async Task GenerateUserToken(User user)
+        private async Task GenerateUserToken(User user, string correlationId = null)
         {
-            var result = await this.GenerateTokenAsync(user);
+            var (AccessToken, RefreshToken) = await this.GenerateTokenAsync(user, correlationId);
 
-            SetRefreshTokenCookie(result.RefreshToken);
-            SetAccessTokenCookie(result.AccessToken);
+            SetAccessTokenCookie(AccessToken);
+            SetRefreshTokenCookie(RefreshToken);
         }
 
-        private async Task<(string AccessToken, string RefreshToken)> GenerateTokenAsync(User user)
+        private async Task<(string AccessToken, string RefreshToken)> GenerateTokenAsync(User user, string correlationId)
         {
             var userRoles = await this.userManager.GetRolesAsync(user);
             var claims = userRoles.Select(userRole => new Claim(ClaimTypes.Role, userRole)).ToList();
+            claims.Add(new Claim(correlationIdClaimType, correlationId ?? Guid.NewGuid().ToString(), ClaimValueTypes.String));
 
             var token = TokenUtil.GetToken(tokenSettings, user, claims);
 
