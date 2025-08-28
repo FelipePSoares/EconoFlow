@@ -10,7 +10,7 @@ namespace EasyFinance.Server.Config
     public static class TokenUtil
     {
 
-        public static string GetToken(TokenSettings tokenSettings, User user, List<Claim> roleClaims)
+        public static string GetToken(TokenSettings tokenSettings, User user, List<Claim> claims)
         {
             var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenSettings.SecretKey));
             var signInCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
@@ -22,7 +22,7 @@ namespace EasyFinance.Server.Config
                 new Claim(ClaimTypes.Surname, user.LastName??"")
             };
 
-            userClaims.AddRange(roleClaims);
+            userClaims.AddRange(claims);
 
             var tokeOptions = new JwtSecurityToken(
                 issuer: tokenSettings.Issuer,
