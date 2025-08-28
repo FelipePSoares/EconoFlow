@@ -23,7 +23,7 @@
         <ul class="slider list-unstyled d-flex">
           @for (category of (categories$ | async); track category.id) {
           <li class="slide me-1">
-            <div class="card" (click)="selectCategory(category.id)">
+            <div class="card" [class.archived]="category.isArchived" (click)="selectCategory(category.id)">
               <div class="card-fill"
                    [ngClass]="getBgClassBasedOnCategory(category)"
                    [style.height]="setHeight ? category.getPercentageSpend() + 'px' : '0px'"></div>

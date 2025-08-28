@@ -80,3 +80,18 @@
   border-radius: var(--bs-border-radius);
   transition: height 3s ease;
 }
+
+.card.archived {
+  filter: grayscale(100%);
+  opacity: 0.5;
+  transition: all 0.3s ease;
+}
+
+  .card.archived::after {
+    content: '📁';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 16px;
+    opacity: 0.7;
+  }

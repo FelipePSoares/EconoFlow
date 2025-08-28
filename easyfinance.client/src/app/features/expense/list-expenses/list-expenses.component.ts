@@ -71,12 +71,12 @@ export class ListExpensesComponent implements OnInit {
   faChevronDown = faChevronDown;
   faChevronRight = faChevronRight;
 
-
   private expenses: BehaviorSubject<ExpenseDto[]> = new BehaviorSubject<ExpenseDto[]>([new ExpenseDto()]);
   expenses$: Observable<ExpenseDto[]> = this.expenses.asObservable();
 
   private category: BehaviorSubject<CategoryDto> = new BehaviorSubject<CategoryDto>(new CategoryDto());
-  categoryName$: Observable<string> = this.category.asObservable().pipe(map(c => c.name));
+  categoryName$: Observable<string> = this.category.asObservable().pipe(map(c => c.isArchived ? c.name + ' (' + this.translateService.instant('Archived') + ')' : c.name));
+  categoryIsArchived$: Observable<boolean> = this.category.asObservable().pipe(map(c => c.isArchived));
 
   expenseForm!: FormGroup;
   editingExpense: ExpenseDto = new ExpenseDto();
@@ -86,6 +86,7 @@ export class ListExpensesComponent implements OnInit {
   decimalSeparator!: string;
   currencySymbol!: string;
   userProject!: UserProjectDto;
+  isArchived!: boolean;
 
   @Input({ required: true })
   projectId!: string;
@@ -125,6 +126,7 @@ export class ListExpensesComponent implements OnInit {
     this.categoryService.getById(this.projectId, this.categoryId)
       .pipe(map(category => mapper.map(category, Category, CategoryDto)))
       .subscribe(res => {
+        this.isArchived = res.isArchived;
         this.category.next(res);
       }
     )
@@ -309,7 +311,7 @@ export class ListExpensesComponent implements OnInit {
   }
 
   canAddOrEdit(): boolean {
-    return this.userProject.role === Role.Admin || this.userProject.role === Role.Manager;
+    return (this.userProject.role === Role.Admin || this.userProject.role === Role.Manager) && !this.isArchived;
   }
 
   toggleExpand(expenseId: string) {
