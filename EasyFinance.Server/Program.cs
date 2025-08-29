@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Net;
 using EasyFinance.Application;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Domain.AccessControl;
@@ -48,6 +49,19 @@ builder.Services.AddSingleton<IApiService, Smtp2GoApiService>(x
 
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
+
+builder.Services.AddHsts(options =>
+{
+    options.Preload = true;
+    options.IncludeSubDomains = true;
+    options.MaxAge = TimeSpan.FromHours(12);
+});
+
+builder.Services.AddHttpsRedirection(options =>
+{
+    options.RedirectStatusCode = (int)HttpStatusCode.TemporaryRedirect;
+    options.HttpsPort = 443;
+});
 
 if (!builder.Environment.IsDevelopment())
 {
@@ -142,6 +156,7 @@ try
     else
     {
         app.UseMigration();
+        app.UseHsts();
     }
 
     app.UseHttpsRedirection();
