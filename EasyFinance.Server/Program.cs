@@ -155,9 +155,9 @@ try
     }
     else
     {
-        app.UseSecutiryPolicy();
         app.UseHsts();
         app.UseMigration();
+        app.UseSecutiryPolicy();
     }
 
     app.UseHttpsRedirection();
