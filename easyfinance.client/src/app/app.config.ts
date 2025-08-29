@@ -1,4 +1,4 @@
-import { ApplicationConfig, PLATFORM_ID } from '@angular/core';
+import { ApplicationConfig, CSP_NONCE, PLATFORM_ID } from '@angular/core';
 import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
 import { MatNativeDateModule } from '@angular/material/core';
 import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -16,6 +16,11 @@ import { loadMomentLocale } from './core/utils/loaders/moment-locale-loader';
 import { GlobalService } from './core/services/global.service';
 import { TranslateHttpLoader } from './core/utils/loaders/translate-http-loader';
 import { LanguageInterceptor } from './core/interceptor/language-interceptor';
+
+function getCspNonce(): string | null {
+  const meta = document.querySelector<HTMLMetaElement>('meta[name="csp-nonce"]');
+  return meta?.content ?? null;
+}
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -47,7 +52,9 @@ export const appConfig: ApplicationConfig = {
         LanguageInterceptor])
     ),
     provideAnimationsAsync(),
-    provideAppInitializer(appInitializerFactory()), provideClientHydration(withEventReplay())
+    provideAppInitializer(appInitializerFactory()),
+    provideClientHydration(withEventReplay()),
+    { provide: CSP_NONCE, useValue: getCspNonce() }
   ],
 };
 

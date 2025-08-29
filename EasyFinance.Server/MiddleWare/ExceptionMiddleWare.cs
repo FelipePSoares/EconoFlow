@@ -38,6 +38,12 @@ namespace EasyFinance.Server.Middleware
 
         private async Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
+            if (context.Response.HasStarted)
+            {
+                _logger.LogError("The response has already started, the exception middleware will not modify the response.");
+                return;
+            }
+
             context.Response.ContentType = "application/json";
 
             var statusCode = GetStatusCode(exception);

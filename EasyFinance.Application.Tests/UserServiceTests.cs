@@ -297,7 +297,7 @@ namespace EasyFinance.Application.Tests
             var result = await this.userService.GenerateConfirmationMessageAsync(user);
 
             // Assert
-            result.Should().Be("<p>This action is permanent and cannot be undone. Are you sure you want to delete your account?</p><p><span style=\"color: #ff0000;\">You are associated as a sole administrator of the projects below:</span></p><ul><li>Test Project</li></ul><p>Please transfer the administration to another user before deleting your account. Otherwise, the project(s) will be deleted also.</p>");
+            result.Should().Be("<p>This action is permanent and cannot be undone. Are you sure you want to delete your account?</p><p><span class=\"danger\" >You are associated as a sole administrator of the projects below:</span></p><ul><li>Test Project</li></ul><p>Please transfer the administration to another user before deleting your account. Otherwise, the project(s) will be deleted also.</p>");
         }
 
         private string GenerateToken(User user, string secretKey, string action = "confirm_delete"){

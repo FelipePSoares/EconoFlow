@@ -1,3 +1,8 @@
+.modal {
+  display: block;
+  padding-right: 17px;
+}
+
 .modal-overlay {
   position: fixed;
   top: 0;

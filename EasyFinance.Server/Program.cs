@@ -54,7 +54,7 @@ builder.Services.AddHsts(options =>
 {
     options.Preload = true;
     options.IncludeSubDomains = true;
-    options.MaxAge = TimeSpan.FromHours(12);
+    options.MaxAge = TimeSpan.FromDays(365);
 });
 
 builder.Services.AddHttpsRedirection(options =>
@@ -81,6 +81,8 @@ try
 
     app.UseCorrelationId();
     app.UseSerilogRequestLogging();
+
+    app.UseCustomExceptionHandler();
 
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
@@ -155,8 +157,9 @@ try
     }
     else
     {
-        app.UseMigration();
         app.UseHsts();
+        app.UseSecutiryPolicy();
+        app.UseMigration();
     }
 
     app.UseHttpsRedirection();
@@ -170,7 +173,6 @@ try
 
     app.MapFallbackToFile("/index.html");
 
-    app.UseCustomExceptionHandler();
 
     app.Run();
 }

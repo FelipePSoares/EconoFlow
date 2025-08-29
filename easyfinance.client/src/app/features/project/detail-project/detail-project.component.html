@@ -8,7 +8,7 @@
   <div class="row">
     <div class="d-flex justify-content-start">
       <div class="d-flex pe-3 mt-2 border-end">
-        <div class="card" style="min-width: 100px" (click)="selectIncomes()">
+        <div class="card min-width" (click)="selectIncomes()">
           <div class="card-body">
             <h3 class="card-title">{{ 'TotalIncome' | translate }}</h3>
             <div>
@@ -52,7 +52,7 @@
           }
           @if (canAddOrEdit()){
           <li class="slide">
-            <div class="card btn-add" style="min-width: 100px;" (click)="listCategories()">
+            <div class="card btn-add min-width" (click)="listCategories()">
               <div class="card-body"> 
                 <fa-icon class="btn btn-primary btn-circle" [icon]="faPlus" size="2xl"></fa-icon>
                 <span class="mt-2">{{ 'AddAndEdit' | translate }}</span>
@@ -95,11 +95,11 @@
             <hr class="solid" />
             <div class="d-grid label-money">
               <div class="mt-2">
-                <span class="float-start"><fa-icon [icon]="faArrowUp" transform="rotate-45" style="color: #c0392b"></fa-icon> {{ 'MoneyOut' | translate }}</span>
+                <span class="float-start"><fa-icon [icon]="faArrowUp" class="fa-rotate-45 money-out"></fa-icon> {{ 'MoneyOut' | translate }}</span>
                 <span class="float-end danger">{{ month.spend + month.overspend | currencyFormat: true }}</span>
               </div>
               <div class="mt-2">
-                <span class="float-start"><fa-icon [icon]="faArrowDown" transform="rotate-45" style="color: #2ecc71"></fa-icon> {{ 'MoneyIn' | translate }}</span>
+                <span class="float-start"><fa-icon [icon]="faArrowDown" class="fa-rotate-45 money-in"></fa-icon> {{ 'MoneyIn' | translate }}</span>
                 <span class="float-end success">{{ month.earned | currencyFormat: true }}</span>
               </div>
             </div>
@@ -125,11 +125,11 @@
             <hr class="solid" />
             <div class="d-grid label-money">
               <div class="mt-2">
-                <span class="float-start"><fa-icon [icon]="faArrowUp" transform="rotate-45" style="color: #c0392b"></fa-icon> {{ 'MoneyOut' | translate }}</span>
+                <span class="float-start"><fa-icon [icon]="faArrowUp" class="fa-rotate-45 money-out"></fa-icon> {{ 'MoneyOut' | translate }}</span>
                 <span class="float-end danger">{{ year.spend + year.overspend | currencyFormat: true }}</span>
               </div>
               <div class="mt-2">
-                <span class="float-start"><fa-icon [icon]="faArrowDown" transform="rotate-45" style="color: #2ecc71"></fa-icon> {{ 'MoneyIn' | translate }}</span>
+                <span class="float-start"><fa-icon [icon]="faArrowDown" class="fa-rotate-45 money-in"></fa-icon> {{ 'MoneyIn' | translate }}</span>
                 <span class="float-end success">{{ year.earned | currencyFormat: true }}</span>
               </div>
             </div>
@@ -159,8 +159,8 @@
                     <div class="d-flex align-items-center py-3">
                       <div class="transaction-icon me-3">
                         <fa-icon [icon]="row.type === 'Income' ? faArrowDown : faArrowUp"
-                                 transform="rotate-45"
-                                 [style.color]="row.type === 'Income' ? '#2ecc71' : '#c0392b'"
+                                 class="fa-rotate-45"
+                                 [class]="row.type === 'Income' ? 'money-in' : 'money-out'"
                                  size="lg">
                         </fa-icon>
                       </div>

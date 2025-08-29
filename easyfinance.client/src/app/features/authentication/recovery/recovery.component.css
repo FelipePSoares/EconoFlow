@@ -1,3 +1,6 @@
+.container > div {
+  min-height: 100vh;
+}
 
 .recovery-form-title {
   display: block;
@@ -21,4 +24,5 @@
 
   .footer a {
     font-weight: bold;
+    cursor: pointer;
   }

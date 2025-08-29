@@ -6,12 +6,13 @@
   <title>EconoFlow - Seu Controle Financeiro Simplificado</title>
   <meta name="description" content="EconoFlow: Gerencie suas finanças pessoais de forma simples, inteligente e eficaz. Controle gastos, planeje orçamentos e alcance seus objetivos financeiros.">
   <meta name="keywords" content="finanças pessoais, controle de gastos, orçamento, gestão financeira, aplicativo financeiro">
+  <meta name="csp-nonce" content="{{nonce}}">
   <base href="/">
   <link rel="icon" type="image/x-icon" href="/assets/coin.ico">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body class="mat-typography">
-  <app-root></app-root>
+  <app-root ngCspNonce="{{nonce}}"></app-root>
 </body>
 </html>

@@ -157,7 +157,7 @@
     <value>Esta ação é permanente e não pode ser desfeita. Tem certeza de que deseja excluir sua conta?</value>
   </data>
   <data name="WarningMessageToAdminUserWhoWantsToDeleteAccount" xml:space="preserve">
-    <value>&lt;p&gt;Esta ação é permanente e não pode ser desfeita. Tem certeza de que deseja excluir sua conta?&lt;/p&gt;&lt;p&gt;&lt;span style="color: #ff0000;"&gt;Você está associado como administrador único dos projetos abaixo:&lt;/span&gt;&lt;/p&gt;&lt;ul&gt;{0}&lt;/ul&gt;&lt;p&gt;Por favor, transfira a administração para outro usuário antes de excluir sua conta. Caso contrário, o(s) projeto(s) também será(ão) excluído(s).&lt;/p&gt;</value>
+    <value>&lt;p&gt;Esta ação é permanente e não pode ser desfeita. Tem certeza de que deseja excluir sua conta?&lt;/p&gt;&lt;p&gt;&lt;span class="danger" &gt;Você está associado como administrador único dos projetos abaixo:&lt;/span&gt;&lt;/p&gt;&lt;ul&gt;{0}&lt;/ul&gt;&lt;p&gt;Por favor, transfira a administração para outro usuário antes de excluir sua conta. Caso contrário, o(s) projeto(s) também será(ão) excluído(s).&lt;/p&gt;</value>
   </data>
   <data name="InvalidDeleteToken" xml:space="preserve">
     <value>Token de exclusão expirado, por favor inicie o processo de exclusão novamente.
