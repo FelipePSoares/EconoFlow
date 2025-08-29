@@ -18,8 +18,8 @@ import { TranslateHttpLoader } from './core/utils/loaders/translate-http-loader'
 import { LanguageInterceptor } from './core/interceptor/language-interceptor';
 
 function getCspNonce(): string | null {
-  const currentScript = document.currentScript as HTMLScriptElement | null;
-  return currentScript && currentScript.nonce ? currentScript.nonce : null;
+  const meta = document.querySelector<HTMLMetaElement>('meta[name="csp-nonce"]');
+  return meta?.content ?? null;
 }
 
 const nonce = getCspNonce();
