@@ -54,7 +54,7 @@ builder.Services.AddHsts(options =>
 {
     options.Preload = true;
     options.IncludeSubDomains = true;
-    options.MaxAge = TimeSpan.FromHours(12);
+    options.MaxAge = TimeSpan.FromDays(365);
 });
 
 builder.Services.AddHttpsRedirection(options =>
@@ -155,8 +155,9 @@ try
     }
     else
     {
-        app.UseMigration();
+        app.UseSecutiryPolicy();
         app.UseHsts();
+        app.UseMigration();
     }
 
     app.UseHttpsRedirection();
