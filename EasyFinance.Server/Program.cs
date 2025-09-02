@@ -156,8 +156,8 @@ try
     else
     {
         app.UseHsts();
-        app.UseMigration();
         app.UseSecutiryPolicy();
+        app.UseMigration();
     }
 
     app.UseHttpsRedirection();
