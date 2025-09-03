@@ -76,13 +76,14 @@ try
 {
     var app = builder.Build();
 
+    app.UseCorrelationId();
+    app.UseCustomExceptionHandler();
+
     app.UseDefaultFiles();
     app.UseStaticFiles();
 
-    app.UseCorrelationId();
     app.UseSerilogRequestLogging();
 
-    app.UseCustomExceptionHandler();
 
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
@@ -172,7 +173,6 @@ try
     app.MapControllers();
 
     app.MapFallbackToFile("/index.html");
-
 
     app.Run();
 }
