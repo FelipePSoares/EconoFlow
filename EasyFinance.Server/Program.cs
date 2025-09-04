@@ -77,6 +77,7 @@ try
     var app = builder.Build();
 
     app.UseCorrelationId();
+    app.UseSerilogRequestLogging(); 
     app.UseCustomExceptionHandler();
 
     // Configure the HTTP request pipeline.
@@ -160,8 +161,6 @@ try
     app.UseDefaultFiles();
     app.UseStaticFiles();
 
-    app.UseSerilogRequestLogging(); 
-
     app.UseHttpsRedirection();
 
     app.UseAuthorization();
@@ -175,7 +174,7 @@ try
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "A aplicação falhou ao iniciar.");
+    Log.Fatal(ex, "The application fail during the start.");
 }
 finally
 {
