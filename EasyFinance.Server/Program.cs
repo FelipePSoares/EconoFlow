@@ -79,7 +79,7 @@ try
     app.UseSerilogRequestLogging(); 
     app.UseCustomExceptionHandler();
     
-    app.UseNoSniffHeaders();
+    app.UseSafeHeaders();
 
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
