@@ -79,12 +79,6 @@ try
     app.UseCorrelationId();
     app.UseCustomExceptionHandler();
 
-    app.UseDefaultFiles();
-    app.UseStaticFiles();
-
-    app.UseSerilogRequestLogging();
-
-
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
     {
@@ -163,6 +157,11 @@ try
         app.UseMigration();
     }
 
+    app.UseDefaultFiles();
+    app.UseStaticFiles();
+
+    app.UseSerilogRequestLogging(); 
+
     app.UseHttpsRedirection();
 
     app.UseAuthorization();
@@ -172,13 +171,11 @@ try
 
     app.MapControllers();
 
-    app.MapFallbackToFile("/index.html");
-
     app.Run();
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "A aplicação falhou ao iniciar.");
+    Log.Fatal(ex, "A aplicaÃ§Ã£o falhou ao iniciar.");
 }
 finally
 {
