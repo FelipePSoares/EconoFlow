@@ -75,10 +75,11 @@ if (!builder.Environment.IsDevelopment())
 try
 {
     var app = builder.Build();
-
     app.UseCorrelationId();
     app.UseSerilogRequestLogging(); 
     app.UseCustomExceptionHandler();
+    
+    app.UseNoSniffHeaders();
 
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
