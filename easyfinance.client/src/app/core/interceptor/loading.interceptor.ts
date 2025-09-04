@@ -6,7 +6,8 @@ import { LoaderService } from '../services/loader.service';
 const exceptions: any = [
   { method: 'GET', url: '/api/account/' },
   { method: 'GET', url: '/api/account/search' },
-  { method: 'GET', url: '/DefaultCategories' }
+  { method: 'GET', url: '/DefaultCategories' },
+  { method: 'GET', url: '/assets/version.json' }
 ];
 
 var totalRequests = 0;
