@@ -8,6 +8,7 @@ namespace EasyFinance.Server.MiddleWare
             {
                 context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
                 context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+                context.Response.Headers.Append("Permissions-Policy", "geolocation=(self), microphone=(), camera=()");
                 await next();
             });
         }
