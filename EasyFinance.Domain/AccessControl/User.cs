@@ -14,11 +14,16 @@ namespace EasyFinance.Domain.AccessControl
             Id = id;
         }
 
-        public User(string firstName = "Default", string lastName = "Default", bool enabled = default)
+        public User(
+            string firstName = "Default",
+            string lastName = "Default",
+            bool enabled = true,
+            NotificationChannels notificationChannels = NotificationChannels.Email | NotificationChannels.Push)
         {
             FirstName = firstName;
             LastName = lastName;
             Enabled = enabled;
+            NotificationChannels = notificationChannels;
         }
 
         public string FirstName { get; private set; } = string.Empty;
@@ -27,7 +32,7 @@ namespace EasyFinance.Domain.AccessControl
         public bool Enabled { get; set; } = true;
         public bool HasIncompletedInformation => string.IsNullOrEmpty(FirstName) || string.IsNullOrEmpty(LastName);
         public Guid? DefaultProjectId { get; private set; } = default;
-
+        public NotificationChannels NotificationChannels { get; private set; } = NotificationChannels.None;
 
         public AppResponse Validate
         {
@@ -64,6 +69,11 @@ namespace EasyFinance.Domain.AccessControl
         public void SetDefaultProject(Guid? projectId)
         {
             this.DefaultProjectId = projectId;
+        }
+
+        public void SetNotificationChannels(NotificationChannels channels)
+        {
+            NotificationChannels = channels;
         }
     }
 }
