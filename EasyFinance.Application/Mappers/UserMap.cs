@@ -12,5 +12,13 @@ namespace EasyFinance.Application.Mappers
 
         public static IEnumerable<UserSearchResponseDTO> ToSearchResponseDTO(this IEnumerable<UserResponseDTO> users)
             => users.Select(u => new UserSearchResponseDTO(u));
+
+        public static UserRequestDTO ToRequestDTO(this User user)
+            => new()
+            {
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                NotificationChannels = user.NotificationChannels
+            };
     }
 }
