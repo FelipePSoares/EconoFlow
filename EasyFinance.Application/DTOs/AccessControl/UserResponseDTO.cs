@@ -19,6 +19,7 @@ namespace EasyFinance.Application.DTOs.AccessControl
                 EmailConfirmed = user.EmailConfirmed;
                 TwoFactorEnabled = user.TwoFactorEnabled;
                 DefaultProjectId = user.DefaultProjectId;
+                NotificationChannels = user.NotificationChannels;
             }
         }
 
@@ -32,5 +33,6 @@ namespace EasyFinance.Application.DTOs.AccessControl
         public bool EmailConfirmed { get; set; }
         public bool TwoFactorEnabled { get; set; }
         public Guid? DefaultProjectId {  get; set; }
+        public NotificationChannels NotificationChannels { get; private set; }
     }
 }

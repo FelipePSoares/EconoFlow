@@ -38,7 +38,10 @@ builder.Services.AddControllers(config =>
     config.SuppressAsyncSuffixInActionNames = false; 
 })
     .AddNewtonsoftJson(setup =>
-        setup.SerializerSettings.Converters.Add(new StringEnumConverter()));
+    {
+        setup.SerializerSettings.Converters.Add(new FlagsEnumArrayConverter());
+        setup.SerializerSettings.Converters.Add(new StringEnumConverter());
+    });
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

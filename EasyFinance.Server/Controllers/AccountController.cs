@@ -6,7 +6,9 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.RegularExpressions;
 using EasyFinance.Application.DTOs.AccessControl;
+using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.Features.AccessControlService;
+using EasyFinance.Application.Features.CategoryService;
 using EasyFinance.Application.Features.UserService;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
@@ -17,6 +19,7 @@ using EasyFinance.Server.Config;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Serilog;
@@ -84,6 +87,32 @@ namespace EasyFinance.Server.Controllers
             await this.userManager.UpdateAsync(user);
 
             return Ok(new UserResponseDTO(user));
+        }
+
+        [HttpPatch]
+        public async Task<IActionResult> PatchUserAsync([FromBody] JsonPatchDocument<UserRequestDTO> userRequestDto)
+        {
+            if (userRequestDto == null) return BadRequest();
+
+            var existentUser = await this.userManager.GetUserAsync(this.HttpContext.User);
+
+            if (existentUser == null)
+                return BadRequest("User not found!");
+
+            var dto = existentUser.ToRequestDTO();
+            userRequestDto.ApplyTo(dto);
+
+            existentUser.SetFirstName(dto.FirstName);
+            existentUser.SetLastName(dto.LastName);
+            existentUser.SetNotificationChannels(dto.NotificationChannels);
+
+            var result = existentUser.Validate;
+            if (result.Failed)
+                return this.ValidateResponse(result, HttpStatusCode.OK);
+
+            await this.userManager.UpdateAsync(existentUser);
+
+            return Ok(new UserResponseDTO(existentUser));
         }
 
         [HttpPut("default-project/{defaultProjectId?}")]
