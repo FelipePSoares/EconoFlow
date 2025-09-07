@@ -1,48 +1,50 @@
-import { Component, OnInit, ViewChild  } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faCheck, faCircleCheck, faCircleXmark, faFloppyDisk, faPenToSquare, faEnvelopeOpenText } from '@fortawesome/free-solid-svg-icons';
-import { Observable } from 'rxjs';
+import { debounceTime, distinctUntilChanged, Observable, Subscription } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatIcon } from "@angular/material/icon";
-import { Router } from '@angular/router'; 
-import { TranslateModule } from '@ngx-translate/core';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { Router } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { UserService } from '../../../core/services/user.service';
 import { DeleteUser, User } from '../../../core/models/user';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
-import { passwordMatchValidator } from '../../../core/utils/custom-validators/password-match-validator';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.component';
 import { MatDialog } from '@angular/material/dialog';
+import { compare } from 'fast-json-patch';
 
 @Component({
-    selector: 'app-detail-user',
-    imports: [
-        CommonModule,
-        FormsModule,
-        AsyncPipe,
-        ReactiveFormsModule,
-        FontAwesomeModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatButtonModule,
-        MatSelectModule,
-        MatOptionModule,
-        MatIcon,
-        TranslateModule
-    ],
-    templateUrl: './detail-user.component.html',
-    styleUrl: './detail-user.component.css'
+  selector: 'app-detail-user',
+  imports: [
+    CommonModule,
+    FormsModule,
+    AsyncPipe,
+    ReactiveFormsModule,
+    FontAwesomeModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatSelectModule,
+    MatOptionModule,
+    MatIcon,
+    TranslateModule,
+    MatSlideToggleModule
+  ],
+  templateUrl: './detail-user.component.html',
+  styleUrl: './detail-user.component.css'
 })
-export class DetailUserComponent implements OnInit {
+export class DetailUserComponent implements OnInit, OnDestroy {
   // Private Properties
   private deleteToken!: string;
+  private sub!: Subscription;
 
   // ViewChild
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
@@ -50,47 +52,30 @@ export class DetailUserComponent implements OnInit {
   // Observables & Forms
   user$: Observable<User>;
   userForm!: FormGroup;
-  passwordForm!: FormGroup;
 
   // User & Validation State
-  editingUser!: User;
-  isEmailUpdated = false;
-  isPasswordUpdated = false;
-  isModalOpen = false;
-  hide = true;
+  isEmailNotificationChecked = true;
+  isPushNotificationChecked = true;
 
-  // Password Validation Flags
-  hasLowerCase = false;
-  hasUpperCase = false;
-  hasOneNumber = false;
-  hasOneSpecial = false;
-  hasMinCharacteres = false;
+  editingUser!: User;
 
   // Error Handling
   httpErrors = false;
   errors!: Record<string, string[]>;
-
-  // Icons
-  faCheck = faCheck;
-  faCircleCheck = faCircleCheck;
-  faCircleXmark = faCircleXmark;
-  faFloppyDisk = faFloppyDisk;
-  faPenToSquare = faPenToSquare;
-  faEnvelopeOpenText = faEnvelopeOpenText;
 
   constructor(
     private userService: UserService,
     private router: Router,
     private errorMessageService: ErrorMessageService,
     private snackbar: SnackbarComponent,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private translateService: TranslateService
   ) {
     this.user$ = this.userService.loggedUser$;
   }
 
   ngOnInit(): void {
     this.reset();
-    this.resetPasswordForm();
   }
 
   /** User Form Initialization **/
@@ -98,27 +83,22 @@ export class DetailUserComponent implements OnInit {
     this.user$.subscribe(user => {
       this.userForm = new FormGroup({
         firstName: new FormControl(user.firstName, [Validators.required]),
-        lastName: new FormControl(user.lastName, [Validators.required]),
-        email: new FormControl(user.email, [Validators.required, Validators.email]),
+        lastName: new FormControl(user.lastName, [Validators.required])
       });
 
+      this.sub = this.userForm.valueChanges
+        .pipe(
+          debounceTime(800),
+          distinctUntilChanged()
+        )
+        .subscribe(() => {
+          this.saveGeneralInfo();
+        });
+
+      this.isEmailNotificationChecked = user.notificationChannels.some(n => n == "Email");
+      this.isPushNotificationChecked = user.notificationChannels.some(n => n == "Push");
+
       this.editingUser = user;
-    });
-  }
-
-  resetPasswordForm() {
-    this.passwordForm = new FormGroup({
-      oldPassword: new FormControl('', [Validators.required]),
-      password: new FormControl('', [Validators.required, Validators.pattern(/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_])(?!.* ).{8,}$/)]),
-      confirmPassword: new FormControl('', [Validators.required])
-    }, { validators: passwordMatchValidator });
-
-    this.passwordForm.valueChanges.subscribe(value => {
-      this.hasLowerCase = /[a-z]/.test(value.password);
-      this.hasUpperCase = /[A-Z]/.test(value.password);
-      this.hasOneNumber = /[0-9]/.test(value.password);
-      this.hasOneSpecial = /[\W_]/.test(value.password);
-      this.hasMinCharacteres = /^.{8,}$/.test(value.password);
     });
   }
 
@@ -133,7 +113,7 @@ export class DetailUserComponent implements OnInit {
           }).afterClosed().subscribe((result) => {
             if (result && this.deleteToken) {
               this.userService.deleteUser(this.deleteToken).subscribe({
-                next: (response) => {
+                next: () => {
                   this.userService.removeUserInfo();
                   this.router.navigate(['/']);
                 },
@@ -151,53 +131,81 @@ export class DetailUserComponent implements OnInit {
   /** Getters for Form Controls **/
   get firstName() { return this.userForm.get('firstName'); }
   get lastName() { return this.userForm.get('lastName'); }
-  get email() { return this.userForm.get('email'); }
-  get oldPassword() { return this.passwordForm.get('oldPassword'); }
-  get password() { return this.passwordForm.get('password'); }
-  get confirmPassword() { return this.passwordForm.get('confirmPassword'); }
 
-  /** Save User Information **/
-  save() {
+  saveGeneralInfo(): void {
     if (this.userForm.valid) {
-      const { firstName, lastName, email } = this.userForm.value;
+      const { firstName, lastName } = this.userForm.value;
 
-      if (firstName !== this.editingUser.firstName || lastName !== this.editingUser.lastName) {
-        this.userService.setUserInfo(firstName, lastName).subscribe({
-          error: (response: ApiErrorResponse) => this.handleError(response, this.userForm)
-        });
-      }
+      const oldUser = ({
+        firstName: this.editingUser.firstName,
+        lastName: this.editingUser.lastName
+      });
 
-      if (email !== this.editingUser.email) {
-        this.userService.manageInfo(email).subscribe({
-          next: () => this.isEmailUpdated = true,
-          error: (response: ApiErrorResponse) => this.handleError(response, this.userForm)
-        });
-      }
+      const newUser = ({
+        firstName,
+        lastName
+      });
+
+      const patch = compare(oldUser, newUser);
+
+      this.userService.update(patch).subscribe({
+        next: (response: User) => this.editingUser = response,
+        error: (response: ApiErrorResponse) => {
+          this.httpErrors = true;
+          this.errors = response.errors;
+
+          this.errorMessageService.setFormErrors(this.userForm, this.errors);
+
+          if (this.errors['general']) {
+            this.snackbar.openErrorSnackbar(this.translateService.instant('GenericError'));
+          }
+        }
+      });
     }
   }
 
-  savePassword() {
-    if (this.passwordForm.valid && this.passwordForm.dirty && (this.passwordForm.value.password !== '' || this.passwordForm.value.confirmPassword !== '' || this.passwordForm.value.oldPassword !== '') && this.passwordForm.value.password === this.passwordForm.value.confirmPassword) {
-      const { oldPassword, password } = this.passwordForm.value;
-      this.passwordForm.disable();
+  saveNotificationPreferences(): void {
+    const oldUser = ({
+      notificationChannels: this.editingUser.notificationChannels.join(',')
+    });
 
-      this.userService.manageInfo(undefined, password, oldPassword).subscribe({
-        next: response => this.isPasswordUpdated = true,
-        error: (response: ApiErrorResponse) => this.handleError(response, this.passwordForm)
-      });
+    const notificationChannels = [
+      ...(this.isEmailNotificationChecked ? ["Email"] : []),
+      ...(this.isPushNotificationChecked ? ["Push"] : []),
+    ].join(',');
 
-    }
+    const newUser = ({
+      ...(notificationChannels && notificationChannels.length > 0 && {
+        notificationChannels
+      })
+    });
+
+    const patch = compare(oldUser, newUser);
+
+    this.userService.update(patch).subscribe({
+      next: (response: User) => this.editingUser = response,
+      error: (response: ApiErrorResponse) => {
+        this.httpErrors = true;
+        this.errors = response.errors;
+
+        this.isEmailNotificationChecked = this.editingUser.notificationChannels.some(n => n == "Email");
+        this.isPushNotificationChecked = this.editingUser.notificationChannels.some(n => n == "Push");
+
+        this.errorMessageService.setFormErrors(this.userForm, this.errors);
+
+        if (this.errors['general']) {
+          this.snackbar.openErrorSnackbar(this.translateService.instant('GenericError'));
+        }
+      }
+    });
   }
 
   /** Error Handling **/
-  private handleError(response: ApiErrorResponse, form: FormGroup): void {
-    form.enable();
-    this.httpErrors = true;
-    this.errors = response.errors;
-    this.errorMessageService.setFormErrors(form, this.errors);
-  }
-
   getFormFieldErrors(form: FormGroup<any>, fieldName: string): string[] {
     return this.errorMessageService.getFormFieldErrors(form, fieldName);
+  }
+
+  ngOnDestroy() {
+    this.sub.unsubscribe();
   }
 }

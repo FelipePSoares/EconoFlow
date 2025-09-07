@@ -19,6 +19,8 @@
   "FieldBudget": "Orçamento",
   "FieldAnnualIncome": "Por favor, insira a sua renda média anual (Não Mensal)",
   "FieldAnnualIncomeTooltip": "Nós usamos este valor para calcular a distrubuição mensal. Por favor insira sua renda média anual.",
+  "FieldEmail": "Notificações por Email",
+  "FieldPush": "Notificações por Push",
 
   "PlaceholderEmailAddress": "nome@exemplo.com",
   "PlaceholderPassword": "Senha",
@@ -58,6 +60,10 @@
   "ButtonAddCategory": "Adicionar Categoria",
   "ButtonSkipSmartSetup": "Pular Configuração Inteligente",
   "ButtonSendMessage": "Enviar Mensagem",
+
+  "MenuAccount": "Conta",
+  "MenuPasswordAuthentication": "Senhas e Autenticação",
+  "MenuEmails": "Emails",
 
   "RequiredField": "Este campo é obrigatório.",
   "InvalidEmailFormat": "Email com formato inválido.",
@@ -189,5 +195,13 @@
   "PleaseInformUsAverageAnnualIncomeThisProject": "Por favor, informe-nos a renda média anual deste projeto.",
   "Active": "Ativo",
   "Inactive": "Inativo",
-  "Archived": "Arquivado"
+  "Archived": "Arquivado",
+  "Settings": "Configurações",
+  "ManageAccount": "Gerencie sua conta",
+  "AccountSettings": "Configuração de Conta",
+  "ManagePersonalInfoAndPreferences": "Gerencie suas informações pessoais e preferências",
+  "PeronalInfo": "Informações Pessoais",
+  "NotificationPreferences": "Preferências de Notificação",
+  "ReceiveImportantUpdatesNotificationsViaEmail": "Receba importantes atualizações e notificações por email",
+  "ReceiveRealTimePushNotificationsYourDevices": "Receba notificações push em tempo real em seu dispositivo"
 }

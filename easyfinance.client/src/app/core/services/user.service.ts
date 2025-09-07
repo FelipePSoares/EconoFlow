@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable, concatMap, map, of, switchMap } from 'rxjs
 import { tap, catchError, throwError } from 'rxjs';
 import { DeleteUser, User } from '../models/user';
 import { LocalService } from './local.service';
+import { Operation } from 'fast-json-patch';
 
 @Injectable({
   providedIn: 'root'
@@ -88,6 +89,10 @@ export class UserService {
     }).pipe(concatMap(() => {
         return this.refreshUserInfo();
       }));
+  }
+
+  public update(patch: Operation[]): Observable<User> {
+    return this.http.patch<User>('/api/account/', patch).pipe(tap(() => this.refreshUserInfo().subscribe()));
   }
 
   public manageInfo(newEmail = '', newPassword = '', oldPassword = '') {

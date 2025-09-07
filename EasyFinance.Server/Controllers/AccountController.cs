@@ -70,6 +70,7 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpPut]
+        [Obsolete("UpdateUserAsync is deprecated, please use PatchUserAsync instead.")]
         public async Task<IActionResult> UpdateUserAsync([FromBody] UserRequestDTO userDTO)
         {
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);

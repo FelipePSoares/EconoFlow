@@ -1,0 +1,52 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-lg-3 col-xl-2 bg-white shadow-sm p-0">
+      <div class="sidebar-header p-4 border-bottom">
+        <h5 class="mb-0 text-dark fw-bold">{{ 'Settings' | translate }}</h5>
+        <small class="text-muted">{{ 'ManageAccount' | translate }}</small>
+      </div>
+
+      <nav class="sidebar-nav p-3">
+        <ul class="nav nav-pills flex-column">
+          <li class="nav-item mb-2">
+            <a [routerLink]="['/user/account']"
+               class="nav-link d-flex align-items-center"
+               routerLinkActive="active"
+               #accountLink="routerLinkActive"
+               [class.text-muted]="!accountLink.isActive"
+               ariaCurrentWhenActive="page">
+              <i class="bi bi-person-circle me-3"></i>
+              <span>{{ 'MenuAccount' | translate }}</span>
+            </a>
+          </li>
+          <li class="nav-item mb-2">
+            <a [routerLink]="['/user/authentication']"
+               class="nav-link d-flex align-items-center"
+               routerLinkActive="active"
+               #authenticationLink="routerLinkActive"
+               ariaCurrentWhenActive="page"
+               [class.text-muted]="!authenticationLink.isActive">
+              <i class="bi bi-shield-lock me-3"></i>
+              <span>{{ 'MenuPasswordAuthentication' | translate }}</span>
+            </a>
+          </li>
+          <li class="nav-item mb-2">
+            <a [routerLink]="['/user/emails']"
+               class="nav-link d-flex align-items-center"
+               routerLinkActive="active"
+               #emailsLink="routerLinkActive"
+               [class.text-muted]="!emailsLink.isActive"
+               ariaCurrentWhenActive="page">
+              <i class="bi bi-envelope me-3"></i>
+              <span>{{ 'MenuEmails' | translate }}</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="col-lg-9 col-xl-10 p-4">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>

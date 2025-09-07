@@ -19,6 +19,8 @@
   "FieldBudget": "Budget",
   "FieldAnnualIncome": "Please enter your average annual income (not monthly)",
   "FieldAnnualIncomeTooltip": "We use this to calculate your monthly distribution. Please enter your yearly income.",
+  "FieldEmail": "Email Notifications",
+  "FieldPush": "Push Notifications",
 
   "PlaceholderEmailAddress": "name@example.com",
   "PlaceholderPassword": "Password",
@@ -58,6 +60,10 @@
   "ButtonAddCategory": "Add Category",
   "ButtonSkipSmartSetup": "Skip Smart Setup",
   "ButtonSendMessage": "Send Message",
+
+  "MenuAccount": "Account",
+  "MenuPasswordAuthentication": "Password and Authentication",
+  "MenuEmails": "Emails",
 
   "RequiredField": "This field is required.",
   "InvalidEmailFormat": "Invalid email format.",
@@ -190,5 +196,13 @@
   "PleaseInformUsAverageAnnualIncomeThisProject": "Please, inform for us the average annual income for this project.",
   "Active": "Active",
   "Inactive": "Inactive",
-  "Archived": "Archived"
+  "Archived": "Archived",
+  "Settings": "Settings",
+  "ManageAccount": "Manage your account",
+  "AccountSettings": "Account Settings",
+  "ManagePersonalInfoAndPreferences": "Manage your personal information and preferences",
+  "PeronalInfo": "Personal Information",
+  "NotificationPreferences": "Notification Preferences",
+  "ReceiveImportantUpdatesNotificationsViaEmail": "Receive important updates and notifications via email",
+  "ReceiveRealTimePushNotificationsYourDevices": "Receive real-time push notifications on your devices"
 }
