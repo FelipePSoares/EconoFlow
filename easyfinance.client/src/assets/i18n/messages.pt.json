@@ -222,7 +222,7 @@
   "ChangeEmailAddress": "Alterar E-mail",
   "CurrentEmail": "E-mail atual",
   "EmailNotVerified": "E-mail Não Verificado",
-  "PleaseCheckYourEmailToVerify": "Por-favor, verifique seu email para confirmar o endereço.",
+  "PleaseCheckYourEmailToVerify": "Por-favor, verifique seu email para confirmar o endereço. <b>Sem isso é impossível recuperar sua conta.</b>",
   "ResendVerification": "Reenviar verificação",
   "EmailVerified": "E-mail Verificado",
   "YourEmailIsVerified": "Seu e-mail foi verificado com sucesso.",

@@ -56,12 +56,6 @@
                 <mat-form-field appearance="fill" class="w-100">
                   <mat-label>{{ 'FieldEmailAddress' | translate }}</mat-label>
                   <input matInput placeholder="{{ 'PlaceholderEmailAddress' | translate }}" formControlName="email" type="email">
-                  <ng-container matIconSuffix *ngIf="user$ | async as user">
-                    <!--<mat-icon class="emailCheck"
-                              [style.color]="user.emailConfirmed ? '#2ecc71' : '#c0392b'">
-                      {{ user.emailConfirmed ? 'verified' : 'error' }}
-                    </mat-icon>-->
-                  </ng-container>
                   @if (email?.invalid && email?.touched) {
                   <mat-error *ngFor="let error of getFormFieldErrors(userForm, 'email')">{{ error | translate }}</mat-error>
                   }
@@ -88,8 +82,7 @@
                         [class.text-warning]="!user.emailConfirmed">
                       {{ user.emailConfirmed ? ('EmailVerified' | translate) : ('EmailNotVerified' | translate) }}
                     </h4>
-                    <small class="text-muted">
-                      {{ user.emailConfirmed ? ('YourEmailIsVerified' | translate) : ('PleaseCheckYourEmailToVerify' | translate) }}
+                    <small class="text-muted" [innerHtml]="user.emailConfirmed ? ('YourEmailIsVerified' | translate) : ('PleaseCheckYourEmailToVerify' | translate)">
                     </small>
                   </div>
                   <div *ngIf="!user.emailConfirmed">

@@ -223,7 +223,7 @@
   "ChangeEmailAddress": "Change Email Address",
   "CurrentEmail": "Current Email",
   "EmailNotVerified": "Email Not Verified",
-  "PleaseCheckYourEmailToVerify": "Please, check your email to verify.",
+  "PleaseCheckYourEmailToVerify": "Please, check your email to verify. <b>Without it is impossible recovery your account.</b>",
   "ResendVerification": "Resend Verification",
   "EmailVerified": "Email Verified",
   "YourEmailIsVerified": "Your email is successfully verified.",
