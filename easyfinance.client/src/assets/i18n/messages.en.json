@@ -204,5 +204,17 @@
   "PeronalInfo": "Personal Information",
   "NotificationPreferences": "Notification Preferences",
   "ReceiveImportantUpdatesNotificationsViaEmail": "Receive important updates and notifications via email",
-  "ReceiveRealTimePushNotificationsYourDevices": "Receive real-time push notifications on your devices"
+  "ReceiveRealTimePushNotificationsYourDevices": "Receive real-time push notifications on your devices",
+  "PasswordManagement": "Password and Authentication Management",
+  "UpdateYourPasswordSecurely": "Update your password and authentication securely",
+  "ChangePassword": "Change Password",
+  "SecurityTips": "Security Tips",
+  "UseStrongPassword": "Use Strong Password",
+  "UseStrongPasswordDescription": "Combine uppercase, lowercase, numbers and symbols to create a more secure password.",
+  "ChangeRegularly": "Change Regularly",
+  "ChangeRegularlyDescription": "Update your password every 3-6 months or whenever you suspect it's been compromised.",
+  "DontSharePassword": "Don't Share Password",
+  "DontSharePasswordDescription": "Never share your password via email, message or phone. Always keep it private.",
+  "EnableTwoFactor": "Enable Two-Factor Authentication",
+  "EnableTwoFactorDescription": "Add an extra layer of security with two-factor authentication whenever available."
 }

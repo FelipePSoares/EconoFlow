@@ -3,21 +3,6 @@
     <!-- Main Content -->
     <div class="col-lg-9 col-xl-10 p-4">
 
-      <!-- Email Update Success State -->
-      <!--@if (isEmailUpdated) {
-      <div class="card shadow-sm border-0 mb-4">
-        <div class="card-body text-center py-5">
-          <div class="bg-success bg-gradient rounded-circle d-inline-flex align-items-center justify-content-center mb-4"
-               style="width: 100px; height: 100px;">
-            <fa-icon class="text-white" style="font-size: 3rem;" [icon]="faEnvelopeOpenText"></fa-icon>
-          </div>
-          <h2 class="card-title text-dark mb-3">{{ 'CheckYourEmail' | translate }}</h2>
-          <p class="text-muted mb-4">{{ 'WeSentConfirmation' | translate }}</p>
-          <small class="text-secondary">{{ 'DidNotReceiveEmail' | translate }}</small>
-        </div>
-      </div>
-      } @else {-->
-
       <!-- Page Header -->
       <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -41,7 +26,7 @@
             <!-- Name Fields Row -->
             <div class="row g-3 mb-4">
               <div class="col-md-6">
-                <mat-form-field appearance="outline" class="w-100">
+                <mat-form-field appearance="fill" class="w-100">
                   <mat-label>{{ 'FieldFirstName' | translate }}</mat-label>
                   <input matInput placeholder="{{ 'PlaceholderFirstName' | translate }}" formControlName="firstName">
                   @if (firstName?.invalid && firstName?.touched) {
@@ -51,7 +36,7 @@
               </div>
 
               <div class="col-md-6">
-                <mat-form-field appearance="outline" class="w-100">
+                <mat-form-field appearance="fill" class="w-100">
                   <mat-label>{{ 'FieldLastName' | translate }}</mat-label>
                   <input matInput placeholder="{{ 'PlaceholderLastName' | translate }}" formControlName="lastName">
                   @if (lastName?.invalid && lastName?.touched) {

@@ -30,8 +30,9 @@ import { AddExpenseComponent } from './expense/add-expense/add-expense.component
 import { AddExpenseItemComponent } from './expense/add-expense-item/add-expense-item.component';
 import { ListExpensesComponent } from './expense/list-expenses/list-expenses.component';
 
-import { DetailUserComponent } from './user/detail-user/detail-user.component';
 import { UserLayoutComponent } from './user/user-layout/user-layout.component';
+import { AccountComponent } from './user/account/account.component';
+import { PasswordAuthenticationComponent } from './user/password-authentication/password-authentication.component';
 
 export const routes: Routes = [
   { path: '', component: IndexComponent, pathMatch: 'full' },
@@ -61,8 +62,8 @@ export const routes: Routes = [
     path: 'user',
     component: UserLayoutComponent,
     children: [
-      { path: 'account', component: DetailUserComponent },
-      { path: 'authentication', component: PrivacyPolicyComponent },
+      { path: 'account', component: AccountComponent },
+      { path: 'authentication', component: PasswordAuthenticationComponent },
       { path: 'emails', component: UseTermsComponent },
       { path: '', redirectTo: 'account', pathMatch: 'full' }
     ],

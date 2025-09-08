@@ -203,5 +203,17 @@
   "PeronalInfo": "Informações Pessoais",
   "NotificationPreferences": "Preferências de Notificação",
   "ReceiveImportantUpdatesNotificationsViaEmail": "Receba importantes atualizações e notificações por email",
-  "ReceiveRealTimePushNotificationsYourDevices": "Receba notificações push em tempo real em seu dispositivo"
+  "ReceiveRealTimePushNotificationsYourDevices": "Receba notificações push em tempo real em seu dispositivo",
+  "PasswordManagement": "Gerenciamento de senha e autenticação",
+  "UpdateYourPasswordSecurely": "Atualize sua senha e métodos de autenticação seguramente",
+  "ChangePassword": "Alterar Senha",
+  "SecurityTips": "Dicas de Segurança",
+  "UseStrongPassword": "Use uma senha forte",
+  "UseStrongPasswordDescription": "Combine letras maiúsculas, minúsculas, números e símbolos para criar uma senha mais segura.",
+  "ChangeRegularly": "Altere Regularmente",
+  "ChangeRegularlyDescription": "Atualize sua senha a cada 3-6 meses ou sempre que suspeitar de comprometimento.",
+  "DontSharePassword": "Não Compartilhe Sua Senha",
+  "DontSharePasswordDescription": "Nunca compartilhe sua senha por email, mensagem ou telefone. Mantenha-a sempre privada.",
+  "EnableTwoFactor": "Ative a Autenticação de Dois Fatores",
+  "EnableTwoFactorDescription": "Adicione uma camada extra de segurança com autenticação de dois fatores sempre que disponível."
 }

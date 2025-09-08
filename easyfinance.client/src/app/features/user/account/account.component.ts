@@ -22,7 +22,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { compare } from 'fast-json-patch';
 
 @Component({
-  selector: 'app-detail-user',
+  selector: 'app-account',
   imports: [
     CommonModule,
     FormsModule,
@@ -38,10 +38,10 @@ import { compare } from 'fast-json-patch';
     TranslateModule,
     MatSlideToggleModule
   ],
-  templateUrl: './detail-user.component.html',
-  styleUrl: './detail-user.component.css'
+  templateUrl: './account.component.html',
+  styleUrl: './account.component.css'
 })
-export class DetailUserComponent implements OnInit, OnDestroy {
+export class AccountComponent implements OnInit, OnDestroy {
   // Private Properties
   private deleteToken!: string;
   private sub!: Subscription;
