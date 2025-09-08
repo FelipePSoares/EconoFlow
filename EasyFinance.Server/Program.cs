@@ -97,7 +97,7 @@ try
         {
             UserName = "test@test.com",
             Email = "test@test.com",
-            EmailConfirmed = true
+            EmailConfirmed = false
         };
         userManager.CreateAsync(user, "Passw0rd!").GetAwaiter().GetResult();
 

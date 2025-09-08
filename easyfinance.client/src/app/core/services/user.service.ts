@@ -140,4 +140,11 @@ export class UserService {
       params: queryParams
     });
   }
+
+  public resendVerification(): Observable<void> {
+    return this.http.post<void>('/api/Account/resendConfirmEmail', null, {
+      observe: 'body',
+      responseType: 'json'
+    });
+  }
 }

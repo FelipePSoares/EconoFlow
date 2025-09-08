@@ -33,6 +33,7 @@ import { ListExpensesComponent } from './expense/list-expenses/list-expenses.com
 import { UserLayoutComponent } from './user/user-layout/user-layout.component';
 import { AccountComponent } from './user/account/account.component';
 import { PasswordAuthenticationComponent } from './user/password-authentication/password-authentication.component';
+import { EmailsComponent } from './user/emails/emails.component';
 
 export const routes: Routes = [
   { path: '', component: IndexComponent, pathMatch: 'full' },
@@ -64,7 +65,7 @@ export const routes: Routes = [
     children: [
       { path: 'account', component: AccountComponent },
       { path: 'authentication', component: PasswordAuthenticationComponent },
-      { path: 'emails', component: UseTermsComponent },
+      { path: 'emails', component: EmailsComponent },
       { path: '', redirectTo: 'account', pathMatch: 'full' }
     ],
     canActivate: mapToCanActivate([AuthGuard])
