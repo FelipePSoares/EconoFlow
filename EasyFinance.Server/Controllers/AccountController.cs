@@ -1,14 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Security.Claims;
-using System.Security.Principal;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.RegularExpressions;
 using EasyFinance.Application.DTOs.AccessControl;
-using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.Features.AccessControlService;
-using EasyFinance.Application.Features.CategoryService;
 using EasyFinance.Application.Features.UserService;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
@@ -70,6 +67,7 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpPut]
+        [Obsolete("UpdateUserAsync is deprecated, please use PatchUserAsync instead.")]
         public async Task<IActionResult> UpdateUserAsync([FromBody] UserRequestDTO userDTO)
         {
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
@@ -487,6 +485,21 @@ namespace EasyFinance.Server.Controllers
 
             Response.Headers.Append("Refresh", $"5;url={Request.Scheme}://{Request.Host}");
             return Content(ValidationMessages.ThankYouConfirmEmailRedirect);
+        }
+
+        [HttpPost("resendConfirmEmail")]
+        public async Task<IActionResult> ResendConfirmationEmail()
+        {
+            if (await this.userManager.GetUserAsync(this.HttpContext.User) is not { } user)
+                return NotFound();
+
+            // Check if already confirmed
+            if (await userManager.IsEmailConfirmedAsync(user))
+                return BadRequest("This email is already confirmed.");
+
+            await SendConfirmationEmailAsync(user, HttpContext, user.Email);
+
+            return Ok();
         }
 
         private async Task SendConfirmationEmailAsync(User user, HttpContext context, string email, bool isChange = false)

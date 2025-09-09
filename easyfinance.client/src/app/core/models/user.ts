@@ -9,6 +9,7 @@ export class User {
   emailConfirmed!: boolean;
   twoFactorEnabled!: boolean;
   defaultProjectId!: string;
+  notificationChannels!: string[];
 }
 
 export class DeleteUser {

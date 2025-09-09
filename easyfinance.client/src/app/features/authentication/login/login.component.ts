@@ -7,7 +7,7 @@ import { ApiErrorResponse } from '../../../core/models/error';
 import { take } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import {MatIcon} from "@angular/material/icon";
+import { MatIcon } from "@angular/material/icon";
 import { TranslateModule } from '@ngx-translate/core';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 

@@ -11,7 +11,6 @@ import { Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import confetti from 'canvas-confetti';
 import { MatDialogRef } from '@angular/material/dialog';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { ProjectService } from '../../../core/services/project.service';
 import { ProjectDto } from '../models/project-dto';
 import { ApiErrorResponse } from '../../../core/models/error';
@@ -30,8 +29,7 @@ import { PageModalComponent } from '../../../core/components/page-modal/page-mod
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    TranslateModule,
-    MatSlideToggleModule
+    TranslateModule
   ],
   templateUrl: './add-edit-project.component.html',
   styleUrl: './add-edit-project.component.css'
@@ -128,10 +126,6 @@ export class AddEditProjectComponent implements OnInit {
 
   getFormFieldErrors(fieldName: string): string[] {
     return this.errorMessageService.getFormFieldErrors(this.projectForm, fieldName);
-  }
-
-  get type() {
-    return this.projectForm.get('type');
   }
 
   get name() {

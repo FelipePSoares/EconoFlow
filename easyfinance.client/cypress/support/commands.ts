@@ -9,6 +9,7 @@ Cypress.Commands.add('login', (username, password) => {
       cy.get('input[formControlName=password]').type(`${password}{enter}`, { force: true, log: false })
       cy.wait('@postAccount')
       cy.visit('/')
+      cy.wait(150)
     },
     {
       validate: () => {
@@ -45,7 +46,7 @@ Cypress.Commands.add('register', (username, password) => {
     {
       validate: () => {
         cy.login(username, password)
-        cy.visit('/')
+        cy.visit('/projects')
         cy.url().should('not.contain', 'login')
       }
     }

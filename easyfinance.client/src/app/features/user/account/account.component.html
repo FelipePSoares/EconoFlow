@@ -1,0 +1,122 @@
+<div class="container-fluid">
+  <div class="row">
+    <!-- Main Content -->
+    <div class="col-lg-9 col-xl-10 p-4">
+
+      <!-- Page Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h1 class="h2 mb-1">{{ 'AccountSettings' | translate }}</h1>
+          <p class="text-muted mb-0">{{ 'ManagePersonalInfoAndPreferences' | translate }}</p>
+        </div>
+      </div>
+
+      <!-- Profile Information Card -->
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white py-3">
+          <h3 class="card-title mb-0 h5">
+            <i class="bi bi-person-badge me-2 text-primary"></i>
+            {{ 'PeronalInfo' | translate }}
+          </h3>
+        </div>
+
+        <div class="card-body p-4">
+          <form [formGroup]="userForm">
+
+            <!-- Name Fields Row -->
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <mat-form-field appearance="fill" class="w-100">
+                  <mat-label>{{ 'FieldFirstName' | translate }}</mat-label>
+                  <input matInput placeholder="{{ 'PlaceholderFirstName' | translate }}" formControlName="firstName">
+                  @if (firstName?.invalid && firstName?.touched) {
+                  <mat-error *ngFor="let error of getFormFieldErrors(userForm, 'firstName')">{{ error | translate }}</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+
+              <div class="col-md-6">
+                <mat-form-field appearance="fill" class="w-100">
+                  <mat-label>{{ 'FieldLastName' | translate }}</mat-label>
+                  <input matInput placeholder="{{ 'PlaceholderLastName' | translate }}" formControlName="lastName">
+                  @if (lastName?.invalid && lastName?.touched) {
+                  <mat-error *ngFor="let error of getFormFieldErrors(userForm, 'lastName')">{{ error | translate }}</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Notifications Card -->
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white py-3">
+          <h3 class="card-title mb-0 h5">
+            <i class="bi bi-bell me-2 text-info"></i>
+            {{ 'NotificationPreferences' | translate }}
+          </h3>
+        </div>
+
+        <div class="card-body p-4">
+          <form [formGroup]="notificationForm">
+            <div class="row g-4">
+              <div class="col-md-6">
+                <div class="d-flex align-items-start justify-content-between p-3 border rounded hover-shadow">
+                  <div class="d-flex align-items-start text-start">
+                    <div class="bg-primary bg-gradient rounded p-2 me-3">
+                      <i class="bi bi-envelope-fill text-white"></i>
+                    </div>
+                    <div class="text-dark">
+                      <h5 class="mb-1">{{ 'FieldEmail' | translate }}</h5>
+                      <p class="text-muted small mb-0"> {{ 'ReceiveImportantUpdatesNotificationsViaEmail' | translate }}</p>
+                    </div>
+                  </div>
+                  <mat-slide-toggle id="emailNotificationToggle" class="ms-3" formControlName="isEmailNotificationChecked"></mat-slide-toggle>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="d-flex align-items-start justify-content-between p-3 border rounded hover-shadow">
+                  <div class="d-flex align-items-start text-start">
+                    <div class="bg-warning bg-gradient rounded p-2 me-3">
+                      <i class="bi bi-bell-fill text-white"></i>
+                    </div>
+                    <div class="text-dark">
+                      <h5 class="mb-1">{{ 'FieldPush' | translate }}</h5>
+                      <p class="text-muted small mb-0"> {{ 'ReceiveRealTimePushNotificationsYourDevices' | translate }}</p>
+                    </div>
+                  </div>
+                  <mat-slide-toggle id="pushNotificationToggle" class="ms-3" formControlName="isPushNotificationChecked"></mat-slide-toggle>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Danger Zone Card -->
+      <div class="card border-danger shadow-sm">
+        <div class="card-header bg-danger bg-gradient text-white py-3">
+          <h3 class="card-title mb-0 h5 d-flex align-items-center">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            {{ 'DangerZone' | translate }}
+          </h3>
+        </div>
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h5 class="text-danger mb-2">{{ 'DeleteAccountMessage' | translate }}</h5>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+              <button class="btn btn-outline-danger d-flex align-items-center gap-2" (click)="openDeleteDialog()">
+                <i class="bi bi-trash3-fill"></i>
+                {{ 'ButtonDeleteAccount' | translate }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
