@@ -7,13 +7,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
-import { MatIcon } from "@angular/material/icon";
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { UserService } from '../../../core/services/user.service';
 import { DeleteUser, User } from '../../../core/models/user';
-import { AsyncPipe, CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
@@ -26,7 +25,6 @@ import { compare } from 'fast-json-patch';
   imports: [
     CommonModule,
     FormsModule,
-    AsyncPipe,
     ReactiveFormsModule,
     FontAwesomeModule,
     MatFormFieldModule,
@@ -34,7 +32,6 @@ import { compare } from 'fast-json-patch';
     MatButtonModule,
     MatSelectModule,
     MatOptionModule,
-    MatIcon,
     TranslateModule,
     MatSlideToggleModule
   ],
