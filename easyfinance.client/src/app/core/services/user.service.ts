@@ -92,7 +92,10 @@ export class UserService {
   }
 
   public update(patch: Operation[]): Observable<User> {
-    return this.http.patch<User>('/api/account/', patch).pipe(tap(() => this.refreshUserInfo().subscribe()));
+    return this.http.patch<User>('/api/account/', patch).pipe(tap(user => {
+      this.loggedUser.next(user);
+      this.localService.saveData(this.localService.USER_DATA, user).subscribe();
+    }));
   }
 
   public manageInfo(newEmail = '', newPassword = '', oldPassword = '') {

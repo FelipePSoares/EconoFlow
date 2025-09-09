@@ -45,6 +45,7 @@ export class AccountComponent implements OnInit, OnDestroy {
   // Private Properties
   private deleteToken!: string;
   private sub!: Subscription;
+  private sub2!: Subscription;
 
   // ViewChild
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
@@ -52,11 +53,9 @@ export class AccountComponent implements OnInit, OnDestroy {
   // Observables & Forms
   user$: Observable<User>;
   userForm!: FormGroup;
+  notificationForm!: FormGroup;
 
   // User & Validation State
-  isEmailNotificationChecked = true;
-  isPushNotificationChecked = true;
-
   editingUser!: User;
 
   // Error Handling
@@ -95,8 +94,18 @@ export class AccountComponent implements OnInit, OnDestroy {
           this.saveGeneralInfo();
         });
 
-      this.isEmailNotificationChecked = user.notificationChannels.some(n => n == "Email");
-      this.isPushNotificationChecked = user.notificationChannels.some(n => n == "Push");
+      this.notificationForm = new FormGroup({
+        isEmailNotificationChecked: new FormControl(user.notificationChannels.some(n => n == "Email")),
+        isPushNotificationChecked: new FormControl(user.notificationChannels.some(n => n == "Push"))
+      });
+
+      this.sub2 = this.notificationForm.valueChanges
+        .pipe(
+          distinctUntilChanged()
+      )
+        .subscribe(change => {
+          this.saveNotificationPreferences(change);
+        });
 
       this.editingUser = user;
     });
@@ -132,6 +141,7 @@ export class AccountComponent implements OnInit, OnDestroy {
   get firstName() { return this.userForm.get('firstName'); }
   get lastName() { return this.userForm.get('lastName'); }
 
+  /** Getters for Form Controls **/
   saveGeneralInfo(): void {
     if (this.userForm.valid) {
       const { firstName, lastName } = this.userForm.value;
@@ -164,14 +174,14 @@ export class AccountComponent implements OnInit, OnDestroy {
     }
   }
 
-  saveNotificationPreferences(): void {
+  saveNotificationPreferences(value: { isEmailNotificationChecked: boolean, isPushNotificationChecked: boolean }): void {
     const oldUser = ({
       notificationChannels: this.editingUser.notificationChannels.join(',')
     });
 
     const notificationChannels = [
-      ...(this.isEmailNotificationChecked ? ["Email"] : []),
-      ...(this.isPushNotificationChecked ? ["Push"] : []),
+      ...(value.isEmailNotificationChecked ? ["Email"] : []),
+      ...(value.isPushNotificationChecked ? ["Push"] : []),
     ].join(',');
 
     const newUser = ({
@@ -188,8 +198,7 @@ export class AccountComponent implements OnInit, OnDestroy {
         this.httpErrors = true;
         this.errors = response.errors;
 
-        this.isEmailNotificationChecked = this.editingUser.notificationChannels.some(n => n == "Email");
-        this.isPushNotificationChecked = this.editingUser.notificationChannels.some(n => n == "Push");
+        this.user$ = this.userService.loggedUser$;
 
         this.errorMessageService.setFormErrors(this.userForm, this.errors);
 
@@ -207,5 +216,6 @@ export class AccountComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.sub.unsubscribe();
+    this.sub2.unsubscribe();
   }
 }

@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
+import { UserService } from '../../../core/services/user.service';
 
 @Component({
   selector: 'app-user-layout',
@@ -12,5 +13,10 @@ import { TranslateModule } from '@ngx-translate/core';
   ],
   templateUrl: './user-layout.component.html',
 })
-export class UserLayoutComponent {
+export class UserLayoutComponent implements OnInit {
+  constructor(private userService: UserService) { }
+
+  ngOnInit(): void {
+    this.userService.refreshUserInfo().subscribe();
+  }
 }

@@ -1,5 +1,5 @@
 type UserReq = {}
-type UserRes = { id: string, email: string, firstName: string, lastName: string, preferredCurrency: string }
+type UserRes = { id: string, email: string, firstName: string, lastName: string, preferredCurrency: string, notificationChannels: string[] }
 
 type UserProjectReq = {}
 type UserProjectRes = { project: { id: string } }

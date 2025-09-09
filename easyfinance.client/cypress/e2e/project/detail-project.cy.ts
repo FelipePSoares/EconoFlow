@@ -2,51 +2,45 @@ describe('EconoFlow - project detail Tests', () => {
 
   beforeEach(() => {
     attempts = 0;
-  });
 
-  it('should clone budget from previous month', () => {
     cy.fixture('users').then((users) => {
       const user = users.testUser;
 
       cy.login(user.username, user.password)
+    })
+  });
 
-      cy.intercept('GET', '**/categories*').as('getCategories')
+  it('should clone budget from previous month', () => {
+    cy.intercept('GET', '**/categories*').as('getCategories')
 
-      cy.fixture('projects').then((projects) => {
-        cy.visit('/projects/' + projects.defaultProject.id)
+    cy.fixture('projects').then((projects) => {
+      cy.visit('/projects/' + projects.defaultProject.id)
 
-        findNextMonthWithoutBudget();
+      findNextMonthWithoutBudget();
 
-        cy.get('.btn-primary').contains('Clone Previous Budget').click();
+      cy.get('.btn-primary').contains('Clone Previous Budget').click();
 
-        cy.wait<CategoryReq, CategoryRes[]>('@getCategories').then(({ request, response }) => {
-          const exists = response?.body.some(category => category.expenses.some(expense => expense.budget > 0))
-          expect(exists).to.be.true
-        })
+      cy.wait<CategoryReq, CategoryRes[]>('@getCategories').then(({ request, response }) => {
+        const exists = response?.body.some(category => category.expenses.some(expense => expense.budget > 0))
+        expect(exists).to.be.true
       })
     })
   })
 
   it('copy budget button should not appears when previous month is empty', () => {
-    cy.fixture('users').then((users) => {
-      const user = users.testUser;
+    cy.intercept('GET', '**/categories*').as('getCategories')
 
-      cy.login(user.username, user.password)
+    cy.fixture('projects').then((projects) => {
+      cy.visit('/projects/' + projects.defaultProject.id)
 
-      cy.intercept('GET', '**/categories*').as('getCategories')
+      findNextMonthWithoutBudget();
+      cy.get('#next').click()
 
-      cy.fixture('projects').then((projects) => {
-        cy.visit('/projects/' + projects.defaultProject.id)
-
-        findNextMonthWithoutBudget();
-        cy.get('#next').click()
-
+      cy.wait<CategoryReq, CategoryRes[]>('@getCategories').then(({ request, response }) => {
         cy.wait<CategoryReq, CategoryRes[]>('@getCategories').then(({ request, response }) => {
-          cy.wait<CategoryReq, CategoryRes[]>('@getCategories').then(({ request, response }) => {
-            cy.get('.btn-primary').contains('Clone Previous Budget').should('not.exist');
-          });
+          cy.get('.btn-primary').contains('Clone Previous Budget').should('not.exist');
         });
-      })
+      });
     })
   })
 })
