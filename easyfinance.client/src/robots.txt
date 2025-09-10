@@ -1,0 +1,31 @@
+User-agent: *
+
+# ✅ Public pages – allow indexing
+Allow: /
+Allow: /privacy-policy
+Allow: /use-terms
+Allow: /contact-us
+
+# 🚫 Authentication & user-related – block
+Disallow: /login
+Disallow: /logout
+Disallow: /register
+Disallow: /recovery
+Disallow: /first-signin
+
+# 🚫 Project & finance areas (private, behind AuthGuard)
+Disallow: /projects
+Disallow: /projects/*
+Disallow: /add-edit-project
+Disallow: /accept
+Disallow: /user
+Disallow: /user/*
+
+# 🚫 Angular modals (outlets)
+Disallow: /*(modal)
+
+# Catch-all fallback (redirect to /projects – private)
+Disallow: /**
+
+# Sitemap (replace with your real URL if available)
+Sitemap: https://econoflow.pt/sitemap.xml
