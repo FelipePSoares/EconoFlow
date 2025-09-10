@@ -6,6 +6,6 @@ export class TranslateHttpLoader implements TranslateLoader {
   constructor(private http: HttpClient) { }
 
   getTranslation(lang: string): Observable<any> {
-    return this.http.get(`assets/i18n/messages.${lang}.json?v=1.0.2`);
+    return this.http.get(`assets/i18n/messages.${lang}.json?v=1.0.3`);
   }
 }

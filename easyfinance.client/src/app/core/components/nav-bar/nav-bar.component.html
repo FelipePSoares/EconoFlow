@@ -49,13 +49,13 @@
 
       <!-- Right Side - User Menu (Desktop Dropdown) -->
       <ul class="navbar-nav d-none d-lg-flex">
-        <li id="user-dropdown" class="nav-item dropdown">
+        <li class="nav-item dropdown">
           <button class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center"
                   type="button"
                   id="dropdownMenuProfile"
                   data-bs-toggle="dropdown"
                   aria-expanded="false">
-            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2">
+            <div class="person bg-primary rounded-circle d-flex align-items-center justify-content-center me-2">
               <i class="bi bi-person-fill text-white"></i>
             </div>
             <span class="me-1">{{ fullName$ | async }}</span>
@@ -91,9 +91,8 @@
         <hr class="my-3">
         <div class="px-3 py-2 bg-light rounded-2 mb-3">
           <div class="d-flex align-items-center">
-            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2"
-                 style="width: 24px; height: 24px;">
-              <i class="bi bi-person-fill text-white" style="font-size: 12px;"></i>
+            <div class="person bg-primary rounded-circle d-flex align-items-center justify-content-center me-2">
+              <i class="bi bi-person-fill text-white"></i>
             </div>
             <span class="fw-medium">{{ fullName$ | async }}</span>
           </div>
