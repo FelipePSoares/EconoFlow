@@ -12,6 +12,7 @@ import { UserService } from '../../../core/services/user.service';
     TranslateModule
   ],
   templateUrl: './user-layout.component.html',
+  styleUrl: './user-layout.component.css'
 })
 export class UserLayoutComponent implements OnInit {
   constructor(private userService: UserService) { }

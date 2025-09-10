@@ -1,7 +1,55 @@
-.dropdown-menu {
-  z-index: 1001;
+.nav-link {
+  transition: all 0.2s ease-in-out;
+  font-weight: 500;
 }
 
-.login-form-title img{
-  max-width: 40px;
+  .nav-link:hover {
+    background-color: rgba(13, 110, 253, 0.1);
+    color: var(--bs-primary) !important;
+  }
+
+  .nav-link.active {
+    background-color: var(--bs-primary);
+    color: white !important;
+  }
+
+.dropdown-menu {
+  border-radius: 8px;
+  padding: 0.5rem 0;
+  min-width: 200px;
+}
+
+.dropdown-header {
+    margin: 0;
+}
+
+.dropdown-item {
+  transition: all 0.2s ease-in-out;
+  border-radius: 4px;
+  margin: 0 0.5rem;
+  width: auto;
+}
+
+  .dropdown-item:hover {
+    background-color: rgba(13, 110, 253, 0.1);
+    color: var(--bs-primary);
+  }
+
+  .dropdown-item.text-danger:hover {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: var(--bs-danger) !important;
+  }
+
+#user-dropdown > button > div {
+  height: 24px;
+  width: 24px;
+}
+
+.shadow-sm {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08) !important;
+}
+
+.navbar-brand:hover {
+  transform: translateY(-1px);
+  transition: transform 0.2s ease;
 }
