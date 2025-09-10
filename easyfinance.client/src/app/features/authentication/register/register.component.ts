@@ -106,7 +106,12 @@ export class RegisterComponent implements OnInit {
   }
 
   celebrate() {
+    const scalar = 2;
+    const money = confetti.shapeFromText({ text: '💵', scalar });
+
     confetti({
+      shapes: [money],
+      scalar,
       particleCount: 150,
       spread: 150,
       ticks: 250,
