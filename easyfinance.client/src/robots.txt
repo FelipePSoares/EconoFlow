@@ -24,8 +24,5 @@ Disallow: /user/*
 # 🚫 Angular modals (outlets)
 Disallow: /*(modal)
 
-# Catch-all fallback (redirect to /projects – private)
-Disallow: /**
-
 # Sitemap (replace with your real URL if available)
 Sitemap: https://econoflow.pt/sitemap.xml
