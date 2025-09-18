@@ -305,4 +305,7 @@ You will be redirect in 5 seconds ...</value>
   <data name="ExampleExpense" xml:space="preserve">
     <value>Example Expense</value>
   </data>
+  <data name="NotificationNotFound" xml:space="preserve">
+    <value>Notification not found.</value>
+  </data>
 </root>

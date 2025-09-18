@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace EasyFinance.Domain.AccessControl
+namespace EasyFinance.Domain.Account
 {
     [Flags]
     public enum NotificationChannels

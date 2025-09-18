@@ -1,5 +1,6 @@
 ﻿using EasyFinance.Domain.AccessControl;
 using EasyFinance.Persistence.Mapping.AccessControl;
+using EasyFinance.Persistence.Mapping.Account;
 using EasyFinance.Persistence.Mapping.Financial;
 using EasyFinance.Persistence.Mapping.FinancialProject;
 using EasyFinance.Persistence.Mapping.Support;
@@ -14,8 +15,10 @@ namespace EasyFinance.Persistence.DatabaseContext
     {
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Access Control
+            // Account
             modelBuilder.ApplyConfiguration(new NotificationConfiguration());
+
+            // Access Control
             modelBuilder.ApplyConfiguration(new UserConfiguration());
             modelBuilder.ApplyConfiguration(new UserProjectConfiguration());
 
