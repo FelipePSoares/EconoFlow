@@ -1,8 +1,8 @@
-﻿using EasyFinance.Domain.AccessControl;
+﻿using EasyFinance.Domain.Account;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace EasyFinance.Persistence.Mapping.AccessControl
+namespace EasyFinance.Persistence.Mapping.Account
 {
     public class NotificationConfiguration : BaseEntityConfiguration<Notification>
     {

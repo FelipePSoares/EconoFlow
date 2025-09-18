@@ -1,4 +1,4 @@
-﻿namespace EasyFinance.Domain.AccessControl
+﻿namespace EasyFinance.Domain.Account
 {
     public enum NotificationCategory
     {

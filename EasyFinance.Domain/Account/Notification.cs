@@ -1,9 +1,10 @@
-﻿using EasyFinance.Infrastructure;
+﻿using EasyFinance.Domain.AccessControl;
+using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using EasyFinance.Infrastructure.Extensions;
 using System;
 
-namespace EasyFinance.Domain.AccessControl
+namespace EasyFinance.Domain.Account
 {
     public class Notification : BaseEntity
     {

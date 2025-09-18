@@ -1,4 +1,5 @@
 ﻿using System;
+using EasyFinance.Domain.Account;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Identity;
