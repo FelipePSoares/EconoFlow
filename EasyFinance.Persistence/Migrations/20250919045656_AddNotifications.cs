@@ -1,12 +1,11 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace EasyFinance.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class AddNotification : Migration
+    public partial class AddNotifications : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -23,6 +22,7 @@ namespace EasyFinance.Persistence.Migrations
                     IsRead = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
                     IsSent = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
                     IsSticky = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    IsActionRequired = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
                     LimitNotificationChannels = table.Column<int>(type: "int", nullable: false),
                     ExpiresAt = table.Column<DateOnly>(type: "date", nullable: true),
                     ActionLabelCode = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
@@ -45,6 +45,27 @@ namespace EasyFinance.Persistence.Migrations
                 name: "IX_Notifications_UserId",
                 table: "Notifications",
                 column: "UserId");
+
+            // 🔥 Insert initial confirm-email notification for users without confirmed email
+            migrationBuilder.Sql(@"
+                INSERT INTO Notifications
+                    (Id, UserId, Type, CodeMessage, Category, IsRead, IsSent, IsSticky, IsActionRequired, ActionLabelCode, CreatedDate, ModifiedAt)
+                SELECT
+                    NEWID(),
+                    u.Id,
+                    1, -- Type
+                    'ConfirmEmailMessage',
+                    3, -- Category
+                    0, -- IsRead
+                    1, -- IsSent
+                    1, -- IsSticky
+                    1, -- IsActionRequired
+                    'ButtonConfirmEmail',
+                    GETUTCDATE(),
+                    GETUTCDATE()
+                FROM AspNetUsers u
+                WHERE u.EmailConfirmed = 0
+            ");
         }
 
         /// <inheritdoc />

@@ -38,6 +38,7 @@ namespace EasyFinance.Domain.Account
         public bool IsRead { get; private set; } = false;
         public bool IsSent { get; private set; } = false;
         public bool IsSticky { get; private set; } = false;
+        public bool IsActionRequired { get; private set; } = false;
         public NotificationChannels LimitNotificationChannels { get; private set; } = NotificationChannels.None;
         public DateOnly? ExpiresAt { get; private set; } = default;
         public string ActionLabelCode { get; private set; } = default;
@@ -60,6 +61,9 @@ namespace EasyFinance.Domain.Account
 
                 if (Category == NotificationCategory.None)
                     response.AddErrorMessage(nameof(Category), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(Category)));
+
+                if (this.IsActionRequired && string.IsNullOrEmpty(ActionLabelCode))
+                    response.AddErrorMessage(nameof(ActionLabelCode), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(ActionLabelCode)));
 
                 var userValidation = User.Validate;
                 if (userValidation.Failed)
@@ -90,5 +94,7 @@ namespace EasyFinance.Domain.Account
         public void SetIsSticky(bool isSticky) => IsSticky = isSticky;
 
         public void SetUser(User user) => User = user ?? throw new ArgumentNullException(nameof(user));
+
+        public void MarkAsActionRequired() => IsActionRequired = true;
     }
 }

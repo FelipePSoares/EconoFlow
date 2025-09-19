@@ -18,6 +18,7 @@ namespace EasyFinance.Application.DTOs.Account
             this.IsRead = notification.IsRead;
             this.IsSent = notification.IsSent;
             this.IsSticky = notification.IsSticky;
+            this.IsActionRequired = notification.IsActionRequired;
             this.LimitNotificationChannels = notification.LimitNotificationChannels;
             this.ExpiresAt = notification.ExpiresAt;
         }
@@ -32,6 +33,7 @@ namespace EasyFinance.Application.DTOs.Account
         public bool IsRead { get; set; } = false;
         public bool IsSent { get; set; } = false;
         public bool IsSticky { get; set; } = false;
+        public bool IsActionRequired { get; set; } = false;
         public NotificationChannels LimitNotificationChannels { get; set; } = NotificationChannels.None;
         public DateOnly? ExpiresAt { get; set; } = default;
     }
