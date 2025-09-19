@@ -32,6 +32,10 @@ namespace EasyFinance.Persistence.Mapping.Account
                 .IsRequired()
                 .HasDefaultValue(false);
 
+            builder.Property(p => p.IsActionRequired)
+                .IsRequired()
+                .HasDefaultValue(false);
+
             builder.Property(p => p.ExpiresAt);
 
             builder.Property(p => p.ActionLabelCode)
