@@ -173,16 +173,16 @@ namespace EasyFinance.Persistence.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ActionLabelCode")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int>("Category")
                         .HasColumnType("int");
 
                     b.Property<string>("CodeMessage")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");

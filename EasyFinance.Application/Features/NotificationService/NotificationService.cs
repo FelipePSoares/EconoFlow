@@ -45,9 +45,47 @@ namespace EasyFinance.Application.Features.NotificationService
         {
             var notifications = await this.unitOfWork.NotificationRepository
                 .Trackable()
-                .Where(n => n.User.Id == userId)
+                .Where(n => n.User.Id == userId && !n.IsActionRequired)
                 .ToListAsync();
 
+            return await MarkAllAsReadAsync(notifications);
+        }
+
+        public async Task<AppResponse> MarkAsReadAsync(Guid userId, Guid notificationId)
+        {
+            var notification = await this.unitOfWork.NotificationRepository
+                .Trackable()
+                .FirstOrDefaultAsync(n => n.User.Id == userId && n.Id == notificationId);
+
+            if (notification.IsActionRequired)
+                return AppResponse.Error(ValidationMessages.NotificationActionRequired);
+
+            if (notification == null)
+                return AppResponse.Error(ValidationMessages.NotificationNotFound);
+
+            notification.MarkAsRead();
+
+            var savedNotification = unitOfWork.NotificationRepository.InsertOrUpdate(notification);
+            if (savedNotification.Failed)
+                return AppResponse.Error(savedNotification.Messages);
+
+            await unitOfWork.CommitAsync();
+
+            return AppResponse.Success();
+        }
+
+        public async Task<AppResponse> ActionMadeAsync(Guid userId, NotificationType type)
+        {
+            var notifications = await this.unitOfWork.NotificationRepository
+                .Trackable()
+                .Where(n => n.User.Id == userId && n.Type == type && n.IsActionRequired)
+                .ToListAsync();
+
+            return await MarkAllAsReadAsync(notifications);
+        }
+
+        private async Task<AppResponse> MarkAllAsReadAsync(List<Notification> notifications)
+        {
             notifications.ForEach(n => n.MarkAsRead());
 
             var failToSave = notifications.Select(n =>
@@ -61,26 +99,6 @@ namespace EasyFinance.Application.Features.NotificationService
 
             if (failToSave.Any())
                 return AppResponse.Error(failToSave.SelectMany(n => n.Messages));
-
-            await unitOfWork.CommitAsync();
-
-            return AppResponse.Success();
-        }
-
-        public async Task<AppResponse> MarkAsReadAsync(Guid userId, Guid notificationId)
-        {
-            var notification = await this.unitOfWork.NotificationRepository
-                .Trackable()
-                .FirstOrDefaultAsync(n => n.User.Id == userId && n.Id == notificationId);
-
-            if (notification == null)
-                return AppResponse.Error(ValidationMessages.NotificationNotFound);
-
-            notification.MarkAsRead();
-
-            var savedNotification = unitOfWork.NotificationRepository.InsertOrUpdate(notification);
-            if (savedNotification.Failed)
-                return AppResponse.Error(savedNotification.Messages);
 
             await unitOfWork.CommitAsync();
 

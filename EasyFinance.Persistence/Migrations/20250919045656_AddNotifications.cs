@@ -17,7 +17,7 @@ namespace EasyFinance.Persistence.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Type = table.Column<int>(type: "int", nullable: false),
-                    CodeMessage = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    CodeMessage = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Category = table.Column<int>(type: "int", nullable: false),
                     IsRead = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
                     IsSent = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
@@ -25,7 +25,7 @@ namespace EasyFinance.Persistence.Migrations
                     IsActionRequired = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
                     LimitNotificationChannels = table.Column<int>(type: "int", nullable: false),
                     ExpiresAt = table.Column<DateOnly>(type: "date", nullable: true),
-                    ActionLabelCode = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    ActionLabelCode = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     Metadata = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ModifiedAt = table.Column<DateTime>(type: "datetime2", nullable: false)

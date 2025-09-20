@@ -17,7 +17,7 @@ namespace EasyFinance.Domain.Tests.Financial
         [Theory]
         [InlineData(-1)]
         [InlineData(-250)]
-        public void SetBudget_SendNegativeGoal_ShouldThrowException(int budget)
+        public void SetBudget_SendNegativeGoal_ShouldReturnErrorMessage(int budget)
         {
             // Arrange
             var expense = new ExpenseBuilder().SetBudget(budget).Build();
@@ -36,7 +36,7 @@ namespace EasyFinance.Domain.Tests.Financial
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void AddName_SendNullAndEmpty_ShouldThrowException(string name)
+        public void AddName_SendNullAndEmpty_ShouldReturnErrorMessage(string name)
         {
             // Arrange
             var expense = new ExpenseBuilder().AddName(name).Build();
@@ -54,7 +54,7 @@ namespace EasyFinance.Domain.Tests.Financial
 
         [Theory]
         [MemberData(nameof(OlderDates))]
-        public void AddDate_SendTooOldDate_ShouldThrowException(DateOnly date)
+        public void AddDate_SendTooOldDate_ShouldReturnErrorMessage(DateOnly date)
         {
             // Arrange
             var expense = new ExpenseBuilder().AddDate(date).Build();
@@ -72,7 +72,7 @@ namespace EasyFinance.Domain.Tests.Financial
 
         [Theory]
         [MemberData(nameof(FutureDates))]
-        public void AddDate_SendFutureDate_ShouldThrowException(DateOnly date)
+        public void AddDate_SendFutureDate_ShouldReturnErrorMessage(DateOnly date)
         {
             // Arrange
             var expense = new ExpenseBuilder().AddDate(date).Build();
@@ -91,7 +91,7 @@ namespace EasyFinance.Domain.Tests.Financial
         [Theory]
         [InlineData(-1)]
         [InlineData(-250)]
-        public void AddAmount_SendNegative_ShouldThrowException(decimal amount)
+        public void AddAmount_SendNegative_ShouldReturnErrorMessage(decimal amount)
         {
             // Arrange
             var expense = new ExpenseBuilder().AddAmount(amount).Build();
@@ -157,7 +157,7 @@ namespace EasyFinance.Domain.Tests.Financial
 
         [Theory]
         [MemberData(nameof(DifferentDateBetweenExpenseAndExpenseItem))]
-        public void AddItem_DifferentYearOrMonthFromExpense_ShouldThrowException(DateOnly expenseDate, DateOnly expenseItemDate)
+        public void AddItem_DifferentYearOrMonthFromExpense_ShouldReturnErrorMessage(DateOnly expenseDate, DateOnly expenseItemDate)
         {
             // Arrange
             var item = new ExpenseItemBuilder().AddDate(expenseItemDate).Build();
