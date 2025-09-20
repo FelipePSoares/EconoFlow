@@ -27,7 +27,7 @@ namespace EasyFinance.Server.Controllers
     [ApiController]
     [Tags("AccessControl")]
     [Route("api/[controller]")]
-    public class AccountController(
+    public class AccessControlController(
         UserManager<User> userManager,
         SignInManager<User> signInManager,
         IEmailSender<User> emailSender,
@@ -35,7 +35,7 @@ namespace EasyFinance.Server.Controllers
         LinkGenerator linkGenerator,
         IAccessControlService accessControlService,
         TokenSettings tokenSettings,
-        ILogger<AccountController> logger) : BaseController
+        ILogger<AccessControlController> logger) : BaseController
     {
         private readonly string tokenProvider = "REFRESHTOKENPROVIDER";
         private readonly string tokenPurpose = "RefreshToken";
@@ -53,7 +53,7 @@ namespace EasyFinance.Server.Controllers
         private readonly LinkGenerator linkGenerator = linkGenerator;
         private readonly IAccessControlService accessControlService = accessControlService;
         private readonly TokenSettings tokenSettings = tokenSettings;
-        private readonly ILogger<AccountController> logger = logger;
+        private readonly ILogger<AccessControlController> logger = logger;
 
         [HttpGet]
         public async Task<IActionResult> GetUserAsync()
@@ -166,7 +166,7 @@ namespace EasyFinance.Server.Controllers
         public async Task<IActionResult> Register([FromServices] IUserStore<User> userStore, [FromBody] RegisterRequest registration, [FromQuery] Guid? token = null)
         {
             if (!userManager.SupportsUserEmail)
-                throw new NotSupportedException($"{nameof(AccountController)} requires a user store with email support.");
+                throw new NotSupportedException($"{nameof(AccessControlController)} requires a user store with email support.");
 
             var emailStore = (IUserEmailStore<User>)userStore;
             var email = registration.Email;
@@ -593,7 +593,7 @@ namespace EasyFinance.Server.Controllers
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.Strict,
-                Path = Url.Action(nameof(RefreshTokenAsync), nameof(AccountController).Replace("Controller", "")),
+                Path = Url.Action(nameof(RefreshTokenAsync), nameof(AccessControlController).Replace("Controller", "")),
                 Expires = DateTimeOffset.Now.AddSeconds(tokenSettings.RefreshTokenExpireSeconds)
             };
             Response.Cookies.Append(refreshTokenCookieName, refreshToken, cookieOptions);

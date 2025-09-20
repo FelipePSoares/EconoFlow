@@ -17,7 +17,7 @@ namespace EasyFinance.Persistence.Mapping.Account
             builder.Property(p => p.LimitNotificationChannels);
 
             builder.Property(p => p.CodeMessage)
-                .HasMaxLength(200)
+                .HasMaxLength(100)
                 .IsRequired();
 
             builder.Property(p => p.IsRead)
@@ -39,7 +39,7 @@ namespace EasyFinance.Persistence.Mapping.Account
             builder.Property(p => p.ExpiresAt);
 
             builder.Property(p => p.ActionLabelCode)
-                .HasMaxLength(200);
+                .HasMaxLength(100);
 
             builder.Property(p => p.Metadata);
 

@@ -22,15 +22,15 @@ using Shouldly;
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
 namespace EasyFinance.Server.Tests.Controllers
 {
-    public class AccountControllerTests
+    public class AccessControlControllerTests
     {
         private readonly Mock<IUserStore<User>> _userStoreMock;
         private readonly Mock<UserManager<User>> _userManagerMock;
         private readonly Mock<IAccessControlService> accessControlService;
-        private readonly AccountController _controller;
+        private readonly AccessControlController _controller;
         private readonly TokenSettings tokenSettings;
 
-        public AccountControllerTests()
+        public AccessControlControllerTests()
         {
             _userStoreMock = new Mock<IUserStore<User>>();
             var emailSenderMock = new Mock<IEmailSender<User>>();
@@ -63,7 +63,7 @@ namespace EasyFinance.Server.Tests.Controllers
 
             this.accessControlService = new Mock<IAccessControlService>();
 
-            _controller = new AccountController(
+            _controller = new AccessControlController(
                userManager: _userManagerMock.Object,
                signInManager: signInManagerMock.Object,
                emailSender: emailSenderMock.Object,
@@ -71,7 +71,7 @@ namespace EasyFinance.Server.Tests.Controllers
                linkGenerator: Mock.Of<LinkGenerator>(),
                accessControlService: Mock.Of<IAccessControlService>(),
                tokenSettings: tokenSettings,
-               logger: Mock.Of<ILogger<AccountController>>()
+               logger: Mock.Of<ILogger<AccessControlController>>()
                );
 
             var userJohn = new UserBuilder().AddFirstName("John").AddLastName("Doe").AddEmail("john@doe.com").Build();

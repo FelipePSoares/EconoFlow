@@ -308,4 +308,13 @@ You will be redirect in 5 seconds ...</value>
   <data name="NotificationNotFound" xml:space="preserve">
     <value>Notification not found.</value>
   </data>
+  <data name="NotificationActionRequired" xml:space="preserve">
+    <value>You cannot mark as read an action required notification.</value>
+  </data>
+  <data name="ExpirationShouldBeFutureDate" xml:space="preserve">
+    <value>Expiration should be a future date</value>
+  </data>
+  <data name="PropertyMaxLength" xml:space="preserve">
+    <value>{0} exceeds the maximum allowed length of {1} characters.</value>
+  </data>
 </root>

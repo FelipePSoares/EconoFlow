@@ -11,7 +11,7 @@ namespace EasyFinance.Domain.Account
         private Notification() { }
 
         public Notification(
-            User user = default,
+            User user,
             string codeMessage = default,
             string actionLabelCode = default,
             string metadata = default,
@@ -21,7 +21,7 @@ namespace EasyFinance.Domain.Account
             DateOnly? expiresAt = default
             )
         {
-            SetUser(user);
+            this.User = user ?? throw new ArgumentNullException(nameof(user));
             SetCodeMessage(codeMessage);
             SetActionLabelCode(actionLabelCode);
             SetMetadata(metadata);
@@ -53,17 +53,21 @@ namespace EasyFinance.Domain.Account
                 if (Type == NotificationType.None)
                     response.AddErrorMessage(nameof(Type), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(Type)));
 
-                if (Type == NotificationType.None)
-                    response.AddErrorMessage(nameof(Type), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(Type)));
-
-                if (string.IsNullOrEmpty(CodeMessage))
-                    response.AddErrorMessage(nameof(CodeMessage), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(CodeMessage)));
-
                 if (Category == NotificationCategory.None)
                     response.AddErrorMessage(nameof(Category), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(Category)));
 
+                if (string.IsNullOrEmpty(CodeMessage))
+                    response.AddErrorMessage(nameof(CodeMessage), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(CodeMessage)));
+                else if (CodeMessage.Length > 100)
+                    response.AddErrorMessage(nameof(CodeMessage), string.Format(ValidationMessages.PropertyMaxLength, nameof(CodeMessage), 100));
+
                 if (this.IsActionRequired && string.IsNullOrEmpty(ActionLabelCode))
                     response.AddErrorMessage(nameof(ActionLabelCode), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(ActionLabelCode)));
+                else if (this.IsActionRequired && ActionLabelCode.Length > 100)
+                    response.AddErrorMessage(nameof(ActionLabelCode), string.Format(ValidationMessages.PropertyMaxLength, nameof(ActionLabelCode), 100));
+
+                if (this.ExpiresAt.HasValue && this.ExpiresAt.Value <= DateOnly.FromDateTime(DateTime.UtcNow))
+                    response.AddErrorMessage(nameof(ExpiresAt), ValidationMessages.ExpirationShouldBeFutureDate);
 
                 var userValidation = User.Validate;
                 if (userValidation.Failed)
@@ -91,9 +95,7 @@ namespace EasyFinance.Domain.Account
 
         public void MarkAsSent() => IsSent = true;
 
-        public void SetIsSticky(bool isSticky) => IsSticky = isSticky;
-
-        public void SetUser(User user) => User = user ?? throw new ArgumentNullException(nameof(user));
+        public void MarkAsSticky() => IsSticky = true;
 
         public void MarkAsActionRequired() => IsActionRequired = true;
     }
