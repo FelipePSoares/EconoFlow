@@ -9,6 +9,8 @@ import { AuthService } from '../core/services/auth.service';
 import { NavBarComponent } from '../core/components/nav-bar/nav-bar.component';
 import { SpinnerComponent } from '../core/components/spinner/spinner.component';
 import { TranslateModule } from '@ngx-translate/core';
+import { VersionCheckService } from '../core/services/version-check.service';
+import { CanonicalService } from '../core/services/canonical.service';
 
 import {
   DateAdapter,
@@ -16,7 +18,6 @@ import {
   MAT_DATE_LOCALE,
 } from '@angular/material/core';
 import * as moment from 'moment';
-import { VersionCheckService } from '../core/services/version-check.service';
 
 export const MY_FORMATS = {
   parse: {
@@ -60,7 +61,8 @@ export class AppComponent {
     private router: Router,
     private injector: Injector,
     @Inject(PLATFORM_ID) private platformId: object,
-    private versionCheckService: VersionCheckService) {   
+    private versionCheckService: VersionCheckService,
+    private canonicalService: CanonicalService) {   
     if (isPlatformBrowser(this.platformId)) {
       this.versionCheckService.init();
       const authService = injector.get(AuthService);
