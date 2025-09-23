@@ -19,7 +19,7 @@ export class CanonicalService {
     this.canonicalLink.setAttribute('rel', 'canonical');
     this.canonicalLink.setAttribute('href', this.currentUrl());
 
-    if (!isPlatformBrowser(platformId)) {
+    if (isPlatformBrowser(platformId)) {
 
       this.document.head.appendChild(this.canonicalLink);
 
