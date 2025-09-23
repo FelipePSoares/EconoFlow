@@ -11,7 +11,7 @@ namespace EasyFinance.Common.Tests.AccessControl
 
         public UserBuilder()
         {
-            this.user = new User();
+            this.user = new User(Guid.NewGuid());
             this.user.UserName = Fixture.Create<string>();
             this.AddFirstName(Fixture.Create<string>());
             this.AddLastName(Fixture.Create<string>());

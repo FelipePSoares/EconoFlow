@@ -30,7 +30,7 @@ export class UserService {
   }
 
   public signIn(email: string, password: string): Observable<User> {
-    return this.http.post('/api/account/login', {
+    return this.http.post('/api/AccessControl/login', {
       email: email,
       password: password
     }, {
@@ -43,7 +43,7 @@ export class UserService {
   }
 
   public refreshToken(): Observable<User> {
-    return this.http.post('/api/Account/refresh-token', null, {
+    return this.http.post('/api/AccessControl/refresh-token', null, {
       observe: 'body',
       responseType: 'json'
     })
@@ -55,7 +55,7 @@ export class UserService {
   public register(email: string, password: string, token?: string): Observable<User> {
     const query = token ? `?token=${token}` : '';
 
-    return this.http.post('/api/account/register' + query, {
+    return this.http.post('/api/AccessControl/register' + query, {
       email: email,
       password: password
     }, {
@@ -68,7 +68,7 @@ export class UserService {
   }
 
   public refreshUserInfo(): Observable<User> {
-    return this.http.get<User>('/api/account/', {
+    return this.http.get<User>('/api/AccessControl/', {
       observe: 'body',
       responseType: 'json'
     }).pipe(tap(user => {
@@ -83,7 +83,7 @@ export class UserService {
   }
 
   public setUserInfo(firstName: string, lastName: string): Observable<User> {
-    return this.http.put('/api/account/', {
+    return this.http.put('/api/AccessControl/', {
       firstName: firstName,
       lastName: lastName
     }).pipe(concatMap(() => {
@@ -92,14 +92,14 @@ export class UserService {
   }
 
   public update(patch: Operation[]): Observable<User> {
-    return this.http.patch<User>('/api/account/', patch).pipe(tap(user => {
+    return this.http.patch<User>('/api/AccessControl/', patch).pipe(tap(user => {
       this.loggedUser.next(user);
       this.localService.saveData(this.localService.USER_DATA, user).subscribe();
     }));
   }
 
   public manageInfo(newEmail = '', newPassword = '', oldPassword = '') {
-    return this.http.post('/api/account/manage/info/', {
+    return this.http.post('/api/AccessControl/manage/info/', {
       newEmail: newEmail,
       newPassword: newPassword,
       oldPassword: oldPassword
@@ -109,7 +109,7 @@ export class UserService {
   }
 
   public setDefaultProject(projectId: string) {
-    return this.http.put(`/api/account/default-project/${projectId}`, {}).pipe(concatMap(() => {
+    return this.http.put(`/api/AccessControl/default-project/${projectId}`, {}).pipe(concatMap(() => {
       return this.refreshUserInfo();
     }));
   }
@@ -121,7 +121,7 @@ export class UserService {
         }
       : undefined; 
   
-    return this.http.delete<DeleteUser>('/api/account/', options).pipe(
+    return this.http.delete<DeleteUser>('/api/AccessControl/', options).pipe(
       tap(() => console.log('Delete request sent')),
       catchError((error) => {
         console.error('Error occurred during deletion:', error);
@@ -137,7 +137,7 @@ export class UserService {
     if (projectId)
       queryParams = queryParams.append("projectId", projectId);
 
-    return this.http.get<User[]>('/api/account/search', {
+    return this.http.get<User[]>('/api/AccessControl/search', {
       observe: 'body',
       responseType: 'json',
       params: queryParams
@@ -145,7 +145,7 @@ export class UserService {
   }
 
   public resendVerification(): Observable<void> {
-    return this.http.post<void>('/api/Account/resendConfirmEmail', null, {
+    return this.http.post<void>('/api/AccessControl/resendConfirmEmail', null, {
       observe: 'body',
       responseType: 'json'
     });

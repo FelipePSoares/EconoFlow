@@ -11,28 +11,20 @@ namespace EasyFinance.Application.DTOs.Account
             this.Id = notification.Id;
             this.CodeMessage = notification.CodeMessage;
             this.ActionLabelCode = notification.ActionLabelCode;
-            this.Metadata = notification.Metadata;
             this.Type = notification.Type;
             this.Category = notification.Category;
-            this.IsRead = notification.IsRead;
-            this.IsSent = notification.IsSent;
-            this.IsSticky = notification.IsSticky;
             this.IsActionRequired = notification.IsActionRequired;
-            this.LimitNotificationChannels = notification.LimitNotificationChannels;
-            this.ExpiresAt = notification.ExpiresAt;
+            this.IsSticky = notification.IsSticky;
+            this.Metadata = notification.Metadata;
         }
 
         public Guid Id { get; set; }
         public string CodeMessage { get; set; } = default!;
         public string ActionLabelCode { get; set; } = default!;
-        public string Metadata { get; set; } = default!;
         public NotificationType Type { get; set; } = NotificationType.None;
         public NotificationCategory Category { get; set; } = NotificationCategory.None;
-        public bool IsRead { get; set; } = false;
-        public bool IsSent { get; set; } = false;
-        public bool IsSticky { get; set; } = false;
         public bool IsActionRequired { get; set; } = false;
-        public NotificationChannels LimitNotificationChannels { get; set; } = NotificationChannels.None;
-        public DateOnly? ExpiresAt { get; set; } = default;
+        public bool IsSticky { get; set; } = false;
+        public string Metadata { get; set; } = default!;
     }
 }

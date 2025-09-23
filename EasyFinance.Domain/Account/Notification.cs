@@ -67,9 +67,8 @@ namespace EasyFinance.Domain.Account
                 if (ExpiresAt.HasValue && ExpiresAt.Value <= DateOnly.FromDateTime(DateTime.UtcNow))
                     response.AddErrorMessage(nameof(ExpiresAt), ValidationMessages.ExpirationShouldBeFutureDate);
 
-                var userValidation = User.Validate;
-                if (userValidation.Failed)
-                    response.AddErrorMessage(userValidation.Messages.AddPrefix(nameof(User)));
+                if (User.Id == Guid.Empty)
+                    response.AddErrorMessage(nameof(User), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(User)));
 
                 return response;
             }

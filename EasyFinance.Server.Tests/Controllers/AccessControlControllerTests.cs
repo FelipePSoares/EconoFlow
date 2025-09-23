@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using System.Security.Principal;
-using Castle.Core.Logging;
 using EasyFinance.Application.DTOs.AccessControl;
 using EasyFinance.Application.Features.AccessControlService;
+using EasyFinance.Application.Features.NotificationService;
 using EasyFinance.Application.Features.UserService;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Common.Tests.AccessControl;
@@ -71,6 +70,7 @@ namespace EasyFinance.Server.Tests.Controllers
                linkGenerator: Mock.Of<LinkGenerator>(),
                accessControlService: Mock.Of<IAccessControlService>(),
                tokenSettings: tokenSettings,
+               notificationService: Mock.Of<INotificationService>(),
                logger: Mock.Of<ILogger<AccessControlController>>()
                );
 

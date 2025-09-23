@@ -32,7 +32,7 @@ export class AuthService {
   public signOut(): void {
     this.stopUserPolling();
 
-    this.http.post('/api/account/logout', null, {
+    this.http.post('/api/AccessControl/logout', null, {
       observe: 'response'
     });
 
@@ -47,7 +47,7 @@ export class AuthService {
   }
 
   public forgotPassword(email: string): Observable<boolean> {
-    return this.http.post('/api/account/forgotPassword', {
+    return this.http.post('/api/AccessControl/forgotPassword', {
       email: email
     }, {
       observe: 'response'
@@ -55,7 +55,7 @@ export class AuthService {
   }
 
   public resetPassword(email: string, resetCode: string, newPassword: string): Observable<boolean> {
-    return this.http.post('/api/account/resetPassword', {
+    return this.http.post('/api/AccessControl/resetPassword', {
       email: email,
       resetCode: resetCode,
       newPassword: newPassword

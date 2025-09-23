@@ -16,6 +16,18 @@ namespace EasyFinance.Application.Features.NotificationService
     {
         private readonly IUnitOfWork unitOfWork = unitOfWork;
 
+        public async Task<AppResponse> AddNotificationAsync(Notification notification)
+        {
+            var savedNotification = unitOfWork.NotificationRepository.InsertOrUpdate(notification);
+
+            if (savedNotification.Failed)
+                return AppResponse.Error(savedNotification.Messages);
+
+            await unitOfWork.CommitAsync();
+
+            return AppResponse.Success();
+        }
+
         public async Task<AppResponse<ICollection<NotificationResponseDTO>>> GetAllAsync(Guid userId)
         {
             var notifications = await this.unitOfWork.NotificationRepository
@@ -33,8 +45,9 @@ namespace EasyFinance.Application.Features.NotificationService
         {
             var notifications = await this.unitOfWork.NotificationRepository
                 .NoTrackable()
-                .Include(n => n.User)
-                .Where(n => n.User.Id == userId && (notificationCategory == NotificationCategory.None || n.Category == notificationCategory))
+                .Where(n => 
+                    n.User.Id == userId && 
+                    (notificationCategory == NotificationCategory.None || n.Category == notificationCategory))
                 .ToDTO()
                 .ToListAsync();
 
@@ -45,6 +58,7 @@ namespace EasyFinance.Application.Features.NotificationService
         {
             var notifications = await this.unitOfWork.NotificationRepository
                 .Trackable()
+                .Include(n => n.User)
                 .Where(n => n.User.Id == userId && !n.IsActionRequired)
                 .ToListAsync();
 
@@ -55,6 +69,7 @@ namespace EasyFinance.Application.Features.NotificationService
         {
             var notification = await this.unitOfWork.NotificationRepository
                 .Trackable()
+                .Include(n => n.User)
                 .FirstOrDefaultAsync(n => n.User.Id == userId && n.Id == notificationId);
 
             if (notification.IsActionRequired)
@@ -78,6 +93,7 @@ namespace EasyFinance.Application.Features.NotificationService
         {
             var notifications = await this.unitOfWork.NotificationRepository
                 .Trackable()
+                .Include(n => n.User)
                 .Where(n => n.User.Id == userId && n.Type == type && n.IsActionRequired)
                 .ToListAsync();
 

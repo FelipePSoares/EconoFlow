@@ -2,8 +2,8 @@ Cypress.Commands.add('login', (username, password) => {
   cy.session(
     username,
     () => {
-      cy.intercept('POST', '/api/account/login').as('postAccount')
-      cy.intercept('GET', '/api/account/').as('getAccount')
+      cy.intercept('POST', '/api/AccessControl/login').as('postAccount')
+      cy.intercept('GET', '/api/AccessControl/').as('getAccount')
       cy.visit('/login')
       cy.get('input[formControlName=email]').type(username)
       cy.get('input[formControlName=password]').type(`${password}{enter}`, { force: true, log: false })
@@ -26,8 +26,8 @@ Cypress.Commands.add('register', (username, password) => {
   cy.session(
     username,
     () => {
-      cy.intercept('GET', '/api/account/').as('getAccount')
-      cy.intercept('POST', '/api/account/register').as('postAccount')
+      cy.intercept('GET', '/api/AccessControl/').as('getAccount')
+      cy.intercept('POST', '/api/AccessControl/register').as('postAccount')
 
       cy.visit('/register')
       cy.get('input[formControlName=email]').type(username)

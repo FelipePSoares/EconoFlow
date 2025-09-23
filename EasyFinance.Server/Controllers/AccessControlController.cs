@@ -6,9 +6,11 @@ using System.Text.Encodings.Web;
 using System.Text.RegularExpressions;
 using EasyFinance.Application.DTOs.AccessControl;
 using EasyFinance.Application.Features.AccessControlService;
+using EasyFinance.Application.Features.NotificationService;
 using EasyFinance.Application.Features.UserService;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Account;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.Authentication;
 using EasyFinance.Infrastructure.DTOs;
@@ -35,6 +37,7 @@ namespace EasyFinance.Server.Controllers
         LinkGenerator linkGenerator,
         IAccessControlService accessControlService,
         TokenSettings tokenSettings,
+        INotificationService notificationService,
         ILogger<AccessControlController> logger) : BaseController
     {
         private readonly string tokenProvider = "REFRESHTOKENPROVIDER";
@@ -53,6 +56,7 @@ namespace EasyFinance.Server.Controllers
         private readonly LinkGenerator linkGenerator = linkGenerator;
         private readonly IAccessControlService accessControlService = accessControlService;
         private readonly TokenSettings tokenSettings = tokenSettings;
+        private readonly INotificationService notificationService = notificationService;
         private readonly ILogger<AccessControlController> logger = logger;
 
         [HttpGet]
@@ -200,6 +204,19 @@ namespace EasyFinance.Server.Controllers
             }
 
             await SendConfirmationEmailAsync(user, HttpContext, email);
+
+            var confirmEmailNotification = new Notification(user, "ConfirmEmailMessage", NotificationType.EmailConfirmation, NotificationCategory.Security, "ButtonConfirmEmail", NotificationChannels.InApp);
+            var confirmNotificationResult = await this.notificationService.AddNotificationAsync(confirmEmailNotification);
+
+            if (confirmNotificationResult.Failed)
+                this.logger.LogWarning("Failed to create email confirmation notification for user {UserId}: {Errors}", user.Id, string.Join(", ", confirmNotificationResult.Messages.Select(m => m.Description)));
+
+            var welcomeNotification = new Notification(user, "WelcomeMessage", NotificationType.WelcomeMessage, NotificationCategory.System, limitNotificationChannels: NotificationChannels.InApp);
+            var welcomeNotificationResult = await this.notificationService.AddNotificationAsync(welcomeNotification);
+
+            if (welcomeNotificationResult.Failed)
+                this.logger.LogWarning("Failed to create welcome notification for user {UserId}: {Errors}", user.Id, string.Join(", ", welcomeNotificationResult.Messages.Select(m => m.Description)));
+
             await GenerateUserToken(user);
 
             return Ok();
@@ -472,16 +489,13 @@ namespace EasyFinance.Server.Controllers
                 result = await userManager.ChangeEmailAsync(user, changedEmail, code);
 
                 if (result.Succeeded)
-                {
                     result = await userManager.SetUserNameAsync(user, changedEmail);
-                }
             }
 
             if (!result.Succeeded)
-            {
                 return Unauthorized();
-            }
 
+            await this.notificationService.ActionMadeAsync(user.Id, NotificationType.EmailConfirmation);
             Response.Headers.Append("Refresh", $"5;url={Request.Scheme}://{Request.Host}");
             return Content(ValidationMessages.ThankYouConfirmEmailRedirect);
         }
@@ -521,7 +535,7 @@ namespace EasyFinance.Server.Controllers
                 routeValues.Add("changedEmail", email);
             }
 
-            var confirmEmailUrl = linkGenerator.GetUriByAction(context, nameof(ConfirmEmailAsync), "Account", routeValues)
+            var confirmEmailUrl = linkGenerator.GetUriByAction(context, nameof(ConfirmEmailAsync), nameof(AccessControlController).Replace("Controller", string.Empty), routeValues)
                 ?? throw new NotSupportedException($"Could not find endpoint named {nameof(ConfirmEmailAsync)}.");
 
             await emailSender.SendConfirmationLinkAsync(user, email, HtmlEncoder.Default.Encode(confirmEmailUrl));

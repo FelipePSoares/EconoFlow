@@ -27,5 +27,25 @@ namespace EasyFinance.Server.Controllers
 
             return this.ValidateResponse(notifications, HttpStatusCode.OK);
         }
+
+        [HttpPost("Notifications/{notificationId:guid}/read")]
+        public async Task<IActionResult> MarkNotificationAsReadAsync([FromRoute] Guid notificationId)
+        {
+            var userId = new Guid(this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier).Value);
+            
+            var response = await this.notificationService.MarkAsReadAsync(userId, notificationId);
+
+            return this.ValidateResponse(response, HttpStatusCode.NoContent);
+        }
+
+        [HttpPost("Notifications/read-all")]
+        public async Task<IActionResult> MarkAllNotificationsAsReadAsync()
+        {
+            var userId = new Guid(this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier).Value);
+
+            var response = await this.notificationService.MarkAllAsReadAsync(userId);
+
+            return this.ValidateResponse(response, HttpStatusCode.NoContent);
+        }
     }
 }

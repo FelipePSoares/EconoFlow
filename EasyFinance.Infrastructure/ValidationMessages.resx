@@ -317,4 +317,7 @@ You will be redirect in 5 seconds ...</value>
   <data name="PropertyMaxLength" xml:space="preserve">
     <value>{0} exceeds the maximum allowed length of {1} characters.</value>
   </data>
+  <data name="NotSupported" xml:space="preserve">
+    <value>{0} not supported</value>
+  </data>
 </root>

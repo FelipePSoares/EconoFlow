@@ -9,5 +9,6 @@ namespace EasyFinance.Domain.Account
         Email   = 1 << 0, // 1
         Sms     = 1 << 1, // 2
         Push    = 1 << 2, // 4
+        InApp   = 1 << 3  // 8
     }
 }

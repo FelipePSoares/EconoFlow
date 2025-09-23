@@ -49,7 +49,7 @@ namespace EasyFinance.Persistence.Migrations
             // 🔥 Insert initial confirm-email notification for users without confirmed email
             migrationBuilder.Sql(@"
                 INSERT INTO Notifications
-                    (Id, UserId, Type, CodeMessage, Category, IsRead, IsSent, IsSticky, IsActionRequired, ActionLabelCode, CreatedDate, ModifiedAt)
+                    (Id, UserId, Type, CodeMessage, Category, IsRead, IsSent, IsSticky, IsActionRequired, ActionLabelCode, LimitNotificationChannels, CreatedDate, ModifiedAt)
                 SELECT
                     NEWID(),
                     u.Id,
@@ -61,6 +61,7 @@ namespace EasyFinance.Persistence.Migrations
                     1, -- IsSticky
                     1, -- IsActionRequired
                     'ButtonConfirmEmail',
+                    8,
                     GETUTCDATE(),
                     GETUTCDATE()
                 FROM AspNetUsers u
