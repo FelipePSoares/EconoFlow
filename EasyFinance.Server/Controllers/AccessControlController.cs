@@ -274,14 +274,13 @@ namespace EasyFinance.Server.Controllers
         {
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
-            Response.Cookies.Delete(refreshTokenCookieName);
-            Response.Cookies.Delete(accessTokenCookieName);
-
             if (user == null)
                 return Ok();
 
             await this.userManager.RemoveAuthenticationTokenAsync(user, this.tokenProvider, this.tokenPurpose);
-            await this.signInManager.SignOutAsync();
+            
+            Response.Cookies.Delete(refreshTokenCookieName);
+            Response.Cookies.Delete(accessTokenCookieName);
 
             return Ok();
         }

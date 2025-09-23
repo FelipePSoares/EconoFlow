@@ -9,7 +9,6 @@ namespace EasyFinance.Application.DTOs.Account
         public NotificationResponseDTO(Notification notification)
         {
             this.Id = notification.Id;
-            this.User = new UserResponseDTO(notification.User);
             this.CodeMessage = notification.CodeMessage;
             this.ActionLabelCode = notification.ActionLabelCode;
             this.Metadata = notification.Metadata;
@@ -24,7 +23,6 @@ namespace EasyFinance.Application.DTOs.Account
         }
 
         public Guid Id { get; set; }
-        public UserResponseDTO User { get; set; } = default;
         public string CodeMessage { get; set; } = default!;
         public string ActionLabelCode { get; set; } = default!;
         public string Metadata { get; set; } = default!;

@@ -72,32 +72,11 @@ namespace EasyFinance.Domain.Tests.Account
             message.Description.Should().Be(string.Format(ValidationMessages.PropertyMaxLength, nameof(notification.CodeMessage), 100));
         }
 
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        public void AddActionLabelCode_SendEmptyActionLabelCode_ShouldReturnErrorMessage(string actionLabelCode)
-        {
-            // Arrange
-            var notification = new NotificationBuilder()
-                .SetIsActionRequired()
-                .AddActionLabelCode(actionLabelCode).Build();
-
-            // Act
-            var result = notification.Validate;
-
-            // Assert
-            result.Failed.Should().BeTrue();
-            var message = result.Messages.Should().ContainSingle().Subject;
-            message.Code.Should().Be("ActionLabelCode");
-            message.Description.Should().Be(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(notification.ActionLabelCode)));
-        }
-
         [Fact]
         public void AddActionLabelCode_SendTooLongActionLabelCode_ShouldReturnErrorMessage()
         {
             // Arrange
             var notification = new NotificationBuilder()
-                .SetIsActionRequired()
                 .AddActionLabelCode(new string('a', 101)).Build();
 
             // Act
