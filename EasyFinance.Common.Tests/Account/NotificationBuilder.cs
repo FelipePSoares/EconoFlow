@@ -12,11 +12,12 @@ namespace EasyFinance.Common.Tests.AccessControl
 
         public NotificationBuilder()
         {
-            this.notification = new Notification(new UserBuilder().Build());
-            this.notification.SetCodeMessage(Fixture.Create<string>());
-            this.notification.SetType(NotificationType.EmailConfirmation);
-            this.notification.SetCategory(NotificationCategory.System);
-            this.notification.SetActionLabelCode(Fixture.Create<string>());
+            this.notification = new Notification(
+                new UserBuilder().Build(),
+                Fixture.Create<string>(),
+                NotificationType.EmailConfirmation,
+                NotificationCategory.System,
+                Fixture.Create<string>());
         }
 
         public NotificationBuilder AddExpiresAt(DateOnly expiresAt)
@@ -76,12 +77,6 @@ namespace EasyFinance.Common.Tests.AccessControl
         public NotificationBuilder SetIsSticky()
         {
             this.notification.MarkAsSticky();
-            return this;
-        }
-
-        public NotificationBuilder SetIsActionRequired()
-        {
-            this.notification.MarkAsActionRequired();
             return this;
         }
 

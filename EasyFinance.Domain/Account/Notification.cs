@@ -12,13 +12,13 @@ namespace EasyFinance.Domain.Account
 
         public Notification(
             User user,
-            string codeMessage = default,
+            string codeMessage,
+            NotificationType type,
+            NotificationCategory category,
             string actionLabelCode = default,
-            string metadata = default,
-            NotificationType type = NotificationType.None,
-            NotificationCategory category = NotificationCategory.None,
             NotificationChannels limitNotificationChannels = NotificationChannels.None,
-            DateOnly? expiresAt = default
+            DateOnly? expiresAt = default,
+            string metadata = default
             )
         {
             this.User = user ?? throw new ArgumentNullException(nameof(user));
@@ -34,14 +34,14 @@ namespace EasyFinance.Domain.Account
         public User User { get; private set; } = new User();
         public NotificationType Type { get; private set; } = NotificationType.None;
         public string CodeMessage { get; private set; } = default;
+        public string ActionLabelCode { get; private set; } = default;
+        public bool IsActionRequired { get; private set; } = false;
         public NotificationCategory Category { get; private set; } = NotificationCategory.None;
         public bool IsRead { get; private set; } = false;
         public bool IsSent { get; private set; } = false;
         public bool IsSticky { get; private set; } = false;
-        public bool IsActionRequired { get; private set; } = false;
         public NotificationChannels LimitNotificationChannels { get; private set; } = NotificationChannels.None;
         public DateOnly? ExpiresAt { get; private set; } = default;
-        public string ActionLabelCode { get; private set; } = default;
         public string Metadata { get; private set; } = default;
 
         public override AppResponse Validate
@@ -61,12 +61,10 @@ namespace EasyFinance.Domain.Account
                 else if (CodeMessage.Length > 100)
                     response.AddErrorMessage(nameof(CodeMessage), string.Format(ValidationMessages.PropertyMaxLength, nameof(CodeMessage), 100));
 
-                if (this.IsActionRequired && string.IsNullOrEmpty(ActionLabelCode))
-                    response.AddErrorMessage(nameof(ActionLabelCode), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(ActionLabelCode)));
-                else if (this.IsActionRequired && ActionLabelCode.Length > 100)
+                if (IsActionRequired && ActionLabelCode.Length > 100)
                     response.AddErrorMessage(nameof(ActionLabelCode), string.Format(ValidationMessages.PropertyMaxLength, nameof(ActionLabelCode), 100));
 
-                if (this.ExpiresAt.HasValue && this.ExpiresAt.Value <= DateOnly.FromDateTime(DateTime.UtcNow))
+                if (ExpiresAt.HasValue && ExpiresAt.Value <= DateOnly.FromDateTime(DateTime.UtcNow))
                     response.AddErrorMessage(nameof(ExpiresAt), ValidationMessages.ExpirationShouldBeFutureDate);
 
                 var userValidation = User.Validate;
@@ -87,7 +85,12 @@ namespace EasyFinance.Domain.Account
 
         public void SetMetadata(string metadata) => Metadata = metadata;
 
-        public void SetActionLabelCode(string actionLabelCode) => ActionLabelCode = actionLabelCode;
+        public void SetActionLabelCode(string actionLabelCode)
+        {
+            this.IsActionRequired = !string.IsNullOrEmpty(actionLabelCode);
+
+            ActionLabelCode = actionLabelCode;
+        }
 
         public void SetCodeMessage(string codeMessage) => CodeMessage = codeMessage;
 
@@ -96,7 +99,5 @@ namespace EasyFinance.Domain.Account
         public void MarkAsSent() => IsSent = true;
 
         public void MarkAsSticky() => IsSticky = true;
-
-        public void MarkAsActionRequired() => IsActionRequired = true;
     }
 }
