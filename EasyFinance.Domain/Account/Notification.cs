@@ -1,8 +1,7 @@
-﻿using EasyFinance.Domain.AccessControl;
+﻿using System;
+using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
-using EasyFinance.Infrastructure.Extensions;
-using System;
 
 namespace EasyFinance.Domain.Account
 {
@@ -18,7 +17,8 @@ namespace EasyFinance.Domain.Account
             string actionLabelCode = default,
             NotificationChannels limitNotificationChannels = NotificationChannels.None,
             DateOnly? expiresAt = default,
-            string metadata = default
+            string metadata = default,
+            bool isSticky = false
             )
         {
             this.User = user ?? throw new ArgumentNullException(nameof(user));
@@ -29,6 +29,8 @@ namespace EasyFinance.Domain.Account
             SetCategory(category);
             SetLimitNotificationChannels(limitNotificationChannels);
             SetExpiresAt(expiresAt);
+            if (isSticky)
+                MarkAsSticky();
         }
 
         public User User { get; private set; } = new User();

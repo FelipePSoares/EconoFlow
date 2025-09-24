@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.RegularExpressions;
 using EasyFinance.Application.DTOs.AccessControl;
+using EasyFinance.Application.DTOs.Account;
 using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Application.Features.NotificationService;
 using EasyFinance.Application.Features.UserService;
@@ -205,14 +206,30 @@ namespace EasyFinance.Server.Controllers
 
             await SendConfirmationEmailAsync(user, HttpContext, email);
 
-            var confirmEmailNotification = new Notification(user, "ConfirmEmailMessage", NotificationType.EmailConfirmation, NotificationCategory.Security, "ButtonConfirmEmail", NotificationChannels.InApp);
-            var confirmNotificationResult = await this.notificationService.AddNotificationAsync(confirmEmailNotification);
+            var confirmEmailNotification = new NotificationRequestDTO
+            {
+                User = user,
+                CodeMessage = "ConfirmEmailMessage",
+                Type = NotificationType.EmailConfirmation,
+                Category = NotificationCategory.Security,
+                ActionLabelCode = "ButtonConfirmEmail",
+                LimitNotificationChannels = NotificationChannels.InApp
+            };
+            var confirmNotificationResult = await this.notificationService.CreateNotificationAsync(confirmEmailNotification);
 
             if (confirmNotificationResult.Failed)
                 this.logger.LogWarning("Failed to create email confirmation notification for user {UserId}: {Errors}", user.Id, string.Join(", ", confirmNotificationResult.Messages.Select(m => m.Description)));
 
-            var welcomeNotification = new Notification(user, "WelcomeMessage", NotificationType.WelcomeMessage, NotificationCategory.System, limitNotificationChannels: NotificationChannels.InApp);
-            var welcomeNotificationResult = await this.notificationService.AddNotificationAsync(welcomeNotification);
+            var welcomeNotification = new NotificationRequestDTO
+            {
+                User = user,
+                CodeMessage = "WelcomeMessage",
+                Type = NotificationType.WelcomeMessage,
+                Category = NotificationCategory.System,
+                LimitNotificationChannels = NotificationChannels.InApp
+            };
+
+            var welcomeNotificationResult = await this.notificationService.CreateNotificationAsync(welcomeNotification);
 
             if (welcomeNotificationResult.Failed)
                 this.logger.LogWarning("Failed to create welcome notification for user {UserId}: {Errors}", user.Id, string.Join(", ", welcomeNotificationResult.Messages.Select(m => m.Description)));

@@ -16,16 +16,18 @@ namespace EasyFinance.Application.Features.NotificationService
     {
         private readonly IUnitOfWork unitOfWork = unitOfWork;
 
-        public async Task<AppResponse> AddNotificationAsync(Notification notification)
+        public async Task<AppResponse<NotificationResponseDTO>> CreateNotificationAsync(NotificationRequestDTO notification)
         {
-            var savedNotification = unitOfWork.NotificationRepository.InsertOrUpdate(notification);
+            var dto = notification.FromDTO();
+
+            var savedNotification = unitOfWork.NotificationRepository.InsertOrUpdate(dto);
 
             if (savedNotification.Failed)
-                return AppResponse.Error(savedNotification.Messages);
+                return AppResponse<NotificationResponseDTO>.Error(savedNotification.Messages);
 
             await unitOfWork.CommitAsync();
 
-            return AppResponse.Success();
+            return AppResponse<NotificationResponseDTO>.Success(dto.ToDTO());
         }
 
         public async Task<AppResponse<ICollection<NotificationResponseDTO>>> GetAllAsync(Guid userId)
