@@ -18,15 +18,26 @@ export class UserService {
     return this.getLoggedUser();
   }));
 
-  constructor(private http: HttpClient, private localService: LocalService) {
-    this.getLoggedUser().subscribe();
-  }
+  constructor(private http: HttpClient, private localService: LocalService) { }
 
   public getLoggedUser(): Observable<User> {
-    return this.localService.getData<User>(this.localService.USER_DATA).pipe(
-      map(user => user ?? new User()),
-      tap(user => this.loggedUser.next(user))
-    );
+    return this.checkStatus().pipe(switchMap(isLogged => {
+      if (!isLogged) {
+        this.loggedUser.next(new User());
+        return of(new User());
+      }
+
+      return this.localService.getData<User>(this.localService.USER_DATA).pipe(
+        switchMap(user => {
+          if (user)
+            return of(user);
+
+          return this.refreshUserInfo();
+        }),
+        map(user => user ?? new User()),
+        tap(user => this.loggedUser.next(user))
+      );
+    }));
   }
 
   public signIn(email: string, password: string): Observable<User> {
@@ -65,6 +76,13 @@ export class UserService {
     .pipe(
       concatMap(() => this.refreshUserInfo())
     );
+  }
+
+  public checkStatus(): Observable<boolean> {
+    return this.http.get<boolean>('/api/AccessControl/IsLogged', {
+      observe: 'body',
+      responseType: 'json'
+    });
   }
 
   public refreshUserInfo(): Observable<User> {

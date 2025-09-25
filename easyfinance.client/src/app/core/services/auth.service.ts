@@ -32,11 +32,11 @@ export class AuthService {
   public signOut(): void {
     this.stopUserPolling();
 
+    this.userService.removeUserInfo();
+
     this.http.post('/api/AccessControl/logout', null, {
       observe: 'response'
-    });
-
-    this.userService.removeUserInfo();
+    }).subscribe();
   }
 
   public register(email: string, password: string, token?: string): Observable<User> {

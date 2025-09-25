@@ -17,6 +17,7 @@ using EasyFinance.Infrastructure.Authentication;
 using EasyFinance.Infrastructure.DTOs;
 using EasyFinance.Server.Config;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.JsonPatch;
@@ -69,6 +70,16 @@ namespace EasyFinance.Server.Controllers
                 BadRequest("User not found!");
 
             return Ok(new UserResponseDTO(user));
+        }
+
+        [HttpGet("IsLogged")]
+        [AllowAnonymous]
+        public IActionResult CheckStatus()
+        {
+            if (!this.HttpContext.User.Identity.IsAuthenticated)
+                return Ok(false);
+
+            return Ok(true);
         }
 
         [HttpPut]
@@ -620,12 +631,16 @@ namespace EasyFinance.Server.Controllers
         {
             var cookieOptions = new CookieOptions
             {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
                 Path = Url.Action(nameof(RefreshTokenAsync), nameof(AccessControlController).Replace("Controller", "")),
                 Expires = DateTimeOffset.Now.AddSeconds(tokenSettings.RefreshTokenExpireSeconds)
             };
+
+#if !DEBUG
+            cookieOptions.HttpOnly = true;
+            cookieOptions.Secure = true;
+            cookieOptions.SameSite = SameSiteMode.Strict;
+#endif
+
             Response.Cookies.Append(refreshTokenCookieName, refreshToken, cookieOptions);
         }
 
@@ -635,12 +650,16 @@ namespace EasyFinance.Server.Controllers
         {
             var cookieOptions = new CookieOptions
             {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
                 // Keep the access token for the same duration as the refresh token to be possible get the user by the expired access token. The limitation is the JWT lifetime.
                 Expires = DateTimeOffset.Now.AddSeconds(tokenSettings.RefreshTokenExpireSeconds)
             };
+
+#if !DEBUG
+            cookieOptions.HttpOnly = true;
+            cookieOptions.Secure = true;
+            cookieOptions.SameSite = SameSiteMode.Strict;
+#endif
+
             Response.Cookies.Append(accessTokenCookieName, accessToken, cookieOptions);
         }
 
