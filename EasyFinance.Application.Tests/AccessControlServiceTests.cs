@@ -13,7 +13,6 @@ using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

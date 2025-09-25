@@ -9,6 +9,7 @@ using EasyFinance.Application.Features.EmailService;
 using EasyFinance.Application.Features.ExpenseItemService;
 using EasyFinance.Application.Features.ExpenseService;
 using EasyFinance.Application.Features.IncomeService;
+using EasyFinance.Application.Features.NotificationService;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Application.Features.SupportService;
 using EasyFinance.Application.Features.UserKeyService;
@@ -34,6 +35,7 @@ namespace EasyFinance.Application
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IContactService, ContactService>();
             services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IUserKeyService>(provider => new UserKeyService(userKeySalt));
 
             // Background Services

@@ -3,7 +3,20 @@ describe('EconoFlow - Login Tests', () => {
     cy.fixture('users').then((users) => {
       const user = users.testUser;
 
-      cy.login(user.username, user.password)
+      cy.intercept('POST', '/api/AccessControl/login').as('postAccount')
+      cy.intercept('GET', '/api/AccessControl/').as('getAccount')
+      cy.intercept('GET', '/projects').as('getProjects')
+
+      cy.visit('/login')
+      cy.get('input[formControlName=email]').type(user.username)
+      cy.get('input[formControlName=password]').type(`${user.password}{enter}`, { force: true, log: false })
+      cy.wait('@postAccount')
+      cy.getCookie('AuthToken').should('exist')
+      cy.visit('/projects')
+
+      cy.wait<ProjectReq, ProjectRes>('@getProjects').then(({ request, response }) => {
+        expect(response?.statusCode).to.equal(200)
+      })
     })
   })
 })

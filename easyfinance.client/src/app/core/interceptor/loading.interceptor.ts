@@ -4,9 +4,9 @@ import { finalize } from 'rxjs';
 import { LoaderService } from '../services/loader.service';
 
 const exceptions: any = [
-  { method: 'GET', url: '/api/account/' },
-  { method: 'PATCH', url: '/api/account/' },
-  { method: 'GET', url: '/api/account/search' },
+  { method: 'GET', url: '/api/AccessControl/' },
+  { method: 'PATCH', url: '/api/AccessControl/' },
+  { method: 'GET', url: '/api/AccessControl/search' },
   { method: 'GET', url: '/DefaultCategories' },
   { method: 'GET', url: '/assets/version.json' }
 ];

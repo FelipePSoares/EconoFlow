@@ -3,6 +3,7 @@ using System.Net;
 using EasyFinance.Application;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Account;
 using EasyFinance.Domain.Financial;
 using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Persistence;
@@ -79,9 +80,9 @@ try
 {
     var app = builder.Build();
     app.UseCorrelationId();
-    app.UseSerilogRequestLogging(); 
+    app.UseSerilogRequestLogging();
     app.UseCustomExceptionHandler();
-    
+
     app.UseSafeHeaders();
 
     // Configure the HTTP request pipeline.
@@ -108,6 +109,11 @@ try
             EmailConfirmed = true
         };
         userManager.CreateAsync(user2, "Passw0rd!").GetAwaiter().GetResult();
+
+        var notification = new Notification(user, "WelcomeMessage", NotificationType.WelcomeMessage, NotificationCategory.System, limitNotificationChannels: NotificationChannels.InApp);
+        unitOfWork.NotificationRepository.Insert(notification);
+        var notification2 = new Notification(user, "ConfirmEmailMessage", NotificationType.EmailConfirmation, NotificationCategory.Security, "ButtonConfirmEmail", NotificationChannels.InApp);
+        unitOfWork.NotificationRepository.Insert(notification2);
 
         var income = new Income("Investiments", DateOnly.FromDateTime(DateTime.Now), 3000, user);
         income.SetId(new Guid("0bb277f9-a858-4306-148f-08dcf739f7a1"));

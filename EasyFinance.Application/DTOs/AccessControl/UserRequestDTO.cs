@@ -1,5 +1,5 @@
 ﻿using System;
-using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Account;
 
 namespace EasyFinance.Application.DTOs.AccessControl
 {

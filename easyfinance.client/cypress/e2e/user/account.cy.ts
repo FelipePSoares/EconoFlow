@@ -10,8 +10,8 @@ describe('EconoFlow - user account Tests', () => {
   })
 
   it('Should edit basic user infos', () => {
-    cy.intercept('GET', '**/account*').as('getAccount')
-    cy.intercept('PATCH', '**/account*').as('patchAccount')
+    cy.intercept('GET', '**/AccessControl*').as('getAccount')
+    cy.intercept('PATCH', '**/AccessControl*').as('patchAccount')
 
     cy.wait<UserReq, UserRes>('@getAccount')
 
@@ -34,8 +34,8 @@ describe('EconoFlow - user account Tests', () => {
   })
 
   it('Should edit user email notification preference', () => {
-    cy.intercept('GET', '**/account*').as('getAccount')
-    cy.intercept('PATCH', '**/account*').as('patchAccount')
+    cy.intercept('GET', '**/AccessControl*').as('getAccount')
+    cy.intercept('PATCH', '**/AccessControl*').as('patchAccount')
 
     cy.wait<UserReq, UserRes>('@getAccount').then(({ request, response }) => {
       cy.log(response?.body.notificationChannels)
@@ -56,8 +56,8 @@ describe('EconoFlow - user account Tests', () => {
   })
 
   it('Should edit user push notification preference', () => {
-    cy.intercept('GET', '**/account*').as('getAccount')
-    cy.intercept('PATCH', '**/account*').as('patchAccount')
+    cy.intercept('GET', '**/AccessControl*').as('getAccount')
+    cy.intercept('PATCH', '**/AccessControl*').as('patchAccount')
 
     cy.wait<UserReq, UserRes>('@getAccount').then(({ request, response }) => {
       cy.log(response?.body.notificationChannels)
@@ -80,7 +80,7 @@ describe('EconoFlow - user account Tests', () => {
     cy.fixture('users').then((users) => {
       const user = users.userToDelete;
 
-      cy.intercept('DELETE', '**/account*').as('deleteAccount')
+      cy.intercept('DELETE', '**/AccessControl*').as('deleteAccount')
       cy.visit('/logout')
       cy.register(user.username, user.password)
       cy.visit('/user')
@@ -100,7 +100,7 @@ describe('EconoFlow - user account Tests', () => {
     cy.fixture('users').then((users) => {
       const user = users.userToNotDelete;
 
-      cy.intercept('DELETE', '**/account*').as('deleteAccount')
+      cy.intercept('DELETE', '**/AccessControl*').as('deleteAccount')
 
       cy.visit('/logout')
       cy.register(user.username, user.password)
