@@ -1,4 +1,5 @@
 ﻿using System;
+using EasyFinance.Domain.Account;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Identity;
@@ -51,6 +52,9 @@ namespace EasyFinance.Domain.AccessControl
 
                 if (string.IsNullOrEmpty(LastName))
                     response.AddErrorMessage(nameof(LastName), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(LastName)));
+
+                if (this.NotificationChannels.HasFlag(NotificationChannels.InApp))
+                    response.AddErrorMessage(nameof(NotificationChannels), string.Format(ValidationMessages.NotSupported, NotificationChannels.InApp));
 
                 return response;
             }

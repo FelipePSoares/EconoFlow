@@ -4,6 +4,7 @@ using EasyFinance.Persistence.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EasyFinance.Persistence.Migrations
 {
     [DbContext(typeof(EasyFinanceDatabaseContext))]
-    partial class EasyFinanceDatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20250919045656_AddNotifications")]
+    partial class AddNotifications
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -173,16 +176,16 @@ namespace EasyFinance.Persistence.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ActionLabelCode")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<int>("Category")
                         .HasColumnType("int");
 
                     b.Property<string>("CodeMessage")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");

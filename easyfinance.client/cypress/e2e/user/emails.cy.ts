@@ -10,9 +10,9 @@ describe('EconoFlow - user emails Tests', () => {
   })
 
   it('Should edit user email', () => {
-    cy.intercept('GET', '**/account*').as('getAccount')
-    cy.intercept('PUT', '**/account*').as('putAccount')
-    cy.intercept('POST', '/api/account/manage/info').as('postAccount')
+    cy.intercept('GET', '**/AccessControl*').as('getAccount')
+    cy.intercept('PUT', '**/AccessControl*').as('putAccount')
+    cy.intercept('POST', '/api/AccessControl/manage/info').as('postAccount')
 
     const emailInput = cy.get('input[formcontrolname=email]');
     const emailValue = 'email' + Math.floor(Math.random() * 1000).toString() + '@test.com';

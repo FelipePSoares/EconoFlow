@@ -306,4 +306,19 @@ Você será redirecionado em 5 segundos...</value>
   <data name="ExampleExpense" xml:space="preserve">
     <value>Despesa de exemplo</value>
   </data>
+  <data name="NotificationNotFound" xml:space="preserve">
+    <value>Notificação não encontrada.</value>
+  </data>
+  <data name="NotificationActionRequired" xml:space="preserve">
+    <value>Você não pode marcar como lida uma notificação de ação necessária.</value>
+  </data>
+  <data name="ExpirationShouldBeFutureDate" xml:space="preserve">
+    <value>A expiração deve ser uma data futura</value>
+  </data>
+  <data name="PropertyMaxLength" xml:space="preserve">
+    <value>{0} excede o comprimento máximo permitido de {1} caracteres.</value>
+  </data>
+  <data name="NotSupported" xml:space="preserve">
+    <value>Não suportado {0}</value>
+  </data>
 </root>

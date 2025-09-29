@@ -1,6 +1,7 @@
 ﻿using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Domain;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Account;
 using EasyFinance.Domain.Financial;
 using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Domain.Support;
@@ -20,6 +21,7 @@ namespace EasyFinance.Persistence.Repositories
         private readonly Lazy<IGenericRepository<Expense>> expenseRepository;
         private readonly Lazy<IGenericRepository<ExpenseItem>> expenseItemRepository;
         private readonly Lazy<IGenericRepository<ContactUs>> contactUsRepository;
+        private readonly Lazy<IGenericRepository<Notification>> notificationRepository;
 
         public UnitOfWork(EasyFinanceDatabaseContext dbContext)
         {
@@ -31,6 +33,7 @@ namespace EasyFinance.Persistence.Repositories
             this.expenseRepository = new Lazy<IGenericRepository<Expense>>(() => new GenericRepository<Expense>(this.context));
             this.expenseItemRepository = new Lazy<IGenericRepository<ExpenseItem>>(() => new GenericRepository<ExpenseItem>(this.context));
             this.contactUsRepository = new Lazy<IGenericRepository<ContactUs>>(() => new GenericRepository<ContactUs>(this.context));
+            this.notificationRepository = new Lazy<IGenericRepository<Notification>>(() => new GenericRepository<Notification>(this.context));
         }
 
         public IGenericRepository<Project> ProjectRepository => this.projectRepository.Value;
@@ -39,8 +42,8 @@ namespace EasyFinance.Persistence.Repositories
         public IGenericRepository<Category> CategoryRepository => this.categoryRepository.Value;
         public IGenericRepository<Expense> ExpenseRepository => this.expenseRepository.Value;
         public IGenericRepository<ExpenseItem> ExpenseItemRepository => this.expenseItemRepository.Value;
-
         public IGenericRepository<ContactUs> ContactUsRepository => this.contactUsRepository.Value;
+        public IGenericRepository<Notification> NotificationRepository => this.notificationRepository.Value;
 
         public async Task CommitAsync()
         {
