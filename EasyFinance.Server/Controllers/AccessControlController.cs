@@ -235,7 +235,7 @@ namespace EasyFinance.Server.Controllers
             {
                 User = user,
                 CodeMessage = "WelcomeMessage",
-                Type = NotificationType.WelcomeMessage,
+                Type = NotificationType.Information,
                 Category = NotificationCategory.System,
                 LimitNotificationChannels = NotificationChannels.InApp
             };

@@ -4,6 +4,6 @@
     {
         None = 0,
         EmailConfirmation = 1,
-        WelcomeMessage = 2,
+        Information = 2,
     }
 }

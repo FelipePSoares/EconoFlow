@@ -1,7 +1,8 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, Subscription, interval, map, switchMap, tap, startWith } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, interval, switchMap, tap, startWith } from 'rxjs';
 import { NotificationCategory } from '../enums/notification-category';
+import { Notification } from '../models/notification';
 
 @Injectable({
   providedIn: 'root',
@@ -9,7 +10,7 @@ import { NotificationCategory } from '../enums/notification-category';
 export class NotificationService {
   private pollingSubscription: Subscription | null = null;
 
-  private notifications = new BehaviorSubject<Notification[] | undefined>(undefined);
+  private notifications = new BehaviorSubject<Notification[]>([]);
   notifications$ = this.notifications.asObservable();
 
   constructor(private http: HttpClient) { }

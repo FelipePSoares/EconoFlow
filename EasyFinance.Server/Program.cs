@@ -110,7 +110,7 @@ try
         };
         userManager.CreateAsync(user2, "Passw0rd!").GetAwaiter().GetResult();
 
-        var notification = new Notification(user, "WelcomeMessage", NotificationType.WelcomeMessage, NotificationCategory.System, limitNotificationChannels: NotificationChannels.InApp);
+        var notification = new Notification(user, "WelcomeMessage", NotificationType.Information, NotificationCategory.System, limitNotificationChannels: NotificationChannels.InApp);
         unitOfWork.NotificationRepository.Insert(notification);
         var notification2 = new Notification(user, "ConfirmEmailMessage", NotificationType.EmailConfirmation, NotificationCategory.Security, "ButtonConfirmEmail", NotificationChannels.InApp);
         unitOfWork.NotificationRepository.Insert(notification2);

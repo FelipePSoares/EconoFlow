@@ -6,9 +6,9 @@ export class Notification {
   @AutoMap()
   id!: string;
   @AutoMap()
-  CodeMessage!: string;
+  codeMessage!: string;
   @AutoMap()
-  ActionLabelCode!: string;
+  actionLabelCode!: string;
   @AutoMap()
   type!: NotificationType;
   @AutoMap()
@@ -16,7 +16,7 @@ export class Notification {
   @AutoMap()
   isActionRequired!: boolean;
   @AutoMap()
-  IsSticky!: boolean;
+  isSticky!: boolean;
   @AutoMap()
-  Metadata!: string;
+  metadata!: string;
 }
