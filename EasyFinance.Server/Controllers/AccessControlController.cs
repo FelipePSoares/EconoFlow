@@ -196,6 +196,7 @@ namespace EasyFinance.Server.Controllers
             var user = new User();
             await userStore.SetUserNameAsync(user, email, CancellationToken.None);
             await emailStore.SetEmailAsync(user, email, CancellationToken.None);
+            user.SetNotificationChannels(NotificationChannels.Push | NotificationChannels.Email);
             var result = await userManager.CreateAsync(user, registration.Password);
 
             if (!result.Succeeded)

@@ -1,3 +1,4 @@
+import { Router } from '@angular/router';
 import { Component } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { map, Observable } from 'rxjs';
@@ -19,12 +20,18 @@ export class NotificationsComponent {
   notifications$: Observable<Notification[]> = this.notificationService.notifications$;
   unreadCount$: Observable<number> = this.notifications$.pipe(map(notifications => notifications?.length ?? 0));
 
-  constructor(private notificationService: NotificationService) { }
+  constructor(private notificationService: NotificationService, private router: Router) { }
 
-  public markAsRead(id: string) {
-  }
-
-  public action(notificationType: NotificationType) {
-
+  public action(id: string, notificationType: NotificationType) {
+    switch (notificationType) {
+      case NotificationType.EmailConfirmation: {
+        this.router.navigate(['/user/emails']);
+        break;
+      }
+      default: {
+        this.notificationService.markAsRead(id);
+        break;
+      }
+    } 
   }
 }

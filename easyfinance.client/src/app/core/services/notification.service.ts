@@ -28,6 +28,15 @@ export class NotificationService {
     });
   }
 
+  public markAsRead(id: string): Subscription {
+    return this.http.post(`/api/Account/Notifications/${id}/Read`, {}, {
+      observe: 'body',
+      responseType: 'json'
+    }).pipe(tap(() => {
+      this.getNotifications().subscribe(notifications => this.notifications.next(notifications));
+    })).subscribe();
+  }
+
   public startPolling() {
     if (this.pollingSubscription) return;
 

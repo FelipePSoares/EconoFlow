@@ -1,5 +1,5 @@
 export enum NotificationType {
   None = "None",
-  EmailConfirmation = "Email Confirmation",
+  EmailConfirmation = "EmailConfirmation",
   Information = "Information",
 }
