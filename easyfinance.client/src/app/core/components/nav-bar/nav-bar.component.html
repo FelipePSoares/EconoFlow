@@ -10,16 +10,21 @@
       <span class="fw-bold text-primary fs-4">EconoFlow</span>
     </a>
 
-    <!-- Mobile Toggle Button -->
-    <button class="navbar-toggler border-0"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent"
-            aria-expanded="false"
-            aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
+    <div class="d-flex">
+      <!-- Mobile Notifications -->
+      <app-notifications class="d-lg-none"></app-notifications>
+
+      <!-- Mobile Toggle Button -->
+      <button class="navbar-toggler border-0"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#navbarSupportedContent"
+              aria-controls="navbarSupportedContent"
+              aria-expanded="false"
+              aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+    </div>
 
     <!-- Collapsible Content -->
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
@@ -95,11 +100,6 @@
       <!-- Mobile User Menu (Direct Links) -->
       <div class="d-lg-none">
         <hr class="my-3">
-
-        <!-- Mobile Notifications -->
-        <div class="mb-3">
-          <app-notifications></app-notifications>
-        </div>
 
         <!-- User Info -->
         <div class="px-3 py-2 bg-light rounded-2 mb-3">
