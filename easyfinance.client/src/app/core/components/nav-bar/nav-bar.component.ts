@@ -7,6 +7,7 @@ import { UserService } from '../../services/user.service';
 import { ProjectService } from '../../services/project.service';
 import { Project } from '../../models/project';
 import { NotificationsComponent } from '../notifications/notifications.component';
+import { StickyNotificationsComponent } from '../sticky-notifications/sticky-notifications.component';
 
 @Component({
   selector: 'app-nav-bar',
@@ -15,7 +16,8 @@ import { NotificationsComponent } from '../notifications/notifications.component
     RouterLink,
     TranslateModule,
     RouterLinkActive,
-    NotificationsComponent
+    NotificationsComponent,
+    StickyNotificationsComponent
   ],
   templateUrl: './nav-bar.component.html',
   styleUrls: ['./nav-bar.component.css']

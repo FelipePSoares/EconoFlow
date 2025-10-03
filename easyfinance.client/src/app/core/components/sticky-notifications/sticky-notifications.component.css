@@ -1,0 +1,206 @@
+.sticky-notifications-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+
+.sticky-notification-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  animation: slideDown 0.4s ease-out;
+  border-left: 5px solid;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+  .sticky-notification-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18), 0 6px 12px rgba(0, 0, 0, 0.12);
+  }
+
+  .sticky-notification-card.category-system {
+    border-left-color: #0d6efd;
+    background: linear-gradient(to right, rgba(13, 110, 253, 0.03), white);
+  }
+
+  .sticky-notification-card.category-finance {
+    border-left-color: #198754;
+    background: linear-gradient(to right, rgba(25, 135, 84, 0.03), white);
+  }
+
+  .sticky-notification-card.category-security {
+    border-left-color: #ffc107;
+    background: linear-gradient(to right, rgba(255, 193, 7, 0.03), white);
+  }
+
+  .sticky-notification-card.category-collaboration {
+    border-left-color: #0dcaf0;
+    background: linear-gradient(to right, rgba(13, 202, 240, 0.03), white);
+  }
+
+.notification-wrapper {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  position: relative;
+}
+
+.notification-icon-large {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.category-system .notification-icon-large {
+  background: rgba(13, 110, 253, 0.1);
+  color: #0d6efd;
+}
+
+.category-finance .notification-icon-large {
+  background: rgba(25, 135, 84, 0.1);
+  color: #198754;
+}
+
+.category-security .notification-icon-large {
+  background: rgba(255, 193, 7, 0.1);
+  color: #ffc107;
+}
+
+.category-collaboration .notification-icon-large {
+  background: rgba(13, 202, 240, 0.1);
+  color: #0dcaf0;
+}
+
+.notification-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-title {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.notification-message {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.notification-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-action {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.btn-close-notification {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #f8f9fa;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6c757d;
+  transition: all 0.2s ease;
+  opacity: 0.7;
+}
+
+  .btn-close-notification:hover {
+    background: #e9ecef;
+    color: #212529;
+    opacity: 1;
+    transform: scale(1.1);
+  }
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .sticky-notifications-container {
+    padding: 12px;
+  }
+
+  .sticky-notification-card {
+    padding: 16px;
+  }
+
+  .notification-wrapper {
+    gap: 12px;
+  }
+
+  .notification-icon-large {
+    width: 48px;
+    height: 48px;
+    font-size: 24px;
+  }
+
+  .notification-message {
+    font-size: 14px;
+  }
+
+  .btn-action {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+}
+
+.category-security .notification-icon-large {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 0 8px rgba(255, 193, 7, 0);
+  }
+}
