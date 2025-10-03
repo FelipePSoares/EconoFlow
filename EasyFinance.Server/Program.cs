@@ -110,9 +110,9 @@ try
         };
         userManager.CreateAsync(user2, "Passw0rd!").GetAwaiter().GetResult();
 
-        var notification = new Notification(user, "WelcomeMessage", NotificationType.WelcomeMessage, NotificationCategory.System, limitNotificationChannels: NotificationChannels.InApp);
+        var notification = new Notification(user, "WelcomeMessage", NotificationType.Information, NotificationCategory.System, limitNotificationChannels: NotificationChannels.InApp);
         unitOfWork.NotificationRepository.Insert(notification);
-        var notification2 = new Notification(user, "ConfirmEmailMessage", NotificationType.EmailConfirmation, NotificationCategory.Security, "ButtonConfirmEmail", NotificationChannels.InApp);
+        var notification2 = new Notification(user, "ConfirmEmailMessage", NotificationType.EmailConfirmation, NotificationCategory.Security, "ButtonConfirmEmail", NotificationChannels.InApp, isSticky: true);
         unitOfWork.NotificationRepository.Insert(notification2);
 
         var income = new Income("Investiments", DateOnly.FromDateTime(DateTime.Now), 3000, user);

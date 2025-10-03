@@ -18,6 +18,7 @@ import {
   MAT_DATE_LOCALE,
 } from '@angular/material/core';
 import * as moment from 'moment';
+import { NotificationService } from '../core/services/notification.service';
 
 export const MY_FORMATS = {
   parse: {
@@ -62,7 +63,8 @@ export class AppComponent {
     private injector: Injector,
     @Inject(PLATFORM_ID) private platformId: object,
     private versionCheckService: VersionCheckService,
-    private canonicalService: CanonicalService) {   
+    private canonicalService: CanonicalService,
+    private noticationService: NotificationService) {   
     if (isPlatformBrowser(this.platformId)) {
       this.versionCheckService.init();
       const authService = injector.get(AuthService);
@@ -71,6 +73,7 @@ export class AppComponent {
       authService.isSignedIn$.subscribe(isSignedIn => {
         if (isSignedIn){
           authService.startUserPolling();
+          this.noticationService.startPolling();
         }
       });
     }

@@ -196,6 +196,7 @@ namespace EasyFinance.Server.Controllers
             var user = new User();
             await userStore.SetUserNameAsync(user, email, CancellationToken.None);
             await emailStore.SetEmailAsync(user, email, CancellationToken.None);
+            user.SetNotificationChannels(NotificationChannels.Push | NotificationChannels.Email);
             var result = await userManager.CreateAsync(user, registration.Password);
 
             if (!result.Succeeded)
@@ -224,7 +225,8 @@ namespace EasyFinance.Server.Controllers
                 Type = NotificationType.EmailConfirmation,
                 Category = NotificationCategory.Security,
                 ActionLabelCode = "ButtonConfirmEmail",
-                LimitNotificationChannels = NotificationChannels.InApp
+                LimitNotificationChannels = NotificationChannels.InApp,
+                IsSticky = true
             };
             var confirmNotificationResult = await this.notificationService.CreateNotificationAsync(confirmEmailNotification);
 
@@ -235,7 +237,7 @@ namespace EasyFinance.Server.Controllers
             {
                 User = user,
                 CodeMessage = "WelcomeMessage",
-                Type = NotificationType.WelcomeMessage,
+                Type = NotificationType.Information,
                 Category = NotificationCategory.System,
                 LimitNotificationChannels = NotificationChannels.InApp
             };

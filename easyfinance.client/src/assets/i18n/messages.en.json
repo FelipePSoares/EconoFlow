@@ -60,6 +60,7 @@
   "ButtonAddCategory": "Add Category",
   "ButtonSkipSmartSetup": "Skip Smart Setup",
   "ButtonSendMessage": "Send Message",
+  "ButtonConfirmEmail": "Confirm Your Email",
 
   "MenuAccount": "Account",
   "MenuPasswordAuthentication": "Password and Authentication",
@@ -234,5 +235,11 @@
   "SecureEmail": "Secure Email",
   "SecureEmailDescription": "Use a private and secure email address to protect your account.",
   "RegularUpdates": "Regular Updates",
-  "RegularUpdatesDescription": "Keep your email updated so you don't miss important information."
+  "RegularUpdatesDescription": "Keep your email updated so you don't miss important information.",
+  "UnreadNotifications": "Unread notifications",
+  "Notifications": "Notifications",
+  "NoNotifications": "No Notifications",
+  "SetAsRead": "Set as read",
+  "WelcomeMessage": "Welcome to EconoFlow! Now you can manage your finances in a simple and smart way.",
+  "ConfirmEmailMessage": "Please confirm your email to activate your account and start using all features."
 }

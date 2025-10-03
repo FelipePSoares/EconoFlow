@@ -1,0 +1,63 @@
+@if(!(isUserUrl$ | async)){
+<div class="sticky-notifications-container">
+  @for (notification of (stickyNotifications$ | async); track notification.id) {
+  <div class="sticky-notification-card"
+       [class]="'category-' + notification.category.toLowerCase()"
+       (click)="$event.stopPropagation()">
+    <div class="notification-wrapper">
+      <div class="notification-icon-large">
+        @switch (notification.category) {
+        @case ('System') {
+        <i class="bi bi-gear-fill"></i>
+        }
+        @case ('Finance') {
+        <i class="bi bi-cash-coin"></i>
+        }
+        @case ('Security') {
+        <i class="bi bi-shield-fill-exclamation"></i>
+        }
+        @case ('Collaboration') {
+        <i class="bi bi-people-fill"></i>
+        }
+        @default {
+        <i class="bi bi-bell-fill"></i>
+        }
+        }
+      </div>
+
+      <div class="notification-body">
+        <h5 class="notification-title">{{ notification.category }}</h5>
+        <p class="notification-message">{{ notification.codeMessage | translate }}</p>
+
+        <div class="notification-actions">
+          @if (notification.actionLabelCode) {
+          <button class="btn btn-action btn-primary"
+                  (click)="action(notification.id, notification.type)"
+                  [title]="notification.actionLabelCode | translate">
+            <i class="bi bi-box-arrow-up-right me-2"></i>
+            {{ notification.actionLabelCode | translate }}
+          </button>
+          }
+          @if (!notification.isActionRequired) {
+          <button class="btn btn-action btn-dismiss"
+                  (click)="action(notification.id, notification.type)"
+                  [title]="'SetAsRead' | translate">
+            <i class="bi bi-check2-circle me-1"></i>
+            {{ 'SetAsRead' | translate }}
+          </button>
+          }
+        </div>
+      </div>
+
+      @if (!notification.isActionRequired) {
+      <button class="btn-close-notification"
+              (click)="action(notification.id, notification.type)"
+              [title]="'Close' | translate">
+        <i class="bi bi-x-lg"></i>
+      </button>
+      }
+    </div>
+  </div>
+  }
+</div>
+}

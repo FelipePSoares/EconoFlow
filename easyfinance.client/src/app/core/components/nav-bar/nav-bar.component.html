@@ -49,6 +49,12 @@
 
       <!-- Right Side - User Menu (Desktop Dropdown) -->
       <ul class="navbar-nav d-none d-lg-flex">
+        <!-- Notifications Dropdown -->
+        <li class="nav-item me-2">
+          <app-notifications></app-notifications>
+        </li>
+
+        <!-- User Menu Dropdown -->
         <li class="nav-item dropdown">
           <button class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center"
                   type="button"
@@ -89,6 +95,13 @@
       <!-- Mobile User Menu (Direct Links) -->
       <div class="d-lg-none">
         <hr class="my-3">
+
+        <!-- Mobile Notifications -->
+        <div class="mb-3">
+          <app-notifications></app-notifications>
+        </div>
+
+        <!-- User Info -->
         <div class="px-3 py-2 bg-light rounded-2 mb-3">
           <div class="d-flex align-items-center">
             <div class="person bg-primary rounded-circle d-flex align-items-center justify-content-center me-2">
@@ -115,3 +128,4 @@
     </div>
   </div>
 </nav>
+<app-sticky-notifications></app-sticky-notifications>

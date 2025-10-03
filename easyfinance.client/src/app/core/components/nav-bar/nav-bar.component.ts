@@ -6,6 +6,8 @@ import { TranslateModule } from '@ngx-translate/core';
 import { UserService } from '../../services/user.service';
 import { ProjectService } from '../../services/project.service';
 import { Project } from '../../models/project';
+import { NotificationsComponent } from '../notifications/notifications.component';
+import { StickyNotificationsComponent } from '../sticky-notifications/sticky-notifications.component';
 
 @Component({
   selector: 'app-nav-bar',
@@ -13,7 +15,9 @@ import { Project } from '../../models/project';
     AsyncPipe,
     RouterLink,
     TranslateModule,
-    RouterLinkActive
+    RouterLinkActive,
+    NotificationsComponent,
+    StickyNotificationsComponent
   ],
   templateUrl: './nav-bar.component.html',
   styleUrls: ['./nav-bar.component.css']
