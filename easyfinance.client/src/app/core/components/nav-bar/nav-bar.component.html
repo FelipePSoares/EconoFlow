@@ -10,21 +10,26 @@
       <span class="fw-bold text-primary fs-4">EconoFlow</span>
     </a>
 
-    <!-- Mobile Toggle Button -->
-    <button class="navbar-toggler border-0"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent"
-            aria-expanded="false"
-            aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
+    <div class="d-flex">
+      <!-- Mobile Notifications -->
+      <app-notifications class="d-lg-none me-2"></app-notifications>
+
+      <!-- Mobile Toggle Button -->
+      <button class="navbar-toggler border-0"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#navbarSupportedContent"
+              aria-controls="navbarSupportedContent"
+              aria-expanded="false"
+              aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+    </div>
 
     <!-- Collapsible Content -->
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <!-- Left Navigation -->
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0 mt-2 mt-lg-0">
         <li class="nav-item">
           <a [routerLink]="['/projects']"
              class="nav-link px-3 py-2 rounded-2 mx-1"
@@ -95,11 +100,6 @@
       <!-- Mobile User Menu (Direct Links) -->
       <div class="d-lg-none">
         <hr class="my-3">
-
-        <!-- Mobile Notifications -->
-        <div class="mb-3">
-          <app-notifications></app-notifications>
-        </div>
 
         <!-- User Info -->
         <div class="px-3 py-2 bg-light rounded-2 mb-3">
