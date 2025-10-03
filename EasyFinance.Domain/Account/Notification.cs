@@ -18,7 +18,8 @@ namespace EasyFinance.Domain.Account
             NotificationChannels limitNotificationChannels = NotificationChannels.None,
             DateOnly? expiresAt = default,
             string metadata = default,
-            bool isSticky = false
+            bool isSticky = false,
+            bool isSent = false
             )
         {
             this.User = user ?? throw new ArgumentNullException(nameof(user));
@@ -31,6 +32,8 @@ namespace EasyFinance.Domain.Account
             SetExpiresAt(expiresAt);
             if (isSticky)
                 MarkAsSticky();
+            if (isSent)
+                MarkAsSent();
         }
 
         public User User { get; private set; } = new User();
