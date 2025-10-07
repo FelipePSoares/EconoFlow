@@ -1,8 +1,6 @@
-﻿using AutoFixture;
-using EasyFinance.Domain.AccessControl;
+﻿using System;
+using AutoFixture;
 using EasyFinance.Domain.Account;
-using System;
-using System.Net.Mail;
 
 namespace EasyFinance.Common.Tests.AccessControl
 {
@@ -65,12 +63,6 @@ namespace EasyFinance.Common.Tests.AccessControl
         public NotificationBuilder SetIsRead()
         {
             this.notification.MarkAsRead();
-            return this;
-        }
-
-        public NotificationBuilder SetIsSent()
-        {
-            this.notification.MarkAsSent();
             return this;
         }
 
