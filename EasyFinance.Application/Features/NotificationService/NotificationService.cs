@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.DTOs.Account;
+using EasyFinance.Application.DTOs.BackgroundService.Notification;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.Account;
 using EasyFinance.Infrastructure;
@@ -13,9 +15,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EasyFinance.Application.Features.NotificationService
 {
-    public class NotificationService(IUnitOfWork unitOfWork) : INotificationService
+    public class NotificationService(IUnitOfWork unitOfWork, Channel<NotificationRequest> channel) : INotificationService
     {
         private readonly IUnitOfWork unitOfWork = unitOfWork;
+        private readonly Channel<NotificationRequest> channel = channel;
 
         public async Task<AppResponse<NotificationResponseDTO>> CreateNotificationAsync(NotificationRequestDTO notification)
         {
@@ -27,6 +30,10 @@ namespace EasyFinance.Application.Features.NotificationService
                 return AppResponse<NotificationResponseDTO>.Error(savedNotification.Messages);
 
             await unitOfWork.CommitAsync();
+            await channel.Writer.WriteAsync(new NotificationRequest()
+            {
+                NotificationId = dto.Id
+            });
 
             return AppResponse<NotificationResponseDTO>.Success(dto.ToDTO());
         }

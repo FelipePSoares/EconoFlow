@@ -7,20 +7,20 @@ namespace EasyFinance.Application.BackgroundServices.NotifierBackgroundService
 {
     public class NotificationChannelFactory(IServiceProvider serviceProvider)
     {
-        private readonly IServiceProvider _serviceProvider = serviceProvider;
+        private readonly IServiceProvider serviceProvider = serviceProvider;
 
         public CompoundNotificationChannel Create(NotificationChannels channels)
         {
-            var compoundChannel = _serviceProvider.GetRequiredService<CompoundNotificationChannel>();
+            var compoundChannel = serviceProvider.GetRequiredService<CompoundNotificationChannel>();
 
             if (channels.HasFlag(NotificationChannels.Email))
-                compoundChannel.AddChannel(_serviceProvider.GetRequiredService<EmailChannel>());
+                compoundChannel.AddChannel(serviceProvider.GetRequiredService<EmailChannel>());
 
             if (channels.HasFlag(NotificationChannels.Sms))
-                compoundChannel.AddChannel(_serviceProvider.GetRequiredService<SmsChannel>());
+                compoundChannel.AddChannel(serviceProvider.GetRequiredService<SmsChannel>());
 
             if (channels.HasFlag(NotificationChannels.Push))
-                compoundChannel.AddChannel(_serviceProvider.GetRequiredService<PushChannel>());
+                compoundChannel.AddChannel(serviceProvider.GetRequiredService<PushChannel>());
 
             return compoundChannel;
         }

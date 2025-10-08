@@ -46,7 +46,6 @@ namespace EasyFinance.Application
             services.AddTransient<SmsChannel>();
             services.AddTransient<PushChannel>();
             services.AddTransient<CompoundNotificationChannel>();
-            services.AddSingleton<NotificationChannelFactory>();
 
             // Background Services
             services.AddHostedService<EmailBackgroundService>();

@@ -6,6 +6,7 @@ using EasyFinance.Application.DTOs.BackgroundService.Notification;
 using EasyFinance.Application.Features.NotificationService;
 using EasyFinance.Domain.Account;
 using EasyFinance.Infrastructure.DTOs;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -13,13 +14,11 @@ namespace EasyFinance.Application.BackgroundServices.NotifierBackgroundService
 {
     public class NotifierBackgroundService(
         Channel<NotificationRequest> channel,
-        NotificationChannelFactory channelFactory,
         ILogger<NotifierBackgroundService> logger,
-        INotificationService notificationService) : BackgroundService
+        IServiceProvider serviceProvider) : BackgroundService
     {
-        private readonly NotificationChannelFactory channelFactory = channelFactory;
         private readonly ILogger<NotifierBackgroundService> logger = logger;
-        private readonly INotificationService notificationService = notificationService;
+        private readonly IServiceProvider serviceProvider = serviceProvider;
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -47,6 +46,9 @@ namespace EasyFinance.Application.BackgroundServices.NotifierBackgroundService
         {
             try
             {
+                using var scope = serviceProvider.CreateScope();
+
+                var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
                 var resultNotification = await notificationService.GetAsync(notificationId, stoppingToken);
 
                 if (resultNotification.Failed)
@@ -65,7 +67,7 @@ namespace EasyFinance.Application.BackgroundServices.NotifierBackgroundService
                     return AppResponse.Success();
                 }
 
-                var compound = channelFactory.Create(notificationChannels);
+                var compound = new NotificationChannelFactory(scope.ServiceProvider).Create(notificationChannels);
 
                 return await compound.SendAsync(notification);
             }
