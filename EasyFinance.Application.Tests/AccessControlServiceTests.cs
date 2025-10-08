@@ -1,6 +1,6 @@
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.DTOs.AccessControl;
-using EasyFinance.Application.DTOs.Email;
+using EasyFinance.Application.DTOs.BackgroundService.Email;
 using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Application.Features.CallbackService;
 using EasyFinance.Application.Features.EmailService;

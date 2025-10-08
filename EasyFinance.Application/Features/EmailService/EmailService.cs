@@ -4,7 +4,8 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using EasyFinance.Infrastructure.Extensions;
-using EasyFinance.Application.DTOs.Email;
+using EasyFinance.Application.DTOs.BackgroundService.Email;
+using EasyFinance.Infrastructure.DTOs;
 
 namespace EasyFinance.Application.Features.EmailService
 {
@@ -12,7 +13,7 @@ namespace EasyFinance.Application.Features.EmailService
     {
         private readonly IEmailSender emailSender = emailSender;
 
-        public Task SendEmailAsync(string toEmail, EmailTemplates template, params (string token, string replaceWith)[] tokens)
+        public Task<AppResponse> SendEmailAsync(string toEmail, EmailTemplates template, params (string token, string replaceWith)[] tokens)
         {
             return template switch
             {
@@ -22,24 +23,25 @@ namespace EasyFinance.Application.Features.EmailService
             };
         }
 
-        private Task CreateEmail(string toEmail, EmailTemplates template, (string token, string replaceWith)[] tokens)
+        private Task<AppResponse> CreateEmail(string toEmail, EmailTemplates template, (string token, string replaceWith)[] tokens)
         {
             var bodyHtml = LoadHtmlTemplate(template, tokens);
 
             var subject = bodyHtml.GetHtmlTitle();
 
-            return emailSender.SendEmailAsync(toEmail, subject, bodyHtml);
+            return emailSender.SendEmailAsync(toEmail, subject, bodyHtml).ContinueWith(result => AppResponse.Success());
         }
 
-        private Task CreateConfirmationEmail(string toEmail, EmailTemplates template, (string token, string replaceWith)[] tokens)
+        private Task<AppResponse> CreateConfirmationEmail(string toEmail, EmailTemplates template, (string token, string replaceWith)[] tokens)
         {
             throw new NotImplementedException();
         }
 
-        private Task CreateResetPasswordEmail(string toEmail, EmailTemplates template, (string token, string replaceWith)[] tokens)
+        private Task<AppResponse> CreateResetPasswordEmail(string toEmail, EmailTemplates template, (string token, string replaceWith)[] tokens)
         {
             throw new NotImplementedException();
         }
+
         private static string LoadHtmlTemplate(EmailTemplates templateName, (string token, string replaceWith)[] tokens)
         {
             var culture = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;

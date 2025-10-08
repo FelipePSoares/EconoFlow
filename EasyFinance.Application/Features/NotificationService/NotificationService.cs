@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.DTOs.Account;
@@ -121,6 +122,16 @@ namespace EasyFinance.Application.Features.NotificationService
             await unitOfWork.CommitAsync();
 
             return AppResponse.Success();
+        }
+
+        public async Task<AppResponse<Notification>> GetAsync(Guid notificationId, CancellationToken stoppingToken)
+        {
+            var notification = await this.unitOfWork.NotificationRepository
+                .NoTrackable()
+                .Include(n => n.User)
+                .FirstOrDefaultAsync(n => n.Id == notificationId, stoppingToken);
+
+            return AppResponse<Notification>.Success(notification);
         }
     }
 }
