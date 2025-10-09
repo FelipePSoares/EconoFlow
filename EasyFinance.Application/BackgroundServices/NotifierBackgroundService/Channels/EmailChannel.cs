@@ -23,6 +23,7 @@ namespace EasyFinance.Application.BackgroundServices.NotifierBackgroundService.C
                 return emailService.SendEmailAsync(
                     notification.User.Email,
                     template,
+                    notification.User.Culture,
                     GetTokens(notification.Metadata)
                 );
             }

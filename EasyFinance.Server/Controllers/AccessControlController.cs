@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using System.Net;
 using System.Security.Claims;
 using System.Text;
@@ -194,6 +195,7 @@ namespace EasyFinance.Server.Controllers
             }
 
             var user = new User();
+            user.SetLanguageCode(CultureInfo.CurrentUICulture);
             await userStore.SetUserNameAsync(user, email, CancellationToken.None);
             await emailStore.SetEmailAsync(user, email, CancellationToken.None);
             user.SetNotificationChannels(NotificationChannels.Push | NotificationChannels.Email);

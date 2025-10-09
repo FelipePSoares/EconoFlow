@@ -29,6 +29,10 @@ namespace EasyFinance.Persistence.Mapping.AccessControl
                 .HasDefaultValue(NotificationChannels.Email | NotificationChannels.Push)
                 .IsRequired();
 
+            builder.Property(p => p.LanguageCode)
+                .HasMaxLength(10)
+                .IsRequired();
+
             builder.HasOne<Project>()
                 .WithMany()
                 .HasForeignKey(p => p.DefaultProjectId)

@@ -13,19 +13,19 @@ namespace EasyFinance.Application.Features.EmailService
     {
         private readonly IEmailSender emailSender = emailSender;
 
-        public Task<AppResponse> SendEmailAsync(string toEmail, EmailTemplates template, params (string token, string replaceWith)[] tokens)
+        public Task<AppResponse> SendEmailAsync(string toEmail, EmailTemplates template, CultureInfo cultureInfo, params (string token, string replaceWith)[] tokens)
         {
             return template switch
             {
                 EmailTemplates.ResetPassword => CreateResetPasswordEmail(toEmail, template, tokens),
                 EmailTemplates.ConfirmEmail => CreateConfirmationEmail(toEmail, template, tokens),
-                _ => CreateEmail(toEmail, template, tokens),
+                _ => CreateEmail(toEmail, template, cultureInfo, tokens),
             };
         }
 
-        private Task<AppResponse> CreateEmail(string toEmail, EmailTemplates template, (string token, string replaceWith)[] tokens)
+        private Task<AppResponse> CreateEmail(string toEmail, EmailTemplates template, CultureInfo cultureInfo, (string token, string replaceWith)[] tokens)
         {
-            var bodyHtml = LoadHtmlTemplate(template, tokens);
+            var bodyHtml = LoadHtmlTemplate(template, cultureInfo, tokens);
 
             var subject = bodyHtml.GetHtmlTitle();
 
@@ -42,10 +42,9 @@ namespace EasyFinance.Application.Features.EmailService
             throw new NotImplementedException();
         }
 
-        private static string LoadHtmlTemplate(EmailTemplates templateName, (string token, string replaceWith)[] tokens)
+        private static string LoadHtmlTemplate(EmailTemplates templateName, CultureInfo cultureInfo, (string token, string replaceWith)[] tokens)
         {
-            var culture = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
-            var filePath = Path.Combine(AppContext.BaseDirectory, "EmailTemplates", culture, $"{templateName}.html");
+            var filePath = Path.Combine(AppContext.BaseDirectory, "EmailTemplates", cultureInfo.TwoLetterISOLanguageName, $"{templateName}.html");
 
             if (!System.IO.File.Exists(filePath))
                 filePath = Path.Combine(AppContext.BaseDirectory, "EmailTemplates", "en", $"{templateName}.html");
