@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Threading.Channels;
 using EasyFinance.Application.BackgroundServices.EmailBackgroundService;
-using EasyFinance.Application.DTOs.Email;
+using EasyFinance.Application.BackgroundServices.NotifierBackgroundService;
+using EasyFinance.Application.BackgroundServices.NotifierBackgroundService.Channels;
+using EasyFinance.Application.DTOs.BackgroundService.Email;
+using EasyFinance.Application.DTOs.BackgroundService.Notification;
 using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Application.Features.CallbackService;
 using EasyFinance.Application.Features.CategoryService;
@@ -38,12 +41,22 @@ namespace EasyFinance.Application
             services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IUserKeyService>(provider => new UserKeyService(userKeySalt));
 
+            // Support Service
+            services.AddTransient<EmailChannel>();
+            services.AddTransient<SmsChannel>();
+            services.AddTransient<PushChannel>();
+            services.AddTransient<CompoundNotificationChannel>();
+
             // Background Services
             services.AddHostedService<EmailBackgroundService>();
+            services.AddHostedService<NotifierBackgroundService>();
 
             // Register Channels
-            var channel = Channel.CreateUnbounded<EmailRequest>();
-            services.AddSingleton(channel);
+            var emailChannel = Channel.CreateUnbounded<EmailRequest>();
+            services.AddSingleton(emailChannel);
+
+            var notificationChannel = Channel.CreateUnbounded<NotificationRequest>();
+            services.AddSingleton(notificationChannel);
 
             return services;
         }

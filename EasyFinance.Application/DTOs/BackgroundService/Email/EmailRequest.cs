@@ -1,4 +1,4 @@
-﻿namespace EasyFinance.Application.DTOs.Email
+﻿namespace EasyFinance.Application.DTOs.BackgroundService.Email
 {
     public class EmailRequest(string bodyHtml, string subject, string sender, params string[] to)
     {

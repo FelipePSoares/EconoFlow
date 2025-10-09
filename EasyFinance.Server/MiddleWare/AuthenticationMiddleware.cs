@@ -3,7 +3,6 @@ using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure.Authentication;
 using EasyFinance.Persistence.DatabaseContext;
 using EasyFinance.Server.Extensions;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;

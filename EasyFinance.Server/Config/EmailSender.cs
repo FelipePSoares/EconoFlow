@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Threading.Channels;
-using EasyFinance.Application.DTOs.Email;
+using EasyFinance.Application.DTOs.BackgroundService.Email;
 using EasyFinance.Application.Features.CallbackService;
 using EasyFinance.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Identity.UI.Services;

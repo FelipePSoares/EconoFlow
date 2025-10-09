@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using EasyFinance.Application.DTOs.Email;
+using EasyFinance.Application.DTOs.BackgroundService.Email;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Smtp2Go.Api;
