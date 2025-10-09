@@ -1,8 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using EasyFinance.Domain.AccessControl;
+﻿using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
+using System;
+using System.Collections.Generic;
 
 namespace EasyFinance.Domain.Financial
 {
@@ -36,6 +37,12 @@ namespace EasyFinance.Domain.Financial
 
                 if (Budget < 0)
                     response.AddErrorMessage(nameof(Budget), string.Format(ValidationMessages.PropertyCantBeLessThanZero, nameof(Budget)));
+
+                if (!string.IsNullOrEmpty(Name) && Name.Length > PropertyMaxLengths.GetMaxLength(PropertyType.ExpenseName))
+                    response.AddErrorMessage(nameof(Name),
+                        string.Format(ValidationMessages.PropertyMaxLength,
+                        nameof(Name),
+                        PropertyMaxLengths.GetMaxLength(PropertyType.ExpenseName)));
 
                 return response;
             }
