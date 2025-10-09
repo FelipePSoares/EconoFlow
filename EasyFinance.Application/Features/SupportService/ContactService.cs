@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using EasyFinance.Application.Contracts.Persistence;
-using EasyFinance.Application.DTOs.Email;
+using EasyFinance.Application.DTOs.BackgroundService.Email;
 using EasyFinance.Application.DTOs.Support;
 using EasyFinance.Application.Features.EmailService;
 using EasyFinance.Application.Mappers;

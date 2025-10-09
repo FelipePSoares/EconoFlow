@@ -1,4 +1,4 @@
-﻿namespace EasyFinance.Application.DTOs.Email
+﻿namespace EasyFinance.Application.DTOs.BackgroundService.Email
 {
     public enum EmailTemplates
     {
@@ -8,6 +8,7 @@
         ReceivedInvitation,
         GrantedAccess,
         AccessLevelChanged,
-        NewSupportMessageReceived
+        NewSupportMessageReceived,
+        WelcomeMessage
     }
 }

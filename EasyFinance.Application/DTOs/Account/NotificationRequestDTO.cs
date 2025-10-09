@@ -12,7 +12,6 @@ namespace EasyFinance.Application.DTOs.Account
         public string ActionLabelCode { get; set; } = default;
         public NotificationCategory Category { get; set; } = NotificationCategory.None;
         public bool IsSticky { get; set; } = false;
-        public bool IsSent { get; set; }
         public NotificationChannels LimitNotificationChannels { get; set; } = NotificationChannels.None;
         public DateOnly? ExpiresAt { get; set; } = default;
         public string Metadata { get; set; } = default;

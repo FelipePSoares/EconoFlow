@@ -24,10 +24,6 @@ namespace EasyFinance.Persistence.Mapping.Account
                 .IsRequired()
                 .HasDefaultValue(false);
 
-            builder.Property(p => p.IsSent)
-                .IsRequired()
-                .HasDefaultValue(false);
-
             builder.Property(p => p.IsSticky)
                 .IsRequired()
                 .HasDefaultValue(false);

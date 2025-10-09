@@ -18,8 +18,7 @@ namespace EasyFinance.Domain.Account
             NotificationChannels limitNotificationChannels = NotificationChannels.None,
             DateOnly? expiresAt = default,
             string metadata = default,
-            bool isSticky = false,
-            bool isSent = false
+            bool isSticky = false
             )
         {
             this.User = user ?? throw new ArgumentNullException(nameof(user));
@@ -32,8 +31,6 @@ namespace EasyFinance.Domain.Account
             SetExpiresAt(expiresAt);
             if (isSticky)
                 MarkAsSticky();
-            if (isSent)
-                MarkAsSent();
         }
 
         public User User { get; private set; } = new User();
@@ -43,7 +40,6 @@ namespace EasyFinance.Domain.Account
         public bool IsActionRequired { get; private set; } = false;
         public NotificationCategory Category { get; private set; } = NotificationCategory.None;
         public bool IsRead { get; private set; } = false;
-        public bool IsSent { get; private set; } = false;
         public bool IsSticky { get; private set; } = false;
         public NotificationChannels LimitNotificationChannels { get; private set; } = NotificationChannels.None;
         public DateOnly? ExpiresAt { get; private set; } = default;
@@ -99,8 +95,6 @@ namespace EasyFinance.Domain.Account
         public void SetCodeMessage(string codeMessage) => CodeMessage = codeMessage;
 
         public void MarkAsRead() => IsRead = true;
-
-        public void MarkAsSent() => IsSent = true;
 
         public void MarkAsSticky() => IsSticky = true;
     }

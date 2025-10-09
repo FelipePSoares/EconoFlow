@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.DTOs.AccessControl;
-using EasyFinance.Application.DTOs.Email;
+using EasyFinance.Application.DTOs.BackgroundService.Email;
 using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.Features.CallbackService;
 using EasyFinance.Application.Features.EmailService;

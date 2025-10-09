@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using EasyFinance.Application.DTOs.Account;
 using EasyFinance.Domain.Account;
@@ -25,5 +26,6 @@ namespace EasyFinance.Application.Features.NotificationService
         /// It will mark as read all notifications of the given type that are action required.
         /// </summary>
         Task<AppResponse> ActionMadeAsync(Guid userId, NotificationType type);
+        Task<AppResponse<Notification>> GetAsync(Guid notificationId, CancellationToken stoppingToken);
     }
 }
