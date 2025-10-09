@@ -1,4 +1,5 @@
-﻿using EasyFinance.Application.BackgroundServices.NotifierBackgroundService.Channels;
+﻿using System.Globalization;
+using EasyFinance.Application.BackgroundServices.NotifierBackgroundService.Channels;
 using EasyFinance.Application.Features.EmailService;
 using EasyFinance.Common.Tests;
 using EasyFinance.Common.Tests.AccessControl;
@@ -32,6 +33,7 @@ namespace EasyFinance.Application.Tests.BackgroundServices.NotifierBackgroundSer
                 .Setup(es => es.SendEmailAsync(
                     It.IsAny<string>(),
                     It.IsAny<DTOs.BackgroundService.Email.EmailTemplates>(),
+                    It.IsAny<CultureInfo>(),
                     It.IsAny<(string token, string replaceWith)[]>()))
                 .ReturnsAsync(AppResponse.Success());
 
@@ -54,6 +56,7 @@ namespace EasyFinance.Application.Tests.BackgroundServices.NotifierBackgroundSer
                 .Setup(es => es.SendEmailAsync(
                     It.IsAny<string>(),
                     It.IsAny<DTOs.BackgroundService.Email.EmailTemplates>(),
+                    It.IsAny<CultureInfo>(),
                     It.IsAny<(string token, string replaceWith)[]>()))
                 .ReturnsAsync(AppResponse.Success());
 
@@ -77,6 +80,7 @@ namespace EasyFinance.Application.Tests.BackgroundServices.NotifierBackgroundSer
                 .Setup(es => es.SendEmailAsync(
                     It.IsAny<string>(),
                     It.IsAny<DTOs.BackgroundService.Email.EmailTemplates>(),
+                    It.IsAny<CultureInfo>(),
                     It.IsAny<(string token, string replaceWith)[]>()))
                 .ReturnsAsync(AppResponse.Success());
 
@@ -97,6 +101,7 @@ namespace EasyFinance.Application.Tests.BackgroundServices.NotifierBackgroundSer
             this.mockEmailService.Verify(es => es.SendEmailAsync(
                 user.Email,
                 DTOs.BackgroundService.Email.EmailTemplates.ResetPassword,
+                It.IsAny<CultureInfo>(),
                 It.Is<(string token, string replaceWith)[]>(tokens => tokens.Any(t => t.token == "{{callbackUrl}}" && t.replaceWith == metadata.callbackUrl))
             ), Times.Once);
         }

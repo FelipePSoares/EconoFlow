@@ -1,4 +1,6 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Globalization;
 using EasyFinance.Domain.Account;
 using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
@@ -35,6 +37,9 @@ namespace EasyFinance.Domain.AccessControl
         public bool HasIncompletedInformation => string.IsNullOrEmpty(FirstName) || string.IsNullOrEmpty(LastName);
         public Guid? DefaultProjectId { get; private set; } = default;
         public NotificationChannels NotificationChannels { get; private set; } = NotificationChannels.None;
+        public string LanguageCode { get; private set; } = "en-US";
+        [NotMapped]
+        public CultureInfo Culture => new (LanguageCode);
 
         public AppResponse Validate
         {
@@ -75,6 +80,9 @@ namespace EasyFinance.Domain.AccessControl
                 if (this.NotificationChannels.HasFlag(NotificationChannels.InApp))
                     response.AddErrorMessage(nameof(NotificationChannels), string.Format(ValidationMessages.NotSupported, NotificationChannels.InApp));
 
+                if (string.IsNullOrEmpty(this.LanguageCode))
+                    response.AddErrorMessage(nameof(LanguageCode), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(LanguageCode)));
+
                 return response;
             }
         }
@@ -91,12 +99,17 @@ namespace EasyFinance.Domain.AccessControl
 
         public void SetDefaultProject(Guid? projectId)
         {
-            this.DefaultProjectId = projectId;
+            DefaultProjectId = projectId;
         }
 
         public void SetNotificationChannels(NotificationChannels channels)
         {
             NotificationChannels = channels;
+        }
+
+        public void SetLanguageCode(CultureInfo culture)
+        {
+            LanguageCode = culture.Name;
         }
     }
 }
