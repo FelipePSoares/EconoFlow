@@ -1,5 +1,6 @@
 ﻿using EasyFinance.Common.Tests.AccessControl;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
 using FluentAssertions;
 
@@ -79,6 +80,28 @@ namespace EasyFinance.Domain.Tests.AccessControl
                 .Which.Code.Should().Be("ExpiryDate");
             response.Messages.Should().ContainSingle()
                 .Which.Description.Should().Be(ValidationMessages.CantAcceptExpiredInvitation);
+        }
+
+        [Fact]
+        public void AddUserByEmail_SendUnacceptableLength_ShouldThrowException()
+        {
+            // Arrange
+            var maxLength = PropertyMaxLengths.GetMaxLength(PropertyType.UserProjectEmail);
+            var unacceptableEmail = new string('a', maxLength + 1);
+            var userProject = new UserProjectBuilder().Build();
+            userProject.SetUser(unacceptableEmail);
+
+            // Act
+            var result = userProject.Validate;
+
+            // Assert
+            result.Failed.Should().BeTrue();
+
+            var message = result.Messages.Should().ContainSingle().Subject;
+            message.Code.Should().Be(nameof(userProject.Email));
+            message.Description.Should().Be(string.Format(ValidationMessages.PropertyMaxLength,
+                nameof(userProject.Email),
+                maxLength));
         }
     }
 }

@@ -1,7 +1,8 @@
-﻿using System;
-using EasyFinance.Domain.FinancialProject;
+﻿using EasyFinance.Domain.FinancialProject;
+using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
+using System;
 
 namespace EasyFinance.Domain.AccessControl
 {
@@ -43,6 +44,12 @@ namespace EasyFinance.Domain.AccessControl
 
                 if (Project == default)
                     response.AddErrorMessage(nameof(Project), string.Format(ValidationMessages.PropertyCantBeNull, nameof(Project)));
+
+                if (!string.IsNullOrEmpty(Email) && Email.Length > PropertyMaxLengths.GetMaxLength(PropertyType.UserProjectEmail))
+                    response.AddErrorMessage(nameof(Email),
+                        string.Format(ValidationMessages.PropertyMaxLength,
+                        nameof(Email),
+                        PropertyMaxLengths.GetMaxLength(PropertyType.UserProjectEmail)));
 
                 return response;
             }

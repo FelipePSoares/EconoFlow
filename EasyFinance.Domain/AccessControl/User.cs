@@ -1,5 +1,6 @@
 ﻿using System;
 using EasyFinance.Domain.Account;
+using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Identity;
@@ -47,11 +48,29 @@ namespace EasyFinance.Domain.AccessControl
                 if (string.IsNullOrEmpty(Email))
                     response.AddErrorMessage(nameof(Email), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(Email)));
 
+                if (!string.IsNullOrEmpty(Email) && Email.Length > PropertyMaxLengths.GetMaxLength(PropertyType.UserEmail))
+                    response.AddErrorMessage(nameof(Email),
+                        string.Format(ValidationMessages.PropertyMaxLength,
+                        nameof(Email),
+                        PropertyMaxLengths.GetMaxLength(PropertyType.UserEmail)));
+
                 if (string.IsNullOrEmpty(FirstName))
                     response.AddErrorMessage(nameof(FirstName), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(FirstName)));
+                
+                if (!string.IsNullOrEmpty(FirstName) && FirstName.Length > PropertyMaxLengths.GetMaxLength(PropertyType.UserFirstName))
+                    response.AddErrorMessage(nameof(FirstName),
+                        string.Format(ValidationMessages.PropertyMaxLength,
+                        nameof(FirstName),
+                        PropertyMaxLengths.GetMaxLength(PropertyType.UserFirstName)));
 
                 if (string.IsNullOrEmpty(LastName))
                     response.AddErrorMessage(nameof(LastName), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(LastName)));
+                
+                if (!string.IsNullOrEmpty(LastName) && LastName.Length > PropertyMaxLengths.GetMaxLength(PropertyType.UserLastName))
+                    response.AddErrorMessage(nameof(LastName),
+                        string.Format(ValidationMessages.PropertyMaxLength,
+                        nameof(LastName),
+                        PropertyMaxLengths.GetMaxLength(PropertyType.UserLastName)));
 
                 if (this.NotificationChannels.HasFlag(NotificationChannels.InApp))
                     response.AddErrorMessage(nameof(NotificationChannels), string.Format(ValidationMessages.NotSupported, NotificationChannels.InApp));

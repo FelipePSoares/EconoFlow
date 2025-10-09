@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using EasyFinance.Domain.Financial;
+﻿using EasyFinance.Domain.Financial;
+using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using EasyFinance.Infrastructure.Extensions;
 using EasyFinance.Infrastructure.Validators;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace EasyFinance.Domain.FinancialProject
 {
@@ -36,6 +37,12 @@ namespace EasyFinance.Domain.FinancialProject
 
                 if (string.IsNullOrEmpty(Name))
                     response.AddErrorMessage(nameof(Name), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(Name)));
+
+                if (!string.IsNullOrEmpty(Name) && Name.Length > PropertyMaxLengths.GetMaxLength(PropertyType.ProjectName))
+                    response.AddErrorMessage(nameof(Name),
+                        string.Format(ValidationMessages.PropertyMaxLength,
+                        nameof(Name),
+                        PropertyMaxLengths.GetMaxLength(PropertyType.ProjectName)));
 
                 if (string.IsNullOrEmpty(PreferredCurrency))
                     response.AddErrorMessage(nameof(PreferredCurrency), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(PreferredCurrency)));
