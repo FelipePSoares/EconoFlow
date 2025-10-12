@@ -72,6 +72,7 @@
   "GenericError": "an error occours! Please, try again...",
   "ValueShouldBeGreaterThan": "The value should be greater than {{value}}.",
   "TextShouldBeGreaterThan": "The text should be at least {{value}} characters.",
+  "PropertyMaxLength": "{{field}} exceeds the maximum allowed length of {{max}} characters.",
   "PasswordMustMatch": "Password must match",
   "NetworkError": "Network error. Please check your connection.",
   "LoginError": "Incorrect login information!",

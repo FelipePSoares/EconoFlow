@@ -78,8 +78,8 @@ export class AccountComponent implements OnInit, OnDestroy {
   reset() {
     this.user$.subscribe(user => {
       this.userForm = new FormGroup({
-        firstName: new FormControl(user.firstName, [Validators.required]),
-        lastName: new FormControl(user.lastName, [Validators.required])
+        firstName: new FormControl(user.firstName, [Validators.required, Validators.maxLength(100)]),
+        lastName: new FormControl(user.lastName, [Validators.required, Validators.maxLength(100)])
       });
 
       this.sub = this.userForm.valueChanges

@@ -206,7 +206,7 @@ export class ListExpensesComponent implements OnInit {
     const newDate = new Date(expense.date);
     this.expenseForm = new FormGroup({
       id: new FormControl(expense.id),
-      name: new FormControl(expense.name, [Validators.required]),
+      name: new FormControl(expense.name, [Validators.required, Validators.maxLength(100)]),
       date: new FormControl(newDate, [Validators.required]),
       amount: new FormControl(expense.amount, [Validators.min(0)]),
       budget: new FormControl(expense.budget ?? 0, [Validators.pattern('[0-9]*')]),

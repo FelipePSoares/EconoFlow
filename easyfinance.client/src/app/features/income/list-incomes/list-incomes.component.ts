@@ -183,7 +183,7 @@ export class ListIncomesComponent implements OnInit {
     const newDate = new Date(income.date);
     this.incomeForm = new FormGroup({
       id: new FormControl(income.id),
-      name: new FormControl(income.name, [Validators.required]),
+      name: new FormControl(income.name, [Validators.required, Validators.maxLength(100)]),
       date: new FormControl(newDate, [Validators.required]),
       amount: new FormControl(income.amount, [Validators.min(0)]),
     });
