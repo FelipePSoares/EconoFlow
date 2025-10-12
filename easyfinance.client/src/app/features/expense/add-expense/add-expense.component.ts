@@ -70,7 +70,7 @@ export class AddExpenseComponent implements OnInit {
     }
 
     this.expenseForm = new FormGroup({
-      name: new FormControl('', [Validators.required]),
+      name: new FormControl('', [Validators.required, Validators.maxLength(100)]),
       date: new FormControl(this.currentDate, [Validators.required]),
       amount: new FormControl(0, [Validators.min(0)]),
       budget: new FormControl('', [Validators.pattern('[0-9]*')]),

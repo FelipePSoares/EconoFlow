@@ -61,7 +61,7 @@ export class RecoveryComponent implements OnInit {
 
   buildRecoveryForm() {
     this.recoveryForm = new FormGroup({
-      email: new FormControl('', [Validators.email, Validators.required])
+      email: new FormControl('', [Validators.email, Validators.required, Validators.maxLength(256)])
     });
   }
 

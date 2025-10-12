@@ -53,7 +53,7 @@ export class AddCategoryComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.categoryForm = new FormGroup({
-      name: new FormControl('', [Validators.required])
+      name: new FormControl('', [Validators.required, Validators.maxLength(100)])
     });
 
     this.categoryService.getDefaultCategories(this.projectId).subscribe({

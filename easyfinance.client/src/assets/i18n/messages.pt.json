@@ -72,6 +72,7 @@
   "GenericError": "Ocorreu um erro!, Por favor, tente novamente...",
   "ValueShouldBeGreaterThan": "O valor deve ser maior que {{value}}.",
   "TextShouldBeGreaterThan": "O texto deve ter pelo menos {{value}} caracteres.",
+  "PropertyMaxLength": "{{field}} excede o comprimento máximo permitido de {{max}} caracteres.",
   "PasswordMustMatch": "As senhas devem ser iguais.",
   "NetworkError": "Sem internet. Por favor, verifique a sua conexão.",
   "LoginError": "Login ou senha inválidos!",
