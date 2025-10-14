@@ -43,8 +43,8 @@ export class FirstSignInComponent implements OnInit {
 
   buildUserForm() {
     this.userForm = new FormGroup({
-      firstName: new FormControl('', [Validators.required]),
-      lastName: new FormControl('', [Validators.required]),
+      firstName: new FormControl('', [Validators.required, Validators.maxLength(100)]),
+      lastName: new FormControl('', [Validators.required, Validators.maxLength(100)]),
     });
   }
 

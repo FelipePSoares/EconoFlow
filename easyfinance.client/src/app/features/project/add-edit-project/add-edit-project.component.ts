@@ -53,7 +53,7 @@ export class AddEditProjectComponent implements OnInit {
     this.projectService.setEditingProject(new ProjectDto());
 
     this.projectForm = new FormGroup({
-      name: new FormControl(this.editingProject.name ?? '', [Validators.required]),
+      name: new FormControl(this.editingProject.name ?? '', [Validators.required, Validators.maxLength(60)]),
       preferredCurrency: new FormControl(this.editingProject.preferredCurrency ?? '', [Validators.required])
     });
   }

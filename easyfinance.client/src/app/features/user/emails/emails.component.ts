@@ -55,7 +55,7 @@ export class EmailsComponent implements OnInit {
   reset() {
     this.user$.subscribe(user => {
       this.userForm = new FormGroup({
-        email: new FormControl('', [Validators.required, Validators.email])
+        email: new FormControl('', [Validators.required, Validators.email, Validators.maxLength(256)])
       });
 
       this.currentEmail = user.email;

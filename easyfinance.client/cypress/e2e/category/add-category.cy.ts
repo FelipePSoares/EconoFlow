@@ -15,6 +15,8 @@ describe('EconoFlow - category add Tests', () => {
     })
   })
 
+  
+
   it('should add a new category', () => {
     cy.intercept('POST', '**/categories*').as('postCategories')
     
@@ -98,4 +100,16 @@ describe('EconoFlow - category add Tests', () => {
       })
     })
   })
+
+  it('should show validation error when category name exceeds 100 characters', () => {
+    cy.get('.btn-add').click();
+    cy.get('app-list-categories .btn-add').click();
+
+    // Type a name longer than 100 chars
+    const longName = 'A'.repeat(120);
+    cy.get('input[formControlName="name"]').type(longName);
+    cy.get('input[formControlName="name"]').blur();
+    cy.contains('exceeds the maximum allowed length').should('be.visible');
+    cy.get('button[mat-raised-button]').contains('Create').parent('button').should('be.disabled');
+  });
 })

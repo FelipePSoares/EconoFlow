@@ -168,7 +168,7 @@ export class ListCategoriesComponent implements OnInit {
     this.editingCategory = category;
     this.categoryForm = new FormGroup({
       id: new FormControl(category.id),
-      name: new FormControl(category.name, [Validators.required])
+      name: new FormControl(category.name, [Validators.required, Validators.maxLength(100)])
     });
 
     this.filteredCategories$ = combineLatest([
