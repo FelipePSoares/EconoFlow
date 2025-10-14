@@ -34,7 +34,7 @@ namespace EasyFinance.Persistence.Mapping.Financial
 
             builder.HasMany(p => p.Items)
                 .WithOne()
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
