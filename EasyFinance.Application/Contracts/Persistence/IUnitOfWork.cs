@@ -1,18 +1,17 @@
-﻿using System.Collections.Generic;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Account;
 using EasyFinance.Domain.Financial;
 using EasyFinance.Domain.FinancialProject;
-using Microsoft.EntityFrameworkCore;
-using EasyFinance.Application.Features.SupportService;
 using EasyFinance.Domain.Support;
+using Microsoft.EntityFrameworkCore;
 
 namespace EasyFinance.Application.Contracts.Persistence
 {
     public interface IUnitOfWork
     {
-        IGenericRepository<Client> ClientRepository { get; }
         IGenericRepository<Project> ProjectRepository { get; }
         IGenericRepository<UserProject> UserProjectRepository { get; }
         IGenericRepository<Income> IncomeRepository { get; }
@@ -20,6 +19,7 @@ namespace EasyFinance.Application.Contracts.Persistence
         IGenericRepository<Expense> ExpenseRepository { get; }
         IGenericRepository<ExpenseItem> ExpenseItemRepository { get; }
         IGenericRepository<ContactUs> ContactUsRepository { get; }
+        IGenericRepository<Notification> NotificationRepository { get; }
 
         Task CommitAsync();
 

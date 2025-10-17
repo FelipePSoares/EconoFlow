@@ -1,6 +1,7 @@
 ﻿using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Domain;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Account;
 using EasyFinance.Domain.Financial;
 using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Domain.Support;
@@ -13,7 +14,6 @@ namespace EasyFinance.Persistence.Repositories
     {
         private bool disposed = false;
         private readonly EasyFinanceDatabaseContext context;
-        private readonly Lazy<IGenericRepository<Client>> clientRepository;
         private readonly Lazy<IGenericRepository<Project>> projectRepository;
         private readonly Lazy<IGenericRepository<UserProject>> userProjectRepository;
         private readonly Lazy<IGenericRepository<Income>> incomeRepository;
@@ -21,11 +21,11 @@ namespace EasyFinance.Persistence.Repositories
         private readonly Lazy<IGenericRepository<Expense>> expenseRepository;
         private readonly Lazy<IGenericRepository<ExpenseItem>> expenseItemRepository;
         private readonly Lazy<IGenericRepository<ContactUs>> contactUsRepository;
+        private readonly Lazy<IGenericRepository<Notification>> notificationRepository;
 
         public UnitOfWork(EasyFinanceDatabaseContext dbContext)
         {
             this.context = dbContext;
-            this.clientRepository = new Lazy<IGenericRepository<Client>>(() => new GenericRepository<Client>(this.context));
             this.projectRepository = new Lazy<IGenericRepository<Project>>(() => new GenericRepository<Project>(this.context));
             this.userProjectRepository = new Lazy<IGenericRepository<UserProject>>(() => new GenericRepository<UserProject>(this.context));
             this.incomeRepository = new Lazy<IGenericRepository<Income>>(() => new GenericRepository<Income>(this.context));
@@ -33,17 +33,17 @@ namespace EasyFinance.Persistence.Repositories
             this.expenseRepository = new Lazy<IGenericRepository<Expense>>(() => new GenericRepository<Expense>(this.context));
             this.expenseItemRepository = new Lazy<IGenericRepository<ExpenseItem>>(() => new GenericRepository<ExpenseItem>(this.context));
             this.contactUsRepository = new Lazy<IGenericRepository<ContactUs>>(() => new GenericRepository<ContactUs>(this.context));
+            this.notificationRepository = new Lazy<IGenericRepository<Notification>>(() => new GenericRepository<Notification>(this.context));
         }
 
-        public IGenericRepository<Client> ClientRepository => this.clientRepository.Value;
         public IGenericRepository<Project> ProjectRepository => this.projectRepository.Value;
         public IGenericRepository<UserProject> UserProjectRepository => this.userProjectRepository.Value;
         public IGenericRepository<Income> IncomeRepository => this.incomeRepository.Value;
         public IGenericRepository<Category> CategoryRepository => this.categoryRepository.Value;
         public IGenericRepository<Expense> ExpenseRepository => this.expenseRepository.Value;
         public IGenericRepository<ExpenseItem> ExpenseItemRepository => this.expenseItemRepository.Value;
-
         public IGenericRepository<ContactUs> ContactUsRepository => this.contactUsRepository.Value;
+        public IGenericRepository<Notification> NotificationRepository => this.notificationRepository.Value;
 
         public async Task CommitAsync()
         {

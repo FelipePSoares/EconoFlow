@@ -64,8 +64,8 @@ namespace EasyFinance.Server.Middleware
                 })
                 .AddJwtBearer(config =>
                 {
-                    config.RequireHttpsMetadata = false;
-                    config.SaveToken = false;
+                    config.RequireHttpsMetadata = true;
+                    config.SaveToken = true;
                     config.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuerSigningKey = true,
@@ -76,6 +76,22 @@ namespace EasyFinance.Server.Middleware
                         ValidAudience = tokenSettings.Audience,
                         ClockSkew = TimeSpan.Zero
                     };
+                    config.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            // Check if token comes from Authorization header
+                            var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+                            if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+                                context.Token = authHeader.Substring("Bearer ".Length).Trim();
+                            // Fallback: get token from cookie
+                            else if (context.Request.Cookies.ContainsKey("AuthToken"))
+                                context.Token = context.Request.Cookies["AuthToken"];
+
+                            return Task.CompletedTask;
+                        }
+                    };
+
                 });
 
             return services;

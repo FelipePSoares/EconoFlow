@@ -19,7 +19,8 @@ namespace EasyFinance.Application.Mappers
             {
                 Id = category.Id,
                 Name = category.Name,
-                Expenses = category.Expenses
+                Expenses = category.Expenses,
+                IsArchived = category.IsArchived
             };
         }
 

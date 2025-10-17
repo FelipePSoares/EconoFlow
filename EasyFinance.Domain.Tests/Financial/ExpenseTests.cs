@@ -1,5 +1,6 @@
 ﻿using EasyFinance.Common.Tests;
 using EasyFinance.Common.Tests.Financial;
+using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
 using FluentAssertions;
 
@@ -17,7 +18,7 @@ namespace EasyFinance.Domain.Tests.Financial
         [Theory]
         [InlineData(-1)]
         [InlineData(-250)]
-        public void SetBudget_SendNegativeGoal_ShouldThrowException(int budget)
+        public void SetBudget_SendNegativeGoal_ShouldReturnErrorMessage(int budget)
         {
             // Arrange
             var expense = new ExpenseBuilder().SetBudget(budget).Build();
@@ -36,7 +37,7 @@ namespace EasyFinance.Domain.Tests.Financial
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void AddName_SendNullAndEmpty_ShouldThrowException(string name)
+        public void AddName_SendNullAndEmpty_ShouldReturnErrorMessage(string name)
         {
             // Arrange
             var expense = new ExpenseBuilder().AddName(name).Build();
@@ -52,9 +53,30 @@ namespace EasyFinance.Domain.Tests.Financial
             message.Description.Should().Be(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, "Name"));
         }
 
+        [Fact]
+        public void AddName_SendUnacceptableLength_ShouldThrowException()
+        {
+            // Arrange
+            var maxLength = PropertyMaxLengths.GetMaxLength(PropertyType.ExpenseName);
+            var unacceptableName = new string('a', maxLength + 1);
+            var expense = new ExpenseBuilder().AddName(unacceptableName).Build();
+
+            // Act
+            var result = expense.Validate;
+
+            // Assert
+            result.Failed.Should().BeTrue();
+
+            var message = result.Messages.Should().ContainSingle().Subject;
+            message.Code.Should().Be(nameof(expense.Name));
+            message.Description.Should().Be(string.Format(ValidationMessages.PropertyMaxLength,
+                nameof(expense.Name),
+                maxLength));
+        }
+
         [Theory]
         [MemberData(nameof(OlderDates))]
-        public void AddDate_SendTooOldDate_ShouldThrowException(DateOnly date)
+        public void AddDate_SendTooOldDate_ShouldReturnErrorMessage(DateOnly date)
         {
             // Arrange
             var expense = new ExpenseBuilder().AddDate(date).Build();
@@ -72,7 +94,7 @@ namespace EasyFinance.Domain.Tests.Financial
 
         [Theory]
         [MemberData(nameof(FutureDates))]
-        public void AddDate_SendFutureDate_ShouldThrowException(DateOnly date)
+        public void AddDate_SendFutureDate_ShouldReturnErrorMessage(DateOnly date)
         {
             // Arrange
             var expense = new ExpenseBuilder().AddDate(date).Build();
@@ -85,13 +107,13 @@ namespace EasyFinance.Domain.Tests.Financial
 
             var message = result.Messages.Should().ContainSingle().Subject;
             message.Code.Should().Be("Date");
-            message.Description.Should().Be(ValidationMessages.CantAddFutureExpenseIncome);
+            message.Description.Should().Be(ValidationMessages.CantAddFutureExpense);
         }
 
         [Theory]
         [InlineData(-1)]
         [InlineData(-250)]
-        public void AddAmount_SendNegative_ShouldThrowException(decimal amount)
+        public void AddAmount_SendNegative_ShouldReturnErrorMessage(decimal amount)
         {
             // Arrange
             var expense = new ExpenseBuilder().AddAmount(amount).Build();
@@ -144,7 +166,7 @@ namespace EasyFinance.Domain.Tests.Financial
         }
 
         [Fact]
-        public void AddItem_SendRandonAmount_ShouldHaveTheSameAmount()
+        public void AddItem_SendRandomAmount_ShouldHaveTheSameAmount()
         {
             var value = Convert.ToDecimal(random.NextDouble());
 
@@ -157,7 +179,7 @@ namespace EasyFinance.Domain.Tests.Financial
 
         [Theory]
         [MemberData(nameof(DifferentDateBetweenExpenseAndExpenseItem))]
-        public void AddItem_DifferentYearOrMonthFromExpense_ShouldThrowException(DateOnly expenseDate, DateOnly expenseItemDate)
+        public void AddItem_DifferentYearOrMonthFromExpense_ShouldReturnErrorMessage(DateOnly expenseDate, DateOnly expenseItemDate)
         {
             // Arrange
             var item = new ExpenseItemBuilder().AddDate(expenseItemDate).Build();
@@ -180,5 +202,44 @@ namespace EasyFinance.Domain.Tests.Financial
                 { DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-1)), DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-2)) },
                 { DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-2)), DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-1)) }
             };
+
+        [Fact]
+        public void SetBudget_WithFutureDate_AddItem_ShouldBeTrue()
+        {
+            // Arrange
+            var today = DateTime.Today;
+            var expense = new ExpenseBuilder().SetBudget(20).AddDate(new DateOnly(today.Year, today.Month, today.Day + 2)).Build();
+
+            var item = new ExpenseItemBuilder().AddDate(new DateOnly(today.Year, today.Month, today.Day - 1)).AddAmount(10).Build();
+
+            // Act
+            expense.AddItem(item);
+
+            var expenseResult = expense.Validate;
+            
+            var itemResult = item.Validate;
+
+            // Assert
+            expenseResult.Succeeded.Should().BeTrue();
+
+            itemResult.Succeeded.Should().BeTrue();
+        }
+
+        [Fact]
+        public void SetBudget_WithFutureDate_NoExpense_ShouldBeFalse()
+        {
+            // Arrange
+            var today = DateTime.Today;
+            var expense = new ExpenseBuilder().SetBudget(20).AddDate(new DateOnly(today.Year, today.Month, today.Day + 2)).Build();
+
+            // Act
+            var result = expense.Validate;
+
+            // Assert
+            result.Succeeded.Should().BeFalse();
+            var message = result.Messages.Should().ContainSingle().Subject;
+            message.Code.Should().Be("Date");
+            message.Description.Should().Be(ValidationMessages.CantAddFutureExpense);
+        }
     }
 }

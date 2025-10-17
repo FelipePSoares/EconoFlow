@@ -1,3 +1,7 @@
 .list-users {
   margin-top: 15px;
 }
+
+.role {
+  max-width: 115px;
+}

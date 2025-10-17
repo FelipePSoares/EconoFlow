@@ -4,28 +4,33 @@ using System.Linq;
 using System.Threading.Tasks;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.DTOs.AccessControl;
+using EasyFinance.Application.DTOs.BackgroundService.Email;
 using EasyFinance.Application.DTOs.Financial;
+using EasyFinance.Application.Features.CallbackService;
+using EasyFinance.Application.Features.EmailService;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 
 namespace EasyFinance.Application.Features.AccessControlService
 {
     public class AccessControlService(
         IUnitOfWork unitOfWork,
         UserManager<User> userManager,
-        IEmailSender emailSender,
+        IEmailService emailService,
+        ICallbackService callbackService,
         ILogger<AccessControlService> logger) : IAccessControlService
     {
         private readonly IUnitOfWork unitOfWork = unitOfWork;
         private readonly UserManager<User> userManager = userManager;
-        private readonly IEmailSender emailSender = emailSender;
+        private readonly IEmailService emailService = emailService;
+        private readonly ICallbackService callbackService = callbackService;
         private readonly ILogger<AccessControlService> logger = logger;
 
         public bool HasAuthorization(Guid userId, Guid projectId, Role accessNeeded)
@@ -131,23 +136,51 @@ namespace EasyFinance.Application.Features.AccessControlService
 
                 foreach (var userProject in userProjects.Where(up => !up.Accepted))
                 {
-                    var email = userProject.User?.Email ?? userProject.Email;
+                    var toEmail = userProject.User?.Email ?? userProject.Email;
 
                     if (userProject.User == null || userProject.User.Id == default)
                     {
                         if (!userProject.InvitationEmailSent)
                         {
-                            sendingEmails.Add(emailSender.SendEmailAsync(email, Emails.InvitationSubject, string.Format(Emails.InvitationHtmlMessage, inviterUser.FullName, userProject.Project.Name, userProject.Token)));
+                            var callbackUrl = this.callbackService.GenerateCallbackUrl("register", new Dictionary<string, string>
+                            {
+                                { "token", userProject.Token.ToString() }
+                            });
+
+                            sendingEmails.Add(emailService.SendEmailAsync(
+                                toEmail,
+                                EmailTemplates.ReceivedInvitation,
+                                ("FullName", inviterUser.FullName),
+                                ("ProjectName", userProject.Project.Name),
+                                ("CallbackUrl", callbackUrl)
+                            ));
                             userProject.SetInvitationEmailSent();
                         }
                     }
                     else if (affectedUsers.Contains(userProject.User.Id))
-                        sendingEmails.Add(emailSender.SendEmailAsync(email, Emails.GrantedAccessSubject, string.Format(Emails.GrantedAccessHtmlMessage, userProject.User.FirstName, inviterUser.FullName, userProject.Project.Name, userProject.Token)));
+                    {
+                        var callbackUrl = this.callbackService.GenerateCallbackUrl($"projects/{userProject.Token}/accept");
+
+                        sendingEmails.Add(emailService.SendEmailAsync(
+                            toEmail,
+                            EmailTemplates.GrantedAccess,
+                            ("FirstName", userProject.User.FirstName),
+                            ("FullName", inviterUser.FullName),
+                            ("ProjectName", userProject.Project.Name),
+                            ("CallbackUrl", callbackUrl)
+                        ));
+                    }
                 }
 
                 foreach (var userProject in userProjects.Where(up => up.Accepted && affectedUsers.Contains(up.User.Id)))
                 {
-                    sendingEmails.Add(emailSender.SendEmailAsync(userProject.User.Email, Emails.GrantedAccessChangedSubject, string.Format(Emails.GrantedAccessChangedHtmlMessage, userProject.User.FirstName, userProject.Project.Name, inviterUser.FullName, userProject.Role)));
+                    sendingEmails.Add(emailService.SendEmailAsync(
+                        userProject.User.Email,
+                        EmailTemplates.AccessLevelChanged,
+                        ("FirstName", userProject.User.FirstName),
+                        ("ProjectName", userProject.Project.Name),
+                        ("FullName", inviterUser.FullName),
+                        ("Role", userProject.Role.ToString())));
                 }
 
                 await Task.WhenAll([.. sendingEmails]);

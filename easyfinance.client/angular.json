@@ -22,7 +22,10 @@
             ],
             "tsConfig": "tsconfig.app.json",
             "assets": [
-              "src/assets"
+              "src/assets",
+              "src/robots.txt",
+              "src/sitemap.xml",
+              "src/LLMs.txt"
             ],
             "styles": [
               "@angular/material/prebuilt-themes/deeppurple-amber.css",

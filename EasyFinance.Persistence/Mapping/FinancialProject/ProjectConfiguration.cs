@@ -24,19 +24,11 @@ namespace EasyFinance.Persistence.Mapping.FinancialProject
                 .IsRequired()
                 .HasDefaultValue("EUR");
 
-            builder.Property(p => p.Type)
-                .HasDefaultValue(ProjectTypes.Personal)
-                .IsRequired();
-
             builder.HasMany(p => p.Categories)
                 .WithOne()
                 .IsRequired();
 
             builder.HasMany(p => p.Incomes)
-                .WithOne()
-                .IsRequired();
-
-            builder.HasMany(p => p.Clients)
                 .WithOne()
                 .IsRequired();
         }

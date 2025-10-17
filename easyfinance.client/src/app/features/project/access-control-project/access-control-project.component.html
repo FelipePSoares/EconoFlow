@@ -75,7 +75,7 @@
 
               <!-- Role -->
               <td>
-                <mat-form-field appearance="outline" class="mat-form-field-sm w-100" style="max-width: 115px;">
+                <mat-form-field appearance="outline" class="role mat-form-field-sm w-100">
                   <mat-select [(ngModel)]="user.role" (selectionChange)="updateUserRole()">
                     <mat-option *ngFor="let role of roles" [value]="role">{{ role2LabelMapping[role] | translate }}</mat-option>
                   </mat-select>

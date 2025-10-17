@@ -8,4 +8,6 @@ export class Category {
   name!: string;
   @AutoMap(() => [Expense])
   expenses!: Expense[];
+  @AutoMap()
+  isArchived!: boolean;
 }

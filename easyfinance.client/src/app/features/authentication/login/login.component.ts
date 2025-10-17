@@ -7,7 +7,7 @@ import { ApiErrorResponse } from '../../../core/models/error';
 import { take } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import {MatIcon} from "@angular/material/icon";
+import { MatIcon } from "@angular/material/icon";
 import { TranslateModule } from '@ngx-translate/core';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 
@@ -46,7 +46,7 @@ export class LoginComponent implements OnInit {
 
   buildLoginForm() {
     this.loginForm = new FormGroup({
-      email: new FormControl('', [Validators.email, Validators.required]),
+      email: new FormControl('', [Validators.email, Validators.required, Validators.maxLength(256)]),
       password: new FormControl('', [Validators.required]),
     });
   }

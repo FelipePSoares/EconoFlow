@@ -10,6 +10,7 @@ import { CurrencyMaskModule } from 'ng2-currency-mask';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { MatIcon } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { Router } from '@angular/router';
@@ -22,6 +23,7 @@ import { PageModalComponent } from '../../../core/components/page-modal/page-mod
 import { ProjectService } from 'src/app/core/services/project.service';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
+import { CurrentDateService } from '../../../core/services/current-date.service';
 
 @Component({
   selector: 'app-smart-setup',
@@ -34,6 +36,7 @@ import { CurrentDateComponent } from '../../../core/components/current-date/curr
     MatFormFieldModule,
     MatSliderModule,
     MatCardModule,
+    MatTooltipModule,
     TranslateModule,
     CurrencyMaskModule,
     CurrencyFormatPipe,
@@ -67,7 +70,8 @@ export class SmartSetupComponent implements OnInit {
     private categoryService: CategoryService,
     private projectService: ProjectService,
     private router: Router,
-    private globalService: GlobalService
+    private globalService: GlobalService,
+    private currentDateService: CurrentDateService
   ) { }
 
   ngOnInit() {
@@ -100,7 +104,7 @@ export class SmartSetupComponent implements OnInit {
   }
 
   save(): void {
-    this.projectService.smartSetup(this.projectId, this.annualIncome, CurrentDateComponent.currentDate, this.categories.value)
+    this.projectService.smartSetup(this.projectId, this.annualIncome, this.currentDateService.currentDate, this.categories.value)
     .subscribe(
       {
         next: () => {

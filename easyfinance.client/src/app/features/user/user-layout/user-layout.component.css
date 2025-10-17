@@ -1,0 +1,108 @@
+/* Desktop Sidebar Styles */
+.nav-pills .nav-link {
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  padding: 12px 16px;
+  color: var(--bs-secondary)
+}
+
+  .nav-pills .nav-link:hover {
+    background-color: rgba(13, 110, 253, 0.1);
+    color: var(--bs-primary);
+  }
+
+  .nav-pills .nav-link.active {
+    background-color: var(--bs-primary);
+    color: white;
+  }
+
+  .nav-pills .nav-link.text-muted {
+    color: var(--bs-secondary) !important;
+  }
+
+/* Mobile Tabs Styles */
+
+  .mobile-tabs-nav .nav {
+    flex-wrap: nowrap;
+    min-width: 100%;
+  }
+
+.mobile-tab {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 8px !important;
+  border: none !important;
+  border-radius: 0 !important;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  position: relative;
+  background: none !important;
+  color: var(--bs-secondary)
+}
+
+  .mobile-tab:hover {
+    background-color: rgba(13, 110, 253, 0.05) !important;
+    color: var(--bs-primary);
+  }
+
+  .mobile-tab.active {
+    color: var(--bs-primary) !important;
+    background-color: rgba(13, 110, 253, 0.1) !important;
+  }
+
+    .mobile-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background-color: var(--bs-primary);
+    }
+
+  .mobile-tab i {
+    font-size: 18px;
+  }
+
+.tab-text {
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.mobile-tab.text-muted {
+  color: var(--bs-secondary) !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+  .mobile-tab {
+    padding: 10px 4px !important;
+  }
+
+    .mobile-tab i {
+      font-size: 16px;
+    }
+
+  .tab-text {
+    font-size: 10px;
+  }
+}
+
+/* Scrollbar styling for mobile tabs */
+.mobile-tabs-nav::-webkit-scrollbar {
+  height: 2px;
+}
+
+.mobile-tabs-nav::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.mobile-tabs-nav::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 2px;
+}

@@ -1,6 +1,9 @@
-﻿using System;
+﻿using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Shared;
+using EasyFinance.Infrastructure;
+using EasyFinance.Infrastructure.DTOs;
+using System;
 using System.Collections.Generic;
-using EasyFinance.Domain.AccessControl;
 
 namespace EasyFinance.Domain.Financial
 {
@@ -17,6 +20,22 @@ namespace EasyFinance.Domain.Financial
             ICollection<ExpenseItem> items = default)
             : base(name, date, amount, createdBy, attachments, items)
         {
+        }
+
+        public override AppResponse Validate
+        {
+            get
+            {
+                var response = base.Validate;
+
+                if (!string.IsNullOrEmpty(Name) && Name.Length > PropertyMaxLengths.GetMaxLength(PropertyType.ExpenseItemName))
+                    response.AddErrorMessage(nameof(Name),
+                        string.Format(ValidationMessages.PropertyMaxLength,
+                        nameof(Name),
+                        PropertyMaxLengths.GetMaxLength(PropertyType.ExpenseItemName)));
+
+                return response;
+            }
         }
     }
 }

@@ -11,16 +11,12 @@ import { Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import confetti from 'canvas-confetti';
 import { MatDialogRef } from '@angular/material/dialog';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { ProjectService } from '../../../core/services/project.service';
 import { ProjectDto } from '../models/project-dto';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { CurrencyService } from '../../../core/services/currency.service';
 import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
-import { ProjectTypes } from '../../../core/enums/project-types';
-import { UserService } from '../../../core/services/user.service';
-import { SubscriptionLevel } from '../../../core/enums/subscription-level';
 
 @Component({
   selector: 'app-add-edit-project',
@@ -33,8 +29,7 @@ import { SubscriptionLevel } from '../../../core/enums/subscription-level';
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    TranslateModule,
-    MatSlideToggleModule
+    TranslateModule
   ],
   templateUrl: './add-edit-project.component.html',
   styleUrl: './add-edit-project.component.css'
@@ -44,29 +39,22 @@ export class AddEditProjectComponent implements OnInit {
   httpErrors = false;
   errors!: Record<string, string[]>;
   editingProject!: ProjectDto;
-  hasAccessToCompanyProjects = false;
 
   constructor(
     private dialogRef: MatDialogRef<PageModalComponent>,
     private projectService: ProjectService,
     private currencyService: CurrencyService,
     private router: Router,
-    private errorMessageService: ErrorMessageService,
-    private userService: UserService
+    private errorMessageService: ErrorMessageService
   ) { }
 
   ngOnInit(): void {
-    this.userService.loggedUser$.subscribe(user => {
-      this.hasAccessToCompanyProjects = user.subscriptionLevel == SubscriptionLevel.Enterprise;
-    });
     this.editingProject = this.projectService.getEditingProject();
     this.projectService.setEditingProject(new ProjectDto());
-    const projectType = this.editingProject?.type ?? ProjectTypes.Personal;
 
     this.projectForm = new FormGroup({
-      name: new FormControl(this.editingProject.name ?? '', [Validators.required]),
-      preferredCurrency: new FormControl(this.editingProject.preferredCurrency ?? '', [Validators.required]),
-      type: new FormControl(projectType == ProjectTypes.Company)
+      name: new FormControl(this.editingProject.name ?? '', [Validators.required, Validators.maxLength(60)]),
+      preferredCurrency: new FormControl(this.editingProject.preferredCurrency ?? '', [Validators.required])
     });
   }
 
@@ -74,13 +62,11 @@ export class AddEditProjectComponent implements OnInit {
     if (this.projectForm.valid) {
       const name = this.name?.value;
       const preferredCurrency = this.preferredCurrency?.value;
-      const type = this.type?.value ? ProjectTypes.Company : ProjectTypes.Personal;
 
       const newProject = ({
         id: this.editingProject.id ?? '',
         name: name,
-        preferredCurrency: preferredCurrency,
-        type: type
+        preferredCurrency: preferredCurrency
       }) as ProjectDto;
 
       if (this.editingProject.id) {
@@ -140,10 +126,6 @@ export class AddEditProjectComponent implements OnInit {
 
   getFormFieldErrors(fieldName: string): string[] {
     return this.errorMessageService.getFormFieldErrors(this.projectForm, fieldName);
-  }
-
-  get type() {
-    return this.projectForm.get('type');
   }
 
   get name() {

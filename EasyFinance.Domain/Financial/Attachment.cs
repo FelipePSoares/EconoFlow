@@ -1,8 +1,9 @@
-﻿using System;
-using EasyFinance.Domain.AccessControl;
+﻿using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using EasyFinance.Infrastructure.Extensions;
+using System;
 
 namespace EasyFinance.Domain.Financial
 {
@@ -26,6 +27,12 @@ namespace EasyFinance.Domain.Financial
 
                 if (string.IsNullOrEmpty(Name))
                     response.AddErrorMessage(nameof(Name), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(Name)));
+                
+                if (!string.IsNullOrEmpty(Name) && Name.Length > PropertyMaxLengths.GetMaxLength(PropertyType.AttachmentName))
+                    response.AddErrorMessage(nameof(Name),
+                        string.Format(ValidationMessages.PropertyMaxLength,
+                        nameof(Name),
+                        PropertyMaxLengths.GetMaxLength(PropertyType.AttachmentName)));
 
                 var userValidation = CreatedBy.Validate;
                 if (userValidation.Failed)

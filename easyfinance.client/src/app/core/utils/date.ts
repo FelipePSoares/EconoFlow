@@ -1,8 +1,13 @@
+import moment from "moment";
+
 function padTo2Digits(num: number): string {
   return num.toString().padStart(2, '0');
 }
 
-export function formatDate(input: Date): string {
+export function formatDateTime(input: Date): string {
+  if (moment.isMoment(input))
+    input = input.toDate();
+
   return (
     [
       input.getFullYear(),
@@ -18,23 +23,15 @@ export function formatDate(input: Date): string {
   );
 };
 
-export function todayUTC(): Date {
-  const newDate = new Date();
-  return dateUTC(newDate);
-}
+export function formatDate(input: Date): string {
+  if (moment.isMoment(input))
+    input = input.toDate();
 
-export function dateUTC(newDate: Date): Date;
-export function dateUTC(year: number, month: number, day?: number): Date;
-export function dateUTC(dateOrYear: Date | number, month?: number, day?: number): Date {
-  if (typeof dateOrYear === 'number') {
-    return new Date(Date.UTC(dateOrYear, month, day ?? 1));
-  }
-
-  dateOrYear = new Date(dateOrYear);
-
-  if (dateOrYear instanceof Date) {
-    return new Date(Date.UTC(dateOrYear.getFullYear(), dateOrYear.getMonth(), dateOrYear.getDate()));
-  }
-
-  return todayUTC();
-}
+  return (
+    [
+      input.getFullYear(),
+      padTo2Digits(input.getMonth() + 1),
+      padTo2Digits(input.getDate()),
+    ].join('-')
+  );
+};

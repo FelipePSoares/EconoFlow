@@ -135,8 +135,11 @@
   <data name="PropertyCantBeNullOrEmpty" xml:space="preserve">
     <value>{0} can't be null or empty</value>
   </data>
-  <data name="CantAddFutureExpenseIncome" xml:space="preserve">
-    <value>A future expense/income can't have a amount</value>
+  <data name="CantAddFutureExpense" xml:space="preserve">
+    <value>A future expense can't have a amount</value>
+  </data>
+  <data name="CantAddFutureIncome" xml:space="preserve">
+    <value>A future income can't have a amount</value>
   </data>
   <data name="CantAddExpenseOlderThanYears" xml:space="preserve">
     <value>You can't add expense older than {0} years</value>
@@ -154,7 +157,7 @@
     <value>This action is permanent and cannot be undone. Are you sure you want to delete your account?</value>
   </data>
   <data name="WarningMessageToAdminUserWhoWantsToDeleteAccount" xml:space="preserve">
-    <value>&lt;p&gt;This action is permanent and cannot be undone. Are you sure you want to delete your account?&lt;/p&gt;&lt;p&gt;&lt;span style="color: #ff0000;"&gt;You are associated as a sole administrator of the projects below:&lt;/span&gt;&lt;/p&gt;&lt;ul&gt;{0}&lt;/ul&gt;&lt;p&gt;Please transfer the administration to another user before deleting your account. Otherwise, the project(s) will be deleted also.&lt;/p&gt;</value>
+    <value>&lt;p&gt;This action is permanent and cannot be undone. Are you sure you want to delete your account?&lt;/p&gt;&lt;p&gt;&lt;span class="danger" &gt;You are associated as a sole administrator of the projects below:&lt;/span&gt;&lt;/p&gt;&lt;ul&gt;{0}&lt;/ul&gt;&lt;p&gt;Please transfer the administration to another user before deleting your account. Otherwise, the project(s) will be deleted also.&lt;/p&gt;</value>
   </data>
   <data name="InvalidDeleteToken" xml:space="preserve">
     <value>Delete token expired, please start the delete process again.</value>
@@ -196,16 +199,16 @@
     <value>Invalid UserProjectId.</value>
   </data>
   <data name="FixedExpenses" xml:space="preserve">
-    <value>Fixed Expenses</value>
+    <value>Fixed Costs</value>
   </data>
   <data name="Comfort" xml:space="preserve">
     <value>Comfort</value>
   </data>
   <data name="Pleasures" xml:space="preserve">
-    <value>Pleasures</value>
+    <value>Enjoyment</value>
   </data>
   <data name="YourFuture" xml:space="preserve">
-    <value>Your Future</value>
+    <value>Financial Freedom</value>
   </data>
   <data name="SelfImprovement" xml:space="preserve">
     <value>Self-Improvement</value>
@@ -241,9 +244,6 @@ You will be redirect in 5 seconds ...</value>
   </data>
   <data name="ProjectNotFound" xml:space="preserve">
     <value>Project not found.</value>
-  </data>
-  <data name="ClientNotFound" xml:space="preserve">
-    <value>Client not found.</value>
   </data>
   <data name="ProjectNotFoundOrInsufficientUserPermissions" xml:space="preserve">
     <value>Project not found or insufficient user permissions.</value>
@@ -305,7 +305,19 @@ You will be redirect in 5 seconds ...</value>
   <data name="ExampleExpense" xml:space="preserve">
     <value>Example Expense</value>
   </data>
-  <data name="CompanyProjectNotAllowed" xml:space="preserve">
-    <value>Company project creation is not allowed for your account.</value>
+  <data name="NotificationNotFound" xml:space="preserve">
+    <value>Notification not found.</value>
+  </data>
+  <data name="NotificationActionRequired" xml:space="preserve">
+    <value>You cannot mark as read an action required notification.</value>
+  </data>
+  <data name="ExpirationShouldBeFutureDate" xml:space="preserve">
+    <value>Expiration should be a future date</value>
+  </data>
+  <data name="PropertyMaxLength" xml:space="preserve">
+    <value>{0} exceeds the maximum allowed length of {1} characters.</value>
+  </data>
+  <data name="NotSupported" xml:space="preserve">
+    <value>{0} not supported</value>
   </data>
 </root>

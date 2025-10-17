@@ -49,7 +49,7 @@ namespace EasyFinance.Server.Controllers
             var user = await this.userManager.FindByIdAsync(id.Value);
             var createdIncome = await incomeService.CreateAsync(user, projectId, incomeDto.FromDTO());
 
-            return ValidateResponse(actionName: nameof(GetById), routeValues: new { projectId, incomeId = createdIncome.Data.Id }, createdIncome);
+            return ValidateResponse(actionName: nameof(GetById), routeValues: new { projectId, incomeId = createdIncome?.Data?.Id }, createdIncome);
         }
 
        

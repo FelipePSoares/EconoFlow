@@ -1,4 +1,5 @@
 ﻿using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Account;
 using EasyFinance.Domain.FinancialProject;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -24,8 +25,8 @@ namespace EasyFinance.Persistence.Mapping.AccessControl
             builder.Property(p => p.Enabled)
                 .IsRequired();
 
-            builder.Property(p => p.SubscriptionLevel)
-                .HasDefaultValue(SubscriptionLevels.Free)
+            builder.Property(p => p.NotificationChannels)
+                .HasDefaultValue(NotificationChannels.Email | NotificationChannels.Push)
                 .IsRequired();
 
             builder.HasOne<Project>()

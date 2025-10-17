@@ -20,9 +20,9 @@ import { ErrorMessageService } from '../../../core/services/error-message.servic
 import { ApiErrorResponse } from '../../../core/models/error';
 import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.component';
 import { MatNativeDateModule } from '@angular/material/core';
-import { todayUTC } from '../../../core/utils/date';
-import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
+import { formatDate } from '../../../core/utils/date';
 import { GlobalService } from '../../../core/services/global.service';
+import { CurrentDateService } from '../../../core/services/current-date.service';
 
 @Component({
     selector: 'app-add-expense-item',
@@ -67,7 +67,8 @@ export class AddExpenseItemComponent implements OnInit {
     private errorMessageService: ErrorMessageService,
     private snackBar: SnackbarComponent,
     private globalService: GlobalService,
-    private translateService: TranslateService
+    private translateService: TranslateService,
+    private currentDateService: CurrentDateService
   ) {
     this.thousandSeparator = this.globalService.groupSeparator;
     this.decimalSeparator = this.globalService.decimalSeparator;
@@ -75,13 +76,13 @@ export class AddExpenseItemComponent implements OnInit {
    }
 
   ngOnInit(): void {
-    this.currentDate = todayUTC();
-    if (CurrentDateComponent.currentDate.getFullYear() !== this.currentDate.getFullYear() || CurrentDateComponent.currentDate.getMonth() !== this.currentDate.getMonth()) {
-      this.currentDate = CurrentDateComponent.currentDate;
+    this.currentDate = new Date();
+    if (this.currentDateService.currentDate.getFullYear() !== this.currentDate.getFullYear() || this.currentDateService.currentDate.getMonth() !== this.currentDate.getMonth()) {
+      this.currentDate = this.currentDateService.currentDate;
     }
 
     this.expenseItemForm = new FormGroup({
-      name: new FormControl('', [Validators.required]),
+      name: new FormControl('', [Validators.maxLength(100)]),
       date: new FormControl(this.currentDate, [Validators.required]),
       amount: new FormControl(0, [Validators.min(0)])
     });
@@ -106,29 +107,34 @@ export class AddExpenseItemComponent implements OnInit {
 
   save() {
     if (this.expenseItemForm.valid) {
-      let name = this.name?.value;
-      let date = this.date?.value.toISOString().split("T")[0];
-      let amount = this.amount?.value;
+      const name = this.name?.value;
+      const date: any = formatDate(this.date?.value);
+      const amount = this.amount?.value;
 
-      var newExpenseItem = <ExpenseItemDto>({
+      const newExpenseItem = ({
         name: name,
         date: date,
         amount: amount === "" || amount === null ? 0 : amount,
-      });
+      }) as ExpenseItemDto;
 
-      let newExpense = structuredClone(this.expense)
+      const newExpense = structuredClone(this.expense)
       newExpense.items.push(newExpenseItem);
 
-      var patch = compare(this.expense, newExpense);
+      const patch = compare(this.expense, newExpense);
 
       this.expenseService.update(this.projectId, this.categoryId, this.expenseId, patch).subscribe({
-        next: response => {
+        next: () => {
           this.snackBar.openSuccessSnackbar(this.translateService.instant('CreatedSuccess'));
           this.router.navigate([{ outlets: { modal: null } }]);
         },
         error: (response: ApiErrorResponse) => {
           this.httpErrors = true;
-          this.errors = response.errors;
+          this.errors = {};
+
+          Object.entries(response.errors).forEach(([key, value]) => {
+            const newKey = key.startsWith('Items.') ? key.replace(/^Items\./, '') : key;
+            this.errors[newKey] = value;
+          });
 
           this.errorMessageService.setFormErrors(this.expenseItemForm, this.errors);
         }

@@ -135,8 +135,11 @@
   <data name="PropertyCantBeNullOrEmpty" xml:space="preserve">
     <value>{0} não pode ser nulo ou vazio.</value>
   </data>
-  <data name="CantAddFutureExpenseIncome" xml:space="preserve">
-    <value>Uma despesa/receita futura não pode ter um valor</value>
+  <data name="CantAddFutureExpense" xml:space="preserve">
+    <value>Uma despesa futura não pode ter um valor</value>
+  </data>
+  <data name="CantAddFutureIncome" xml:space="preserve">
+    <value>Uma receita futura não pode ter um valor</value>
   </data>
   <data name="CantAddExpenseOlderThanYears" xml:space="preserve">
     <value>Você não pode adicionar despesa mais antiga que {0} anos</value>
@@ -154,7 +157,7 @@
     <value>Esta ação é permanente e não pode ser desfeita. Tem certeza de que deseja excluir sua conta?</value>
   </data>
   <data name="WarningMessageToAdminUserWhoWantsToDeleteAccount" xml:space="preserve">
-    <value>&lt;p&gt;Esta ação é permanente e não pode ser desfeita. Tem certeza de que deseja excluir sua conta?&lt;/p&gt;&lt;p&gt;&lt;span style="color: #ff0000;"&gt;Você está associado como administrador único dos projetos abaixo:&lt;/span&gt;&lt;/p&gt;&lt;ul&gt;{0}&lt;/ul&gt;&lt;p&gt;Por favor, transfira a administração para outro usuário antes de excluir sua conta. Caso contrário, o(s) projeto(s) também será(ão) excluído(s).&lt;/p&gt;</value>
+    <value>&lt;p&gt;Esta ação é permanente e não pode ser desfeita. Tem certeza de que deseja excluir sua conta?&lt;/p&gt;&lt;p&gt;&lt;span class="danger" &gt;Você está associado como administrador único dos projetos abaixo:&lt;/span&gt;&lt;/p&gt;&lt;ul&gt;{0}&lt;/ul&gt;&lt;p&gt;Por favor, transfira a administração para outro usuário antes de excluir sua conta. Caso contrário, o(s) projeto(s) também será(ão) excluído(s).&lt;/p&gt;</value>
   </data>
   <data name="InvalidDeleteToken" xml:space="preserve">
     <value>Token de exclusão expirado, por favor inicie o processo de exclusão novamente.
@@ -197,7 +200,7 @@ Categoria não encontrada.</value>
     <value>ID de Usuário-Projeto inválido.</value>
   </data>
   <data name="FixedExpenses" xml:space="preserve">
-    <value>Despesas Fixas</value>
+    <value>Custos fixos</value>
   </data>
   <data name="Comfort" xml:space="preserve">
     <value>Conforto</value>
@@ -206,10 +209,10 @@ Categoria não encontrada.</value>
     <value>Prazeres</value>
   </data>
   <data name="YourFuture" xml:space="preserve">
-    <value>Seu Futuro</value>
+    <value>Liberdade financeira</value>
   </data>
   <data name="SelfImprovement" xml:space="preserve">
-    <value>Aprendizado</value>
+    <value>Conhecimento</value>
   </data>
   <data name="ThankYouConfirmEmailRedirect" xml:space="preserve">
     <value>Obrigado por confirmar seu e-mail.
@@ -242,9 +245,6 @@ Você será redirecionado em 5 segundos...</value>
   </data>
   <data name="ProjectNotFound" xml:space="preserve">
     <value>Projeto não encontrado.</value>
-  </data>
-  <data name="ClientNotFound" xml:space="preserve">
-    <value>Cliente não encontrado.</value>
   </data>
   <data name="ProjectNotFoundOrInsufficientUserPermissions" xml:space="preserve">
     <value>Projeto não encontrado ou permissões de usuário insuficientes.</value>
@@ -306,7 +306,19 @@ Você será redirecionado em 5 segundos...</value>
   <data name="ExampleExpense" xml:space="preserve">
     <value>Despesa de exemplo</value>
   </data>
-  <data name="CompanyProjectNotAllowed" xml:space="preserve">
-    <value>A criação de projetos empresariais não é permitida para sua conta.</value>
+  <data name="NotificationNotFound" xml:space="preserve">
+    <value>Notificação não encontrada.</value>
+  </data>
+  <data name="NotificationActionRequired" xml:space="preserve">
+    <value>Você não pode marcar como lida uma notificação de ação necessária.</value>
+  </data>
+  <data name="ExpirationShouldBeFutureDate" xml:space="preserve">
+    <value>A expiração deve ser uma data futura</value>
+  </data>
+  <data name="PropertyMaxLength" xml:space="preserve">
+    <value>{0} excede o comprimento máximo permitido de {1} caracteres.</value>
+  </data>
+  <data name="NotSupported" xml:space="preserve">
+    <value>Não suportado {0}</value>
   </data>
 </root>

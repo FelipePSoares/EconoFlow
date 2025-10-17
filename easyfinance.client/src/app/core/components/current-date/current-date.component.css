@@ -11,3 +11,8 @@
   .current-date h3 {
     display: inline-block;
   }
+
+  .current-date input {
+    visibility: hidden;
+    width: 0;
+  }

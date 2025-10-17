@@ -1,4 +1,5 @@
 ﻿using System;
+using EasyFinance.Domain.Account;
 
 namespace EasyFinance.Application.DTOs.AccessControl
 {
@@ -6,6 +7,7 @@ namespace EasyFinance.Application.DTOs.AccessControl
     {
         public string FirstName { get; set; } = "Default";
         public string LastName { get; set; } = "Default";
-        public Guid DefaultProject {  get; set; } = Guid.Empty;
+        public NotificationChannels NotificationChannels { get; set; } = NotificationChannels.None;
+
     }
 }

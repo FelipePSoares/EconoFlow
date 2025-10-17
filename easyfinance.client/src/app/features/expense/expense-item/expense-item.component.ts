@@ -15,11 +15,9 @@ import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { ApiErrorResponse } from '../../../core/models/error';
-import { Expense } from '../../../core/models/expense';
-import { mapper } from '../../../core/utils/mappings/mapper';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
 import { GlobalService } from '../../../core/services/global.service';
-import { dateUTC } from '../../../core/utils/date';
+import { formatDate } from '../../../core/utils/date';
 import { MatInput } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 
@@ -90,7 +88,7 @@ export class ExpenseItemComponent {
     if (this.expenseItemForm.valid) {
       const id = this.id?.value;
       const name = this.name?.value;
-      const date = this.date?.value.toISOString().split("T")[0];
+      const date: any = formatDate(this.date?.value);
       const amount = this.amount?.value;
 
       const expenseItemsNewArray: ExpenseItemDto[] = JSON.parse(JSON.stringify(this.expense.items));
@@ -131,10 +129,10 @@ export class ExpenseItemComponent {
 
   edit(expenseItem: ExpenseItemDto): void {
     this.editingSubExpense = expenseItem;
-    const newDate = dateUTC(expenseItem.date);
+    const newDate = new Date(expenseItem.date);
     this.expenseItemForm = new FormGroup({
       id: new FormControl(expenseItem.id),
-      name: new FormControl(expenseItem.name, [Validators.required]),
+      name: new FormControl(expenseItem.name, [Validators.maxLength(100)]),
       date: new FormControl(newDate, [Validators.required]),
       amount: new FormControl(expenseItem.amount, [Validators.min(0)]),
     });
@@ -149,6 +147,7 @@ export class ExpenseItemComponent {
       next: () => {
         expense.items.forEach((item, index) => {
           if (item.id === subExpense.id) {
+            expense.amount -= subExpense.amount;
             expense.items.splice(index, 1);
           }
         });

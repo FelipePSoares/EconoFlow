@@ -1,5 +1,7 @@
 name: Release
 
+permissions: read-all
+
 on:
   push:
     branches: [ "master" ]
@@ -31,11 +33,21 @@ jobs:
           path: ./EasyFinance.Server/bin/Release/net8.0/publish/
           retention-days: 5
 
-      - name: Substituir valor no appsettings.json
+      - name: Replace values on appsettings.json
+        shell: bash
+        env:
+          TOKEN: ${{ secrets.BETTERSTACK_SOURCE_TOKEN }}
+          ENDPOINT: ${{ secrets.BETTERSTACK_ENDPOINT }}
         run: |
-          sed -i 's|"sourceToken": ".*"|"sourceToken": "${{ secrets.BETTERSTACK_SOURCE_TOKEN }}"|' ${{ github.workspace }}\EasyFinance.Server\bin\Release\net8.0\publish\appsettings.json |
-          sed -i 's|"betterStackEndpoint": ".*"|"betterStackEndpoint": "${{ secrets.BETTERSTACK_ENDPOINT }}"|' ${{ github.workspace }}\EasyFinance.Server\bin\Release\net8.0\publish\appsettings.json
-
+          FILE="${{ github.workspace }}/EasyFinance.Server/bin/Release/net8.0/publish/appsettings.json"
+          if [ ! -f "$FILE" ]; then
+            echo "File not found: $FILE"
+            exit 1
+          fi
+      
+          sed -i -E "s|\"sourceToken\"\s*:\s*\"[^\"]*\"|\"sourceToken\": \"${TOKEN}\"|" "$FILE"
+          sed -i -E "s|\"betterStackEndpoint\"\s*:\s*\"[^\"]*\"|\"betterStackEndpoint\": \"${ENDPOINT}\"|" "$FILE"
+          
       - name: Deploy
         uses: ChristopheLav/iis-deploy@v1
         with:

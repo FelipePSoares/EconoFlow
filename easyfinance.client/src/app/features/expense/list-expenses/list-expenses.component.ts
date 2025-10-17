@@ -22,14 +22,12 @@ import { ExpenseDto } from '../models/expense-dto';
 import { Expense } from '../../../core/models/expense';
 import { mapper } from '../../../core/utils/mappings/mapper';
 import { ExpenseService } from '../../../core/services/expense.service';
-import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
-import { dateUTC } from '../../../core/utils/date';
+import { formatDate } from '../../../core/utils/date';
 import { ErrorMessageService } from 'src/app/core/services/error-message.service';
 import { GlobalService } from '../../../core/services/global.service';
-import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
 import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
 import { UserProjectDto } from '../../project/models/user-project-dto';
 import { ProjectService } from '../../../core/services/project.service';
@@ -38,8 +36,8 @@ import { CategoryDto } from '../../category/models/category-dto';
 import { CategoryService } from '../../../core/services/category.service';
 import { Category } from '../../../core/models/category';
 import { BudgetBarComponent } from '../../../core/components/budget-bar/budget-bar.component';
-import { ExpenseItemDto } from '../models/expense-item-dto';
 import { ExpenseItemComponent } from '../expense-item/expense-item.component';
+import { CurrentDateService } from '../../../core/services/current-date.service';
 
 @Component({
     selector: 'app-list-expenses',
@@ -49,9 +47,7 @@ import { ExpenseItemComponent } from '../expense-item/expense-item.component';
       AsyncPipe,
       ReactiveFormsModule,
       CurrentDateComponent,
-      AddButtonComponent,
       ReturnButtonComponent,
-      ConfirmDialogComponent,
       BudgetBarComponent,
       FontAwesomeModule,
       MatFormField,
@@ -60,7 +56,6 @@ import { ExpenseItemComponent } from '../expense-item/expense-item.component';
       MatInput,
       MatButton,
       MatDatepickerModule,
-      CurrencyFormatPipe,
       CurrencyMaskModule,
       TranslateModule
     ],
@@ -76,12 +71,12 @@ export class ListExpensesComponent implements OnInit {
   faChevronDown = faChevronDown;
   faChevronRight = faChevronRight;
 
-
   private expenses: BehaviorSubject<ExpenseDto[]> = new BehaviorSubject<ExpenseDto[]>([new ExpenseDto()]);
   expenses$: Observable<ExpenseDto[]> = this.expenses.asObservable();
 
   private category: BehaviorSubject<CategoryDto> = new BehaviorSubject<CategoryDto>(new CategoryDto());
-  categoryName$: Observable<string> = this.category.asObservable().pipe(map(c => c.name));
+  categoryName$: Observable<string> = this.category.asObservable().pipe(map(c => c.isArchived ? c.name + ' (' + this.translateService.instant('Archived') + ')' : c.name));
+  categoryIsArchived$: Observable<boolean> = this.category.asObservable().pipe(map(c => c.isArchived));
 
   expenseForm!: FormGroup;
   editingExpense: ExpenseDto = new ExpenseDto();
@@ -91,6 +86,7 @@ export class ListExpensesComponent implements OnInit {
   decimalSeparator!: string;
   currencySymbol!: string;
   userProject!: UserProjectDto;
+  isArchived!: boolean;
 
   @Input({ required: true })
   projectId!: string;
@@ -106,7 +102,8 @@ export class ListExpensesComponent implements OnInit {
     private globalService: GlobalService,
     private dialog: MatDialog,
     private projectService: ProjectService,
-    private translateService: TranslateService
+    private translateService: TranslateService,
+    private currentDateService: CurrentDateService
   ) {
     this.thousandSeparator = this.globalService.groupSeparator;
     this.decimalSeparator = this.globalService.decimalSeparator;
@@ -129,11 +126,12 @@ export class ListExpensesComponent implements OnInit {
     this.categoryService.getById(this.projectId, this.categoryId)
       .pipe(map(category => mapper.map(category, Category, CategoryDto)))
       .subscribe(res => {
+        this.isArchived = res.isArchived;
         this.category.next(res);
       }
     )
 
-    this.fillData(CurrentDateComponent.currentDate);
+    this.fillData(this.currentDateService.currentDate);
     this.edit(new ExpenseDto());
   }
 
@@ -163,27 +161,27 @@ export class ListExpensesComponent implements OnInit {
   }
 
   select(id: string): void {
-    this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, 'expenses', id, { currentDate: CurrentDateComponent.currentDate.toISOString().substring(0, 10) }]);
+    this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, 'expenses', id, { currentDate: this.currentDateService.currentDate.toISOString().substring(0, 10) }]);
   }
 
   save(): void {
     if (this.expenseForm.valid) {
-      let id = this.id?.value;
-      let name = this.name?.value;
-      let date = this.date?.value.toISOString().split("T")[0];
-      let amount = this.amount?.value;
-      let budget = this.budget?.value;
+      const id = this.id?.value;
+      const name = this.name?.value;
+      const date: any = formatDate(this.date?.value);
+      const amount = this.amount?.value;
+      const budget = this.budget?.value;
 
-      var newExpense = <ExpenseDto>({
+      const newExpense = ({
         id: id,
         name: name,
         date: date,
         amount: amount === "" || amount === null ? 0 : amount,
         budget: budget === "" || budget === null ? 0 : budget,
         items: this.editingExpense.items
-      })
+      }) as ExpenseDto;
 
-      var patch = compare(this.editingExpense, newExpense);
+      const patch = compare(this.editingExpense, newExpense);
 
       this.expenseService.update(this.projectId, this.categoryId, id, patch).subscribe({
         next: response => {
@@ -205,10 +203,10 @@ export class ListExpensesComponent implements OnInit {
 
   edit(expense: ExpenseDto): void {
     this.editingExpense = expense;
-    let newDate = dateUTC(expense.date);
+    const newDate = new Date(expense.date);
     this.expenseForm = new FormGroup({
       id: new FormControl(expense.id),
-      name: new FormControl(expense.name, [Validators.required]),
+      name: new FormControl(expense.name, [Validators.required, Validators.maxLength(100)]),
       date: new FormControl(newDate, [Validators.required]),
       amount: new FormControl(expense.amount, [Validators.min(0)]),
       budget: new FormControl(expense.budget ?? 0, [Validators.pattern('[0-9]*')]),
@@ -226,7 +224,7 @@ export class ListExpensesComponent implements OnInit {
 
   remove(id: string): void {
     this.expenseService.remove(this.projectId, this.categoryId, id).subscribe({
-      next: response => {
+      next: () => {
         const expensesNewArray: ExpenseDto[] = this.expenses.getValue();
 
         expensesNewArray.forEach((item, index) => {
@@ -264,7 +262,7 @@ export class ListExpensesComponent implements OnInit {
       }
     }).afterClosed().subscribe((result) => {
       if (result) {
-        this.fillData(CurrentDateComponent.currentDate);
+        this.fillData(this.currentDateService.currentDate);
       }
       this.router.navigate([{ outlets: { modal: null } }]);
     });
@@ -313,7 +311,7 @@ export class ListExpensesComponent implements OnInit {
   }
 
   canAddOrEdit(): boolean {
-    return this.userProject.role === Role.Admin || this.userProject.role === Role.Manager;
+    return (this.userProject.role === Role.Admin || this.userProject.role === Role.Manager) && !this.isArchived;
   }
 
   toggleExpand(expenseId: string) {
@@ -335,13 +333,13 @@ export class ListExpensesComponent implements OnInit {
       autoFocus: 'input'
     }).afterClosed().subscribe((result) => {
       if (result) {
-        this.fillData(CurrentDateComponent.currentDate);
+        this.fillData(this.currentDateService.currentDate);
       }
       this.router.navigate([{ outlets: { modal: null } }]);
     });
   }
 
   updateExpense(): void {
-    this.fillData(CurrentDateComponent.currentDate);
+    this.fillData(this.currentDateService.currentDate);
   }
 }

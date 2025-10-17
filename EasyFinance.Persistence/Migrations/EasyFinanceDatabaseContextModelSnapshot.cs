@@ -72,6 +72,11 @@ namespace EasyFinance.Persistence.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
+                    b.Property<int>("NotificationChannels")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(5);
+
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
 
@@ -83,11 +88,6 @@ namespace EasyFinance.Persistence.Migrations
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("SubscriptionLevel")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
@@ -164,6 +164,67 @@ namespace EasyFinance.Persistence.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("UserProjects", (string)null);
+                });
+
+            modelBuilder.Entity("EasyFinance.Domain.Account.Notification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ActionLabelCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CodeMessage")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateOnly?>("ExpiresAt")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsActionRequired")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsRead")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsSticky")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("LimitNotificationChannels")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Metadata")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("EasyFinance.Domain.Financial.Attachment", b =>
@@ -402,11 +463,6 @@ namespace EasyFinance.Persistence.Migrations
                         .HasColumnType("nvarchar(3)")
                         .HasDefaultValue("EUR");
 
-                    b.Property<int>("Type")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
-
                     b.HasKey("Id");
 
                     b.ToTable("Projects", (string)null);
@@ -609,6 +665,17 @@ namespace EasyFinance.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("EasyFinance.Domain.Account.Notification", b =>
+                {
+                    b.HasOne("EasyFinance.Domain.AccessControl.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("EasyFinance.Domain.Financial.Attachment", b =>
                 {
                     b.HasOne("EasyFinance.Domain.AccessControl.User", "CreatedBy")
@@ -669,7 +736,7 @@ namespace EasyFinance.Persistence.Migrations
                     b.HasOne("EasyFinance.Domain.Financial.Expense", null)
                         .WithMany("Items")
                         .HasForeignKey("ExpenseId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("EasyFinance.Domain.Financial.ExpenseItem", null)
                         .WithMany("Items")
@@ -693,7 +760,6 @@ namespace EasyFinance.Persistence.Migrations
 
                     b.Navigation("CreatedBy");
                 });
-
 
             modelBuilder.Entity("EasyFinance.Domain.Support.ContactUs", b =>
                 {

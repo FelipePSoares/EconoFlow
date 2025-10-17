@@ -1,4 +1,4 @@
-import { Component, Injectable, Injector } from '@angular/core';
+import { Component, Injectable } from '@angular/core';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 
 @Component({
@@ -14,7 +14,7 @@ export class SnackbarComponent {
 
   openSuccessSnackbar(
     message: string,
-    action: string = 'Close',
+    action = 'Close',
     config: MatSnackBarConfig = { duration: 3000, horizontalPosition: 'center', verticalPosition: 'bottom', panelClass: ['success-snackbar'] }
   ) {
     this.snackBar.open(message, action, config);
@@ -22,7 +22,7 @@ export class SnackbarComponent {
 
   openErrorSnackbar(
     message: string,
-    action: string = 'Close',
+    action = 'Close',
     config: MatSnackBarConfig = { duration: 5000, horizontalPosition: 'center', verticalPosition: 'bottom', panelClass: ['error-snackbar'] }
   ) {
     this.snackBar.open(message, action, config);

@@ -59,7 +59,8 @@ e2e tests:
 This commands are **not required to run the application** when you change some of the database structures, Models or Mappings. Otherwise you can ignore this topic.
 
 #### VS Code
-* First you need to go to Persistence project folder
+* First you have to have installed dotnet-ef globally
+    * `dotnet tool install --global dotnet-ef`
 * Then you can execute the following command line:
 	* `dotnet ef migrations add {YourMigrationName} --context EasyFinanceDatabaseContext --project EasyFinance.Persistence --configuration release -s ./EasyFinance.Server`
 

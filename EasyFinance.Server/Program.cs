@@ -1,7 +1,9 @@
 using System.Globalization;
+using System.Net;
 using EasyFinance.Application;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Account;
 using EasyFinance.Domain.Financial;
 using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Persistence;
@@ -16,15 +18,15 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Newtonsoft.Json.Converters;
-using SendGrid.Extensions.DependencyInjection;
 using Serilog;
+using Smtp2Go.Api;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddApplicationServices();
 builder.Services.AddAuthenticationServices(builder.Configuration, builder.Environment);
-
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 
 // Add services to the container.
@@ -37,36 +39,51 @@ builder.Services.AddControllers(config =>
     config.SuppressAsyncSuffixInActionNames = false; 
 })
     .AddNewtonsoftJson(setup =>
-        setup.SerializerSettings.Converters.Add(new StringEnumConverter()));
+    {
+        setup.SerializerSettings.Converters.Add(new FlagsEnumArrayConverter());
+        setup.SerializerSettings.Converters.Add(new StringEnumConverter());
+    });
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwagger();
 
-builder.Services.AddSendGrid(options =>
-    options.ApiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY") ?? "abc"
-);
+builder.Services.AddSingleton<IApiService, Smtp2GoApiService>(x 
+    => new Smtp2GoApiService(Environment.GetEnvironmentVariable("SMTP2GO_API_KEY") ?? "api-ADEE6A33004F4B178E20CEB4096CA4EA"));
 
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
+
+builder.Services.AddHsts(options =>
+{
+    options.Preload = true;
+    options.IncludeSubDomains = true;
+    options.MaxAge = TimeSpan.FromDays(365);
+});
+
+builder.Services.AddHttpsRedirection(options =>
+{
+    options.RedirectStatusCode = (int)HttpStatusCode.TemporaryRedirect;
+    options.HttpsPort = 443;
+});
 
 if (!builder.Environment.IsDevelopment())
 {
     var keys = builder.Services.AddDataProtection()
         .PersistKeysToDbContext<MyKeysContext>();
 
-    if (bool.Parse(Environment.GetEnvironmentVariable("EconoFlow_KEY_ENCRYPT_ACTIVE")))
-        keys.ProtectKeysWithCertificate(Environment.GetEnvironmentVariable("EconoFlow_CERT_THUMBPRINT"));
+    if (bool.TryParse(Environment.GetEnvironmentVariable("EconoFlow_KEY_ENCRYPT_ACTIVE"), out var result) && result)
+        keys.ProtectKeysWithDpapi(false);
 }
 
 try
 {
     var app = builder.Build();
-
-    app.UseDefaultFiles();
-    app.UseStaticFiles();
-
+    app.UseCorrelationId();
     app.UseSerilogRequestLogging();
+    app.UseCustomExceptionHandler();
+
+    app.UseSafeHeaders();
 
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
@@ -83,7 +100,6 @@ try
             Email = "test@test.com",
             EmailConfirmed = true
         };
-        user.SetSubscriptionLevel(SubscriptionLevels.Enterprise);
         userManager.CreateAsync(user, "Passw0rd!").GetAwaiter().GetResult();
 
         var user2 = new User(firstName: "Second", lastName: "User", enabled: true)
@@ -93,6 +109,11 @@ try
             EmailConfirmed = true
         };
         userManager.CreateAsync(user2, "Passw0rd!").GetAwaiter().GetResult();
+
+        var notification = new Notification(user, "WelcomeMessage", NotificationType.Information, NotificationCategory.System, limitNotificationChannels: NotificationChannels.InApp);
+        unitOfWork.NotificationRepository.Insert(notification);
+        var notification2 = new Notification(user, "ConfirmEmailMessage", NotificationType.EmailConfirmation, NotificationCategory.Security, "ButtonConfirmEmail", NotificationChannels.InApp, isSticky: true);
+        unitOfWork.NotificationRepository.Insert(notification2);
 
         var income = new Income("Investiments", DateOnly.FromDateTime(DateTime.Now), 3000, user);
         income.SetId(new Guid("0bb277f9-a858-4306-148f-08dcf739f7a1"));
@@ -119,17 +140,12 @@ try
         category.AddExpense(expense2);
         unitOfWork.CategoryRepository.Insert(category);
 
-        var client = new Client("John Smith", "John@test.com");
-        unitOfWork.ClientRepository.Insert(client);
-
         var ri = new RegionInfo("pt");
         var project = new Project(name: "Family", preferredCurrency: ri.ISOCurrencySymbol);
         project.SetId(new Guid("bf060bc8-48bf-4f5b-3761-08dc54ba19f4"));
         project.AddIncome(income);
         project.AddIncome(income2);
         project.AddCategory(category);
-        project.AddClient(client);
-        project.SetType(ProjectTypes.Company);
         unitOfWork.ProjectRepository.Insert(project);
 
         var userProject = new UserProject(user, project, Role.Admin);
@@ -147,8 +163,13 @@ try
     }
     else
     {
+        app.UseHsts();
+        app.UseSecutiryPolicy();
         app.UseMigration();
     }
+
+    app.UseDefaultFiles();
+    app.UseStaticFiles();
 
     app.UseHttpsRedirection();
 
@@ -159,17 +180,13 @@ try
 
     app.MapControllers();
 
-    app.MapFallbackToFile("/index.html");
-
-    app.UseCustomExceptionHandler();
-
     app.Run();
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "A aplicação falhou ao iniciar.");
+    Log.Fatal(ex, "The application fail during the start.");
 }
 finally
 {
-    Log.CloseAndFlush(); // Fecha e envia todos os logs pendentes
+    Log.CloseAndFlush(); // Close and send all pendent logs to betterstack
 }

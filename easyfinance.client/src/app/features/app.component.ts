@@ -1,3 +1,4 @@
+
 import { Component, Inject, Injector, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterOutlet } from '@angular/router';
@@ -8,6 +9,8 @@ import { AuthService } from '../core/services/auth.service';
 import { NavBarComponent } from '../core/components/nav-bar/nav-bar.component';
 import { SpinnerComponent } from '../core/components/spinner/spinner.component';
 import { TranslateModule } from '@ngx-translate/core';
+import { VersionCheckService } from '../core/services/version-check.service';
+import { CanonicalService } from '../core/services/canonical.service';
 
 import {
   DateAdapter,
@@ -15,6 +18,7 @@ import {
   MAT_DATE_LOCALE,
 } from '@angular/material/core';
 import * as moment from 'moment';
+import { NotificationService } from '../core/services/notification.service';
 
 export const MY_FORMATS = {
   parse: {
@@ -57,14 +61,19 @@ export class AppComponent {
   constructor(
     private router: Router,
     private injector: Injector,
-    @Inject(PLATFORM_ID) private platformId: object) {   
+    @Inject(PLATFORM_ID) private platformId: object,
+    private versionCheckService: VersionCheckService,
+    private canonicalService: CanonicalService,
+    private noticationService: NotificationService) {   
     if (isPlatformBrowser(this.platformId)) {
+      this.versionCheckService.init();
       const authService = injector.get(AuthService);
       this.isSignedIn$ = authService.isSignedIn$;
 
       authService.isSignedIn$.subscribe(isSignedIn => {
         if (isSignedIn){
           authService.startUserPolling();
+          this.noticationService.startPolling();
         }
       });
     }

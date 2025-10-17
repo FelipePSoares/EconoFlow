@@ -39,6 +39,14 @@ export class ErrorMessageService {
             case 'minlength':
               errors.push(this.translate.instant('TextShouldBeGreaterThan', { value: control.errors[key].requiredLength }));
               break;
+            case 'maxlength':
+              errors.push(
+                this.translate.instant('PropertyMaxLength', {
+                  field: fieldName,
+                  max: control.errors[key].requiredLength
+                })
+              );
+              break;
             default:
               errors = errors.concat(control.errors ? control.errors[key] : ['GenericError']);
           }

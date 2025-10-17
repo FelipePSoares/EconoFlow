@@ -10,6 +10,7 @@ using EasyFinance.Domain.Financial;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -33,6 +34,7 @@ namespace EasyFinance.Application.Features.ExpenseService
 
             var category = await unitOfWork.CategoryRepository
                 .NoTrackable()
+                .IgnoreQueryFilters()
                 .Include(p => p.Expenses.Where(e => e.Date >= from && e.Date < to))
                 .ThenInclude(e => e.Items.Where(i => i.Date >= from && i.Date < to)
                 .OrderBy(item => item.Date))
@@ -106,6 +108,15 @@ namespace EasyFinance.Application.Features.ExpenseService
                 return AppResponse<ExpenseResponseDTO>.Error(code: nameof(expenseId), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(expenseId)));
 
             var dto = existingExpense.ToRequestDTO();
+
+            if (dto.Items.Count == 0 && dto.Amount > 0 && expenseDto.Operations.Any(o => o.OperationType == OperationType.Add && o.path.Contains("items")))
+            {
+                dto.Items.Add(new ExpenseItemRequestDTO()
+                {
+                    Date = dto.Date,
+                    Amount = dto.Amount
+                });
+            }
 
             expenseDto.ApplyTo(dto);
 

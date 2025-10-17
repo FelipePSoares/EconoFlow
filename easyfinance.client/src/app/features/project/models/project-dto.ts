@@ -1,5 +1,4 @@
 import { AutoMap } from "@automapper/classes";
-import { ProjectTypes } from "../../../core/enums/project-types";
 
 export class ProjectDto {
     @AutoMap()
@@ -8,6 +7,4 @@ export class ProjectDto {
     name!: string;
     @AutoMap()
     preferredCurrency!: string;
-    @AutoMap()
-    type!: ProjectTypes;
   }

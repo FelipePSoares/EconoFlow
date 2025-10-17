@@ -38,14 +38,8 @@ namespace EasyFinance.Domain.Financial
             {
                 var response = AppResponse.Success();
 
-                if (string.IsNullOrEmpty(Name))
-                    response.AddErrorMessage(nameof(Name), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(Name)));
-
                 if (Date < DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-5)))
                     response.AddErrorMessage(nameof(Date), string.Format(ValidationMessages.CantAddExpenseOlderThanYears, 5));
-
-                if (Date > DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddDays(1)) && Amount > 0)
-                    response.AddErrorMessage(nameof(Date), ValidationMessages.CantAddFutureExpenseIncome);
 
                 if (Amount < 0)
                     response.AddErrorMessage(nameof(Amount), string.Format(ValidationMessages.PropertyCantBeLessThanZero, nameof(Amount)));

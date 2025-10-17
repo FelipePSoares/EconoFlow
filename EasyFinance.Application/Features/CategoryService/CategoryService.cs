@@ -87,9 +87,15 @@ namespace EasyFinance.Application.Features.CategoryService
 
             if (from.HasValue && to.HasValue)
                 categories = (await this.unitOfWork.ProjectRepository.NoTrackable()
-                        .Include(p => p.Categories)
-                            .ThenInclude(c => c.Expenses.Where(e => e.Date >= from && e.Date < to))
-                                .ThenInclude(e => e.Items)
+                        .Include(p => p.Categories
+                            .Where(c =>
+                                c.Expenses.Any(e => e.Date >= from && e.Date < to) // keep category if it has expenses
+                                || !c.IsArchived                                   // keep if not archived
+                            ))
+                                .ThenInclude(c => c.Expenses
+                                    .Where(e => e.Date >= from && e.Date < to))
+                                        .ThenInclude(e => e.Items)
+                        .IgnoreQueryFilters() // ignore global IsArchived filter
                         .FirstOrDefaultAsync(p => p.Id == projectId))?
                         .Categories
                         .ToDTO()
@@ -134,6 +140,7 @@ namespace EasyFinance.Application.Features.CategoryService
             var result = (await this.unitOfWork.ProjectRepository.NoTrackable()
                     .Include(p => p.Categories)
                     .ThenInclude(c => c.Expenses.Where(e => e.Date.Year == year))
+                    .IgnoreQueryFilters() // disables the global filter IsArchived
                     .FirstOrDefaultAsync(p => p.Id == projectId))?
                     .Categories
                     .ToDTO()
@@ -148,6 +155,7 @@ namespace EasyFinance.Application.Features.CategoryService
                 await unitOfWork.CategoryRepository
                 .Trackable()
                 .Include(c => c.Expenses)
+                .IgnoreQueryFilters() // disables the global filter IsArchived
                 .FirstOrDefaultAsync(p => p.Id == categoryId);
 
             return AppResponse<CategoryResponseDTO>.Success(result.ToDTO());

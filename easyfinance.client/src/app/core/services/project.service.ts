@@ -10,7 +10,8 @@ import { ProjectDto } from '../../features/project/models/project-dto';
 import { UserProject } from '../models/user-project';
 import { UserService } from './user.service';
 import { DefaultCategory } from '../models/default-category';
-import { CurrentDateComponent } from '../components/current-date/current-date.component';
+import { formatDate } from '../utils/date';
+import { CurrentDateService } from './current-date.service';
 const PROJECT_DATA = "project_data";
 
 @Injectable({
@@ -21,11 +22,18 @@ export class ProjectService {
   private selectedProjectSubject = new BehaviorSubject<UserProject | undefined>(undefined);
   selectedUserProject$ = this.selectedProjectSubject.asObservable();
 
-  constructor(private http: HttpClient, private localService: LocalService, private userService: UserService) {
+  constructor(
+    private http: HttpClient,
+    private localService: LocalService,
+    private userService: UserService,
+    private currentDateService: CurrentDateService
+  ) {
+    this.localService.getData<UserProject>(PROJECT_DATA)
+      .subscribe(currentProject => this.selectedProjectSubject.next(currentProject));
   }
 
   getUserProjects(): Observable<UserProject[]> {
-    CurrentDateComponent.resetDateToday();
+    this.currentDateService.resetDateToday();
     return this.http.get<UserProject[]>('/api/projects/', {
       observe: 'body',
       responseType: 'json'
@@ -70,7 +78,7 @@ export class ProjectService {
   }
 
   copyBudgetPreviousMonth(id: string, currentDate: Date) {
-    return this.http.post('/api/projects/' + id + '/copy-budget-previous-month/', currentDate, {
+    return this.http.post('/api/projects/' + id + '/copy-budget-previous-month/' + formatDate(currentDate), {}, {
       observe: 'body',
       responseType: 'json'
     });
@@ -84,20 +92,8 @@ export class ProjectService {
   }
 
   selectUserProject(userProject: UserProject) {
-    this.localService.saveData(PROJECT_DATA, userProject);
+    this.localService.saveData(PROJECT_DATA, userProject).subscribe();
     this.selectedProjectSubject.next(userProject);
-  }
-
-  getSelectedUserProject(): UserProject | undefined {
-    let currentProject = this.selectedProjectSubject.value;
-
-    if (!currentProject) {
-      const project = this.localService.getData<UserProject>(PROJECT_DATA);
-      currentProject = project;
-      this.selectedProjectSubject.next(currentProject);
-    }
-
-    return currentProject;
   }
 
   setEditingProject(project: ProjectDto) {

@@ -61,6 +61,14 @@ body {
   background-color: #f8f9fa;
 }
 
+.money-out {
+  color: #c0392b
+}
+
+.money-in {
+  color: #2ecc71;
+}
+
 .wrap {
   background: #fff;
   border-radius: 10px;

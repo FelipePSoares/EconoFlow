@@ -16,10 +16,6 @@ import { CategoryDto } from '../models/category-dto';
 import { Category } from '../../../core/models/category';
 import { CategoryService } from '../../../core/services/category.service';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
-import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
-import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
-import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
-import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
 import { ApiErrorResponse } from "../../../core/models/error";
 import { ErrorMessageService } from "../../../core/services/error-message.service";
 import { UserProjectDto } from '../../project/models/user-project-dto';
@@ -36,11 +32,6 @@ import { DefaultCategory } from '../../../core/models/default-category';
       AsyncPipe,
       ReactiveFormsModule,
       FontAwesomeModule,
-      ConfirmDialogComponent,
-      AddButtonComponent,
-      ReturnButtonComponent,
-      CurrentDateComponent,
-      CurrencyFormatPipe,
       MatButton,
       MatError,
       MatFormField,
@@ -177,7 +168,7 @@ export class ListCategoriesComponent implements OnInit {
     this.editingCategory = category;
     this.categoryForm = new FormGroup({
       id: new FormControl(category.id),
-      name: new FormControl(category.name, [Validators.required])
+      name: new FormControl(category.name, [Validators.required, Validators.maxLength(100)])
     });
 
     this.filteredCategories$ = combineLatest([

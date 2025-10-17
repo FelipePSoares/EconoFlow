@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { BehaviorSubject, map, Observable } from 'rxjs';
@@ -11,7 +11,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
-import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { CategoryService } from '../../../core/services/category.service';
 import { Category } from '../../../core/models/category';
 import { CategoryDto } from '../../category/models/category-dto';
@@ -21,20 +20,20 @@ import { Income } from '../../../core/models/income';
 import { IncomeDto } from '../../income/models/income-dto';
 import { ProjectService } from '../../../core/services/project.service';
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
-import { dateUTC } from '../../../core/utils/date';
 import { TransactionDto } from '../models/transaction-dto';
 import { Transaction } from 'src/app/core/models/transaction';
 import { UserProjectDto } from '../models/user-project-dto';
 import { Role } from '../../../core/enums/Role';
 import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
 import { BudgetBarComponent } from '../../../core/components/budget-bar/budget-bar.component';
+import { CurrentDateService } from '../../../core/services/current-date.service';
+import { ProjectDto } from '../models/project-dto';
 
 @Component({
     selector: 'app-detail-project',
     imports: [
       CommonModule,
       CurrentDateComponent,
-      ReturnButtonComponent,
       BudgetBarComponent,
       FontAwesomeModule,
       CurrencyFormatPipe,
@@ -83,13 +82,17 @@ export class DetailProjectComponent implements OnInit {
     private projectService: ProjectService,
     private categoryService: CategoryService,
     private incomeService: IncomeService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private currentDateService: CurrentDateService
   ) {
   }
 
   ngOnInit(): void {
     this.projectService.selectedUserProject$.subscribe(userProject => {
-      this.userProject = userProject ?? new UserProjectDto();
+      const defaultProject = new UserProjectDto();
+      defaultProject.project = new ProjectDto();
+
+      this.userProject = userProject ?? defaultProject;
     });
 
     this.projectService.getUserProject(this.projectId)
@@ -98,7 +101,7 @@ export class DetailProjectComponent implements OnInit {
         this.userProject = res;
       });
 
-    this.fillData(CurrentDateComponent.currentDate);
+    this.fillData(this.currentDateService.currentDate);
   }
 
   fillData(date: Date) {
@@ -151,14 +154,14 @@ export class DetailProjectComponent implements OnInit {
         this.month.remaining = res.map(c => c.getTotalRemaining()).reduce((acc, value) => acc + value, 0);
 
         if (this.month.budget === 0) {
-          var newDate = dateUTC(CurrentDateComponent.currentDate);
-          newDate.setMonth(CurrentDateComponent.currentDate.getMonth() - 1, 1);
+          const newDate = new Date(this.currentDateService.currentDate);
+          newDate.setMonth(this.currentDateService.currentDate.getMonth() - 1, 1);
 
           this.categoryService.get(this.projectId, newDate)
             .pipe(map(categories => mapper.mapArray(categories, Category, CategoryDto)))
             .subscribe({
               next: res => {
-                let previousBudget = res.map(c => c.getTotalBudget()).reduce((acc, value) => acc + value, 0);
+                const previousBudget = res.map(c => c.getTotalBudget()).reduce((acc, value) => acc + value, 0);
                 this.showCopyPreviousButton = previousBudget !== 0;
               }
             });
@@ -178,8 +181,8 @@ export class DetailProjectComponent implements OnInit {
 
     this.dialog.open(PageModalComponent, {
       autoFocus: 'input'
-    }).afterClosed().subscribe((result) => {
-      this.fillCategoriesData(CurrentDateComponent.currentDate);
+    }).afterClosed().subscribe(() => {
+      this.fillCategoriesData(this.currentDateService.currentDate);
       this.router.navigate([{ outlets: { modal: null } }]);
     });
   }
@@ -197,7 +200,7 @@ export class DetailProjectComponent implements OnInit {
   }
 
   getCurrentDate(): Date {
-    return CurrentDateComponent.currentDate;
+    return this.currentDateService.currentDate;
   }
 
   getClassBasedOnCategory(category: CategoryDto): string {
@@ -223,10 +226,10 @@ export class DetailProjectComponent implements OnInit {
   }
 
   copyPreviousBudget() {
-    this.projectService.copyBudgetPreviousMonth(this.projectId, CurrentDateComponent.currentDate)
+    this.projectService.copyBudgetPreviousMonth(this.projectId, this.currentDateService.currentDate)
       .subscribe({
-        next: res => {
-          this.fillData(CurrentDateComponent.currentDate);
+        next: () => {
+          this.fillData(this.currentDateService.currentDate);
         }
       });
   }

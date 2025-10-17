@@ -3,7 +3,6 @@ using System.Security.Claims;
 using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Domain.AccessControl;
-using EasyFinance.Domain.FinancialProject;
 
 namespace EasyFinance.Server.MiddleWare
 {
@@ -36,17 +35,6 @@ namespace EasyFinance.Server.MiddleWare
                 {
                     httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                     return;
-                }
-
-                if (httpContext.Request.Path.HasValue && httpContext.Request.Path.Value.Contains("/company", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    var project = projectService.GetById(userId, projectId);
-
-                    if (project.Failed || project.Data.Project.Type != ProjectTypes.Company)
-                    {
-                        httpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                        return;
-                    }
                 }
                 
                 var accessNeeded = httpContext.Request.Method == "GET" ? Role.Viewer : Role.Manager;

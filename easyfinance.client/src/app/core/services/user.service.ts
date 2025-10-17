@@ -1,78 +1,97 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, Subject, concatMap, map } from 'rxjs';
-import { tap } from 'rxjs';
+import { BehaviorSubject, Observable, concatMap, map, of, switchMap } from 'rxjs';
+import { tap, catchError, throwError } from 'rxjs';
 import { DeleteUser, User } from '../models/user';
-import { catchError, throwError } from 'rxjs';
 import { LocalService } from './local.service';
-import { Token } from '../models/token';
+import { Operation } from 'fast-json-patch';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
-  private loggedUser: Subject<User> = new BehaviorSubject<User>(new User());
-  loggedUser$: Observable<User> = this.loggedUser.asObservable();
+  private loggedUser = new BehaviorSubject<User | undefined>(undefined);
+  loggedUser$ = this.loggedUser.asObservable().pipe(switchMap(user => {
+    if (user)
+      return of(user);
 
-  constructor(private http: HttpClient, private localService: LocalService) {
-    const user = localService.getData<User>(localService.USER_DATA);
+    return this.getLoggedUser();
+  }));
 
-    if (user) {
-      this.loggedUser.next(user);
-    }
+  constructor(private http: HttpClient, private localService: LocalService) { }
+
+  public getLoggedUser(): Observable<User> {
+    return this.checkStatus().pipe(switchMap(isLogged => {
+      if (!isLogged) {
+        this.loggedUser.next(new User());
+        return of(new User());
+      }
+
+      return this.localService.getData<User>(this.localService.USER_DATA).pipe(
+        switchMap(user => {
+          if (user)
+            return of(user);
+
+          return this.refreshUserInfo();
+        }),
+        map(user => user ?? new User()),
+        tap(user => this.loggedUser.next(user))
+      );
+    }));
   }
 
   public signIn(email: string, password: string): Observable<User> {
-    return this.http.post<Token>('/api/account/login', {
+    return this.http.post('/api/AccessControl/login', {
       email: email,
       password: password
     }, {
       observe: 'body',
       responseType: 'json'
     })
-      .pipe(
-        map(res => { this.localService.saveData(this.localService.TOKEN_DATA, res) }),
-        concatMap(() => this.refreshUserInfo())
-      );
+    .pipe(
+      concatMap(() => this.refreshUserInfo())
+    );
   }
 
   public refreshToken(): Observable<User> {
-    var token = this.localService.getData<Token>(this.localService.TOKEN_DATA);
-
-    return this.http.post<Token>('/api/account/refresh-token', token, {
+    return this.http.post('/api/AccessControl/refresh-token', null, {
       observe: 'body',
       responseType: 'json'
     })
-      .pipe(
-        map(res => { this.localService.saveData(this.localService.TOKEN_DATA, res) }),
-        concatMap(() => this.refreshUserInfo())
-      );
+    .pipe(
+      concatMap(() => this.refreshUserInfo())
+    );
   }
 
   public register(email: string, password: string, token?: string): Observable<User> {
-    var query = token ? `?token=${token}` : '';
+    const query = token ? `?token=${token}` : '';
 
-    return this.http.post<Token>('/api/account/register' + query, {
+    return this.http.post('/api/AccessControl/register' + query, {
       email: email,
       password: password
     }, {
       observe: 'body',
       responseType: 'json'
     })
-      .pipe(
-        map(res => { this.localService.saveData(this.localService.TOKEN_DATA, res) }),
-        concatMap(() => this.refreshUserInfo())
-      );
+    .pipe(
+      concatMap(() => this.refreshUserInfo())
+    );
+  }
+
+  public checkStatus(): Observable<boolean> {
+    return this.http.get<boolean>('/api/AccessControl/IsLogged', {
+      observe: 'body',
+      responseType: 'json'
+    });
   }
 
   public refreshUserInfo(): Observable<User> {
-    return this.http.get<User>('/api/account/', {
+    return this.http.get<User>('/api/AccessControl/', {
       observe: 'body',
       responseType: 'json'
-    }).pipe(map(user => {
+    }).pipe(tap(user => {
       this.loggedUser.next(user);
-      this.localService.saveData(this.localService.USER_DATA, user);
-      return user;
+      this.localService.saveData(this.localService.USER_DATA, user).subscribe();
     }));
   }
 
@@ -82,26 +101,33 @@ export class UserService {
   }
 
   public setUserInfo(firstName: string, lastName: string): Observable<User> {
-    return this.http.put('/api/account/', {
+    return this.http.put('/api/AccessControl/', {
       firstName: firstName,
       lastName: lastName
-    }).pipe(concatMap(res => {
+    }).pipe(concatMap(() => {
         return this.refreshUserInfo();
       }));
   }
 
-  public manageInfo(newEmail: string = '', newPassword: string = '', oldPassword: string = '') {
-    return this.http.post('/api/account/manage/info/', {
+  public update(patch: Operation[]): Observable<User> {
+    return this.http.patch<User>('/api/AccessControl/', patch).pipe(tap(user => {
+      this.loggedUser.next(user);
+      this.localService.saveData(this.localService.USER_DATA, user).subscribe();
+    }));
+  }
+
+  public manageInfo(newEmail = '', newPassword = '', oldPassword = '') {
+    return this.http.post('/api/AccessControl/manage/info/', {
       newEmail: newEmail,
       newPassword: newPassword,
       oldPassword: oldPassword
-    }).pipe(concatMap(res => {
+    }).pipe(concatMap(() => {
       return this.refreshUserInfo();
     }));
   }
 
   public setDefaultProject(projectId: string) {
-    return this.http.put(`/api/account/default-project/${projectId}`, {}).pipe(concatMap(res => {
+    return this.http.put(`/api/AccessControl/default-project/${projectId}`, {}).pipe(concatMap(() => {
       return this.refreshUserInfo();
     }));
   }
@@ -113,7 +139,7 @@ export class UserService {
         }
       : undefined; 
   
-    return this.http.delete<DeleteUser>('/api/account/', options).pipe(
+    return this.http.delete<DeleteUser>('/api/AccessControl/', options).pipe(
       tap(() => console.log('Delete request sent')),
       catchError((error) => {
         console.error('Error occurred during deletion:', error);
@@ -129,10 +155,17 @@ export class UserService {
     if (projectId)
       queryParams = queryParams.append("projectId", projectId);
 
-    return this.http.get<User[]>('/api/account/search', {
+    return this.http.get<User[]>('/api/AccessControl/search', {
       observe: 'body',
       responseType: 'json',
       params: queryParams
+    });
+  }
+
+  public resendVerification(): Observable<void> {
+    return this.http.post<void>('/api/AccessControl/resendConfirmEmail', null, {
+      observe: 'body',
+      responseType: 'json'
     });
   }
 }

@@ -1,5 +1,7 @@
 ﻿using EasyFinance.Common.Tests;
+using EasyFinance.Common.Tests.AccessControl;
 using EasyFinance.Common.Tests.Financial;
+using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
 using FluentAssertions;
 
@@ -10,7 +12,7 @@ namespace EasyFinance.Domain.Tests.Financial
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void AddName_SendNullAndEmpty_ShouldThrowException(string name)
+        public void AddName_SendNullAndEmpty_ShouldBeSucceeded(string name)
         {
             // Arrange
             var expenseItem = new ExpenseItemBuilder().AddName(name).Build();
@@ -19,11 +21,28 @@ namespace EasyFinance.Domain.Tests.Financial
             var result = expenseItem.Validate;
 
             // Assert
+            result.Succeeded.Should().BeTrue();
+        }
+
+        [Fact]
+        public void AddName_SendUnacceptableLength_ShouldThrowException()
+        {
+            // Arrange
+            var maxLength = PropertyMaxLengths.GetMaxLength(PropertyType.ExpenseItemName);
+            var unacceptableName = new string('a', maxLength + 1);
+            var expenseItem = new ExpenseItemBuilder().AddName(unacceptableName).Build();
+
+            // Act
+            var result = expenseItem.Validate;
+
+            // Assert
             result.Failed.Should().BeTrue();
 
             var message = result.Messages.Should().ContainSingle().Subject;
-            message.Code.Should().Be("Name");
-            message.Description.Should().Be(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, "Name"));
+            message.Code.Should().Be(nameof(expenseItem.Name));
+            message.Description.Should().Be(string.Format(ValidationMessages.PropertyMaxLength,
+                nameof(expenseItem.Name),
+                maxLength));
         }
 
         [Theory]
@@ -59,7 +78,7 @@ namespace EasyFinance.Domain.Tests.Financial
 
             var message = result.Messages.Should().ContainSingle().Subject;
             message.Code.Should().Be("Date");
-            message.Description.Should().Be(ValidationMessages.CantAddFutureExpenseIncome);
+            message.Description.Should().Be(ValidationMessages.CantAddFutureExpense);
         }
 
         [Theory]

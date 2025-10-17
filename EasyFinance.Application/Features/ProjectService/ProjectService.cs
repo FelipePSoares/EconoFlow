@@ -58,9 +58,6 @@ namespace EasyFinance.Application.Features.ProjectService
             if (user == default)
                 return AppResponse<UserProjectResponseDTO>.Error(code: nameof(user), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(user)));
 
-            if (project.Type == ProjectTypes.Company && user.SubscriptionLevel < SubscriptionLevels.Enterprise)
-                return AppResponse<UserProjectResponseDTO>.Error(description: ValidationMessages.CompanyProjectNotAllowed);
-
             var savedProject = unitOfWork.ProjectRepository.InsertOrUpdate(project);
             if (savedProject.Failed)
                 return AppResponse<UserProjectResponseDTO>.Error(savedProject.Messages);
@@ -95,12 +92,6 @@ namespace EasyFinance.Application.Features.ProjectService
 
             var result = dto.FromDTO(existingProject);
 
-            if (projectDto.Operations.Any(op => op.path == "/type"))
-            {
-                if (result.Type == ProjectTypes.Company && user.SubscriptionLevel < SubscriptionLevels.Enterprise)
-                    return AppResponse<ProjectResponseDTO>.Error(description: ValidationMessages.CompanyProjectNotAllowed);
-            }
-
             return await UpdateAsync(result);
         }
 
@@ -124,12 +115,12 @@ namespace EasyFinance.Application.Features.ProjectService
             return AppResponse.Success();
         }
 
-        public async Task<AppResponse<ICollection<ExpenseResponseDTO>>> CopyBudgetFromPreviousMonthAsync(User user, Guid id, DateTime currentDate)
+        public async Task<AppResponse<ICollection<ExpenseResponseDTO>>> CopyBudgetFromPreviousMonthAsync(User user, Guid id, DateOnly currentDate)
         {
             if (id == Guid.Empty)
                 return AppResponse<ICollection<ExpenseResponseDTO>>.Error(code: nameof(id), description: ValidationMessages.InvalidProjectId);
 
-            if (currentDate == DateTime.MinValue)
+            if (currentDate == DateOnly.MinValue)
                 return AppResponse<ICollection<ExpenseResponseDTO>>.Error(code: nameof(currentDate), description: ValidationMessages.InvalidDate);
 
             var project = await unitOfWork.ProjectRepository.Trackable()
@@ -238,6 +229,7 @@ namespace EasyFinance.Application.Features.ProjectService
 
             var expenses = await unitOfWork.ProjectRepository
                 .NoTrackable()
+                .IgnoreQueryFilters() // this removes filters from Projects + related Categories
                 .Where(p => p.Id == projectId)
                 .SelectMany(p => p.Categories.SelectMany(c => c.Expenses
                     .Where(e => e.Amount > 0 && e.Items.Count == 0)
@@ -253,6 +245,7 @@ namespace EasyFinance.Application.Features.ProjectService
 
             var expenseItems = await unitOfWork.ProjectRepository
                 .NoTrackable()
+                .IgnoreQueryFilters() // this removes filters from Projects + related Categories
                 .Where(p => p.Id == projectId)
                 .SelectMany(p => p.Categories.SelectMany(c => c.Expenses
                     .Where(e => e.Items.Count > 0)

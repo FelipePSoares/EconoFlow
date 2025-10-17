@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable, Subscription, interval, map, switchMap } from 'rxjs';
 import { UserService } from '../services/user.service';
 import { User } from '../models/user';
+import { NotificationService } from './notification.service';
 
 @Injectable({
   providedIn: 'root',
@@ -13,12 +14,13 @@ export class AuthService {
   isSignedIn$: Observable<boolean> = this.userService.loggedUser$.pipe(map(user => user.enabled));
   isSignedOut$: Observable<boolean> = this.isSignedIn$.pipe(map(isLoggedIn => !isLoggedIn));
 
-  constructor(private http: HttpClient, private userService: UserService) { }
+  constructor(private http: HttpClient, private userService: UserService, private notificationService: NotificationService) { }
 
   public signIn(email: string, password: string): Observable<User> {
     return this.userService.signIn(email, password)
       .pipe(map(user => {
         this.startUserPolling();
+        this.notificationService.startPolling();
         return user;
       }));
   }
@@ -31,23 +33,25 @@ export class AuthService {
 
   public signOut(): void {
     this.stopUserPolling();
-
-    this.http.post('/api/account/logout', null, {
-      observe: 'response'
-    });
+    this.notificationService.stopPolling();
 
     this.userService.removeUserInfo();
+
+    this.http.post('/api/AccessControl/logout', null, {
+      observe: 'response'
+    }).subscribe();
   }
 
   public register(email: string, password: string, token?: string): Observable<User> {
     return this.userService.register(email, password, token).pipe(map(user => {
       this.startUserPolling();
+      this.notificationService.startPolling();
       return user;
     }));
   }
 
   public forgotPassword(email: string): Observable<boolean> {
-    return this.http.post('/api/account/forgotPassword', {
+    return this.http.post('/api/AccessControl/forgotPassword', {
       email: email
     }, {
       observe: 'response'
@@ -55,7 +59,7 @@ export class AuthService {
   }
 
   public resetPassword(email: string, resetCode: string, newPassword: string): Observable<boolean> {
-    return this.http.post('/api/account/resetPassword', {
+    return this.http.post('/api/AccessControl/resetPassword', {
       email: email,
       resetCode: resetCode,
       newPassword: newPassword
@@ -67,7 +71,7 @@ export class AuthService {
   public startUserPolling() {
     if (this.pollingSubscription) return;
 
-    this.pollingSubscription = interval(30000) // 30 seconds
+    this.pollingSubscription = interval(60000) // 1 minute
       .pipe(switchMap(() => this.userService.refreshUserInfo()))
       .subscribe();
   }

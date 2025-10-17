@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { CurrencyFormatPipe } from '../../utils/pipes/currency-format.pipe';
-import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
+import { CurrentDateService } from '../../services/current-date.service';
 
 @Component({
   selector: 'app-budget-bar',
@@ -26,74 +26,63 @@ export class BudgetBarComponent {
   @Input()
   date!: Date | undefined;
   @Input()
-  hideDecimals: boolean = false;
-  weekLines: number[] = [];
+  hideDecimals = false;
   @Input()
-  typeMonthOrYear: string = 'month';
+  typeMonthOrYear = 'month';
+
+  constructor(private currentDateService: CurrentDateService) { }
+
+  get weekLines(): number[] {
+    if(this.checkIfCurrentMonth()) {
+      return Array.from({ length: 3 }, (_, i) => ((i + 1) / 4) * 100);
+    }
+    return [];
+  }
 
   getPercentageSpend(spend: number, budget: number): number {
     return budget === 0 ? 0 : spend * 100 / budget;
   }
 
   getClassBasedOnPercentage(percentage: number): string {
-    if (percentage <= this.getCurrPercentageOfMonth()) {
-      return '';
-    } else if (percentage <= 100 && percentage > this.getCurrPercentageOfMonth()){
-      return 'warning';
-    }
-
-    return 'danger';
+    return this.test(percentage, '', 'warning', 'danger');
   }
 
   getTextBasedOnPercentage(percentage: number): string {
-    if(percentage <= this.getCurrPercentageOfMonth()){
-      return '';
-    }else if(percentage <= 100 && percentage > this.getCurrPercentageOfMonth()){
-      return 'RiskOverspend';
-    }
-
-    return 'Overspend';
+    return this.test(percentage, '', 'RiskOverspend', 'Overspend');
   }
 
   getClassToProgressBar(percentage: number): string {
-    if(percentage <= this.getCurrPercentageOfMonth()){
-      return 'bg-info';
-    }else if(percentage <= 100 && percentage > this.getCurrPercentageOfMonth()){
-      return 'bg-warning';
-    }
-
-    return 'bg-danger';
+    return this.test(percentage, 'bg-info', 'bg-warning', 'bg-danger');
   }
+
   getCurrPercentageOfMonth():number{
-    var today = new Date();
+    const today = new Date();
     return today ? (today.getDate() / new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()) * 100 : 0;
-  }
-  getWeeksInCurrentMonth(): number {
-    const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), 1);
-    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    const daysInMonth = end.getDate();
-
-    // Week starts on Sunday (0)
-    const startDay = start.getDay();
-    const totalWeeks = Math.ceil((startDay + daysInMonth) / 7);
-
-    return totalWeeks;
-  }
-
-  ngOnInit(): void {
-  if (this.checkIfCurrentMonth()) {
-    const weeks = this.getWeeksInCurrentMonth();
-    this.weekLines = Array.from({ length: weeks - 1 }, (_, i) => ((i + 1) / weeks) * 100);
-    }
   }
 
   checkIfCurrentMonth(): boolean {
-    var today = new Date();
-    return this.typeMonthOrYear=="month" && today.getMonth()  == CurrentDateComponent.currentDate.getMonth() && today.getFullYear() == CurrentDateComponent.currentDate.getFullYear();
+    const today = new Date();
+    return this.typeMonthOrYear == "month" && today.getMonth() == this.currentDateService.currentDate.getMonth() && today.getFullYear() == this.currentDateService.currentDate.getFullYear();
   }
 
   checktypeMonthOrYear(): string {
     return this.typeMonthOrYear;
+  }
+
+  private test(percentage: number, normalText: string, warningText: string, dangerText: string): string {
+    if (this.checkIfCurrentMonth()) {
+      if (percentage <= this.getCurrPercentageOfMonth()) {
+        return normalText;
+      } else if (percentage <= 100 && percentage > this.getCurrPercentageOfMonth()) {
+        return warningText;
+      }
+
+      return dangerText;
+    } else {
+      if (percentage <= 100)
+        return normalText;
+      else
+        return dangerText;
+    }
   }
 }

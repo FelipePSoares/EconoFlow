@@ -1,5 +1,5 @@
 <div align="center">
-<span align="center"><img alt="EconoFlow" width="220" src="https://econoflow.pt/assets/images/logo-300-220.webp"><span /><br>
+<span align="center"><img alt="EconoFlow" width="220" src="https://econoflow.pt/assets/images/logo-without-background-300-min.png"><span /><br>
 <em>An easy system to help you control your personal or company budget.</em>
 <br><br>
 <a title="Build Status" target="_blank" href="https://github.com/FelipePSoares/EconoFlow/actions/workflows/Release.yml"><img src="https://img.shields.io/github/actions/workflow/status/FelipePSoares/EconoFlow/Release.yml?style=flat-square"></a>

@@ -56,7 +56,7 @@ export class RegisterComponent implements OnInit {
 
   buildRegisterForm(){
     this.registerForm = new FormGroup({
-      email: new FormControl('', [Validators.required, Validators.email]),
+      email: new FormControl('', [Validators.required, Validators.email, Validators.maxLength(256)]),
       password: new FormControl('', [Validators.required, Validators.pattern(/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_])(?!.* ).{8,}$/)]),
       confirmPassword: new FormControl('',[Validators.required])
     },{validators: passwordMatchValidator});
@@ -106,7 +106,12 @@ export class RegisterComponent implements OnInit {
   }
 
   celebrate() {
+    const scalar = 2;
+    const money = confetti.shapeFromText({ text: '💵', scalar });
+
     confetti({
+      shapes: [money],
+      scalar,
       particleCount: 150,
       spread: 150,
       ticks: 250,
