@@ -22,33 +22,33 @@
       <div class="slider-container flex-fill ms-3">
         <ul class="slider list-unstyled d-flex">
           @for (category of (categories$ | async); track category.id) {
-          <li class="slide me-1">
-            <div class="card" [class.archived]="category.isArchived" (click)="selectCategory(category.id)">
-              <div class="card-fill"
-                   [ngClass]="getBgClassBasedOnCategory(category)"
-                   [style.height]="setHeight ? category.getPercentageSpend() + 'px' : '0px'"></div>
-              <div class="card-body">
-                <h3 class="card-title">{{ category.name }}</h3>
+            <li class="slide me-1">
+              <div class="card" [class.archived]="category.isArchived" (click)="selectCategory(category.id)">
+                <div class="card-fill"
+                  [ngClass]="getBgClassBasedOnCategory(category)"
+                [style.height]="setHeight ? category.getPercentageSpend() + 'px' : '0px'"></div>
+                <div class="card-body">
+                  <h3 class="card-title">{{ category.name }}</h3>
 
-                <div>
-                  <span class="card-value danger d-block">
-                    {{ (category.getTotalSpend() + category.getTotalOverspend()) | currencyFormat: true }}
-                  </span>
-                  @if(!category.hasBudget()){
-                  <span class="card-small-text">{{ 'SetBudget' | translate }}</span>
-                  } @else if (category.hasOverspend()){
-                  <span class="card-small-text danger">
-                    {{ 'BudgetExceeded' | translate }}
-                  </span>
-                  } @else {
-                  <span class="card-small-text" [ngClass]="getClassBasedOnCategory(category)">
-                    {{ category.getTotalRemaining() | currencyFormat: true }} {{ 'Remaining' | translate }}
-                  </span>
-                  }
+                  <div>
+                    <span class="card-value danger d-block">
+                      {{ (category.getTotalSpend() + category.getTotalOverspend()) | currencyFormat: true }}
+                    </span>
+                    @if(!category.hasBudget()){
+                      <span class="card-small-text">{{ 'SetBudget' | translate }}</span>
+                    } @else if (category.hasOverspend()){
+                      <span class="card-small-text danger">
+                        {{ 'BudgetExceeded' | translate }}
+                      </span>
+                    } @else {
+                      <span class="card-small-text" [ngClass]="getClassBasedOnCategory(category)">
+                        {{ category.getTotalRemaining() | currencyFormat: true }} {{ 'Remaining' | translate }}
+                      </span>
+                    }
+                  </div>
                 </div>
               </div>
-            </div>
-          </li>
+            </li>
           }
           @if (canAddOrEdit()){
           <li class="slide">
@@ -57,8 +57,7 @@
                 <fa-icon class="btn btn-primary btn-circle" [icon]="faPlus" size="2xl"></fa-icon>
                 <span class="mt-2">{{ 'AddAndEdit' | translate }}</span>
               </div>
-            </div>
-          </li>
+            </li>
           }
         </ul>
       </div>
@@ -78,19 +77,20 @@
               </div>
             </div>
 
-            <button class="btn btn-primary"
-                    (click)="copyPreviousBudget()"
-                    *ngIf="showCopyPreviousButton">
-              {{ 'ButtonClonePreviousBudget' | translate }}
-
-            </button>
+            @if (showCopyPreviousButton) {
+              <button class="btn btn-primary"
+                (click)="copyPreviousBudget()"
+                >
+                {{ 'ButtonClonePreviousBudget' | translate }}
+              </button>
+            }
             <app-budget-bar
-                            [spend]="month.spend"
-                            [budget]="month.budget"
-                            [overspend]="month.overspend"
-                            [remaining]="month.remaining"
-                            [hideDecimals]="true"
-                            [typeMonthOrYear]="'month'">
+              [spend]="month.spend"
+              [budget]="month.budget"
+              [overspend]="month.overspend"
+              [remaining]="month.remaining"
+              [hideDecimals]="true"
+              [typeMonthOrYear]="'month'">
             </app-budget-bar>
             <hr class="solid" />
             <div class="d-grid label-money">
@@ -115,12 +115,12 @@
               </div>
             </div>
             <app-budget-bar
-                            [spend]="year.spend"
-                            [budget]="year.budget"
-                            [overspend]="year.overspend"
-                            [remaining]="year.remaining"
-                            [hideDecimals]="true"
-                            [typeMonthOrYear]="'year'">
+              [spend]="year.spend"
+              [budget]="year.budget"
+              [overspend]="year.overspend"
+              [remaining]="year.remaining"
+              [hideDecimals]="true"
+              [typeMonthOrYear]="'year'">
             </app-budget-bar>
             <hr class="solid" />
             <div class="d-grid label-money">
@@ -159,9 +159,9 @@
                     <div class="d-flex align-items-center py-3">
                       <div class="transaction-icon me-3">
                         <fa-icon [icon]="row.type === 'Income' ? faArrowDown : faArrowUp"
-                                 class="fa-rotate-45"
-                                 [class]="row.type === 'Income' ? 'money-in' : 'money-out'"
-                                 size="lg">
+                          class="fa-rotate-45"
+                          [class]="row.type === 'Income' ? 'money-in' : 'money-out'"
+                          size="lg">
                         </fa-icon>
                       </div>
                       <div>
@@ -183,7 +183,7 @@
 
                 <tr mat-header-row *matHeaderRowDef="['date', 'description', 'amount']" class="bg-light"></tr>
                 <tr mat-row *matRowDef="let row; columns: ['date', 'description', 'amount'];"
-                    class="hover-row"></tr>
+                class="hover-row"></tr>
               </table>
             </div>
           </div>

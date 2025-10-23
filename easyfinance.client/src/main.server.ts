@@ -1,13 +1,13 @@
-import { bootstrapApplication } from '@angular/platform-browser';
+import { provideServerRendering } from '@angular/ssr';
+import { bootstrapApplication, BootstrapContext } from '@angular/platform-browser';
 import { AppComponent } from './app/features/app.component';
-import { provideServerRendering } from '@angular/platform-server';
 import { importProvidersFrom } from '@angular/core';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { HttpClient, provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { TranslateHttpLoader } from './app/core/utils/loaders/translate-http-loader';
 import { LoadingInterceptor } from './app/core/interceptor/loading.interceptor';
 
-const bootstrap = () => bootstrapApplication(AppComponent, {
+const bootstrap = (context: BootstrapContext) => bootstrapApplication(AppComponent, {
   providers: [
     provideServerRendering(),
     importProvidersFrom(
@@ -25,6 +25,6 @@ const bootstrap = () => bootstrapApplication(AppComponent, {
       withInterceptors([LoadingInterceptor])
     )
   ]
-});
+}, context);
 
 export default bootstrap;

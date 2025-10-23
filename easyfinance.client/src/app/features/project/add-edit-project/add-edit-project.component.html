@@ -7,7 +7,9 @@
         <mat-label>{{ 'FieldProjectName' | translate }}</mat-label>
         <input matInput id="name" placeholder="{{ 'PlaceholderProjectName' | translate }}" formControlName="name">
         @if (name?.invalid && name?.touched){
-        <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error |  translate }}</mat-error>
+          @for (error of getFormFieldErrors('name'); track error) {
+            <mat-error>{{ error |  translate }}</mat-error>
+          }
         }
       </mat-form-field>
 
@@ -16,21 +18,29 @@
         <mat-label>{{ 'FieldCurrency' | translate }}</mat-label>
         <mat-select formControlName="preferredCurrency">
           @for (currency of getCurrencies(); track currency) {
-          <mat-option [value]="currency">{{currency}}</mat-option>
+            <mat-option [value]="currency">{{currency}}</mat-option>
           }
           @if (preferredCurrency?.invalid && preferredCurrency?.touched){
-          <mat-error *ngFor="let error of getFormFieldErrors('preferredCurrency')">{{ error |  translate }}</mat-error>
+            @for (error of getFormFieldErrors('preferredCurrency'); track error) {
+              <mat-error>{{ error |  translate }}</mat-error>
+            }
           }
         </mat-select>
         @if (preferredCurrency?.invalid && preferredCurrency?.touched){
-        <mat-error *ngFor="let error of getFormFieldErrors('preferredCurrency')">{{ error |  translate }}</mat-error>
+          @for (error of getFormFieldErrors('preferredCurrency'); track error) {
+            <mat-error>{{ error |  translate }}</mat-error>
+          }
         }
       </mat-form-field>
 
       <!-- General Error Display -->
-      <div *ngIf="httpErrors && errors['general']">
-        <p *ngFor="let error of errors['general']" class="mb-3 text-danger text-center">{{ error | translate }}</p>
-      </div>
+      @if (httpErrors && errors['general']) {
+        <div>
+          @for (error of errors['general']; track error) {
+            <p class="mb-3 text-danger text-center">{{ error | translate }}</p>
+          }
+        </div>
+      }
 
       <!-- Submit Button -->
       <div class="float-end">

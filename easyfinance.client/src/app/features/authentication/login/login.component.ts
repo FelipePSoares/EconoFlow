@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
-import { CommonModule } from '@angular/common';
+
 import { ApiErrorResponse } from '../../../core/models/error';
 import { take } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -14,15 +14,14 @@ import { ErrorMessageService } from '../../../core/services/error-message.servic
 @Component({
     selector: 'app-login',
     imports: [
-        CommonModule,
-        FormsModule,
-        ReactiveFormsModule,
-        RouterLink,
-        MatFormFieldModule,
-        MatInputModule,
-        MatIcon,
-        TranslateModule
-    ],
+    FormsModule,
+    ReactiveFormsModule,
+    RouterLink,
+    MatFormFieldModule,
+    MatInputModule,
+    MatIcon,
+    TranslateModule
+],
     templateUrl: './login.component.html',
     styleUrls: ['./login.component.css']
 })
