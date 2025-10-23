@@ -5,7 +5,7 @@ import { take } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIcon } from "@angular/material/icon";
-import { CommonModule } from '@angular/common';
+
 import confetti from 'canvas-confetti';
 import { TranslateModule } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
@@ -16,15 +16,14 @@ import { ErrorMessageService } from '../../../core/services/error-message.servic
 @Component({
     selector: 'app-register',
     imports: [
-        CommonModule,
-        FormsModule,
-        ReactiveFormsModule,
-        RouterLink,
-        MatFormFieldModule,
-        MatInputModule,
-        MatIcon,
-        TranslateModule
-    ],
+    FormsModule,
+    ReactiveFormsModule,
+    RouterLink,
+    MatFormFieldModule,
+    MatInputModule,
+    MatIcon,
+    TranslateModule
+],
     templateUrl: './register.component.html',
     styleUrls: ['./register.component.css']
 })

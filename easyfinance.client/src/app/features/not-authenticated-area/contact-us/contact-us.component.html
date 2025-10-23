@@ -1,42 +1,50 @@
 <section class="contact-container">
-        <h2>Send Us a Message</h2>
-        <form [formGroup]="contactForm" (ngSubmit)="onSubmit()">
-          <div class="form-group">
-            <label for="name">Name</label>
-            <input formControlName="name" id="name" type="text" placeholder="Your name" />
-            @if (f['name'].invalid && f['name'].touched){
-            <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error |  translate }}</mat-error>
-            }
-          </div>
+  <h2>Send Us a Message</h2>
+  <form [formGroup]="contactForm" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="name">Name</label>
+      <input formControlName="name" id="name" type="text" placeholder="Your name" />
+      @if (f['name'].invalid && f['name'].touched){
+        @for (error of getFormFieldErrors('name'); track error) {
+          <mat-error>{{ error |  translate }}</mat-error>
+        }
+      }
+    </div>
 
-          <div class="form-group">
-            <label for="email">Email</label>
-            <input formControlName="email" id="email" type="email" placeholder="Your email" />
-            @if (f['email'].invalid && f['email'].touched){
-            <mat-error *ngFor="let error of getFormFieldErrors('email')">{{ error |  translate }}</mat-error>
-            }
-          </div>
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input formControlName="email" id="email" type="email" placeholder="Your email" />
+      @if (f['email'].invalid && f['email'].touched){
+        @for (error of getFormFieldErrors('email'); track error) {
+          <mat-error>{{ error |  translate }}</mat-error>
+        }
+      }
+    </div>
 
-          <div class="form-group">
-            <label for="subject">Subject</label>
-            <input formControlName="subject" id="subject" type="text" placeholder="Subject" />
-            @if (f['subject'].invalid && f['subject'].touched){
-            <mat-error *ngFor="let error of getFormFieldErrors('subject')">{{ error |  translate }}</mat-error>
-            }
-          </div>
+    <div class="form-group">
+      <label for="subject">Subject</label>
+      <input formControlName="subject" id="subject" type="text" placeholder="Subject" />
+      @if (f['subject'].invalid && f['subject'].touched){
+        @for (error of getFormFieldErrors('subject'); track error) {
+          <mat-error>{{ error |  translate }}</mat-error>
+        }
+      }
+    </div>
 
-          <div class="form-group">
-            <label for="message">Message</label>
-            <textarea formControlName="message" id="message" rows="4" placeholder="Your message"></textarea>
-            @if (f['message'].invalid && f['message'].touched){
-            <mat-error *ngFor="let error of getFormFieldErrors('message')">{{ error |  translate }}</mat-error>
-            }
-          </div>
+    <div class="form-group">
+      <label for="message">Message</label>
+      <textarea formControlName="message" id="message" rows="4" placeholder="Your message"></textarea>
+      @if (f['message'].invalid && f['message'].touched){
+        @for (error of getFormFieldErrors('message'); track error) {
+          <mat-error>{{ error |  translate }}</mat-error>
+        }
+      }
+    </div>
 
-          <!-- Submit Button -->
-          <button mat-raised-button color="primary" type="submit" [disabled]="contactForm.invalid">
-            {{ 'ButtonSendMessage' | translate }}
-          </button>
-        </form>
-   
-  </section>
+    <!-- Submit Button -->
+    <button mat-raised-button color="primary" type="submit" [disabled]="contactForm.invalid">
+      {{ 'ButtonSendMessage' | translate }}
+    </button>
+  </form>
+
+</section>

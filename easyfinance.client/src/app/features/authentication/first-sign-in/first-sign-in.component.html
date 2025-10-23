@@ -1,50 +1,58 @@
 <div class="modal-wrapper">
-    <div class="modal" tabindex="-1" role="dialog">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <span class="modal-title">{{ 'WeWantCallYourName' | translate }}</span>
-          </div>
-          <div class="modal-body">
-            <form class="user-form" [formGroup]="userForm" (ngSubmit)="onSubmit()">
-              <div class="form-floating mb-1">
-                <p>{{ 'PleaseTellUs' | translate }}</p>
-              </div>
+  <div class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <span class="modal-title">{{ 'WeWantCallYourName' | translate }}</span>
+        </div>
+        <div class="modal-body">
+          <form class="user-form" [formGroup]="userForm" (ngSubmit)="onSubmit()">
+            <div class="form-floating mb-1">
+              <p>{{ 'PleaseTellUs' | translate }}</p>
+            </div>
 
-              <!-- First Name Field -->
-              <mat-form-field appearance="fill" class="w-100">
-                <mat-label>{{ 'FieldFirstName' |  translate }}</mat-label>
-                <input matInput placeholder="{{ 'PlaceholderFirstName' | translate }}" formControlName="firstName">
-                @if (firstName?.invalid && firstName?.touched){
-                <mat-error *ngFor="let error of getFormFieldErrors('firstName')">{{ error |  translate }}</mat-error>
+            <!-- First Name Field -->
+            <mat-form-field appearance="fill" class="w-100">
+              <mat-label>{{ 'FieldFirstName' |  translate }}</mat-label>
+              <input matInput placeholder="{{ 'PlaceholderFirstName' | translate }}" formControlName="firstName">
+              @if (firstName?.invalid && firstName?.touched){
+                @for (error of getFormFieldErrors('firstName'); track error) {
+                  <mat-error>{{ error |  translate }}</mat-error>
                 }
-              </mat-form-field>
+              }
+            </mat-form-field>
 
-              <!-- Last Name Field -->
-              <mat-form-field appearance="fill" class="w-100">
-                <mat-label>{{ 'FieldLastName' |  translate }}</mat-label>
-                <input matInput placeholder="{{ 'PlaceholderLastName' | translate }}" formControlName="lastName">
-                @if (lastName?.invalid && lastName?.touched){
-                <mat-error *ngFor="let error of getFormFieldErrors('lastName')">{{ error |  translate }}</mat-error>
+            <!-- Last Name Field -->
+            <mat-form-field appearance="fill" class="w-100">
+              <mat-label>{{ 'FieldLastName' |  translate }}</mat-label>
+              <input matInput placeholder="{{ 'PlaceholderLastName' | translate }}" formControlName="lastName">
+              @if (lastName?.invalid && lastName?.touched){
+                @for (error of getFormFieldErrors('lastName'); track error) {
+                  <mat-error>{{ error |  translate }}</mat-error>
                 }
-              </mat-form-field>
+              }
+            </mat-form-field>
 
-              <!-- General Error Display -->
-              <div *ngIf="httpErrors && errors['general']">
-                <p *ngFor="let error of errors['general']" class="mb-3 text-danger text-center">{{ error | translate }}</p>
+            <!-- General Error Display -->
+            @if (httpErrors && errors['general']) {
+              <div>
+                @for (error of errors['general']; track error) {
+                  <p class="mb-3 text-danger text-center">{{ error | translate }}</p>
+                }
               </div>
+            }
 
-              <!-- Submit Button -->
-              <div class="float-end">
-                <button mat-raised-button color="primary" type="submit" [disabled]="userForm.invalid">
-                  {{ 'ButtonSend' | translate }}
-                </button>
-              </div>
-            </form>
-          </div>
+            <!-- Submit Button -->
+            <div class="float-end">
+              <button mat-raised-button color="primary" type="submit" [disabled]="userForm.invalid">
+                {{ 'ButtonSend' | translate }}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
+  </div>
 
   <div class="modal-overlay" #overlay></div>
 </div>

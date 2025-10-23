@@ -12,114 +12,123 @@
       </div>
 
       <!-- Email Update Success State -->
-      <div *ngIf="isEmailUpdated" class="card shadow-sm border-0 mb-4">
-        <div class="card-body text-center p-5">
-          <div class="text-success mb-4">
-            <i class="bi bi-envelope-check-fill"></i>
-          </div>
-          <h3 class="mb-3">{{ 'CheckYourEmail' | translate }}</h3>
-          <p class="text-muted mb-4">{{ 'WeSentConfirmation' | translate }}</p>
-          <div class="text-center">
-            <small class="text-muted">{{ 'DidNotReceiveEmail' | translate }}</small>
+      @if (isEmailUpdated) {
+        <div class="card shadow-sm border-0 mb-4">
+          <div class="card-body text-center p-5">
+            <div class="text-success mb-4">
+              <i class="bi bi-envelope-check-fill"></i>
+            </div>
+            <h3 class="mb-3">{{ 'CheckYourEmail' | translate }}</h3>
+            <p class="text-muted mb-4">{{ 'WeSentConfirmation' | translate }}</p>
+            <div class="text-center">
+              <small class="text-muted">{{ 'DidNotReceiveEmail' | translate }}</small>
+            </div>
           </div>
         </div>
-      </div>
+      }
 
       <!-- Email Update Form -->
-      <div *ngIf="!isEmailUpdated" class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-white py-3">
-          <h3 class="card-title mb-0 h5">
-            <i class="bi bi-envelope-at me-2 text-primary"></i>
-            {{ 'ChangeEmailAddress' | translate }}
-          </h3>
+      @if (!isEmailUpdated) {
+        <div class="card shadow-sm border-0 mb-4">
+          <div class="card-header bg-white py-3">
+            <h3 class="card-title mb-0 h5">
+              <i class="bi bi-envelope-at me-2 text-primary"></i>
+              {{ 'ChangeEmailAddress' | translate }}
+            </h3>
+          </div>
+          <div class="card-body p-4">
+            <form [formGroup]="userForm">
+              <!-- Current Email Display (if needed) -->
+              @if (currentEmail) {
+                <div class="row g-3 mb-4">
+                  <div class="col-12">
+                    <div class="alert alert-info border-0 d-flex align-items-center">
+                      <i class="bi bi-info-circle me-2"></i>
+                      <div>
+                        <small class="text-muted">{{ 'CurrentEmail' | translate }}: </small>
+                        <strong>{{ currentEmail }}</strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+              <!-- Email Field -->
+              <div class="row g-3 mb-4">
+                <div class="col-12">
+                  <mat-form-field appearance="fill" class="w-100">
+                    <mat-label>{{ 'FieldEmailAddress' | translate }}</mat-label>
+                    <input matInput placeholder="{{ 'PlaceholderEmailAddress' | translate }}" formControlName="email" type="email">
+                    @if (email?.invalid && email?.touched) {
+                      @for (error of getFormFieldErrors(userForm, 'email'); track error) {
+                        <mat-error>{{ error | translate }}</mat-error>
+                      }
+                    }
+                  </mat-form-field>
+                </div>
+              </div>
+              <!-- Email Status -->
+              @if (user$ | async; as user) {
+                <div class="row g-3 mb-4">
+                  <div class="col-12">
+                    <div class="d-flex align-items-center p-3 border rounded"
+                      [class.border-success]="user.emailConfirmed"
+                      [class.border-warning]="!user.emailConfirmed">
+                      <div class="me-3">
+                        <i class="bi"
+                          [class.bi-check-circle-fill]="user.emailConfirmed"
+                          [class.bi-exclamation-triangle-fill]="!user.emailConfirmed"
+                          [class.text-success]="user.emailConfirmed"
+                        [class.text-warning]="!user.emailConfirmed"></i>
+                      </div>
+                      <div class="flex-grow-1">
+                        <h4 class="mb-1"
+                          [class.text-success]="user.emailConfirmed"
+                          [class.text-warning]="!user.emailConfirmed">
+                          {{ user.emailConfirmed ? ('EmailVerified' | translate) : ('EmailNotVerified' | translate) }}
+                        </h4>
+                        <small class="text-muted" [innerHtml]="user.emailConfirmed ? ('YourEmailIsVerified' | translate) : ('PleaseCheckYourEmailToVerify' | translate)">
+                        </small>
+                      </div>
+                      @if (!user.emailConfirmed) {
+                        <div>
+                          <button type="button" class="btn btn-outline-primary btn-sm ms-3" (click)="resendVerification()">
+                            <i class="bi bi-arrow-clockwise me-1"></i>
+                            {{ 'ResendVerification' | translate }}
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
+              <!-- Error Messages -->
+              @if (httpErrors && errors['general']) {
+                <div class="row g-3 mb-4">
+                  <div class="col-12">
+                    @for (error of errors['general']; track error) {
+                      <div class="alert alert-danger border-0">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        {{ error | translate }}
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+              <!-- Action Buttons -->
+              <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-outline-secondary px-4" (click)="reset()">
+                  <i class="bi bi-x-circle me-2"></i>
+                  {{ 'ButtonCancel' | translate }}
+                </button>
+                <button type="button" class="btn btn-primary px-4" (click)="updateEmail()" [disabled]="userForm.invalid">
+                  <i class="bi bi-check-circle me-2"></i>
+                  {{ 'ButtonUpdate' | translate }}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-
-        <div class="card-body p-4">
-          <form [formGroup]="userForm">
-
-            <!-- Current Email Display (if needed) -->
-            <div class="row g-3 mb-4" *ngIf="currentEmail">
-              <div class="col-12">
-                <div class="alert alert-info border-0 d-flex align-items-center">
-                  <i class="bi bi-info-circle me-2"></i>
-                  <div>
-                    <small class="text-muted">{{ 'CurrentEmail' | translate }}: </small>
-                    <strong>{{ currentEmail }}</strong>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Email Field -->
-            <div class="row g-3 mb-4">
-              <div class="col-12">
-                <mat-form-field appearance="fill" class="w-100">
-                  <mat-label>{{ 'FieldEmailAddress' | translate }}</mat-label>
-                  <input matInput placeholder="{{ 'PlaceholderEmailAddress' | translate }}" formControlName="email" type="email">
-                  @if (email?.invalid && email?.touched) {
-                  <mat-error *ngFor="let error of getFormFieldErrors(userForm, 'email')">{{ error | translate }}</mat-error>
-                  }
-                </mat-form-field>
-              </div>
-            </div>
-
-            <!-- Email Status -->
-            <div class="row g-3 mb-4" *ngIf="user$ | async as user">
-              <div class="col-12">
-                <div class="d-flex align-items-center p-3 border rounded"
-                     [class.border-success]="user.emailConfirmed"
-                     [class.border-warning]="!user.emailConfirmed">
-                  <div class="me-3">
-                    <i class="bi"
-                       [class.bi-check-circle-fill]="user.emailConfirmed"
-                       [class.bi-exclamation-triangle-fill]="!user.emailConfirmed"
-                       [class.text-success]="user.emailConfirmed"
-                       [class.text-warning]="!user.emailConfirmed"></i>
-                  </div>
-                  <div class="flex-grow-1">
-                    <h4 class="mb-1"
-                        [class.text-success]="user.emailConfirmed"
-                        [class.text-warning]="!user.emailConfirmed">
-                      {{ user.emailConfirmed ? ('EmailVerified' | translate) : ('EmailNotVerified' | translate) }}
-                    </h4>
-                    <small class="text-muted" [innerHtml]="user.emailConfirmed ? ('YourEmailIsVerified' | translate) : ('PleaseCheckYourEmailToVerify' | translate)">
-                    </small>
-                  </div>
-                  <div *ngIf="!user.emailConfirmed">
-                    <button type="button" class="btn btn-outline-primary btn-sm ms-3" (click)="resendVerification()">
-                      <i class="bi bi-arrow-clockwise me-1"></i>
-                      {{ 'ResendVerification' | translate }}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Error Messages -->
-            <div *ngIf="httpErrors && errors['general']" class="row g-3 mb-4">
-              <div class="col-12">
-                <div class="alert alert-danger border-0" *ngFor="let error of errors['general']">
-                  <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                  {{ error | translate }}
-                </div>
-              </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="d-flex justify-content-end gap-2">
-              <button type="button" class="btn btn-outline-secondary px-4" (click)="reset()">
-                <i class="bi bi-x-circle me-2"></i>
-                {{ 'ButtonCancel' | translate }}
-              </button>
-              <button type="button" class="btn btn-primary px-4" (click)="updateEmail()" [disabled]="userForm.invalid">
-                <i class="bi bi-check-circle me-2"></i>
-                {{ 'ButtonUpdate' | translate }}
-              </button>
-            </div>
-
-          </form>
-        </div>
-      </div>
+      }
 
       <!-- Email Security Information -->
       <div class="card shadow-sm border-0 mb-4">

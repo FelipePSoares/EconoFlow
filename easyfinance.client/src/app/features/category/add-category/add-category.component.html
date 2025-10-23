@@ -6,26 +6,34 @@
       <mat-form-field appearance="fill" class="w-100">
         <mat-label>{{ 'FieldCategoryName' | translate }}</mat-label>
         <input matInput
-               id="name"
-               formControlName="name"
-               [matAutocomplete]="auto"
-               #nameInput
-               />
+          id="name"
+          formControlName="name"
+          [matAutocomplete]="auto"
+          #nameInput
+          />
         @if (name?.invalid && name?.touched){
-        <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error |  translate }}</mat-error>
+          @for (error of getFormFieldErrors('name'); track error) {
+            <mat-error>{{ error |  translate }}</mat-error>
+          }
         }
 
         <mat-autocomplete #auto="matAutocomplete">
-          <mat-option *ngFor="let option of filteredCategories$ | async" [value]="option">
-            {{ option }}
-          </mat-option>
+          @for (option of filteredCategories$ | async; track option) {
+            <mat-option [value]="option">
+              {{ option }}
+            </mat-option>
+          }
         </mat-autocomplete>
       </mat-form-field>
 
       <!-- General Error Display -->
-      <div *ngIf="httpErrors && errors['general']">
-        <p *ngFor="let error of errors['general']" class="mb-3 text-danger text-center">{{ error | translate }}</p>
-      </div>
+      @if (httpErrors && errors['general']) {
+        <div>
+          @for (error of errors['general']; track error) {
+            <p class="mb-3 text-danger text-center">{{ error | translate }}</p>
+          }
+        </div>
+      }
 
       <!-- Submit Button -->
       <div class="float-end">

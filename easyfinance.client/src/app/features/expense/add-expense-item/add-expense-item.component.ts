@@ -3,7 +3,7 @@ import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } 
 import { Router } from '@angular/router';
 import { map } from 'rxjs';
 import { compare } from 'fast-json-patch';
-import { CommonModule } from '@angular/common';
+
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -27,18 +27,17 @@ import { CurrentDateService } from '../../../core/services/current-date.service'
 @Component({
     selector: 'app-add-expense-item',
     imports: [
-        CommonModule,
-        FormsModule,
-        ReactiveFormsModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatButtonModule,
-        MatIconModule,
-        MatDatepickerModule,
-        MatNativeDateModule,
-        CurrencyMaskModule,
-        TranslateModule
-    ],
+    FormsModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatIconModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    CurrencyMaskModule,
+    TranslateModule
+],
     templateUrl: './add-expense-item.component.html',
     styleUrl: './add-expense-item.component.css'
 })

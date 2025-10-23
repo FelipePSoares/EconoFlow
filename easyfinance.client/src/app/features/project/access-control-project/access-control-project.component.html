@@ -6,18 +6,22 @@
       <mat-form-field appearance="fill" class="w-100">
         <mat-label>{{ 'FieldUserEmail' | translate }}</mat-label>
         <input matInput
-                placeholder="{{ 'PlaceholderEmailAddress' | translate }}"
-                id="user"
-                formControlName="user"
-                [matAutocomplete]="auto" />
+          placeholder="{{ 'PlaceholderEmailAddress' | translate }}"
+          id="user"
+          formControlName="user"
+          [matAutocomplete]="auto" />
         @if (user?.invalid && user?.touched){
-        <mat-error *ngFor="let error of getFormFieldErrors('user')">{{ error |  translate }}</mat-error>
+          @for (error of getFormFieldErrors('user'); track error) {
+            <mat-error>{{ error |  translate }}</mat-error>
+          }
         }
 
         <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn">
-          <mat-option *ngFor="let user of filteredUsers$ | async" [value]="user">
-            {{ user.fullName }} - {{ user.email }}
-          </mat-option>
+          @for (user of filteredUsers$ | async; track user) {
+            <mat-option [value]="user">
+              {{ user.fullName }} - {{ user.email }}
+            </mat-option>
+          }
         </mat-autocomplete>
       </mat-form-field>
 
@@ -25,17 +29,27 @@
       <mat-form-field appearance="fill" class="w-100">
         <mat-label>{{ 'FieldRole' | translate }}</mat-label>
         <mat-select formControlName="role">
-          <mat-option *ngFor="let role of roles" [value]="role">{{ role2LabelMapping[role] | translate }}</mat-option>
+          @for (role of roles; track role) {
+            <mat-option [value]="role">{{ role2LabelMapping[role] | translate }}</mat-option>
+          }
         </mat-select>
-        <mat-error *ngIf="role?.invalid && role?.touched">
-          <span *ngFor="let error of getFormFieldErrors('role')">{{ error |  translate }}</span>
-        </mat-error>
+        @if (role?.invalid && role?.touched) {
+          <mat-error>
+            @for (error of getFormFieldErrors('role'); track error) {
+              <span>{{ error |  translate }}</span>
+            }
+          </mat-error>
+        }
       </mat-form-field>
 
       <!-- General Error Display -->
-      <div *ngIf="httpErrors && errors['general']">
-        <p *ngFor="let error of errors['general']" class="mb-3 text-danger text-center">{{ error | translate }}</p>
-      </div>
+      @if (httpErrors && errors['general']) {
+        <div>
+          @for (error of errors['general']; track error) {
+            <p class="mb-3 text-danger text-center">{{ error | translate }}</p>
+          }
+        </div>
+      }
 
       <!-- Submit Button -->
       <div class="float-end">
@@ -62,36 +76,37 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let user of currentUsers$ | async">
-              <!-- User -->
-              <td class="text-break">
-                @if (user.userName){
-                <div>{{ user.userName }}</div>
-                <small class="text-muted">{{ user.userEmail }}</small>
-                } @else {
-                <div>{{ user.userEmail }}</div>
-                }
-              </td>
-
-              <!-- Role -->
-              <td>
-                <mat-form-field appearance="outline" class="role mat-form-field-sm w-100">
-                  <mat-select [(ngModel)]="user.role" (selectionChange)="updateUserRole()">
-                    <mat-option *ngFor="let role of roles" [value]="role">{{ role2LabelMapping[role] | translate }}</mat-option>
-                  </mat-select>
-                </mat-form-field>
-              </td>
-
-              <!-- Accepted -->
-              <td class="d-none d-md-table-cell">{{ (user.accepted ? 'Yes' : 'No') | translate }}</td>
-
-              <!-- Actions -->
-              <td>
-                <button mat-icon-button color="warn" (click)="removeUser(user.id)" aria-label="Remover usuário">
-                  <mat-icon>delete</mat-icon>
-                </button>
-              </td>
-            </tr>
+            @for (user of currentUsers$ | async; track user) {
+              <tr>
+                <!-- User -->
+                <td class="text-break">
+                  @if (user.userName){
+                    <div>{{ user.userName }}</div>
+                    <small class="text-muted">{{ user.userEmail }}</small>
+                  } @else {
+                    <div>{{ user.userEmail }}</div>
+                  }
+                </td>
+                <!-- Role -->
+                <td>
+                  <mat-form-field appearance="outline" class="role mat-form-field-sm w-100">
+                    <mat-select [(ngModel)]="user.role" (selectionChange)="updateUserRole()">
+                      @for (role of roles; track role) {
+                        <mat-option [value]="role">{{ role2LabelMapping[role] | translate }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                </td>
+                <!-- Accepted -->
+                <td class="d-none d-md-table-cell">{{ (user.accepted ? 'Yes' : 'No') | translate }}</td>
+                <!-- Actions -->
+                <td>
+                  <button mat-icon-button color="warn" (click)="removeUser(user.id)" aria-label="Remover usuário">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </td>
+              </tr>
+            }
           </tbody>
         </table>
       </div>

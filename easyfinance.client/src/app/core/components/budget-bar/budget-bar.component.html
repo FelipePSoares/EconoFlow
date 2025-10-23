@@ -3,31 +3,33 @@
   <span class="float-end" [ngClass]="getClassBasedOnPercentage(getPercentageSpend(spend + overspend, budget))">{{getTextBasedOnPercentage(getPercentageSpend(spend + overspend, budget)) | translate }} {{ remaining | currencyFormat: hideDecimals }} {{ 'Left' | translate }}</span>
 </div>
 <div class="progress-wrapper position-relative">
-<div class="progress mt-1">
-  <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-       [ngClass]="getClassToProgressBar(getPercentageSpend(spend, budget + overspend))"
-       [style.width.%]="getPercentageSpend(spend, budget + overspend)"
-       [attr.aria-valuenow]="getPercentageSpend(spend, budget + overspend)">
-    {{ spend | currencyFormat: hideDecimals }}
+  <div class="progress mt-1">
+    <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+      [ngClass]="getClassToProgressBar(getPercentageSpend(spend, budget + overspend))"
+      [style.width.%]="getPercentageSpend(spend, budget + overspend)"
+      [attr.aria-valuenow]="getPercentageSpend(spend, budget + overspend)">
+      {{ spend | currencyFormat: hideDecimals }}
+    </div>
+    <div class="progress-bar progress-bar-striped bg-danger" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+      [style.width.%]="getPercentageSpend(overspend, budget + overspend)"
+      [attr.aria-valuenow]="getPercentageSpend(overspend, budget + overspend)">
+      {{ overspend | currencyFormat: hideDecimals }}
+    </div>
   </div>
-  <div class="progress-bar progress-bar-striped bg-danger" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-       [style.width.%]="getPercentageSpend(overspend, budget + overspend)"
-       [attr.aria-valuenow]="getPercentageSpend(overspend, budget + overspend)">
-    {{ overspend | currencyFormat: hideDecimals }}
-  </div>
+  @if (checkIfCurrentMonth()) {
+    @for (pos of weekLines; track pos) {
+      <div class="week-line" [ngStyle]="{ left: pos + '%' }">
+      </div>
+    }
+  }
 </div>
-<ng-container *ngIf="checkIfCurrentMonth()">
-  <div class="week-line" *ngFor="let pos of weekLines" [ngStyle]="{ left: pos + '%' }">
-  </div>
-  </ng-container>
-  </div>
 <div class="clearfix mt-1">
   @if (date) {
-  <span class="float-start date"><i class="bi bi-calendar me-1"></i>{{ date | date: 'dd/MM/yyyy' }}</span>
+    <span class="float-start date"><i class="bi bi-calendar me-1"></i>{{ date | date: 'dd/MM/yyyy' }}</span>
   }
   @if (overspend > 0) {
-  <span class="float-end budget">{{ 'Of' | translate }} <s>{{ budget | currencyFormat: hideDecimals }}</s> {{ budget + overspend | currencyFormat: hideDecimals }}</span>
+    <span class="float-end budget">{{ 'Of' | translate }} <s>{{ budget | currencyFormat: hideDecimals }}</s> {{ budget + overspend | currencyFormat: hideDecimals }}</span>
   } @else {
-  <span class="float-end budget">{{ 'Of' | translate }} {{ budget | currencyFormat: hideDecimals }}</span>
+    <span class="float-end budget">{{ 'Of' | translate }} {{ budget | currencyFormat: hideDecimals }}</span>
   }
 </div>

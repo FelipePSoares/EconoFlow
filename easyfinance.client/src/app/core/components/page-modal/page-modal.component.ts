@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, OnDestroy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogContent, MatDialogRef } from '@angular/material/dialog';
@@ -10,13 +10,12 @@ import { filter, Subscription } from 'rxjs';
 @Component({
   selector: 'app-page-modal',
   imports: [
-    CommonModule,
     MatButtonModule,
     MatIconModule,
     MatDialogContent,
     RouterOutlet,
     TranslateModule
-  ],
+],
   templateUrl: './page-modal.component.html',
   styleUrl: './page-modal.component.css'
 })
