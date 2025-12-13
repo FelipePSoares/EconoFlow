@@ -147,6 +147,14 @@ namespace EasyFinance.Server.Controllers
             return ValidateResponse(response, HttpStatusCode.OK);
         }
 
+        [HttpGet("{projectId}/monthly-expenses/{monthsBack}")]
+        public async Task<IActionResult> GetMonthlyExpenses(Guid projectId, int monthsBack)
+        {
+            var response = await projectService.GetMonthlyExpensesAsync(projectId, monthsBack);
+
+            return ValidateResponse(response, HttpStatusCode.OK);
+        }
+
         [HttpPatch("{projectId}/access")]
         public async Task<IActionResult> UpdateAccessAsync(Guid projectId, [FromBody] JsonPatchDocument<IList<UserProjectRequestDTO>> userProjectDto)
         {

@@ -28,6 +28,7 @@ import { PageModalComponent } from '../../../core/components/page-modal/page-mod
 import { BudgetBarComponent } from '../../../core/components/budget-bar/budget-bar.component';
 import { CurrentDateService } from '../../../core/services/current-date.service';
 import { ProjectDto } from '../models/project-dto';
+import { MonthlyExpensesChartComponent } from './monthly-expenses-chart/monthly-expenses-chart.component';
 
 @Component({
     selector: 'app-detail-project',
@@ -35,6 +36,7 @@ import { ProjectDto } from '../models/project-dto';
       CommonModule,
       CurrentDateComponent,
       BudgetBarComponent,
+      MonthlyExpensesChartComponent,
       FontAwesomeModule,
       CurrencyFormatPipe,
       MatButtonModule,
@@ -63,6 +65,7 @@ export class DetailProjectComponent implements OnInit {
   buttons: string[] = [this.btnIncome, this.btnCategory];
   showCopyPreviousButton = false;
   setHeight = false;
+  monthlyExpenses: { month: string, amount: number }[] = [];
 
   private dataSource = new MatTableDataSource<TransactionDto>();
   private transactions: BehaviorSubject<TransactionDto[]> = new BehaviorSubject<TransactionDto[]>([new TransactionDto()]);
@@ -134,6 +137,13 @@ export class DetailProjectComponent implements OnInit {
         {
           next: res => { this.transactions.next(res); }
         });
+
+    this.projectService.getMonthlyExpenses(this.projectId, 12)
+      .subscribe({
+        next: res => {
+          this.monthlyExpenses = res.map(dto => ({ month: dto.month, amount: dto.amount }));
+        }
+      });
   }
 
   fillCategoriesData(date: Date) {
