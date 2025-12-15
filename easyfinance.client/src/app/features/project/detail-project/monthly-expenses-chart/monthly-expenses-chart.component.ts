@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { Chart, ChartConfiguration, ChartOptions, registerables } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 
@@ -11,8 +11,9 @@ Chart.register(...registerables);
   templateUrl: './monthly-expenses-chart.component.html',
   styleUrl: './monthly-expenses-chart.component.css'
 })
-export class MonthlyExpensesChartComponent implements OnInit {
+export class MonthlyExpensesChartComponent implements OnInit, OnChanges {
   @Input() data: { month: string, amount: number }[] = [];
+  @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
 
   public lineChartData: ChartConfiguration<'line'>['data'] = {
     labels: [],
@@ -37,16 +38,38 @@ export class MonthlyExpensesChartComponent implements OnInit {
     },
   };
 
+  constructor(private cdr: ChangeDetectorRef) {}
+
   ngOnInit() {
     this.updateChartData();
   }
 
-  ngOnChanges() {
-    this.updateChartData();
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['data']) {
+      this.updateChartData();
+      // Force chart update with change detection
+      setTimeout(() => {
+        try {
+          // Update the chart
+          this.chart?.update();
+        } catch (error) {
+          // Fallback for older ng2-charts versions
+          this.chart?.chart?.update?.();
+        }
+        this.cdr.markForCheck();
+      }, 0);
+    }
   }
 
   private updateChartData() {
-    this.lineChartData.labels = this.data.map(d => d.month);
-    this.lineChartData.datasets[0].data = this.data.map(d => d.amount);
+    // Create new object reference to trigger change detection
+    this.lineChartData = {
+      ...this.lineChartData,
+      labels: this.data.map(d => d.month),
+      datasets: [{
+        ...this.lineChartData.datasets[0],
+        data: this.data.map(d => d.amount)
+      }]
+    };
   }
 }
