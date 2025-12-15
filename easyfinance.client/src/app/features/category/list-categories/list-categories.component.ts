@@ -134,7 +134,8 @@ export class ListCategoriesComponent implements OnInit {
       const newCategory = ({
         id: id,
         name: name,
-        expenses: this.editingCategory.expenses
+        expenses: this.editingCategory.expenses,
+        isArchived: this.editingCategory.isArchived
       }) as CategoryDto;
       const patch = compare(this.editingCategory, newCategory);
 
