@@ -197,7 +197,7 @@
                 <h2>{{ 'Monthly Expenses Chart' | translate }}</h2>
               </div>
             </div>
-            <app-monthly-expenses-chart [data]="monthlyExpenses"></app-monthly-expenses-chart>
+            <app-monthly-expenses-chart [expenses]="currentMonthExpenses" [budget]="month.budget"></app-monthly-expenses-chart>
           </div>
         </div>
       </div>

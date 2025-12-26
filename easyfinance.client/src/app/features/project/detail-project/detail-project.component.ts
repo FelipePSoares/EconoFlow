@@ -66,6 +66,7 @@ export class DetailProjectComponent implements OnInit {
   showCopyPreviousButton = false;
   setHeight = false;
   monthlyExpenses: { month: string, amount: number }[] = [];
+  currentMonthExpenses: any[] = [];
 
   private dataSource = new MatTableDataSource<TransactionDto>();
   private transactions: BehaviorSubject<TransactionDto[]> = new BehaviorSubject<TransactionDto[]>([new TransactionDto()]);
@@ -156,6 +157,13 @@ export class DetailProjectComponent implements OnInit {
         }, 100);
 
         this.categories.next(res);
+
+        // Collect current month expenses for chart
+        const now = new Date();
+        this.currentMonthExpenses = res.flatMap(c => c.expenses).filter(e => {
+          const d = new Date(e.date);
+          return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+        });
 
         this.month.budget = res.map(c => c.getTotalBudget()).reduce((acc, value) => acc + value, 0);
         this.month.spend = res.map(c => c.getTotalSpend()).reduce((acc, value) => acc + value, 0);
