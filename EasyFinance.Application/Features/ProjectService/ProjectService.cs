@@ -302,31 +302,6 @@ namespace EasyFinance.Application.Features.ProjectService
             return AppResponse<ICollection<TransactionResponseDTO>>.Success(result);
         }
 
-        public async Task<AppResponse<ICollection<MonthlyExpenseDTO>>> GetMonthlyExpensesAsync(Guid projectId, int monthsBack)
-        {
-            var endDate = DateOnly.FromDateTime(DateTime.Now);
-            var startDate = endDate.AddMonths(-monthsBack);
-
-            var expenses = await unitOfWork.ProjectRepository
-                .NoTrackable()
-                .IgnoreQueryFilters()
-                .Where(p => p.Id == projectId)
-                .SelectMany(p => p.Categories.SelectMany(c => c.Expenses
-                    .Where(e => e.Date >= startDate && e.Date <= endDate)
-                    .SelectMany(e => e.Items.Where(i => i.Date >= startDate && i.Date <= endDate))
-                ))
-                .GroupBy(i => new { i.Date.Year, i.Date.Month })
-                .Select(g => new MonthlyExpenseDTO
-                {
-                    Month = $"{g.Key.Year}-{g.Key.Month:D2}",
-                    Amount = g.Sum(i => i.Amount)
-                })
-                .OrderBy(dto => dto.Month)
-                .ToListAsync();
-
-            return AppResponse<ICollection<MonthlyExpenseDTO>>.Success(expenses);
-        }
-
         public async Task<AppResponse> SmartSetupAsync(User user, Guid projectId, SmartSetupRequestDTO smartRequest)
         {
             var project = await unitOfWork.ProjectRepository

@@ -186,7 +186,7 @@ export class ListCategoriesComponent implements OnInit {
 
   remove(id: string): void {
     this.categoryService.remove(this.projectId, id).subscribe({
-      next: response => {
+      next: () => {
         const categoriesNewArray: CategoryDto[] = this.categories.getValue();
 
         categoriesNewArray.forEach((item, index) => {

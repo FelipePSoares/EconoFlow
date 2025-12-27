@@ -18,6 +18,7 @@ import { mapper } from '../../../core/utils/mappings/mapper';
 import { IncomeService } from '../../../core/services/income.service';
 import { Income } from '../../../core/models/income';
 import { IncomeDto } from '../../income/models/income-dto';
+import { ExpenseDto } from '../../expense/models/expense-dto';
 import { ProjectService } from '../../../core/services/project.service';
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
 import { TransactionDto } from '../models/transaction-dto';
@@ -29,7 +30,6 @@ import { BudgetBarComponent } from '../../../core/components/budget-bar/budget-b
 import { CurrentDateService } from '../../../core/services/current-date.service';
 import { ProjectDto } from '../models/project-dto';
 import { MonthlyExpensesChartComponent } from './monthly-expenses-chart/monthly-expenses-chart.component';
-import { ExpenseDto } from '../../expense/models/expense-dto';
 
 @Component({
     selector: 'app-detail-project',
@@ -66,8 +66,7 @@ export class DetailProjectComponent implements OnInit {
   buttons: string[] = [this.btnIncome, this.btnCategory];
   showCopyPreviousButton = false;
   setHeight = false;
-  monthlyExpenses: { month: string, amount: number }[] = [];
-  currentMonthExpenses: any[] = [];
+  currentMonthExpenses: ExpenseDto[] = [];
 
   private dataSource = new MatTableDataSource<TransactionDto>();
   private transactions: BehaviorSubject<TransactionDto[]> = new BehaviorSubject<TransactionDto[]>([new TransactionDto()]);
@@ -139,13 +138,6 @@ export class DetailProjectComponent implements OnInit {
         {
           next: res => { this.transactions.next(res); }
         });
-
-    this.projectService.getMonthlyExpenses(this.projectId, 12)
-      .subscribe({
-        next: res => {
-          this.monthlyExpenses = res.map(dto => ({ month: dto.month, amount: dto.amount }));
-        }
-      });
   }
 
   fillCategoriesData(date: Date) {
@@ -160,14 +152,14 @@ export class DetailProjectComponent implements OnInit {
         this.categories.next(res);
 
         // Collect current month expenses for chart
-        this.currentMonthExpenses = res.flatMap(c =>
-          c.expenses.flatMap(expense =>
+        this.currentMonthExpenses = res.flatMap<ExpenseDto>(c =>
+          c.expenses.flatMap<ExpenseDto>(expense =>
             expense.items && expense.items.length > 0
-              ? expense.items.map(item => ({
+              ? expense.items.map<ExpenseDto>(item => ({
                 id: item.id,
                 amount: item.amount,
                 date: item.date
-              }))
+              }) as ExpenseDto)
               : [expense]
           )
         );
