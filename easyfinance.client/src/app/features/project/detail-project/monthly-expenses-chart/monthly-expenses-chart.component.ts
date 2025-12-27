@@ -2,6 +2,7 @@ import { Component, Input, OnInit, OnChanges, SimpleChanges, ViewChild, ChangeDe
 import { Chart, ChartConfiguration, ChartOptions, registerables } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 import { ExpenseDto } from '../../../expense/models/expense-dto';
+import { CurrentDateService } from '../../../../core/services/current-date.service';
 
 // Register Chart.js components
 Chart.register(...registerables);
@@ -66,7 +67,10 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges {
     }
   };
 
-  constructor(private cdr: ChangeDetectorRef) {}
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private currentDateService: CurrentDateService)
+  { }
 
   ngOnInit() {
     this.updateChartData();
@@ -91,9 +95,8 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges {
 
   updateChartData() {
     // Determine current month
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth() + 1; // 1-based
+    const year = this.currentDateService.currentDate.getFullYear();
+    const month = this.currentDateService.currentDate.getMonth() + 1;
     const daysInMonth = new Date(year, month, 0).getDate();
 
     // Aggregate expenses by date
