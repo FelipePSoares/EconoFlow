@@ -31,6 +31,8 @@ namespace EasyFinance.Application.Features.ProjectService
 
         Task<AppResponse<ICollection<TransactionResponseDTO>>> GetLatestAsync(Guid projectId, int numberOfTransactions);
 
+        Task<AppResponse<ICollection<MonthlyExpenseDTO>>> GetMonthlyExpensesAsync(Guid projectId, int monthsBack);
+
         Task<AppResponse> SmartSetupAsync(User user, Guid projectId, SmartSetupRequestDTO smartRequest);
     }
 }

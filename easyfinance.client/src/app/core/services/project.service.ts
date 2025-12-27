@@ -140,4 +140,11 @@ export class ProjectService {
       observe: 'response'
     });
   }
+
+  getMonthlyExpenses(id: string, monthsBack: number): Observable<{ month: string, amount: number }[]> {
+    return this.http.get<{ month: string, amount: number }[]>('/api/projects/' + id + '/monthly-expenses/' + monthsBack, {
+      observe: 'body',
+      responseType: 'json'
+    });
+  }
 }

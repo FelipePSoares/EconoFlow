@@ -28,6 +28,8 @@ import { PageModalComponent } from '../../../core/components/page-modal/page-mod
 import { BudgetBarComponent } from '../../../core/components/budget-bar/budget-bar.component';
 import { CurrentDateService } from '../../../core/services/current-date.service';
 import { ProjectDto } from '../models/project-dto';
+import { MonthlyExpensesChartComponent } from './monthly-expenses-chart/monthly-expenses-chart.component';
+import { ExpenseDto } from '../../expense/models/expense-dto';
 
 @Component({
     selector: 'app-detail-project',
@@ -35,6 +37,7 @@ import { ProjectDto } from '../models/project-dto';
       CommonModule,
       CurrentDateComponent,
       BudgetBarComponent,
+      MonthlyExpensesChartComponent,
       FontAwesomeModule,
       CurrencyFormatPipe,
       MatButtonModule,
@@ -63,6 +66,8 @@ export class DetailProjectComponent implements OnInit {
   buttons: string[] = [this.btnIncome, this.btnCategory];
   showCopyPreviousButton = false;
   setHeight = false;
+  monthlyExpenses: { month: string, amount: number }[] = [];
+  currentMonthExpenses: any[] = [];
 
   private dataSource = new MatTableDataSource<TransactionDto>();
   private transactions: BehaviorSubject<TransactionDto[]> = new BehaviorSubject<TransactionDto[]>([new TransactionDto()]);
@@ -134,6 +139,13 @@ export class DetailProjectComponent implements OnInit {
         {
           next: res => { this.transactions.next(res); }
         });
+
+    this.projectService.getMonthlyExpenses(this.projectId, 12)
+      .subscribe({
+        next: res => {
+          this.monthlyExpenses = res.map(dto => ({ month: dto.month, amount: dto.amount }));
+        }
+      });
   }
 
   fillCategoriesData(date: Date) {
@@ -146,6 +158,19 @@ export class DetailProjectComponent implements OnInit {
         }, 100);
 
         this.categories.next(res);
+
+        // Collect current month expenses for chart
+        this.currentMonthExpenses = res.flatMap(c =>
+          c.expenses.flatMap(expense =>
+            expense.items && expense.items.length > 0
+              ? expense.items.map(item => ({
+                id: item.id,
+                amount: item.amount,
+                date: item.date
+              }))
+              : [expense]
+          )
+        );
 
         this.month.budget = res.map(c => c.getTotalBudget()).reduce((acc, value) => acc + value, 0);
         this.month.spend = res.map(c => c.getTotalSpend()).reduce((acc, value) => acc + value, 0);

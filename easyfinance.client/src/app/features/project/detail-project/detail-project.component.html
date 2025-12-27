@@ -53,7 +53,7 @@
           @if (canAddOrEdit()){
           <li class="slide">
             <div class="card btn-add min-width" (click)="listCategories()">
-              <div class="card-body"> 
+              <div class="card-body">
                 <fa-icon class="btn btn-primary btn-circle" [icon]="faPlus" size="2xl"></fa-icon>
                 <span class="mt-2">{{ 'AddAndEdit' | translate }}</span>
               </div>
@@ -186,6 +186,18 @@
                     class="hover-row"></tr>
               </table>
             </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12">
+          <div class="wrap">
+            <div class="row align-items-center">
+              <div class="col text-center mt-3 mb-3 month">
+                <h2>{{ 'Monthly Expenses Chart' | translate }}</h2>
+              </div>
+            </div>
+            <app-monthly-expenses-chart [expenses]="currentMonthExpenses" [budget]="month.budget"></app-monthly-expenses-chart>
           </div>
         </div>
       </div>
