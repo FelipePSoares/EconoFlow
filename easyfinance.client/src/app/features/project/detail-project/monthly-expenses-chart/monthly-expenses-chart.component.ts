@@ -1,6 +1,7 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { Chart, ChartConfiguration, ChartOptions, registerables } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
+import { ExpenseDto } from '../../../expense/models/expense-dto';
 
 // Register Chart.js components
 Chart.register(...registerables);
@@ -12,9 +13,7 @@ Chart.register(...registerables);
   styleUrl: './monthly-expenses-chart.component.css'
 })
 export class MonthlyExpensesChartComponent implements OnInit, OnChanges {
-  @Input() expenses: any[] = [];
-  @Input() expenseItems: any[] = [];
-  @Input() transactions: any[] = [];
+  @Input() expenses: ExpenseDto[] = [];
   @Input() budget: number = 0;
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
 
@@ -74,7 +73,7 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['expenses'] || changes['expenseItems'] || changes['transactions'] || changes['budget']) {
+    if (changes['expenses'] || changes['budget']) {
       this.updateChartData();
       // Force chart update with change detection
       setTimeout(() => {
@@ -100,14 +99,7 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges {
     // Aggregate expenses by date
     const dailySums: { [date: string]: number } = {};
 
-    // Process expenses
-    const allRecords = [
-      ...(this.expenses || []),
-      ...(this.expenseItems || []),
-      ...(this.transactions || [])
-    ];
-
-    for (const record of allRecords) {
+    for (const record of this.expenses) {
       let amount = 0;
       let date: Date | null = null;
 

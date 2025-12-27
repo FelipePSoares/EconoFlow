@@ -29,6 +29,7 @@ import { BudgetBarComponent } from '../../../core/components/budget-bar/budget-b
 import { CurrentDateService } from '../../../core/services/current-date.service';
 import { ProjectDto } from '../models/project-dto';
 import { MonthlyExpensesChartComponent } from './monthly-expenses-chart/monthly-expenses-chart.component';
+import { ExpenseDto } from '../../expense/models/expense-dto';
 
 @Component({
     selector: 'app-detail-project',
@@ -159,11 +160,17 @@ export class DetailProjectComponent implements OnInit {
         this.categories.next(res);
 
         // Collect current month expenses for chart
-        const now = new Date();
-        this.currentMonthExpenses = res.flatMap(c => c.expenses).filter(e => {
-          const d = new Date(e.date);
-          return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
-        });
+        this.currentMonthExpenses = res.flatMap(c =>
+          c.expenses.flatMap(expense =>
+            expense.items && expense.items.length > 0
+              ? expense.items.map(item => ({
+                id: item.id,
+                amount: item.amount,
+                date: item.date
+              }))
+              : [expense]
+          )
+        );
 
         this.month.budget = res.map(c => c.getTotalBudget()).reduce((acc, value) => acc + value, 0);
         this.month.spend = res.map(c => c.getTotalSpend()).reduce((acc, value) => acc + value, 0);
