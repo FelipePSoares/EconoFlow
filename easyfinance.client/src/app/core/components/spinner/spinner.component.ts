@@ -1,17 +1,17 @@
-import { Component, ViewEncapsulation } from '@angular/core';
+import { Component, inject, ViewEncapsulation } from '@angular/core';
 import { LoaderService } from '../../services/loader.service';
-import { CommonModule } from '@angular/common';
 import { faCoins, faChartPie } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { TranslateModule } from '@ngx-translate/core';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
   selector: 'app-spinner',
   imports: [
-    CommonModule,
+    AsyncPipe,
     FontAwesomeModule,
     TranslateModule
-  ],
+],
   templateUrl: './spinner.component.html',
   styleUrls: ['./spinner.component.css'],
   encapsulation: ViewEncapsulation.ShadowDom
@@ -19,6 +19,6 @@ import { TranslateModule } from '@ngx-translate/core';
 export class SpinnerComponent {
   faCoins = faCoins;
   faChartPie = faChartPie;
-
-  constructor(public loader: LoaderService) { }
+  loader = inject(LoaderService);
+  loading$ = this.loader.loading$;
 }

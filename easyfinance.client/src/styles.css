@@ -12,21 +12,21 @@ body {
 }
 
 .mat-mdc-snack-bar-container.success-snackbar {
-  --mdc-snackbar-container-color: #2ecc71;
+  --mat-snackbar-container-color: #2ecc71;
   --mat-mdc-snack-bar-button-color: #fff;
-  --mdc-snackbar-supporting-text-color: #fff;
+  --mat-snackbar-supporting-text-color: #fff;
 }
 
 .mat-mdc-snack-bar-container.error-snackbar {
-  --mdc-snackbar-container-color: #e74c3c;
+  --mat-snackbar-container-color: #e74c3c;
   --mat-mdc-snack-bar-button-color: #fff;
-  --mdc-snackbar-supporting-text-color: #fff;
+  --mat-snackbar-supporting-text-color: #fff;
 }
 
 .mat-mdc-snack-bar-container.info-snackbar {
-  --mdc-snackbar-container-color: #3498db;
+  --mat-snackbar-container-color: #3498db;
   --mat-mdc-snack-bar-button-color: #fff;
-  --mdc-snackbar-supporting-text-color: #fff;
+  --mat-snackbar-supporting-text-color: #fff;
 }
 
 .cdk-overlay-pane.mat-mdc-dialog-panel {

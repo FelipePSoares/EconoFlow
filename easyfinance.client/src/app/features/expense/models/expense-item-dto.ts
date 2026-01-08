@@ -1,16 +1,25 @@
-import { AutoMap } from "@automapper/classes";
+import { ExpenseItem } from "src/app/core/models/expense-item";
 
 export class ExpenseItemDto {
-  @AutoMap()
   id!: string;
-  @AutoMap()
   name!: string;
-  @AutoMap()
   date!: Date;
-  @AutoMap()
   amount!: number;
-  @AutoMap(() => [ExpenseItemDto])
   items!: ExpenseItemDto[];
+
+  static fromExpenseItem(expenseItem: ExpenseItem): ExpenseItemDto {
+    const dto = new ExpenseItemDto();
+    dto.id = expenseItem.id;
+    dto.name = expenseItem.name;
+    dto.date = expenseItem.date;
+    dto.amount = expenseItem.amount;
+    dto.items = expenseItem.items.map(ei => ExpenseItemDto.fromExpenseItem(ei));
+    return dto;
+  }
+
+  static fromExpenses(expenseItems: ExpenseItem[]): ExpenseItemDto[] {
+    return expenseItems.map(expenseItem => ExpenseItemDto.fromExpenseItem(expenseItem));
+  }
 
   public getTotalAmount(): number {
     if (this.items?.length > 0) {

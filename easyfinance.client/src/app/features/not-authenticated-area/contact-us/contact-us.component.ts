@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UserService } from 'src/app/core/services/user.service';
-import { CommonModule } from '@angular/common';
+
 import { ContactUsService } from 'src/app/core/services/contactus.service';
 import { Router } from '@angular/router';
 import { ApiErrorResponse } from 'src/app/core/models/error';
@@ -19,11 +19,10 @@ import { MatInputModule } from '@angular/material/input';
   imports: [
     TranslateModule,
     ReactiveFormsModule,
-    CommonModule,
     MatFormFieldModule,
     MatInputModule,
-    MatButtonModule,
-  ],
+    MatButtonModule
+],
   templateUrl: './contact-us.component.html',
   styleUrls: ['./contact-us.component.css']
 })

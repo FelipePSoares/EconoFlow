@@ -9,7 +9,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { compare, Operation } from 'fast-json-patch';
-import { mapper } from '../../../core/utils/mappings/mapper';
 import { TranslateModule } from '@ngx-translate/core';
 import { ProjectService } from '../../../core/services/project.service';
 import { UserProjectDto } from '../models/user-project-dto';
@@ -76,7 +75,7 @@ export class AccessControlProjectComponent implements OnInit {
 
   updateCurrentUsers(): void {
     this.projectService.getProjectUsers(this.projectId)
-      .pipe(map(users => mapper.mapArray(users, UserProject, UserProjectDto)))
+      .pipe(map(users => UserProjectDto.fromUserProjects(users)))
       .subscribe({
         next: (users) => {
           this.listCurrentUsersToCompare = JSON.parse(JSON.stringify(users));

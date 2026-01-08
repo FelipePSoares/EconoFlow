@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -17,16 +17,15 @@ import { ReturnButtonComponent } from '../../../core/components/return-button/re
 @Component({
     selector: 'app-recovery',
     imports: [
-      CommonModule,
-      FormsModule,
-      ReactiveFormsModule,
-      FontAwesomeModule,
-      TranslateModule,
-      MatFormFieldModule,
-      MatInputModule,
-      MatIcon,
-      ReturnButtonComponent
-    ],
+    FormsModule,
+    ReactiveFormsModule,
+    FontAwesomeModule,
+    TranslateModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatIcon,
+    ReturnButtonComponent
+],
     templateUrl: './recovery.component.html',
     styleUrl: './recovery.component.css'
 })

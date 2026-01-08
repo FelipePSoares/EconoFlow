@@ -7,13 +7,11 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPlus, faEllipsis } from '@fortawesome/free-solid-svg-icons';
 import { UserService } from 'src/app/core/services/user.service';
 import { MatDialog } from '@angular/material/dialog';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { mapper } from 'src/app/core/utils/mappings/mapper';
+import { TranslateModule } from '@ngx-translate/core';
 import { ProjectService } from '../../../core/services/project.service';
 import { ProjectDto } from '../models/project-dto';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
-import { UserProject } from '../../../core/models/user-project';
 import { UserProjectDto } from '../models/user-project-dto';
 import { Role } from '../../../core/enums/Role';
 
@@ -42,8 +40,7 @@ export class ListProjectsComponent implements OnInit {
     private projectService: ProjectService,
     private userService: UserService,
     private dialog: MatDialog,
-    private router: Router,
-    private translateService: TranslateService) {
+    private router: Router) {
     this.defaultProjectId$ = userService.loggedUser$.pipe(map(user => user.defaultProjectId));
   }
 
@@ -53,7 +50,7 @@ export class ListProjectsComponent implements OnInit {
 
   loadProjects() {
     this.projectService.getUserProjects()
-      .pipe(map(userProjects => mapper.mapArray(userProjects, UserProject, UserProjectDto)))
+      .pipe(map(userProjects => UserProjectDto.fromUserProjects(userProjects)))
       .subscribe(
         {
           next: res => {

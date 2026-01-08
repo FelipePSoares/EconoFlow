@@ -1,6 +1,6 @@
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule } from '@ngx-translate/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -15,15 +15,14 @@ import { ErrorMessageService } from '../../../core/services/error-message.servic
 @Component({
   selector: 'app-password-authentication',
   imports: [
-    CommonModule,
     FormsModule,
     ReactiveFormsModule,
     TranslateModule,
     MatFormFieldModule,
     MatInputModule,
     MatIcon,
-    FontAwesomeModule,
-  ],
+    FontAwesomeModule
+],
   templateUrl: './password-authentication.component.html',
 })
 export class PasswordAuthenticationComponent implements OnInit {

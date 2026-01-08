@@ -7,7 +7,9 @@
         <mat-label>{{ 'FieldExpenseName' | translate }} </mat-label>
         <input matInput placeholder="{{ 'PlaceholderExpenseName' | translate }}" formControlName="name">
         @if (name?.invalid && name?.touched){
-        <mat-error *ngFor="let error of getFormFieldErrors('name')">{{ error |  translate }}</mat-error>
+          @for (error of getFormFieldErrors('name'); track error) {
+            <mat-error>{{ error |  translate }}</mat-error>
+          }
         }
       </mat-form-field>
 
@@ -18,7 +20,9 @@
         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
         <mat-datepicker #picker></mat-datepicker>
         @if (date?.invalid && date?.touched){
-        <mat-error *ngFor="let error of getFormFieldErrors('date')">{{ error |  translate }}</mat-error>
+          @for (error of getFormFieldErrors('date'); track error) {
+            <mat-error>{{ error |  translate }}</mat-error>
+          }
         }
       </mat-form-field>
 
@@ -28,7 +32,9 @@
         <span matTextPrefix>{{ currencySymbol }}&nbsp;</span>
         <input matInput formControlName="budget" type="number" step="1" min="0">
         @if (budget?.invalid && budget?.touched){
-        <mat-error *ngFor="let error of getFormFieldErrors('budget')">{{ error |  translate }}</mat-error>
+          @for (error of getFormFieldErrors('budget'); track error) {
+            <mat-error>{{ error |  translate }}</mat-error>
+          }
         }
       </mat-form-field>
 
@@ -36,20 +42,26 @@
       <mat-form-field appearance="fill" class="w-100">
         <mat-label>{{ 'FieldAmount' | translate }}</mat-label>
         <input matInput
-               type="text"
-               inputmode="numeric"
-               currencyMask
-               [options]="{ prefix: currencySymbol, allowNegative: false, thousands: thousandSeparator, decimal: decimalSeparator, precision: 2 }"
-               formControlName="amount">
+          type="text"
+          inputmode="numeric"
+          currencyMask
+          [options]="{ prefix: currencySymbol, allowNegative: false, thousands: thousandSeparator, decimal: decimalSeparator, precision: 2 }"
+          formControlName="amount">
         @if (amount?.invalid && amount?.touched){
-        <mat-error *ngFor="let error of getFormFieldErrors('amount')">{{ error |  translate }}</mat-error>
+          @for (error of getFormFieldErrors('amount'); track error) {
+            <mat-error>{{ error |  translate }}</mat-error>
+          }
         }
       </mat-form-field>
 
       <!-- General Error Display -->
-      <div *ngIf="httpErrors && errors['general']">
-        <p *ngFor="let error of errors['general']" class="mb-3 text-danger text-center">{{ error | translate }}</p>
-      </div>
+      @if (httpErrors && errors['general']) {
+        <div>
+          @for (error of errors['general']; track error) {
+            <p class="mb-3 text-danger text-center">{{ error | translate }}</p>
+          }
+        </div>
+      }
 
       <!-- Submit Button -->
       <div class="float-end">

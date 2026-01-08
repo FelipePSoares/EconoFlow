@@ -5,7 +5,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { CommonModule } from '@angular/common';
+
 import { compare } from 'fast-json-patch';
 import { Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
@@ -21,7 +21,6 @@ import { PageModalComponent } from '../../../core/components/page-modal/page-mod
 @Component({
   selector: 'app-add-edit-project',
   imports: [
-    CommonModule,
     FormsModule,
     ReactiveFormsModule,
     MatFormFieldModule,
@@ -30,7 +29,7 @@ import { PageModalComponent } from '../../../core/components/page-modal/page-mod
     MatButtonModule,
     MatIconModule,
     TranslateModule
-  ],
+],
   templateUrl: './add-edit-project.component.html',
   styleUrl: './add-edit-project.component.css'
 })
@@ -83,7 +82,9 @@ export class AddEditProjectComponent implements OnInit {
                 this.router.navigate([{ outlets: { modal: ['projects', userProject.project.id, 'smart-setup'] } }]);
               } else {
                 this.dialogRef.close();
-                this.router.navigate(['projects', userProject.project.id]);
+                this.dialogRef.afterClosed().subscribe(() => {
+                  this.router.navigate(['/projects', userProject.project.id]);
+                });
               }
             }
           },

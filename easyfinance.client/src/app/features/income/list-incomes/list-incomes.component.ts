@@ -4,7 +4,6 @@ import { BehaviorSubject, Observable, map } from 'rxjs';
 import { Income } from 'src/app/core/models/income';
 import { IncomeService } from 'src/app/core/services/income.service';
 import { IncomeDto } from '../models/income-dto';
-import { mapper } from 'src/app/core/utils/mappings/mapper';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { compare } from 'fast-json-patch';
@@ -112,7 +111,7 @@ export class ListIncomesComponent implements OnInit {
 
   fillData(date: Date) {
     this.incomeService.get(this.projectId, date)
-      .pipe(map(incomes => mapper.mapArray(incomes, Income, IncomeDto)))
+      .pipe(map(incomes => IncomeDto.fromIncomes(incomes)))
       .subscribe(
         {
           next: res => { this.incomes.next(res); }

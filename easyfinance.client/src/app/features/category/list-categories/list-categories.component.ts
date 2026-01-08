@@ -11,7 +11,6 @@ import { MatError, MatFormField, MatLabel } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
 import { MatDialog } from '@angular/material/dialog';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { mapper } from '../../../core/utils/mappings/mapper';
 import { CategoryDto } from '../models/category-dto';
 import { Category } from '../../../core/models/category';
 import { CategoryService } from '../../../core/services/category.service';
@@ -109,7 +108,7 @@ export class ListCategoriesComponent implements OnInit {
 
   fillData() {
     this.categoryService.get(this.projectId)
-      .pipe(map(categories => mapper.mapArray(categories, Category, CategoryDto)))
+      .pipe(map(categories => CategoryDto.fromCategories(categories)))
       .subscribe(
         {
           next: res => {

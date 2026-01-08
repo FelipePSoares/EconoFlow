@@ -12,7 +12,7 @@ import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { UserService } from '../../../core/services/user.service';
 import { DeleteUser, User } from '../../../core/models/user';
-import { CommonModule } from '@angular/common';
+
 import { ApiErrorResponse } from '../../../core/models/error';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
@@ -23,7 +23,6 @@ import { compare } from 'fast-json-patch';
 @Component({
   selector: 'app-account',
   imports: [
-    CommonModule,
     FormsModule,
     ReactiveFormsModule,
     FontAwesomeModule,
@@ -34,7 +33,7 @@ import { compare } from 'fast-json-patch';
     MatOptionModule,
     TranslateModule,
     MatSlideToggleModule
-  ],
+],
   templateUrl: './account.component.html',
   styleUrl: './account.component.css'
 })
@@ -92,8 +91,8 @@ export class AccountComponent implements OnInit, OnDestroy {
         });
 
       this.notificationForm = new FormGroup({
-        isEmailNotificationChecked: new FormControl(user.notificationChannels.some(n => n == "Email")),
-        isPushNotificationChecked: new FormControl(user.notificationChannels.some(n => n == "Push"))
+        isEmailNotificationChecked: new FormControl(user.notificationChannels?.some(n => n == "Email")),
+        isPushNotificationChecked: new FormControl(user.notificationChannels?.some(n => n == "Push"))
       });
 
       this.sub2 = this.notificationForm.valueChanges

@@ -3,7 +3,6 @@ import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } 
 import { Router } from '@angular/router';
 import { map } from 'rxjs';
 import { compare } from 'fast-json-patch';
-import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -14,7 +13,6 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ExpenseService } from '../../../core/services/expense.service';
 import { ExpenseItemDto } from '../models/expense-item-dto';
 import { Expense } from '../../../core/models/expense';
-import { mapper } from '../../../core/utils/mappings/mapper';
 import { ExpenseDto } from '../models/expense-dto';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { ApiErrorResponse } from '../../../core/models/error';
@@ -27,18 +25,17 @@ import { CurrentDateService } from '../../../core/services/current-date.service'
 @Component({
     selector: 'app-add-expense-item',
     imports: [
-        CommonModule,
-        FormsModule,
-        ReactiveFormsModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatButtonModule,
-        MatIconModule,
-        MatDatepickerModule,
-        MatNativeDateModule,
-        CurrencyMaskModule,
-        TranslateModule
-    ],
+    FormsModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatIconModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    CurrencyMaskModule,
+    TranslateModule
+],
     templateUrl: './add-expense-item.component.html',
     styleUrl: './add-expense-item.component.css'
 })
@@ -88,7 +85,7 @@ export class AddExpenseItemComponent implements OnInit {
     });
 
     this.expenseService.getById(this.projectId, this.categoryId, this.expenseId)
-      .pipe(map(expense => mapper.map(expense, Expense, ExpenseDto)))
+      .pipe(map(expense => ExpenseDto.fromExpense(expense)))
       .subscribe(
         {
           next: res => this.expense = res

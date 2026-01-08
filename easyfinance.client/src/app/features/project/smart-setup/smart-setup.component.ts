@@ -22,7 +22,6 @@ import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pi
 import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
 import { ProjectService } from 'src/app/core/services/project.service';
 import { ApiErrorResponse } from '../../../core/models/error';
-import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { CurrentDateService } from '../../../core/services/current-date.service';
 
 @Component({
@@ -119,7 +118,10 @@ export class SmartSetupComponent implements OnInit {
 
   close(): void {
     this.dialogRef.close();
-    this.router.navigate(['/projects', this.projectId]);
+
+    this.dialogRef.afterClosed().subscribe(() => {
+      this.router.navigate(['/projects', this.projectId]);
+    });
   }
 
   calcularValores() {

@@ -1,14 +1,23 @@
-import { AutoMap } from "@automapper/classes";
+import { Transaction } from "src/app/core/models/transaction";
 
 export class TransactionDto {
-    @AutoMap()
     id!: string;
-    @AutoMap()
     name!: string;
-    @AutoMap()
     date!: Date;
-    @AutoMap()
     amount!: number;
-    @AutoMap()
     type!: string;
+      
+    static fromTransaction(transaction: Transaction): TransactionDto {
+        const dto = new TransactionDto();
+        dto.id = transaction.id;
+        dto.name = transaction.name;
+        dto.date = transaction.date;
+        dto.amount = transaction.amount;
+        dto.type = transaction.type;
+        return dto;
+    }
+
+    static fromTransactions(transactions: Transaction[]): TransactionDto[] {
+        return transactions.map(transaction => TransactionDto.fromTransaction(transaction));
+    }
 }

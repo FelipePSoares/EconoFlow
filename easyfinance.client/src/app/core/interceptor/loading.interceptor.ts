@@ -11,7 +11,7 @@ const exceptions: any = [
   { method: 'GET', url: '/assets/version.json' }
 ];
 
-var totalRequests = 0;
+let totalRequests = 0;
 
 export const LoadingInterceptor: HttpInterceptorFn = (req, next) => {
   const loadingService = inject(LoaderService);

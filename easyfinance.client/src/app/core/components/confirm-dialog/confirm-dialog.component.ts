@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, Inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogContent, MatDialogRef } from '@angular/material/dialog';
@@ -9,12 +9,11 @@ import { TranslateModule } from '@ngx-translate/core';
 @Component({
   selector: 'app-confirm-dialog',
   imports: [
-    CommonModule,
     MatButtonModule,
     MatIconModule,
     MatDialogContent,
     TranslateModule
-  ],
+],
     templateUrl: './confirm-dialog.component.html',
     styleUrl: './confirm-dialog.component.css'
 })
