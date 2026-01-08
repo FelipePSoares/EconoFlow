@@ -91,8 +91,8 @@ export class AccountComponent implements OnInit, OnDestroy {
         });
 
       this.notificationForm = new FormGroup({
-        isEmailNotificationChecked: new FormControl(user.notificationChannels.some(n => n == "Email")),
-        isPushNotificationChecked: new FormControl(user.notificationChannels.some(n => n == "Push"))
+        isEmailNotificationChecked: new FormControl(user.notificationChannels?.some(n => n == "Email")),
+        isPushNotificationChecked: new FormControl(user.notificationChannels?.some(n => n == "Push"))
       });
 
       this.sub2 = this.notificationForm.valueChanges

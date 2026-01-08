@@ -1,4 +1,4 @@
-@if (this.loader.getLoading()) {
+@if (loading$ | async) {
   <div class="cssload-container">
     <div class="cssload-speeding-wheel"></div>
     <div class="loader">

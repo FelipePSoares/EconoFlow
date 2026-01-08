@@ -82,7 +82,9 @@ export class AddEditProjectComponent implements OnInit {
                 this.router.navigate([{ outlets: { modal: ['projects', userProject.project.id, 'smart-setup'] } }]);
               } else {
                 this.dialogRef.close();
-                this.router.navigate(['projects', userProject.project.id]);
+                this.dialogRef.afterClosed().subscribe(() => {
+                  this.router.navigate(['/projects', userProject.project.id]);
+                });
               }
             }
           },

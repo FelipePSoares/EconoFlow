@@ -90,7 +90,7 @@ describe('EconoFlow - user account Tests', () => {
         cy.get('app-confirm-dialog button').contains('Delete').click();
 
         cy.wait('@deleteAccount').then((interception2) => {
-          expect(interception2?.response?.statusCode).to.equal(200)
+          expect(interception2?.response?.statusCode).to.equal(200);
         })
       })
     })
