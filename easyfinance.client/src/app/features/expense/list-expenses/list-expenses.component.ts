@@ -20,7 +20,6 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MatCardModule } from '@angular/material/card';
 import { ExpenseDto } from '../models/expense-dto';
 import { Expense } from '../../../core/models/expense';
-import { mapper } from '../../../core/utils/mappings/mapper';
 import { ExpenseService } from '../../../core/services/expense.service';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
@@ -124,7 +123,7 @@ export class ListExpensesComponent implements OnInit {
     });
 
     this.categoryService.getById(this.projectId, this.categoryId)
-      .pipe(map(category => mapper.map(category, Category, CategoryDto)))
+      .pipe(map(category => CategoryDto.fromCategory(category)))
       .subscribe(res => {
         this.isArchived = res.isArchived;
         this.category.next(res);
@@ -137,7 +136,7 @@ export class ListExpensesComponent implements OnInit {
 
   fillData(date: Date) {
     this.expenseService.get(this.projectId, this.categoryId, date)
-      .pipe(map(expenses => mapper.mapArray(expenses, Expense, ExpenseDto)))
+      .pipe(map(expenses => ExpenseDto.fromExpenses(expenses)))
       .subscribe(
         {
           next: res => { this.expenses.next(res); }

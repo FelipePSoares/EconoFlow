@@ -6,6 +6,7 @@ import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { HttpClient, provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { TranslateHttpLoader } from './app/core/utils/loaders/translate-http-loader';
 import { LoadingInterceptor } from './app/core/interceptor/loading.interceptor';
+import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
 const bootstrap = (context: BootstrapContext) => bootstrapApplication(AppComponent, {
   providers: [
@@ -23,7 +24,8 @@ const bootstrap = (context: BootstrapContext) => bootstrapApplication(AppCompone
     provideHttpClient(
       withFetch(),
       withInterceptors([LoadingInterceptor])
-    )
+    ),
+    provideCharts(withDefaultRegisterables())
   ]
 }, context);
 

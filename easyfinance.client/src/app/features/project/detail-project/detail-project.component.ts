@@ -14,7 +14,6 @@ import { CurrentDateComponent } from '../../../core/components/current-date/curr
 import { CategoryService } from '../../../core/services/category.service';
 import { Category } from '../../../core/models/category';
 import { CategoryDto } from '../../category/models/category-dto';
-import { mapper } from '../../../core/utils/mappings/mapper';
 import { IncomeService } from '../../../core/services/income.service';
 import { Income } from '../../../core/models/income';
 import { IncomeDto } from '../../income/models/income-dto';
@@ -125,7 +124,7 @@ export class DetailProjectComponent implements OnInit {
     this.fillCategoriesData(date);
 
     this.incomeService.get(this.projectId, date)
-      .pipe(map(incomes => mapper.mapArray(incomes, Income, IncomeDto)))
+      .pipe(map(incomes => IncomeDto.fromIncomes(incomes)))
       .subscribe({
         next: res => {
           this.month.earned = res.map(c => c.amount).reduce((acc, value) => acc + value, 0);
@@ -133,7 +132,7 @@ export class DetailProjectComponent implements OnInit {
       });
 
     this.projectService.getLatest(this.projectId, 5)
-      .pipe(map(transactions => mapper.mapArray(transactions, Transaction, TransactionDto)))
+      .pipe(map(transactions => TransactionDto.fromTransactions(transactions)))
       .subscribe(
         {
           next: res => { this.transactions.next(res); }
@@ -142,7 +141,7 @@ export class DetailProjectComponent implements OnInit {
 
   fillCategoriesData(date: Date) {
     this.categoryService.get(this.projectId, date)
-    .pipe(map(categories => mapper.mapArray(categories, Category, CategoryDto)))
+    .pipe(map(categories => CategoryDto.fromCategories(categories)))
     .subscribe({
       next: res => {
         setTimeout(() => {
@@ -175,7 +174,7 @@ export class DetailProjectComponent implements OnInit {
           newDate.setMonth(this.currentDateService.currentDate.getMonth() - 1, 1);
 
           this.categoryService.get(this.projectId, newDate)
-            .pipe(map(categories => mapper.mapArray(categories, Category, CategoryDto)))
+            .pipe(map(categories => CategoryDto.fromCategories(categories)))
             .subscribe({
               next: res => {
                 const previousBudget = res.map(c => c.getTotalBudget()).reduce((acc, value) => acc + value, 0);

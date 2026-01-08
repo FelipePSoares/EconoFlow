@@ -8,7 +8,6 @@ import { faPlus, faEllipsis } from '@fortawesome/free-solid-svg-icons';
 import { UserService } from 'src/app/core/services/user.service';
 import { MatDialog } from '@angular/material/dialog';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { mapper } from 'src/app/core/utils/mappings/mapper';
 import { ProjectService } from '../../../core/services/project.service';
 import { ProjectDto } from '../models/project-dto';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
@@ -53,7 +52,7 @@ export class ListProjectsComponent implements OnInit {
 
   loadProjects() {
     this.projectService.getUserProjects()
-      .pipe(map(userProjects => mapper.mapArray(userProjects, UserProject, UserProjectDto)))
+      .pipe(map(userProjects => UserProjectDto.fromUserProjects(userProjects)))
       .subscribe(
         {
           next: res => {

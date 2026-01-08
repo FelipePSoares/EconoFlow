@@ -1,16 +1,25 @@
-import { AutoMap } from "@automapper/classes";
 import { ExpenseDto } from "../../expense/models/expense-dto";
 import { CategoryStatus } from "../../../core/enums/categoryStatus";
+import { Category } from "src/app/core/models/category";
 
 export class CategoryDto {
-  @AutoMap()
   id!: string;
-  @AutoMap()
   name!: string;
-  @AutoMap(() => [ExpenseDto])
   expenses!: ExpenseDto[];
-  @AutoMap()
   isArchived!: boolean;
+
+  static fromCategory(category: Category): CategoryDto {
+    const dto = new CategoryDto();
+    dto.id = category.id;
+    dto.name = category.name;
+    dto.expenses = category.expenses.map(expense => ExpenseDto.fromExpense(expense));
+    dto.isArchived = category.isArchived;
+    return dto;
+  }
+
+  static fromCategories(categories: Category[]): CategoryDto[] {
+    return categories.map(cat => CategoryDto.fromCategory(cat));
+  }
 
   hasBudget(): boolean { return this.getStatus() != CategoryStatus.NotDefined; }
   hasOverspend(): boolean { return this.getStatus() == CategoryStatus.Exceeded; }

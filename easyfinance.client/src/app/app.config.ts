@@ -16,6 +16,7 @@ import { loadMomentLocale } from './core/utils/loaders/moment-locale-loader';
 import { GlobalService } from './core/services/global.service';
 import { TranslateHttpLoader } from './core/utils/loaders/translate-http-loader';
 import { LanguageInterceptor } from './core/interceptor/language-interceptor';
+import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
 function getCspNonce(): string | null {
   const meta = document.querySelector<HTMLMetaElement>('meta[name="csp-nonce"]');
@@ -54,7 +55,8 @@ export const appConfig: ApplicationConfig = {
     provideAnimationsAsync(),
     provideAppInitializer(appInitializerFactory()),
     provideClientHydration(withEventReplay()),
-    { provide: CSP_NONCE, useValue: getCspNonce() }
+    { provide: CSP_NONCE, useValue: getCspNonce() },
+    provideCharts(withDefaultRegisterables())
   ],
 };
 

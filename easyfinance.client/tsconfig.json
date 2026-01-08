@@ -24,7 +24,10 @@
       "ES2022",
       "dom",
       "dom.iterable"
-    ]
+    ],
+    "paths": {
+      "chart.js/dist/types/utils": ["node_modules/chart.js/dist/types/utils.d.ts"]
+    }
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
