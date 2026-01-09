@@ -12,7 +12,6 @@ import { MatInput } from "@angular/material/input";
 import { MatDialog } from '@angular/material/dialog';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CategoryDto } from '../models/category-dto';
-import { Category } from '../../../core/models/category';
 import { CategoryService } from '../../../core/services/category.service';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 import { ApiErrorResponse } from "../../../core/models/error";
