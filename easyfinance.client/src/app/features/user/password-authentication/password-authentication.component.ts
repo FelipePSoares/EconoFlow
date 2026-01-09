@@ -5,8 +5,6 @@ import { TranslateModule } from '@ngx-translate/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIcon } from "@angular/material/icon";
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faCheck } from '@fortawesome/free-solid-svg-icons';
 import { UserService } from '../../../core/services/user.service';
 import { passwordMatchValidator } from '../../../core/utils/custom-validators/password-match-validator';
 import { ApiErrorResponse } from '../../../core/models/error';
@@ -20,8 +18,7 @@ import { ErrorMessageService } from '../../../core/services/error-message.servic
     TranslateModule,
     MatFormFieldModule,
     MatInputModule,
-    MatIcon,
-    FontAwesomeModule
+    MatIcon
 ],
   templateUrl: './password-authentication.component.html',
 })
@@ -43,9 +40,6 @@ export class PasswordAuthenticationComponent implements OnInit {
   hasOneNumber = false;
   hasOneSpecial = false;
   hasMinCharacteres = false;
-
-  // Icons
-  faCheck = faCheck;
 
   constructor(
     private userService: UserService,

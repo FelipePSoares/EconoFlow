@@ -11,8 +11,6 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { MatIcon } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { Router } from '@angular/router';
 import { MatDialogRef } from '@angular/material/dialog';
 import { GlobalService } from '../../../core/services/global.service';
@@ -30,7 +28,6 @@ import { CurrentDateService } from '../../../core/services/current-date.service'
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    FontAwesomeModule,
     MatInputModule,
     MatFormFieldModule,
     MatSliderModule,
@@ -46,7 +43,6 @@ import { CurrentDateService } from '../../../core/services/current-date.service'
   styleUrl: './smart-setup.component.css'
 })
 export class SmartSetupComponent implements OnInit {
-  faPlus = faPlus;
   httpErrors = false;
   errors!: Record<string, string[]>;
 

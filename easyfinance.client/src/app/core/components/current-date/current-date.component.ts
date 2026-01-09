@@ -2,9 +2,6 @@ import { DatePipe } from '@angular/common';
 import { Component, EventEmitter, Output } from '@angular/core';
 import { MatDatepicker, MatDatepickerModule } from '@angular/material/datepicker';
 import { MatButtonModule } from '@angular/material/button';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faArrowLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons';
-
 import { Moment } from 'moment';
 import { CurrentDateService } from '../../services/current-date.service';
 
@@ -12,7 +9,6 @@ import { CurrentDateService } from '../../services/current-date.service';
   selector: 'app-current-date',
   imports: [
     DatePipe,
-    FontAwesomeModule,
     MatButtonModule,
     MatDatepickerModule
   ],
@@ -21,9 +17,6 @@ import { CurrentDateService } from '../../services/current-date.service';
   providers: []
 })
 export class CurrentDateComponent {
-  faArrowRight = faArrowRight;
-  faArrowLeft = faArrowLeft;
-
   @Output() dateUpdatedEvent = new EventEmitter<Date>();
 
   constructor(private currentDateService: CurrentDateService) { }

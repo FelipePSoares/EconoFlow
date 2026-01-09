@@ -1,6 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { debounceTime, distinctUntilChanged, Observable, Subscription } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -25,7 +24,6 @@ import { compare } from 'fast-json-patch';
   imports: [
     FormsModule,
     ReactiveFormsModule,
-    FontAwesomeModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,

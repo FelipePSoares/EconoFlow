@@ -5,7 +5,6 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { UserService } from '../../../core/services/user.service';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
@@ -21,7 +20,6 @@ import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.co
     TranslateModule,
     MatFormFieldModule,
     MatInputModule,
-    FontAwesomeModule,
   ],
   templateUrl: './emails.component.html',
 })

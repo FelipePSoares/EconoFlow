@@ -3,8 +3,6 @@ import { BehaviorSubject, Observable, map } from 'rxjs';
 import { Router } from '@angular/router';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { MatGridListModule } from '@angular/material/grid-list';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPlus, faEllipsis } from '@fortawesome/free-solid-svg-icons';
 import { UserService } from 'src/app/core/services/user.service';
 import { MatDialog } from '@angular/material/dialog';
 import { TranslateModule } from '@ngx-translate/core';
@@ -21,7 +19,6 @@ import { Role } from '../../../core/enums/Role';
     CommonModule,
     AsyncPipe,
     MatGridListModule,
-    FontAwesomeModule,
     TranslateModule
   ],
   templateUrl: './list-projects.component.html',
@@ -32,9 +29,6 @@ export class ListProjectsComponent implements OnInit {
   private userProjects: BehaviorSubject<UserProjectDto[]> = new BehaviorSubject<UserProjectDto[]>([new UserProjectDto()]);
   userProjects$: Observable<UserProjectDto[]> = this.userProjects.asObservable();
   defaultProjectId$: Observable<string>;
-
-  faPlus = faPlus;
-  faEllipsis = faEllipsis;
 
   constructor(
     private projectService: ProjectService,

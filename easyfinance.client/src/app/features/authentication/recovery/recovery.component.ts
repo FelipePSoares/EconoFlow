@@ -2,8 +2,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faEnvelopeOpenText } from '@fortawesome/free-solid-svg-icons';
 import { TranslateModule } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
 import { ApiErrorResponse } from '../../../core/models/error';
@@ -19,7 +17,6 @@ import { ReturnButtonComponent } from '../../../core/components/return-button/re
     imports: [
     FormsModule,
     ReactiveFormsModule,
-    FontAwesomeModule,
     TranslateModule,
     MatFormFieldModule,
     MatInputModule,
@@ -30,7 +27,6 @@ import { ReturnButtonComponent } from '../../../core/components/return-button/re
     styleUrl: './recovery.component.css'
 })
 export class RecoveryComponent implements OnInit {
-  faEnvelopeOpenText = faEnvelopeOpenText;
   recoveryForm!: FormGroup;
   resetPasswordForm!: FormGroup;
   sent: boolean = false;

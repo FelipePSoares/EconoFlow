@@ -9,10 +9,10 @@
               @if (canAddOrEdit()){
                 <div class="btn-group actions">
                   <button class="btn btn-outline-secondary" (click)="edit(category);">
-                    <fa-icon [icon]="faPenToSquare"></fa-icon>
+                    <i class="bi bi-pencil-square"></i>
                   </button>
                   <button class="btn btn-outline-danger" (click)="triggerDelete(category);">
-                    <fa-icon [icon]="faBoxArchive"></fa-icon>
+                    <i class="bi bi-archive"></i>
                   </button>
                 </div>
               }
@@ -65,7 +65,7 @@
         <div class="list-group-item text-center">
           <button class="btn btn-primary btn-add btn-lg w-100 d-flex justify-content-center align-items-center"
             (click)="add()">
-            <fa-icon [icon]="faPlus" class="me-2"></fa-icon>
+            <i class="bi bi-plus me-2"></i>
             {{ 'ButtonAddCategory' | translate }}
           </button>
         </div>
