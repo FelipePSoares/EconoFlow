@@ -1,8 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPenToSquare, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MatError, MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatDialog } from '@angular/material/dialog';
@@ -26,7 +24,6 @@ import { MatButtonModule } from '@angular/material/button';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    FontAwesomeModule,
     CurrencyFormatPipe,
     MatFormFieldModule,
     MatLabel,
@@ -58,10 +55,6 @@ export class ExpenseItemComponent {
 
   @Output()
   expenseUpdateEvent = new EventEmitter();
-
-  faPenToSquare = faPenToSquare;
-  faTrash = faTrash;
-  faPlus = faPlus;
 
   expenseItemForm!: FormGroup;
   editingSubExpense: ExpenseItemDto = new ExpenseItemDto();

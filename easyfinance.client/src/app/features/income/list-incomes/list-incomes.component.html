@@ -42,13 +42,13 @@
                           class="btn btn-outline-secondary"
                           (click)="edit(income)"
                           aria-label="Editar receita">
-                          <fa-icon [icon]="faPenToSquare"></fa-icon>
+                          <i class="bi bi-pencil-square"></i>
                         </button>
                         <button name="delete"
                           class="btn btn-outline-danger"
                           (click)="triggerDelete(income)"
                           aria-label="Excluir receita">
-                          <fa-icon [icon]="faTrash"></fa-icon>
+                          <i class="bi bi-trash"></i>
                         </button>
                       </div>
                     }
@@ -152,7 +152,7 @@
                   class="btn btn-primary btn-add btn-lg w-100 d-flex justify-content-center align-items-center"
                   (click)="add()"
                   >
-                  <fa-icon [icon]="faPlus" class="me-2"></fa-icon>
+                  <i class="bi bi-plus me-2"></i>
                   {{ 'ButtonAddIncome' | translate }}
                 </button>
               </div>

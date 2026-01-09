@@ -7,8 +7,6 @@ import { IncomeDto } from '../models/income-dto';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { compare } from 'fast-json-patch';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPenToSquare, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { MatInput } from "@angular/material/input";
 import { MatButton } from "@angular/material/button";
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -39,7 +37,6 @@ import { CurrentDateService } from '../../../core/services/current-date.service'
         AsyncPipe,
         ReactiveFormsModule,
         MatCardModule,
-        FontAwesomeModule,
         ReturnButtonComponent,
         CurrentDateComponent,
         CurrencyFormatPipe,
@@ -58,10 +55,6 @@ import { CurrentDateService } from '../../../core/services/current-date.service'
 })
 
 export class ListIncomesComponent implements OnInit {
-  faPenToSquare = faPenToSquare;
-  faTrash = faTrash;
-  faPlus = faPlus;
-
   private incomes: BehaviorSubject<IncomeDto[]> = new BehaviorSubject<IncomeDto[]>([new IncomeDto()]);
   incomes$: Observable<IncomeDto[]> = this.incomes.asObservable();
   incomeForm!: FormGroup;

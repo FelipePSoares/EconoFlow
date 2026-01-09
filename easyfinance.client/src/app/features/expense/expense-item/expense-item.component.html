@@ -20,10 +20,10 @@
     @if (canAddOrEdit){
       <div class="btn-group btn-group-sm">
         <button name="edit-sub" class="btn btn-outline-secondary" (click)="edit(subExpense)">
-          <fa-icon [icon]="faPenToSquare"></fa-icon>
+          <i class="bi bi-pencil-square"></i>
         </button>
         <button name="delete-sub" class="btn btn-outline-danger" (click)="triggerDeleteSubExpense(expense, subExpense)">
-          <fa-icon [icon]="faTrash"></fa-icon>
+          <i class="bi bi-trash"></i>
         </button>
       </div>
     }

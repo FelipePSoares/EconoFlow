@@ -20,7 +20,7 @@
                     <button class="btn btn-link p-0 me-3"
                       (click)="toggleExpand(expense.id)"
                       [attr.aria-expanded]="isExpanded(expense.id)">
-                      <fa-icon [icon]="isExpanded(expense.id) ? faChevronDown : faChevronRight"></fa-icon>
+                      <i class="bi" [class]="isExpanded(expense.id) ? 'bi-chevron-down' : 'bi-chevron-right'"></i>
                     </button>
                   }
                   <div class="flex-grow-1">
@@ -31,10 +31,10 @@
                           @if (canAddOrEdit()){
                             <div class="btn-group">
                               <button name="edit" class="btn btn-outline-secondary" (click)="edit(expense); $event.stopPropagation();">
-                                <fa-icon [icon]="faPenToSquare"></fa-icon>
+                                <i class="bi bi-pencil-square"></i>
                               </button>
                               <button name="delete" class="btn btn-outline-danger" (click)="triggerDelete(expense); $event.stopPropagation();">
-                                <fa-icon [icon]="faTrash"></fa-icon>
+                                <i class="bi bi-trash"></i>
                               </button>
                             </div>
                           }
@@ -139,7 +139,7 @@
                     @if (canAddOrEdit()){
                       <div class="mt-2">
                         <button class="btn btn-sm btn-outline-primary" (click)="addSubExpense(expense)">
-                          <fa-icon [icon]="faPlus" class="me-1"></fa-icon>
+                          <i class="bi bi-plus me-1"></i>
                           {{ 'ButtonAddItem' | translate }}
                         </button>
                       </div>
@@ -153,7 +153,7 @@
               <div class="list-group-item text-center">
                 <button class="btn btn-primary btn-add btn-lg w-100 d-flex justify-content-center align-items-center"
                   (click)="add()">
-                  <fa-icon [icon]="faPlus" class="me-2"></fa-icon>
+                  <i class="bi bi-plus me-2"></i>
                   {{ 'ButtonAddExpense' | translate }}
                 </button>
               </div>

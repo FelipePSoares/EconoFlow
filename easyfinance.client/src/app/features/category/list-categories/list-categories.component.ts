@@ -4,8 +4,6 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject, Observable, map, combineLatest } from 'rxjs';
 import { compare } from 'fast-json-patch';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPenToSquare, faBoxArchive, faFloppyDisk, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { MatButton } from "@angular/material/button";
 import { MatError, MatFormField, MatLabel } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
@@ -29,7 +27,6 @@ import { DefaultCategory } from '../../../core/models/default-category';
       CommonModule,
       AsyncPipe,
       ReactiveFormsModule,
-      FontAwesomeModule,
       MatButton,
       MatError,
       MatFormField,
@@ -43,11 +40,6 @@ import { DefaultCategory } from '../../../core/models/default-category';
 })
 export class ListCategoriesComponent implements OnInit {
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
-
-  faPenToSquare = faPenToSquare;
-  faBoxArchive = faBoxArchive;
-  faFloppyDisk = faFloppyDisk;
-  faPlus = faPlus;
 
   private categories: BehaviorSubject<CategoryDto[]> = new BehaviorSubject<CategoryDto[]>([new CategoryDto()]);
   categories$: Observable<CategoryDto[]> = this.categories.asObservable();

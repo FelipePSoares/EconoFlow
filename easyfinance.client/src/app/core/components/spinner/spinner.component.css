@@ -25,12 +25,14 @@
   display: block;
   transform-origin: center;
   animation: rotate 2s linear infinite;
+  font-size: 5rem !important;
 }
 
 .loader-text {
   font-size: 18px;
   color: #34495e;
   font-weight: bold;
+  margin-top: 5px;
 }
 
 @keyframes pulse {

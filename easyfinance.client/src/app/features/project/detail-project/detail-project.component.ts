@@ -3,8 +3,6 @@ import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { BehaviorSubject, map, Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faArrowUp, faArrowDown, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { CdkTableDataSourceInput } from '@angular/cdk/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,16 +10,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { CategoryService } from '../../../core/services/category.service';
-import { Category } from '../../../core/models/category';
 import { CategoryDto } from '../../category/models/category-dto';
 import { IncomeService } from '../../../core/services/income.service';
-import { Income } from '../../../core/models/income';
 import { IncomeDto } from '../../income/models/income-dto';
 import { ExpenseDto } from '../../expense/models/expense-dto';
 import { ProjectService } from '../../../core/services/project.service';
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
 import { TransactionDto } from '../models/transaction-dto';
-import { Transaction } from 'src/app/core/models/transaction';
 import { UserProjectDto } from '../models/user-project-dto';
 import { Role } from '../../../core/enums/Role';
 import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
@@ -37,7 +32,6 @@ import { MonthlyExpensesChartComponent } from './monthly-expenses-chart/monthly-
       CurrentDateComponent,
       BudgetBarComponent,
       MonthlyExpensesChartComponent,
-      FontAwesomeModule,
       CurrencyFormatPipe,
       MatButtonModule,
       MatIconModule,
@@ -53,10 +47,6 @@ export class DetailProjectComponent implements OnInit {
   projectId!: string;
 
   userProject!: UserProjectDto;
-
-  faArrowUp = faArrowUp;
-  faArrowDown = faArrowDown;
-  faPlus = faPlus;
 
   btnIncome = 'Income';
   btnCategory = 'Category';

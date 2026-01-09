@@ -11,7 +11,7 @@
             <div class="card-footer">
               <div class="dropdown">
                 <button class="btn more" [class]="userProject?.project?.id && (defaultProjectId$ | async) === userProject.project.id ? 'btn-primary' : 'btn-secondary'" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  <fa-icon [icon]="faEllipsis"></fa-icon>
+                  <i class="bi bi-three-dots"></i>
                 </button>
                 <ul class="dropdown-menu">
                   <li><button type="button" class="edit dropdown-item" (click)="edit(userProject.project)">{{ 'ButtonEdit' | translate }}</button></li>
@@ -31,7 +31,7 @@
         <mat-grid-tile>
           <div (click)="add()" id="add-item" class="card text-bg-secondary">
             <div class="card-body">
-              <fa-icon [icon]="faPlus" size="2xl"></fa-icon>
+              <i class="bi bi-plus-circle fs-1"></i>
             </div>
           </div>
         </mat-grid-tile>

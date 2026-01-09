@@ -6,8 +6,6 @@ import { Observable } from 'rxjs/internal/Observable';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { compare } from 'fast-json-patch';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPenToSquare, faTrash, faPlus, faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { MatFormField } from '@angular/material/form-field';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
@@ -48,7 +46,6 @@ import { CurrentDateService } from '../../../core/services/current-date.service'
       CurrentDateComponent,
       ReturnButtonComponent,
       BudgetBarComponent,
-      FontAwesomeModule,
       MatFormField,
       MatFormFieldModule,
       MatCardModule,
@@ -63,12 +60,6 @@ import { CurrentDateService } from '../../../core/services/current-date.service'
 })
 export class ListExpensesComponent implements OnInit {
   private expandedExpenses: Set<string> = new Set<string>();
-
-  faPenToSquare = faPenToSquare;
-  faTrash = faTrash;
-  faPlus = faPlus;
-  faChevronDown = faChevronDown;
-  faChevronRight = faChevronRight;
 
   private expenses: BehaviorSubject<ExpenseDto[]> = new BehaviorSubject<ExpenseDto[]>([new ExpenseDto()]);
   expenses$: Observable<ExpenseDto[]> = this.expenses.asObservable();
