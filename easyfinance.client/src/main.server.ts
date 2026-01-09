@@ -7,6 +7,10 @@ import { HttpClient, provideHttpClient, withFetch, withInterceptors } from '@ang
 import { TranslateHttpLoader } from './app/core/utils/loaders/translate-http-loader';
 import { LoadingInterceptor } from './app/core/interceptor/loading.interceptor';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
+import { config } from '@fortawesome/fontawesome-svg-core';
+
+config.autoAddCss = true;      // keep FontAwesome CSS
+config.autoReplaceSvg = false; // critical: disables JS style injection
 
 const bootstrap = (context: BootstrapContext) => bootstrapApplication(AppComponent, {
   providers: [
