@@ -72,7 +72,7 @@ jobs:
 
     - name: Build
       if: matrix.language == 'csharp'
-      run: dotnet build --configuration Debug --no-restore
+      run: dotnet build --configuration Release --no-restore
 
     - name: Install frontend dependencies
       if: matrix.language == 'csharp'
