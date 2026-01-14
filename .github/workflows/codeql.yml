@@ -1,0 +1,85 @@
+name: "CodeQL Advanced"
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  schedule:
+    - cron: '41 19 * * 6'
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
+
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: actions
+            build-mode: none
+          - language: javascript-typescript
+            build-mode: none
+          - language: csharp
+            build-mode: manual
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      if: matrix.language == 'csharp'
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Setup Node
+      if: matrix.language == 'csharp'
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+
+    - name: Cache node_modules
+      if: matrix.language == 'csharp'
+      uses: actions/cache@v3
+      with:
+        path: ./easyfinance.client/node_modules
+        key: node-modules-${{ runner.os }}-${{ hashFiles('./easyfinance.client/package-lock.json') }}
+
+    - name: Cache Cypress binary
+      if: matrix.language == 'csharp'
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/Cypress
+        key: cypress-${{ runner.os }}-${{ hashFiles('./easyfinance.client/package-lock.json') }}
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v4
+      with:
+        languages: ${{ matrix.language }}
+        build-mode: ${{ matrix.build-mode }}
+
+    - name: Restore
+      if: matrix.language == 'csharp'
+      run: dotnet restore
+
+    - name: Build
+      if: matrix.language == 'csharp'
+      run: dotnet build --configuration Debug --no-restore
+
+    - name: Install frontend dependencies
+      if: matrix.language == 'csharp'
+      run: npm install
+      working-directory: ./easyfinance.client
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v4
+      with:
+        category: "/language:${{matrix.language}}"
