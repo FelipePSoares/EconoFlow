@@ -1,15 +1,20 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, concatMap, map, of, switchMap } from 'rxjs';
 import { tap, catchError, throwError } from 'rxjs';
 import { DeleteUser, User } from '../models/user';
 import { LocalService } from './local.service';
 import { Operation } from 'fast-json-patch';
+import { GlobalService } from './global.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
+  private http = inject(HttpClient);
+  private globalService = inject(GlobalService);
+  private localService = inject(LocalService);
+
   private loggedUser = new BehaviorSubject<User | undefined>(undefined);
   loggedUser$ = this.loggedUser.asObservable().pipe(switchMap(user => {
     if (user)
@@ -17,8 +22,6 @@ export class UserService {
 
     return this.getLoggedUser();
   }));
-
-  constructor(private http: HttpClient, private localService: LocalService) { }
 
   public getLoggedUser(): Observable<User> {
     return this.checkStatus().pipe(switchMap(isLogged => {
@@ -90,6 +93,8 @@ export class UserService {
       observe: 'body',
       responseType: 'json'
     }).pipe(tap(user => {
+      this.globalService.setLocale(user.languageCode);
+
       this.loggedUser.next(user);
       this.localService.saveData(this.localService.USER_DATA, user).subscribe();
     }));

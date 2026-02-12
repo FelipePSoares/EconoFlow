@@ -1,5 +1,5 @@
 
-import { Component, Inject, Injector, PLATFORM_ID } from '@angular/core';
+import { ApplicationRef, Component, inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterOutlet } from '@angular/router';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
@@ -8,7 +8,7 @@ import { Observable } from 'rxjs/internal/Observable';
 import { AuthService } from '../core/services/auth.service';
 import { NavBarComponent } from '../core/components/nav-bar/nav-bar.component';
 import { SpinnerComponent } from '../core/components/spinner/spinner.component';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { VersionCheckService } from '../core/services/version-check.service';
 import { CanonicalService } from '../core/services/canonical.service';
 
@@ -19,6 +19,8 @@ import {
 } from '@angular/material/core';
 import * as moment from 'moment';
 import { NotificationService } from '../core/services/notification.service';
+import { filter, firstValueFrom } from 'rxjs';
+import { GlobalService } from '../core/services/global.service';
 
 export const MY_FORMATS = {
   parse: {
@@ -55,19 +57,21 @@ export const MY_FORMATS = {
 })
 
 export class AppComponent {
+  private router = inject(Router);
+  private versionCheckService = inject(VersionCheckService);
+  private canonicalService = inject(CanonicalService);
+  private noticationService = inject(NotificationService);
+  private globalService = inject(GlobalService);
+  private appRef = inject(ApplicationRef);
+  private platformId = inject(PLATFORM_ID);
+
   private isSignedIn: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   isSignedIn$: Observable<boolean> = this.isSignedIn.asObservable();
 
-  constructor(
-    private router: Router,
-    private injector: Injector,
-    @Inject(PLATFORM_ID) private platformId: object,
-    private versionCheckService: VersionCheckService,
-    private canonicalService: CanonicalService,
-    private noticationService: NotificationService) {   
+  constructor() {
     if (isPlatformBrowser(this.platformId)) {
       this.versionCheckService.init();
-      const authService = injector.get(AuthService);
+      const authService = inject(AuthService);
       this.isSignedIn$ = authService.isSignedIn$;
 
       authService.isSignedIn$.subscribe(isSignedIn => {
@@ -75,6 +79,11 @@ export class AppComponent {
           authService.startUserPolling();
           this.noticationService.startPolling();
         }
+      });
+
+      firstValueFrom(this.appRef.isStable.pipe(filter(Boolean))).then(async () => {
+        const locale = navigator.language || this.globalService.currentLanguage || 'en';
+        await this.globalService.setLocale(locale);
       });
     }
   }

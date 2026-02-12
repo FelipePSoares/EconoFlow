@@ -60,7 +60,6 @@ export class NotificationService {
         startWith(0),
         switchMap(() =>
           this.getNotifications().pipe(tap(notifications => {
-            console.log('Fetched notifications:', notifications);
             this.notifications.next(notifications);
           }))))
       .subscribe();
