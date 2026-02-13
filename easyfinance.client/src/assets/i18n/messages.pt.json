@@ -21,6 +21,7 @@
   "FieldAnnualIncomeTooltip": "Nós usamos este valor para calcular a distrubuição mensal. Por favor insira sua renda média anual.",
   "FieldEmail": "Notificações por E-mail",
   "FieldPush": "Notificações por Push",
+  "FieldLanguage": "Idioma",
 
   "PlaceholderEmailAddress": "nome@exemplo.com",
   "PlaceholderPassword": "Senha",
@@ -32,6 +33,7 @@
   "PlaceholderIncomeName": "Ex: Salário, Retorno Investimentos, Renda Extra",
   "PlaceholderExpenseName": "Ex: Aluguel, Mercado, Internet",
   "PlaceholderItemWithoutName": "Item",
+  "PlaceholderLanguage": "Selecione a sua Lingua",
 
   "ButtonSignIn": "Logar",
   "ButtonSignUp": "Cadastrar",

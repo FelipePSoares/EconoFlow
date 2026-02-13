@@ -83,27 +83,6 @@ namespace EasyFinance.Server.Controllers
             return Ok(true);
         }
 
-        [HttpPut]
-        [Obsolete("UpdateUserAsync is deprecated, please use PatchUserAsync instead.")]
-        public async Task<IActionResult> UpdateUserAsync([FromBody] UserRequestDTO userDTO)
-        {
-            var user = await this.userManager.GetUserAsync(this.HttpContext.User);
-
-            if (user == null)
-                return BadRequest("User not found!");
-
-            user.SetFirstName(userDTO.FirstName);
-            user.SetLastName(userDTO.LastName);
-
-            var result = user.Validate;
-            if (result.Failed)
-                return this.ValidateResponse(result, HttpStatusCode.OK);
-
-            await this.userManager.UpdateAsync(user);
-
-            return Ok(new UserResponseDTO(user));
-        }
-
         [HttpPatch]
         public async Task<IActionResult> PatchUserAsync([FromBody] JsonPatchDocument<UserRequestDTO> userRequestDto)
         {

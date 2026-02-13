@@ -105,17 +105,10 @@ export class UserService {
     this.localService.clearData();
   }
 
-  public setUserInfo(firstName: string, lastName: string): Observable<User> {
-    return this.http.put('/api/AccessControl/', {
-      firstName: firstName,
-      lastName: lastName
-    }).pipe(concatMap(() => {
-        return this.refreshUserInfo();
-      }));
-  }
-
   public update(patch: Operation[]): Observable<User> {
     return this.http.patch<User>('/api/AccessControl/', patch).pipe(tap(user => {
+      this.globalService.setLocale(user.languageCode);
+
       this.loggedUser.next(user);
       this.localService.saveData(this.localService.USER_DATA, user).subscribe();
     }));

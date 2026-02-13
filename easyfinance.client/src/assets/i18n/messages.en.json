@@ -21,6 +21,7 @@
   "FieldAnnualIncomeTooltip": "We use this to calculate your monthly distribution. Please enter your yearly income.",
   "FieldEmail": "Email Notifications",
   "FieldPush": "Push Notifications",
+  "FieldLanguage": "Language",
 
   "PlaceholderEmailAddress": "name@example.com",
   "PlaceholderPassword": "Password",
@@ -32,6 +33,7 @@
   "PlaceholderIncomeName": "E.g., Salary, Side Job, Investment Returns",
   "PlaceholderExpenseName": "E.g., Rent, Grocery Shopping, Internet Bill",
   "PlaceholderItemWithoutName": "Item",
+  "PlaceholderLanguage": "Select your language",
 
   "ButtonSignIn": "Sign in",
   "ButtonSignUp": "Sign Up",

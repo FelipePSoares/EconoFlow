@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, Observable, Subscription } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -36,6 +36,13 @@ import { compare } from 'fast-json-patch';
   styleUrl: './account.component.css'
 })
 export class AccountComponent implements OnInit, OnDestroy {
+  private userService = inject(UserService);
+  private router = inject(Router);
+  private errorMessageService = inject(ErrorMessageService);
+  private snackbar = inject(SnackbarComponent);
+  private dialog = inject(MatDialog)
+  private translateService = inject(TranslateService)
+
   // Private Properties
   private deleteToken!: string;
   private sub!: Subscription;
@@ -56,14 +63,7 @@ export class AccountComponent implements OnInit, OnDestroy {
   httpErrors = false;
   errors!: Record<string, string[]>;
 
-  constructor(
-    private userService: UserService,
-    private router: Router,
-    private errorMessageService: ErrorMessageService,
-    private snackbar: SnackbarComponent,
-    private dialog: MatDialog,
-    private translateService: TranslateService
-  ) {
+  constructor() {
     this.user$ = this.userService.loggedUser$;
   }
 

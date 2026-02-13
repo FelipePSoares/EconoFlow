@@ -3,6 +3,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { getCurrencySymbol, registerLocaleData } from '@angular/common';
 import { loadMomentLocale } from '../utils/loaders/moment-locale-loader';
 import { firstValueFrom } from 'rxjs';
+import { SupportedLanguage } from '../types/supported-language';
 
 @Injectable({
   providedIn: 'root',
@@ -14,6 +15,10 @@ export class GlobalService {
   public groupSeparator = '.';
   public decimalSeparator = ',';
   public currency = 'EUR';
+  public supportedLanguages: SupportedLanguage[] = [
+    { code: 'en', nativeName: 'English' },
+    { code: 'pt', nativeName: 'Português' }
+  ];
 
   get currentLanguage(): string {
     return this.languageLoaded;
