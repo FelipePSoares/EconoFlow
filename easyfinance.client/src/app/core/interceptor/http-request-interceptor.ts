@@ -8,12 +8,19 @@ import { AuthService } from '../services/auth.service';
 import { ApiErrorResponse } from '../models/error';
 import { SnackbarComponent } from '../components/snackbar/snackbar.component';
 
+const exceptions: any = [
+  { method: 'GET', url: 'assets/' }
+];
+
 let isRefreshing = false;
 
 // Use Subject instead of BehaviorSubject - only emits when refresh completes
 const refreshTokenSubject = new Subject<boolean>();
 
-export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
+export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {  
+  if (isException(req))
+    return next(req);
+
   const snackBar = inject(SnackbarComponent);
   const matDialog = inject(MatDialog);
   const injector = inject(Injector);
@@ -100,11 +107,20 @@ export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
         apiErrorResponse.errors['general'] = ['UserBlocked'];
       } else if (err.status === 401 && err.url?.includes('login')) {
         apiErrorResponse.errors['general'] = ['LoginError'];
-      } else {
+      } else if (err?.error) {
         console.error(`GenericError: ${JSON.stringify(err?.error)}`);
+        apiErrorResponse.errors['general'] = ['GenericError']; 
+      } else {
+        console.error(`GenericError: ${JSON.stringify(err)}`);
         apiErrorResponse.errors['general'] = ['GenericError']; 
       }
 
       return throwError(() => apiErrorResponse);
     }));
+}
+
+const isException = (req: any) => {
+  return exceptions.some((exception: any) => {
+    return exception.method === req.method && req.url.indexOf(exception.url) >= 0;
+  });
 }

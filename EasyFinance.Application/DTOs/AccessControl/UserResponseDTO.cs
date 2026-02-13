@@ -21,19 +21,21 @@ namespace EasyFinance.Application.DTOs.AccessControl
                 TwoFactorEnabled = user.TwoFactorEnabled;
                 DefaultProjectId = user.DefaultProjectId;
                 NotificationChannels = user.NotificationChannels;
+                LanguageCode = user.LanguageCode;
             }
         }
 
-        public Guid Id { get; set; }
-        public string Email { get; set; } = string.Empty;
-        public string FirstName { get; set; } = string.Empty;
-        public string LastName { get; set; } = string.Empty;
-        public string FullName { get; set; } = string.Empty;
-        public bool Enabled { get; set; }
-        public bool IsFirstLogin { get; set; }
-        public bool EmailConfirmed { get; set; }
-        public bool TwoFactorEnabled { get; set; }
-        public Guid? DefaultProjectId {  get; set; }
-        public NotificationChannels NotificationChannels { get; private set; }
+        public Guid Id { get; init; }
+        public string Email { get; init; } = string.Empty;
+        public string FirstName { get; init; } = string.Empty;
+        public string LastName { get; init; } = string.Empty;
+        public string FullName { get; init; } = string.Empty;
+        public bool Enabled { get; init; }
+        public bool IsFirstLogin { get; init; }
+        public bool EmailConfirmed { get; init; }
+        public bool TwoFactorEnabled { get; init; }
+        public Guid? DefaultProjectId {  get; init; }
+        public NotificationChannels NotificationChannels { get; init; }
+        public string LanguageCode { get; init; }
     }
 }

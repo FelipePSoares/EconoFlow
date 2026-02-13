@@ -10,6 +10,7 @@ export class User {
   twoFactorEnabled!: boolean;
   defaultProjectId!: string;
   notificationChannels!: string[];
+  languageCode!: string;
 }
 
 export class DeleteUser {

@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using EasyFinance.Application.Contracts.Persistence;
@@ -20,7 +21,7 @@ namespace EasyFinance.Application.Features.SupportService
         private readonly ILogger<ContactService> logger = logger;
         private readonly IEmailService emailService = emailService;
 
-        public async Task<AppResponse<ContactUsResponseDTO>> CreateAsync(User user,ContactUs contactUs)
+        public async Task<AppResponse<ContactUsResponseDTO>> CreateAsync(User user, ContactUs contactUs)
         {
             if (contactUs == default)
                 return AppResponse<ContactUsResponseDTO>.Error(code: nameof(contactUs), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(contactUs)));
@@ -39,6 +40,7 @@ namespace EasyFinance.Application.Features.SupportService
             await this.emailService.SendEmailAsync(
                 "contact@econoflow.pt",
                 EmailTemplates.NewSupportMessageReceived,
+                new CultureInfo("en-US"),
                 ("Name", contactUs.Name),
                 ("Email", contactUs.Email),
                 ("Subject", contactUs.Subject),

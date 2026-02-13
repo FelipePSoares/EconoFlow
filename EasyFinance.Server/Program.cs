@@ -100,6 +100,7 @@ try
             Email = "test@test.com",
             EmailConfirmed = true
         };
+        user.SetLanguageCode("en");
         userManager.CreateAsync(user, "Passw0rd!").GetAwaiter().GetResult();
 
         var user2 = new User(firstName: "Second", lastName: "User", enabled: true)

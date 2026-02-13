@@ -13,21 +13,21 @@
           <mat-label>{{ 'FieldEmailAddress' | translate }}</mat-label>
           <input id="email" placeholder="{{ 'PlaceholderEmailAddress' | translate }}" matInput formControlName="email">
           @if ((email?.invalid && email?.touched) || httpErrors) {
-            @for (error of getFormFieldErrors('email'); track error) {
-              <mat-error>{{ error | translate }}</mat-error>
-            }
+          @for (error of getFormFieldErrors('email'); track error) {
+          <mat-error>{{ error | translate }}</mat-error>
+          }
           }
         </mat-form-field>
 
         <mat-form-field [style.width.%]="100">
           <mat-label>{{ 'FieldPassword' | translate }}</mat-label>
           <input id="password" placeholder="{{ 'PlaceholderPassword' | translate }}" matInput formControlName="password"
-            [type]="hide ? 'password' : 'text'">
+                 [type]="hide ? 'password' : 'text'">
           <mat-icon matSuffix (click)="hide = !hide">{{ hide ? 'visibility_off' : 'visibility' }}</mat-icon>
           @if ((password?.invalid && password?.touched) || httpErrors) {
-            @for (error of getFormFieldErrors('password'); track error) {
-              <mat-error>{{ error | translate }}</mat-error>
-            }
+          @for (error of getFormFieldErrors('password'); track error) {
+          <mat-error>{{ error | translate }}</mat-error>
+          }
           }
         </mat-form-field>
 
@@ -35,11 +35,11 @@
         <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="loginForm.invalid">{{ 'ButtonSignIn' | translate }}</button>
 
         @if (httpErrors && errors['general']) {
-          <div>
-            @for (error of errors['general']; track error) {
-              <p class="mt-3 mb-3 text-danger text-center">{{ error | translate }}</p>
-            }
-          </div>
+        <div>
+          @for (error of errors['general']; track error) {
+          <p class="mt-3 mb-3 text-danger text-center">{{ error | translate }}</p>
+          }
+        </div>
         }
       </form>
       <span>

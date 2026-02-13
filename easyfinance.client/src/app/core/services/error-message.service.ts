@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { inject, Injectable } from "@angular/core";
 import { AbstractControl, ValidationErrors, FormGroup } from "@angular/forms";
 import { TranslateService } from "@ngx-translate/core";
 
@@ -6,7 +6,7 @@ import { TranslateService } from "@ngx-translate/core";
   providedIn: 'root'
 })
 export class ErrorMessageService {
-  constructor(private translate: TranslateService) { }
+  private translate = inject(TranslateService);
 
   getFormFieldErrors(form: FormGroup<any>, fieldName: string): string[] {
     const control = form.get(fieldName);

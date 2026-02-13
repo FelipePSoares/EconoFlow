@@ -107,5 +107,38 @@ namespace EasyFinance.Domain.Tests.AccessControl
                 nameof(user.LastName),
                 maxLength));
         }
+
+        [Fact]
+        public void AddLanguage_SendValidLanguage_ShouldNotExistsError()
+        {
+            // Arrange
+            var validCulture = "en";
+            var user = new UserBuilder().AddLanguage(validCulture).Build();
+
+            // Act
+            var result = user.Validate;
+
+            // Assert
+            result.Succeeded.Should().BeTrue();
+            result.Messages.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void AddLanguage_SendInvalidLanguage_ShouldThrowException()
+        {
+            // Arrange
+            var invalidCulture = "NotExistentCulture";
+            var user = new UserBuilder().AddLanguage(invalidCulture).Build();
+
+            // Act
+            var result = user.Validate;
+
+            // Assert
+            result.Failed.Should().BeTrue();
+
+            var message = result.Messages.Should().ContainSingle().Subject;
+            message.Code.Should().Be(nameof(user.LanguageCode));
+            message.Description.Should().Be(ValidationMessages.InvalidCultureCode);
+        }
     }
 }

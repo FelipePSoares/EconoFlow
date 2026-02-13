@@ -1,3 +1,4 @@
+using System.Globalization;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.DTOs.AccessControl;
 using EasyFinance.Application.DTOs.BackgroundService.Email;
@@ -352,6 +353,7 @@ namespace EasyFinance.Application.Tests
             this.emailService.Verify(es => es.SendEmailAsync(
                 It.Is<string>(e => e == "newuser@example.com"),
                 It.Is<EmailTemplates>(e => e == EmailTemplates.ReceivedInvitation),
+                It.IsAny<CultureInfo>(),
                 It.IsAny<(string, string)[]>()), Times.Once);
         }
 
@@ -406,6 +408,7 @@ namespace EasyFinance.Application.Tests
             this.emailService.Verify(es => es.SendEmailAsync(
                 It.Is<string>(e => e == "existinguser@example.com"),
                 It.Is<EmailTemplates>(e => e == EmailTemplates.AccessLevelChanged),
+                It.IsAny<CultureInfo>(),
                 It.IsAny<(string, string)[]>()), Times.Once);
         }
 
@@ -459,6 +462,7 @@ namespace EasyFinance.Application.Tests
             this.emailService.Verify(es => es.SendEmailAsync(
                 It.Is<string>(e => e == "existinguser@example.com"),
                 It.Is<EmailTemplates>(e => e == EmailTemplates.GrantedAccess),
+                It.IsAny<CultureInfo>(),
                 It.IsAny<(string, string)[]>()), Times.Once);
         }
 

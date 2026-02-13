@@ -150,6 +150,7 @@ namespace EasyFinance.Application.Features.AccessControlService
                             sendingEmails.Add(emailService.SendEmailAsync(
                                 toEmail,
                                 EmailTemplates.ReceivedInvitation,
+                                inviterUser.Culture,
                                 ("FullName", inviterUser.FullName),
                                 ("ProjectName", userProject.Project.Name),
                                 ("CallbackUrl", callbackUrl)
@@ -164,6 +165,7 @@ namespace EasyFinance.Application.Features.AccessControlService
                         sendingEmails.Add(emailService.SendEmailAsync(
                             toEmail,
                             EmailTemplates.GrantedAccess,
+                            userProject.User.Culture,
                             ("FirstName", userProject.User.FirstName),
                             ("FullName", inviterUser.FullName),
                             ("ProjectName", userProject.Project.Name),
@@ -177,6 +179,7 @@ namespace EasyFinance.Application.Features.AccessControlService
                     sendingEmails.Add(emailService.SendEmailAsync(
                         userProject.User.Email,
                         EmailTemplates.AccessLevelChanged,
+                        userProject.User.Culture,
                         ("FirstName", userProject.User.FirstName),
                         ("ProjectName", userProject.Project.Name),
                         ("FullName", inviterUser.FullName),

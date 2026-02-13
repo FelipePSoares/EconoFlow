@@ -1,4 +1,4 @@
-import { Injectable, Inject, PLATFORM_ID, DOCUMENT } from '@angular/core';
+import { Injectable, PLATFORM_ID, DOCUMENT, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -7,19 +7,18 @@ import { filter } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class CanonicalService {
+  private router = inject(Router);
+  private document = inject(DOCUMENT);
+  private platformId = inject(PLATFORM_ID);
 
   private canonicalLink: HTMLLinkElement;
 
-  constructor(
-    @Inject(DOCUMENT) private document: Document,
-    @Inject(PLATFORM_ID) private platformId: Object,
-    private router: Router
-  ) {
+  constructor() {
     this.canonicalLink = this.document.createElement('link');
     this.canonicalLink.setAttribute('rel', 'canonical');
     this.canonicalLink.setAttribute('href', this.currentUrl());
 
-    if (isPlatformBrowser(platformId)) {
+    if (isPlatformBrowser(this.platformId)) {
 
       this.document.head.appendChild(this.canonicalLink);
 

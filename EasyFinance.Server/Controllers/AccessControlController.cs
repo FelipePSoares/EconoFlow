@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using System.Net;
 using System.Security.Claims;
 using System.Text;
@@ -82,27 +83,6 @@ namespace EasyFinance.Server.Controllers
             return Ok(true);
         }
 
-        [HttpPut]
-        [Obsolete("UpdateUserAsync is deprecated, please use PatchUserAsync instead.")]
-        public async Task<IActionResult> UpdateUserAsync([FromBody] UserRequestDTO userDTO)
-        {
-            var user = await this.userManager.GetUserAsync(this.HttpContext.User);
-
-            if (user == null)
-                return BadRequest("User not found!");
-
-            user.SetFirstName(userDTO.FirstName);
-            user.SetLastName(userDTO.LastName);
-
-            var result = user.Validate;
-            if (result.Failed)
-                return this.ValidateResponse(result, HttpStatusCode.OK);
-
-            await this.userManager.UpdateAsync(user);
-
-            return Ok(new UserResponseDTO(user));
-        }
-
         [HttpPatch]
         public async Task<IActionResult> PatchUserAsync([FromBody] JsonPatchDocument<UserRequestDTO> userRequestDto)
         {
@@ -118,6 +98,7 @@ namespace EasyFinance.Server.Controllers
 
             existentUser.SetFirstName(dto.FirstName);
             existentUser.SetLastName(dto.LastName);
+            existentUser.SetLanguageCode(dto.LanguageCode);
             existentUser.SetNotificationChannels(dto.NotificationChannels);
 
             var result = existentUser.Validate;
@@ -194,6 +175,7 @@ namespace EasyFinance.Server.Controllers
             }
 
             var user = new User();
+            user.SetLanguageCode(CultureInfo.CurrentUICulture.Name);
             await userStore.SetUserNameAsync(user, email, CancellationToken.None);
             await emailStore.SetEmailAsync(user, email, CancellationToken.None);
             user.SetNotificationChannels(NotificationChannels.Push | NotificationChannels.Email);

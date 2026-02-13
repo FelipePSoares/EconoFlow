@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import * as CryptoJS from 'crypto-js';
 import { EncryptionService } from './encryption.service';
 import { map, Observable, of } from 'rxjs';
@@ -8,10 +8,10 @@ import { map, Observable, of } from 'rxjs';
   providedIn: 'root'
 })
 export class LocalService {
+  private platformId = inject(PLATFORM_ID);
+  private encryptionService = inject(EncryptionService);
 
   public USER_DATA = "user_data";
-
-  constructor(@Inject(PLATFORM_ID) private platformId: object, private encryptionService: EncryptionService) { }
 
   public saveData(key: string, value: any): Observable<void> {
     if (isPlatformBrowser(this.platformId)) {

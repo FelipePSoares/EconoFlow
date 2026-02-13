@@ -3,7 +3,11 @@
   min-height: 100vh;
 }
 
-.logo {
-  height: 40px;
-  width: 40px;
+.shadow-sm {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08) !important;
+}
+
+.navbar-brand:hover {
+  transform: translateY(-1px);
+  transition: transform 0.2s ease;
 }
