@@ -12,6 +12,7 @@ export class GlobalService {
   private translateService = inject(TranslateService);
 
   private languageLoaded = 'en-US';
+  public languageStorageKey = "language-key";
   public groupSeparator = '.';
   public decimalSeparator = ',';
   public currency = 'EUR';
@@ -50,6 +51,7 @@ export class GlobalService {
         }
       }
 
+      localStorage.setItem(this.languageStorageKey, this.languageLoaded);
       await firstValueFrom(this.translateService.use(this.languageLoaded));
 
       await loadMomentLocale(this.languageLoaded);

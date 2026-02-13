@@ -1,4 +1,6 @@
 
+import { filter, firstValueFrom } from 'rxjs';
+import { FormsModule } from '@angular/forms';
 import { ApplicationRef, Component, inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterOutlet } from '@angular/router';
@@ -8,7 +10,7 @@ import { Observable } from 'rxjs/internal/Observable';
 import { AuthService } from '../core/services/auth.service';
 import { NavBarComponent } from '../core/components/nav-bar/nav-bar.component';
 import { SpinnerComponent } from '../core/components/spinner/spinner.component';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { VersionCheckService } from '../core/services/version-check.service';
 import { CanonicalService } from '../core/services/canonical.service';
 
@@ -19,7 +21,6 @@ import {
 } from '@angular/material/core';
 import * as moment from 'moment';
 import { NotificationService } from '../core/services/notification.service';
-import { filter, firstValueFrom } from 'rxjs';
 import { GlobalService } from '../core/services/global.service';
 
 export const MY_FORMATS = {
@@ -35,25 +36,26 @@ export const MY_FORMATS = {
 };
 
 @Component({
-    selector: 'app-root',
-    imports: [
-        CommonModule,
-        RouterOutlet,
-        NavBarComponent,
-        SpinnerComponent,
-        TranslateModule
-    ],
-    templateUrl: './app.component.html',
-    styleUrls: ['./app.component.css'],
-    providers: [
-        { provide: MAT_MOMENT_DATE_ADAPTER_OPTIONS, useValue: { useUtc: true } },
-        {
-            provide: DateAdapter,
-            useClass: MomentDateAdapter,
-            deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS],
-        },
-        { provide: MAT_DATE_FORMATS, useValue: MY_FORMATS },
-    ]
+  selector: 'app-root',
+  imports: [
+    CommonModule,
+    RouterOutlet,
+    NavBarComponent,
+    SpinnerComponent,
+    TranslateModule,
+    FormsModule
+  ],
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css'],
+  providers: [
+    { provide: MAT_MOMENT_DATE_ADAPTER_OPTIONS, useValue: { useUtc: true } },
+    {
+      provide: DateAdapter,
+      useClass: MomentDateAdapter,
+      deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS],
+    },
+    { provide: MAT_DATE_FORMATS, useValue: MY_FORMATS },
+  ]
 })
 
 export class AppComponent {
@@ -67,6 +69,8 @@ export class AppComponent {
 
   private isSignedIn: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   isSignedIn$: Observable<boolean> = this.isSignedIn.asObservable();
+  supportedLanguages = this.globalService.supportedLanguages;
+  selectedLanguage = this.globalService.currentLanguage;
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
@@ -75,15 +79,18 @@ export class AppComponent {
       this.isSignedIn$ = authService.isSignedIn$;
 
       authService.isSignedIn$.subscribe(isSignedIn => {
-        if (isSignedIn){
+        if (isSignedIn) {
           authService.startUserPolling();
           this.noticationService.startPolling();
         }
       });
 
       firstValueFrom(this.appRef.isStable.pipe(filter(Boolean))).then(async () => {
-        const locale = navigator.language || this.globalService.currentLanguage || 'en';
+        const storageLanguage = localStorage.getItem(this.globalService.languageStorageKey);
+
+        const locale = storageLanguage || navigator.language || this.globalService.currentLanguage || 'en';
         await this.globalService.setLocale(locale);
+        this.selectedLanguage = this.globalService.currentLanguage;
       });
     }
   }
@@ -98,5 +105,12 @@ export class AppComponent {
 
   isRecovery(): boolean {
     return this.router.url === '/recovery';
+  }
+
+  onLanguageChange(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    const languageCode = target.value;
+
+    this.globalService.setLocale(languageCode);
   }
 }
