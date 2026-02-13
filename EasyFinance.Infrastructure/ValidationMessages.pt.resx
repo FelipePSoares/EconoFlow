@@ -321,4 +321,7 @@ Você será redirecionado em 5 segundos...</value>
   <data name="NotSupported" xml:space="preserve">
     <value>Não suportado {0}</value>
   </data>
+  <data name="InvalidCultureCode" xml:space="preserve">
+    <value>Linguagem inválida.</value>
+  </data>
 </root>

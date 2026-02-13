@@ -17,6 +17,7 @@ namespace EasyFinance.Common.Tests.AccessControl
             this.AddLastName(Fixture.Create<string>());
             this.AddEmail(Fixture.Create<MailAddress>().Address);
             this.AddEnabled(true);
+            this.AddLanguage("en-US");
         }
 
         public UserBuilder AddFirstName(string firstName)
@@ -46,6 +47,12 @@ namespace EasyFinance.Common.Tests.AccessControl
         public UserBuilder AddId(Guid guid)
         {
             this.user.Id = guid;
+            return this;
+        }
+
+        public UserBuilder AddLanguage(string languageCode)
+        {
+            this.user.SetLanguageCode(languageCode);
             return this;
         }
 

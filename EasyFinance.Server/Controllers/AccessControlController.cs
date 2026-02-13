@@ -119,6 +119,7 @@ namespace EasyFinance.Server.Controllers
 
             existentUser.SetFirstName(dto.FirstName);
             existentUser.SetLastName(dto.LastName);
+            existentUser.SetLanguageCode(dto.LanguageCode);
             existentUser.SetNotificationChannels(dto.NotificationChannels);
 
             var result = existentUser.Validate;
@@ -195,7 +196,7 @@ namespace EasyFinance.Server.Controllers
             }
 
             var user = new User();
-            user.SetLanguageCode(CultureInfo.CurrentUICulture);
+            user.SetLanguageCode(CultureInfo.CurrentUICulture.Name);
             await userStore.SetUserNameAsync(user, email, CancellationToken.None);
             await emailStore.SetEmailAsync(user, email, CancellationToken.None);
             user.SetNotificationChannels(NotificationChannels.Push | NotificationChannels.Email);
