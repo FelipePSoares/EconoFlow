@@ -7,30 +7,35 @@ import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'
 import { ProjectService } from '../../services/project.service';
 import { Project } from '../../models/project';
 import { UserProject } from '../../models/user-project';
+import { TranslateModule } from '@ngx-translate/core';
 
 describe('CurrencyFormatPipe', () => {
   let projectService: ProjectService;
-  let globalService: GlobalService;
-  let httpMock: HttpTestingController;
   let userProject: UserProject;
 
   let pipe: CurrencyFormatPipe;
-  let currencyPipe: CurrencyPipe;
 
   beforeEach(() => {
     userProject = new UserProject();
     userProject.project = new Project();
 
     TestBed.configureTestingModule({
-      imports: [],
-      providers: [ProjectService, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-});
-    projectService = TestBed.inject(ProjectService);
-    globalService = TestBed.inject(GlobalService);
-    httpMock = TestBed.inject(HttpTestingController);
+      imports: [
+        TranslateModule.forRoot()
+      ],
+      providers: [
+        ProjectService,
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        GlobalService,
+        HttpTestingController,
+        CurrencyPipe,
+        CurrencyFormatPipe
+      ]
+    });
 
-    currencyPipe = new CurrencyPipe('en-US');
-    pipe = new CurrencyFormatPipe(currencyPipe, projectService, globalService);
+    pipe = TestBed.inject(CurrencyFormatPipe);
+    projectService = TestBed.inject(ProjectService);
   });
 
   it('should format the Euro amount correctly for EUR preferences', () => {
