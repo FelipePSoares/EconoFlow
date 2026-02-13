@@ -18,6 +18,7 @@ import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/
 import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.component';
 import { MatDialog } from '@angular/material/dialog';
 import { compare } from 'fast-json-patch';
+import { GlobalService } from '../../../core/services/global.service';
 
 @Component({
   selector: 'app-account',
@@ -40,8 +41,9 @@ export class AccountComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private errorMessageService = inject(ErrorMessageService);
   private snackbar = inject(SnackbarComponent);
-  private dialog = inject(MatDialog)
-  private translateService = inject(TranslateService)
+  private dialog = inject(MatDialog);
+  private translateService = inject(TranslateService);
+  private globalService = inject(GlobalService);
 
   // Private Properties
   private deleteToken!: string;
@@ -58,6 +60,7 @@ export class AccountComponent implements OnInit, OnDestroy {
 
   // User & Validation State
   editingUser!: User;
+  supportedLanguages = this.globalService.supportedLanguages;
 
   // Error Handling
   httpErrors = false;
@@ -76,7 +79,8 @@ export class AccountComponent implements OnInit, OnDestroy {
     this.user$.subscribe(user => {
       this.userForm = new FormGroup({
         firstName: new FormControl(user.firstName, [Validators.required, Validators.maxLength(100)]),
-        lastName: new FormControl(user.lastName, [Validators.required, Validators.maxLength(100)])
+        lastName: new FormControl(user.lastName, [Validators.required, Validators.maxLength(100)]),
+        languageCode: new FormControl(user.languageCode, [Validators.required])
       });
 
       this.sub = this.userForm.valueChanges
@@ -134,20 +138,23 @@ export class AccountComponent implements OnInit, OnDestroy {
   /** Getters for Form Controls **/
   get firstName() { return this.userForm.get('firstName'); }
   get lastName() { return this.userForm.get('lastName'); }
+  get languageCode() { return this.userForm.get('languageCode'); }
 
   /** Getters for Form Controls **/
   saveGeneralInfo(): void {
     if (this.userForm.valid) {
-      const { firstName, lastName } = this.userForm.value;
-
       const oldUser = ({
         firstName: this.editingUser.firstName,
-        lastName: this.editingUser.lastName
+        lastName: this.editingUser.lastName,
+        languageCode: this.editingUser.languageCode
       });
+
+      const { firstName, lastName, languageCode } = this.userForm.value;
 
       const newUser = ({
         firstName,
-        lastName
+        lastName,
+        languageCode
       });
 
       const patch = compare(oldUser, newUser);
