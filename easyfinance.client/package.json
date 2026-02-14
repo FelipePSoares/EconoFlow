@@ -46,7 +46,7 @@
   },
   "devDependencies": {
     "@angular/build": "^21.0.5",
-    "@angular/cli": "^21.0.5",
+    "@angular/cli": "^21.1.4",
     "@angular/compiler-cli": "^21.0.7",
     "@angular/localize": "^21.0.7",
     "@types/bootstrap": "^5.2.10",
