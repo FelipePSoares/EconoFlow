@@ -18,12 +18,14 @@ namespace EasyFinance.Domain.Account
             NotificationChannels limitNotificationChannels = NotificationChannels.None,
             DateOnly? expiresAt = default,
             string metadata = default,
-            bool isSticky = false
+            bool isSticky = false,
+            bool isActionRequired = false
             )
         {
             this.User = user ?? throw new ArgumentNullException(nameof(user));
             SetCodeMessage(codeMessage);
             SetActionLabelCode(actionLabelCode);
+            SetIsActionRequired(isActionRequired);
             SetMetadata(metadata);
             SetType(type);
             SetCategory(category);
@@ -62,7 +64,7 @@ namespace EasyFinance.Domain.Account
                 else if (CodeMessage.Length > 100)
                     response.AddErrorMessage(nameof(CodeMessage), string.Format(ValidationMessages.PropertyMaxLength, nameof(CodeMessage), 100));
 
-                if (IsActionRequired && ActionLabelCode.Length > 100)
+                if (!string.IsNullOrEmpty(ActionLabelCode) && ActionLabelCode.Length > 100)
                     response.AddErrorMessage(nameof(ActionLabelCode), string.Format(ValidationMessages.PropertyMaxLength, nameof(ActionLabelCode), 100));
 
                 if (ExpiresAt.HasValue && ExpiresAt.Value <= DateOnly.FromDateTime(DateTime.UtcNow))
@@ -87,10 +89,10 @@ namespace EasyFinance.Domain.Account
 
         public void SetActionLabelCode(string actionLabelCode)
         {
-            this.IsActionRequired = !string.IsNullOrEmpty(actionLabelCode);
-
             ActionLabelCode = actionLabelCode;
         }
+
+        public void SetIsActionRequired(bool isActionRequired) => IsActionRequired = isActionRequired;
 
         public void SetCodeMessage(string codeMessage) => CodeMessage = codeMessage;
 

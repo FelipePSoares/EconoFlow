@@ -4,7 +4,6 @@ import { map, Observable } from 'rxjs';
 import { TranslateModule } from '@ngx-translate/core';
 import { NotificationService } from '../../services/notification.service';
 import { Notification } from '../../models/notification';
-import { NotificationType } from '../../enums/notification-type';
 
 @Component({
   selector: 'app-notifications',
@@ -21,7 +20,7 @@ export class NotificationsComponent {
 
   constructor(private notificationService: NotificationService) { }
 
-  public action(id: string, notificationType: NotificationType) {
-    this.notificationService.action(id, notificationType);
+  public action(notification: Notification) {
+    this.notificationService.action(notification);
   }
 }

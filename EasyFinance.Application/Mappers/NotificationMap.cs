@@ -17,6 +17,16 @@ namespace EasyFinance.Application.Mappers
             => new(notification);
 
         public static Notification FromDTO(this NotificationRequestDTO dto) 
-            => new(dto.User, dto.CodeMessage, dto.Type, dto.Category, dto.ActionLabelCode, dto.LimitNotificationChannels, dto.ExpiresAt, dto.Metadata, dto.IsSticky);
+            => new(
+                dto.User,
+                dto.CodeMessage,
+                dto.Type,
+                dto.Category,
+                dto.ActionLabelCode,
+                dto.LimitNotificationChannels,
+                dto.ExpiresAt,
+                dto.Metadata,
+                dto.IsSticky,
+                dto.IsActionRequired);
     }
 }

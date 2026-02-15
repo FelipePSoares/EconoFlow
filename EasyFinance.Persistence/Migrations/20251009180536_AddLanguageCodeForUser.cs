@@ -24,6 +24,32 @@ namespace EasyFinance.Persistence.Migrations
                 SET LanguageCode = 'en-US'
                 WHERE LanguageCode IS NULL;
             ");
+
+            // Insert in-app notification to inform users that language selection is available in profile options
+            migrationBuilder.Sql(@"
+                INSERT INTO Notifications
+                    (Id, UserId, Type, CodeMessage, Category, IsRead, IsSticky, IsActionRequired, ActionLabelCode, LimitNotificationChannels, CreatedDate, ModifiedAt)
+                SELECT
+                    NEWID(),
+                    u.Id,
+                    2, -- Type: Information
+                    'LanguagePreferenceNowAvailableMessage',
+                    1, -- Category: System
+                    0, -- IsRead
+                    0, -- IsSticky
+                    0, -- IsActionRequired
+                    'ButtonMyProfile',
+                    8, -- LimitNotificationChannels: InApp
+                    GETUTCDATE(),
+                    GETUTCDATE()
+                FROM AspNetUsers u
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM Notifications n
+                    WHERE n.UserId = u.Id
+                      AND n.CodeMessage = 'LanguagePreferenceNowAvailableMessage'
+                );
+            ");
         }
 
         /// <inheritdoc />

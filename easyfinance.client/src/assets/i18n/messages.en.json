@@ -244,5 +244,6 @@
   "NoNotifications": "No Notifications",
   "SetAsRead": "Set as read",
   "WelcomeMessage": "Welcome to EconoFlow! Now you can manage your finances in a simple and smart way.",
-  "ConfirmEmailMessage": "Please confirm your email to activate your account and start using all features."
+  "ConfirmEmailMessage": "Please confirm your email to activate your account and start using all features.",
+  "LanguagePreferenceNowAvailableMessage": "You can now choose your preferred language in your profile options."
 }

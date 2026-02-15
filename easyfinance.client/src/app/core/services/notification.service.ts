@@ -1,5 +1,5 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription, interval, switchMap, tap, startWith } from 'rxjs';
 import { Router } from '@angular/router';
 import { NotificationCategory } from '../enums/notification-category';
@@ -10,21 +10,32 @@ import { Notification } from '../models/notification';
   providedIn: 'root',
 })
 export class NotificationService {
+  private http = inject(HttpClient);
+  private router = inject(Router);
+
   private pollingSubscription: Subscription | null = null;
 
   private notifications = new BehaviorSubject<Notification[]>([]);
   notifications$ = this.notifications.asObservable();
 
-  constructor(private http: HttpClient, private router: Router) { }
-
-  public action(id: string, notificationType: NotificationType) {
-    switch (notificationType) {
+  public action(notification: Notification) {
+    switch (notification.type) {
       case NotificationType.EmailConfirmation: {
         this.router.navigate(['/user/emails']);
         break;
       }
+      case NotificationType.Information: {
+        if (notification.actionLabelCode === 'ButtonMyProfile') {
+          this.markAsRead(notification.id);
+          this.router.navigate(['/user']);
+          break;
+        }
+
+        this.markAsRead(notification.id);
+        break;
+      }
       default: {
-        this.markAsRead(id);
+        this.markAsRead(notification.id);
         break;
       }
     }

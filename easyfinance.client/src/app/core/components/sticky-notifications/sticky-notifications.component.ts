@@ -3,7 +3,6 @@ import { Observable, filter, map, startWith } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { NotificationService } from '../../services/notification.service';
-import { NotificationType } from '../../enums/notification-type';
 import { Notification } from '../../models/notification';
 import { NavigationEnd, Router } from '@angular/router';
 
@@ -28,8 +27,8 @@ export class StickyNotificationsComponent {
     );
   }
 
-  public action(id: string, notificationType: NotificationType) {
-    this.notificationService.action(id, notificationType);
+  public action(notification: Notification) {
+    this.notificationService.action(notification);
   }
 
   private urlIsUnderUser(url: string): boolean {

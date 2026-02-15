@@ -207,6 +207,7 @@ namespace EasyFinance.Server.Controllers
                 Type = NotificationType.EmailConfirmation,
                 Category = NotificationCategory.Security,
                 ActionLabelCode = "ButtonConfirmEmail",
+                IsActionRequired = true,
                 LimitNotificationChannels = NotificationChannels.InApp,
                 IsSticky = true
             };
