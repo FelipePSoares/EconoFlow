@@ -74,6 +74,9 @@ describe('EconoFlow - category add Tests', () => {
                 expect(resp?.status).to.equal(204)
 
                 cy.visitProtected('/projects/' + projects.defaultProject.id)
+                cy.wait<ProjectReq, ProjectRes>('@getProjects')
+                cy.wait<CategoryReq, CategoryRes[]>('@getCategories')
+
                 cy.wait<ProjectReq, ProjectRes>('@getProjects').then(({ request, response }) => {
                   cy.wait<CategoryReq, CategoryRes[]>('@getCategories').then(({ request, response }) => {
                     cy.log(JSON.stringify(response?.body))

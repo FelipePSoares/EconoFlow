@@ -10,22 +10,23 @@ import { ApiErrorResponse } from '../models/error';
 import { SnackbarComponent } from '../components/snackbar/snackbar.component';
 
 const exceptions: any = [
-  { method: 'GET', url: 'assets/' }
+  { method: 'GET', url: 'assets/' },
+  { method: 'GET', url: 'logout' }
 ];
 
 let isRefreshing = false;
 const refreshTokenSubject = new Subject<boolean>();
 
 export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
-  if (isException(req))
-    return next(req);
-
   const isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   const snackBar = inject(SnackbarComponent);
   const matDialog = inject(MatDialog);
   const injector = inject(Injector);
-
+  
   req = req.clone({ withCredentials: true });
+
+  if (isException(req))
+    return next(req);
 
   return next(req).pipe(
     tap((event) => {

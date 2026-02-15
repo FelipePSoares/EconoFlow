@@ -1,14 +1,18 @@
 Cypress.Commands.add('login', (username, password) => {
+  Cypress.env('authCredentials', { username, password });
+
   cy.session([username, password], () => {
     cy.request('POST', '/api/AccessControl/login', {
       email: username,
       password
-    }).then((resp) => {
-      cy.log('Status: ' + resp.status)
     })
   }, {
     validate: () => {
-      cy.getCookie('AuthToken').should('exist')
+      cy.request({
+        method: 'GET',
+        url: '/api/AccessControl/IsLogged',
+        failOnStatusCode: false
+      }).its('body').should('eq', true)
     }
   })
 })
@@ -25,7 +29,7 @@ Cypress.Commands.add('register', (username, password) => {
       }).then((resp) => {
         cy.log('Status: ' + resp.status)
 
-        cy.visitProtected('/projects')
+        cy.visit('/projects')
         cy.url().should('include', 'first-signin')
 
         cy.get('input[formControlName=firstName]').type('test')
@@ -52,8 +56,35 @@ Cypress.Commands.add('visitProtected', (path: string) => {
     return value;
   };
 
+  const credentials = Cypress.env('authCredentials');
+  const username = credentials?.username as string | undefined;
+  const password = credentials?.password as string | undefined;
+
+  const revisitWhenLoggedIn = () => {
+    cy.request({
+      method: 'GET',
+      url: '/api/AccessControl/IsLogged',
+      failOnStatusCode: false
+    }).then(({ body }) => {
+      if (body !== true) {
+        if (!username || !password) {
+          throw new Error("visitProtected could not restore authentication. Ensure cy.login() ran before calling visitProtected().");
+        }
+
+        cy.login(username, password);
+      }
+
+      cy.visit(path);
+    });
+  };
+
   cy.visit(path);
-  cy.location('pathname', { timeout: 30000 }).should('not.eq', '/login');
+  cy.location('pathname', { timeout: 30000 }).then((pathname) => {
+    if (pathname === '/login') {
+      revisitWhenLoggedIn();
+      return;
+    }
+  });
 
   if (path !== '/') {
     const expectedPath = normalizePath(path);
