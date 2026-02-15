@@ -89,6 +89,31 @@ namespace EasyFinance.Domain.Tests.Account
             message.Description.Should().Be(string.Format(ValidationMessages.PropertyMaxLength, nameof(notification.ActionLabelCode), 100));
         }
 
+        [Fact]
+        public void AddActionLabelCode_ShouldNotAutomaticallySetActionRequired()
+        {
+            // Arrange
+            var notification = new NotificationBuilder()
+                .AddActionLabelCode("ButtonMyProfile")
+                .Build();
+
+            // Assert
+            notification.IsActionRequired.Should().BeFalse();
+        }
+
+        [Fact]
+        public void AddIsActionRequired_ShouldBeDefinedIndependentlyFromActionLabel()
+        {
+            // Arrange
+            var notification = new NotificationBuilder()
+                .AddActionLabelCode("ButtonMyProfile")
+                .AddIsActionRequired(true)
+                .Build();
+
+            // Assert
+            notification.IsActionRequired.Should().BeTrue();
+        }
+
         [Theory]
         [MemberData(nameof(OlderDates2))]
         public void AddExpiresAt_SendOldDates_ShouldReturnErrorMessage(DateOnly date)

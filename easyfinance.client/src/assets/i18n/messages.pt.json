@@ -21,6 +21,7 @@
   "FieldAnnualIncomeTooltip": "Nós usamos este valor para calcular a distrubuição mensal. Por favor insira sua renda média anual.",
   "FieldEmail": "Notificações por E-mail",
   "FieldPush": "Notificações por Push",
+  "FieldLanguage": "Idioma",
 
   "PlaceholderEmailAddress": "nome@exemplo.com",
   "PlaceholderPassword": "Senha",
@@ -32,6 +33,7 @@
   "PlaceholderIncomeName": "Ex: Salário, Retorno Investimentos, Renda Extra",
   "PlaceholderExpenseName": "Ex: Aluguel, Mercado, Internet",
   "PlaceholderItemWithoutName": "Item",
+  "PlaceholderLanguage": "Selecione a sua Lingua",
 
   "ButtonSignIn": "Logar",
   "ButtonSignUp": "Cadastrar",
@@ -241,5 +243,6 @@
   "NoNotifications": "Nenhuma Notificação",
   "SetAsRead": "Marcar como lida",
   "WelcomeMessage": "Bem-vindo ao EconoFlow! Agora você pode organizar suas finanças de forma simples e inteligente.",
-  "ConfirmEmailMessage": "Confirme seu e-mail para ativar sua conta e começar a usar todos os recursos."
+  "ConfirmEmailMessage": "Confirme seu e-mail para ativar sua conta e começar a usar todos os recursos.",
+  "LanguagePreferenceNowAvailableMessage": "Agora voce pode selecionar seu idioma preferido nas opções do perfil."
 }

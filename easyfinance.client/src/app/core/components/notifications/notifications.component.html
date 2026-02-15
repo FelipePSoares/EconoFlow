@@ -57,7 +57,7 @@
             <div class="notification-actions d-flex gap-2 align-items-center">
               @if (notification.actionLabelCode){
               <button class="btn btn-sm btn-outline-primary"
-                      (click)="action(notification.id, notification.type)"
+                      (click)="action(notification)"
                       [title]="notification.actionLabelCode | translate">
                 <i class="bi bi-box-arrow-up-right me-1"></i>
                 {{ notification.actionLabelCode  | translate }}
@@ -65,7 +65,7 @@
               }
               @if (!notification.isActionRequired) {
               <button class="btn btn-sm btn-outline-secondary"
-                      (click)="action(notification.id, notification.type)"
+                      (click)="action(notification)"
                       [title]="'SetAsRead' | translate">
                 <i class="bi bi-check2"></i>
               </button>

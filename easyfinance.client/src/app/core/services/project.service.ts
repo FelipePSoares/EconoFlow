@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Project } from '../models/project';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { BehaviorSubject, Observable, map } from 'rxjs';
@@ -12,24 +12,29 @@ import { UserService } from './user.service';
 import { DefaultCategory } from '../models/default-category';
 import { formatDate } from '../utils/date';
 import { CurrentDateService } from './current-date.service';
+import { GlobalService } from './global.service';
 const PROJECT_DATA = "project_data";
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProjectService {
+  private http = inject(HttpClient);
+  private localService = inject(LocalService);
+  private userService = inject(UserService);
+  private currentDateService = inject(CurrentDateService);
+  private globalService = inject(GlobalService);
+
   private editingProject!: ProjectDto;
   private selectedProjectSubject = new BehaviorSubject<UserProject | undefined>(undefined);
   selectedUserProject$ = this.selectedProjectSubject.asObservable();
 
-  constructor(
-    private http: HttpClient,
-    private localService: LocalService,
-    private userService: UserService,
-    private currentDateService: CurrentDateService
-  ) {
+  constructor() {
     this.localService.getData<UserProject>(PROJECT_DATA)
-      .subscribe(currentProject => this.selectedProjectSubject.next(currentProject));
+      .subscribe(currentProject => {
+        this.globalService.currency = currentProject?.project.preferredCurrency ?? 'EUR';
+        this.selectedProjectSubject.next(currentProject)
+      });
   }
 
   getUserProjects(): Observable<UserProject[]> {
@@ -93,6 +98,7 @@ export class ProjectService {
 
   selectUserProject(userProject: UserProject) {
     this.localService.saveData(PROJECT_DATA, userProject).subscribe();
+    this.globalService.currency = userProject?.project.preferredCurrency ?? 'EUR';
     this.selectedProjectSubject.next(userProject);
   }
 

@@ -1,64 +1,74 @@
 import { HttpInterceptorFn, HttpResponse } from '@angular/common/http';
 import { catchError, Subject, switchMap, take, tap, throwError } from 'rxjs';
 import { Router } from '@angular/router';
-import { inject, Injector } from '@angular/core';
+import { inject, Injector, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../services/auth.service';
 import { ApiErrorResponse } from '../models/error';
 import { SnackbarComponent } from '../components/snackbar/snackbar.component';
 
-let isRefreshing = false;
+const exceptions: any = [
+  { method: 'GET', url: 'assets/' },
+  { method: 'GET', url: 'logout' }
+];
 
-// Use Subject instead of BehaviorSubject - only emits when refresh completes
+let isRefreshing = false;
 const refreshTokenSubject = new Subject<boolean>();
 
 export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
+  const isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   const snackBar = inject(SnackbarComponent);
   const matDialog = inject(MatDialog);
   const injector = inject(Injector);
-
-  // Always add credentials
+  
   req = req.clone({ withCredentials: true });
+
+  if (isException(req))
+    return next(req);
 
   return next(req).pipe(
     tap((event) => {
-      if (event instanceof HttpResponse) {
-        const translateService = injector.get(TranslateService);
-        if (event.status === 201 && event.url?.includes('support')) {
-          snackBar.openSuccessSnackbar(translateService.instant('MessageSuccess'));
-        } 
-        else if (event.status === 201) {
-          snackBar.openSuccessSnackbar(translateService.instant('CreatedSuccess'));
-        }
-        if (req.method === 'DELETE' && event.status === 200) {
-          snackBar.openSuccessSnackbar(translateService.instant('DeletedSuccess'));
-        }
+      if (!(event instanceof HttpResponse) || !isBrowser)
+        return;
+
+      const translateService = injector.get(TranslateService);
+      if (event.status === 201 && event.url?.includes('support')) {
+        snackBar.openSuccessSnackbar(translateService.instant('MessageSuccess'));
+      } else if (event.status === 201) {
+        snackBar.openSuccessSnackbar(translateService.instant('CreatedSuccess'));
+      }
+
+      if (req.method === 'DELETE' && event.status === 200) {
+        snackBar.openSuccessSnackbar(translateService.instant('DeletedSuccess'));
       }
     }),
     catchError(err => {
       const authService = injector.get(AuthService);
 
-      // Network error
-      if (err.status === 0) {
+      if (err.status === 0 && isBrowser) {
         const translateService = injector.get(TranslateService);
         snackBar.openErrorSnackbar(translateService.instant('NetworkError'));
       }
 
-      // Token expired (401) → try refresh
-      if (err.status === 401 && !err.url?.includes('refresh-token') && !err.url?.includes('logout') && !err.url?.includes('login')) {
+      const isUnauthorized = err.status === 401;
+      const isForbidden = err.status === 403;
+      const requestUrl = String(err.url || req.url || '');
+      const isRefreshRequest = requestUrl.includes('refresh-token');
+      const isLogoutRequest = requestUrl.includes('logout');
+      const isLoginRequest = requestUrl.includes('login');
+
+      // Try refresh only in browser for non-auth endpoints
+      if (isBrowser && isUnauthorized && !isRefreshRequest && !isLogoutRequest && !isLoginRequest) {
         if (isRefreshing) {
-          // Wait for the refresh to complete
           return refreshTokenSubject.pipe(
             take(1),
             switchMap(refreshed => {
-              if (refreshed) {
-                // Refresh succeeded, retry original request
+              if (refreshed)
                 return next(req);
-              } else {
-                // Refresh failed, propagate error
-                return throwError(() => err);
-              }
+
+              return throwError(() => err);
             })
           );
         }
@@ -68,22 +78,19 @@ export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
         return authService.refreshToken().pipe(
           take(1),
           switchMap(() => {
-            // Refresh successful
             isRefreshing = false;
             refreshTokenSubject.next(true);
-
-            // Retry the original request
             return next(req);
           }),
-          catchError(err => {
-            // Refresh failed
+          catchError(refreshError => {
             isRefreshing = false;
             refreshTokenSubject.next(false);
-            return throwError(() => err);
+            return throwError(() => refreshError);
           })
         );
       }
-      else if ((err.status === 401 || err.status === 403) && !err.url?.includes('logout') && !err.url?.includes('login')) {
+
+      if (isBrowser && (isUnauthorized || isForbidden) && !isRefreshRequest && !isLogoutRequest && !isLoginRequest) {
         const router = injector.get(Router);
         matDialog.closeAll();
 
@@ -92,19 +99,30 @@ export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
 
         return throwError(() => err);
       }
-      let apiErrorResponse: ApiErrorResponse = { errors: {} } as ApiErrorResponse;
+
+      const apiErrorResponse: ApiErrorResponse = { errors: {} } as ApiErrorResponse;
 
       if (err.error?.errors) {
-        apiErrorResponse = err.error as ApiErrorResponse;
-      } else if (err.status === 401 && err.url?.includes('login') && err.error === 'LockedOut') {
+        return throwError(() => err.error as ApiErrorResponse);
+      } else if (isUnauthorized && isLoginRequest && err.error === 'LockedOut') {
         apiErrorResponse.errors['general'] = ['UserBlocked'];
-      } else if (err.status === 401 && err.url?.includes('login')) {
+      } else if (isUnauthorized && isLoginRequest) {
         apiErrorResponse.errors['general'] = ['LoginError'];
-      } else {
+      } else if (err?.error) {
         console.error(`GenericError: ${JSON.stringify(err?.error)}`);
-        apiErrorResponse.errors['general'] = ['GenericError']; 
+        apiErrorResponse.errors['general'] = ['GenericError'];
+      } else {
+        console.error(`GenericError: ${JSON.stringify(err)}`);
+        apiErrorResponse.errors['general'] = ['GenericError'];
       }
 
       return throwError(() => apiErrorResponse);
-    }));
-}
+    })
+  );
+};
+
+const isException = (req: any) => {
+  return exceptions.some((exception: any) => {
+    return exception.method === req.method && req.url.indexOf(exception.url) >= 0;
+  });
+};

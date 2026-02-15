@@ -5,15 +5,13 @@ describe('EconoFlow - user account Tests', () => {
 
       cy.login(user.username, user.password)
 
-      cy.visit('/user')
+      cy.visitProtected('/user')
     })
   })
 
   it('Should edit basic user infos', () => {
     cy.intercept('GET', '**/AccessControl*').as('getAccount')
     cy.intercept('PATCH', '**/AccessControl*').as('patchAccount')
-
-    cy.wait<UserReq, UserRes>('@getAccount')
 
     const firstNameInput = cy.get('input[formcontrolname=firstName]');
     const lastNameInput = cy.get('input[formcontrolname=lastName]');
@@ -37,6 +35,8 @@ describe('EconoFlow - user account Tests', () => {
     cy.intercept('GET', '**/AccessControl*').as('getAccount')
     cy.intercept('PATCH', '**/AccessControl*').as('patchAccount')
 
+    cy.visitProtected('/user')
+
     cy.wait<UserReq, UserRes>('@getAccount').then(({ request, response }) => {
       cy.log(response?.body.notificationChannels)
 
@@ -58,6 +58,8 @@ describe('EconoFlow - user account Tests', () => {
   it('Should edit user push notification preference', () => {
     cy.intercept('GET', '**/AccessControl*').as('getAccount')
     cy.intercept('PATCH', '**/AccessControl*').as('patchAccount')
+
+    cy.visitProtected('/user')
 
     cy.wait<UserReq, UserRes>('@getAccount').then(({ request, response }) => {
       cy.log(response?.body.notificationChannels)
@@ -83,7 +85,7 @@ describe('EconoFlow - user account Tests', () => {
       cy.intercept('DELETE', '**/AccessControl*').as('deleteAccount')
       cy.visit('/logout')
       cy.register(user.username, user.password)
-      cy.visit('/user')
+      cy.visitProtected('/user')
       cy.get('.btn').contains('Delete Account').click();
       cy.wait('@deleteAccount').then((interception) => {
         expect(interception?.response?.statusCode).to.equal(202)
@@ -104,13 +106,13 @@ describe('EconoFlow - user account Tests', () => {
 
       cy.visit('/logout')
       cy.register(user.username, user.password)
-      cy.visit('/user')
+      cy.visitProtected('/user')
       cy.get('.btn').contains('Delete Account').click();
       cy.wait('@deleteAccount').then((interception) => {
         expect(interception?.response?.statusCode).to.equal(202)
         cy.get('app-confirm-dialog button').contains('Cancel').click();
 
-        cy.visit('/')
+        cy.visitProtected('/')
         cy.url().should('not.contain', 'login')
       })
     })

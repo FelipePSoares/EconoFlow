@@ -1,15 +1,20 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, concatMap, map, of, switchMap } from 'rxjs';
 import { tap, catchError, throwError } from 'rxjs';
 import { DeleteUser, User } from '../models/user';
 import { LocalService } from './local.service';
 import { Operation } from 'fast-json-patch';
+import { GlobalService } from './global.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
+  private http = inject(HttpClient);
+  private globalService = inject(GlobalService);
+  private localService = inject(LocalService);
+
   private loggedUser = new BehaviorSubject<User | undefined>(undefined);
   loggedUser$ = this.loggedUser.asObservable().pipe(switchMap(user => {
     if (user)
@@ -18,13 +23,18 @@ export class UserService {
     return this.getLoggedUser();
   }));
 
-  constructor(private http: HttpClient, private localService: LocalService) { }
-
   public getLoggedUser(): Observable<User> {
     return this.checkStatus().pipe(switchMap(isLogged => {
       if (!isLogged) {
-        this.loggedUser.next(new User());
-        return of(new User());
+        return this.refreshToken().pipe(
+          map(user => user ?? new User()),
+          tap(user => this.loggedUser.next(user)),
+          catchError(() => {
+            const user = new User();
+            this.loggedUser.next(user);
+            return of(user);
+          })
+        );
       }
 
       return this.localService.getData<User>(this.localService.USER_DATA).pipe(
@@ -90,6 +100,8 @@ export class UserService {
       observe: 'body',
       responseType: 'json'
     }).pipe(tap(user => {
+      this.globalService.setLocale(user.languageCode);
+
       this.loggedUser.next(user);
       this.localService.saveData(this.localService.USER_DATA, user).subscribe();
     }));
@@ -100,17 +112,10 @@ export class UserService {
     this.localService.clearData();
   }
 
-  public setUserInfo(firstName: string, lastName: string): Observable<User> {
-    return this.http.put('/api/AccessControl/', {
-      firstName: firstName,
-      lastName: lastName
-    }).pipe(concatMap(() => {
-        return this.refreshUserInfo();
-      }));
-  }
-
   public update(patch: Operation[]): Observable<User> {
     return this.http.patch<User>('/api/AccessControl/', patch).pipe(tap(user => {
+      this.globalService.setLocale(user.languageCode);
+
       this.loggedUser.next(user);
       this.localService.saveData(this.localService.USER_DATA, user).subscribe();
     }));

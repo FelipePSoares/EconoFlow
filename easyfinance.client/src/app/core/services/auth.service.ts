@@ -39,7 +39,11 @@ export class AuthService {
 
     this.http.post('/api/AccessControl/logout', null, {
       observe: 'response'
-    }).subscribe();
+    }).subscribe({
+      error: () => {
+        // Logout should be idempotent on the client. Ignore backend failures here.
+      }
+    });
   }
 
   public register(email: string, password: string, token?: string): Observable<User> {

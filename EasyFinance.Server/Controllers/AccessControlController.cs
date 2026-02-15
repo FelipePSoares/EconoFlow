@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using System.Net;
 using System.Security.Claims;
 using System.Text;
@@ -67,7 +68,7 @@ namespace EasyFinance.Server.Controllers
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
             if (user == null)
-                BadRequest("User not found!");
+                return BadRequest("User not found!");
 
             return Ok(new UserResponseDTO(user));
         }
@@ -80,27 +81,6 @@ namespace EasyFinance.Server.Controllers
                 return Ok(false);
 
             return Ok(true);
-        }
-
-        [HttpPut]
-        [Obsolete("UpdateUserAsync is deprecated, please use PatchUserAsync instead.")]
-        public async Task<IActionResult> UpdateUserAsync([FromBody] UserRequestDTO userDTO)
-        {
-            var user = await this.userManager.GetUserAsync(this.HttpContext.User);
-
-            if (user == null)
-                return BadRequest("User not found!");
-
-            user.SetFirstName(userDTO.FirstName);
-            user.SetLastName(userDTO.LastName);
-
-            var result = user.Validate;
-            if (result.Failed)
-                return this.ValidateResponse(result, HttpStatusCode.OK);
-
-            await this.userManager.UpdateAsync(user);
-
-            return Ok(new UserResponseDTO(user));
         }
 
         [HttpPatch]
@@ -118,6 +98,7 @@ namespace EasyFinance.Server.Controllers
 
             existentUser.SetFirstName(dto.FirstName);
             existentUser.SetLastName(dto.LastName);
+            existentUser.SetLanguageCode(dto.LanguageCode);
             existentUser.SetNotificationChannels(dto.NotificationChannels);
 
             var result = existentUser.Validate;
@@ -194,6 +175,7 @@ namespace EasyFinance.Server.Controllers
             }
 
             var user = new User();
+            user.SetLanguageCode(CultureInfo.CurrentUICulture.Name);
             await userStore.SetUserNameAsync(user, email, CancellationToken.None);
             await emailStore.SetEmailAsync(user, email, CancellationToken.None);
             user.SetNotificationChannels(NotificationChannels.Push | NotificationChannels.Email);
@@ -225,6 +207,7 @@ namespace EasyFinance.Server.Controllers
                 Type = NotificationType.EmailConfirmation,
                 Category = NotificationCategory.Security,
                 ActionLabelCode = "ButtonConfirmEmail",
+                IsActionRequired = true,
                 LimitNotificationChannels = NotificationChannels.InApp,
                 IsSticky = true
             };
@@ -316,15 +299,14 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpPost("logout")]
+        [AllowAnonymous]
         public async Task<IActionResult> SignOutAsync()
         {
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
-            if (user == null)
-                return Ok();
+            if (user != null)
+                await this.userManager.RemoveAuthenticationTokenAsync(user, this.tokenProvider, this.tokenPurpose);
 
-            await this.userManager.RemoveAuthenticationTokenAsync(user, this.tokenProvider, this.tokenPurpose);
-            
             Response.Cookies.Delete(refreshTokenCookieName);
             Response.Cookies.Delete(accessTokenCookieName);
 
@@ -424,7 +406,7 @@ namespace EasyFinance.Server.Controllers
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
             if (user == null)
-                BadRequest("User not found!");
+                return BadRequest("User not found!");
 
             user.Enabled = false;
 
@@ -440,7 +422,7 @@ namespace EasyFinance.Server.Controllers
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
             if (user == null)
-                BadRequest("User not found!");
+                return BadRequest("User not found!");
 
             user.Enabled = true;
 

@@ -1,27 +1,19 @@
-import { ApplicationConfig, CSP_NONCE, PLATFORM_ID } from '@angular/core';
+import { ApplicationConfig, CSP_NONCE, DOCUMENT, isDevMode, provideStabilityDebugging } from '@angular/core';
 import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
 import { MatNativeDateModule } from '@angular/material/core';
-import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { provideAnimations } from '@angular/platform-browser/animations';
-import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { HttpClient, provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { routes } from './features/app-routing.module';
 import { HttpRequestInterceptor } from './core/interceptor/http-request-interceptor';
 import { LoadingInterceptor } from './core/interceptor/loading.interceptor';
-import { CurrencyPipe, DecimalPipe, isPlatformBrowser } from '@angular/common';
-import { importProvidersFrom, inject, provideAppInitializer } from '@angular/core';
-import { loadAngularLocale } from './core/utils/loaders/angular-locale-loader';
-import { loadMomentLocale } from './core/utils/loaders/moment-locale-loader';
+import { CurrencyPipe, DecimalPipe } from '@angular/common';
+import { importProvidersFrom, inject } from '@angular/core';
 import { GlobalService } from './core/services/global.service';
 import { TranslateHttpLoader } from './core/utils/loaders/translate-http-loader';
 import { LanguageInterceptor } from './core/interceptor/language-interceptor';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
-
-function getCspNonce(): string | null {
-  const meta = document.querySelector<HTMLMetaElement>('meta[name="csp-nonce"]');
-  return meta?.content ?? null;
-}
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -42,7 +34,7 @@ export const appConfig: ApplicationConfig = {
           useFactory: (http: HttpClient) => new TranslateHttpLoader(http),
           deps: [HttpClient]
         },
-        defaultLanguage: 'en'
+        fallbackLang: 'en'
       })
     ),
     provideHttpClient(
@@ -52,36 +44,14 @@ export const appConfig: ApplicationConfig = {
         LoadingInterceptor,
         LanguageInterceptor])
     ),
-    provideAnimationsAsync(),
-    provideAppInitializer(appInitializerFactory()),
     provideClientHydration(withEventReplay()),
-    { provide: CSP_NONCE, useValue: getCspNonce() },
+    {
+      provide: CSP_NONCE,
+      useFactory: () => {
+        const doc = inject(DOCUMENT);
+        return doc?.querySelector('meta[name="csp-nonce"]')?.getAttribute('content') ?? null;
+      }
+    },
     provideCharts(withDefaultRegisterables())
   ],
 };
-
-function appInitializerFactory(): () => Promise<void> {
-  return async () => {
-    const globalService = inject(GlobalService);
-    const platformId = inject(PLATFORM_ID);
-
-    if (isPlatformBrowser(platformId)) {
-      const translate = inject(TranslateService);
-      await loadAngularLocale(globalService, translate);
-      await loadMomentLocale(globalService.languageLoaded);
-
-      const formatter = new Intl.NumberFormat(globalService.languageLoaded);
-      const parts = formatter.formatToParts(1234.5);
-
-      globalService.decimalSeparator = parts.find(part => part.type === 'decimal')?.value || globalService.decimalSeparator;
-
-      const groupSeparator = parts.find(part => part.type === 'group')?.value || '';
-
-      if (['.', ','].includes(groupSeparator)) {
-        globalService.groupSeparator = groupSeparator;
-      } else {
-        globalService.groupSeparator = globalService.decimalSeparator === '.' ? ',' : '.';
-      }
-    }
-  };
-}

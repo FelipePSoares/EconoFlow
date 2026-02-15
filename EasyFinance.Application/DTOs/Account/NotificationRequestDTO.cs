@@ -10,6 +10,7 @@ namespace EasyFinance.Application.DTOs.Account
         public NotificationType Type { get; set; } = NotificationType.None;
         public string CodeMessage { get; set; } = default;
         public string ActionLabelCode { get; set; } = default;
+        public bool IsActionRequired { get; set; } = false;
         public NotificationCategory Category { get; set; } = NotificationCategory.None;
         public bool IsSticky { get; set; } = false;
         public NotificationChannels LimitNotificationChannels { get; set; } = NotificationChannels.None;

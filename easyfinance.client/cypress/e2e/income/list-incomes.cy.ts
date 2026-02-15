@@ -9,7 +9,7 @@ describe('EconoFlow - income list Tests', () => {
       cy.fixture('projects').then((projects) => {
         var project = projects.defaultProject;
 
-        cy.visit('/projects/' + project.id + '/incomes')
+        cy.visitProtected('/projects/' + project.id + '/incomes')
       })
     })
   })

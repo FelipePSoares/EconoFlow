@@ -32,7 +32,7 @@
         <div class="notification-actions">
           @if (notification.actionLabelCode) {
           <button class="btn btn-action btn-primary"
-                  (click)="action(notification.id, notification.type)"
+                  (click)="action(notification)"
                   [title]="notification.actionLabelCode | translate">
             <i class="bi bi-box-arrow-up-right me-2"></i>
             {{ notification.actionLabelCode | translate }}
@@ -40,7 +40,7 @@
           }
           @if (!notification.isActionRequired) {
           <button class="btn btn-action btn-dismiss"
-                  (click)="action(notification.id, notification.type)"
+                  (click)="action(notification)"
                   [title]="'SetAsRead' | translate">
             <i class="bi bi-check2-circle me-1"></i>
             {{ 'SetAsRead' | translate }}
@@ -51,7 +51,7 @@
 
       @if (!notification.isActionRequired) {
       <button class="btn-close-notification"
-              (click)="action(notification.id, notification.type)"
+              (click)="action(notification)"
               [title]="'Close' | translate">
         <i class="bi bi-x-lg"></i>
       </button>

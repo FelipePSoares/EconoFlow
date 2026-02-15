@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, inject } from '@angular/core';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 
@@ -14,39 +14,40 @@ import { ErrorMessageService } from '../../../core/services/error-message.servic
 @Component({
     selector: 'app-login',
     imports: [
-    FormsModule,
-    ReactiveFormsModule,
-    RouterLink,
-    MatFormFieldModule,
-    MatInputModule,
-    MatIcon,
-    TranslateModule
-],
+      ReactiveFormsModule,
+      RouterLink,
+      MatFormFieldModule,
+      MatInputModule,
+      MatIcon,
+      TranslateModule
+    ],
     templateUrl: './login.component.html',
     styleUrls: ['./login.component.css']
 })
-export class LoginComponent implements OnInit {
-  loginForm!: FormGroup;
+export class LoginComponent {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private errorMessageService = inject(ErrorMessageService);
+
+  loginForm = new FormGroup({
+    email: new FormControl('', [Validators.email, Validators.required, Validators.maxLength(256)]),
+    password: new FormControl('', [Validators.required]),
+  });
   httpErrors = false;
   errors!: Record<string, string[]>;
   hide = true;
 
-  constructor(private authService: AuthService, private router: Router, private route: ActivatedRoute, private errorMessageService: ErrorMessageService) {
+  constructor() {
     this.authService.isSignedIn$.pipe(take(1)).subscribe(value => {
       if (value) {
-        this.router.navigate(['/projects']);
+        const returnUrl = this.route.snapshot.queryParams['returnUrl'];
+        if (returnUrl) {
+          this.router.navigateByUrl(returnUrl);
+        } else {
+          this.router.navigate(['/projects']);
+        }
       }
-    });
-  }
-
-  ngOnInit(): void {
-    this.buildLoginForm();
-  }
-
-  buildLoginForm() {
-    this.loginForm = new FormGroup({
-      email: new FormControl('', [Validators.email, Validators.required, Validators.maxLength(256)]),
-      password: new FormControl('', [Validators.required]),
     });
   }
 
@@ -60,8 +61,8 @@ export class LoginComponent implements OnInit {
 
   onSubmit(): void {
     if (this.loginForm.valid) {
-      const email = this.loginForm.get('email')?.value;
-      const password = this.loginForm.get('password')?.value;
+      const email = this.loginForm.get('email')?.value ?? '';
+      const password = this.loginForm.get('password')?.value ?? '';
 
       this.authService.signIn(email, password).subscribe({
         next: response => {

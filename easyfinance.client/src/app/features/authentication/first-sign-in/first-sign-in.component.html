@@ -16,9 +16,9 @@
               <mat-label>{{ 'FieldFirstName' |  translate }}</mat-label>
               <input matInput placeholder="{{ 'PlaceholderFirstName' | translate }}" formControlName="firstName">
               @if (firstName?.invalid && firstName?.touched){
-                @for (error of getFormFieldErrors('firstName'); track error) {
-                  <mat-error>{{ error |  translate }}</mat-error>
-                }
+              @for (error of getFormFieldErrors('firstName'); track error) {
+              <mat-error>{{ error |  translate }}</mat-error>
+              }
               }
             </mat-form-field>
 
@@ -27,19 +27,34 @@
               <mat-label>{{ 'FieldLastName' |  translate }}</mat-label>
               <input matInput placeholder="{{ 'PlaceholderLastName' | translate }}" formControlName="lastName">
               @if (lastName?.invalid && lastName?.touched){
-                @for (error of getFormFieldErrors('lastName'); track error) {
-                  <mat-error>{{ error |  translate }}</mat-error>
+              @for (error of getFormFieldErrors('lastName'); track error) {
+              <mat-error>{{ error |  translate }}</mat-error>
+              }
+              }
+            </mat-form-field>
+
+            <!-- Language Selection Field -->
+            <mat-form-field appearance="fill" class="w-100">
+              <mat-label>{{ 'FieldLanguage' | translate }}</mat-label>
+              <mat-select formControlName="languageCode" placeholder="{{ 'PlaceholderLanguage' | translate }}">
+                @for (language of supportedLanguages; track language.code) {
+                <mat-option [value]="language.code">{{ language.nativeName }}</mat-option>
                 }
+              </mat-select>
+              @if (languageCode?.invalid && languageCode?.touched){
+              @for (error of getFormFieldErrors('languageCode'); track error) {
+              <mat-error>{{ error | translate }}</mat-error>
+              }
               }
             </mat-form-field>
 
             <!-- General Error Display -->
             @if (httpErrors && errors['general']) {
-              <div>
-                @for (error of errors['general']; track error) {
-                  <p class="mb-3 text-danger text-center">{{ error | translate }}</p>
-                }
-              </div>
+            <div>
+              @for (error of errors['general']; track error) {
+              <p class="mb-3 text-danger text-center">{{ error | translate }}</p>
+              }
+            </div>
             }
 
             <!-- Submit Button -->

@@ -7,6 +7,7 @@ namespace EasyFinance.Application.DTOs.AccessControl
     {
         public string FirstName { get; set; } = "Default";
         public string LastName { get; set; } = "Default";
+        public string LanguageCode { get; set; } = "en";
         public NotificationChannels NotificationChannels { get; set; } = NotificationChannels.None;
 
     }

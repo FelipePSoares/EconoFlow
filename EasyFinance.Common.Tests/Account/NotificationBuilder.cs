@@ -54,6 +54,12 @@ namespace EasyFinance.Common.Tests.AccessControl
             return this;
         }
 
+        public NotificationBuilder AddIsActionRequired(bool isActionRequired)
+        {
+            this.notification.SetIsActionRequired(isActionRequired);
+            return this;
+        }
+
         public NotificationBuilder AddCodeMessage(string codeMessage)
         {
             this.notification.SetCodeMessage(codeMessage);

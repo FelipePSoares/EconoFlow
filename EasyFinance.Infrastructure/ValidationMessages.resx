@@ -320,4 +320,7 @@ You will be redirect in 5 seconds ...</value>
   <data name="NotSupported" xml:space="preserve">
     <value>{0} not supported</value>
   </data>
+  <data name="InvalidCultureCode" xml:space="preserve">
+    <value>Invalid language.</value>
+  </data>
 </root>

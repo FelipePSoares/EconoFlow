@@ -100,6 +100,7 @@ try
             Email = "test@test.com",
             EmailConfirmed = true
         };
+        user.SetLanguageCode("en");
         userManager.CreateAsync(user, "Passw0rd!").GetAwaiter().GetResult();
 
         var user2 = new User(firstName: "Second", lastName: "User", enabled: true)
@@ -112,8 +113,10 @@ try
 
         var notification = new Notification(user, "WelcomeMessage", NotificationType.Information, NotificationCategory.System, limitNotificationChannels: NotificationChannels.InApp);
         unitOfWork.NotificationRepository.Insert(notification);
-        var notification2 = new Notification(user, "ConfirmEmailMessage", NotificationType.EmailConfirmation, NotificationCategory.Security, "ButtonConfirmEmail", NotificationChannels.InApp, isSticky: true);
+        var notification2 = new Notification(user, "ConfirmEmailMessage", NotificationType.EmailConfirmation, NotificationCategory.Security, "ButtonConfirmEmail", NotificationChannels.InApp, isSticky: true, isActionRequired: true);
         unitOfWork.NotificationRepository.Insert(notification2);
+        var notification3 = new Notification(user, "LanguagePreferenceNowAvailableMessage", NotificationType.Information, NotificationCategory.System, "ButtonMyProfile", NotificationChannels.InApp);
+        unitOfWork.NotificationRepository.Insert(notification3);
 
         var income = new Income("Investiments", DateOnly.FromDateTime(DateTime.Now), 3000, user);
         income.SetId(new Guid("0bb277f9-a858-4306-148f-08dcf739f7a1"));
@@ -173,6 +176,7 @@ try
 
     app.UseHttpsRedirection();
 
+    app.UseAuthentication();
     app.UseAuthorization();
     app.UseProjectAuthorization();
 
