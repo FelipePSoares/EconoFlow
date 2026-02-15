@@ -42,3 +42,29 @@ Cypress.Commands.add('register', (username, password) => {
     }
   )
 });
+
+Cypress.Commands.add('visitProtected', (path: string) => {
+  const normalizePath = (value: string) => {
+    if (value.length > 1 && value.endsWith('/')) {
+      return value.slice(0, -1);
+    }
+
+    return value;
+  };
+
+  cy.visit(path);
+  cy.location('pathname', { timeout: 30000 }).should('not.eq', '/login');
+
+  if (path !== '/') {
+    const expectedPath = normalizePath(path);
+
+    cy.location('pathname', { timeout: 30000 }).should((pathname) => {
+      const currentPath = normalizePath(pathname);
+
+      expect(
+        currentPath === expectedPath || currentPath.startsWith(`${expectedPath}/`),
+        `Expected route to start with "${expectedPath}" but got "${currentPath}"`
+      ).to.be.true;
+    });
+  }
+});

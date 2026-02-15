@@ -12,7 +12,7 @@ describe('EconoFlow - Login Tests', () => {
       cy.get('input[formControlName=password]').type(`${user.password}{enter}`, { force: true, log: false })
       cy.wait('@postAccount')
       cy.getCookie('AuthToken').should('exist')
-      cy.visit('/projects')
+      cy.visitProtected('/projects')
 
       cy.wait<ProjectReq, ProjectRes>('@getAccount').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(200)
