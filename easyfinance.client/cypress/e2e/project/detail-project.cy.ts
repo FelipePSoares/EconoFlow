@@ -16,6 +16,7 @@ describe('EconoFlow - project detail Tests', () => {
     cy.fixture('projects').then((projects) => {
       cy.visitProtected('/projects/' + projects.defaultProject.id)
 
+      cy.wait('@getCategories')
       findNextMonthWithoutBudget();
 
       cy.get('.btn-primary').contains('Clone Previous Budget').click();

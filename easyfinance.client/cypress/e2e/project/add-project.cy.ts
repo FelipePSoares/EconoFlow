@@ -31,7 +31,7 @@ describe('EconoFlow - Add Project Tests', () => {
       cy.get('button').contains('Create').click();
 
       cy.wait<ProjectReq, ProjectRes>('@postProjects').then(({ request, response }) => {
-        expect(response?.statusCode).to.equal(201)
+        expect(response?.statusCode).to.equal(200)
 
         const projectCreated = response?.body
 

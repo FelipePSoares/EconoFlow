@@ -33,7 +33,6 @@ describe('EconoFlow - expense item add Tests', () => {
     cy.fixture('expenseItems').then((expenseItems) => {
       const expenseItem = expenseItems.testSomeExpenseItem;
 
-
       cy.get('input[formControlName=name]').type(expenseItem.name)
       cy.get('input[formControlName=amount]').type(expenseItem.amount)
 
