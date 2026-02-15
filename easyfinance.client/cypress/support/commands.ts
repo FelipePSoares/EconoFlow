@@ -25,7 +25,7 @@ Cypress.Commands.add('register', (username, password) => {
       }).then((resp) => {
         cy.log('Status: ' + resp.status)
 
-        cy.visit('/projects')
+        cy.visitProtected('/projects')
         cy.url().should('include', 'first-signin')
 
         cy.get('input[formControlName=firstName]').type('test')
