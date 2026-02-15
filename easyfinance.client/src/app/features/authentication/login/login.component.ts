@@ -41,7 +41,12 @@ export class LoginComponent {
   constructor() {
     this.authService.isSignedIn$.pipe(take(1)).subscribe(value => {
       if (value) {
-        this.router.navigate(['/projects']);
+        const returnUrl = this.route.snapshot.queryParams['returnUrl'];
+        if (returnUrl) {
+          this.router.navigateByUrl(returnUrl);
+        } else {
+          this.router.navigate(['/projects']);
+        }
       }
     });
   }

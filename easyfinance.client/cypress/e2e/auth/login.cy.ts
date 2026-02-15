@@ -14,7 +14,7 @@ describe('EconoFlow - Login Tests', () => {
       cy.getCookie('AuthToken').should('exist')
       cy.visit('/projects')
 
-      cy.wait<ProjectReq, ProjectRes>('@getProjects').then(({ request, response }) => {
+      cy.wait<ProjectReq, ProjectRes>('@getAccount').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(200)
       })
     })

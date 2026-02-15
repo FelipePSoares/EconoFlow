@@ -26,8 +26,15 @@ export class UserService {
   public getLoggedUser(): Observable<User> {
     return this.checkStatus().pipe(switchMap(isLogged => {
       if (!isLogged) {
-        this.loggedUser.next(new User());
-        return of(new User());
+        return this.refreshToken().pipe(
+          map(user => user ?? new User()),
+          tap(user => this.loggedUser.next(user)),
+          catchError(() => {
+            const user = new User();
+            this.loggedUser.next(user);
+            return of(user);
+          })
+        );
       }
 
       return this.localService.getData<User>(this.localService.USER_DATA).pipe(

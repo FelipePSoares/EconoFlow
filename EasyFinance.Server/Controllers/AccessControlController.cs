@@ -298,15 +298,14 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpPost("logout")]
+        [AllowAnonymous]
         public async Task<IActionResult> SignOutAsync()
         {
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
-            if (user == null)
-                return Ok();
+            if (user != null)
+                await this.userManager.RemoveAuthenticationTokenAsync(user, this.tokenProvider, this.tokenPurpose);
 
-            await this.userManager.RemoveAuthenticationTokenAsync(user, this.tokenProvider, this.tokenPurpose);
-            
             Response.Cookies.Delete(refreshTokenCookieName);
             Response.Cookies.Delete(accessTokenCookieName);
 

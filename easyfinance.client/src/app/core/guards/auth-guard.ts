@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
 import { map } from 'rxjs';
 import { UserService } from '../services/user.service';
@@ -7,11 +7,9 @@ import { UserService } from '../services/user.service';
   providedIn: 'root'
 })
 export class AuthGuard implements CanActivate {
+  private userService = inject(UserService);
+  private router = inject(Router);
   private readonly bypassUrls: string[] = ["/first-signin", "/logout"];
-
-  constructor(
-    private userService: UserService,
-    private router: Router) { }
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
     return this.userService.loggedUser$.pipe(

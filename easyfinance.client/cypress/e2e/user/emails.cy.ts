@@ -6,6 +6,7 @@ describe('EconoFlow - user emails Tests', () => {
       cy.login(user.username, user.password)
 
       cy.visit('/user/emails')
+      cy.location('pathname', { timeout: 15000 }).should('eq', '/user/emails')
     })
   })
 
