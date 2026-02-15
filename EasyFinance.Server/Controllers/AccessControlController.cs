@@ -68,7 +68,7 @@ namespace EasyFinance.Server.Controllers
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
             if (user == null)
-                BadRequest("User not found!");
+                return BadRequest("User not found!");
 
             return Ok(new UserResponseDTO(user));
         }
@@ -406,7 +406,7 @@ namespace EasyFinance.Server.Controllers
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
             if (user == null)
-                BadRequest("User not found!");
+                return BadRequest("User not found!");
 
             user.Enabled = false;
 
@@ -422,7 +422,7 @@ namespace EasyFinance.Server.Controllers
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
             if (user == null)
-                BadRequest("User not found!");
+                return BadRequest("User not found!");
 
             user.Enabled = true;
 
