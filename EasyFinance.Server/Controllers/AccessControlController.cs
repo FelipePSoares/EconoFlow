@@ -275,8 +275,13 @@ namespace EasyFinance.Server.Controllers
         public async Task<IActionResult> RefreshTokenAsync()
         {
             var refreshStopwatch = Stopwatch.StartNew();
+            var stageStopwatch = Stopwatch.StartNew();
             var result = "success";
             var reason = "none";
+            var parseAccessTokenMs = 0d;
+            var loadRefreshContextMs = 0d;
+            var verifyRefreshTokenMs = 0d;
+            var issueTokensMs = 0d;
 
             try
             {
@@ -304,16 +309,21 @@ namespace EasyFinance.Server.Controllers
 
                 var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-                if (string.IsNullOrEmpty(userId))
+                if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var parsedUserId))
                 {
                     result = "unauthorized";
                     reason = "missing_user_id_claim";
                     return Unauthorized();
                 }
 
-                var user = await this.userManager.FindByIdAsync(userId);
+                parseAccessTokenMs = stageStopwatch.Elapsed.TotalMilliseconds;
+                stageStopwatch.Restart();
 
-                if (user == null || !user.Enabled)
+                var refreshContext = await this.accessControlService.GetRefreshTokenContextAsync(parsedUserId, this.tokenProvider, this.tokenPurpose);
+                loadRefreshContextMs = stageStopwatch.Elapsed.TotalMilliseconds;
+                stageStopwatch.Restart();
+
+                if (refreshContext == null || !refreshContext.User.Enabled)
                 {
                     result = "unauthorized";
                     reason = "invalid_user";
@@ -329,31 +339,28 @@ namespace EasyFinance.Server.Controllers
                     return Unauthorized();
                 }
 
-                var storedRefreshToken = await this.userManager.GetAuthenticationTokenAsync(user, this.tokenProvider, this.tokenPurpose);
-                if (string.IsNullOrEmpty(storedRefreshToken) || !FixedTimeEquals(storedRefreshToken, refreshToken))
+                if (string.IsNullOrEmpty(refreshContext.StoredRefreshToken) || !FixedTimeEquals(refreshContext.StoredRefreshToken, refreshToken))
                 {
                     result = "unauthorized";
                     reason = "refresh_token_mismatch";
                     return Unauthorized();
                 }
 
-                if (!await this.userManager.VerifyUserTokenAsync(user, this.tokenProvider, this.tokenPurpose, refreshToken))
+                if (!await this.userManager.VerifyUserTokenAsync(refreshContext.User, this.tokenProvider, this.tokenPurpose, refreshToken))
                 {
                     result = "unauthorized";
                     reason = "invalid_refresh_token";
                     return Unauthorized();
                 }
 
+                verifyRefreshTokenMs = stageStopwatch.Elapsed.TotalMilliseconds;
+                stageStopwatch.Restart();
+
                 var correlationId = principal.Claims.Where(c => c.Type == correlationIdClaimType)
                                    .Select(c => c.Value).SingleOrDefault();
 
-                var roleClaims = principal.Claims
-                    .Where(c => c.Type == ClaimTypes.Role)
-                    .Select(c => c.Value)
-                    .Distinct(StringComparer.Ordinal)
-                    .ToArray();
-
-                await GenerateUserToken(user, correlationId, roleClaims);
+                await GenerateUserToken(refreshContext.User, correlationId, refreshContext.Roles);
+                issueTokensMs = stageStopwatch.Elapsed.TotalMilliseconds;
 
                 return Ok();
             }
@@ -364,17 +371,25 @@ namespace EasyFinance.Server.Controllers
                 if (elapsedMs >= refreshTokenSlowThresholdMs)
                 {
                     this.logger.LogWarning(
-                        "Slow refresh token request detected: {ElapsedMs}ms. Result: {Result}. Reason: {Reason}.",
+                        "Slow refresh token request detected: {ElapsedMs}ms. Result: {Result}. Reason: {Reason}. ParseAccessTokenMs: {ParseAccessTokenMs}. LoadRefreshContextMs: {LoadRefreshContextMs}. VerifyRefreshTokenMs: {VerifyRefreshTokenMs}. IssueTokensMs: {IssueTokensMs}.",
                         elapsedMs,
                         result,
-                        reason);
+                        reason,
+                        parseAccessTokenMs,
+                        loadRefreshContextMs,
+                        verifyRefreshTokenMs,
+                        issueTokensMs);
                 }
                 else
                 {
                     this.logger.LogInformation(
-                        "Refresh token request completed in {ElapsedMs}ms. Result: {Result}.",
+                        "Refresh token request completed in {ElapsedMs}ms. Result: {Result}. ParseAccessTokenMs: {ParseAccessTokenMs}. LoadRefreshContextMs: {LoadRefreshContextMs}. VerifyRefreshTokenMs: {VerifyRefreshTokenMs}. IssueTokensMs: {IssueTokensMs}.",
                         elapsedMs,
-                        result);
+                        result,
+                        parseAccessTokenMs,
+                        loadRefreshContextMs,
+                        verifyRefreshTokenMs,
+                        issueTokensMs);
                 }
             }
         }
@@ -668,7 +683,7 @@ namespace EasyFinance.Server.Controllers
             };
         }
 
-        private async Task GenerateUserToken(User user, string correlationId = null, IList  <string> roleNames = null)
+        private async Task GenerateUserToken(User user, string correlationId = null, IList<string> roleNames = null)
         {
             var (AccessToken, RefreshToken) = await this.GenerateTokenAsync(user, correlationId, roleNames);
 
@@ -688,6 +703,7 @@ namespace EasyFinance.Server.Controllers
 
             return (AccessToken: token, RefreshToken: refreshToken);
         }
+
         private static bool FixedTimeEquals(string left, string right)
         {
             var leftBytes = Encoding.UTF8.GetBytes(left);

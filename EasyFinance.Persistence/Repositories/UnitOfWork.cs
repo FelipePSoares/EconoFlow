@@ -73,7 +73,6 @@ namespace EasyFinance.Persistence.Repositories
 
             await this.context.SaveChangesAsync();
         }
-
         public ICollection<Guid> GetAffectedUsers(params EntityState[] entityStates)
         {
             var entries = this.context.ChangeTracker.Entries();
@@ -109,3 +108,4 @@ namespace EasyFinance.Persistence.Repositories
         }
     }
 }
+
