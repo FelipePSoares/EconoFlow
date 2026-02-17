@@ -39,7 +39,7 @@ import { MonthlyExpensesChartComponent } from './monthly-expenses-chart/monthly-
       TranslateModule
     ],
     templateUrl: './detail-project.component.html',
-    styleUrl: './detail-project.component.css'
+    styleUrl: './detail-project.component.scss'
 })
 
 export class DetailProjectComponent implements OnInit {
@@ -203,6 +203,10 @@ export class DetailProjectComponent implements OnInit {
 
   selectIncomes(): void {
     this.router.navigate(['/projects', this.projectId, 'incomes']);
+  }
+
+  openAnnualOverview(): void {
+    this.router.navigate(['/projects', this.projectId, 'overview', 'annual']);
   }
 
   getCurrentDate(): Date {

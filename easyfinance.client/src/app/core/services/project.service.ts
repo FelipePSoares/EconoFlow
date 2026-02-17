@@ -13,6 +13,7 @@ import { DefaultCategory } from '../models/default-category';
 import { formatDate } from '../utils/date';
 import { CurrentDateService } from './current-date.service';
 import { GlobalService } from './global.service';
+import { AnnualCategorySummary, AnnualCategorySummaryDto } from '../../features/project/models/annual-category-summary-dto';
 const PROJECT_DATA = "project_data";
 
 @Injectable({
@@ -80,6 +81,13 @@ export class ProjectService {
       observe: 'body',
       responseType: 'json'
     });
+  }
+
+  getAnnualExpensesByCategory(id: string, year: number): Observable<AnnualCategorySummary[]> {
+    return this.http.get<{ Name: string, Amount: number }[]>('/api/projects/' + id + '/overview/annual/' + year + '/expenses-by-category', {
+      observe: 'body',
+      responseType: 'json'
+    }).pipe(map(response => AnnualCategorySummaryDto.fromApiList(response)));
   }
 
   copyBudgetPreviousMonth(id: string, currentDate: Date) {

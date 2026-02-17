@@ -1,0 +1,36 @@
+.annual-overview {
+  padding-bottom: 1rem;
+}
+
+.summary-card {
+  text-align: center;
+  min-height: 130px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.summary-card h3 {
+  font-size: 1rem;
+}
+
+.value {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.chart-container {
+  position: relative;
+  height: 320px;
+}
+
+.list-group-item {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+@media (max-width: 991px) {
+  .chart-container {
+    height: 280px;
+  }
+}

@@ -87,6 +87,24 @@ namespace EasyFinance.Server.Controllers
             });
         }
 
+        [HttpGet("{projectId}/overview/annual/{year}/expenses-by-category")]
+        public async Task<IActionResult> GetAnnualExpensesByCategory(Guid projectId, int year)
+        {
+            var categories = await this.categoryService.GetAsync(projectId, year);
+
+            var response = categories.Data
+                .Select(category => new
+                {
+                    Name = category.Name,
+                    Amount = category.Expenses?.Sum(expense => expense.Amount) ?? 0
+                })
+                .Where(item => item.Amount > 0)
+                .OrderByDescending(item => item.Amount)
+                .ToList();
+
+            return Ok(response);
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateProject([FromBody] ProjectRequestDTO projectDto)
         {
