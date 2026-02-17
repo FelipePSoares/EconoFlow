@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Globalization;
 using System.Net;
 using System.Security.Claims;
@@ -48,6 +49,7 @@ namespace EasyFinance.Server.Controllers
         private readonly string refreshTokenCookieName = "RefreshToken";
         private readonly string accessTokenCookieName = "AuthToken";
         private readonly string correlationIdClaimType = "CorrelationId";
+        private const double refreshTokenSlowThresholdMs = 250;
 
         // Validate the email address using DataAnnotations like the UserValidator does when RequireUniqueEmail = true.
         private static readonly EmailAddressAttribute emailAddressAttribute = new();
@@ -271,31 +273,117 @@ namespace EasyFinance.Server.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> RefreshTokenAsync()
         {
-            var accessToken = this.GetAccessTokenFromCookie();
+            var refreshStopwatch = Stopwatch.StartNew();
+            var stageStopwatch = Stopwatch.StartNew();
+            var result = "success";
+            var reason = "none";
+            var parseAccessTokenMs = 0d;
+            var loadRefreshContextMs = 0d;
+            var verifyRefreshTokenMs = 0d;
+            var issueTokensMs = 0d;
 
-            if (string.IsNullOrEmpty(accessToken))
-                return Unauthorized();
+            try
+            {
+                var accessToken = this.GetAccessTokenFromCookie();
 
-            var principal = TokenUtil.GetPrincipalFromExpiredToken(this.tokenSettings, accessToken);
-            if (principal == null || principal.FindFirst(ClaimTypes.NameIdentifier)?.Value == null)
-                return Unauthorized();
+                if (string.IsNullOrEmpty(accessToken))
+                {
+                    result = "unauthorized";
+                    reason = "missing_access_token";
+                    return Unauthorized();
+                }
 
-            var user = await this.userManager.GetUserAsync(principal);
+                ClaimsPrincipal principal;
+                try
+                {
+                    principal = TokenUtil.GetPrincipalFromExpiredToken(this.tokenSettings, accessToken);
+                }
+                catch (Exception ex)
+                {
+                    this.logger.LogDebug(ex, "Invalid access token during refresh token flow.");
+                    result = "unauthorized";
+                    reason = "invalid_access_token";
+                    return Unauthorized();
+                }
 
-            if (user == null || !user.Enabled)
-                return Unauthorized();
+                var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            var refreshToken = this.GetRefreshTokenFromCookie();
+                if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var parsedUserId))
+                {
+                    result = "unauthorized";
+                    reason = "missing_user_id_claim";
+                    return Unauthorized();
+                }
 
-            if (string.IsNullOrEmpty(refreshToken) || !await this.userManager.VerifyUserTokenAsync(user, this.tokenProvider, this.tokenPurpose, refreshToken))
-                return Unauthorized();
+                parseAccessTokenMs = stageStopwatch.Elapsed.TotalMilliseconds;
+                stageStopwatch.Restart();
 
-            var correlationId = principal.Claims.Where(c => c.Type == correlationIdClaimType)
-                               .Select(c => c.Value).SingleOrDefault();
+                var refreshContext = await this.accessControlService.GetRefreshTokenContextAsync(parsedUserId);
+                loadRefreshContextMs = stageStopwatch.Elapsed.TotalMilliseconds;
+                stageStopwatch.Restart();
 
-            await GenerateUserToken(user, correlationId);
+                if (refreshContext == null || !refreshContext.User.Enabled)
+                {
+                    result = "unauthorized";
+                    reason = "invalid_user";
+                    return Unauthorized();
+                }
 
-            return Ok();
+                var refreshToken = this.GetRefreshTokenFromCookie();
+
+                if (string.IsNullOrEmpty(refreshToken))
+                {
+                    result = "unauthorized";
+                    reason = "missing_refresh_token";
+                    return Unauthorized();
+                }
+
+                if (!await this.userManager.VerifyUserTokenAsync(refreshContext.User, this.tokenProvider, this.tokenPurpose, refreshToken))
+                {
+                    result = "unauthorized";
+                    reason = "invalid_refresh_token";
+                    return Unauthorized();
+                }
+
+                verifyRefreshTokenMs = stageStopwatch.Elapsed.TotalMilliseconds;
+                stageStopwatch.Restart();
+
+                var correlationId = principal.Claims.Where(c => c.Type == correlationIdClaimType)
+                                   .Select(c => c.Value).SingleOrDefault();
+
+                await GenerateUserToken(refreshContext.User, correlationId, refreshContext.Roles);
+                issueTokensMs = stageStopwatch.Elapsed.TotalMilliseconds;
+
+                return Ok();
+            }
+            finally
+            {
+                var elapsedMs = refreshStopwatch.Elapsed.TotalMilliseconds;
+
+                if (elapsedMs >= refreshTokenSlowThresholdMs)
+                {
+                    this.logger.LogWarning(
+                        "Slow refresh token request detected: {ElapsedMs}ms. Result: {Result}. Reason: {Reason}. ParseAccessTokenMs: {ParseAccessTokenMs}. LoadRefreshContextMs: {LoadRefreshContextMs}. VerifyRefreshTokenMs: {VerifyRefreshTokenMs}. IssueTokensMs: {IssueTokensMs}.",
+                        elapsedMs,
+                        result,
+                        reason,
+                        parseAccessTokenMs,
+                        loadRefreshContextMs,
+                        verifyRefreshTokenMs,
+                        issueTokensMs);
+                }
+                else
+                {
+                    this.logger.LogInformation(
+                        "Refresh token request completed in {ElapsedMs}ms. Result: {Result}. ParseAccessTokenMs: {ParseAccessTokenMs}. LoadRefreshContextMs: {LoadRefreshContextMs}. VerifyRefreshTokenMs: {VerifyRefreshTokenMs}. IssueTokensMs: {IssueTokensMs}.",
+                        elapsedMs,
+                        result,
+                        parseAccessTokenMs,
+                        loadRefreshContextMs,
+                        verifyRefreshTokenMs,
+                        issueTokensMs);
+                }
+            }
         }
 
         [HttpPost("logout")]
@@ -587,23 +675,21 @@ namespace EasyFinance.Server.Controllers
             };
         }
 
-        private async Task GenerateUserToken(User user, string correlationId = null)
+        private async Task GenerateUserToken(User user, string correlationId = null, IList<string> roleNames = null)
         {
-            var (AccessToken, RefreshToken) = await this.GenerateTokenAsync(user, correlationId);
+            var (AccessToken, RefreshToken) = await this.GenerateTokenAsync(user, correlationId, roleNames);
 
             SetAccessTokenCookie(AccessToken);
             SetRefreshTokenCookie(RefreshToken);
         }
 
-        private async Task<(string AccessToken, string RefreshToken)> GenerateTokenAsync(User user, string correlationId)
+        private async Task<(string AccessToken, string RefreshToken)> GenerateTokenAsync(User user, string correlationId, IList<string> roleNames = null)
         {
-            var userRoles = await this.userManager.GetRolesAsync(user);
+            var userRoles = roleNames ?? await this.userManager.GetRolesAsync(user);
             var claims = userRoles.Select(userRole => new Claim(ClaimTypes.Role, userRole)).ToList();
             claims.Add(new Claim(correlationIdClaimType, correlationId ?? Guid.NewGuid().ToString(), ClaimValueTypes.String));
 
             var token = TokenUtil.GetToken(tokenSettings, user, claims);
-
-            await userManager.RemoveAuthenticationTokenAsync(user, this.tokenProvider, this.tokenPurpose);
             var refreshToken = await userManager.GenerateUserTokenAsync(user, this.tokenProvider, this.tokenPurpose);
             await userManager.SetAuthenticationTokenAsync(user, this.tokenProvider, this.tokenPurpose, refreshToken);
 
@@ -649,3 +735,4 @@ namespace EasyFinance.Server.Controllers
         private string GetAccessTokenFromCookie() => Request.Cookies[accessTokenCookieName] ?? string.Empty;
     }
 }
+

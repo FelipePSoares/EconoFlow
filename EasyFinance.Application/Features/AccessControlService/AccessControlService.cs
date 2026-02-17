@@ -18,16 +18,19 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 
+#nullable enable
 namespace EasyFinance.Application.Features.AccessControlService
 {
     public class AccessControlService(
         IUnitOfWork unitOfWork,
+        IAccessControlReadRepository accessControlReadRepository,
         UserManager<User> userManager,
         IEmailService emailService,
         ICallbackService callbackService,
         ILogger<AccessControlService> logger) : IAccessControlService
     {
         private readonly IUnitOfWork unitOfWork = unitOfWork;
+        private readonly IAccessControlReadRepository accessControlReadRepository = accessControlReadRepository;
         private readonly UserManager<User> userManager = userManager;
         private readonly IEmailService emailService = emailService;
         private readonly ICallbackService callbackService = callbackService;
@@ -261,5 +264,8 @@ namespace EasyFinance.Application.Features.AccessControlService
 
             return AppResponse.Success();
         }
+
+        public Task<RefreshTokenContextDTO?> GetRefreshTokenContextAsync(Guid userId) 
+            => this.accessControlReadRepository.GetRefreshTokenContextAsync(userId);
     }
 }

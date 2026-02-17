@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, concatMap, map, of, switchMap } from 'rxjs';
+import { BehaviorSubject, Observable, concatMap, finalize, map, of, shareReplay, switchMap } from 'rxjs';
 import { tap, catchError, throwError } from 'rxjs';
 import { DeleteUser, User } from '../models/user';
 import { LocalService } from './local.service';
@@ -16,6 +16,7 @@ export class UserService {
   private localService = inject(LocalService);
 
   private loggedUser = new BehaviorSubject<User | undefined>(undefined);
+  private refreshTokenRequest$: Observable<User> | null = null;
   loggedUser$ = this.loggedUser.asObservable().pipe(switchMap(user => {
     if (user)
       return of(user);
@@ -64,13 +65,22 @@ export class UserService {
   }
 
   public refreshToken(): Observable<User> {
-    return this.http.post('/api/AccessControl/refresh-token', null, {
+    if (this.refreshTokenRequest$) {
+      return this.refreshTokenRequest$;
+    }
+
+    this.refreshTokenRequest$ = this.http.post('/api/AccessControl/refresh-token', null, {
       observe: 'body',
       responseType: 'json'
-    })
-    .pipe(
-      concatMap(() => this.refreshUserInfo())
+    }).pipe(
+      concatMap(() => this.refreshUserInfo()),
+      finalize(() => {
+        this.refreshTokenRequest$ = null;
+      }),
+      shareReplay(1)
     );
+
+    return this.refreshTokenRequest$;
   }
 
   public register(email: string, password: string, token?: string): Observable<User> {

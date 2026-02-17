@@ -30,6 +30,7 @@ namespace EasyFinance.Persistence
 #endif
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IAccessControlReadRepository, AccessControlReadRepository>();
 
             return services;
         }
