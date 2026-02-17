@@ -179,8 +179,8 @@ export class MonthlyOverviewComponent implements OnInit {
         const expenseEntries = this.toExpenseEntries(categories);
         const expenseByCategory = this.toExpenseByCategory(categories);
 
-        this.totalIncomes = incomes.reduce((sum, income) => sum + this.roundAmount(income.amount), 0);
-        this.totalExpenses = expenseEntries.reduce((sum, expense) => sum + this.roundAmount(expense.amount), 0);
+        this.totalIncomes = incomes.reduce((sum, income) => sum + Number(income.amount || 0), 0);
+        this.totalExpenses = expenseEntries.reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
         this.balance = this.totalIncomes - this.totalExpenses;
 
         this.dailyIncomeExpenseChartData = this.toDailyLineChartData(date, incomes, expenseEntries);
@@ -207,14 +207,14 @@ export class MonthlyOverviewComponent implements OnInit {
     incomes.forEach(income => {
       const day = new Date(income.date).getDate();
       if (day >= 1 && day <= daysInMonth) {
-        dailyIncome[day - 1] += this.roundAmount(income.amount);
+        dailyIncome[day - 1] += Number(income.amount || 0);
       }
     });
 
     expenses.forEach(expense => {
       const day = new Date(expense.date).getDate();
       if (day >= 1 && day <= daysInMonth) {
-        dailyExpense[day - 1] += this.roundAmount(expense.amount);
+        dailyExpense[day - 1] += Number(expense.amount || 0);
       }
     });
 
@@ -233,7 +233,7 @@ export class MonthlyOverviewComponent implements OnInit {
       datasets: [
         {
           label: this.translateService.instant('Income'),
-          data: cumulativeIncome,
+          data: cumulativeIncome.map(value => this.roundAmount(value)),
           borderColor: '#2ecc71',
           backgroundColor: 'rgba(46, 204, 113, 0.15)',
           pointRadius: 2,
@@ -242,7 +242,7 @@ export class MonthlyOverviewComponent implements OnInit {
         },
         {
           label: this.translateService.instant('Expense'),
-          data: cumulativeExpense,
+          data: cumulativeExpense.map(value => this.roundAmount(value)),
           borderColor: '#ff6b6b',
           backgroundColor: 'rgba(255, 107, 107, 0.12)',
           pointRadius: 2,
@@ -267,7 +267,7 @@ export class MonthlyOverviewComponent implements OnInit {
     return categories
       .map(category => ({
         name: category.name,
-        amount: (category.expenses || []).reduce((sum, expense) => sum + this.roundAmount(expense.amount), 0)
+        amount: (category.expenses || []).reduce((sum, expense) => sum + Number(expense.amount || 0), 0)
       }))
       .filter(item => item.amount > 0)
       .sort((a, b) => b.amount - a.amount);
