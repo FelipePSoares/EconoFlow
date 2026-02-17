@@ -27,6 +27,7 @@ namespace EasyFinance.Application.Tests
         private readonly Mock<IUnitOfWork> unitOfWork;
         private readonly Mock<IGenericRepository<UserProject>> userProjectRepository;
         private readonly Mock<IGenericRepository<Project>> ProjectRepository;
+        private readonly Mock<IAccessControlReadRepository> accessControlReadRepository;
         private readonly Mock<IEmailService> emailService;
         private readonly Mock<ICallbackService> callbackService;
         private readonly Mock<ILogger<AccessControlService>> logger;
@@ -38,6 +39,7 @@ namespace EasyFinance.Application.Tests
             this.unitOfWork = new Mock<IUnitOfWork>();
             this.userProjectRepository = new Mock<IGenericRepository<UserProject>>();
             this.ProjectRepository = new Mock<IGenericRepository<Project>>();
+            this.accessControlReadRepository = new Mock<IAccessControlReadRepository>();
             this.emailService = new Mock<IEmailService>();
             this.callbackService = new Mock<ICallbackService>();
             this.logger = new Mock<ILogger<AccessControlService>>();
@@ -60,7 +62,7 @@ namespace EasyFinance.Application.Tests
             unitOfWork.Setup(uw => uw.UserProjectRepository).Returns(this.userProjectRepository.Object);
             unitOfWork.Setup(uw => uw.ProjectRepository).Returns(this.ProjectRepository.Object);
 
-            this.accessControlService = new AccessControlService(unitOfWork.Object, this.userManagerMock.Object, this.emailService.Object, this.callbackService.Object, this.logger.Object);
+            this.accessControlService = new AccessControlService(unitOfWork.Object, this.accessControlReadRepository.Object, this.userManagerMock.Object, this.emailService.Object, this.callbackService.Object, this.logger.Object);
 
             this.userProjectRepository.Setup(upr => upr.InsertOrUpdate(It.IsAny<UserProject>()))
                 .Returns((UserProject up) => AppResponse<UserProject>.Success(up));

@@ -21,7 +21,7 @@ namespace EasyFinance.Persistence.Migrations
             // Insert initial LanguageCode for existing users
             migrationBuilder.Sql(@"
                 UPDATE AspNetUsers
-                SET LanguageCode = 'en-US'
+                SET LanguageCode = 'en'
                 WHERE LanguageCode IS NULL;
             ");
 
