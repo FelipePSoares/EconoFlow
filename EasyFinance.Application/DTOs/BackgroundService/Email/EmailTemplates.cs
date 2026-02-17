@@ -9,6 +9,7 @@
         GrantedAccess,
         AccessLevelChanged,
         NewSupportMessageReceived,
-        WelcomeMessage
+        WelcomeMessage,
+        MonthlyAndAnnualOverviewNowAvailableMessage
     }
 }
