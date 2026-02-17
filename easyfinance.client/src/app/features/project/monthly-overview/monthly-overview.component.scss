@@ -1,10 +1,14 @@
-.annual-overview {
+.monthly-overview {
   padding-bottom: 1rem;
 }
 
 .overview-header .header-date-control {
-  min-width: 140px;
-  max-width: 160px;
+  min-width: 170px;
+  max-width: 190px;
+}
+
+.month-title {
+  text-transform: capitalize;
 }
 
 .summary-card {
@@ -46,8 +50,8 @@
 
 @media (max-width: 991px) {
   .overview-header .header-date-control {
-    min-width: 120px;
-    max-width: 130px;
+    min-width: 150px;
+    max-width: 165px;
   }
 
   .chart-container {

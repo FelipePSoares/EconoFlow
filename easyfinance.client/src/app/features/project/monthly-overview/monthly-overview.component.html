@@ -1,21 +1,22 @@
-<div class="container annual-overview py-4">
+<div class="container monthly-overview py-4">
   <div class="row justify-content-center">
     <div class="col-12">
       <div class="d-flex justify-content-between align-items-center mb-4 overview-header">
         <app-return-button (returnButtonEvent)="previous()"></app-return-button>
-        <h2 class="text-center flex-grow-1 m-0">{{ userProject.project.name }} - {{ 'AnnualOverview' | translate }}</h2>
+        <h2 class="text-center flex-grow-1 m-0">{{ userProject.project.name }} - {{ 'MonthlyOverview' | translate }}</h2>
         <div class="header-date-control">
-          <select id="year-selector" class="form-select" [value]="selectedYear" (change)="onYearChange($event)">
-            @for (year of yearOptions; track year) {
-              <option [value]="year">{{ year }}</option>
-            }
-          </select>
+          <input
+            id="month-selector"
+            type="month"
+            class="form-control"
+            [value]="selectedMonth"
+            (change)="onMonthChange($event)">
         </div>
       </div>
     </div>
   </div>
 
-  <div class="row mt-2">
+  <div class="row mt-3">
     <div class="col-12 col-md-4">
       <div class="summary-card wrap p-3">
         <h3>{{ 'TotalExpenses' | translate }}</h3>
@@ -41,18 +42,18 @@
       <div class="wrap p-3 charts-panel">
         <div class="row g-3">
           <div class="col-12 col-lg-6 chart-block">
-            <h3 class="text-center mb-3">{{ 'IncomeVsExpenseByMonth' | translate }}</h3>
-            @if (monthlyIncomeExpenseChartData.datasets[0].data.length || monthlyIncomeExpenseChartData.datasets[1].data.length) {
+            <h3 class="text-center mb-3">{{ 'CumulativeIncomeVsExpense' | translate }}</h3>
+            @if (dailyIncomeExpenseChartData.datasets[0].data.length || dailyIncomeExpenseChartData.datasets[1].data.length) {
               <div class="chart-container">
                 <canvas
                   baseChart
-                  [type]="'bar'"
-                  [data]="monthlyIncomeExpenseChartData"
-                  [options]="barChartOptions">
+                  [type]="'line'"
+                  [data]="dailyIncomeExpenseChartData"
+                  [options]="lineChartOptions">
                 </canvas>
               </div>
             } @else {
-              <p class="text-center text-secondary mb-0">{{ 'NoDataForSelectedYear' | translate }}</p>
+              <p class="text-center text-secondary mb-0">{{ 'NoDataForSelectedMonth' | translate }}</p>
             }
           </div>
           <div class="col-12 col-lg-6 chart-block chart-block-divider">
@@ -67,7 +68,7 @@
                 </canvas>
               </div>
             } @else {
-              <p class="text-center text-secondary mb-0">{{ 'NoDataForSelectedYear' | translate }}</p>
+              <p class="text-center text-secondary mb-0">{{ 'NoDataForSelectedMonth' | translate }}</p>
             }
           </div>
         </div>
@@ -92,7 +93,7 @@
             }
           </ul>
         } @else {
-          <p class="text-center text-secondary mb-0">{{ 'NoDataForSelectedYear' | translate }}</p>
+          <p class="text-center text-secondary mb-0">{{ 'NoDataForSelectedMonth' | translate }}</p>
         }
       </div>
     </div>

@@ -209,6 +209,14 @@ export class DetailProjectComponent implements OnInit {
     this.router.navigate(['/projects', this.projectId, 'overview', 'annual']);
   }
 
+  openMonthlyOverview(): void {
+    const currentDate = this.currentDateService.currentDate;
+    const monthValue = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+    this.router.navigate(['/projects', this.projectId, 'overview', 'monthly'], {
+      queryParams: { month: monthValue }
+    });
+  }
+
   getCurrentDate(): Date {
     return this.currentDateService.currentDate;
   }

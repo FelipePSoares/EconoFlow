@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { ChartData, ChartOptions, TooltipItem } from 'chart.js';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BaseChartDirective } from 'ng2-charts';
@@ -12,6 +13,7 @@ import { UserProjectDto } from '../models/user-project-dto';
 import { ProjectDto } from '../models/project-dto';
 import { IncomeService } from '../../../core/services/income.service';
 import { CategoryService } from '../../../core/services/category.service';
+import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 
 interface CategoryInsight {
   name: string;
@@ -25,7 +27,8 @@ interface CategoryInsight {
     CommonModule,
     TranslateModule,
     BaseChartDirective,
-    CurrencyFormatPipe
+    CurrencyFormatPipe,
+    ReturnButtonComponent
   ],
   templateUrl: './annual-overview.component.html',
   styleUrl: './annual-overview.component.css'
@@ -112,7 +115,8 @@ export class AnnualOverviewComponent implements OnInit {
     private globalService: GlobalService,
     private incomeService: IncomeService,
     private categoryService: CategoryService,
-    private translateService: TranslateService
+    private translateService: TranslateService,
+    private router: Router
   ) { }
 
   ngOnInit(): void {
@@ -135,6 +139,10 @@ export class AnnualOverviewComponent implements OnInit {
     const selectedYear = Number(target?.value ?? this.currentYear);
     this.selectedYear = Number.isFinite(selectedYear) ? selectedYear : this.currentYear;
     this.loadYear(this.selectedYear);
+  }
+
+  previous(): void {
+    this.router.navigate(['/projects', this.projectId]);
   }
 
   private loadYear(year: number): void {
@@ -175,11 +183,11 @@ export class AnnualOverviewComponent implements OnInit {
         incomes: this.incomeService.get(this.projectId, monthDate),
         categories: this.categoryService.get(this.projectId, monthDate)
       }).pipe(
-        map(({ incomes, categories }) => ({
+      map(({ incomes, categories }) => ({
           label: formatter.format(monthDate),
-          income: incomes.reduce((sum, income) => sum + (income.amount || 0), 0),
+          income: incomes.reduce((sum, income) => sum + this.roundAmount(income.amount), 0),
           expense: categories.reduce((sum, category) =>
-            sum + (category.expenses?.reduce((expenseSum, expense) => expenseSum + (expense.amount || 0), 0) || 0), 0)
+            sum + (category.expenses?.reduce((expenseSum, expense) => expenseSum + this.roundAmount(expense.amount), 0) || 0), 0)
         }))
       );
     });
@@ -202,7 +210,7 @@ export class AnnualOverviewComponent implements OnInit {
       labels: data.map(item => item.name),
       datasets: [
         {
-          data: data.map(item => item.amount),
+          data: data.map(item => this.roundAmount(item.amount)),
           backgroundColor: data.map((_, index) => colors[index % colors.length]),
           borderColor: '#ffffff',
           borderWidth: 1
@@ -242,14 +250,14 @@ export class AnnualOverviewComponent implements OnInit {
       datasets: [
         {
           label: this.translateService.instant('Income'),
-          data: incomes,
+          data: incomes.map(value => this.roundAmount(value)),
           backgroundColor: '#2ecc71',
           borderRadius: 4,
           maxBarThickness: 26
         },
         {
           label: this.translateService.instant('Expense'),
-          data: expenses,
+          data: expenses.map(value => this.roundAmount(value)),
           backgroundColor: '#ff6b6b',
           borderRadius: 4,
           maxBarThickness: 26
@@ -281,8 +289,12 @@ export class AnnualOverviewComponent implements OnInit {
     return new Intl.NumberFormat(this.globalService.currentLanguage, {
       style: 'currency',
       currency: this.globalService.currency,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
     }).format(value);
+  }
+
+  private roundAmount(value: number | undefined): number {
+    return Math.round(Number(value || 0));
   }
 }
