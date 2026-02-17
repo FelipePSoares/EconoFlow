@@ -39,20 +39,39 @@
 
   <div class="row mt-2">
     <div class="col-12">
-      <div class="wrap p-3">
-        <h3 class="text-center mb-3">{{ 'ExpensesByCategory' | translate }}</h3>
-        @if (expenseChartData.datasets[0].data.length) {
-          <div class="chart-container">
-            <canvas
-              baseChart
-              [type]="'doughnut'"
-              [data]="expenseChartData"
-              [options]="doughnutChartOptions">
-            </canvas>
+      <div class="wrap p-3 charts-panel">
+        <div class="row g-3">
+          <div class="col-12 col-lg-6 chart-block">
+            <h3 class="text-center mb-3">{{ 'IncomeVsExpenseByMonth' | translate }}</h3>
+            @if (monthlyIncomeExpenseChartData.datasets[0].data.length || monthlyIncomeExpenseChartData.datasets[1].data.length) {
+              <div class="chart-container">
+                <canvas
+                  baseChart
+                  [type]="'bar'"
+                  [data]="monthlyIncomeExpenseChartData"
+                  [options]="barChartOptions">
+                </canvas>
+              </div>
+            } @else {
+              <p class="text-center text-secondary mb-0">{{ 'NoDataForSelectedYear' | translate }}</p>
+            }
           </div>
-        } @else {
-          <p class="text-center text-secondary mb-0">{{ 'NoDataForSelectedYear' | translate }}</p>
-        }
+          <div class="col-12 col-lg-6 chart-block chart-block-divider">
+            <h3 class="text-center mb-3">{{ 'ExpensesByCategory' | translate }}</h3>
+            @if (expenseChartData.datasets[0].data.length) {
+              <div class="chart-container">
+                <canvas
+                  baseChart
+                  [type]="'doughnut'"
+                  [data]="expenseChartData"
+                  [options]="doughnutChartOptions">
+                </canvas>
+              </div>
+            } @else {
+              <p class="text-center text-secondary mb-0">{{ 'NoDataForSelectedYear' | translate }}</p>
+            }
+          </div>
+        </div>
       </div>
     </div>
   </div>

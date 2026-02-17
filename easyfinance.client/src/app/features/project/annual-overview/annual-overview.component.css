@@ -24,13 +24,28 @@
   height: 320px;
 }
 
+.charts-panel .chart-block {
+  min-height: 100%;
+}
+
 .list-group-item {
   padding-left: 0;
   padding-right: 0;
 }
 
+@media (min-width: 992px) {
+  .chart-block-divider {
+    border-left: 1px solid rgba(0, 0, 0, 0.08);
+  }
+}
+
 @media (max-width: 991px) {
   .chart-container {
     height: 280px;
+  }
+
+  .chart-block-divider {
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    padding-top: 1rem;
   }
 }
