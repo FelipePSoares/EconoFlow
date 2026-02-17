@@ -9,5 +9,7 @@ namespace EasyFinance.Application.DTOs.FinancialProject
         public TransactionType Type { get; set; }
         public DateOnly Date { get; set; }
         public decimal Amount { get; set; }
+        public string CategoryName { get; set; }
+        public string ParentExpenseName { get; set; }
     }
 }

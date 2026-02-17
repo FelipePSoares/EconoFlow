@@ -157,13 +157,29 @@
                 <ng-container matColumnDef="description">
                   <th mat-header-cell *matHeaderCellDef> {{ 'Description' | translate }} </th>
                   <td mat-cell *matCellDef="let row">
-                    <div class="d-flex align-items-center py-3">
-                      <div class="transaction-icon me-3">
+                    <div class="d-flex align-items-center py-2 py-md-3">
+                      <div class="transaction-icon me-2 me-md-3 flex-shrink-0">
                         <i class="bi" [class]="row.type === 'Income' ? 'bi-arrow-down-left money-in' : 'bi-arrow-up-right money-out'"></i>
                       </div>
-                      <div>
-                        <div class="fw-medium">{{ row.name }}</div>
-                        <div class="text-secondary small">{{ row.type | translate }}</div>
+                      <div class="min-w-0">
+                        <div class="fw-medium text-truncate">{{ row.name }}</div>
+                        <div class="badges-row">
+                          <span class="badge-type" [class]="row.type === 'Income' ? 'badge-income' : 'badge-expense'">
+                            {{ row.type | translate }}
+                          </span>
+                          @if (row.categoryName) {
+                          <span class="badge-category">
+                            <i class="bi bi-tag-fill"></i>
+                            <span class="badge-label">{{ row.categoryName }}</span>
+                          </span>
+                          }
+                          @if (row.parentExpenseName) {
+                          <span class="badge-category">
+                            <i class="bi bi-link-45deg"></i>
+                            <span class="badge-label">{{ row.parentExpenseName }}</span>
+                          </span>
+                          }
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -180,7 +196,7 @@
 
                 <tr mat-header-row *matHeaderRowDef="['date', 'description', 'amount']" class="bg-light"></tr>
                 <tr mat-row *matRowDef="let row; columns: ['date', 'description', 'amount'];"
-                class="hover-row"></tr>
+                    class="hover-row"></tr>
               </table>
             </div>
           </div>

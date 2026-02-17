@@ -4,4 +4,6 @@ export class Transaction {
     date!: Date;
     amount!: number;
     type!: string;
+    categoryName?: string;
+    parentExpenseName?: string;
 }

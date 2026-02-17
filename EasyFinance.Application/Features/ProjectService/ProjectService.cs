@@ -239,7 +239,8 @@ namespace EasyFinance.Application.Features.ProjectService
                         e.Id,
                         e.Name,
                         e.Date,
-                        e.Amount
+                        e.Amount,
+                        CategoryName = c.Name
                     })
                 )).ToListAsync();
 
@@ -257,7 +258,9 @@ namespace EasyFinance.Application.Features.ProjectService
                                 i.Id,
                                 i.Name,
                                 i.Date,
-                                i.Amount
+                                i.Amount,
+                                CategoryName = c.Name,
+                                ParentExpenseName = e.Name
                             })
                     ))
                 ).ToListAsync();
@@ -272,7 +275,9 @@ namespace EasyFinance.Application.Features.ProjectService
                     Amount = income.Amount,
                     Date = income.Date,
                     Name = income.Name,
-                    Type = TransactionType.Income
+                    Type = TransactionType.Income,
+                    CategoryName = null,
+                    ParentExpenseName = null
                 }));
 
             result.AddRange(
@@ -283,7 +288,9 @@ namespace EasyFinance.Application.Features.ProjectService
                     Name = expense.Name,
                     Date = expense.Date,
                     Amount = expense.Amount,
-                    Type = TransactionType.Expense
+                    Type = TransactionType.Expense,
+                    CategoryName = expense.CategoryName,
+                    ParentExpenseName = null
                 }));
 
             result.AddRange(
@@ -294,7 +301,9 @@ namespace EasyFinance.Application.Features.ProjectService
                     Name = expense.Name,
                     Date = expense.Date,
                     Amount = expense.Amount,
-                    Type = TransactionType.Expense
+                    Type = TransactionType.Expense,
+                    CategoryName = expense.CategoryName,
+                    ParentExpenseName = expense.ParentExpenseName
                 }));
 
             result = result.OrderByDescending(i => i.Date).Take(numberOfTransactions).ToList();
