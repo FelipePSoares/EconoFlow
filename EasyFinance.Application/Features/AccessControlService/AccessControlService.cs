@@ -265,9 +265,7 @@ namespace EasyFinance.Application.Features.AccessControlService
             return AppResponse.Success();
         }
 
-        public Task<RefreshTokenContextDTO?> GetRefreshTokenContextAsync(Guid userId, string tokenProvider, string tokenPurpose)
-        {
-            return this.accessControlReadRepository.GetRefreshTokenContextAsync(userId, tokenProvider, tokenPurpose);
-        }
+        public Task<RefreshTokenContextDTO?> GetRefreshTokenContextAsync(Guid userId) 
+            => this.accessControlReadRepository.GetRefreshTokenContextAsync(userId);
     }
 }

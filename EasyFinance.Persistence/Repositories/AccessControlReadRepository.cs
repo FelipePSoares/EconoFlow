@@ -10,15 +10,11 @@ namespace EasyFinance.Persistence.Repositories
     {
         private readonly EasyFinanceDatabaseContext context = context;
 
-        public async Task<RefreshTokenContextDTO?> GetRefreshTokenContextAsync(Guid userId, string tokenProvider, string tokenPurpose)
+        public async Task<RefreshTokenContextDTO?> GetRefreshTokenContextAsync(Guid userId)
         {
             var rows = await (
                 from User in this.context.Users
                 where User.Id == userId
-                join token in this.context.UserTokens
-                    .Where(t => t.LoginProvider == tokenProvider && t.Name == tokenPurpose)
-                    on User.Id equals token.UserId into tokenGroup
-                from token in tokenGroup.DefaultIfEmpty()
                 join userRole in this.context.UserRoles
                     on User.Id equals userRole.UserId into userRoleGroup
                 from userRole in userRoleGroup.DefaultIfEmpty()
@@ -28,7 +24,6 @@ namespace EasyFinance.Persistence.Repositories
                 select new
                 {
                     User = User,
-                    StoredRefreshToken = token != null ? token.Value : null,
                     Role = role != null ? role.Name : null
                 })
                 .ToListAsync();
@@ -37,9 +32,6 @@ namespace EasyFinance.Persistence.Repositories
                 return null;
 
             var user = rows[0].User;
-            var storedRefreshToken = rows
-                .Select(r => r.StoredRefreshToken)
-                .FirstOrDefault(value => !string.IsNullOrEmpty(value)) ?? string.Empty;
 
             var roles = rows
                 .Where(r => !string.IsNullOrEmpty(r.Role))
@@ -47,7 +39,7 @@ namespace EasyFinance.Persistence.Repositories
                 .Distinct(StringComparer.Ordinal)
                 .ToArray();
 
-            return new RefreshTokenContextDTO(user, storedRefreshToken, roles);
+            return new RefreshTokenContextDTO(user, roles);
         }
     }
 }

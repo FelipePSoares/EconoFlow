@@ -7,6 +7,6 @@ namespace EasyFinance.Application.Contracts.Persistence
 {
     public interface IAccessControlReadRepository
     {
-        Task<RefreshTokenContextDTO?> GetRefreshTokenContextAsync(Guid userId, string tokenProvider, string tokenPurpose);
+        Task<RefreshTokenContextDTO?> GetRefreshTokenContextAsync(Guid userId);
     }
 }

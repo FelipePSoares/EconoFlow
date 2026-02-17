@@ -5,15 +5,13 @@ namespace EasyFinance.Application.DTOs.AccessControl
 {
     public class RefreshTokenContextDTO
     {
-        public RefreshTokenContextDTO(User user, string storedRefreshToken, IList<string> roles)
+        public RefreshTokenContextDTO(User user, IList<string> roles)
         {
             User = user;
-            StoredRefreshToken = storedRefreshToken;
             Roles = roles;
         }
 
         public User User { get; }
-        public string StoredRefreshToken { get; }
         public IList<string> Roles { get; }
     }
 }

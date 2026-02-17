@@ -17,6 +17,6 @@ namespace EasyFinance.Application.Features.AccessControlService
         Task<AppResponse<IEnumerable<UserProjectResponseDTO>>> GetUsers(User user, Guid value);
         Task<AppResponse<IEnumerable<UserResponseDTO>>> GetAllKnowUsersAsync(User user, Guid? projectId);
         Task<AppResponse> RemoveAccessAsync(Guid userProjectId);
-        Task<RefreshTokenContextDTO?> GetRefreshTokenContextAsync(Guid userId, string tokenProvider, string tokenPurpose);
+        Task<RefreshTokenContextDTO?> GetRefreshTokenContextAsync(Guid userId);
     }
 }

@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Net;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.RegularExpressions;
@@ -319,7 +318,7 @@ namespace EasyFinance.Server.Controllers
                 parseAccessTokenMs = stageStopwatch.Elapsed.TotalMilliseconds;
                 stageStopwatch.Restart();
 
-                var refreshContext = await this.accessControlService.GetRefreshTokenContextAsync(parsedUserId, this.tokenProvider, this.tokenPurpose);
+                var refreshContext = await this.accessControlService.GetRefreshTokenContextAsync(parsedUserId);
                 loadRefreshContextMs = stageStopwatch.Elapsed.TotalMilliseconds;
                 stageStopwatch.Restart();
 
@@ -336,13 +335,6 @@ namespace EasyFinance.Server.Controllers
                 {
                     result = "unauthorized";
                     reason = "missing_refresh_token";
-                    return Unauthorized();
-                }
-
-                if (string.IsNullOrEmpty(refreshContext.StoredRefreshToken) || !FixedTimeEquals(refreshContext.StoredRefreshToken, refreshToken))
-                {
-                    result = "unauthorized";
-                    reason = "refresh_token_mismatch";
                     return Unauthorized();
                 }
 
@@ -704,14 +696,6 @@ namespace EasyFinance.Server.Controllers
             return (AccessToken: token, RefreshToken: refreshToken);
         }
 
-        private static bool FixedTimeEquals(string left, string right)
-        {
-            var leftBytes = Encoding.UTF8.GetBytes(left);
-            var rightBytes = Encoding.UTF8.GetBytes(right);
-
-            return leftBytes.Length == rightBytes.Length &&
-                   CryptographicOperations.FixedTimeEquals(leftBytes, rightBytes);
-        }
         private void SetRefreshTokenCookie(string refreshToken)
         {
             var cookieOptions = new CookieOptions
