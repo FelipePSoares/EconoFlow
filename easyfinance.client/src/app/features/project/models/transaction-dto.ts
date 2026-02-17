@@ -6,6 +6,8 @@ export class TransactionDto {
     date!: Date;
     amount!: number;
     type!: string;
+    categoryName?: string;
+    parentExpenseName?: string;
       
     static fromTransaction(transaction: Transaction): TransactionDto {
         const dto = new TransactionDto();
@@ -14,6 +16,8 @@ export class TransactionDto {
         dto.date = transaction.date;
         dto.amount = transaction.amount;
         dto.type = transaction.type;
+        dto.categoryName = transaction.categoryName;
+        dto.parentExpenseName = transaction.parentExpenseName;
         return dto;
     }
 

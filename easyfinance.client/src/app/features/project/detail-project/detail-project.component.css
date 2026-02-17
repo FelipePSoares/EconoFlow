@@ -104,3 +104,65 @@
   display: inline-block;
   transform: rotate(45deg);
 }
+
+.min-w-0 {
+  min-width: 0;
+}
+
+.badges-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.badge-type,
+.badge-category {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 0.70rem;
+  font-weight: 500;
+  white-space: nowrap;
+  max-width: 140px;
+}
+
+.badge-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge-type {
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.badge-income {
+  background-color: rgba(25, 195, 125, 0.12);
+  color: #19c37d;
+}
+
+.badge-expense {
+  background-color: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
+.badge-category {
+  background-color: rgba(100, 116, 139, 0.1);
+  color: #64748b;
+}
+
+// On very small screens, reduce icon size if needed
+@media (max-width: 400px) {
+  .badge-type, .badge-category
+
+{
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  max-width: 110px;
+}
+}
