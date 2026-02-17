@@ -130,6 +130,7 @@
   "TotalIncomes": "Total de Receitas",
   "Balance": "Saldo",
   "Year": "Ano",
+  "IncomeVsExpenseByMonth": "Receitas e despesas por mês",
   "ExpensesByCategory": "Despesas por categoria",
   "IncomesByCategory": "Receitas por categoria",
   "TopExpenseCategories": "Top 5 categorias de despesa",

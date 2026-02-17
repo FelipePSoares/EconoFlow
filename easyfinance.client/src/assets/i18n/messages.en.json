@@ -130,6 +130,7 @@
   "TotalIncomes": "Total Incomes",
   "Balance": "Balance",
   "Year": "Year",
+  "IncomeVsExpenseByMonth": "Income vs Expense by month",
   "ExpensesByCategory": "Expenses by category",
   "IncomesByCategory": "Incomes by category",
   "TopExpenseCategories": "Top 5 expense categories",
