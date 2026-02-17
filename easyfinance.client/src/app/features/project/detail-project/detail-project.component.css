@@ -156,13 +156,10 @@
   color: #64748b;
 }
 
-// On very small screens, reduce icon size if needed
 @media (max-width: 400px) {
-  .badge-type, .badge-category
-
-{
-  font-size: 0.65rem;
-  padding: 2px 6px;
-  max-width: 110px;
-}
+  .badge-type, .badge-category {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    max-width: 110px;
+  }
 }
