@@ -185,9 +185,9 @@ export class AnnualOverviewComponent implements OnInit {
       }).pipe(
       map(({ incomes, categories }) => ({
           label: formatter.format(monthDate),
-          income: incomes.reduce((sum, income) => sum + this.roundAmount(income.amount), 0),
+          income: incomes.reduce((sum, income) => sum + Number(income.amount || 0), 0),
           expense: categories.reduce((sum, category) =>
-            sum + (category.expenses?.reduce((expenseSum, expense) => expenseSum + this.roundAmount(expense.amount), 0) || 0), 0)
+            sum + (category.expenses?.reduce((expenseSum, expense) => expenseSum + Number(expense.amount || 0), 0) || 0), 0)
         }))
       );
     });
