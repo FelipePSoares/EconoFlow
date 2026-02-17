@@ -73,7 +73,12 @@
               <div class="row align-items-center">
                 <!-- Centered title -->
                 <div class="col text-center mt-3 mb-3 month">
-                  <h2>{{ getCurrentDate() | date: 'MMMM'}}</h2>
+                  <a class="overview-link" (click)="openMonthlyOverview()" role="button" title="{{ 'MonthlyOverview' | translate }}">
+                    <h2 class="overview-heading">
+                      {{ getCurrentDate() | date: 'MMMM' }}
+                      <i class="bi bi-box-arrow-up-right overview-icon"></i>
+                    </h2>
+                  </a>
                 </div>
               </div>
             </div>
@@ -111,10 +116,10 @@
             <div class="container position-relative">
               <div class="row align-items-center">
                 <div class="col text-center mt-3 mb-3 month">
-                  <a class="year-link" (click)="openAnnualOverview()" role="button" title="{{ 'AnnualOverview' | translate }}">
-                    <h2 class="year-heading">
+                  <a class="overview-link" (click)="openAnnualOverview()" role="button" title="{{ 'AnnualOverview' | translate }}">
+                    <h2 class="overview-heading">
                       {{ getCurrentDate() | date: 'yyyy'}}
-                      <i class="bi bi-box-arrow-up-right year-icon"></i>
+                      <i class="bi bi-box-arrow-up-right overview-icon"></i>
                     </h2>
                   </a>
                 </div>
