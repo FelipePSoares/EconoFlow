@@ -163,3 +163,54 @@
     max-width: 110px;
   }
 }
+
+.year-link {
+  display: inline-block;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+
+  .year-heading {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 0;
+    transition: opacity 0.2s ease;
+
+    @media (max-width: 991px) {
+      border-bottom: 2px dashed rgba(var(--bs-primary-rgb), 0.45);
+      padding-bottom: 2px;
+    }
+  }
+
+  .year-icon {
+    font-size: 0.6em;
+    color: var(--bs-primary);
+    transform: translateY(-3px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+
+    @media (max-width: 991px) {
+      opacity: 1;
+    }
+  }
+
+  &:hover {
+    .year-heading {
+      opacity: 0.8;
+    }
+
+    .year-icon {
+      opacity: 1;
+      transform: translateY(-5px);
+    }
+  }
+
+  &:active {
+    .year-heading {
+      opacity: 0.6;
+      transform: scale(0.97);
+    }
+  }
+}

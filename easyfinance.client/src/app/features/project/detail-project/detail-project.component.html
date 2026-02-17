@@ -111,17 +111,21 @@
             <div class="container position-relative">
               <div class="row align-items-center">
                 <div class="col text-center mt-3 mb-3 month">
-                  <h2>{{ getCurrentDate() | date: 'yyyy'}}</h2>
+                  <a class="year-link" (click)="openAnnualOverview()" role="button" title="{{ 'AnnualOverview' | translate }}">
+                    <h2 class="year-heading">
+                      {{ getCurrentDate() | date: 'yyyy'}}
+                      <i class="bi bi-box-arrow-up-right year-icon"></i>
+                    </h2>
+                  </a>
                 </div>
               </div>
             </div>
-            <app-budget-bar
-              [spend]="year.spend"
-              [budget]="year.budget"
-              [overspend]="year.overspend"
-              [remaining]="year.remaining"
-              [hideDecimals]="true"
-              [typeMonthOrYear]="'year'">
+            <app-budget-bar [spend]="year.spend"
+                            [budget]="year.budget"
+                            [overspend]="year.overspend"
+                            [remaining]="year.remaining"
+                            [hideDecimals]="true"
+                            [typeMonthOrYear]="'year'">
             </app-budget-bar>
             <hr class="solid" />
             <div class="d-grid label-money">

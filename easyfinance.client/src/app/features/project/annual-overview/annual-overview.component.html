@@ -1,0 +1,82 @@
+<div class="container annual-overview">
+  <div class="row justify-content-center mt-3">
+    <div class="col-12 text-center">
+      <h2 class="mb-0">{{ userProject.project.name }}</h2>
+    </div>
+  </div>
+
+  <div class="row justify-content-center mt-3">
+    <div class="col-12 col-md-6 col-lg-4">
+      <label for="year-selector" class="form-label">{{ 'Year' | translate }}</label>
+      <select id="year-selector" class="form-select" [value]="selectedYear" (change)="onYearChange($event)">
+        @for (year of yearOptions; track year) {
+          <option [value]="year">{{ year }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <div class="row mt-3">
+    <div class="col-12 col-md-4">
+      <div class="summary-card wrap p-3">
+        <h3>{{ 'TotalExpenses' | translate }}</h3>
+        <p class="value danger mb-0">{{ totalExpenses | currencyFormat: true }}</p>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="summary-card wrap p-3">
+        <h3>{{ 'TotalIncomes' | translate }}</h3>
+        <p class="value success mb-0">{{ totalIncomes | currencyFormat: true }}</p>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="summary-card wrap p-3">
+        <h3>{{ 'Balance' | translate }}</h3>
+        <p class="value mb-0" [ngClass]="balance < 0 ? 'danger' : 'success'">{{ balance | currencyFormat: true }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mt-2">
+    <div class="col-12">
+      <div class="wrap p-3">
+        <h3 class="text-center mb-3">{{ 'ExpensesByCategory' | translate }}</h3>
+        @if (expenseChartData.datasets[0].data.length) {
+          <div class="chart-container">
+            <canvas
+              baseChart
+              [type]="'doughnut'"
+              [data]="expenseChartData"
+              [options]="doughnutChartOptions">
+            </canvas>
+          </div>
+        } @else {
+          <p class="text-center text-secondary mb-0">{{ 'NoDataForSelectedYear' | translate }}</p>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="row mt-2">
+    <div class="col-12">
+      <div class="wrap p-3">
+        <h3 class="text-center mb-3">{{ 'TopExpenseCategories' | translate }}</h3>
+        @if (expenseInsights.length) {
+          <ul class="list-group list-group-flush">
+            @for (item of expenseInsights; track item.name) {
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>{{ item.name }}</span>
+                <span class="text-end">
+                  <strong>{{ item.amount | currencyFormat: true }}</strong>
+                  <span class="text-secondary ms-2">({{ item.percentage | number: '1.1-1' }}%)</span>
+                </span>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="text-center text-secondary mb-0">{{ 'NoDataForSelectedYear' | translate }}</p>
+        }
+      </div>
+    </div>
+  </div>
+</div>
