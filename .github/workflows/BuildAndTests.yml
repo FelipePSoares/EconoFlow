@@ -30,7 +30,7 @@ jobs:
     - name: Install Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18.x'
+        node-version: '20.x'
 
     - name: Detect frontend changes in PR
       id: changes
@@ -39,10 +39,14 @@ jobs:
         filters: |
           client:
             - 'easyfinance.client/**'
+          version_files:
+            - 'easyfinance.client/src/assets/version.json'
+            - 'easyfinance.client/src/app/core/utils/loaders/translate-http-loader.ts'
 
     - name: Auto bump frontend version for PR changes
       if: >
         steps.changes.outputs.client == 'true' &&
+        steps.changes.outputs.version_files != 'true' &&
         github.actor != 'github-actions[bot]' &&
         github.event.pull_request.head.repo.full_name == github.repository
       shell: bash
@@ -124,7 +128,7 @@ jobs:
     - name: Install Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18.x'
+        node-version: '20.x'
     
     - name: Cache node_modules
       id: cache-node-modules-unit
@@ -180,7 +184,7 @@ jobs:
     - name: Install Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18.x'
+        node-version: '20.x'
     
     - name: Cache node_modules
       id: cache-node-modules-integration
