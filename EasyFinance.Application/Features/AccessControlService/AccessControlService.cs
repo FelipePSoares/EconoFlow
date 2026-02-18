@@ -166,6 +166,7 @@ namespace EasyFinance.Application.Features.AccessControlService
                         var callbackUrl = this.callbackService.GenerateCallbackUrl($"projects/{userProject.Token}/accept");
 
                         sendingEmails.Add(emailService.SendEmailAsync(
+                            userProject.User.Id,
                             toEmail,
                             EmailTemplates.GrantedAccess,
                             userProject.User.Culture,
@@ -180,6 +181,7 @@ namespace EasyFinance.Application.Features.AccessControlService
                 foreach (var userProject in userProjects.Where(up => up.Accepted && affectedUsers.Contains(up.User.Id)))
                 {
                     sendingEmails.Add(emailService.SendEmailAsync(
+                        userProject.User.Id,
                         userProject.User.Email,
                         EmailTemplates.AccessLevelChanged,
                         userProject.User.Culture,

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using EasyFinance.Application.Features.ExpenseService;
 using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Account;
 using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
@@ -29,6 +31,7 @@ namespace EasyFinance.Application.Features.UserService
         IUnitOfWork unitOfWork
         ) : IUserService
     {
+        private const string UnsubscribeSecretEnvironmentVariable = "EconoFlow_UNSUBSCRIBE_HMAC_SECRET";
         private readonly UserManager<User> userManager = userManager;
         private readonly IExpenseService expenseService = expenseService;
         private readonly IExpenseItemService expenseItemService = expenseItemService;
@@ -132,6 +135,59 @@ namespace EasyFinance.Application.Features.UserService
 
             await this.userManager.UpdateAsync(user);
             return AppResponse.Success();
+        }
+
+        public string GenerateUnsubscribeSignature(Guid userId)
+        {
+            using var hmac = new HMACSHA256(GetUnsubscribeSecretKey());
+            var userIdBytes = Encoding.UTF8.GetBytes(userId.ToString("N"));
+            var hash = hmac.ComputeHash(userIdBytes);
+            return Convert.ToHexString(hash).ToLowerInvariant();
+        }
+
+        public bool ValidateUnsubscribeSignature(Guid userId, string signature)
+        {
+            if (string.IsNullOrWhiteSpace(signature))
+                return false;
+
+            var expectedSignature = this.GenerateUnsubscribeSignature(userId);
+            var expectedBytes = Encoding.UTF8.GetBytes(expectedSignature);
+            var providedBytes = Encoding.UTF8.GetBytes(signature.Trim().ToLowerInvariant());
+
+            return CryptographicOperations.FixedTimeEquals(expectedBytes, providedBytes);
+        }
+
+        public async Task<AppResponse> UnsubscribeFromEmailNotificationsAsync(Guid userId)
+        {
+            var user = await this.userManager.FindByIdAsync(userId.ToString());
+
+            if (user == null)
+                return AppResponse.Success();
+
+            if (!user.NotificationChannels.HasFlag(NotificationChannels.Email))
+                return AppResponse.Success();
+
+            user.SetNotificationChannels(user.NotificationChannels & ~NotificationChannels.Email);
+
+            var result = await this.userManager.UpdateAsync(user);
+
+            if (result.Succeeded)
+                return AppResponse.Success();
+
+            return AppResponse.Error(result.Errors.Select(error => new AppMessage(error.Code, error.Description)));
+        }
+
+        private static byte[] GetUnsubscribeSecretKey()
+        {
+            var secret = Environment.GetEnvironmentVariable(UnsubscribeSecretEnvironmentVariable);
+#if DEBUG
+            secret ??= "Development_Unsubscribe_Hmac_Secret_Replace_In_Production";
+#endif
+
+            if (string.IsNullOrWhiteSpace(secret))
+                throw new InvalidOperationException($"Environment variable '{UnsubscribeSecretEnvironmentVariable}' must be configured.");
+
+            return Encoding.UTF8.GetBytes(secret);
         }
     }
 }

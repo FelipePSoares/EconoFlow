@@ -21,6 +21,7 @@ namespace EasyFinance.Application.BackgroundServices.NotifierBackgroundService.C
             if (Enum.TryParse<EmailTemplates>(notification.CodeMessage, out var template))
             {
                 return emailService.SendEmailAsync(
+                    notification.User.Id,
                     notification.User.Email,
                     template,
                     notification.User.Culture,

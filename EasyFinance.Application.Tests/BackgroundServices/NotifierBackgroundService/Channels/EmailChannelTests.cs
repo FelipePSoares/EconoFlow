@@ -31,6 +31,7 @@ namespace EasyFinance.Application.Tests.BackgroundServices.NotifierBackgroundSer
             // Arrange
             this.mockEmailService
                 .Setup(es => es.SendEmailAsync(
+                    It.IsAny<Guid>(),
                     It.IsAny<string>(),
                     It.IsAny<DTOs.BackgroundService.Email.EmailTemplates>(),
                     It.IsAny<CultureInfo>(),
@@ -54,6 +55,7 @@ namespace EasyFinance.Application.Tests.BackgroundServices.NotifierBackgroundSer
             // Arrange
             this.mockEmailService
                 .Setup(es => es.SendEmailAsync(
+                    It.IsAny<Guid>(),
                     It.IsAny<string>(),
                     It.IsAny<DTOs.BackgroundService.Email.EmailTemplates>(),
                     It.IsAny<CultureInfo>(),
@@ -78,6 +80,7 @@ namespace EasyFinance.Application.Tests.BackgroundServices.NotifierBackgroundSer
             // Arrange
             this.mockEmailService
                 .Setup(es => es.SendEmailAsync(
+                    It.IsAny<Guid>(),
                     It.IsAny<string>(),
                     It.IsAny<DTOs.BackgroundService.Email.EmailTemplates>(),
                     It.IsAny<CultureInfo>(),
@@ -99,6 +102,7 @@ namespace EasyFinance.Application.Tests.BackgroundServices.NotifierBackgroundSer
             // Assert
             Assert.True(result.Succeeded);
             this.mockEmailService.Verify(es => es.SendEmailAsync(
+                user.Id,
                 user.Email,
                 DTOs.BackgroundService.Email.EmailTemplates.ResetPassword,
                 It.IsAny<CultureInfo>(),

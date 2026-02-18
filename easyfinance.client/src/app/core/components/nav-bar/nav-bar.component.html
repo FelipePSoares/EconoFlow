@@ -39,12 +39,11 @@
             {{ 'Projects' | translate }}
           </a>
         </li>
-        @if (selectedProject$ | async) {
+        @if (selectedProject$ | async; as selectedProject) {
         <li class="nav-item">
-          <a [routerLink]="['/projects', (selectedProject$ | async)?.id]"
+          <a [routerLink]="['/projects', selectedProject.id]"
              class="nav-link px-3 py-2 rounded-2 mx-1"
-             routerLinkActive="active"
-             [routerLinkActiveOptions]="{exact: true}">
+             [class.active]="isProjectOverviewActive(selectedProject.id)">
             <i class="bi bi-graph-up me-1"></i>
             {{ 'ProjectOverview' | translate }}
           </a>

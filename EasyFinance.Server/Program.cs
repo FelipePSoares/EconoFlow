@@ -117,6 +117,8 @@ try
         unitOfWork.NotificationRepository.Insert(notification2);
         var notification3 = new Notification(user, "LanguagePreferenceNowAvailableMessage", NotificationType.Information, NotificationCategory.System, "ButtonMyProfile", NotificationChannels.InApp);
         unitOfWork.NotificationRepository.Insert(notification3);
+        var notification4 = new Notification(user, "MonthlyAndAnnualOverviewNowAvailableMessage", NotificationType.Information, NotificationCategory.System);
+        unitOfWork.NotificationRepository.Insert(notification4);
 
         var income = new Income("Investiments", DateOnly.FromDateTime(DateTime.Now), 3000, user);
         income.SetId(new Guid("0bb277f9-a858-4306-148f-08dcf739f7a1"));
