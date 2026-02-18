@@ -230,8 +230,10 @@ namespace EasyFinance.Server.Controllers
 
             if (welcomeNotificationResult.Failed)
                 this.logger.LogWarning("Failed to create welcome notification for user {UserId}: {Errors}", user.Id, string.Join(", ", welcomeNotificationResult.Messages.Select(m => m.Description)));
+            
+            var correlationId = HttpContext.Items[correlationIdClaimType].ToString();
 
-            await GenerateUserToken(user);
+            await GenerateUserToken(user, correlationId);
 
             return Ok();
         }
@@ -764,8 +766,6 @@ namespace EasyFinance.Server.Controllers
         }
 
         private string GetAccessTokenFromCookie() => Request.Cookies[accessTokenCookieName] ?? string.Empty;
-
-        private static string SanitizeForLogs(string input) => (input ?? string.Empty).Replace(Environment.NewLine, "").Replace("\n", "").Replace("\r", "");
     }
 }
 

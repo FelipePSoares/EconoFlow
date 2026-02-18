@@ -12,13 +12,17 @@ export class IncomeService {
 
   constructor(private http: HttpClient) { }
   
-  get(projectId: string, currentDate: Date) {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-
+  get(projectId: string, startOrCurrentDate: Date, endDate?: Date) {
     let queryParams = new HttpParams();
-    queryParams = queryParams.append("from", formatDate(new Date(year, month, 1)).substring(0, 10));
-    queryParams = queryParams.append("to", formatDate(new Date(year, month + 1, 1)).substring(0, 10));
+    if (endDate) {
+      queryParams = queryParams.append("from", formatDate(startOrCurrentDate).substring(0, 10));
+      queryParams = queryParams.append("to", formatDate(endDate).substring(0, 10));
+    } else {
+      const year = startOrCurrentDate.getFullYear();
+      const month = startOrCurrentDate.getMonth();
+      queryParams = queryParams.append("from", formatDate(new Date(year, month, 1)).substring(0, 10));
+      queryParams = queryParams.append("to", formatDate(new Date(year, month + 1, 1)).substring(0, 10));
+    }
 
     return this.http.get<Income[]>('/api/projects/' + projectId + '/incomes', {
       observe: 'body',

@@ -15,6 +15,8 @@ import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pi
 import { ProjectDto } from '../models/project-dto';
 import { UserProjectDto } from '../models/user-project-dto';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
+import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
+import { CurrentDateService } from '../../../core/services/current-date.service';
 
 interface CategoryInsight {
   name: string;
@@ -34,7 +36,8 @@ interface ExpenseEntry {
     TranslateModule,
     BaseChartDirective,
     CurrencyFormatPipe,
-    ReturnButtonComponent
+    ReturnButtonComponent,
+    CurrentDateComponent
   ],
   templateUrl: './monthly-overview.component.html',
   styleUrl: './monthly-overview.component.scss'
@@ -51,6 +54,7 @@ export class MonthlyOverviewComponent implements OnInit {
   totalExpenses = 0;
   totalIncomes = 0;
   balance = 0;
+  totalBudget = 0;
 
   expenseInsights: CategoryInsight[] = [];
 
@@ -122,7 +126,8 @@ export class MonthlyOverviewComponent implements OnInit {
     private incomeService: IncomeService,
     private categoryService: CategoryService,
     private globalService: GlobalService,
-    private translateService: TranslateService
+    private translateService: TranslateService,
+    private currentDateService: CurrentDateService
   ) { }
 
   ngOnInit(): void {
@@ -145,21 +150,18 @@ export class MonthlyOverviewComponent implements OnInit {
 
       this.selectedMonth = normalizedMonth;
       this.selectedDate = this.toDateFromMonth(normalizedMonth);
+      this.currentDateService.currentDate = new Date(this.selectedDate.getFullYear(), this.selectedDate.getMonth(), 1, 12);
       this.loadMonth(this.selectedDate);
     });
   }
 
-  onMonthChange(event: Event): void {
-    const target = event.target as HTMLInputElement | null;
-    const monthValue = target?.value ?? '';
-
-    if (!this.isValidMonthValue(monthValue)) {
-      return;
-    }
+  updateDate(newDate: Date): void {
+    this.selectedMonth = this.toMonthInputValue(newDate);
+    this.selectedDate = new Date(newDate.getFullYear(), newDate.getMonth(), 1);
 
     this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { month: monthValue },
+      queryParams: { month: this.selectedMonth },
       queryParamsHandling: 'merge'
     });
   }
@@ -171,9 +173,12 @@ export class MonthlyOverviewComponent implements OnInit {
   }
 
   private loadMonth(date: Date): void {
+    const startDate = new Date(date.getFullYear(), date.getMonth(), 1);
+    const endDate = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+
     forkJoin({
-      incomes: this.incomeService.get(this.projectId, date),
-      categories: this.categoryService.get(this.projectId, date)
+      incomes: this.incomeService.get(this.projectId, startDate, endDate),
+      categories: this.categoryService.get(this.projectId, startDate, endDate)
     }).subscribe({
       next: ({ incomes, categories }) => {
         const expenseEntries = this.toExpenseEntries(categories);
@@ -181,15 +186,18 @@ export class MonthlyOverviewComponent implements OnInit {
 
         this.totalIncomes = incomes.reduce((sum, income) => sum + Number(income.amount || 0), 0);
         this.totalExpenses = expenseEntries.reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
+        this.totalBudget = categories.reduce((sum, category) =>
+          sum + (category.expenses || []).reduce((expenseSum, expense) => expenseSum + Number(expense.budget || 0), 0), 0);
         this.balance = this.totalIncomes - this.totalExpenses;
 
-        this.dailyIncomeExpenseChartData = this.toDailyLineChartData(date, incomes, expenseEntries);
+        this.dailyIncomeExpenseChartData = this.toDailyLineChartData(date, incomes, expenseEntries, this.totalBudget);
         this.expenseChartData = this.toDoughnutChartData(expenseByCategory, this.expenseColors);
         this.expenseInsights = this.toInsights(expenseByCategory);
       },
       error: () => {
         this.totalExpenses = 0;
         this.totalIncomes = 0;
+        this.totalBudget = 0;
         this.balance = 0;
         this.dailyIncomeExpenseChartData = this.createEmptyLineChartData();
         this.expenseChartData = this.createEmptyDoughnutChartData();
@@ -198,7 +206,7 @@ export class MonthlyOverviewComponent implements OnInit {
     });
   }
 
-  private toDailyLineChartData(date: Date, incomes: Income[], expenses: ExpenseEntry[]): ChartData<'line'> {
+  private toDailyLineChartData(date: Date, incomes: Income[], expenses: ExpenseEntry[], budget: number): ChartData<'line'> {
     const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
     const labels = Array.from({ length: daysInMonth }, (_, index) => String(index + 1));
     const dailyIncome = new Array(daysInMonth).fill(0);
@@ -227,6 +235,7 @@ export class MonthlyOverviewComponent implements OnInit {
       acc.push((acc[index - 1] || 0) + value);
       return acc;
     }, []);
+    const budgetLine = new Array(daysInMonth).fill(this.roundAmount(budget));
 
     return {
       labels,
@@ -248,6 +257,16 @@ export class MonthlyOverviewComponent implements OnInit {
           pointRadius: 2,
           tension: 0.3,
           fill: true
+        },
+        {
+          label: this.translateService.instant('Budget'),
+          data: budgetLine,
+          borderColor: '#5dade2',
+          backgroundColor: 'rgba(93, 173, 226, 0.15)',
+          borderDash: [5, 5],
+          pointRadius: 0,
+          tension: 0,
+          fill: false
         }
       ]
     };
@@ -309,6 +328,7 @@ export class MonthlyOverviewComponent implements OnInit {
     return {
       labels: [],
       datasets: [
+        { data: [] },
         { data: [] },
         { data: [] }
       ]

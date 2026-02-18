@@ -4,14 +4,7 @@
       <div class="d-flex justify-content-between align-items-center mb-4 overview-header">
         <app-return-button (returnButtonEvent)="previous()"></app-return-button>
         <h2 class="text-center flex-grow-1 m-0">{{ userProject.project.name }} - {{ 'MonthlyOverview' | translate }}</h2>
-        <div class="header-date-control">
-          <input
-            id="month-selector"
-            type="month"
-            class="form-control"
-            [value]="selectedMonth"
-            (change)="onMonthChange($event)">
-        </div>
+        <app-current-date (dateUpdatedEvent)="updateDate($event)"></app-current-date>
       </div>
     </div>
   </div>
@@ -43,7 +36,7 @@
         <div class="row g-3">
           <div class="col-12 col-lg-6 chart-block">
             <h3 class="text-center mb-3">{{ 'CumulativeIncomeVsExpense' | translate }}</h3>
-            @if (dailyIncomeExpenseChartData.datasets[0].data.length || dailyIncomeExpenseChartData.datasets[1].data.length) {
+            @if (dailyIncomeExpenseChartData.datasets[0].data.length || dailyIncomeExpenseChartData.datasets[1].data.length || dailyIncomeExpenseChartData.datasets[2].data.length) {
               <div class="chart-container">
                 <canvas
                   baseChart

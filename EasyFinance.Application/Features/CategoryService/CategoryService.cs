@@ -140,6 +140,7 @@ namespace EasyFinance.Application.Features.CategoryService
             var result = (await this.unitOfWork.ProjectRepository.NoTrackable()
                     .Include(p => p.Categories)
                     .ThenInclude(c => c.Expenses.Where(e => e.Date.Year == year))
+                    .ThenInclude(e => e.Items)
                     .IgnoreQueryFilters() // disables the global filter IsArchived
                     .FirstOrDefaultAsync(p => p.Id == projectId))?
                     .Categories
