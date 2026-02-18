@@ -408,6 +408,7 @@ namespace EasyFinance.Application.Tests
 
             // Assert
             this.emailService.Verify(es => es.SendEmailAsync(
+                It.Is<Guid>(id => id == existingUser.Id),
                 It.Is<string>(e => e == "existinguser@example.com"),
                 It.Is<EmailTemplates>(e => e == EmailTemplates.AccessLevelChanged),
                 It.IsAny<CultureInfo>(),
@@ -462,6 +463,7 @@ namespace EasyFinance.Application.Tests
 
             // Assert
             this.emailService.Verify(es => es.SendEmailAsync(
+                It.Is<Guid>(id => id == existingUser.Id),
                 It.Is<string>(e => e == "existinguser@example.com"),
                 It.Is<EmailTemplates>(e => e == EmailTemplates.GrantedAccess),
                 It.IsAny<CultureInfo>(),

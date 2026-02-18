@@ -14,7 +14,7 @@
     </noscript>
     <![endif]-->
     <style type="text/css">
-        /* Reset styles */
+        /* Estilos base */
         body, table, td, p, a, li, blockquote {
             -webkit-text-size-adjust: 100%;
             -ms-text-size-adjust: 100%;
@@ -34,7 +34,7 @@
             text-decoration: none;
         }
 
-        /* Client-specific styles */
+        /* Estilos específicos do cliente */
         .ReadMsgBody {
             width: 100%;
         }
@@ -47,7 +47,7 @@
                 line-height: 100%;
             }
 
-        /* Mobile styles */
+        /* Estilos para mobile */
         @media only screen and (max-width: 600px) {
             .container {
                 width: 100% !important;
@@ -73,34 +73,34 @@
     </style>
 </head>
 <body style="margin: 0; padding: 0; background-color: #052941; font-family: Arial, sans-serif;">
-    <!-- Wrapper table for full background -->
+    <!-- Estrutura de fundo -->
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #052941;">
         <tr>
             <td align="center" style="padding: 40px 20px;">
-                <!-- Main container -->
+                <!-- Container principal -->
                 <table class="container" width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); max-width: 600px;">
-                    <!-- Header with title -->
+                    <!-- Cabeçalho com título -->
                     <tr>
                         <td align="center" style="padding: 30px 30px 20px 30px; background-color: #052941; border-radius: 8px 8px 0 0;">
                             <h2 style="margin: 0; color: #ffffff; font-size: 40px; font-weight: bold; font-family: Arial, sans-serif;">EconoFlow</h2>
                         </td>
                     </tr>
 
-                    <!-- Main content -->
+                    <!-- Conteúdo principal -->
                     <tr>
                         <td class="mobile-padding" style="padding: 30px;">
-                            <!-- Greeting -->
+                            <!-- Saudação -->
                             <p style="color: #02735f; font-size: 16px; line-height: 1.5; margin: 20px 0; text-align: left; font-family: Arial, sans-serif;">Olá {{FirstName}}!</p>
 
                             <!-- Subject -->
                             <h1 style="color: #02735f; font-size: 24px; margin: 10px 0 20px 0; text-align: center; font-family: Arial, sans-serif;">Você recebeu um convite do {{FullName}} para se juntar ao projeto <strong>{{ProjectName}}</strong>.</h1>
 
-                            <!-- Message -->
+                            <!-- Mensagem -->
                             <p style="color: #02735f; font-size: 16px; line-height: 1.5; margin: 20px 0; text-align: left; font-family: Arial, sans-serif;">
                                 Click no botão abaixo para fazer parte disto.
                             </p>
 
-                            <!-- CTA Button -->
+                            <!-- Botão de ação -->
                             <table class="button-table" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 30px 0;">
                                 <tr>
                                     <td align="center">
@@ -115,15 +115,15 @@
                                 </tr>
                             </table>
 
-                            <!-- Welcome message -->
+                            <!-- Mensagem de boas-vindas -->
                             <p style="color: #02735f; font-size: 16px; text-align: center; margin: 20px 0; font-family: Arial, sans-serif;">bem-vindo a bordo!</p>
 
-                            <!-- Alternative link instructions -->
+                            <!-- Instrução para link alternativo -->
                             <p style="color: #02735f; font-size: 16px; line-height: 1.5; margin: 20px 0 10px 0; font-family: Arial, sans-serif;">
                                 Se você não conseguir clicar, por favor, copie e cole o endereço abaixo no seu navegador:
                             </p>
 
-                            <!-- URL code block -->
+                            <!-- Bloco com URL -->
                             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 10px 0 20px 0;">
                                 <tr>
                                     <td style="background-color: #2f2f2f; color: #d7d7d7; padding: 12px; border-radius: 8px; font-size: 14px; font-family: monospace, Courier; word-break: break-all;">
@@ -132,18 +132,18 @@
                                 </tr>
                             </table>
 
-                            <!-- Divider -->
+                            <!-- Divisor -->
                             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 30px 0;">
                                 <tr>
                                     <td style="border-top: 1px solid #dddddd; font-size: 1px; line-height: 1px;">&nbsp;</td>
                                 </tr>
                             </table>
 
-                            <!-- Footer -->
+                            <!-- Rodapé -->
                             <table width="100%" cellpadding="0" cellspacing="0" border="0">
                                 <tr>
                                     <td align="center" style="padding: 20px 0;">
-                                        <!-- Logo and company name -->
+                                        <!-- Logo e nome da empresa -->
                                         <table cellpadding="0" cellspacing="0" border="0">
                                             <tr>
                                                 <td align="center" style="padding-bottom: 10px;">
@@ -158,9 +158,12 @@
                                             </tr>
                                         </table>
 
-                                        <!-- Footer text -->
+                                        <!-- Texto do rodape -->
                                         <p style="font-size: 12px; color: #02735f; text-align: center; margin: 10px 0; font-family: Arial, sans-serif;">
                                             Se você não realizou esta ação, por favor, ignore este email.
+                                        </p>
+                                        <p style="font-size: 12px; color: #02735f; text-align: center; margin: 10px 0; font-family: Arial, sans-serif;">
+                                            Para cancelar o recebimento de notificações por email, <a href="{{unsubscribeUrl}}" style="color: #0d6efd; text-decoration: none;">clique aqui</a>.
                                         </p>
                                         <p style="font-size: 12px; color: #02735f; text-align: center; margin: 10px 0; font-family: Arial, sans-serif;">
                                             Para suporte, visite <a href="https://www.econoflow.pt/" style="color: #0d6efd; text-decoration: none;">EconoFlow</a>.
@@ -176,3 +179,8 @@
     </table>
 </body>
 </html>
+
+
+
+
+

@@ -614,6 +614,38 @@ namespace EasyFinance.Server.Controllers
             return Ok();
         }
 
+        [HttpGet("unsubscribe")]
+        [AllowAnonymous]
+        public async Task<IActionResult> UnsubscribeFromEmailNotificationsAsync([FromQuery] Guid userId, [FromQuery] string signature)
+        {
+            var user = await this.userManager.FindByIdAsync(userId.ToString());
+            var sanitizedEmail = SanitizeForLogs(user?.Email ?? "unknown");
+            this.logger.LogInformation("Email unsubscribe endpoint called for user {UserId} and email {Email}.", userId, sanitizedEmail);
+
+            if (userId == Guid.Empty || string.IsNullOrWhiteSpace(signature))
+            {
+                this.logger.LogWarning("Email unsubscribe request rejected due to missing userId/signature for user {UserId}.", userId);
+                return BadRequest("Invalid unsubscribe request.");
+            }
+
+            if (!this.userService.ValidateUnsubscribeSignature(userId, signature))
+            {
+                this.logger.LogWarning("Email unsubscribe request rejected due to invalid signature for user {UserId}.", userId);
+                return BadRequest("Invalid unsubscribe request.");
+            }
+
+            var response = await this.userService.UnsubscribeFromEmailNotificationsAsync(userId);
+
+            if (response.Failed)
+            {
+                this.logger.LogWarning("Failed to unsubscribe email notifications for user {UserId} ({Email}): {Errors}", userId, sanitizedEmail, string.Join(", ", response.Messages.Select(message => message.Description)));
+                return this.ValidateResponse(response, HttpStatusCode.OK);
+            }
+
+            this.logger.LogInformation("Email notifications unsubscribed for user {UserId} ({Email}).", userId, sanitizedEmail);
+            return Content("You have been unsubscribed from email notifications.");
+        }
+
         private async Task SendConfirmationEmailAsync(User user, HttpContext context, string email, bool isChange = false)
         {
             var code = isChange
@@ -733,6 +765,8 @@ namespace EasyFinance.Server.Controllers
         }
 
         private string GetAccessTokenFromCookie() => Request.Cookies[accessTokenCookieName] ?? string.Empty;
+
+        private static string SanitizeForLogs(string input) => (input ?? string.Empty).Replace(Environment.NewLine, "").Replace("\n", "").Replace("\r", "");
     }
 }
 
