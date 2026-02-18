@@ -7,15 +7,111 @@ on:
   pull_request:
     branches: [ "master" ]
 
+concurrency:
+  group: mr-build-tests-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
-  contents: read
+  contents: write
   actions: read
   checks: write
-  #pull-requests: write
+  pull-requests: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Install Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+
+    - name: Detect frontend changes in PR
+      id: changes
+      uses: dorny/paths-filter@v3
+      with:
+        filters: |
+          client:
+            - 'easyfinance.client/**'
+
+    - name: Auto bump frontend version for PR changes
+      if: >
+        steps.changes.outputs.client == 'true' &&
+        github.actor != 'github-actions[bot]' &&
+        github.event.pull_request.head.repo.full_name == github.repository
+      shell: bash
+      run: |
+        VERSION_FILE="easyfinance.client/src/assets/version.json"
+        LOADER_FILE="easyfinance.client/src/app/core/utils/loaders/translate-http-loader.ts"
+
+        CURRENT_VERSION=$(node -e "const fs=require('fs');const v=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(v.versionNumber);" "$VERSION_FILE")
+        IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+        NEXT_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
+
+        node -e "
+          const fs = require('fs');
+          const versionFile = process.argv[1];
+          const loaderFile = process.argv[2];
+          const nextVersion = process.argv[3];
+          const json = JSON.parse(fs.readFileSync(versionFile, 'utf8'));
+          json.versionNumber = nextVersion;
+          fs.writeFileSync(versionFile, JSON.stringify(json, null, 2) + '\n');
+          let loader = fs.readFileSync(loaderFile, 'utf8');
+          loader = loader.replace(/messages\\.\\$\\{lang\\}\\.json\\?v=\\d+\\.\\d+\\.\\d+/, 'messages.\${lang}.json?v=' + nextVersion);
+          fs.writeFileSync(loaderFile, loader);
+        " "$VERSION_FILE" "$LOADER_FILE" "$NEXT_VERSION"
+
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add "$VERSION_FILE" "$LOADER_FILE"
+
+        if git diff --cached --quiet; then
+          echo "Version files already up to date."
+          exit 0
+        fi
+
+        git commit -m "chore(ci): bump frontend version to ${NEXT_VERSION}"
+        git push origin "HEAD:${{ github.head_ref }}"
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Cache node_modules
+      id: cache-node-modules-build
+      uses: actions/cache@v4
+      with:
+        path: ./easyfinance.client/node_modules
+        key: node-modules-${{ runner.os }}-${{ hashFiles('./easyfinance.client/package-lock.json') }}
+            
+    - name: Cache Cypress binary
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/Cypress
+        key: cypress-${{ runner.os }}-${{ hashFiles('./easyfinance.client/package-lock.json') }}
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build backend application
+      run: dotnet build --configuration Debug --no-restore
+
+    - name: Install dependencies
+      if: steps.cache-node-modules-build.outputs.cache-hit != 'true'
+      run: npm install
+      working-directory: ./easyfinance.client
+
+  unit-tests:
+    needs: [build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
     - uses: actions/checkout@v4
@@ -31,44 +127,16 @@ jobs:
         node-version: '18.x'
     
     - name: Cache node_modules
-      uses: actions/cache@v3
+      id: cache-node-modules-unit
+      uses: actions/cache@v4
       with:
         path: ./easyfinance.client/node_modules
         key: node-modules-${{ runner.os }}-${{ hashFiles('./easyfinance.client/package-lock.json') }}
-            
-    - name: Cache Cypress binary
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/Cypress
-        key: cypress-${{ runner.os }}-${{ hashFiles('./easyfinance.client/package-lock.json') }}
-
-    - name: Restore dependencies
-      run: dotnet restore
-
-    - name: Build backend application
-      run: dotnet build --configuration Debug --no-restore
 
     - name: Install dependencies
+      if: steps.cache-node-modules-unit.outputs.cache-hit != 'true'
       run: npm install
       working-directory: ./easyfinance.client
-
-  unit-tests:
-    needs: [build]
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.x
-    
-    - name: Cache node_modules
-      uses: actions/cache@v3
-      with:
-        path: ./easyfinance.client/node_modules
-        key: node-modules-${{ runner.os }}-${{ hashFiles('./easyfinance.client/package-lock.json') }}
 
     - name: Run .Net tests
       run: dotnet test --configuration Debug --verbosity normal --logger trx --collect:"XPlat Code Coverage"
@@ -99,6 +167,7 @@ jobs:
   integration-tests:
     needs: [build]
     runs-on: ubuntu-latest
+    timeout-minutes: 25
 
     steps:
     - uses: actions/checkout@v4
@@ -107,18 +176,29 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
+
+    - name: Install Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
     
     - name: Cache node_modules
-      uses: actions/cache@v3
+      id: cache-node-modules-integration
+      uses: actions/cache@v4
       with:
         path: ./easyfinance.client/node_modules
         key: node-modules-${{ runner.os }}-${{ hashFiles('./easyfinance.client/package-lock.json') }}
 
     - name: Cache Cypress binary
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.cache/Cypress
         key: cypress-${{ runner.os }}-${{ hashFiles('./easyfinance.client/package-lock.json') }}
+
+    - name: Install dependencies
+      if: steps.cache-node-modules-integration.outputs.cache-hit != 'true'
+      run: npm install
+      working-directory: ./easyfinance.client
 
     - name: Build application
       run: dotnet build --configuration Debug
