@@ -1,13 +1,15 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { BehaviorSubject, map, Observable } from 'rxjs';
+import { BehaviorSubject, forkJoin, map, Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { CdkTableDataSourceInput } from '@angular/cdk/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
+import { ChartData, ChartOptions, TooltipItem } from 'chart.js';
+import { BaseChartDirective } from 'ng2-charts';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { CategoryService } from '../../../core/services/category.service';
 import { CategoryDto } from '../../category/models/category-dto';
@@ -24,6 +26,8 @@ import { BudgetBarComponent } from '../../../core/components/budget-bar/budget-b
 import { CurrentDateService } from '../../../core/services/current-date.service';
 import { ProjectDto } from '../models/project-dto';
 import { MonthlyExpensesChartComponent } from './monthly-expenses-chart/monthly-expenses-chart.component';
+import { GlobalService } from '../../../core/services/global.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
     selector: 'app-detail-project',
@@ -32,6 +36,7 @@ import { MonthlyExpensesChartComponent } from './monthly-expenses-chart/monthly-
       CurrentDateComponent,
       BudgetBarComponent,
       MonthlyExpensesChartComponent,
+      BaseChartDirective,
       CurrencyFormatPipe,
       MatButtonModule,
       MatIconModule,
@@ -56,6 +61,66 @@ export class DetailProjectComponent implements OnInit {
   showCopyPreviousButton = false;
   setHeight = false;
   currentMonthExpenses: ExpenseDto[] = [];
+  yearIncomeExpenseChartData: ChartData<'bar'> = this.createEmptyYearBarChartData();
+  yearExpenseCategoryChartData: ChartData<'doughnut'> = this.createEmptyYearCategoryChartData();
+
+  private expenseColors = [
+    '#ff6b6b',
+    '#4ecdc4',
+    '#ffe66d',
+    '#5dade2',
+    '#f39c12',
+    '#9b59b6',
+    '#2ecc71',
+    '#e74c3c',
+    '#1abc9c',
+    '#f1c40f'
+  ];
+
+  yearIncomeExpenseChartOptions: ChartOptions<'bar'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom'
+      },
+      tooltip: {
+        callbacks: {
+          label: (context: TooltipItem<'bar'>) => {
+            const label = context.dataset.label || '';
+            const value = Number(context.parsed.y) || 0;
+            return `${label}: ${this.formatCurrency(value)}`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        stacked: false
+      },
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: (value) => this.formatCurrency(Number(value))
+        }
+      }
+    }
+  };
+
+  yearExpenseCategoryChartOptions: ChartOptions<'doughnut'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom'
+      },
+      tooltip: {
+        callbacks: {
+          label: (context: TooltipItem<'doughnut'>) => this.formatCategoryTooltipLabel(context)
+        }
+      }
+    }
+  };
 
   private dataSource = new MatTableDataSource<TransactionDto>();
   private transactions: BehaviorSubject<TransactionDto[]> = new BehaviorSubject<TransactionDto[]>([new TransactionDto()]);
@@ -76,7 +141,9 @@ export class DetailProjectComponent implements OnInit {
     private categoryService: CategoryService,
     private incomeService: IncomeService,
     private dialog: MatDialog,
-    private currentDateService: CurrentDateService
+    private currentDateService: CurrentDateService,
+    private globalService: GlobalService,
+    private translateService: TranslateService
   ) {
   }
 
@@ -112,6 +179,7 @@ export class DetailProjectComponent implements OnInit {
       })
 
     this.fillCategoriesData(date);
+    this.fillYearCharts(date);
 
     this.incomeService.get(this.projectId, date)
       .pipe(map(incomes => IncomeDto.fromIncomes(incomes)))
@@ -174,6 +242,52 @@ export class DetailProjectComponent implements OnInit {
         } else {
           this.showCopyPreviousButton = false;
         }
+      }
+    });
+  }
+
+  private fillYearCharts(selectedDate: Date): void {
+    const formatter = new Intl.DateTimeFormat(this.globalService.currentLanguage, { month: 'short' });
+    const monthDates = Array.from({ length: 3 }, (_, index) => {
+      const offset = index - 2;
+      return new Date(selectedDate.getFullYear(), selectedDate.getMonth() + offset, 1);
+    });
+
+    const monthRequests = monthDates.map((monthDate) => {
+      return forkJoin({
+        incomes: this.incomeService.get(this.projectId, monthDate),
+        categories: this.categoryService.get(this.projectId, monthDate)
+      }).pipe(
+        map(({ incomes, categories }) => ({
+          label: formatter.format(monthDate),
+          income: incomes.reduce((sum, income) => sum + Number(income.amount || 0), 0),
+          categories
+        }))
+      );
+    });
+
+    forkJoin(monthRequests).subscribe({
+      next: monthlyData => {
+        const categoryTotals: Record<string, number> = {};
+
+        monthlyData.forEach(month => {
+          month.categories.forEach(category => {
+            const expenseAmount = category.expenses?.reduce((sum, expense) => sum + Number(expense.amount || 0), 0) || 0;
+            categoryTotals[category.name] = (categoryTotals[category.name] || 0) + expenseAmount;
+          });
+        });
+
+        this.yearIncomeExpenseChartData = this.toYearBarChartData(
+          monthlyData.map(item => item.label),
+          monthlyData.map(item => item.income),
+          monthlyData.map(item => item.categories.reduce((sum, category) =>
+            sum + (category.expenses?.reduce((expenseSum, expense) => expenseSum + Number(expense.amount || 0), 0) || 0), 0))
+        );
+        this.yearExpenseCategoryChartData = this.toYearCategoryChartData(categoryTotals);
+      },
+      error: () => {
+        this.yearIncomeExpenseChartData = this.createEmptyYearBarChartData();
+        this.yearExpenseCategoryChartData = this.createEmptyYearCategoryChartData();
       }
     });
   }
@@ -254,5 +368,92 @@ export class DetailProjectComponent implements OnInit {
 
   canAddOrEdit(): boolean {
     return this.userProject.role === Role.Admin || this.userProject.role === Role.Manager;
+  }
+
+  private toYearBarChartData(labels: string[], incomes: number[], expenses: number[]): ChartData<'bar'> {
+    if (!labels.length) {
+      return this.createEmptyYearBarChartData();
+    }
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: this.translateService.instant('Income'),
+          data: incomes.map(value => this.roundAmount(value)),
+          backgroundColor: '#2ecc71',
+          borderRadius: 4,
+          maxBarThickness: 26
+        },
+        {
+          label: this.translateService.instant('Expense'),
+          data: expenses.map(value => this.roundAmount(value)),
+          backgroundColor: '#ff6b6b',
+          borderRadius: 4,
+          maxBarThickness: 26
+        }
+      ]
+    };
+  }
+
+  private createEmptyYearBarChartData(): ChartData<'bar'> {
+    return {
+      labels: [],
+      datasets: [
+        { data: [] },
+        { data: [] }
+      ]
+    };
+  }
+
+  private toYearCategoryChartData(categoryTotals: Record<string, number>): ChartData<'doughnut'> {
+    const entries = Object.entries(categoryTotals)
+      .filter(([, amount]) => amount > 0)
+      .sort((a, b) => b[1] - a[1]);
+
+    if (!entries.length) {
+      return this.createEmptyYearCategoryChartData();
+    }
+
+    return {
+      labels: entries.map(([name]) => name),
+      datasets: [
+        {
+          data: entries.map(([, amount]) => this.roundAmount(amount)),
+          backgroundColor: entries.map((_, index) => this.expenseColors[index % this.expenseColors.length]),
+          borderColor: '#ffffff',
+          borderWidth: 1
+        }
+      ]
+    };
+  }
+
+  private createEmptyYearCategoryChartData(): ChartData<'doughnut'> {
+    return {
+      labels: [],
+      datasets: [{ data: [] }]
+    };
+  }
+
+  private formatCurrency(value: number): string {
+    return new Intl.NumberFormat(this.globalService.currentLanguage, {
+      style: 'currency',
+      currency: this.globalService.currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(value);
+  }
+
+  private roundAmount(value: number | undefined): number {
+    return Math.round(Number(value || 0));
+  }
+
+  private formatCategoryTooltipLabel(context: TooltipItem<'doughnut'>): string {
+    const label = context.label || '';
+    const value = Number(context.parsed) || 0;
+    const total = context.dataset.data.reduce((sum, current) => sum + Number(current || 0), 0);
+    const percentage = total > 0 ? (value / total) * 100 : 0;
+
+    return `${label}: ${this.formatCurrency(value)} (${percentage.toFixed(1)}%)`;
   }
 }

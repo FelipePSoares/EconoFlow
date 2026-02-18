@@ -139,6 +139,7 @@
   "TopExpenseCategories": "Top 5 expense categories",
   "TopIncomeCategories": "Top 5 income categories",
   "NoDataForSelectedYear": "No data for the selected year.",
+  "NoDataForSelectedPeriod": "No data for the selected period.",
   "NoDataForSelectedMonth": "No data for the selected month.",
   "SetBudget": "set a budget",
   "BudgetExceeded": "budget exceeded",

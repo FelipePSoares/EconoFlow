@@ -139,6 +139,7 @@
   "TopExpenseCategories": "Top 5 categorias de despesa",
   "TopIncomeCategories": "Top 5 categorias de receita",
   "NoDataForSelectedYear": "Sem dados para o ano selecionado.",
+  "NoDataForSelectedPeriod": "Sem dados para o período selecionado.",
   "NoDataForSelectedMonth": "Sem dados para o mês selecionado.",
   "SetBudget": "defina um orçamento",
   "BudgetExceeded": "Orçamento excedido",

@@ -109,6 +109,11 @@
                 <span class="float-end success">{{ month.earned | currencyFormat: true }}</span>
               </div>
             </div>
+            <hr class="solid" />
+            <div class="mt-3">
+              <h3 class="mt-0 mb-3 text-start fw-semibold fs-6">{{ 'Monthly Expenses Chart' | translate }}</h3>
+              <app-monthly-expenses-chart [expenses]="currentMonthExpenses" [budget]="month.budget"></app-monthly-expenses-chart>
+            </div>
           </div>
         </div>
         <div class="col-lg-6">
@@ -141,6 +146,39 @@
               <div class="mt-2">
                 <span class="float-start"><i class="bi bi-arrow-down-left money-in"></i> {{ 'MoneyIn' | translate }}</span>
                 <span class="float-end success">{{ year.earned | currencyFormat: true }}</span>
+              </div>
+            </div>
+            <hr class="solid" />
+            <div class="row g-3 mt-1">
+              <div class="col-12 col-md-6">
+                <h3 class="mt-0 mb-3 text-start fw-semibold fs-6">{{ 'IncomeVsExpenseByMonth' | translate }}</h3>
+                @if (yearIncomeExpenseChartData.datasets[0].data.length || yearIncomeExpenseChartData.datasets[1].data.length) {
+                  <div class="position-relative" style="height: 240px;">
+                    <canvas
+                      baseChart
+                      [type]="'bar'"
+                      [data]="yearIncomeExpenseChartData"
+                      [options]="yearIncomeExpenseChartOptions">
+                    </canvas>
+                  </div>
+                } @else {
+                  <p class="text-center text-secondary mb-0">{{ 'NoDataForSelectedPeriod' | translate }}</p>
+                }
+              </div>
+              <div class="col-12 col-md-6">
+                <h3 class="mt-0 mb-3 text-start fw-semibold fs-6">{{ 'ExpensesByCategory' | translate }}</h3>
+                @if (yearExpenseCategoryChartData.datasets[0].data.length) {
+                  <div class="position-relative" style="height: 240px;">
+                    <canvas
+                      baseChart
+                      [type]="'doughnut'"
+                      [data]="yearExpenseCategoryChartData"
+                      [options]="yearExpenseCategoryChartOptions">
+                    </canvas>
+                  </div>
+                } @else {
+                  <p class="text-center text-secondary mb-0">{{ 'NoDataForSelectedPeriod' | translate }}</p>
+                }
               </div>
             </div>
           </div>
@@ -208,18 +246,6 @@
                     class="hover-row"></tr>
               </table>
             </div>
-          </div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-12">
-          <div class="wrap">
-            <div class="row align-items-center">
-              <div class="col text-center mt-3 mb-3 month">
-                <h2>{{ 'Monthly Expenses Chart' | translate }}</h2>
-              </div>
-            </div>
-            <app-monthly-expenses-chart [expenses]="currentMonthExpenses" [budget]="month.budget"></app-monthly-expenses-chart>
           </div>
         </div>
       </div>
