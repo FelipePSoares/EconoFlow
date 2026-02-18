@@ -79,7 +79,6 @@ if (!builder.Environment.IsDevelopment())
 try
 {
     var app = builder.Build();
-    app.UseCorrelationId();
     app.UseSerilogRequestLogging();
     app.UseCustomExceptionHandler();
 
@@ -179,6 +178,7 @@ try
     app.UseHttpsRedirection();
 
     app.UseAuthentication();
+    app.UseCorrelationId();
     app.UseAuthorization();
     app.UseProjectAuthorization();
 
