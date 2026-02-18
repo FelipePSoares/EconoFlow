@@ -173,9 +173,12 @@ export class MonthlyOverviewComponent implements OnInit {
   }
 
   private loadMonth(date: Date): void {
+    const startDate = new Date(date.getFullYear(), date.getMonth(), 1);
+    const endDate = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+
     forkJoin({
-      incomes: this.incomeService.get(this.projectId, date),
-      categories: this.categoryService.get(this.projectId, date)
+      incomes: this.incomeService.get(this.projectId, startDate, endDate),
+      categories: this.categoryService.get(this.projectId, startDate, endDate)
     }).subscribe({
       next: ({ incomes, categories }) => {
         const expenseEntries = this.toExpenseEntries(categories);

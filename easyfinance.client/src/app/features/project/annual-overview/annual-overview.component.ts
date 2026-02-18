@@ -177,27 +177,40 @@ export class AnnualOverviewComponent implements OnInit {
 
   private getMonthlyIncomeExpenseBreakdown(year: number): Observable<{ labels: string[]; incomes: number[]; expenses: number[] }> {
     const formatter = new Intl.DateTimeFormat(this.globalService.currentLanguage, { month: 'short' });
-    const monthRequests = Array.from({ length: 12 }, (_, monthIndex) => {
-      const monthDate = new Date(year, monthIndex, 1);
-      return forkJoin({
-        incomes: this.incomeService.get(this.projectId, monthDate),
-        categories: this.categoryService.get(this.projectId, monthDate)
-      }).pipe(
-      map(({ incomes, categories }) => ({
-          label: formatter.format(monthDate),
-          income: incomes.reduce((sum, income) => sum + Number(income.amount || 0), 0),
-          expense: categories.reduce((sum, category) =>
-            sum + (category.expenses?.reduce((expenseSum, expense) => expenseSum + Number(expense.amount || 0), 0) || 0), 0)
-        }))
-      );
-    });
+    const startDate = new Date(year, 0, 1);
+    const endDate = new Date(year + 1, 0, 1);
+    const monthDates = Array.from({ length: 12 }, (_, monthIndex) => new Date(year, monthIndex, 1));
 
-    return forkJoin(monthRequests).pipe(
-      map(monthlyData => ({
-        labels: monthlyData.map(item => item.label),
-        incomes: monthlyData.map(item => item.income),
-        expenses: monthlyData.map(item => item.expense)
-      }))
+    return forkJoin({
+      incomes: this.incomeService.get(this.projectId, startDate, endDate),
+      categories: this.categoryService.get(this.projectId, startDate, endDate)
+    }).pipe(
+      map(({ incomes, categories }) => {
+        const incomesByMonth = new Array<number>(12).fill(0);
+        const expensesByMonth = new Array<number>(12).fill(0);
+
+        incomes.forEach(income => {
+          const incomeDate = new Date(income.date);
+          if (incomeDate.getFullYear() === year) {
+            incomesByMonth[incomeDate.getMonth()] += Number(income.amount || 0);
+          }
+        });
+
+        categories.forEach(category => {
+          category.expenses?.forEach(expense => {
+            const expenseDate = new Date(expense.date);
+            if (expenseDate.getFullYear() === year) {
+              expensesByMonth[expenseDate.getMonth()] += Number(expense.amount || 0);
+            }
+          });
+        });
+
+        return {
+          labels: monthDates.map(date => formatter.format(date)),
+          incomes: incomesByMonth,
+          expenses: expensesByMonth
+        };
+      })
     );
   }
 

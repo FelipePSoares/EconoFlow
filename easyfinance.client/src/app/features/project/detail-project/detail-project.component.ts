@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { BehaviorSubject, forkJoin, map, Observable } from 'rxjs';
+import { BehaviorSubject, map, Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { CdkTableDataSourceInput } from '@angular/cdk/table';
@@ -28,6 +28,7 @@ import { ProjectDto } from '../models/project-dto';
 import { MonthlyExpensesChartComponent } from './monthly-expenses-chart/monthly-expenses-chart.component';
 import { GlobalService } from '../../../core/services/global.service';
 import { TranslateService } from '@ngx-translate/core';
+import { Category } from '../../../core/models/category';
 
 @Component({
     selector: 'app-detail-project',
@@ -165,6 +166,13 @@ export class DetailProjectComponent implements OnInit {
   }
 
   fillData(date: Date) {
+    const monthDates = Array.from({ length: 3 }, (_, index) => {
+      const offset = index - 2;
+      return new Date(date.getFullYear(), date.getMonth() + offset, 1);
+    });
+    const startDate = monthDates[0];
+    const endDate = new Date(monthDates[2].getFullYear(), monthDates[2].getMonth() + 1, 1);
+
     this.projectService.getYearlyInfo(this.projectId, date.getFullYear())
       .subscribe({
         next: res => {
@@ -178,8 +186,20 @@ export class DetailProjectComponent implements OnInit {
         }
       })
 
-    this.fillCategoriesData(date);
-    this.fillYearCharts(date);
+    this.categoryService.get(this.projectId, startDate, endDate)
+      .subscribe({
+        next: categories => {
+          this.fillCategoriesData(date, categories);
+          this.fillYearCharts(date, categories);
+        },
+        error: () => {
+          this.categories.next([]);
+          this.currentMonthExpenses = [];
+          this.month = { budget: 0, spend: 0, overspend: 0, remaining: 0, earned: this.month.earned };
+          this.showCopyPreviousButton = false;
+          this.yearExpenseCategoryChartData = this.createEmptyYearCategoryChartData();
+        }
+      });
 
     this.incomeService.get(this.projectId, date)
       .pipe(map(incomes => IncomeDto.fromIncomes(incomes)))
@@ -197,91 +217,85 @@ export class DetailProjectComponent implements OnInit {
         });
   }
 
-  fillCategoriesData(date: Date) {
-    this.categoryService.get(this.projectId, date)
-    .pipe(map(categories => CategoryDto.fromCategories(categories)))
-    .subscribe({
-      next: res => {
-        setTimeout(() => {
-          this.setHeight = true;
-        }, 100);
+  fillCategoriesData(date: Date, categoriesInRange: Category[]) {
+    const currentMonthCategories = this.filterCategoriesByMonth(categoriesInRange, date);
+    const currentMonthCategoriesDto = CategoryDto.fromCategories(currentMonthCategories);
 
-        this.categories.next(res);
+    setTimeout(() => {
+      this.setHeight = true;
+    }, 100);
 
-        // Collect current month expenses for chart
-        this.currentMonthExpenses = res.flatMap<ExpenseDto>(c =>
-          c.expenses.flatMap<ExpenseDto>(expense =>
-            expense.items && expense.items.length > 0
-              ? expense.items.map<ExpenseDto>(item => ({
-                id: item.id,
-                amount: item.amount,
-                date: item.date
-              }) as ExpenseDto)
-              : [expense]
-          )
-        );
+    this.categories.next(currentMonthCategoriesDto);
 
-        this.month.budget = res.map(c => c.getTotalBudget()).reduce((acc, value) => acc + value, 0);
-        this.month.spend = res.map(c => c.getTotalSpend()).reduce((acc, value) => acc + value, 0);
-        this.month.overspend = res.map(c => c.getTotalOverspend()).reduce((acc, value) => acc + value, 0);
+    // Collect current month expenses for chart
+    this.currentMonthExpenses = currentMonthCategoriesDto.flatMap<ExpenseDto>(c =>
+      c.expenses.flatMap<ExpenseDto>(expense =>
+        expense.items && expense.items.length > 0
+          ? expense.items.map<ExpenseDto>(item => ({
+            id: item.id,
+            amount: item.amount,
+            date: item.date
+          }) as ExpenseDto)
+          : [expense]
+      )
+    );
 
-        this.month.remaining = res.map(c => c.getTotalRemaining()).reduce((acc, value) => acc + value, 0);
+    this.month.budget = currentMonthCategoriesDto.map(c => c.getTotalBudget()).reduce((acc, value) => acc + value, 0);
+    this.month.spend = currentMonthCategoriesDto.map(c => c.getTotalSpend()).reduce((acc, value) => acc + value, 0);
+    this.month.overspend = currentMonthCategoriesDto.map(c => c.getTotalOverspend()).reduce((acc, value) => acc + value, 0);
+    this.month.remaining = currentMonthCategoriesDto.map(c => c.getTotalRemaining()).reduce((acc, value) => acc + value, 0);
 
-        if (this.month.budget === 0) {
-          const newDate = new Date(this.currentDateService.currentDate);
-          newDate.setMonth(this.currentDateService.currentDate.getMonth() - 1, 1);
+    const previousMonthDate = new Date(date.getFullYear(), date.getMonth() - 1, 1);
+    const previousMonthCategories = this.filterCategoriesByMonth(categoriesInRange, previousMonthDate);
+    const previousBudget = previousMonthCategories
+      .flatMap(category => category.expenses || [])
+      .reduce((acc, expense) => acc + Number(expense.budget || 0), 0);
 
-          this.categoryService.get(this.projectId, newDate)
-            .pipe(map(categories => CategoryDto.fromCategories(categories)))
-            .subscribe({
-              next: res => {
-                const previousBudget = res.map(c => c.getTotalBudget()).reduce((acc, value) => acc + value, 0);
-                this.showCopyPreviousButton = previousBudget !== 0;
-              }
-            });
-        } else {
-          this.showCopyPreviousButton = false;
-        }
-      }
-    });
+    this.showCopyPreviousButton = this.month.budget === 0 && previousBudget !== 0;
   }
 
-  private fillYearCharts(selectedDate: Date): void {
+  private fillYearCharts(selectedDate: Date, categoriesInRange: Category[]): void {
     const formatter = new Intl.DateTimeFormat(this.globalService.currentLanguage, { month: 'short' });
     const monthDates = Array.from({ length: 3 }, (_, index) => {
       const offset = index - 2;
       return new Date(selectedDate.getFullYear(), selectedDate.getMonth() + offset, 1);
     });
+    const startDate = monthDates[0];
+    const endDate = new Date(monthDates[2].getFullYear(), monthDates[2].getMonth() + 1, 1);
+    const monthKeys = monthDates.map(date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`);
 
-    const monthRequests = monthDates.map((monthDate) => {
-      return forkJoin({
-        incomes: this.incomeService.get(this.projectId, monthDate),
-        categories: this.categoryService.get(this.projectId, monthDate)
-      }).pipe(
-        map(({ incomes, categories }) => ({
-          label: formatter.format(monthDate),
-          income: incomes.reduce((sum, income) => sum + Number(income.amount || 0), 0),
-          categories
-        }))
-      );
-    });
-
-    forkJoin(monthRequests).subscribe({
-      next: monthlyData => {
+    this.incomeService.get(this.projectId, startDate, endDate).subscribe({
+      next: incomes => {
+        const incomesByMonth = new Map<string, number>(monthKeys.map(key => [key, 0]));
+        const expensesByMonth = new Map<string, number>(monthKeys.map(key => [key, 0]));
         const categoryTotals: Record<string, number> = {};
 
-        monthlyData.forEach(month => {
-          month.categories.forEach(category => {
-            const expenseAmount = category.expenses?.reduce((sum, expense) => sum + Number(expense.amount || 0), 0) || 0;
-            categoryTotals[category.name] = (categoryTotals[category.name] || 0) + expenseAmount;
+        incomes.forEach(income => {
+          const incomeDate = new Date(income.date);
+          const key = `${incomeDate.getFullYear()}-${String(incomeDate.getMonth() + 1).padStart(2, '0')}`;
+          if (incomesByMonth.has(key)) {
+            incomesByMonth.set(key, (incomesByMonth.get(key) || 0) + Number(income.amount || 0));
+          }
+        });
+
+        categoriesInRange.forEach(category => {
+          category.expenses?.forEach(expense => {
+            const expenseDate = new Date(expense.date);
+            const key = `${expenseDate.getFullYear()}-${String(expenseDate.getMonth() + 1).padStart(2, '0')}`;
+            const amount = Number(expense.amount || 0);
+
+            if (expensesByMonth.has(key)) {
+              expensesByMonth.set(key, (expensesByMonth.get(key) || 0) + amount);
+            }
+
+            categoryTotals[category.name] = (categoryTotals[category.name] || 0) + amount;
           });
         });
 
         this.yearIncomeExpenseChartData = this.toYearBarChartData(
-          monthlyData.map(item => item.label),
-          monthlyData.map(item => item.income),
-          monthlyData.map(item => item.categories.reduce((sum, category) =>
-            sum + (category.expenses?.reduce((expenseSum, expense) => expenseSum + Number(expense.amount || 0), 0) || 0), 0))
+          monthDates.map(date => formatter.format(date)),
+          monthKeys.map(key => incomesByMonth.get(key) || 0),
+          monthKeys.map(key => expensesByMonth.get(key) || 0)
         );
         this.yearExpenseCategoryChartData = this.toYearCategoryChartData(categoryTotals);
       },
@@ -302,7 +316,7 @@ export class DetailProjectComponent implements OnInit {
     this.dialog.open(PageModalComponent, {
       autoFocus: 'input'
     }).afterClosed().subscribe(() => {
-      this.fillCategoriesData(this.currentDateService.currentDate);
+      this.fillData(this.currentDateService.currentDate);
       this.router.navigate([{ outlets: { modal: null } }]);
     });
   }
@@ -455,5 +469,18 @@ export class DetailProjectComponent implements OnInit {
     const percentage = total > 0 ? (value / total) * 100 : 0;
 
     return `${label}: ${this.formatCurrency(value)} (${percentage.toFixed(1)}%)`;
+  }
+
+  private filterCategoriesByMonth(categories: Category[], date: Date): Category[] {
+    const targetYear = date.getFullYear();
+    const targetMonth = date.getMonth();
+
+    return categories.map(category => ({
+      ...category,
+      expenses: (category.expenses || []).filter(expense => {
+        const expenseDate = new Date(expense.date);
+        return expenseDate.getFullYear() === targetYear && expenseDate.getMonth() === targetMonth;
+      })
+    }));
   }
 }

@@ -16,7 +16,7 @@ describe('EconoFlow - project detail Tests', () => {
     cy.fixture('projects').then((projects) => {
       cy.visitProtected('/projects/' + projects.defaultProject.id)
 
-      cy.wait('@getCategories')
+      cy.wait('@getCategories');
       findNextMonthWithoutBudget();
 
       cy.get('.btn-primary').contains('Clone Previous Budget').click();
@@ -34,13 +34,12 @@ describe('EconoFlow - project detail Tests', () => {
     cy.fixture('projects').then((projects) => {
       cy.visitProtected('/projects/' + projects.defaultProject.id)
 
+      cy.wait('@getCategories');
       findNextMonthWithoutBudget();
       cy.get('#next').click()
 
       cy.wait<CategoryReq, CategoryRes[]>('@getCategories').then(({ request, response }) => {
-        cy.wait<CategoryReq, CategoryRes[]>('@getCategories').then(({ request, response }) => {
-          cy.get('.btn-primary').contains('Clone Previous Budget').should('not.exist');
-        });
+        cy.get('.btn-primary').contains('Clone Previous Budget').should('not.exist');
       });
     })
   })
@@ -50,17 +49,27 @@ let attempts = 0;
 const maxAttempts = 5;
 
 function findNextMonthWithoutBudget() {
-  cy.wait<CategoryReq, CategoryRes[]>('@getCategories').then(({ request, response }) => {
-    var hasValue = response?.body[0].expenses.length || 0 > 0;
+  return cy.wait('@getCategories').then(() => {
 
-    cy.log(hasValue.toString())
-    if (hasValue && attempts < maxAttempts) {
-      attempts++;
-      cy.get('#next').click()
-      findNextMonthWithoutBudget();
-    } else if (hasValue)  {
-      // If the maximum attempts are reached and the text still isn't found, fail the test
-      throw new Error('Text not found after maximum attempts.');
-    }
+    return cy.get('body', { timeout: 1000 }).then(($body) => {
+      const cloneBtnExists =
+        $body.find('.btn-primary:contains("Clone Previous Budget")').length > 0;
+
+      if (!cloneBtnExists) {
+        if (attempts >= maxAttempts) {
+          return cy
+            .wrap(null, { log: false })
+            .should(() => {
+              throw new Error('A month without budget was not found within maxAttempts.');
+            });
+        }
+        attempts++;
+        cy.get('#next').click();
+        return findNextMonthWithoutBudget();
+      }
+
+      cy.log(`Found month without budget after ${attempts} attempts`);
+      return;
+    });
   });
 }
