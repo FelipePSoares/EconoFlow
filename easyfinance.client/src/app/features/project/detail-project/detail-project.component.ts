@@ -475,12 +475,14 @@ export class DetailProjectComponent implements OnInit {
     const targetYear = date.getFullYear();
     const targetMonth = date.getMonth();
 
-    return categories.map(category => ({
-      ...category,
-      expenses: (category.expenses || []).filter(expense => {
-        const expenseDate = new Date(expense.date);
-        return expenseDate.getFullYear() === targetYear && expenseDate.getMonth() === targetMonth;
-      })
-    }));
+    return categories
+      .map(category => ({
+        ...category,
+        expenses: (category.expenses || []).filter(expense => {
+          const expenseDate = new Date(expense.date);
+          return expenseDate.getFullYear() === targetYear && expenseDate.getMonth() === targetMonth;
+        })
+      }))
+      .filter(category => category.expenses.length > 0 || !category.isArchived);
   }
 }

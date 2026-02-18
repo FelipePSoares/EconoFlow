@@ -16,7 +16,6 @@ describe('EconoFlow - project detail Tests', () => {
     cy.fixture('projects').then((projects) => {
       cy.visitProtected('/projects/' + projects.defaultProject.id)
 
-      cy.wait('@getCategories');
       findNextMonthWithoutBudget();
 
       cy.get('.btn-primary').contains('Clone Previous Budget').click();
@@ -51,7 +50,9 @@ const maxAttempts = 5;
 function findNextMonthWithoutBudget() {
   return cy.wait('@getCategories').then(() => {
 
-    return cy.get('body', { timeout: 1000 }).then(($body) => {
+    cy.wait(300)
+
+    return cy.get('body').then(($body) => {
       const cloneBtnExists =
         $body.find('.btn-primary:contains("Clone Previous Budget")').length > 0;
 

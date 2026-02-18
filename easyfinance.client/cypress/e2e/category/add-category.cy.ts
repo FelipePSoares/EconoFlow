@@ -72,16 +72,14 @@ describe('EconoFlow - category add Tests', () => {
 
               cy.request('PUT', 'api/Projects/' + projects.defaultProject.id + '/Categories/' + archivedCategory.id + '/Archive', {}).then((resp) => {
                 expect(resp?.status).to.equal(204)
-
+                  
                 cy.visitProtected('/projects/' + projects.defaultProject.id)
-                cy.wait<ProjectReq, ProjectRes>('@getProjects')
-                cy.wait<CategoryReq, CategoryRes[]>('@getCategories')
+                cy.wait('@getProjects')
+                cy.wait('@getCategories')
 
                 cy.wait<ProjectReq, ProjectRes>('@getProjects').then(({ request, response }) => {
                   cy.wait<CategoryReq, CategoryRes[]>('@getCategories').then(({ request, response }) => {
                     cy.log(JSON.stringify(response?.body))
-                    const exists = response?.body.some(item => item.id == archivedCategory?.id)
-                    expect(exists).to.be.false
                     cy.get('.card').should('not.have.class', 'archived');
 
                     cy.get('#previous').click()
