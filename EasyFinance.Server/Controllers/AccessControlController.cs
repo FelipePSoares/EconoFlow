@@ -619,8 +619,7 @@ namespace EasyFinance.Server.Controllers
         public async Task<IActionResult> UnsubscribeFromEmailNotificationsAsync([FromQuery] Guid userId, [FromQuery] string signature)
         {
             var user = await this.userManager.FindByIdAsync(userId.ToString());
-            var sanitizedEmail = SanitizeForLogs(user?.Email ?? "unknown");
-            this.logger.LogInformation("Email unsubscribe endpoint called for user {UserId} and email {Email}.", userId, sanitizedEmail);
+            this.logger.LogInformation("Email unsubscribe endpoint called for user {UserId}.", userId);
 
             if (userId == Guid.Empty || string.IsNullOrWhiteSpace(signature))
             {
@@ -638,11 +637,11 @@ namespace EasyFinance.Server.Controllers
 
             if (response.Failed)
             {
-                this.logger.LogWarning("Failed to unsubscribe email notifications for user {UserId} ({Email}): {Errors}", userId, sanitizedEmail, string.Join(", ", response.Messages.Select(message => message.Description)));
+                this.logger.LogWarning("Failed to unsubscribe email notifications for user {UserId}: {Errors}", userId, string.Join(", ", response.Messages.Select(message => message.Description)));
                 return this.ValidateResponse(response, HttpStatusCode.OK);
             }
 
-            this.logger.LogInformation("Email notifications unsubscribed for user {UserId} ({Email}).", userId, sanitizedEmail);
+            this.logger.LogInformation("Email notifications unsubscribed for user {UserId}.", userId);
             return Content("You have been unsubscribed from email notifications.");
         }
 
