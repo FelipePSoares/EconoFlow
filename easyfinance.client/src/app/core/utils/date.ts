@@ -35,3 +35,13 @@ export function formatDate(input: Date): string {
     ].join('-')
   );
 };
+
+export function toLocalNoonDate(input: Date | string): Date {
+  if (typeof input === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(input)) {
+    const [year, month, day] = input.split('-').map(Number);
+    return new Date(year, month - 1, day, 12);
+  }
+
+  const date = new Date(input);
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12);
+}

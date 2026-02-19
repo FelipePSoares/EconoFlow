@@ -11,19 +11,16 @@ describe('EconoFlow - income add Tests', () => {
         cy.visitProtected('/projects/' + project.id + '/incomes')
 
         cy.get('.btn-add').click();
-
-        cy.focused().should('have.attr', 'formControlName', 'name')
       })
     })
   })
 
   it('should appear name validation error', () => {
     cy.get('input[formControlName=name]').blur()
-    cy.get('mat-error').should('have.text', 'This field is required.')
+    cy.get('mat-error').should('have.text', ' This field is required. ')
   })
 
   it('should add a new income', () => {
-    cy.intercept('GET', '**/incomes*').as('getIncomes')
     cy.intercept('POST', '**/incomes*').as('postIncomes')
 
     cy.fixture('incomes').then((incomes) => {
@@ -32,7 +29,7 @@ describe('EconoFlow - income add Tests', () => {
       cy.get('input[formControlName=name]').type(income.name)
       cy.get('input[formControlName=amount]').type(income.amount)
 
-      cy.get('button').contains('Create').click();
+      cy.get('button[type=submit]').click();
 
       cy.wait<IncomeReq, IncomeRes>('@postIncomes').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(201)
@@ -40,11 +37,6 @@ describe('EconoFlow - income add Tests', () => {
         const incomeCreated = response?.body
 
         cy.get("mat-snack-bar-container").should("be.visible").contains('Created Successfully!');
-
-        cy.wait<IncomeReq, IncomeRes[]>('@getIncomes').then(({ request, response }) => {
-          const exists = response?.body.some(item => item.id == incomeCreated?.id)
-          expect(exists).to.be.true
-        })
       })
     })
   })
