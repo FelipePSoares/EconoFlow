@@ -112,5 +112,31 @@ namespace EasyFinance.Application.Tests
             firstClaim.Succeeded.Should().BeTrue();
             secondClaim.Failed.Should().BeTrue();
         }
+
+        [Fact]
+        public async Task MarkEmailDeliverySucceededAsync_ShouldPersistSentStatus()
+        {
+            PrepareInMemoryDatabase();
+
+            using var scope = serviceProvider.CreateScope();
+            var unitOfWork = scope.ServiceProvider.GetRequiredService<Application.Contracts.Persistence.IUnitOfWork>();
+            var notification = new Notification(user1, "WelcomeMessage", NotificationType.Information, NotificationCategory.System);
+            unitOfWork.NotificationRepository.InsertOrUpdate(notification);
+            await unitOfWork.CommitAsync();
+
+            var channel = Channel.CreateUnbounded<NotificationRequest>();
+            var service = new NotificationService(unitOfWork, channel);
+
+            var claim = await service.TryClaimEmailDeliveryAsync(notification.Id, TimeSpan.FromMinutes(2), CancellationToken.None);
+            claim.Succeeded.Should().BeTrue();
+
+            var markAsSent = await service.MarkEmailDeliverySucceededAsync(notification.Id, CancellationToken.None);
+            markAsSent.Succeeded.Should().BeTrue();
+
+            var stored = await service.GetAsync(notification.Id, CancellationToken.None);
+            stored.Succeeded.Should().BeTrue();
+            stored.Data.EmailStatus.Should().Be(NotificationChannelDeliveryStatus.Sent);
+            stored.Data.EmailLockedUntil.Should().BeNull();
+        }
     }
 }

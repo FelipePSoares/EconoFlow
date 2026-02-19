@@ -121,8 +121,10 @@ namespace EasyFinance.Application.BackgroundServices.NotifierBackgroundService
 
             if (!notificationChannels.HasFlag(NotificationChannels.Email))
             {
-                await notificationService.MarkEmailDeliverySucceededAsync(notificationId, stoppingToken);
-                return AppResponse.Success();
+                return await MarkDeliveryStatusAsync(
+                    () => notificationService.MarkEmailDeliverySucceededAsync(notificationId, stoppingToken),
+                    notificationId,
+                    "sent");
             }
 
             try
@@ -133,25 +135,51 @@ namespace EasyFinance.Application.BackgroundServices.NotifierBackgroundService
                 var sendResult = await compound.SendAsync(notification);
                 if (sendResult.Succeeded)
                 {
-                    await notificationService.MarkEmailDeliverySucceededAsync(notificationId, stoppingToken);
-                    return AppResponse.Success();
+                    return await MarkDeliveryStatusAsync(
+                        () => notificationService.MarkEmailDeliverySucceededAsync(notificationId, stoppingToken),
+                        notificationId,
+                        "sent");
                 }
 
                 if (sendResult.Messages.Any(m => string.Equals(m.Description, "Email template not found", StringComparison.OrdinalIgnoreCase)))
                 {
-                    await notificationService.MarkEmailDeliveryAsFailedAsync(notificationId, stoppingToken);
+                    await MarkDeliveryStatusAsync(
+                        () => notificationService.MarkEmailDeliveryAsFailedAsync(notificationId, stoppingToken),
+                        notificationId,
+                        "failed");
                     return sendResult;
                 }
 
-                await notificationService.MarkEmailDeliveryAsPendingAsync(notificationId, stoppingToken);
+                await MarkDeliveryStatusAsync(
+                    () => notificationService.MarkEmailDeliveryAsPendingAsync(notificationId, stoppingToken),
+                    notificationId,
+                    "pending");
                 return sendResult;
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "An error occurred while sending notification {NotificationId}.", notificationId);
-                await notificationService.MarkEmailDeliveryAsPendingAsync(notificationId, stoppingToken);
+                await MarkDeliveryStatusAsync(
+                    () => notificationService.MarkEmailDeliveryAsPendingAsync(notificationId, stoppingToken),
+                    notificationId,
+                    "pending");
                 return AppResponse.Error("An error occurred while sending notification: " + ex.Message);
             }
+        }
+
+        private async Task<AppResponse> MarkDeliveryStatusAsync(Func<Task<AppResponse>> markStatus, Guid notificationId, string status)
+        {
+            var statusResult = await markStatus();
+            if (statusResult.Failed)
+            {
+                logger.LogError(
+                    "Failed to mark notification {NotificationId} email delivery as {Status}. Errors: {Errors}",
+                    notificationId,
+                    status,
+                    string.Join(", ", statusResult.Messages.Select(m => m.Description)));
+            }
+
+            return statusResult;
         }
     }
 }
