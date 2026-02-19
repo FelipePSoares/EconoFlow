@@ -16,6 +16,7 @@ export class UserService {
   private localService = inject(LocalService);
 
   private loggedUser = new BehaviorSubject<User | undefined>(undefined);
+  private checkStatusRequest$: Observable<boolean> | null = null;
   private refreshTokenRequest$: Observable<User> | null = null;
   loggedUser$ = this.loggedUser.asObservable().pipe(switchMap(user => {
     if (user)
@@ -99,10 +100,22 @@ export class UserService {
   }
 
   public checkStatus(): Observable<boolean> {
-    return this.http.get<boolean>('/api/AccessControl/IsLogged', {
+    if (this.checkStatusRequest$) {
+      return this.checkStatusRequest$;
+    }
+
+    this.checkStatusRequest$ = this.http.get<boolean>('/api/AccessControl/IsLogged', {
       observe: 'body',
       responseType: 'json'
-    });
+    }).pipe(
+      catchError(() => of(false)),
+      finalize(() => {
+        this.checkStatusRequest$ = null;
+      }),
+      shareReplay(1)
+    );
+
+    return this.checkStatusRequest$;
   }
 
   public refreshUserInfo(): Observable<User> {

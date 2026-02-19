@@ -1,6 +1,7 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
-import { map } from 'rxjs';
+import { catchError, map, of } from 'rxjs';
 import { UserService } from '../services/user.service';
 
 @Injectable({
@@ -9,9 +10,14 @@ import { UserService } from '../services/user.service';
 export class AuthGuard implements CanActivate {
   private userService = inject(UserService);
   private router = inject(Router);
+  private platformId = inject(PLATFORM_ID);
   private readonly bypassUrls: string[] = ["/first-signin", "/logout"];
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
+    if (!isPlatformBrowser(this.platformId)) {
+      return true;
+    }
+
     return this.userService.loggedUser$.pipe(
       map((user) => {
         if (!user?.enabled) {
@@ -20,6 +26,10 @@ export class AuthGuard implements CanActivate {
         }
 
         return this.handleUserRedirect(user, state.url);
+      }),
+      catchError(() => {
+        this.router.navigate(['login'], { queryParams: { returnUrl: state.url } });
+        return of(false);
       })
     );
   }

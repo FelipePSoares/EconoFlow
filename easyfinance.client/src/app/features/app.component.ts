@@ -98,15 +98,21 @@ export class AppComponent {
   }
 
   isLogin(): boolean {
-    return this.router.url === '/login';
+    return this.getPrimaryRoutePath() === '/login';
   }
 
   isRegister(): boolean {
-    return this.router.url === '/register';
+    return this.getPrimaryRoutePath() === '/register';
   }
 
   isRecovery(): boolean {
-    return this.router.url === '/recovery';
+    return this.getPrimaryRoutePath() === '/recovery';
+  }
+
+  private getPrimaryRoutePath(): string {
+    const primarySegments = this.router.parseUrl(this.router.url).root.children['primary']?.segments ?? [];
+    const joinedPath = primarySegments.map(segment => segment.path).join('/');
+    return `/${joinedPath}`;
   }
 
   async onLanguageChange(event: Event): Promise<void> {

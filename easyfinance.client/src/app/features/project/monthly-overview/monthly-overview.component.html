@@ -36,32 +36,36 @@
         <div class="row g-3">
           <div class="col-12 col-lg-6 chart-block">
             <h3 class="text-center mb-3">{{ 'CumulativeIncomeVsExpense' | translate }}</h3>
-            @if (dailyIncomeExpenseChartData.datasets[0].data.length || dailyIncomeExpenseChartData.datasets[1].data.length || dailyIncomeExpenseChartData.datasets[2].data.length) {
-              <div class="chart-container">
-                <canvas
-                  baseChart
-                  [type]="'line'"
-                  [data]="dailyIncomeExpenseChartData"
-                  [options]="lineChartOptions">
-                </canvas>
-              </div>
-            } @else {
-              <p class="text-center text-secondary mb-0">{{ 'NoDataForSelectedMonth' | translate }}</p>
+            @if (chartsReady) {
+              @if (dailyIncomeExpenseChartData.datasets[0].data.length || dailyIncomeExpenseChartData.datasets[1].data.length || dailyIncomeExpenseChartData.datasets[2].data.length) {
+                <div class="chart-container">
+                  <canvas
+                    baseChart
+                    [type]="'line'"
+                    [data]="dailyIncomeExpenseChartData"
+                    [options]="lineChartOptions">
+                  </canvas>
+                </div>
+              } @else {
+                <p class="text-center text-secondary mb-0">{{ 'NoDataForSelectedMonth' | translate }}</p>
+              }
             }
           </div>
           <div class="col-12 col-lg-6 chart-block chart-block-divider">
             <h3 class="text-center mb-3">{{ 'ExpensesByCategory' | translate }}</h3>
-            @if (expenseChartData.datasets[0].data.length) {
-              <div class="chart-container">
-                <canvas
-                  baseChart
-                  [type]="'doughnut'"
-                  [data]="expenseChartData"
-                  [options]="doughnutChartOptions">
-                </canvas>
-              </div>
-            } @else {
-              <p class="text-center text-secondary mb-0">{{ 'NoDataForSelectedMonth' | translate }}</p>
+            @if (chartsReady) {
+              @if (expenseChartData.datasets[0].data.length) {
+                <div class="chart-container">
+                  <canvas
+                    baseChart
+                    [type]="'doughnut'"
+                    [data]="expenseChartData"
+                    [options]="doughnutChartOptions">
+                  </canvas>
+                </div>
+              } @else {
+                <p class="text-center text-secondary mb-0">{{ 'NoDataForSelectedMonth' | translate }}</p>
+              }
             }
           </div>
         </div>

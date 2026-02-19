@@ -1,11 +1,9 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, ViewChild, ChangeDetectorRef } from '@angular/core';
-import { Chart, ChartConfiguration, ChartOptions, registerables } from 'chart.js';
+import { AfterViewInit, ChangeDetectorRef, Component, inject, Input, OnChanges, OnInit, PLATFORM_ID, SimpleChanges, ViewChild } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { ChartConfiguration, ChartOptions } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 import { ExpenseDto } from '../../../expense/models/expense-dto';
 import { CurrentDateService } from '../../../../core/services/current-date.service';
-
-// Register Chart.js components
-Chart.register(...registerables);
 
 @Component({
   selector: 'app-monthly-expenses-chart',
@@ -13,10 +11,14 @@ Chart.register(...registerables);
   templateUrl: './monthly-expenses-chart.component.html',
   styleUrl: './monthly-expenses-chart.component.css'
 })
-export class MonthlyExpensesChartComponent implements OnInit, OnChanges {
+export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterViewInit {
+  private platformId = inject(PLATFORM_ID);
+
   @Input() expenses: ExpenseDto[] = [];
   @Input() budget: number = 0;
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
+  isBrowser = isPlatformBrowser(this.platformId);
+  chartsReady = false;
 
   public lineChartData: ChartConfiguration<'line'>['data'] = {
     labels: [],
@@ -74,6 +76,14 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges {
 
   ngOnInit() {
     this.updateChartData();
+  }
+
+  ngAfterViewInit(): void {
+    if (this.isBrowser) {
+      setTimeout(() => {
+        this.chartsReady = true;
+      }, 0);
+    }
   }
 
   ngOnChanges(changes: SimpleChanges) {

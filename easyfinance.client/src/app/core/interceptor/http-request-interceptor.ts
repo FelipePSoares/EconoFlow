@@ -94,6 +94,9 @@ export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
           catchError(refreshError => {
             isRefreshing = false;
             refreshTokenSubject.next(false);
+            const router = injector.get(Router);
+            redirectToLogin(authService, router, matDialog);
+
             return throwError(() => refreshError);
           })
         );
@@ -101,10 +104,7 @@ export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
 
       if (isBrowser && (isUnauthorized || isForbidden) && !isRefreshRequest && !isLogoutRequest && !isLoginRequest) {
         const router = injector.get(Router);
-        matDialog.closeAll();
-
-        authService.signOut();
-        router.navigate(['login']);
+        redirectToLogin(authService, router, matDialog);
 
         return throwError(() => err);
       }
@@ -144,4 +144,19 @@ const isException = (req: any) => {
   return exceptions.some((exception: any) => {
     return exception.method === req.method && req.url.indexOf(exception.url) >= 0;
   });
+};
+
+const redirectToLogin = (authService: AuthService, router: Router, matDialog: MatDialog): void => {
+  matDialog.closeAll();
+  authService.signOut();
+
+  const currentUrl = router.url || '/';
+  const isLoginRoute = currentUrl.startsWith('/login');
+
+  if (isLoginRoute) {
+    router.navigate(['login']);
+    return;
+  }
+
+  router.navigate(['login'], { queryParams: { returnUrl: currentUrl } });
 };

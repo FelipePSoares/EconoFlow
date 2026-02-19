@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { Component, inject, Input, OnInit } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { AfterViewInit, Component, inject, Input, OnInit, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
 import { ChartData, ChartOptions, TooltipItem } from 'chart.js';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -34,7 +34,10 @@ interface CategoryInsight {
   templateUrl: './annual-overview.component.html',
   styleUrl: './annual-overview.component.css'
 })
-export class AnnualOverviewComponent implements OnInit {
+export class AnnualOverviewComponent implements OnInit, AfterViewInit {
+  readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  chartsReady = false;
+
   private projectService = inject(ProjectService);
   private globalService = inject(GlobalService);
   private incomeService = inject(IncomeService);
@@ -132,6 +135,14 @@ export class AnnualOverviewComponent implements OnInit {
     });
 
     this.loadYear(this.selectedYear);
+  }
+
+  ngAfterViewInit(): void {
+    if (this.isBrowser) {
+      setTimeout(() => {
+        this.chartsReady = true;
+      }, 0);
+    }
   }
 
   onYearChange(event: Event): void {

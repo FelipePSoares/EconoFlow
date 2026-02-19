@@ -1,8 +1,8 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { AfterViewInit, Component, inject, Input, OnInit, PLATFORM_ID } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { BehaviorSubject, map, Observable } from 'rxjs';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { CdkTableDataSourceInput } from '@angular/cdk/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -49,7 +49,10 @@ import { Category } from '../../../core/models/category';
     styleUrl: './detail-project.component.scss'
 })
 
-export class DetailProjectComponent implements OnInit {
+export class DetailProjectComponent implements OnInit, AfterViewInit {
+  readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  chartsReady = false;
+
   @Input({ required: true })
   projectId!: string;
 
@@ -148,6 +151,14 @@ export class DetailProjectComponent implements OnInit {
       });
 
     this.fillData(this.currentDateService.currentDate);
+  }
+
+  ngAfterViewInit(): void {
+    if (this.isBrowser) {
+      setTimeout(() => {
+        this.chartsReady = true;
+      }, 0);
+    }
   }
 
   fillData(date: Date) {
