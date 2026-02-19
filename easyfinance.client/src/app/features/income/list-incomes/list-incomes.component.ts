@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, inject, Input, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, map } from 'rxjs';
 import { IncomeService } from 'src/app/core/services/income.service';
@@ -26,6 +26,7 @@ import { ProjectService } from '../../../core/services/project.service';
 import { UserProjectDto } from '../../project/models/user-project-dto';
 import { Role } from '../../../core/enums/Role';
 import { CurrentDateService } from '../../../core/services/current-date.service';
+import { DateAdapter } from '@angular/material/core';
 
 @Component({
     selector: 'app-list-incomes',
@@ -52,6 +53,16 @@ import { CurrentDateService } from '../../../core/services/current-date.service'
 })
 
 export class ListIncomesComponent implements OnInit {
+  private incomeService = inject(IncomeService);
+  private router = inject(Router);
+  private errorMessageService = inject(ErrorMessageService);
+  private globalService = inject(GlobalService);
+  private dialog = inject(MatDialog);
+  private projectService = inject(ProjectService);
+  private translateService = inject(TranslateService);
+  private currentDateService = inject(CurrentDateService);
+  private dateAdapter = inject(DateAdapter<Date>);
+
   private incomes: BehaviorSubject<IncomeDto[]> = new BehaviorSubject<IncomeDto[]>([]);
   incomes$: Observable<IncomeDto[]> = this.incomes.asObservable();
   incomeForm!: FormGroup;
@@ -70,22 +81,15 @@ export class ListIncomesComponent implements OnInit {
   @ViewChild('nameInput')
   nameInput?: ElementRef<HTMLInputElement>;
 
-  constructor(
-    private incomeService: IncomeService,
-    private router: Router,
-    private errorMessageService: ErrorMessageService,
-    private globalService: GlobalService,
-    private dialog: MatDialog,
-    private projectService: ProjectService,
-    private translateService: TranslateService,
-    private currentDateService: CurrentDateService
-  ) {
+  constructor() {
     this.thousandSeparator = this.globalService.groupSeparator;
     this.decimalSeparator = this.globalService.decimalSeparator;
     this.currencySymbol = this.globalService.currencySymbol;
   }
 
   ngOnInit(): void {
+    this.dateAdapter.setLocale(this.globalService.currentLanguage);
+
     this.projectService.selectedUserProject$.subscribe(userProject => {
       if (userProject) {
         this.userProject = userProject;

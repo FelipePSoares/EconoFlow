@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, inject, Input, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { map } from 'rxjs';
@@ -41,6 +41,14 @@ import { MatSelect, MatSelectModule } from '@angular/material/select';
     styleUrl: './add-expense.component.css'
 })
 export class AddExpenseComponent implements OnInit, AfterViewInit {
+  private expenseService = inject(ExpenseService);
+  private categoryService = inject(CategoryService);
+  private router = inject(Router);
+  private errorMessageService = inject(ErrorMessageService);
+  private globalService = inject(GlobalService);
+  private currentDateService = inject(CurrentDateService);
+  private dateAdapter = inject(DateAdapter<Date>);
+
   private currentDate!: Date;
   expenseForm!: FormGroup;
   categories: CategoryDto[] = [];
@@ -57,22 +65,14 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
   categoryId?: string;
   @ViewChild('categorySelect') categorySelect?: MatSelect;
 
-  constructor(
-    private expenseService: ExpenseService,
-    private categoryService: CategoryService,
-    private router: Router,
-    private errorMessageService: ErrorMessageService,
-    private globalService: GlobalService,
-    private currentDateService: CurrentDateService,
-    private dateAdapter: DateAdapter<Date>
-  ) {
+  constructor() {
     this.thousandSeparator = this.globalService.groupSeparator;
     this.decimalSeparator = this.globalService.decimalSeparator
     this.currencySymbol = this.globalService.currencySymbol;
   }
 
   ngOnInit(): void {
-    this.dateAdapter.setLocale(this.globalService.currentFormattingLocale);
+    this.dateAdapter.setLocale(this.globalService.currentLanguage);
 
     this.currentDate = new Date();
     if (this.currentDateService.currentDate.getFullYear() !== this.currentDate.getFullYear() || this.currentDateService.currentDate.getMonth() !== this.currentDate.getMonth()) {

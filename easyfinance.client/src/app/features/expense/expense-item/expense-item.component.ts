@@ -19,6 +19,7 @@ import { formatDate } from '../../../core/utils/date';
 import { MatInput } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.component';
+import { DateAdapter } from '@angular/material/core';
 
 @Component({
   selector: 'app-expense-item',
@@ -45,6 +46,7 @@ export class ExpenseItemComponent implements OnInit {
   private errorMessageService = inject(ErrorMessageService);
   private globalService = inject(GlobalService);
   private snackBar = inject(SnackbarComponent);
+  private dateAdapter = inject(DateAdapter<Date>);
 
   @Input({ required: true })
   projectId!: string;
@@ -230,6 +232,8 @@ export class ExpenseItemComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.dateAdapter.setLocale(this.globalService.currentLanguage);
+
     if (this.isNewEntity(this.subExpense.id)) {
       this.edit(this.subExpense);
       this.focusNameInput();

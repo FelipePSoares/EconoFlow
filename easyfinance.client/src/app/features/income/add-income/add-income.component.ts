@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, Input, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -36,6 +36,13 @@ import { CurrentDateService } from '../../../core/services/current-date.service'
     styleUrl: './add-income.component.css'
 })
 export class AddIncomeComponent implements OnInit, AfterViewInit {
+  private incomeService = inject(IncomeService);
+  private router = inject(Router);
+  private errorMessageService = inject(ErrorMessageService);
+  private globalService = inject(GlobalService);
+  private currentDateService = inject(CurrentDateService);
+  private dateAdapter = inject(DateAdapter<Date>);
+
   private currentDate!: Date;
   incomeForm!: FormGroup;
   httpErrors = false;
@@ -48,21 +55,14 @@ export class AddIncomeComponent implements OnInit, AfterViewInit {
     projectId!: string;
   @ViewChild('nameInput') nameInput?: ElementRef<HTMLInputElement>;
 
-  constructor(
-    private incomeService: IncomeService,
-    private router: Router,
-    private errorMessageService: ErrorMessageService,
-    private globalService: GlobalService,
-    private currentDateService: CurrentDateService,
-    private dateAdapter: DateAdapter<Date>
-  ) {
+  constructor() {
     this.thousandSeparator = this.globalService.groupSeparator;
     this.decimalSeparator = this.globalService.decimalSeparator;
     this.currencySymbol = this.globalService.currencySymbol;
   }
 
   ngOnInit(): void {
-    this.dateAdapter.setLocale(this.globalService.currentFormattingLocale);
+    this.dateAdapter.setLocale(this.globalService.currentLanguage);
 
     this.currentDate = new Date();
     if (this.currentDateService.currentDate.getFullYear() !== this.currentDate.getFullYear() || this.currentDateService.currentDate.getMonth() !== this.currentDate.getMonth()) {

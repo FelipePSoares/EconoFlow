@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, inject, Input, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ChartData, ChartOptions, TooltipItem } from 'chart.js';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -35,6 +35,14 @@ interface CategoryInsight {
   styleUrl: './annual-overview.component.css'
 })
 export class AnnualOverviewComponent implements OnInit {
+  private projectService = inject(ProjectService);
+  private globalService = inject(GlobalService);
+  private incomeService = inject(IncomeService);
+  private categoryService = inject(CategoryService);
+  private translateService = inject(TranslateService);
+  private router = inject(Router);
+  private currencyFormatPipe = inject(CurrencyFormatPipe);
+
   @Input({ required: true })
   projectId!: string;
 
@@ -111,16 +119,6 @@ export class AnnualOverviewComponent implements OnInit {
     }
   };
 
-  constructor(
-    private projectService: ProjectService,
-    private globalService: GlobalService,
-    private incomeService: IncomeService,
-    private categoryService: CategoryService,
-    private translateService: TranslateService,
-    private router: Router,
-    private currencyFormatPipe: CurrencyFormatPipe
-  ) { }
-
   ngOnInit(): void {
     this.projectService.selectedUserProject$.subscribe(userProject => {
       const defaultProject = new UserProjectDto();
@@ -178,7 +176,7 @@ export class AnnualOverviewComponent implements OnInit {
   }
 
   private getMonthlyIncomeExpenseBreakdown(year: number): Observable<{ labels: string[]; incomes: number[]; expenses: number[] }> {
-    const formatter = new Intl.DateTimeFormat(this.globalService.currentFormattingLocale, { month: 'short' });
+    const formatter = new Intl.DateTimeFormat(this.globalService.currentLanguage, { month: 'short' });
     const startDate = new Date(year, 0, 1);
     const endDate = new Date(year + 1, 0, 1);
     const monthDates = Array.from({ length: 12 }, (_, monthIndex) => new Date(year, monthIndex, 1));

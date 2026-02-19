@@ -239,7 +239,7 @@ export class DetailProjectComponent implements OnInit {
   }
 
   private fillYearCharts(selectedDate: Date, categoriesInRange: Category[]): void {
-    const formatter = new Intl.DateTimeFormat(this.globalService.currentFormattingLocale, { month: 'short' });
+    const formatter = new Intl.DateTimeFormat(this.globalService.currentLanguage, { month: 'short' });
     const monthDates = Array.from({ length: 3 }, (_, index) => {
       const offset = index - 2;
       return new Date(selectedDate.getFullYear(), selectedDate.getMonth() + offset, 1);
