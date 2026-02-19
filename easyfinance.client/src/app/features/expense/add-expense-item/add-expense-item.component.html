@@ -2,6 +2,36 @@
   <div class="row justify-content-md-center">
     <form [formGroup]="expenseItemForm" (ngSubmit)="save()">
 
+      <!-- Category Field -->
+      <mat-form-field appearance="fill" class="w-100">
+        <mat-label>{{ 'FieldCategoryName' | translate }}</mat-label>
+        <mat-select #categorySelect formControlName="categoryId">
+          @for (category of categories; track category.id) {
+            <mat-option [value]="category.id">{{ category.name }}</mat-option>
+          }
+        </mat-select>
+        @if (categoryIdControl?.invalid && categoryIdControl?.touched){
+          @for (error of getFormFieldErrors('categoryId'); track error) {
+            <mat-error>{{ error |  translate }}</mat-error>
+          }
+        }
+      </mat-form-field>
+
+      <!-- Expense Field -->
+      <mat-form-field appearance="fill" class="w-100">
+        <mat-label>{{ 'FieldExpenseName' | translate }}</mat-label>
+        <mat-select formControlName="expenseId" [disabled]="!categoryIdControl?.value || expenses.length === 0">
+          @for (expense of expenses; track expense.id) {
+            <mat-option [value]="expense.id">{{ expense.name }}</mat-option>
+          }
+        </mat-select>
+        @if (expenseIdControl?.invalid && expenseIdControl?.touched){
+          @for (error of getFormFieldErrors('expenseId'); track error) {
+            <mat-error>{{ error |  translate }}</mat-error>
+          }
+        }
+      </mat-form-field>
+
       <!-- Name Field -->
       <mat-form-field appearance="fill" class="w-100">
         <mat-label>{{ 'FieldExpenseName' | translate }} </mat-label>

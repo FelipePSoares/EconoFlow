@@ -11,3 +11,17 @@
   transform: translateY(-1px);
   transition: transform 0.2s ease;
 }
+
+.global-add-button {
+  position: fixed;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 1200;
+}
+
+@media (min-width: 768px) {
+  .global-add-button {
+    right: 24px;
+    bottom: 24px;
+  }
+}
