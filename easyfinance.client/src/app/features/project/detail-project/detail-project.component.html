@@ -150,7 +150,7 @@
             </div>
             <hr class="solid" />
             <div class="row g-3 mt-1">
-              <div class="col-12 col-md-6">
+              <div class="col-12">
                 <h3 class="mt-0 mb-3 text-start fw-semibold fs-6">{{ 'IncomeVsExpenseByMonth' | translate }}</h3>
                 @if (yearIncomeExpenseChartData.datasets[0].data.length || yearIncomeExpenseChartData.datasets[1].data.length) {
                   <div class="position-relative" style="height: 240px;">
@@ -159,21 +159,6 @@
                       [type]="'bar'"
                       [data]="yearIncomeExpenseChartData"
                       [options]="yearIncomeExpenseChartOptions">
-                    </canvas>
-                  </div>
-                } @else {
-                  <p class="text-center text-secondary mb-0">{{ 'NoDataForSelectedPeriod' | translate }}</p>
-                }
-              </div>
-              <div class="col-12 col-md-6">
-                <h3 class="mt-0 mb-3 text-start fw-semibold fs-6">{{ 'ExpensesByCategory' | translate }}</h3>
-                @if (yearExpenseCategoryChartData.datasets[0].data.length) {
-                  <div class="position-relative" style="height: 240px;">
-                    <canvas
-                      baseChart
-                      [type]="'doughnut'"
-                      [data]="yearExpenseCategoryChartData"
-                      [options]="yearExpenseCategoryChartOptions">
                     </canvas>
                   </div>
                 } @else {
