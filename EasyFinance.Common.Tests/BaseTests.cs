@@ -22,18 +22,19 @@ using EasyFinance.Application.Features.ExpenseItemService;
 
 namespace EasyFinance.Common.Tests
 {
-    public class BaseTests
+    public class BaseTests : IDisposable
     {
         private readonly object fixtureLock = new();
         private Fixture? fixture;
+        private string? currentDbName;
 
-        protected ServiceProvider serviceProvider;
-        protected User user1;
-        protected User user2;
-        protected User user3;
-        protected Project project1;
-        protected Project project2;
-        protected Project project3;
+        protected ServiceProvider serviceProvider = null!;
+        protected User user1 = null!;
+        protected User user2 = null!;
+        protected User user3 = null!;
+        protected Project project1 = null!;
+        protected Project project2 = null!;
+        protected Project project3 = null!;
 
         protected Fixture Fixture
         {
@@ -55,9 +56,12 @@ namespace EasyFinance.Common.Tests
 
         protected void PrepareInMemoryDatabase()
         {
+            CleanupInMemoryDatabase();
+            currentDbName = $"TestDb_{Guid.NewGuid():N}";
+
             var services = new ServiceCollection();
             services.AddDbContext<EasyFinanceDatabaseContext>(options =>
-                options.UseInMemoryDatabase("TestDb"));
+                options.UseInMemoryDatabase(currentDbName));
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IProjectService, ProjectService>();
@@ -77,6 +81,7 @@ namespace EasyFinance.Common.Tests
             var context = scopedServices.GetRequiredService<EasyFinanceDatabaseContext>();
 
             context.Database.EnsureDeleted();
+            context.Database.EnsureCreated();
 
             user1 = new UserBuilder().Build();
             userManager.CreateAsync(user1, "Passw0rd!").GetAwaiter().GetResult();
@@ -118,7 +123,31 @@ namespace EasyFinance.Common.Tests
             unitOfWork.UserProjectRepository.InsertOrUpdate(new UserProjectBuilder().AddProject(project2).AddUser(user3).AddRole(Role.Viewer).AddAccepted().Build());
             unitOfWork.UserProjectRepository.InsertOrUpdate(new UserProjectBuilder().AddProject(project3).AddUser(user3).AddRole(Role.Viewer).AddAccepted().Build());
 
-            unitOfWork.CommitAsync();
+            unitOfWork.CommitAsync().GetAwaiter().GetResult();
+        }
+
+        private void CleanupInMemoryDatabase()
+        {
+            if (serviceProvider == null || string.IsNullOrWhiteSpace(currentDbName))
+                return;
+
+            try
+            {
+                using var scope = serviceProvider.CreateScope();
+                var context = scope.ServiceProvider.GetRequiredService<EasyFinanceDatabaseContext>();
+                context.Database.EnsureDeleted();
+            }
+            finally
+            {
+                serviceProvider.Dispose();
+                currentDbName = null;
+            }
+        }
+
+        public void Dispose()
+        {
+            CleanupInMemoryDatabase();
+            GC.SuppressFinalize(this);
         }
 
         public static TheoryData<DateOnly> OlderDates =>

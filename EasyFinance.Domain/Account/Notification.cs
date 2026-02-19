@@ -46,6 +46,8 @@ namespace EasyFinance.Domain.Account
         public NotificationChannels LimitNotificationChannels { get; private set; } = NotificationChannels.None;
         public DateOnly? ExpiresAt { get; private set; } = default;
         public string Metadata { get; private set; } = default;
+        public NotificationChannelDeliveryStatus EmailStatus { get; private set; } = NotificationChannelDeliveryStatus.Pending;
+        public DateTime? EmailLockedUntil { get; private set; } = default;
 
         public override AppResponse Validate
         {
@@ -99,5 +101,29 @@ namespace EasyFinance.Domain.Account
         public void MarkAsRead() => IsRead = true;
 
         public void MarkAsSticky() => IsSticky = true;
+
+        public void SetEmailAsProcessing(DateTime lockUntil)
+        {
+            EmailStatus = NotificationChannelDeliveryStatus.Processing;
+            EmailLockedUntil = lockUntil;
+        }
+
+        public void MarkEmailAsSent()
+        {
+            EmailStatus = NotificationChannelDeliveryStatus.Sent;
+            EmailLockedUntil = null;
+        }
+
+        public void MarkEmailAsPending()
+        {
+            EmailStatus = NotificationChannelDeliveryStatus.Pending;
+            EmailLockedUntil = null;
+        }
+
+        public void MarkEmailAsFailed()
+        {
+            EmailStatus = NotificationChannelDeliveryStatus.Failed;
+            EmailLockedUntil = null;
+        }
     }
 }

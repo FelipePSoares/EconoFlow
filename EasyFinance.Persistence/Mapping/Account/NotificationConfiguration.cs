@@ -15,6 +15,10 @@ namespace EasyFinance.Persistence.Mapping.Account
             builder.Property(p => p.Type);
             builder.Property(p => p.Category);
             builder.Property(p => p.LimitNotificationChannels);
+            builder.Property(p => p.EmailStatus)
+                .IsRequired()
+                .HasDefaultValue(NotificationChannelDeliveryStatus.Pending);
+            builder.Property(p => p.EmailLockedUntil);
 
             builder.Property(p => p.CodeMessage)
                 .HasMaxLength(100)
@@ -43,6 +47,8 @@ namespace EasyFinance.Persistence.Mapping.Account
                 .WithMany()
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasIndex(p => new { p.EmailStatus, p.EmailLockedUntil });
         }
     }
 }

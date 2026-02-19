@@ -50,6 +50,7 @@ namespace EasyFinance.Application
             // Background Services
             services.AddHostedService<EmailBackgroundService>();
             services.AddHostedService<NotifierBackgroundService>();
+            services.AddOptions<NotifierFallbackOptions>();
 
             // Register Channels
             var emailChannel = Channel.CreateUnbounded<EmailRequest>();

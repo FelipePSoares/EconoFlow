@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -9,71 +10,146 @@ using EasyFinance.Infrastructure.DTOs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace EasyFinance.Application.BackgroundServices.NotifierBackgroundService
 {
     public class NotifierBackgroundService(
         Channel<NotificationRequest> channel,
         ILogger<NotifierBackgroundService> logger,
-        IServiceProvider serviceProvider) : BackgroundService
+        IServiceProvider serviceProvider,
+        IOptions<NotifierFallbackOptions> fallbackOptions) : BackgroundService
     {
         private readonly ILogger<NotifierBackgroundService> logger = logger;
         private readonly IServiceProvider serviceProvider = serviceProvider;
+        private readonly NotifierFallbackOptions fallbackOptions = fallbackOptions.Value;
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            await foreach (var notification in channel.Reader.ReadAllAsync(stoppingToken))
-            {
-                try
-                {
-                    AppResponse response = await this.SendNotificationAsync(notification.NotificationId, stoppingToken);
+            var interval = TimeSpan.FromSeconds(Math.Max(1, fallbackOptions.IntervalSeconds));
+            var nextFallbackRun = DateTime.UtcNow;
 
-                    if (response.Failed)
-                        logger.LogError("Failed to send notification {notificationId}", notification.NotificationId);
-                }
-                catch (TaskCanceledException)
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                if (DateTime.UtcNow >= nextFallbackRun)
                 {
-                    // Ignore when the application is stopping
+                    await ProcessFallbackBatchAsync(stoppingToken);
+                    nextFallbackRun = DateTime.UtcNow.Add(interval);
                 }
-                catch (Exception ex)
+
+                var delay = nextFallbackRun - DateTime.UtcNow;
+                if (delay < TimeSpan.Zero)
+                    delay = TimeSpan.Zero;
+
+                var waitForQueueTask = channel.Reader.WaitToReadAsync(stoppingToken).AsTask();
+                var waitForFallbackTask = Task.Delay(delay, stoppingToken);
+
+                var completedTask = await Task.WhenAny(waitForQueueTask, waitForFallbackTask);
+                if (completedTask != waitForQueueTask)
+                    continue;
+
+                if (!await waitForQueueTask)
+                    continue;
+
+                while (channel.Reader.TryRead(out var notificationRequest))
+                    await ProcessNotificationAsync(notificationRequest.NotificationId, stoppingToken);
+            }
+        }
+
+        private async Task ProcessFallbackBatchAsync(CancellationToken stoppingToken)
+        {
+            try
+            {
+                using var scope = serviceProvider.CreateScope();
+                var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
+                var result = await notificationService.GetEmailDeliveryCandidatesAsync(Math.Max(1, fallbackOptions.BatchSize), stoppingToken);
+
+                if (result.Failed)
                 {
-                    logger.LogError(ex, "Error when try to execute a schedule task.");
+                    logger.LogError("Failed to retrieve notification fallback candidates. Errors: {Errors}", string.Join(", ", result.Messages));
+                    return;
                 }
+
+                foreach (var notificationId in result.Data)
+                    await ProcessNotificationAsync(notificationId, stoppingToken);
+            }
+            catch (TaskCanceledException)
+            {
+                // Ignore when application is stopping
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error when processing notification fallback batch.");
+            }
+        }
+
+        private async Task ProcessNotificationAsync(Guid notificationId, CancellationToken stoppingToken)
+        {
+            try
+            {
+                var response = await SendNotificationAsync(notificationId, stoppingToken);
+                if (response.Failed)
+                    logger.LogError("Failed to send notification {NotificationId}", notificationId);
+            }
+            catch (TaskCanceledException)
+            {
+                // Ignore when application is stopping
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error when processing notification {NotificationId}.", notificationId);
             }
         }
 
         private async Task<AppResponse> SendNotificationAsync(Guid notificationId, CancellationToken stoppingToken)
         {
+            using var scope = serviceProvider.CreateScope();
+            var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
+
+            var claimResult = await notificationService.TryClaimEmailDeliveryAsync(
+                notificationId,
+                TimeSpan.FromSeconds(Math.Max(1, fallbackOptions.LeaseDurationSeconds)),
+                stoppingToken);
+
+            if (claimResult.Failed)
+                return AppResponse.Success();
+
+            var notification = claimResult.Data;
+            var notificationChannels = notification.LimitNotificationChannels == NotificationChannels.None
+                ? notification.User.NotificationChannels
+                : notification.LimitNotificationChannels & notification.User.NotificationChannels;
+
+            if (!notificationChannels.HasFlag(NotificationChannels.Email))
+            {
+                await notificationService.MarkEmailDeliverySucceededAsync(notificationId, stoppingToken);
+                return AppResponse.Success();
+            }
+
             try
             {
-                using var scope = serviceProvider.CreateScope();
+                var compound = new NotificationChannelFactory(scope.ServiceProvider)
+                    .Create(notificationChannels & NotificationChannels.Email);
 
-                var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
-                var resultNotification = await notificationService.GetAsync(notificationId, stoppingToken);
-
-                if (resultNotification.Failed)
+                var sendResult = await compound.SendAsync(notification);
+                if (sendResult.Succeeded)
                 {
-                    logger.LogError("Failed to retrieve notification {NotificationId}. Errors: {Errors}", notificationId, string.Join(", ", resultNotification.Messages));
-                    return AppResponse.Error("Failed to retrieve notification. Errors: " + string.Join(", ", resultNotification.Messages));
-                }
-
-                var notification = resultNotification.Data;
-
-                var notificationChannels = notification.LimitNotificationChannels == NotificationChannels.None ? notification.User.NotificationChannels : notification.LimitNotificationChannels & notification.User.NotificationChannels;
-
-                if (notificationChannels == NotificationChannels.None)
-                {
-                    logger.LogWarning("No notification channels available for user {UserId}. Skipping notification {NotificationId}.", notification.User.Id, notificationId);
+                    await notificationService.MarkEmailDeliverySucceededAsync(notificationId, stoppingToken);
                     return AppResponse.Success();
                 }
 
-                var compound = new NotificationChannelFactory(scope.ServiceProvider).Create(notificationChannels);
+                if (sendResult.Messages.Any(m => string.Equals(m.Description, "Email template not found", StringComparison.OrdinalIgnoreCase)))
+                {
+                    await notificationService.MarkEmailDeliveryAsFailedAsync(notificationId, stoppingToken);
+                    return sendResult;
+                }
 
-                return await compound.SendAsync(notification);
+                await notificationService.MarkEmailDeliveryAsPendingAsync(notificationId, stoppingToken);
+                return sendResult;
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "An error occurred while sending notification {NotificationId}.", notificationId);
+                await notificationService.MarkEmailDeliveryAsPendingAsync(notificationId, stoppingToken);
                 return AppResponse.Error("An error occurred while sending notification: " + ex.Message);
             }
         }
