@@ -11,3 +11,10 @@
   transform: translateY(-1px);
   transition: transform 0.2s ease;
 }
+
+.global-add-button {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1100;
+}

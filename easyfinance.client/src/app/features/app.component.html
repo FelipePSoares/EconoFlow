@@ -81,4 +81,10 @@
   }
 
   <app-spinner></app-spinner>
+
+  @if ((isSignedIn$ | async) && selectedProjectId) {
+    <div class="global-add-button">
+      <app-add-button [buttons]="addButtons" (clickedEvent)="addFromProject($event)"></app-add-button>
+    </div>
+  }
 </div>

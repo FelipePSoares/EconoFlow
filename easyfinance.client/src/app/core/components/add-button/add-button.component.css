@@ -1,4 +1,4 @@
-.btn-add {
+.btn-floating-add {
   bottom: 20px; /* Adjust the distance from the bottom */
   left: 20px; /* Adjust the distance from the right */
   z-index: 1000; /* Ensure button is above other elements */
@@ -10,7 +10,7 @@
 }
 
 @media (min-width: 576px) {
-  .btn-add {
+  .btn-floating-add {
     top: 90px;
     left: 70px;
   }

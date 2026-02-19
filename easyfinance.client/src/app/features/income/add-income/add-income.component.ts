@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -35,7 +35,7 @@ import { CurrentDateService } from '../../../core/services/current-date.service'
     templateUrl: './add-income.component.html',
     styleUrl: './add-income.component.css'
 })
-export class AddIncomeComponent implements OnInit {
+export class AddIncomeComponent implements OnInit, AfterViewInit {
   private currentDate!: Date;
   incomeForm!: FormGroup;
   httpErrors = false;
@@ -46,6 +46,7 @@ export class AddIncomeComponent implements OnInit {
 
   @Input({ required: true })
     projectId!: string;
+  @ViewChild('nameInput') nameInput?: ElementRef<HTMLInputElement>;
 
   constructor(
     private incomeService: IncomeService,
@@ -70,6 +71,10 @@ export class AddIncomeComponent implements OnInit {
       date: new FormControl(this.currentDate, [Validators.required]),
       amount: new FormControl(0, [Validators.min(0)])
     });
+  }
+
+  ngAfterViewInit(): void {
+    setTimeout(() => this.nameInput?.nativeElement.focus());
   }
 
   saveIncome() {
