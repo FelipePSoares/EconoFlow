@@ -27,5 +27,10 @@ namespace EasyFinance.Application.Features.NotificationService
         /// </summary>
         Task<AppResponse> ActionMadeAsync(Guid userId, NotificationType type);
         Task<AppResponse<Notification>> GetAsync(Guid notificationId, CancellationToken stoppingToken);
+        Task<AppResponse<Notification>> TryClaimEmailDeliveryAsync(Guid notificationId, TimeSpan leaseDuration, CancellationToken stoppingToken);
+        Task<AppResponse<ICollection<Guid>>> GetEmailDeliveryCandidatesAsync(int batchSize, CancellationToken stoppingToken);
+        Task<AppResponse> MarkEmailDeliverySucceededAsync(Guid notificationId, CancellationToken stoppingToken);
+        Task<AppResponse> MarkEmailDeliveryAsPendingAsync(Guid notificationId, CancellationToken stoppingToken);
+        Task<AppResponse> MarkEmailDeliveryAsFailedAsync(Guid notificationId, CancellationToken stoppingToken);
     }
 }

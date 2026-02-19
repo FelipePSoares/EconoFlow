@@ -82,11 +82,11 @@ namespace EasyFinance.Application.Features.NotificationService
                 .Include(n => n.User)
                 .FirstOrDefaultAsync(n => n.User.Id == userId && n.Id == notificationId);
 
-            if (notification.IsActionRequired)
-                return AppResponse.Error(ValidationMessages.NotificationActionRequired);
-
             if (notification == null)
                 return AppResponse.Error(ValidationMessages.NotificationNotFound);
+
+            if (notification.IsActionRequired)
+                return AppResponse.Error(ValidationMessages.NotificationActionRequired);
 
             notification.MarkAsRead();
 
@@ -135,10 +135,125 @@ namespace EasyFinance.Application.Features.NotificationService
         {
             var notification = await this.unitOfWork.NotificationRepository
                 .NoTrackable()
+                .IgnoreQueryFilters()
                 .Include(n => n.User)
                 .FirstOrDefaultAsync(n => n.Id == notificationId, stoppingToken);
 
+            if (notification == null)
+                return AppResponse<Notification>.Error(ValidationMessages.NotificationNotFound);
+
             return AppResponse<Notification>.Success(notification);
+        }
+
+        public async Task<AppResponse<Notification>> TryClaimEmailDeliveryAsync(Guid notificationId, TimeSpan leaseDuration, CancellationToken stoppingToken)
+        {
+            var utcNow = DateTime.UtcNow;
+            var lockUntil = utcNow.Add(leaseDuration);
+            int affectedRows;
+            try
+            {
+                affectedRows = await this.unitOfWork.NotificationRepository
+                    .Trackable()
+                    .IgnoreQueryFilters()
+                    .Where(n => n.Id == notificationId)
+                    .Where(n =>
+                        n.EmailStatus == NotificationChannelDeliveryStatus.Pending
+                        || (n.EmailStatus == NotificationChannelDeliveryStatus.Processing
+                            && (!n.EmailLockedUntil.HasValue || n.EmailLockedUntil.Value <= utcNow)))
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(n => n.EmailStatus, NotificationChannelDeliveryStatus.Processing)
+                        .SetProperty(n => n.EmailLockedUntil, lockUntil), stoppingToken);
+            }
+            catch (InvalidOperationException)
+            {
+                var notificationToClaim = await this.unitOfWork.NotificationRepository
+                    .Trackable()
+                    .IgnoreQueryFilters()
+                    .Include(n => n.User)
+                    .FirstOrDefaultAsync(n => n.Id == notificationId, stoppingToken);
+
+                if (notificationToClaim == null)
+                    return AppResponse<Notification>.Error(ValidationMessages.NotificationNotFound);
+
+                var canClaim = notificationToClaim.EmailStatus == NotificationChannelDeliveryStatus.Pending
+                    || (notificationToClaim.EmailStatus == NotificationChannelDeliveryStatus.Processing
+                        && (!notificationToClaim.EmailLockedUntil.HasValue || notificationToClaim.EmailLockedUntil.Value <= utcNow));
+
+                if (!canClaim)
+                    return AppResponse<Notification>.Error("Notification email is not available for claim.");
+
+                notificationToClaim.SetEmailAsProcessing(lockUntil);
+
+                var saveClaim = unitOfWork.NotificationRepository.InsertOrUpdate(notificationToClaim);
+                if (saveClaim.Failed)
+                    return AppResponse<Notification>.Error(saveClaim.Messages);
+
+                await unitOfWork.CommitAsync();
+                affectedRows = 1;
+            }
+
+            if (affectedRows == 0)
+                return AppResponse<Notification>.Error("Notification email is not available for claim.");
+
+            var notification = await this.unitOfWork.NotificationRepository
+                .NoTrackable()
+                .IgnoreQueryFilters()
+                .Include(n => n.User)
+                .FirstOrDefaultAsync(n => n.Id == notificationId, stoppingToken);
+
+            if (notification == null)
+                return AppResponse<Notification>.Error(ValidationMessages.NotificationNotFound);
+
+            return AppResponse<Notification>.Success(notification);
+        }
+
+        public async Task<AppResponse<ICollection<Guid>>> GetEmailDeliveryCandidatesAsync(int batchSize, CancellationToken stoppingToken)
+        {
+            var utcNow = DateTime.UtcNow;
+
+            var notificationIds = await this.unitOfWork.NotificationRepository
+                .NoTrackable()
+                .IgnoreQueryFilters()
+                .Where(n =>
+                    n.EmailStatus == NotificationChannelDeliveryStatus.Pending
+                    || (n.EmailStatus == NotificationChannelDeliveryStatus.Processing
+                        && (!n.EmailLockedUntil.HasValue || n.EmailLockedUntil.Value <= utcNow)))
+                .OrderBy(n => n.CreatedDate)
+                .Take(batchSize)
+                .Select(n => n.Id)
+                .ToListAsync(stoppingToken);
+
+            return AppResponse<ICollection<Guid>>.Success(notificationIds);
+        }
+
+        public Task<AppResponse> MarkEmailDeliverySucceededAsync(Guid notificationId, CancellationToken stoppingToken)
+            => UpdateEmailDeliveryStatusAsync(notificationId, n => n.MarkEmailAsSent(), stoppingToken);
+
+        public Task<AppResponse> MarkEmailDeliveryAsPendingAsync(Guid notificationId, CancellationToken stoppingToken)
+            => UpdateEmailDeliveryStatusAsync(notificationId, n => n.MarkEmailAsPending(), stoppingToken);
+
+        public Task<AppResponse> MarkEmailDeliveryAsFailedAsync(Guid notificationId, CancellationToken stoppingToken)
+            => UpdateEmailDeliveryStatusAsync(notificationId, n => n.MarkEmailAsFailed(), stoppingToken);
+
+        private async Task<AppResponse> UpdateEmailDeliveryStatusAsync(Guid notificationId, Action<Notification> updateStatus, CancellationToken stoppingToken)
+        {
+            var notification = await this.unitOfWork.NotificationRepository
+                .Trackable()
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(n => n.Id == notificationId, stoppingToken);
+
+            if (notification == null)
+                return AppResponse.Error(ValidationMessages.NotificationNotFound);
+
+            updateStatus(notification);
+
+            var savedNotification = unitOfWork.NotificationRepository.InsertOrUpdate(notification);
+            if (savedNotification.Failed)
+                return AppResponse.Error(savedNotification.Messages);
+
+            await unitOfWork.CommitAsync();
+
+            return AppResponse.Success();
         }
     }
 }
