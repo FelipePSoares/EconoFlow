@@ -6,3 +6,7 @@
     display: inline-block;
     margin: 8px 24px;
 }
+
+.project-suffix {
+  font-weight: 500;
+}

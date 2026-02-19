@@ -44,6 +44,7 @@ import { Category } from '../../../core/models/category';
       MatTableModule,
       TranslateModule
     ],
+    providers: [CurrencyFormatPipe],
     templateUrl: './detail-project.component.html',
     styleUrl: './detail-project.component.scss'
 })
@@ -127,7 +128,8 @@ export class DetailProjectComponent implements OnInit {
     private dialog: MatDialog,
     private currentDateService: CurrentDateService,
     private globalService: GlobalService,
-    private translateService: TranslateService
+    private translateService: TranslateService,
+    private currencyFormatPipe: CurrencyFormatPipe
   ) {
   }
 
@@ -237,7 +239,7 @@ export class DetailProjectComponent implements OnInit {
   }
 
   private fillYearCharts(selectedDate: Date, categoriesInRange: Category[]): void {
-    const formatter = new Intl.DateTimeFormat(this.globalService.currentLanguage, { month: 'short' });
+    const formatter = new Intl.DateTimeFormat(this.globalService.currentFormattingLocale, { month: 'short' });
     const monthDates = Array.from({ length: 3 }, (_, index) => {
       const offset = index - 2;
       return new Date(selectedDate.getFullYear(), selectedDate.getMonth() + offset, 1);
@@ -405,12 +407,7 @@ export class DetailProjectComponent implements OnInit {
   }
 
   private formatCurrency(value: number): string {
-    return new Intl.NumberFormat(this.globalService.currentLanguage, {
-      style: 'currency',
-      currency: this.globalService.currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(value);
+    return this.currencyFormatPipe.transform(value, true) || '';
   }
 
   private roundAmount(value: number | undefined): number {

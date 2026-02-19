@@ -30,6 +30,7 @@ interface CategoryInsight {
     CurrencyFormatPipe,
     ReturnButtonComponent
   ],
+  providers: [CurrencyFormatPipe],
   templateUrl: './annual-overview.component.html',
   styleUrl: './annual-overview.component.css'
 })
@@ -116,7 +117,8 @@ export class AnnualOverviewComponent implements OnInit {
     private incomeService: IncomeService,
     private categoryService: CategoryService,
     private translateService: TranslateService,
-    private router: Router
+    private router: Router,
+    private currencyFormatPipe: CurrencyFormatPipe
   ) { }
 
   ngOnInit(): void {
@@ -176,7 +178,7 @@ export class AnnualOverviewComponent implements OnInit {
   }
 
   private getMonthlyIncomeExpenseBreakdown(year: number): Observable<{ labels: string[]; incomes: number[]; expenses: number[] }> {
-    const formatter = new Intl.DateTimeFormat(this.globalService.currentLanguage, { month: 'short' });
+    const formatter = new Intl.DateTimeFormat(this.globalService.currentFormattingLocale, { month: 'short' });
     const startDate = new Date(year, 0, 1);
     const endDate = new Date(year + 1, 0, 1);
     const monthDates = Array.from({ length: 12 }, (_, monthIndex) => new Date(year, monthIndex, 1));
@@ -299,12 +301,7 @@ export class AnnualOverviewComponent implements OnInit {
   }
 
   private formatCurrency(value: number): string {
-    return new Intl.NumberFormat(this.globalService.currentLanguage, {
-      style: 'currency',
-      currency: this.globalService.currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(value);
+    return this.currencyFormatPipe.transform(value, true) || '';
   }
 
   private roundAmount(value: number | undefined): number {

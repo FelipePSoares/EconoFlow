@@ -16,7 +16,7 @@ import { ExpenseDto } from '../models/expense-dto';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.component';
-import { MatNativeDateModule } from '@angular/material/core';
+import { DateAdapter, MatNativeDateModule } from '@angular/material/core';
 import { formatDate } from '../../../core/utils/date';
 import { GlobalService } from '../../../core/services/global.service';
 import { CurrentDateService } from '../../../core/services/current-date.service';
@@ -72,7 +72,8 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
     private snackBar: SnackbarComponent,
     private globalService: GlobalService,
     private translateService: TranslateService,
-    private currentDateService: CurrentDateService
+    private currentDateService: CurrentDateService,
+    private dateAdapter: DateAdapter<Date>
   ) {
     this.thousandSeparator = this.globalService.groupSeparator;
     this.decimalSeparator = this.globalService.decimalSeparator;
@@ -80,6 +81,8 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
    }
 
   ngOnInit(): void {
+    this.dateAdapter.setLocale(this.globalService.currentFormattingLocale);
+
     this.currentDate = new Date();
     if (this.currentDateService.currentDate.getFullYear() !== this.currentDate.getFullYear() || this.currentDateService.currentDate.getMonth() !== this.currentDate.getMonth()) {
       this.currentDate = this.currentDateService.currentDate;

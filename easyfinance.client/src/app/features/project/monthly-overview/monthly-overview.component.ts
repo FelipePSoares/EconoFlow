@@ -39,6 +39,7 @@ interface ExpenseEntry {
     ReturnButtonComponent,
     CurrentDateComponent
   ],
+  providers: [CurrencyFormatPipe],
   templateUrl: './monthly-overview.component.html',
   styleUrl: './monthly-overview.component.scss'
 })
@@ -127,7 +128,8 @@ export class MonthlyOverviewComponent implements OnInit {
     private categoryService: CategoryService,
     private globalService: GlobalService,
     private translateService: TranslateService,
-    private currentDateService: CurrentDateService
+    private currentDateService: CurrentDateService,
+    private currencyFormatPipe: CurrencyFormatPipe
   ) { }
 
   ngOnInit(): void {
@@ -352,12 +354,7 @@ export class MonthlyOverviewComponent implements OnInit {
   }
 
   private formatCurrency(value: number): string {
-    return new Intl.NumberFormat(this.globalService.currentLanguage, {
-      style: 'currency',
-      currency: this.globalService.currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(value);
+    return this.currencyFormatPipe.transform(value, true) || '';
   }
 
   private roundAmount(value: number | undefined): number {

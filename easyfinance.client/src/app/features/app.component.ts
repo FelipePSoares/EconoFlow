@@ -66,6 +66,7 @@ export const MY_FORMATS = {
 export class AppComponent {
   private router = inject(Router);
   private dialog = inject(MatDialog);
+  private dateAdapter = inject(DateAdapter);
   private versionCheckService = inject(VersionCheckService);
   private canonicalService = inject(CanonicalService);
   private noticationService = inject(NotificationService);
@@ -79,6 +80,7 @@ export class AppComponent {
   supportedLanguages = this.globalService.supportedLanguages;
   selectedLanguage = this.globalService.currentLanguage;
   selectedProjectId: string | null = null;
+  selectedProjectName: string | null = null;
   addButtons = ['income', 'expense', 'expense item'];
 
   constructor() {
@@ -86,6 +88,16 @@ export class AppComponent {
       this.versionCheckService.init();
       const authService = inject(AuthService);
       this.isSignedIn$ = authService.isSignedIn$;
+
+      const defaultFormattingLocale = 'pt';
+      const normalizedFormattingLocale = defaultFormattingLocale;
+
+      // Apply locale immediately so modals opened early follow the same date pattern.
+      this.dateAdapter.setLocale(normalizedFormattingLocale);
+
+      this.globalService.setFormattingLocale(defaultFormattingLocale).then(() => {
+        this.dateAdapter.setLocale(this.globalService.currentFormattingLocale);
+      });
 
       authService.isSignedIn$.subscribe(isSignedIn => {
         if (isSignedIn) {
@@ -96,12 +108,12 @@ export class AppComponent {
 
       this.projectService.selectedUserProject$.subscribe(userProject => {
         this.selectedProjectId = userProject?.project?.id ?? null;
+        this.selectedProjectName = userProject?.project?.name ?? null;
       });
 
       firstValueFrom(this.appRef.isStable.pipe(filter(Boolean))).then(async () => {
         const storageLanguage = localStorage.getItem(this.globalService.languageStorageKey);
-
-        const locale = storageLanguage || navigator.language || this.globalService.currentLanguage || 'en';
+        const locale = storageLanguage || this.globalService.currentLanguage || 'en';
         await this.globalService.setLocale(locale);
         this.selectedLanguage = this.globalService.currentLanguage;
       });
@@ -152,7 +164,10 @@ export class AppComponent {
     this.router.navigate([{ outlets: { modal: modalRoute } }]);
 
     this.dialog.open(PageModalComponent, {
-      autoFocus: false
+      autoFocus: false,
+      data: {
+        titleSuffix: this.selectedProjectName
+      }
     }).afterClosed().subscribe(() => {
       this.router.navigate([{ outlets: { modal: null } }]);
     });

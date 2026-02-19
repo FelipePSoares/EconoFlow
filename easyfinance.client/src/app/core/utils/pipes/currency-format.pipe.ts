@@ -14,6 +14,6 @@ export class CurrencyFormatPipe implements PipeTransform {
 
     const digitsInfo = hideDecimals ? '1.0-0' : '1.2-2';
 
-    return this.currencyPipe.transform(amount, this.globalService.currency, "symbol", digitsInfo, this.globalService.currentLanguage);
+    return this.currencyPipe.transform(amount, this.globalService.currency, "symbol", digitsInfo, this.globalService.currentFormattingLocale);
   }
 }

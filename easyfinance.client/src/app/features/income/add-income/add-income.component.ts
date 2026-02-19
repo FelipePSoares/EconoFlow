@@ -7,7 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { DateAdapter, MatNativeDateModule } from '@angular/material/core';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
 import { TranslateModule } from '@ngx-translate/core';
 import { IncomeService } from '../../../core/services/income.service';
@@ -53,7 +53,8 @@ export class AddIncomeComponent implements OnInit, AfterViewInit {
     private router: Router,
     private errorMessageService: ErrorMessageService,
     private globalService: GlobalService,
-    private currentDateService: CurrentDateService
+    private currentDateService: CurrentDateService,
+    private dateAdapter: DateAdapter<Date>
   ) {
     this.thousandSeparator = this.globalService.groupSeparator;
     this.decimalSeparator = this.globalService.decimalSeparator;
@@ -61,6 +62,8 @@ export class AddIncomeComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
+    this.dateAdapter.setLocale(this.globalService.currentFormattingLocale);
+
     this.currentDate = new Date();
     if (this.currentDateService.currentDate.getFullYear() !== this.currentDate.getFullYear() || this.currentDateService.currentDate.getMonth() !== this.currentDate.getMonth()) {
       this.currentDate = this.currentDateService.currentDate;

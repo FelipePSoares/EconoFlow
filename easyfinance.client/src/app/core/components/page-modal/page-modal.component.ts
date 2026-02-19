@@ -1,7 +1,7 @@
 
-import { Component, OnDestroy } from '@angular/core';
+import { Component, Inject, OnDestroy, Optional } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialogContent, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogContent, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
@@ -24,16 +24,19 @@ export class PageModalComponent implements OnDestroy {
   private routeSub2: Subscription;
 
   title = '';
+  titleSuffix = '';
   hasClose = true;
 
   constructor(
     private dialogRef: MatDialogRef<PageModalComponent>,
     private router: Router,
-    private route: ActivatedRoute) {
+    private route: ActivatedRoute,
+    @Optional() @Inject(MAT_DIALOG_DATA) private dialogData?: { titleSuffix?: string }) {
 
     this.routeSub2 = this.router.events.subscribe(() => {
       const outletRoute = this.router.routerState.root.children.find(route => route.outlet === 'modal');
       this.title = outletRoute?.snapshot?.data['title'] || '';
+      this.titleSuffix = this.dialogData?.titleSuffix?.trim() ?? '';
       this.hasClose = outletRoute?.snapshot?.data['hasCloseButton'] ?? true;
       this.dialogRef.disableClose = !this.hasClose;
     });

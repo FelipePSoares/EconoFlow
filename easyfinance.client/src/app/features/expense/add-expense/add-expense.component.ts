@@ -8,7 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { DateAdapter, MatNativeDateModule } from '@angular/material/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { ExpenseService } from '../../../core/services/expense.service';
 import { ExpenseDto } from '../models/expense-dto';
@@ -63,7 +63,8 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
     private router: Router,
     private errorMessageService: ErrorMessageService,
     private globalService: GlobalService,
-    private currentDateService: CurrentDateService
+    private currentDateService: CurrentDateService,
+    private dateAdapter: DateAdapter<Date>
   ) {
     this.thousandSeparator = this.globalService.groupSeparator;
     this.decimalSeparator = this.globalService.decimalSeparator
@@ -71,6 +72,8 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
+    this.dateAdapter.setLocale(this.globalService.currentFormattingLocale);
+
     this.currentDate = new Date();
     if (this.currentDateService.currentDate.getFullYear() !== this.currentDate.getFullYear() || this.currentDateService.currentDate.getMonth() !== this.currentDate.getMonth()) {
       this.currentDate = this.currentDateService.currentDate;
