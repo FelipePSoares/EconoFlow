@@ -17,23 +17,21 @@ import { MatDialog } from '@angular/material/dialog';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MatCardModule } from '@angular/material/card';
 import { ExpenseDto } from '../models/expense-dto';
-import { Expense } from '../../../core/models/expense';
 import { ExpenseService } from '../../../core/services/expense.service';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
-import { formatDate } from '../../../core/utils/date';
+import { formatDate, toLocalNoonDate } from '../../../core/utils/date';
 import { ErrorMessageService } from 'src/app/core/services/error-message.service';
 import { GlobalService } from '../../../core/services/global.service';
-import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
 import { UserProjectDto } from '../../project/models/user-project-dto';
 import { ProjectService } from '../../../core/services/project.service';
 import { Role } from '../../../core/enums/Role';
 import { CategoryDto } from '../../category/models/category-dto';
 import { CategoryService } from '../../../core/services/category.service';
-import { Category } from '../../../core/models/category';
 import { BudgetBarComponent } from '../../../core/components/budget-bar/budget-bar.component';
 import { ExpenseItemComponent } from '../expense-item/expense-item.component';
+import { ExpenseItemDto } from '../models/expense-item-dto';
 import { CurrentDateService } from '../../../core/services/current-date.service';
 
 @Component({
@@ -61,7 +59,7 @@ import { CurrentDateService } from '../../../core/services/current-date.service'
 export class ListExpensesComponent implements OnInit {
   private expandedExpenses: Set<string> = new Set<string>();
 
-  private expenses: BehaviorSubject<ExpenseDto[]> = new BehaviorSubject<ExpenseDto[]>([new ExpenseDto()]);
+  private expenses: BehaviorSubject<ExpenseDto[]> = new BehaviorSubject<ExpenseDto[]>([]);
   expenses$: Observable<ExpenseDto[]> = this.expenses.asObservable();
 
   private category: BehaviorSubject<CategoryDto> = new BehaviorSubject<CategoryDto>(new CategoryDto());
@@ -156,20 +154,47 @@ export class ListExpensesComponent implements OnInit {
 
   save(): void {
     if (this.expenseForm.valid) {
+      this.httpErrors = false;
       const id = this.id?.value;
       const name = this.name?.value;
       const date: any = formatDate(this.date?.value);
       const amount = this.amount?.value;
       const budget = this.budget?.value;
+      const isNewExpense = this.isNewEntity(id);
 
       const newExpense = ({
-        id: id,
+        id: isNewExpense ? undefined : id,
         name: name,
         date: date,
         amount: amount === "" || amount === null ? 0 : amount,
         budget: budget === "" || budget === null ? 0 : budget,
         items: this.editingExpense.items
       }) as ExpenseDto;
+
+      if (isNewExpense) {
+        this.expenseService.add(this.projectId, this.categoryId, newExpense).subscribe({
+          next: response => {
+            const expensesNewArray = [...this.expenses.getValue()];
+            const index = expensesNewArray.findIndex(item => item.id === id);
+
+            if (index !== -1) {
+              expensesNewArray[index] = ExpenseDto.fromExpense(response);
+              this.expenses.next(expensesNewArray);
+            } else {
+              this.fillData(this.currentDateService.currentDate);
+            }
+
+            this.editingExpense = new ExpenseDto();
+          },
+          error: (response: ApiErrorResponse) => {
+            this.httpErrors = true;
+            this.errors = response.errors;
+
+            this.errorMessageService.setFormErrors(this.expenseForm, this.errors);
+          }
+        });
+        return;
+      }
 
       const patch = compare(this.editingExpense, newExpense);
 
@@ -209,6 +234,13 @@ export class ListExpensesComponent implements OnInit {
   }
 
   cancelEdit(): void {
+    if (this.isNewEntity(this.editingExpense.id)) {
+      const expensesNewArray = this.expenses
+        .getValue()
+        .filter(item => item.id !== this.editingExpense.id);
+      this.expenses.next(expensesNewArray);
+    }
+
     this.editingExpense = new ExpenseDto();
   }
 
@@ -243,19 +275,20 @@ export class ListExpensesComponent implements OnInit {
   }
 
   add(): void {
-    this.router.navigate([{ outlets: { modal: ['projects', this.projectId, 'categories', this.categoryId, 'add-expense'] } }]);
+    this.httpErrors = false;
+    const expensesNewArray = [...this.expenses.getValue()];
 
-    this.dialog.open(PageModalComponent, {
-      autoFocus: 'input',
-      data: {
-        title: this.translateService.instant('CreateExpense')
-      }
-    }).afterClosed().subscribe((result) => {
-      if (result) {
-        this.fillData(this.currentDateService.currentDate);
-      }
-      this.router.navigate([{ outlets: { modal: null } }]);
-    });
+    const newExpense = new ExpenseDto();
+    newExpense.id = this.generateTempId('expense');
+    newExpense.name = '';
+    newExpense.date = toLocalNoonDate(this.currentDateService.currentDate);
+    newExpense.amount = 0;
+    newExpense.budget = 0;
+    newExpense.items = [];
+
+    expensesNewArray.push(newExpense);
+    this.expenses.next(expensesNewArray);
+    this.edit(newExpense);
   }
 
   previous() {
@@ -304,6 +337,10 @@ export class ListExpensesComponent implements OnInit {
     return (this.userProject.role === Role.Admin || this.userProject.role === Role.Manager) && !this.isArchived;
   }
 
+  canAddExpenseItem(expense: ExpenseDto): boolean {
+    return this.canAddOrEdit() && !this.isNewEntity(expense.id);
+  }
+
   toggleExpand(expenseId: string) {
     if (this.expandedExpenses.has(expenseId)) {
       this.expandedExpenses.delete(expenseId);
@@ -316,20 +353,35 @@ export class ListExpensesComponent implements OnInit {
     return this.expandedExpenses.has(expenseId);
   }
 
-  addSubExpense(parentExpense: Expense) {
-    this.router.navigate([{ outlets: { modal: ['projects', this.projectId, 'categories', this.categoryId, 'expenses', parentExpense.id, 'add-expense-item'] } }]);
+  addSubExpense(parentExpense: ExpenseDto): void {
+    if (this.isNewEntity(parentExpense.id)) {
+      return;
+    }
 
-    this.dialog.open(PageModalComponent, {
-      autoFocus: 'input'
-    }).afterClosed().subscribe((result) => {
-      if (result) {
-        this.fillData(this.currentDateService.currentDate);
-      }
-      this.router.navigate([{ outlets: { modal: null } }]);
-    });
+    const newSubExpense = new ExpenseItemDto();
+    newSubExpense.id = this.generateTempId('expense-item');
+    newSubExpense.name = '';
+    newSubExpense.date = toLocalNoonDate(this.currentDateService.currentDate);
+    newSubExpense.amount = 0;
+    newSubExpense.items = [];
+
+    if (!parentExpense.items) {
+      parentExpense.items = [];
+    }
+
+    parentExpense.items.push(newSubExpense);
+    this.expandedExpenses.add(parentExpense.id);
   }
 
   updateExpense(): void {
     this.fillData(this.currentDateService.currentDate);
+  }
+
+  private isNewEntity(id: string | undefined): boolean {
+    return !!id && id.startsWith('new-');
+  }
+
+  private generateTempId(prefix: string): string {
+    return `new-${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
   }
 }

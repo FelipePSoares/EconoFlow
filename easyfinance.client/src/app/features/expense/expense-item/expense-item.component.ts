@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -37,7 +37,7 @@ import { MatButtonModule } from '@angular/material/button';
   templateUrl: './expense-item.component.html',
   styleUrl: './expense-item.component.css'
 })
-export class ExpenseItemComponent {
+export class ExpenseItemComponent implements OnInit {
   @Input({ required: true })
   projectId!: string;
 
@@ -83,6 +83,44 @@ export class ExpenseItemComponent {
       const name = this.name?.value;
       const date: any = formatDate(this.date?.value);
       const amount = this.amount?.value;
+      const parsedAmount = amount === "" || amount === null ? 0 : amount;
+      const isNewSubExpense = this.isNewEntity(id);
+
+      if (isNewSubExpense) {
+        const newExpenseItem = ({
+          name: name,
+          date: date,
+          amount: parsedAmount,
+          items: []
+        }) as unknown as ExpenseItemDto;
+
+        const baseExpense = structuredClone(this.expense) as ExpenseDto;
+        baseExpense.items = baseExpense.items.filter(item => item.id !== id);
+
+        const newExpense = structuredClone(baseExpense);
+        newExpense.items.push(newExpenseItem);
+
+        const patch = compare(baseExpense, newExpense);
+
+        this.expenseService.update(this.projectId, this.categoryId, this.expense.id, patch).subscribe({
+          next: () => {
+            this.expenseUpdateEvent.emit();
+            this.editingSubExpense = new ExpenseItemDto();
+          },
+          error: (response: ApiErrorResponse) => {
+            this.httpErrors = true;
+            this.errors = {};
+
+            Object.entries(response.errors).forEach(([key, value]) => {
+              const newKey = key.replace(/^Items\.\d+\./, '').replace(/^Items\./, '');
+              this.errors[newKey] = value;
+            });
+
+            this.errorMessageService.setFormErrors(this.expenseItemForm, this.errors);
+          }
+        });
+        return;
+      }
 
       const expenseItemsNewArray: ExpenseItemDto[] = JSON.parse(JSON.stringify(this.expense.items));
 
@@ -90,7 +128,7 @@ export class ExpenseItemComponent {
         if (expenseItem.id == id) {
           expenseItem.name = name;
           expenseItem.date = date;
-          expenseItem.amount = amount === "" || amount === null ? 0 : amount;
+          expenseItem.amount = parsedAmount;
         }
       })
 
@@ -121,6 +159,7 @@ export class ExpenseItemComponent {
   }
 
   edit(expenseItem: ExpenseItemDto): void {
+    this.httpErrors = false;
     this.editingSubExpense = expenseItem;
     const newDate = new Date(expenseItem.date);
     this.expenseItemForm = new FormGroup({
@@ -132,6 +171,10 @@ export class ExpenseItemComponent {
   }
 
   cancelEdit(): void {
+    if (this.isNewEntity(this.editingSubExpense.id)) {
+      this.expense.items = this.expense.items.filter(item => item.id !== this.editingSubExpense.id);
+    }
+
     this.editingSubExpense = new ExpenseItemDto();
   }
 
@@ -178,5 +221,15 @@ export class ExpenseItemComponent {
 
   get amount() {
     return this.expenseItemForm.get('amount');
+  }
+
+  ngOnInit(): void {
+    if (this.isNewEntity(this.subExpense.id)) {
+      this.edit(this.subExpense);
+    }
+  }
+
+  private isNewEntity(id: string | undefined): boolean {
+    return !!id && id.startsWith('new-');
   }
 }
