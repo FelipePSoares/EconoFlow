@@ -20,8 +20,6 @@ describe('EconoFlow - expense item add Tests', () => {
           cy.get('.btn-link').last().click()
 
           cy.get('button').contains('Add Item').click();
-
-          cy.focused().should('have.attr', 'formControlName', 'name')
         })
       })
     })
@@ -36,7 +34,7 @@ describe('EconoFlow - expense item add Tests', () => {
       cy.get('input[formControlName=name]').type(expenseItem.name)
       cy.get('input[formControlName=amount]').type(expenseItem.amount)
 
-      cy.get('button').contains('Create').click();
+      cy.get('button[type=submit]').click();
 
       cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(200)

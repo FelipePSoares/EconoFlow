@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, ElementRef, EventEmitter, inject, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -18,6 +18,7 @@ import { GlobalService } from '../../../core/services/global.service';
 import { formatDate } from '../../../core/utils/date';
 import { MatInput } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.component';
 
 @Component({
   selector: 'app-expense-item',
@@ -37,7 +38,14 @@ import { MatButtonModule } from '@angular/material/button';
   templateUrl: './expense-item.component.html',
   styleUrl: './expense-item.component.css'
 })
-export class ExpenseItemComponent {
+export class ExpenseItemComponent implements OnInit {
+  private expenseService = inject(ExpenseService);
+  private translateService = inject(TranslateService);
+  private dialog = inject(MatDialog);
+  private errorMessageService = inject(ErrorMessageService);
+  private globalService = inject(GlobalService);
+  private snackBar = inject(SnackbarComponent);
+
   @Input({ required: true })
   projectId!: string;
 
@@ -56,6 +64,9 @@ export class ExpenseItemComponent {
   @Output()
   expenseUpdateEvent = new EventEmitter();
 
+  @ViewChild('nameInput')
+  nameInput?: ElementRef<HTMLInputElement>;
+
   expenseItemForm!: FormGroup;
   editingSubExpense: ExpenseItemDto = new ExpenseItemDto();
 
@@ -65,13 +76,7 @@ export class ExpenseItemComponent {
   httpErrors = false;
   errors!: Record<string, string[]>;
 
-  constructor(
-    private expenseService: ExpenseService,
-    private translateService: TranslateService,
-    private dialog: MatDialog,
-    private errorMessageService: ErrorMessageService,
-    private globalService: GlobalService
-  ) {
+  constructor() {
     this.thousandSeparator = this.globalService.groupSeparator;
     this.decimalSeparator = this.globalService.decimalSeparator;
     this.currencySymbol = this.globalService.currencySymbol;
@@ -83,6 +88,45 @@ export class ExpenseItemComponent {
       const name = this.name?.value;
       const date: any = formatDate(this.date?.value);
       const amount = this.amount?.value;
+      const parsedAmount = amount === "" || amount === null ? 0 : amount;
+      const isNewSubExpense = this.isNewEntity(id);
+
+      if (isNewSubExpense) {
+        const newExpenseItem = ({
+          name: name,
+          date: date,
+          amount: parsedAmount,
+          items: []
+        }) as unknown as ExpenseItemDto;
+
+        const baseExpense = structuredClone(this.expense) as ExpenseDto;
+        baseExpense.items = baseExpense.items.filter(item => item.id !== id);
+
+        const newExpense = structuredClone(baseExpense);
+        newExpense.items.push(newExpenseItem);
+
+        const patch = compare(baseExpense, newExpense);
+
+        this.expenseService.update(this.projectId, this.categoryId, this.expense.id, patch).subscribe({
+          next: () => {
+            this.snackBar.openSuccessSnackbar(this.translateService.instant('CreatedSuccess'));
+            this.expenseUpdateEvent.emit();
+            this.editingSubExpense = new ExpenseItemDto();
+          },
+          error: (response: ApiErrorResponse) => {
+            this.httpErrors = true;
+            this.errors = {};
+
+            Object.entries(response.errors).forEach(([key, value]) => {
+              const newKey = key.replace(/^Items\.\d+\./, '').replace(/^Items\./, '');
+              this.errors[newKey] = value;
+            });
+
+            this.errorMessageService.setFormErrors(this.expenseItemForm, this.errors);
+          }
+        });
+        return;
+      }
 
       const expenseItemsNewArray: ExpenseItemDto[] = JSON.parse(JSON.stringify(this.expense.items));
 
@@ -90,7 +134,7 @@ export class ExpenseItemComponent {
         if (expenseItem.id == id) {
           expenseItem.name = name;
           expenseItem.date = date;
-          expenseItem.amount = amount === "" || amount === null ? 0 : amount;
+          expenseItem.amount = parsedAmount;
         }
       })
 
@@ -121,6 +165,7 @@ export class ExpenseItemComponent {
   }
 
   edit(expenseItem: ExpenseItemDto): void {
+    this.httpErrors = false;
     this.editingSubExpense = expenseItem;
     const newDate = new Date(expenseItem.date);
     this.expenseItemForm = new FormGroup({
@@ -132,6 +177,10 @@ export class ExpenseItemComponent {
   }
 
   cancelEdit(): void {
+    if (this.isNewEntity(this.editingSubExpense.id)) {
+      this.expense.items = this.expense.items.filter(item => item.id !== this.editingSubExpense.id);
+    }
+
     this.editingSubExpense = new ExpenseItemDto();
   }
 
@@ -178,5 +227,20 @@ export class ExpenseItemComponent {
 
   get amount() {
     return this.expenseItemForm.get('amount');
+  }
+
+  ngOnInit(): void {
+    if (this.isNewEntity(this.subExpense.id)) {
+      this.edit(this.subExpense);
+      this.focusNameInput();
+    }
+  }
+
+  private isNewEntity(id: string | undefined): boolean {
+    return !!id && id.startsWith('new-');
+  }
+
+  private focusNameInput(): void {
+    setTimeout(() => this.nameInput?.nativeElement?.focus());
   }
 }

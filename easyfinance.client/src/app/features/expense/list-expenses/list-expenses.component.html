@@ -52,7 +52,7 @@
                           <div class="col-md-6">
                             <mat-form-field appearance="fill" class="w-100">
                               <mat-label>{{ 'FieldExpenseName' | translate }} </mat-label>
-                              <input matInput id="name" placeholder="{{ 'PlaceholderExpenseName' | translate }}" formControlName="name"
+                              <input matInput #nameInput id="name" placeholder="{{ 'PlaceholderExpenseName' | translate }}" formControlName="name"
                                 [class.is-invalid]="name?.invalid && name?.touched">
                               @if ((name?.invalid && name?.touched) || httpErrors){
                                 @for (error of getFormFieldErrors('name'); track error) {
@@ -136,7 +136,7 @@
                         (expenseUpdateEvent)="updateExpense()">
                       </app-expense-item>
                     }
-                    @if (canAddOrEdit()){
+                    @if (canAddExpenseItem(expense)){
                       <div class="mt-2">
                         <button class="btn btn-sm btn-outline-primary" (click)="addSubExpense(expense)">
                           <i class="bi bi-plus me-1"></i>
