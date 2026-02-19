@@ -10,6 +10,9 @@ namespace EasyFinance.Persistence.Mapping.Financial
         {
             builder.ToTable("Attachments");
 
+            // Keep Attachment and User filters aligned to avoid required-navigation filter mismatch.
+            builder.HasQueryFilter(p => p.CreatedBy.Enabled);
+
             builder.Property(p => p.Name)
                 .HasMaxLength(150)
                 .IsRequired();

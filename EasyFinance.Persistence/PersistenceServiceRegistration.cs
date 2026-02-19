@@ -20,7 +20,8 @@ namespace EasyFinance.Persistence
             var connectionString = Environment.GetEnvironmentVariable("EasyFinanceDB") ?? string.Empty;
 
             services.AddDbContext<EasyFinanceDatabaseContext>(
-                options => options.UseSqlServer(connectionString));
+                options => options.UseSqlServer(connectionString, sqlOptions =>
+                    sqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
 
             services.AddDbContext<MyKeysContext>(
                 options => options.UseSqlServer(connectionString));

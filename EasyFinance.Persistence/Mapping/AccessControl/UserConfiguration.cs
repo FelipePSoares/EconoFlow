@@ -27,6 +27,7 @@ namespace EasyFinance.Persistence.Mapping.AccessControl
 
             builder.Property(p => p.NotificationChannels)
                 .HasDefaultValue(NotificationChannels.Email | NotificationChannels.Push)
+                .HasSentinel(NotificationChannels.None)
                 .IsRequired();
 
             builder.Property(p => p.LanguageCode)
