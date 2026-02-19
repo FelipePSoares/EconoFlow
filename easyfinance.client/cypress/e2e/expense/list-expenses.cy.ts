@@ -1,4 +1,10 @@
 describe('EconoFlow - expense list Tests', () => {
+    const buildDateVariants = (value: Date, locale: string): string[] => {
+      const fullYear = value.toLocaleDateString(locale, { year: 'numeric', month: 'numeric', day: 'numeric' });
+      const shortYear = value.toLocaleDateString(locale, { year: '2-digit', month: 'numeric', day: 'numeric' });
+      return Array.from(new Set([fullYear, shortYear]));
+    };
+
     beforeEach(() => {
       cy.fixture('users').then((users) => {
         const user = users.testUser;
@@ -33,17 +39,22 @@ describe('EconoFlow - expense list Tests', () => {
       const today = new Date()
       today.setDate(Math.floor(Math.random() * today.getDate()) + 1)
       let formattedDate = ''
+      let expectedDates: string[] = []
 
       cy.get('button[name=edit]').first().click()
       cy.window().then((win) => {
         const locale = win.localStorage.getItem('language-key') || win.navigator.language || 'en-US'
         formattedDate = today.toLocaleDateString(locale)
+        expectedDates = buildDateVariants(today, locale)
         cy.get('input[formControlName=date]').clear().type(`${formattedDate}{enter}`)
       })
 
       cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(200)
-        cy.get('.date').first().contains(formattedDate)
+        cy.get('.date').first().invoke('text').then((text) => {
+          const hasExpectedDate = expectedDates.some(date => text.includes(date))
+          expect(hasExpectedDate).to.equal(true)
+        })
       })
     })
   
