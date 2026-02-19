@@ -1,4 +1,5 @@
-import { Component, ElementRef, inject, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, inject, Input, OnInit, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { map } from 'rxjs/internal/operators/map';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
@@ -68,6 +69,7 @@ export class ListExpensesComponent implements OnInit {
   private translateService = inject(TranslateService);
   private currentDateService = inject(CurrentDateService);
   private dateAdapter = inject(DateAdapter<Date>);
+  private destroyRef = inject(DestroyRef);
 
   private expandedExpenses: Set<string> = new Set<string>();
 
@@ -105,6 +107,9 @@ export class ListExpensesComponent implements OnInit {
 
   ngOnInit(): void {
     this.dateAdapter.setLocale(this.globalService.currentLanguage);
+    this.translateService.onLangChange
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(event => this.dateAdapter.setLocale(event.lang));
 
     this.projectService.selectedUserProject$.subscribe(userProject => {
       if (userProject) {

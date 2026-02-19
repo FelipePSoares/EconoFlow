@@ -1,4 +1,5 @@
-import { Component, ElementRef, inject, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, inject, Input, OnInit, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, map } from 'rxjs';
 import { IncomeService } from 'src/app/core/services/income.service';
@@ -62,6 +63,7 @@ export class ListIncomesComponent implements OnInit {
   private translateService = inject(TranslateService);
   private currentDateService = inject(CurrentDateService);
   private dateAdapter = inject(DateAdapter<Date>);
+  private destroyRef = inject(DestroyRef);
 
   private incomes: BehaviorSubject<IncomeDto[]> = new BehaviorSubject<IncomeDto[]>([]);
   incomes$: Observable<IncomeDto[]> = this.incomes.asObservable();
@@ -73,6 +75,7 @@ export class ListIncomesComponent implements OnInit {
   decimalSeparator !: string; 
   errors!: Record<string, string[]>;
   currencySymbol!: string;
+  currentLanguage = this.globalService.currentLanguage;
   userProject!: UserProjectDto;
 
   @Input({ required: true })
@@ -89,6 +92,12 @@ export class ListIncomesComponent implements OnInit {
 
   ngOnInit(): void {
     this.dateAdapter.setLocale(this.globalService.currentLanguage);
+    this.translateService.onLangChange
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(event => {
+        this.currentLanguage = event.lang;
+        this.dateAdapter.setLocale(event.lang);
+      });
 
     this.projectService.selectedUserProject$.subscribe(userProject => {
       if (userProject) {

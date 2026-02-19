@@ -1,8 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
-import { TranslateModule } from '@ngx-translate/core';
+import { Component, DestroyRef, inject, Input, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CurrencyFormatPipe } from '../../utils/pipes/currency-format.pipe';
 import { CurrentDateService } from '../../services/current-date.service';
+import { GlobalService } from '../../services/global.service';
 
 @Component({
   selector: 'app-budget-bar',
@@ -15,6 +17,10 @@ import { CurrentDateService } from '../../services/current-date.service';
   styleUrl: './budget-bar.component.css'
 })
 export class BudgetBarComponent {
+  private globalService = inject(GlobalService);
+  private translateService = inject(TranslateService);
+  private destroyRef = inject(DestroyRef);
+
   @Input({ required: true })
   spend!: number;
   @Input({ required: true })
@@ -30,7 +36,17 @@ export class BudgetBarComponent {
   @Input()
   typeMonthOrYear = 'month';
 
+  currentLanguage = this.globalService.currentLanguage;
+
   constructor(private currentDateService: CurrentDateService) { }
+
+  ngOnInit(): void {
+    this.translateService.onLangChange
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(event => {
+        this.currentLanguage = event.lang;
+      });
+  }
 
   get weekLines(): number[] {
     if(this.checkIfCurrentMonth()) {

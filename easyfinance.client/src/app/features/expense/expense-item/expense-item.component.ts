@@ -1,4 +1,5 @@
-import { Component, ElementRef, EventEmitter, inject, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, EventEmitter, inject, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -47,6 +48,7 @@ export class ExpenseItemComponent implements OnInit {
   private globalService = inject(GlobalService);
   private snackBar = inject(SnackbarComponent);
   private dateAdapter = inject(DateAdapter<Date>);
+  private destroyRef = inject(DestroyRef);
 
   @Input({ required: true })
   projectId!: string;
@@ -75,6 +77,7 @@ export class ExpenseItemComponent implements OnInit {
   thousandSeparator!: string;
   decimalSeparator!: string;
   currencySymbol!: string;
+  currentLanguage = this.globalService.currentLanguage;
   httpErrors = false;
   errors!: Record<string, string[]>;
 
@@ -233,6 +236,12 @@ export class ExpenseItemComponent implements OnInit {
 
   ngOnInit(): void {
     this.dateAdapter.setLocale(this.globalService.currentLanguage);
+    this.translateService.onLangChange
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(event => {
+        this.currentLanguage = event.lang;
+        this.dateAdapter.setLocale(event.lang);
+      });
 
     if (this.isNewEntity(this.subExpense.id)) {
       this.edit(this.subExpense);
