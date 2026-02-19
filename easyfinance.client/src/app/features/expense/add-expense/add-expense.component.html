@@ -2,10 +2,25 @@
   <div class="row justify-content-md-center">
     <form [formGroup]="expenseForm" (ngSubmit)="save()">
 
+      <!-- Category Field -->
+      <mat-form-field appearance="fill" class="w-100">
+        <mat-label>{{ 'FieldCategoryName' | translate }}</mat-label>
+        <mat-select #categorySelect formControlName="categoryId">
+          @for (category of categories; track category.id) {
+            <mat-option [value]="category.id">{{ category.name }}</mat-option>
+          }
+        </mat-select>
+        @if (categoryIdControl?.invalid && categoryIdControl?.touched){
+          @for (error of getFormFieldErrors('categoryId'); track error) {
+            <mat-error>{{ error |  translate }}</mat-error>
+          }
+        }
+      </mat-form-field>
+
       <!-- Name Field -->
       <mat-form-field appearance="fill" class="w-100">
         <mat-label>{{ 'FieldExpenseName' | translate }} </mat-label>
-        <input matInput placeholder="{{ 'PlaceholderExpenseName' | translate }}" formControlName="name">
+        <input matInput id="name" placeholder="{{ 'PlaceholderExpenseName' | translate }}" formControlName="name">
         @if (name?.invalid && name?.touched){
           @for (error of getFormFieldErrors('name'); track error) {
             <mat-error>{{ error |  translate }}</mat-error>

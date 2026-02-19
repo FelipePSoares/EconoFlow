@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ApplicationRef, Component, inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterOutlet } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
 import { Observable } from 'rxjs/internal/Observable';
@@ -13,6 +14,8 @@ import { SpinnerComponent } from '../core/components/spinner/spinner.component';
 import { TranslateModule } from '@ngx-translate/core';
 import { VersionCheckService } from '../core/services/version-check.service';
 import { CanonicalService } from '../core/services/canonical.service';
+import { AddButtonComponent } from '../core/components/add-button/add-button.component';
+import { PageModalComponent } from '../core/components/page-modal/page-modal.component';
 
 import {
   DateAdapter,
@@ -22,6 +25,7 @@ import {
 import * as moment from 'moment';
 import { NotificationService } from '../core/services/notification.service';
 import { GlobalService } from '../core/services/global.service';
+import { ProjectService } from '../core/services/project.service';
 
 export const MY_FORMATS = {
   parse: {
@@ -43,7 +47,8 @@ export const MY_FORMATS = {
     NavBarComponent,
     SpinnerComponent,
     TranslateModule,
-    FormsModule
+    FormsModule,
+    AddButtonComponent
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
@@ -60,10 +65,12 @@ export const MY_FORMATS = {
 
 export class AppComponent {
   private router = inject(Router);
+  private dialog = inject(MatDialog);
   private versionCheckService = inject(VersionCheckService);
   private canonicalService = inject(CanonicalService);
   private noticationService = inject(NotificationService);
   private globalService = inject(GlobalService);
+  private projectService = inject(ProjectService);
   private appRef = inject(ApplicationRef);
   private platformId = inject(PLATFORM_ID);
 
@@ -71,6 +78,8 @@ export class AppComponent {
   isSignedIn$: Observable<boolean> = this.isSignedIn.asObservable();
   supportedLanguages = this.globalService.supportedLanguages;
   selectedLanguage = this.globalService.currentLanguage;
+  selectedProjectId: string | null = null;
+  addButtons = ['income', 'expense', 'expense item'];
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
@@ -83,6 +92,10 @@ export class AppComponent {
           authService.startUserPolling();
           this.noticationService.startPolling();
         }
+      });
+
+      this.projectService.selectedUserProject$.subscribe(userProject => {
+        this.selectedProjectId = userProject?.project?.id ?? null;
       });
 
       firstValueFrom(this.appRef.isStable.pipe(filter(Boolean))).then(async () => {
@@ -112,5 +125,36 @@ export class AppComponent {
     const languageCode = target.value;
 
     this.globalService.setLocale(languageCode);
+  }
+
+  addFromProject(action: string): void {
+    if (!this.selectedProjectId || action === 'default') {
+      return;
+    }
+
+    let modalRoute: string[] | null = null;
+    switch (action) {
+      case 'income':
+        modalRoute = ['projects', this.selectedProjectId, 'add-income'];
+        break;
+      case 'expense':
+        modalRoute = ['projects', this.selectedProjectId, 'add-expense'];
+        break;
+      case 'expense item':
+        modalRoute = ['projects', this.selectedProjectId, 'add-expense-item'];
+        break;
+    }
+
+    if (!modalRoute) {
+      return;
+    }
+
+    this.router.navigate([{ outlets: { modal: modalRoute } }]);
+
+    this.dialog.open(PageModalComponent, {
+      autoFocus: false
+    }).afterClosed().subscribe(() => {
+      this.router.navigate([{ outlets: { modal: null } }]);
+    });
   }
 }

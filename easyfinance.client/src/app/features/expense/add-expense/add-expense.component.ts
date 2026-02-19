@@ -1,6 +1,7 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { AfterViewInit, Component, Input, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { map } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -17,6 +18,9 @@ import { formatDate } from '../../../core/utils/date';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
 import { GlobalService } from '../../../core/services/global.service';
 import { CurrentDateService } from '../../../core/services/current-date.service';
+import { CategoryService } from '../../../core/services/category.service';
+import { CategoryDto } from '../../category/models/category-dto';
+import { MatSelect, MatSelectModule } from '@angular/material/select';
 
 @Component({
     selector: 'app-add-expense',
@@ -30,14 +34,16 @@ import { CurrentDateService } from '../../../core/services/current-date.service'
     MatDatepickerModule,
     MatNativeDateModule,
     CurrencyMaskModule,
+    MatSelectModule,
     TranslateModule
 ],
     templateUrl: './add-expense.component.html',
     styleUrl: './add-expense.component.css'
 })
-export class AddExpenseComponent implements OnInit {
+export class AddExpenseComponent implements OnInit, AfterViewInit {
   private currentDate!: Date;
   expenseForm!: FormGroup;
+  categories: CategoryDto[] = [];
   httpErrors = false;
   errors!: Record<string, string[]>;
   currencySymbol!: string;
@@ -47,11 +53,13 @@ export class AddExpenseComponent implements OnInit {
   @Input({ required: true })
   projectId!: string;
 
-  @Input({ required: true })
-  categoryId!: string;
+  @Input()
+  categoryId?: string;
+  @ViewChild('categorySelect') categorySelect?: MatSelect;
 
   constructor(
     private expenseService: ExpenseService,
+    private categoryService: CategoryService,
     private router: Router,
     private errorMessageService: ErrorMessageService,
     private globalService: GlobalService,
@@ -69,11 +77,30 @@ export class AddExpenseComponent implements OnInit {
     }
 
     this.expenseForm = new FormGroup({
+      categoryId: new FormControl(this.categoryId ?? '', [Validators.required]),
       name: new FormControl('', [Validators.required, Validators.maxLength(100)]),
       date: new FormControl(this.currentDate, [Validators.required]),
       amount: new FormControl(0, [Validators.min(0)]),
       budget: new FormControl('', [Validators.pattern('[0-9]*')]),
     });
+
+    this.categoryService.get(this.projectId)
+      .pipe(map(categories => CategoryDto.fromCategories(categories)))
+      .subscribe(res => {
+        this.categories = res.filter(category => !category.isArchived);
+
+        if (this.categoryId && this.categories.some(c => c.id === this.categoryId)) {
+          this.categoryIdControl?.setValue(this.categoryId);
+        }
+      });
+  }
+
+  ngAfterViewInit(): void {
+    setTimeout(() => this.categorySelect?.focus());
+  }
+
+  get categoryIdControl() {
+    return this.expenseForm.get('categoryId');
   }
   get name() {
     return this.expenseForm.get('name');
@@ -90,6 +117,11 @@ export class AddExpenseComponent implements OnInit {
 
   save() {
     if (this.expenseForm.valid) {
+      const selectedCategoryId = this.categoryIdControl?.value;
+      if (!selectedCategoryId) {
+        return;
+      }
+
       const name = this.name?.value;
       const date: any = formatDate(this.date?.value);
       const amount = this.amount?.value;
@@ -102,7 +134,7 @@ export class AddExpenseComponent implements OnInit {
         budget: budget === "" || budget === null ? 0 : budget
       } as ExpenseDto;
 
-      this.expenseService.add(this.projectId, this.categoryId, newExpense).subscribe({
+      this.expenseService.add(this.projectId, selectedCategoryId, newExpense).subscribe({
         next: () => {
           this.router.navigate([{ outlets: { modal: null } }]);
         },

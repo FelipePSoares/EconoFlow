@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { AfterViewInit, Component, Input, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { map } from 'rxjs';
@@ -12,7 +12,6 @@ import { CurrencyMaskModule } from 'ng2-currency-mask';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ExpenseService } from '../../../core/services/expense.service';
 import { ExpenseItemDto } from '../models/expense-item-dto';
-import { Expense } from '../../../core/models/expense';
 import { ExpenseDto } from '../models/expense-dto';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { ApiErrorResponse } from '../../../core/models/error';
@@ -21,6 +20,9 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { formatDate } from '../../../core/utils/date';
 import { GlobalService } from '../../../core/services/global.service';
 import { CurrentDateService } from '../../../core/services/current-date.service';
+import { CategoryService } from '../../../core/services/category.service';
+import { CategoryDto } from '../../category/models/category-dto';
+import { MatSelect, MatSelectModule } from '@angular/material/select';
 
 @Component({
     selector: 'app-add-expense-item',
@@ -34,15 +36,18 @@ import { CurrentDateService } from '../../../core/services/current-date.service'
     MatDatepickerModule,
     MatNativeDateModule,
     CurrencyMaskModule,
+    MatSelectModule,
     TranslateModule
 ],
     templateUrl: './add-expense-item.component.html',
     styleUrl: './add-expense-item.component.css'
 })
-export class AddExpenseItemComponent implements OnInit {
-  private expense!: ExpenseDto;
+export class AddExpenseItemComponent implements OnInit, AfterViewInit {
+  private expense?: ExpenseDto;
   private currentDate!: Date;
   expenseItemForm!: FormGroup;
+  categories: CategoryDto[] = [];
+  expenses: ExpenseDto[] = [];
   thousandSeparator!: string; 
   decimalSeparator!: string; 
   httpErrors = false;
@@ -52,14 +57,16 @@ export class AddExpenseItemComponent implements OnInit {
   @Input({ required: true })
   projectId!: string;
 
-  @Input({ required: true })
-  categoryId!: string;
+  @Input()
+  categoryId?: string;
 
-  @Input({ required: true })
-  expenseId!: string;
+  @Input()
+  expenseId?: string;
+  @ViewChild('categorySelect') categorySelect?: MatSelect;
 
   constructor(
     private expenseService: ExpenseService,
+    private categoryService: CategoryService,
     private router: Router,
     private errorMessageService: ErrorMessageService,
     private snackBar: SnackbarComponent,
@@ -79,17 +86,51 @@ export class AddExpenseItemComponent implements OnInit {
     }
 
     this.expenseItemForm = new FormGroup({
+      categoryId: new FormControl(this.categoryId ?? '', [Validators.required]),
+      expenseId: new FormControl(this.expenseId ?? '', [Validators.required]),
       name: new FormControl('', [Validators.maxLength(100)]),
       date: new FormControl(this.currentDate, [Validators.required]),
       amount: new FormControl(0, [Validators.min(0)])
     });
 
-    this.expenseService.getById(this.projectId, this.categoryId, this.expenseId)
-      .pipe(map(expense => ExpenseDto.fromExpense(expense)))
-      .subscribe(
-        {
-          next: res => this.expense = res
-        });
+    this.categoryService.get(this.projectId)
+      .pipe(map(categories => CategoryDto.fromCategories(categories)))
+      .subscribe(res => {
+        this.categories = res.filter(category => !category.isArchived);
+
+        if (this.categoryIdControl?.value) {
+          this.loadExpenses(this.categoryIdControl.value, this.expenseIdControl?.value);
+        }
+      });
+
+    this.categoryIdControl?.valueChanges.subscribe(categoryId => {
+      this.expenses = [];
+      this.expense = undefined;
+      this.expenseIdControl?.setValue('', { emitEvent: false });
+
+      if (categoryId) {
+        this.loadExpenses(categoryId);
+      }
+    });
+
+    this.expenseIdControl?.valueChanges.subscribe(expenseId => {
+      const categoryId = this.categoryIdControl?.value;
+      if (categoryId && expenseId) {
+        this.loadExpenseDetails(categoryId, expenseId);
+      }
+    });
+  }
+
+  ngAfterViewInit(): void {
+    setTimeout(() => this.categorySelect?.focus());
+  }
+
+  get categoryIdControl() {
+    return this.expenseItemForm.get('categoryId');
+  }
+
+  get expenseIdControl() {
+    return this.expenseItemForm.get('expenseId');
   }
 
   get name() {
@@ -104,6 +145,13 @@ export class AddExpenseItemComponent implements OnInit {
 
   save() {
     if (this.expenseItemForm.valid) {
+      const categoryId = this.categoryIdControl?.value;
+      const expenseId = this.expenseIdControl?.value;
+
+      if (!categoryId || !expenseId || !this.expense) {
+        return;
+      }
+
       const name = this.name?.value;
       const date: any = formatDate(this.date?.value);
       const amount = this.amount?.value;
@@ -119,7 +167,7 @@ export class AddExpenseItemComponent implements OnInit {
 
       const patch = compare(this.expense, newExpense);
 
-      this.expenseService.update(this.projectId, this.categoryId, this.expenseId, patch).subscribe({
+      this.expenseService.update(this.projectId, categoryId, expenseId, patch).subscribe({
         next: () => {
           this.snackBar.openSuccessSnackbar(this.translateService.instant('CreatedSuccess'));
           this.router.navigate([{ outlets: { modal: null } }]);
@@ -141,5 +189,31 @@ export class AddExpenseItemComponent implements OnInit {
 
   getFormFieldErrors(fieldName: string): string[] {
     return this.errorMessageService.getFormFieldErrors(this.expenseItemForm, fieldName);
+  }
+
+  private loadExpenses(categoryId: string, preferredExpenseId?: string): void {
+    this.categoryService.getById(this.projectId, categoryId)
+      .pipe(map(category => CategoryDto.fromCategory(category)))
+      .subscribe(category => {
+        this.expenses = category.expenses;
+
+        const selectedExpenseId = preferredExpenseId && this.expenses.some(expense => expense.id === preferredExpenseId)
+          ? preferredExpenseId
+          : '';
+
+        this.expenseIdControl?.setValue(selectedExpenseId, { emitEvent: false });
+
+        if (selectedExpenseId) {
+          this.loadExpenseDetails(categoryId, selectedExpenseId);
+        }
+      });
+  }
+
+  private loadExpenseDetails(categoryId: string, expenseId: string): void {
+    this.expenseService.getById(this.projectId, categoryId, expenseId)
+      .pipe(map(expense => ExpenseDto.fromExpense(expense)))
+      .subscribe(res => {
+        this.expense = res;
+      });
   }
 }
