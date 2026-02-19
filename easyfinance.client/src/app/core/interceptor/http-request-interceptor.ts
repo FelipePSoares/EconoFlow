@@ -14,6 +14,9 @@ const exceptions: any = [
   { method: 'GET', url: 'logout' }
 ];
 
+const correlationIdHeaderName = 'X-Correlation-Id';
+const anonymousClientIdStorageKey = 'anon_client_id';
+
 let isRefreshing = false;
 const refreshTokenSubject = new Subject<boolean>();
 
@@ -24,6 +27,12 @@ export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
   const injector = inject(Injector);
   
   req = req.clone({ withCredentials: true });
+
+  if (isBrowser) {
+    req = req.clone({
+      headers: req.headers.set(correlationIdHeaderName, getOrCreateAnonymousClientId()),
+    });
+  }
 
   if (isException(req))
     return next(req);
@@ -119,6 +128,16 @@ export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
       return throwError(() => apiErrorResponse);
     })
   );
+};
+
+const getOrCreateAnonymousClientId = (): string => {
+  const existingClientId = localStorage.getItem(anonymousClientIdStorageKey);
+  if (existingClientId)
+    return existingClientId;
+
+  const newClientId = crypto.randomUUID();
+  localStorage.setItem(anonymousClientIdStorageKey, newClientId);
+  return newClientId;
 };
 
 const isException = (req: any) => {

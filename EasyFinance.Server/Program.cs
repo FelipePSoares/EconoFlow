@@ -81,6 +81,7 @@ if (!builder.Environment.IsDevelopment())
 try
 {
     var app = builder.Build();
+    app.UseSerilogRequestLogging();
     app.UseCustomExceptionHandler();
 
     app.UseSafeHeaders();
@@ -180,7 +181,6 @@ try
 
     app.UseAuthentication();
     app.UseCorrelationId();
-    app.UseSerilogRequestLogging();
     app.UseAuthorization();
     app.UseProjectAuthorization();
 

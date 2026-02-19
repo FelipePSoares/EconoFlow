@@ -19,7 +19,6 @@ using EasyFinance.Infrastructure.Authentication;
 using EasyFinance.Infrastructure.DTOs;
 using EasyFinance.Server.Config;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.JsonPatch;
@@ -266,7 +265,9 @@ namespace EasyFinance.Server.Controllers
                 return Unauthorized(result.ToString());
             }
 
-            await GenerateUserToken(user);
+            var correlationId = HttpContext.Items[correlationIdClaimType].ToString();
+
+            await GenerateUserToken(user, correlationId);
 
             return Ok();
         }
