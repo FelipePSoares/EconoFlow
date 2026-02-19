@@ -67,6 +67,7 @@ export class AppComponent {
   supportedLanguages = this.globalService.supportedLanguages;
   selectedLanguage = this.globalService.currentLanguage;
   selectedProjectId: string | null = null;
+  selectedProjectName: string | null = null;
   addButtons = ['income', 'expense', 'expense item'];
 
   constructor() {
@@ -84,6 +85,7 @@ export class AppComponent {
 
       this.projectService.selectedUserProject$.subscribe(userProject => {
         this.selectedProjectId = userProject?.project?.id ?? null;
+        this.selectedProjectName = userProject?.project?.name ?? null;
       });
 
       firstValueFrom(this.appRef.isStable.pipe(filter(Boolean))).then(async () => {
@@ -149,7 +151,10 @@ export class AppComponent {
     this.router.navigate([{ outlets: { modal: modalRoute } }]);
 
     this.dialog.open(PageModalComponent, {
-      autoFocus: false
+      autoFocus: false,
+      data: {
+        titleSuffix: this.selectedProjectName
+      }
     }).afterClosed().subscribe(() => {
       this.router.navigate([{ outlets: { modal: null } }]);
     });
