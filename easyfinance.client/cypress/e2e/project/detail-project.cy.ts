@@ -14,7 +14,7 @@ describe('EconoFlow - project detail Tests', () => {
     cy.intercept('GET', '**/categories*').as('getCategories')
 
     cy.fixture('projects').then((projects) => {
-      cy.visitProtected('/projects/' + projects.defaultProject.id)
+      cy.visit('/projects/' + projects.defaultProject.id)
 
       findNextMonthWithoutBudget();
 
@@ -31,9 +31,8 @@ describe('EconoFlow - project detail Tests', () => {
     cy.intercept('GET', '**/categories*').as('getCategories')
 
     cy.fixture('projects').then((projects) => {
-      cy.visitProtected('/projects/' + projects.defaultProject.id)
+      cy.visit('/projects/' + projects.defaultProject.id)
 
-      cy.wait('@getCategories');
       findNextMonthWithoutBudget();
       cy.get('#next').click()
 

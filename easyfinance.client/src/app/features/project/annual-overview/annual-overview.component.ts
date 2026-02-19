@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { AfterViewInit, Component, inject, Input, OnInit, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
 import { ChartData, ChartOptions, TooltipItem } from 'chart.js';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -30,10 +30,22 @@ interface CategoryInsight {
     CurrencyFormatPipe,
     ReturnButtonComponent
   ],
+  providers: [CurrencyFormatPipe],
   templateUrl: './annual-overview.component.html',
   styleUrl: './annual-overview.component.css'
 })
-export class AnnualOverviewComponent implements OnInit {
+export class AnnualOverviewComponent implements OnInit, AfterViewInit {
+  readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  chartsReady = false;
+
+  private projectService = inject(ProjectService);
+  private globalService = inject(GlobalService);
+  private incomeService = inject(IncomeService);
+  private categoryService = inject(CategoryService);
+  private translateService = inject(TranslateService);
+  private router = inject(Router);
+  private currencyFormatPipe = inject(CurrencyFormatPipe);
+
   @Input({ required: true })
   projectId!: string;
 
@@ -110,15 +122,6 @@ export class AnnualOverviewComponent implements OnInit {
     }
   };
 
-  constructor(
-    private projectService: ProjectService,
-    private globalService: GlobalService,
-    private incomeService: IncomeService,
-    private categoryService: CategoryService,
-    private translateService: TranslateService,
-    private router: Router
-  ) { }
-
   ngOnInit(): void {
     this.projectService.selectedUserProject$.subscribe(userProject => {
       const defaultProject = new UserProjectDto();
@@ -132,6 +135,14 @@ export class AnnualOverviewComponent implements OnInit {
     });
 
     this.loadYear(this.selectedYear);
+  }
+
+  ngAfterViewInit(): void {
+    if (this.isBrowser) {
+      setTimeout(() => {
+        this.chartsReady = true;
+      }, 0);
+    }
   }
 
   onYearChange(event: Event): void {
@@ -299,12 +310,7 @@ export class AnnualOverviewComponent implements OnInit {
   }
 
   private formatCurrency(value: number): string {
-    return new Intl.NumberFormat(this.globalService.currentLanguage, {
-      style: 'currency',
-      currency: this.globalService.currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(value);
+    return this.currencyFormatPipe.transform(value, true) || '';
   }
 
   private roundAmount(value: number | undefined): number {

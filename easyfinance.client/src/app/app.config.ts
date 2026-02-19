@@ -13,7 +13,6 @@ import { importProvidersFrom, inject } from '@angular/core';
 import { GlobalService } from './core/services/global.service';
 import { TranslateHttpLoader } from './core/utils/loaders/translate-http-loader';
 import { LanguageInterceptor } from './core/interceptor/language-interceptor';
-import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -51,7 +50,6 @@ export const appConfig: ApplicationConfig = {
         const doc = inject(DOCUMENT);
         return doc?.querySelector('meta[name="csp-nonce"]')?.getAttribute('content') ?? null;
       }
-    },
-    provideCharts(withDefaultRegisterables())
+    }
   ],
 };

@@ -9,8 +9,7 @@ describe('EconoFlow - category add Tests', () => {
       cy.fixture('projects').then((projects) => {
         var project = projects.defaultProject;
 
-        cy.visitProtected('/projects/' + project.id)
-        cy.wait<CategoryReq, CategoryRes[]>('@getProjects');
+        cy.visit('/projects/' + project.id)
       })
     })
   })
@@ -73,9 +72,7 @@ describe('EconoFlow - category add Tests', () => {
               cy.request('PUT', 'api/Projects/' + projects.defaultProject.id + '/Categories/' + archivedCategory.id + '/Archive', {}).then((resp) => {
                 expect(resp?.status).to.equal(204)
                   
-                cy.visitProtected('/projects/' + projects.defaultProject.id)
-                cy.wait('@getProjects')
-                cy.wait('@getCategories')
+                cy.visit('/projects/' + projects.defaultProject.id)
 
                 cy.wait<ProjectReq, ProjectRes>('@getProjects').then(({ request, response }) => {
                   cy.wait<CategoryReq, CategoryRes[]>('@getCategories').then(({ request, response }) => {

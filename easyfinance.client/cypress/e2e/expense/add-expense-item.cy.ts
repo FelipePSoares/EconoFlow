@@ -12,9 +12,8 @@ describe('EconoFlow - expense item add Tests', () => {
         cy.fixture('categories').then((categories) => {
           const category = categories.defaultCategory;
 
-          cy.visitProtected('/projects/' + project.id + '/categories/' + category.id + '/expenses')
-          
-          cy.wait('@getExpense')
+          cy.visit('/projects/' + project.id + '/categories/' + category.id + '/expenses')
+
           cy.wait('@getExpense')
 
           cy.get('.btn-link').last().click()

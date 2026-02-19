@@ -1,4 +1,5 @@
-import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, inject, Input, OnInit, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { map } from 'rxjs/internal/operators/map';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
@@ -33,6 +34,7 @@ import { BudgetBarComponent } from '../../../core/components/budget-bar/budget-b
 import { ExpenseItemComponent } from '../expense-item/expense-item.component';
 import { ExpenseItemDto } from '../models/expense-item-dto';
 import { CurrentDateService } from '../../../core/services/current-date.service';
+import { DateAdapter } from '@angular/material/core';
 
 @Component({
     selector: 'app-list-expenses',
@@ -57,6 +59,18 @@ import { CurrentDateService } from '../../../core/services/current-date.service'
     styleUrl: './list-expenses.component.css'
 })
 export class ListExpensesComponent implements OnInit {
+  private expenseService = inject(ExpenseService);
+  private categoryService = inject(CategoryService);
+  private router = inject(Router);
+  private errorMessageService = inject(ErrorMessageService);
+  private globalService = inject(GlobalService);
+  private dialog = inject(MatDialog);
+  private projectService = inject(ProjectService);
+  private translateService = inject(TranslateService);
+  private currentDateService = inject(CurrentDateService);
+  private dateAdapter = inject(DateAdapter<Date>);
+  private destroyRef = inject(DestroyRef);
+
   private expandedExpenses: Set<string> = new Set<string>();
 
   private expenses: BehaviorSubject<ExpenseDto[]> = new BehaviorSubject<ExpenseDto[]>([]);
@@ -85,23 +99,18 @@ export class ListExpensesComponent implements OnInit {
   @ViewChild('nameInput')
   nameInput?: ElementRef<HTMLInputElement>;
 
-  constructor(
-    private expenseService: ExpenseService,
-    private categoryService: CategoryService,
-    private router: Router,
-    private errorMessageService: ErrorMessageService,
-    private globalService: GlobalService,
-    private dialog: MatDialog,
-    private projectService: ProjectService,
-    private translateService: TranslateService,
-    private currentDateService: CurrentDateService
-  ) {
+  constructor() {
     this.thousandSeparator = this.globalService.groupSeparator;
     this.decimalSeparator = this.globalService.decimalSeparator;
     this.currencySymbol = this.globalService.currencySymbol;
   }
 
   ngOnInit(): void {
+    this.dateAdapter.setLocale(this.globalService.currentLanguage);
+    this.translateService.onLangChange
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(event => this.dateAdapter.setLocale(event.lang));
+
     this.projectService.selectedUserProject$.subscribe(userProject => {
       if (userProject) {
         this.userProject = userProject;

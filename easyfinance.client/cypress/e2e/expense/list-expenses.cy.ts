@@ -1,4 +1,10 @@
 describe('EconoFlow - expense list Tests', () => {
+    const buildDateVariants = (value: Date, locale: string): string[] => {
+      const fullYear = value.toLocaleDateString(locale, { year: 'numeric', month: 'numeric', day: 'numeric' });
+      const shortYear = value.toLocaleDateString(locale, { year: '2-digit', month: 'numeric', day: 'numeric' });
+      return Array.from(new Set([fullYear, shortYear]));
+    };
+
     beforeEach(() => {
       cy.fixture('users').then((users) => {
         const user = users.testUser;
@@ -11,7 +17,7 @@ describe('EconoFlow - expense list Tests', () => {
             cy.fixture('categories').then((categories) => {
               var category = categories.defaultCategory;
           
-              cy.visitProtected('/projects/' + project.id + '/categories/' + category.id + '/expenses')
+              cy.visit('/projects/' + project.id + '/categories/' + category.id + '/expenses')
             })
         })
       })
@@ -32,22 +38,37 @@ describe('EconoFlow - expense list Tests', () => {
     it('should update date after success update', () => {
       const today = new Date()
       today.setDate(Math.floor(Math.random() * today.getDate()) + 1)
+      let formattedDate = ''
+      let expectedDates: string[] = []
 
       cy.get('button[name=edit]').first().click()
-      cy.get('input[formControlName=date]').clear().type(`${today.toLocaleDateString('pt-PT')}{enter}`)
+      cy.window().then((win) => {
+        const locale = win.localStorage.getItem('language-key') || win.navigator.language || 'en-US'
+        formattedDate = today.toLocaleDateString(locale)
+        expectedDates = buildDateVariants(today, locale)
+        cy.get('input[formControlName=date]').clear().type(`${formattedDate}{enter}`)
+      })
 
       cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(200)
-        cy.get('.date').first().contains(`${today.toLocaleDateString('pt-PT')}`)
+        cy.get('.date').first().invoke('text').then((text) => {
+          const hasExpectedDate = expectedDates.some(date => text.includes(date))
+          expect(hasExpectedDate).to.equal(true)
+        })
       })
     })
   
     it('should show error after failed update', () => {
       const today = new Date()
       today.setMonth(today.getMonth() + 1);
+      let formattedDate = ''
 
       cy.get('button[name=edit]').first().click()
-      cy.get('input[formControlName=date]').clear().type(`${today.toLocaleDateString('pt-PT')}{enter}`)
+      cy.window().then((win) => {
+        const locale = win.localStorage.getItem('language-key') || win.navigator.language || 'en-US'
+        formattedDate = today.toLocaleDateString(locale)
+        cy.get('input[formControlName=date]').clear().type(`${formattedDate}{enter}`)
+      })
 
       cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(400)
@@ -69,13 +90,18 @@ describe('EconoFlow - expense list Tests', () => {
   
     it('should update amount after success update', () => {
       let value = Math.floor(Math.random() * 1000);
+      const expectedAmount = (value / 100).toFixed(2);
+      const expectedAmountWithComma = expectedAmount.replace('.', ',');
 
       cy.get('button[name=edit]').first().click()
       cy.get('input[formControlName=amount]').clear().type(`${value}{enter}`)
       
       cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(200)
-        cy.get('.progress-bar').first().contains(`${value/100}`)
+        cy.get('.progress-bar').first().invoke('text').then((text) => {
+          const hasExpectedAmount = text.includes(expectedAmount) || text.includes(expectedAmountWithComma);
+          expect(hasExpectedAmount).to.equal(true);
+        });
       })
     })
 })

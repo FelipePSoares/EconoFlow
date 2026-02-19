@@ -1,4 +1,10 @@
 describe('EconoFlow - income list Tests', () => {
+  const buildDateVariants = (value: Date, locale: string): string[] => {
+    const fullYear = value.toLocaleDateString(locale, { year: 'numeric', month: 'numeric', day: 'numeric' });
+    const shortYear = value.toLocaleDateString(locale, { year: '2-digit', month: 'numeric', day: 'numeric' });
+    return Array.from(new Set([fullYear, shortYear]));
+  };
+
   beforeEach(() => {
     cy.fixture('users').then((users) => {
       const user = users.testUser;
@@ -9,7 +15,7 @@ describe('EconoFlow - income list Tests', () => {
       cy.fixture('projects').then((projects) => {
         var project = projects.defaultProject;
 
-        cy.visitProtected('/projects/' + project.id + '/incomes')
+        cy.visit('/projects/' + project.id + '/incomes')
       })
     })
   })
@@ -29,31 +35,47 @@ describe('EconoFlow - income list Tests', () => {
   it('should update date after success update', () => {
     const today = new Date()
     today.setDate(Math.floor(Math.random() * today.getDate()) + 1)
-    const todayFormated = String(today.getDate()).padStart(2, '0') + '/' + String(today.getMonth() + 1).padStart(2, '0') + '/' + today.getFullYear();
+    let formattedDate = ''
+    let expectedDates: string[] = []
 
     cy.get('button[name=edit]').first().click()
-    cy.get('input[formControlName=date]').clear().type(`${todayFormated}{enter}`)
+    cy.window().then((win) => {
+      const locale = win.localStorage.getItem('language-key') || win.navigator.language || 'en-US'
+      formattedDate = today.toLocaleDateString(locale)
+      expectedDates = buildDateVariants(today, locale)
+      cy.get('input[formControlName=date]').clear().type(`${formattedDate}{enter}`)
+    })
 
     cy.wait<IncomeReq, IncomeRes>('@patchIncomes').then(({ request, response }) => {
       expect(response?.statusCode).to.equal(200)
-      cy.get('.date').first().contains(`${today.toLocaleDateString('pt-PT')}`)
+      cy.get('.date').first().invoke('text').then((text) => {
+        const hasExpectedDate = expectedDates.some(date => text.includes(date))
+        expect(hasExpectedDate).to.equal(true)
+      })
     })
   })
 
   it('should update amount after success update', () => {
     let value = Math.floor(Math.random() * 1000);
+    const expectedAmount = (value / 100).toFixed(2);
+    const expectedAmountWithComma = expectedAmount.replace('.', ',');
 
     cy.get('button[name=edit]').first().click()
     cy.get('input[formControlName=amount]').clear().type(`${value}{enter}`)
 
     cy.wait<IncomeReq, IncomeRes>('@patchIncomes').then(({ request, response }) => {
       expect(response?.statusCode).to.equal(200)
-      cy.get('.amount').first().contains(`${value/100}`)
+      cy.get('.amount').first().invoke('text').then((text) => {
+        let isIncluded = text.includes(expectedAmount) || text.includes(expectedAmountWithComma);
+        expect(isIncluded).to.equal(true);
+      });
     })
   })
 
   it('should update amount with decimal after success update', () => {
     let value = (Math.random() * 1000).toFixed(2);
+    const expectedAmount = Number(value).toFixed(2);
+    const expectedAmountWithComma = expectedAmount.replace('.', ',');
 
     cy.get('button[name=edit]').first().click()
     cy.get('input[formControlName=amount]').clear().type(`${value}{enter}`)
@@ -62,7 +84,7 @@ describe('EconoFlow - income list Tests', () => {
       expect(response?.statusCode).to.equal(200)
 
       cy.get('.amount').invoke('text').then((text) => {
-        let isIncluded = text.includes(`${value }`);
+        let isIncluded = text.includes(expectedAmount) || text.includes(expectedAmountWithComma);
         expect(isIncluded).to.equal(true);
       });
     })

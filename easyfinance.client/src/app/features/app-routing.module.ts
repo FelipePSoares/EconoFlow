@@ -61,10 +61,8 @@ export const routes: Routes = [
   { path: 'projects/:projectId/categories', component: ListCategoriesComponent, canActivate: mapToCanActivate([AuthGuard]), outlet: 'modal', data: { title: 'ListCategories' } },
   { path: 'projects/:projectId/add-category', component: AddCategoryComponent, canActivate: mapToCanActivate([AuthGuard]), outlet: 'modal', data: { title: 'CreateExpenseCategory' } },
   { path: 'projects/:projectId/add-expense', component: AddExpenseComponent, canActivate: mapToCanActivate([AuthGuard]), outlet: 'modal', data: { title: 'CreateExpense' } },
-  { path: 'projects/:projectId/categories/:categoryId/add-expense', component: AddExpenseComponent, canActivate: mapToCanActivate([AuthGuard]), outlet: 'modal', data: { title: 'CreateExpense' } },
   { path: 'projects/:projectId/categories/:categoryId/expenses', component: ListExpensesComponent, canActivate: mapToCanActivate([AuthGuard]) },
   { path: 'projects/:projectId/add-expense-item', component: AddExpenseItemComponent, canActivate: mapToCanActivate([AuthGuard]), outlet: 'modal', data: { title: 'CreateExpense' } },
-  { path: 'projects/:projectId/categories/:categoryId/expenses/:expenseId/add-expense-item', component: AddExpenseItemComponent, canActivate: mapToCanActivate([AuthGuard]), outlet: 'modal', data: { title: 'CreateExpense' } },
   {
     path: 'user',
     component: UserLayoutComponent,

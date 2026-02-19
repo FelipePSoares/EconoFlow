@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, inject, Input, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { map } from 'rxjs';
@@ -16,7 +16,7 @@ import { ExpenseDto } from '../models/expense-dto';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.component';
-import { MatNativeDateModule } from '@angular/material/core';
+import { DateAdapter, MatNativeDateModule } from '@angular/material/core';
 import { formatDate } from '../../../core/utils/date';
 import { GlobalService } from '../../../core/services/global.service';
 import { CurrentDateService } from '../../../core/services/current-date.service';
@@ -43,6 +43,16 @@ import { MatSelect, MatSelectModule } from '@angular/material/select';
     styleUrl: './add-expense-item.component.css'
 })
 export class AddExpenseItemComponent implements OnInit, AfterViewInit {
+  private expenseService = inject(ExpenseService);
+  private categoryService = inject(CategoryService);
+  private router = inject(Router);
+  private errorMessageService = inject(ErrorMessageService);
+  private snackBar = inject(SnackbarComponent);
+  private globalService = inject(GlobalService);
+  private translateService = inject(TranslateService);
+  private currentDateService = inject(CurrentDateService);
+  private dateAdapter = inject(DateAdapter<Date>);
+
   private expense?: ExpenseDto;
   private currentDate!: Date;
   expenseItemForm!: FormGroup;
@@ -64,22 +74,15 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
   expenseId?: string;
   @ViewChild('categorySelect') categorySelect?: MatSelect;
 
-  constructor(
-    private expenseService: ExpenseService,
-    private categoryService: CategoryService,
-    private router: Router,
-    private errorMessageService: ErrorMessageService,
-    private snackBar: SnackbarComponent,
-    private globalService: GlobalService,
-    private translateService: TranslateService,
-    private currentDateService: CurrentDateService
-  ) {
+  constructor() {
     this.thousandSeparator = this.globalService.groupSeparator;
     this.decimalSeparator = this.globalService.decimalSeparator;
     this.currencySymbol = this.globalService.currencySymbol;
    }
 
   ngOnInit(): void {
+    this.dateAdapter.setLocale(this.globalService.currentLanguage);
+
     this.currentDate = new Date();
     if (this.currentDateService.currentDate.getFullYear() !== this.currentDate.getFullYear() || this.currentDateService.currentDate.getMonth() !== this.currentDate.getMonth()) {
       this.currentDate = this.currentDateService.currentDate;

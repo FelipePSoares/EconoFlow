@@ -25,7 +25,7 @@
 </div>
 <div class="clearfix mt-1">
   @if (date) {
-    <span class="float-start date"><i class="bi bi-calendar me-1"></i>{{ date | date: 'dd/MM/yyyy' }}</span>
+    <span class="float-start date"><i class="bi bi-calendar me-1"></i>{{ date | date: 'shortDate' : undefined : currentLanguage }}</span>
   }
   @if (overspend > 0) {
     <span class="float-end budget">{{ 'Of' | translate }} <s>{{ budget | currencyFormat: hideDecimals }}</s> {{ budget + overspend | currencyFormat: hideDecimals }}</span>

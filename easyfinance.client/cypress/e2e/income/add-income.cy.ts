@@ -8,7 +8,7 @@ describe('EconoFlow - income add Tests', () => {
       cy.fixture('projects').then((projects) => {
         var project = projects.defaultProject;
         
-        cy.visitProtected('/projects/' + project.id + '/incomes')
+        cy.visit('/projects/' + project.id + '/incomes')
 
         cy.get('.btn-add').click();
       })

@@ -152,17 +152,19 @@
             <div class="row g-3 mt-1">
               <div class="col-12">
                 <h3 class="mt-0 mb-3 text-start fw-semibold fs-6">{{ 'IncomeVsExpenseByMonth' | translate }}</h3>
-                @if (yearIncomeExpenseChartData.datasets[0].data.length || yearIncomeExpenseChartData.datasets[1].data.length) {
-                  <div class="position-relative" style="height: 240px;">
-                    <canvas
-                      baseChart
-                      [type]="'bar'"
-                      [data]="yearIncomeExpenseChartData"
-                      [options]="yearIncomeExpenseChartOptions">
-                    </canvas>
-                  </div>
-                } @else {
-                  <p class="text-center text-secondary mb-0">{{ 'NoDataForSelectedPeriod' | translate }}</p>
+                @if (chartsReady) {
+                  @if (yearIncomeExpenseChartData.datasets[0].data.length || yearIncomeExpenseChartData.datasets[1].data.length) {
+                    <div class="position-relative" style="height: 240px;">
+                      <canvas
+                        baseChart
+                        [type]="'bar'"
+                        [data]="yearIncomeExpenseChartData"
+                        [options]="yearIncomeExpenseChartOptions">
+                      </canvas>
+                    </div>
+                  } @else {
+                    <p class="text-center text-secondary mb-0">{{ 'NoDataForSelectedPeriod' | translate }}</p>
+                  }
                 }
               </div>
             </div>
@@ -182,7 +184,7 @@
                 <ng-container matColumnDef="date">
                   <th mat-header-cell *matHeaderCellDef class="ps-4"> {{ 'Date' | translate }} </th>
                   <td mat-cell *matCellDef="let row" class="ps-4">
-                    <div class="text-secondary">{{row.date | date: 'dd/MM/yyyy' }}</div>
+                    <div class="text-secondary">{{row.date | date: 'shortDate' }}</div>
                   </td>
                 </ng-container>
 

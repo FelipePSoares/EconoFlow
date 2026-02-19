@@ -5,7 +5,7 @@ import { ApplicationRef, Component, inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterOutlet } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
+import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS, MAT_MOMENT_DATE_FORMATS } from '@angular/material-moment-adapter';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
 import { Observable } from 'rxjs/internal/Observable';
 import { AuthService } from '../core/services/auth.service';
@@ -22,22 +22,9 @@ import {
   MAT_DATE_FORMATS,
   MAT_DATE_LOCALE,
 } from '@angular/material/core';
-import * as moment from 'moment';
 import { NotificationService } from '../core/services/notification.service';
 import { GlobalService } from '../core/services/global.service';
 import { ProjectService } from '../core/services/project.service';
-
-export const MY_FORMATS = {
-  parse: {
-    dateInput: 'DD/MM/YYYY',
-  },
-  display: {
-    dateInput: 'DD/MM/YYYY',
-    monthYearLabel: 'MMMM YYYY',
-    dateA11yLabel: 'DD/MM/YYYY',
-    monthYearA11yLabel: 'MMMM YYYY',
-  },
-};
 
 @Component({
   selector: 'app-root',
@@ -59,7 +46,7 @@ export const MY_FORMATS = {
       useClass: MomentDateAdapter,
       deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS],
     },
-    { provide: MAT_DATE_FORMATS, useValue: MY_FORMATS },
+    { provide: MAT_DATE_FORMATS, useValue: MAT_MOMENT_DATE_FORMATS },
   ]
 })
 
@@ -73,6 +60,7 @@ export class AppComponent {
   private projectService = inject(ProjectService);
   private appRef = inject(ApplicationRef);
   private platformId = inject(PLATFORM_ID);
+  private dateAdapter = inject(DateAdapter<Date>);
 
   private isSignedIn: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   isSignedIn$: Observable<boolean> = this.isSignedIn.asObservable();
@@ -103,28 +91,37 @@ export class AppComponent {
 
         const locale = storageLanguage || navigator.language || this.globalService.currentLanguage || 'en';
         await this.globalService.setLocale(locale);
+        this.dateAdapter.setLocale(this.globalService.currentLanguage);
         this.selectedLanguage = this.globalService.currentLanguage;
       });
     }
   }
 
   isLogin(): boolean {
-    return this.router.url === '/login';
+    return this.getPrimaryRoutePath() === '/login';
   }
 
   isRegister(): boolean {
-    return this.router.url === '/register';
+    return this.getPrimaryRoutePath() === '/register';
   }
 
   isRecovery(): boolean {
-    return this.router.url === '/recovery';
+    return this.getPrimaryRoutePath() === '/recovery';
   }
 
-  onLanguageChange(event: Event): void {
+  private getPrimaryRoutePath(): string {
+    const primarySegments = this.router.parseUrl(this.router.url).root.children['primary']?.segments ?? [];
+    const joinedPath = primarySegments.map(segment => segment.path).join('/');
+    return `/${joinedPath}`;
+  }
+
+  async onLanguageChange(event: Event): Promise<void> {
     const target = event.target as HTMLSelectElement;
     const languageCode = target.value;
 
-    this.globalService.setLocale(languageCode);
+    await this.globalService.setLocale(languageCode);
+    this.dateAdapter.setLocale(this.globalService.currentLanguage);
+    this.selectedLanguage = this.globalService.currentLanguage;
   }
 
   addFromProject(action: string): void {

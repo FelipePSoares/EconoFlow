@@ -5,7 +5,7 @@ describe('EconoFlow - user account Tests', () => {
 
       cy.login(user.username, user.password)
 
-      cy.visitProtected('/user')
+      cy.visit('/user')
     })
   })
 
@@ -35,7 +35,7 @@ describe('EconoFlow - user account Tests', () => {
     cy.intercept('GET', '**/AccessControl*').as('getAccount')
     cy.intercept('PATCH', '**/AccessControl*').as('patchAccount')
 
-    cy.visitProtected('/user')
+    cy.visit('/user')
 
     cy.wait<UserReq, UserRes>('@getAccount').then(({ request, response }) => {
       cy.log(response?.body.notificationChannels)
@@ -59,7 +59,7 @@ describe('EconoFlow - user account Tests', () => {
     cy.intercept('GET', '**/AccessControl*').as('getAccount')
     cy.intercept('PATCH', '**/AccessControl*').as('patchAccount')
 
-    cy.visitProtected('/user')
+    cy.visit('/user')
 
     cy.wait<UserReq, UserRes>('@getAccount').then(({ request, response }) => {
       cy.log(response?.body.notificationChannels)
@@ -85,7 +85,7 @@ describe('EconoFlow - user account Tests', () => {
       cy.intercept('DELETE', '**/AccessControl*').as('deleteAccount')
       cy.visit('/logout')
       cy.register(user.username, user.password)
-      cy.visitProtected('/user')
+      cy.visit('/user')
       cy.get('.btn').contains('Delete Account').click();
       cy.wait('@deleteAccount').then((interception) => {
         expect(interception?.response?.statusCode).to.equal(202)
@@ -106,13 +106,13 @@ describe('EconoFlow - user account Tests', () => {
 
       cy.visit('/logout')
       cy.register(user.username, user.password)
-      cy.visitProtected('/user')
+      cy.visit('/user')
       cy.get('.btn').contains('Delete Account').click();
       cy.wait('@deleteAccount').then((interception) => {
         expect(interception?.response?.statusCode).to.equal(202)
         cy.get('app-confirm-dialog button').contains('Cancel').click();
 
-        cy.visitProtected('/')
+        cy.visit('/')
         cy.url().should('not.contain', 'login')
       })
     })

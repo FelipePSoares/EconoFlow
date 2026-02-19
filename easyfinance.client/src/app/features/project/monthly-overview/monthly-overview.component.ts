@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { AfterViewInit, Component, inject, Input, OnInit, PLATFORM_ID } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ChartData, ChartOptions, TooltipItem } from 'chart.js';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -39,10 +39,14 @@ interface ExpenseEntry {
     ReturnButtonComponent,
     CurrentDateComponent
   ],
+  providers: [CurrencyFormatPipe],
   templateUrl: './monthly-overview.component.html',
   styleUrl: './monthly-overview.component.scss'
 })
-export class MonthlyOverviewComponent implements OnInit {
+export class MonthlyOverviewComponent implements OnInit, AfterViewInit {
+  readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  chartsReady = false;
+
   @Input({ required: true })
   projectId!: string;
 
@@ -127,7 +131,8 @@ export class MonthlyOverviewComponent implements OnInit {
     private categoryService: CategoryService,
     private globalService: GlobalService,
     private translateService: TranslateService,
-    private currentDateService: CurrentDateService
+    private currentDateService: CurrentDateService,
+    private currencyFormatPipe: CurrencyFormatPipe
   ) { }
 
   ngOnInit(): void {
@@ -153,6 +158,14 @@ export class MonthlyOverviewComponent implements OnInit {
       this.currentDateService.currentDate = new Date(this.selectedDate.getFullYear(), this.selectedDate.getMonth(), 1, 12);
       this.loadMonth(this.selectedDate);
     });
+  }
+
+  ngAfterViewInit(): void {
+    if (this.isBrowser) {
+      setTimeout(() => {
+        this.chartsReady = true;
+      }, 0);
+    }
   }
 
   updateDate(newDate: Date): void {
@@ -352,12 +365,7 @@ export class MonthlyOverviewComponent implements OnInit {
   }
 
   private formatCurrency(value: number): string {
-    return new Intl.NumberFormat(this.globalService.currentLanguage, {
-      style: 'currency',
-      currency: this.globalService.currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(value);
+    return this.currencyFormatPipe.transform(value, true) || '';
   }
 
   private roundAmount(value: number | undefined): number {
