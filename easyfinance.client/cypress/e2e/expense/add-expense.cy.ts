@@ -10,7 +10,7 @@ describe('EconoFlow - expense add Tests', () => {
         cy.fixture('categories').then((categories) => {
           var category = categories.defaultCategory;
 
-          cy.visitProtected('/projects/' + project.id + '/categories/' + category.id + '/expenses')
+          cy.visit('/projects/' + project.id + '/categories/' + category.id + '/expenses')
 
           cy.get('.btn-add').click();
         })

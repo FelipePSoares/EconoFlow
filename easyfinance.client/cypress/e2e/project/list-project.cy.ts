@@ -9,7 +9,7 @@ describe('EconoFlow - List Projects Tests', () => {
         win.sessionStorage.setItem("visited", "true");
       });
 
-      cy.visitProtected('/projects')
+      cy.visit('/projects')
     })
   })
 

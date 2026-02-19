@@ -9,7 +9,7 @@ describe('EconoFlow - Smart Setup Tests', () => {
         win.sessionStorage.setItem("visited", "true");
       });
 
-      cy.visitProtected('/projects')
+      cy.visit('/projects')
 
       cy.intercept('GET', '**/projects*').as('getProjects')
       cy.intercept('POST', '**/projects*').as('postProjects')

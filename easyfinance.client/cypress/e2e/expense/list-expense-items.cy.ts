@@ -21,7 +21,7 @@ describe('EconoFlow - expense item list Tests', () => {
             const defaultExpense = expenses.defaultExpense;
             const category = categories.defaultCategory;
 
-            cy.visitProtected('/projects/' + project.id + '/categories/' + category.id + '/expenses')
+            cy.visit('/projects/' + project.id + '/categories/' + category.id + '/expenses')
 
             cy.wait<ExpenseReq, ExpenseRes[]>('@getExpense').then(({ request, response }) => {
               console.log(response?.body);

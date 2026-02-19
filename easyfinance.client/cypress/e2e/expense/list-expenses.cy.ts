@@ -17,7 +17,7 @@ describe('EconoFlow - expense list Tests', () => {
             cy.fixture('categories').then((categories) => {
               var category = categories.defaultCategory;
           
-              cy.visitProtected('/projects/' + project.id + '/categories/' + category.id + '/expenses')
+              cy.visit('/projects/' + project.id + '/categories/' + category.id + '/expenses')
             })
         })
       })
