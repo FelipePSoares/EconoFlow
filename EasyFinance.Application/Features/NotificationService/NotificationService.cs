@@ -240,6 +240,7 @@ namespace EasyFinance.Application.Features.NotificationService
             var notification = await this.unitOfWork.NotificationRepository
                 .Trackable()
                 .IgnoreQueryFilters()
+                .Include(n => n.User)
                 .FirstOrDefaultAsync(n => n.Id == notificationId, stoppingToken);
 
             if (notification == null)
