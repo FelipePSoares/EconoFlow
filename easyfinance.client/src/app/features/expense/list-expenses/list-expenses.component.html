@@ -52,7 +52,7 @@
                           <div class="col-md-6">
                             <mat-form-field appearance="fill" class="w-100">
                               <mat-label>{{ 'FieldExpenseName' | translate }} </mat-label>
-                              <input matInput id="name" placeholder="{{ 'PlaceholderExpenseName' | translate }}" formControlName="name"
+                              <input matInput #nameInput id="name" placeholder="{{ 'PlaceholderExpenseName' | translate }}" formControlName="name"
                                 [class.is-invalid]="name?.invalid && name?.touched">
                               @if ((name?.invalid && name?.touched) || httpErrors){
                                 @for (error of getFormFieldErrors('name'); track error) {

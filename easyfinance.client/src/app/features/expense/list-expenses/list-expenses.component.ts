@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { map } from 'rxjs/internal/operators/map';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
@@ -81,6 +81,9 @@ export class ListExpensesComponent implements OnInit {
 
   @Input({ required: true })
   categoryId!: string;
+
+  @ViewChild('nameInput')
+  nameInput?: ElementRef<HTMLInputElement>;
 
   constructor(
     private expenseService: ExpenseService,
@@ -289,6 +292,7 @@ export class ListExpensesComponent implements OnInit {
     expensesNewArray.push(newExpense);
     this.expenses.next(expensesNewArray);
     this.edit(newExpense);
+    this.focusNameInput();
   }
 
   previous() {
@@ -383,5 +387,9 @@ export class ListExpensesComponent implements OnInit {
 
   private generateTempId(prefix: string): string {
     return `new-${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+  }
+
+  private focusNameInput(): void {
+    setTimeout(() => this.nameInput?.nativeElement?.focus());
   }
 }

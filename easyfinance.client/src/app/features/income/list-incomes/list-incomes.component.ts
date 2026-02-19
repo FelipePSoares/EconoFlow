@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, map } from 'rxjs';
 import { IncomeService } from 'src/app/core/services/income.service';
@@ -66,6 +66,9 @@ export class ListIncomesComponent implements OnInit {
 
   @Input({ required: true })
   projectId!: string;
+
+  @ViewChild('nameInput')
+  nameInput?: ElementRef<HTMLInputElement>;
 
   constructor(
     private incomeService: IncomeService,
@@ -194,6 +197,7 @@ export class ListIncomesComponent implements OnInit {
     incomesNewArray.push(newIncome);
     this.incomes.next(incomesNewArray);
     this.edit(newIncome);
+    this.focusNameInput();
   }
 
   edit(income: IncomeDto): void {
@@ -267,5 +271,9 @@ export class ListIncomesComponent implements OnInit {
 
   private generateTempId(prefix: string): string {
     return `new-${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+  }
+
+  private focusNameInput(): void {
+    setTimeout(() => this.nameInput?.nativeElement?.focus());
   }
 }
