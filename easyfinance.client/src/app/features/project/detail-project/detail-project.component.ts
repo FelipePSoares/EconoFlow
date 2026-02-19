@@ -63,7 +63,6 @@ export class DetailProjectComponent implements OnInit {
   setHeight = false;
   currentMonthExpenses: ExpenseDto[] = [];
   yearIncomeExpenseChartData: ChartData<'bar'> = this.createEmptyYearBarChartData();
-  yearExpenseCategoryChartData: ChartData<'doughnut'> = this.createEmptyYearCategoryChartData();
 
   private expenseColors = [
     '#ff6b6b',
@@ -107,22 +106,6 @@ export class DetailProjectComponent implements OnInit {
       }
     }
   };
-
-  yearExpenseCategoryChartOptions: ChartOptions<'doughnut'> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'bottom'
-      },
-      tooltip: {
-        callbacks: {
-          label: (context: TooltipItem<'doughnut'>) => this.formatCategoryTooltipLabel(context)
-        }
-      }
-    }
-  };
-
   private dataSource = new MatTableDataSource<TransactionDto>();
   private transactions: BehaviorSubject<TransactionDto[]> = new BehaviorSubject<TransactionDto[]>([new TransactionDto()]);
   transactions$: Observable<CdkTableDataSourceInput<TransactionDto>> = this.transactions.asObservable().pipe(
@@ -197,7 +180,6 @@ export class DetailProjectComponent implements OnInit {
           this.currentMonthExpenses = [];
           this.month = { budget: 0, spend: 0, overspend: 0, remaining: 0, earned: this.month.earned };
           this.showCopyPreviousButton = false;
-          this.yearExpenseCategoryChartData = this.createEmptyYearCategoryChartData();
         }
       });
 
@@ -268,7 +250,6 @@ export class DetailProjectComponent implements OnInit {
       next: incomes => {
         const incomesByMonth = new Map<string, number>(monthKeys.map(key => [key, 0]));
         const expensesByMonth = new Map<string, number>(monthKeys.map(key => [key, 0]));
-        const categoryTotals: Record<string, number> = {};
 
         incomes.forEach(income => {
           const incomeDate = new Date(income.date);
@@ -287,8 +268,6 @@ export class DetailProjectComponent implements OnInit {
             if (expensesByMonth.has(key)) {
               expensesByMonth.set(key, (expensesByMonth.get(key) || 0) + amount);
             }
-
-            categoryTotals[category.name] = (categoryTotals[category.name] || 0) + amount;
           });
         });
 
@@ -297,11 +276,9 @@ export class DetailProjectComponent implements OnInit {
           monthKeys.map(key => incomesByMonth.get(key) || 0),
           monthKeys.map(key => expensesByMonth.get(key) || 0)
         );
-        this.yearExpenseCategoryChartData = this.toYearCategoryChartData(categoryTotals);
       },
       error: () => {
         this.yearIncomeExpenseChartData = this.createEmptyYearBarChartData();
-        this.yearExpenseCategoryChartData = this.createEmptyYearCategoryChartData();
       }
     });
   }
@@ -416,28 +393,6 @@ export class DetailProjectComponent implements OnInit {
       datasets: [
         { data: [] },
         { data: [] }
-      ]
-    };
-  }
-
-  private toYearCategoryChartData(categoryTotals: Record<string, number>): ChartData<'doughnut'> {
-    const entries = Object.entries(categoryTotals)
-      .filter(([, amount]) => amount > 0)
-      .sort((a, b) => b[1] - a[1]);
-
-    if (!entries.length) {
-      return this.createEmptyYearCategoryChartData();
-    }
-
-    return {
-      labels: entries.map(([name]) => name),
-      datasets: [
-        {
-          data: entries.map(([, amount]) => this.roundAmount(amount)),
-          backgroundColor: entries.map((_, index) => this.expenseColors[index % this.expenseColors.length]),
-          borderColor: '#ffffff',
-          borderWidth: 1
-        }
       ]
     };
   }
