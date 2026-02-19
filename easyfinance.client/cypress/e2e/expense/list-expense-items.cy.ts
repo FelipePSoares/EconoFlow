@@ -44,24 +44,32 @@ describe('EconoFlow - expense item list Tests', () => {
   it('should update date after success update', () => {
     const today = new Date()
     today.setDate(Math.floor(Math.random() * today.getDate()) + 1)
-    const todayFormated = String(today.getDate()).padStart(2, '0') + '/' + String(today.getMonth() + 1).padStart(2, '0') + '/' + today.getFullYear();
+    let formattedDate = ''
 
     cy.get('button[name=edit-sub]').last().click()
-    cy.get('input[formControlName=date]').clear().type(`${todayFormated}{enter}`)
+    cy.window().then((win) => {
+      const locale = win.localStorage.getItem('language-key') || win.navigator.language || 'en-US'
+      formattedDate = today.toLocaleDateString(locale)
+      cy.get('input[formControlName=date]').clear().type(`${formattedDate}{enter}`)
+    })
 
     cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
       expect(response?.statusCode).to.equal(200)
-      cy.get('.date-sub').contains(`${today.toLocaleDateString('pt-PT')}`)
+      cy.get('.date-sub').contains(formattedDate)
     })
   })
 
   it('should show error after failed update', () => {
     const today = new Date()
     today.setMonth(today.getMonth() + 1);
-    const todayFormated = String(today.getDate()).padStart(2, '0') + '/' + String(today.getMonth() + 1).padStart(2, '0') + '/' + today.getFullYear();
+    let formattedDate = ''
 
     cy.get('button[name=edit-sub]').first().click()
-    cy.get('input[formControlName=date]').clear().type(`${todayFormated}{enter}`)
+    cy.window().then((win) => {
+      const locale = win.localStorage.getItem('language-key') || win.navigator.language || 'en-US'
+      formattedDate = today.toLocaleDateString(locale)
+      cy.get('input[formControlName=date]').clear().type(`${formattedDate}{enter}`)
+    })
 
     cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
       expect(response?.statusCode).to.equal(400)
@@ -71,13 +79,18 @@ describe('EconoFlow - expense item list Tests', () => {
 
   it('should update amount after success update', () => {
     const value = Math.floor(Math.random() * 1000);
+    const expectedAmount = (value / 100).toFixed(2);
+    const expectedAmountWithComma = expectedAmount.replace('.', ',');
 
     cy.get('button[name=edit-sub]').first().click()
     cy.get('input[formControlName=amount]').clear().type(`${value}{enter}`)
 
     cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
       expect(response?.statusCode).to.equal(200)
-      cy.get('.amount-sub').contains(`${value/100}`)
+      cy.get('.amount-sub').invoke('text').then((text) => {
+        const hasExpectedAmount = text.includes(expectedAmount) || text.includes(expectedAmountWithComma);
+        expect(hasExpectedAmount).to.equal(true);
+      });
     })
   })
 })
