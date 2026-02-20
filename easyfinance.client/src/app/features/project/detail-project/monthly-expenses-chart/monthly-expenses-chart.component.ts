@@ -108,6 +108,8 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterVi
     const year = this.currentDateService.currentDate.getFullYear();
     const month = this.currentDateService.currentDate.getMonth() + 1;
     const daysInMonth = new Date(year, month, 0).getDate();
+    const today = new Date();
+    const isCurrentMonth = today.getFullYear() == year && today.getMonth() + 1 == month;
 
     // Aggregate expenses by date
     const dailySums: { [date: string]: number } = {};
@@ -163,7 +165,10 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterVi
     for (let day = 1; day <= daysInMonth; day++) {
       const dayAmount = currentMonthSums[day] || 0;
       runningTotal += dayAmount;
-      cumulative.push(runningTotal);
+      if (!isCurrentMonth || day <= today.getDate())
+        cumulative.push(runningTotal);
+      else
+        continue;
     }
 
     // Budget line
