@@ -1,7 +1,7 @@
 <div class="current-date">
   <input matInput [matDatepicker]="picker" (dateChange)="setMonthAndYear($event.value, picker)">
   <i class="bi bi-arrow-left btn btn-default" id="previous" (click)="previousMonth()"></i>
-  <h3>{{ getCurrentDate() | date: 'MMM yyyy'}}</h3>
+  <h3>{{ getCurrentDate() | date: 'MMM yyyy' : undefined : currentLanguage }}</h3>
   <mat-datepicker-toggle matIconSuffix (click)="picker.open()" [for]="picker"></mat-datepicker-toggle>
   <i class="bi bi-arrow-right btn btn-default" id="next" (click)="nextMonth()"></i>
 </div>

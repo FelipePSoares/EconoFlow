@@ -1,4 +1,5 @@
-import { AfterViewInit, Component, inject, Input, OnInit, PLATFORM_ID } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, inject, Input, OnInit, PLATFORM_ID } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { BehaviorSubject, map, Observable } from 'rxjs';
@@ -51,7 +52,9 @@ import { Category } from '../../../core/models/category';
 
 export class DetailProjectComponent implements OnInit, AfterViewInit {
   readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  private destroyRef = inject(DestroyRef);
   chartsReady = false;
+  currentLanguage = this.globalService.currentLanguage;
 
   @Input({ required: true })
   projectId!: string;
@@ -137,6 +140,12 @@ export class DetailProjectComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
+    this.translateService.onLangChange
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(event => {
+        this.currentLanguage = event.lang;
+      });
+
     this.projectService.selectedUserProject$.subscribe(userProject => {
       const defaultProject = new UserProjectDto();
       defaultProject.project = new ProjectDto();
