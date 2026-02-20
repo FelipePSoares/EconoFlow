@@ -220,21 +220,24 @@ export class MonthlyOverviewComponent implements OnInit, AfterViewInit {
   }
 
   private toDailyLineChartData(date: Date, incomes: Income[], expenses: ExpenseEntry[], budget: number): ChartData<'line'> {
+    const today = new Date();
+    const isCurrentMonth = today.getFullYear() == date.getFullYear() && today.getMonth() == date.getMonth();
     const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+    const daysInCurrentMonth = isCurrentMonth ? today.getDate() : undefined;
     const labels = Array.from({ length: daysInMonth }, (_, index) => String(index + 1));
-    const dailyIncome = new Array(daysInMonth).fill(0);
-    const dailyExpense = new Array(daysInMonth).fill(0);
+    const dailyIncome = new Array(daysInCurrentMonth || daysInMonth).fill(0);
+    const dailyExpense = new Array(daysInCurrentMonth || daysInMonth).fill(0);
 
     incomes.forEach(income => {
       const day = new Date(income.date).getDate();
-      if (day >= 1 && day <= daysInMonth) {
+      if (day >= 1 && day <= (daysInCurrentMonth || daysInMonth)) {
         dailyIncome[day - 1] += Number(income.amount || 0);
       }
     });
 
     expenses.forEach(expense => {
       const day = new Date(expense.date).getDate();
-      if (day >= 1 && day <= daysInMonth) {
+      if (day >= 1 && day <= (daysInCurrentMonth || daysInMonth)) {
         dailyExpense[day - 1] += Number(expense.amount || 0);
       }
     });
