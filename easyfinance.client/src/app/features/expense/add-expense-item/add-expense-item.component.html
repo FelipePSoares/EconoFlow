@@ -32,7 +32,7 @@
 
       <!-- Expense Field -->
       <mat-form-field appearance="fill" class="w-100">
-        <mat-label>{{ 'FieldExpenseName' | translate }}</mat-label>
+        <mat-label>{{ 'FieldParentExpenseName' | translate }}</mat-label>
         <mat-select formControlName="expenseId">
           @for (expense of expenses; track expense.id) {
             <mat-option [value]="expense.id">{{ expense.name }}</mat-option>
