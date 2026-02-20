@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, inject, Input, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { map } from 'rxjs';
+import { debounceTime, map } from 'rxjs';
 import { compare } from 'fast-json-patch';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -55,9 +55,12 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
 
   private expense?: ExpenseDto;
   private currentDate!: Date;
+  private expensesLoadToken = 0;
   expenseItemForm!: FormGroup;
   categories: CategoryDto[] = [];
   expenses: ExpenseDto[] = [];
+  isLoadingExpenses = false;
+  hasLoadedExpenses = false;
   thousandSeparator!: string; 
   decimalSeparator!: string; 
   httpErrors = false;
@@ -90,7 +93,7 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
 
     this.expenseItemForm = new FormGroup({
       categoryId: new FormControl(this.categoryId ?? '', [Validators.required]),
-      expenseId: new FormControl(this.expenseId ?? '', [Validators.required]),
+      expenseId: new FormControl({ value: this.expenseId ?? '', disabled: true }, [Validators.required]),
       name: new FormControl('', [Validators.maxLength(100)]),
       date: new FormControl(this.currentDate, [Validators.required]),
       amount: new FormControl(0, [Validators.min(0)])
@@ -102,18 +105,39 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
         this.categories = res.filter(category => !category.isArchived);
 
         if (this.categoryIdControl?.value) {
-          this.loadExpenses(this.categoryIdControl.value, this.expenseIdControl?.value);
+          const preferredExpenseId = this.expenseIdControl?.value;
+          this.resetExpenseSelection();
+          this.loadExpenses(this.categoryIdControl.value, preferredExpenseId, this.getSelectedDate());
         }
       });
 
     this.categoryIdControl?.valueChanges.subscribe(categoryId => {
-      this.expenses = [];
-      this.expense = undefined;
-      this.expenseIdControl?.setValue('', { emitEvent: false });
+      this.invalidateExpenseLoads();
+      this.hasLoadedExpenses = false;
+      this.resetExpenseSelection();
 
       if (categoryId) {
-        this.loadExpenses(categoryId);
+        this.loadExpenses(categoryId, undefined, this.getSelectedDate());
       }
+    });
+
+    this.date?.valueChanges.pipe(debounceTime(250)).subscribe(() => {
+      const categoryId = this.categoryIdControl?.value;
+      if (!categoryId) {
+        return;
+      }
+
+      const selectedDate = this.getSelectedDate();
+      const preferredExpenseId = this.expenseIdControl?.value;
+      this.invalidateExpenseLoads();
+      this.hasLoadedExpenses = false;
+      this.resetExpenseSelection();
+
+      if (!selectedDate) {
+        return;
+      }
+
+      this.loadExpenses(categoryId, preferredExpenseId, selectedDate);
     });
 
     this.expenseIdControl?.valueChanges.subscribe(expenseId => {
@@ -194,22 +218,62 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
     return this.errorMessageService.getFormFieldErrors(this.expenseItemForm, fieldName);
   }
 
-  private loadExpenses(categoryId: string, preferredExpenseId?: string): void {
-    this.categoryService.getById(this.projectId, categoryId)
-      .pipe(map(category => CategoryDto.fromCategory(category)))
-      .subscribe(category => {
-        this.expenses = category.expenses;
+  private loadExpenses(categoryId: string, preferredExpenseId?: string, selectedDate?: Date | null): void {
+    if (!selectedDate) {
+      return;
+    }
+
+    const currentLoadToken = ++this.expensesLoadToken;
+    this.isLoadingExpenses = true;
+    this.hasLoadedExpenses = false;
+
+    this.expenseService.get(this.projectId, categoryId, selectedDate)
+      .pipe(map(expenses => ExpenseDto.fromExpenses(expenses)))
+      .subscribe(expenses => {
+        if (currentLoadToken !== this.expensesLoadToken) {
+          return;
+        }
+
+        this.expenses = expenses;
 
         const selectedExpenseId = preferredExpenseId && this.expenses.some(expense => expense.id === preferredExpenseId)
           ? preferredExpenseId
           : '';
 
         this.expenseIdControl?.setValue(selectedExpenseId, { emitEvent: false });
+        this.updateExpenseSelectionAvailability();
 
         if (selectedExpenseId) {
           this.loadExpenseDetails(categoryId, selectedExpenseId);
+        } else {
+          this.expense = undefined;
         }
+
+        this.isLoadingExpenses = false;
+        this.hasLoadedExpenses = true;
+      }, () => {
+        if (currentLoadToken !== this.expensesLoadToken) {
+          return;
+        }
+
+        this.resetExpenseSelection();
+        this.isLoadingExpenses = false;
+        this.hasLoadedExpenses = true;
       });
+  }
+
+  private getSelectedDate(): Date | null {
+    if (this.date?.invalid) {
+      return null;
+    }
+
+    const value = this.date?.value;
+
+    if (value instanceof Date && !isNaN(value.getTime())) {
+      return value;
+    }
+
+    return null;
   }
 
   private loadExpenseDetails(categoryId: string, expenseId: string): void {
@@ -218,5 +282,26 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
       .subscribe(res => {
         this.expense = res;
       });
+  }
+
+  private resetExpenseSelection(): void {
+    this.expenses = [];
+    this.expense = undefined;
+    this.expenseIdControl?.setValue('', { emitEvent: false });
+    this.expenseIdControl?.disable({ emitEvent: false });
+  }
+
+  private updateExpenseSelectionAvailability(): void {
+    if (this.expenses.length > 0) {
+      this.expenseIdControl?.enable({ emitEvent: false });
+      return;
+    }
+
+    this.expenseIdControl?.disable({ emitEvent: false });
+  }
+
+  private invalidateExpenseLoads(): void {
+    this.expensesLoadToken++;
+    this.isLoadingExpenses = false;
   }
 }

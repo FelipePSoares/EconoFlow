@@ -17,10 +17,23 @@
         }
       </mat-form-field>
 
+      <!-- Date Field with Date Picker -->
+      <mat-form-field appearance="fill" class="w-100">
+        <mat-label>{{ 'FieldDate' | translate }}</mat-label>
+        <input matInput [matDatepicker]="picker" formControlName="date">
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+        @if (date?.invalid && date?.touched){
+          @for (error of getFormFieldErrors('date'); track error) {
+            <mat-error>{{ error |  translate }}</mat-error>
+          }
+        }
+      </mat-form-field>
+
       <!-- Expense Field -->
       <mat-form-field appearance="fill" class="w-100">
         <mat-label>{{ 'FieldExpenseName' | translate }}</mat-label>
-        <mat-select formControlName="expenseId" [disabled]="!categoryIdControl?.value || expenses.length === 0">
+        <mat-select formControlName="expenseId">
           @for (expense of expenses; track expense.id) {
             <mat-option [value]="expense.id">{{ expense.name }}</mat-option>
           }
@@ -32,25 +45,18 @@
         }
       </mat-form-field>
 
+      @if (categoryIdControl?.value && !isLoadingExpenses && hasLoadedExpenses && expenses.length === 0) {
+        <p data-testid="no-parent-expense-message" class="text-start text-muted mb-3">
+          {{ 'NoDataForSelectedMonth' | translate }}
+        </p>
+      }
+
       <!-- Name Field -->
       <mat-form-field appearance="fill" class="w-100">
         <mat-label>{{ 'FieldExpenseName' | translate }} </mat-label>
         <input matInput id="name" placeholder="{{ 'PlaceholderExpenseName' | translate }}" formControlName="name">
         @if (name?.invalid && name?.touched){
           @for (error of getFormFieldErrors('name'); track error) {
-            <mat-error>{{ error |  translate }}</mat-error>
-          }
-        }
-      </mat-form-field>
-
-      <!-- Date Field with Date Picker -->
-      <mat-form-field appearance="fill" class="w-100">
-        <mat-label>{{ 'FieldDate' | translate }}</mat-label>
-        <input matInput [matDatepicker]="picker" formControlName="date">
-        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-        <mat-datepicker #picker></mat-datepicker>
-        @if (date?.invalid && date?.touched){
-          @for (error of getFormFieldErrors('date'); track error) {
             <mat-error>{{ error |  translate }}</mat-error>
           }
         }

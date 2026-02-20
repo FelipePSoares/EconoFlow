@@ -152,6 +152,8 @@ export class AppComponent {
 
     this.dialog.open(PageModalComponent, {
       autoFocus: false,
+      width: '560px',
+      maxWidth: '95vw',
       data: {
         titleSuffix: this.selectedProjectName
       }
