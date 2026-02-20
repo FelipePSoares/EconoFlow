@@ -4,6 +4,7 @@ import { ChartConfiguration, ChartOptions } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 import { ExpenseDto } from '../../../expense/models/expense-dto';
 import { CurrentDateService } from '../../../../core/services/current-date.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-monthly-expenses-chart',
@@ -13,6 +14,7 @@ import { CurrentDateService } from '../../../../core/services/current-date.servi
 })
 export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterViewInit {
   private platformId = inject(PLATFORM_ID);
+  private translateService = inject(TranslateService);
 
   @Input() expenses: ExpenseDto[] = [];
   @Input() budget: number = 0;
@@ -25,7 +27,7 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterVi
     datasets: [
       {
         data: [],
-        label: 'Cumulative Spending',
+        label: this.translateService.instant('Expense'),
         fill: true,
         tension: 0.5,
         borderColor: 'rgb(255, 99, 132)',
@@ -45,7 +47,7 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterVi
       },
       {
         data: [],
-        label: 'Budget',
+        label: this.translateService.instant('Budget'),
         borderColor: 'rgb(54, 162, 235)',
         backgroundColor: 'rgba(54, 162, 235, 0.2)',
         borderDash: [5, 5],

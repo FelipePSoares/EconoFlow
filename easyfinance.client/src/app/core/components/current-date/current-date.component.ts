@@ -25,6 +25,7 @@ export class CurrentDateComponent implements OnInit {
   private globalService = inject(GlobalService);
   private translateService = inject(TranslateService);
   private destroyRef = inject(DestroyRef);
+  currentLanguage = this.globalService.currentLanguage;
 
   @Output() dateUpdatedEvent = new EventEmitter<Date>();
 
@@ -34,7 +35,10 @@ export class CurrentDateComponent implements OnInit {
     this.dateAdapter.setLocale(this.globalService.currentLanguage);
     this.translateService.onLangChange
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(event => this.dateAdapter.setLocale(event.lang));
+      .subscribe(event => {
+        this.currentLanguage = event.lang;
+        this.dateAdapter.setLocale(event.lang);
+      });
   }
 
   getCurrentDate(): Date {
