@@ -3,8 +3,11 @@
 </button>
 @if(buttons){
 <ul class="dropdown-menu">
-  @for (button of buttons; track $index) {
-    <li><a class="btn dropdown-item" (click)="clicked(button)">{{button}}</a></li>
+  @for (button of buttons; track $index; let isLast = $last) {
+    <li><a class="btn dropdown-item" (click)="clicked(button)">{{ getLabelKey(button) | translate }}</a></li>
+    @if (!isLast) {
+      <li><hr class="dropdown-divider"></li>
+    }
   }
 </ul>
 }

@@ -30,3 +30,33 @@
   font-size: 1.35rem;
   line-height: 1;
 }
+
+.dropdown-menu {
+  min-width: 12.5rem;
+  padding: 0.25rem;
+}
+
+.dropdown-item {
+  min-height: 44px;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+  padding: 0.65rem 0.8rem;
+}
+
+.dropdown-divider {
+  margin: 0.2rem 0.35rem;
+}
+
+@media (max-width: 576px) {
+  .dropdown-menu {
+    min-width: 14rem;
+  }
+
+  .dropdown-item {
+    min-height: 48px;
+    font-size: 1.05rem;
+    padding: 0.75rem 0.9rem;
+  }
+}
