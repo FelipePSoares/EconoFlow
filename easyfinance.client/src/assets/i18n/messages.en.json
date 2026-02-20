@@ -137,6 +137,7 @@
   "Year": "Year",
   "IncomeVsExpenseByMonth": "Income vs Expense by month",
   "DailyIncomeVsExpense": "Daily income vs expense",
+  "CumulativeExpense": "Cumulative expense",
   "CumulativeIncomeVsExpense": "Cumulative income vs expense",
   "ExpensesByCategory": "Expenses by category",
   "IncomesByCategory": "Incomes by category",
