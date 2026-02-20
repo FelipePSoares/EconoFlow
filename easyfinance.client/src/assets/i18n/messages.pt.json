@@ -137,6 +137,7 @@
   "Year": "Ano",
   "IncomeVsExpenseByMonth": "Receitas e despesas por mês",
   "DailyIncomeVsExpense": "Receitas e despesas por dia",
+  "CumulativeExpense": "Despesas acumuladas",
   "CumulativeIncomeVsExpense": "Receitas e despesas acumuladas",
   "ExpensesByCategory": "Despesas por categoria",
   "IncomesByCategory": "Receitas por categoria",
