@@ -1,8 +1,8 @@
 import { AfterViewInit, Component, DestroyRef, inject, Input, OnInit, PLATFORM_ID } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
-import { Router } from '@angular/router';
-import { BehaviorSubject, map, Observable } from 'rxjs';
+import { NavigationEnd, Router, UrlSegment } from '@angular/router';
+import { BehaviorSubject, filter, map, Observable } from 'rxjs';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { CdkTableDataSourceInput } from '@angular/cdk/table';
@@ -53,6 +53,7 @@ import { Category } from '../../../core/models/category';
 export class DetailProjectComponent implements OnInit, AfterViewInit {
   readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private destroyRef = inject(DestroyRef);
+  private hadModalOutlet = false;
   chartsReady = false;
   currentLanguage = this.globalService.currentLanguage;
 
@@ -140,10 +141,27 @@ export class DetailProjectComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
+    this.hadModalOutlet = this.hasModalOutlet(this.router.url);
+
     this.translateService.onLangChange
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(event => {
         this.currentLanguage = event.lang;
+      });
+
+    this.router.events
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(event => {
+        const hasModalOutlet = this.hasModalOutlet(event.urlAfterRedirects);
+
+        if (this.hadModalOutlet && !hasModalOutlet && this.isCurrentProjectDetailRoute(event.urlAfterRedirects)) {
+          this.fillData(this.currentDateService.currentDate);
+        }
+
+        this.hadModalOutlet = hasModalOutlet;
       });
 
     this.projectService.selectedUserProject$.subscribe(userProject => {
@@ -456,5 +474,22 @@ export class DetailProjectComponent implements OnInit, AfterViewInit {
         })
       }))
       .filter(category => category.expenses.length > 0 || !category.isArchived);
+  }
+
+  private hasModalOutlet(url: string): boolean {
+    return !!this.router.parseUrl(url).root.children['modal'];
+  }
+
+  private isCurrentProjectDetailRoute(url: string): boolean {
+    const primarySegments = this.router.parseUrl(url).root.children['primary']?.segments ?? [];
+    const projectIdSegment = this.getSegmentPath(primarySegments, 1);
+
+    return this.getSegmentPath(primarySegments, 0) === 'projects'
+      && projectIdSegment === this.projectId
+      && primarySegments.length === 2;
+  }
+
+  private getSegmentPath(segments: UrlSegment[], index: number): string {
+    return segments.at(index)?.path ?? '';
   }
 }
