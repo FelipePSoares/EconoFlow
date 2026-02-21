@@ -42,6 +42,16 @@ export const routes: Routes = [
   { path: 'privacy-policy', component: PrivacyPolicyComponent },
   { path: 'use-terms', component: UseTermsComponent },
   { path: 'contact-us', component: ContactUsComponent },
+  {
+    path: 'pt',
+    children: [
+      { path: '', component: IndexComponent, pathMatch: 'full' },
+      { path: 'privacy-policy', component: PrivacyPolicyComponent },
+      { path: 'use-terms', component: UseTermsComponent },
+      { path: 'contact-us', component: ContactUsComponent },
+      { path: 'how-to-create-budget', component: HowToComponent, data: { content: 'create-budget' } },
+    ]
+  },
   { path: 'login', component: LoginComponent },
   { path: 'recovery', component: RecoveryComponent },
   { path: 'register', component: RegisterComponent },

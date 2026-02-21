@@ -2,8 +2,8 @@
 import { filter, firstValueFrom } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { ApplicationRef, Component, inject, PLATFORM_ID } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Router, RouterOutlet } from '@angular/router';
+import { CommonModule, DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS, MAT_MOMENT_DATE_FORMATS } from '@angular/material-moment-adapter';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
@@ -30,6 +30,7 @@ import { ProjectService } from '../core/services/project.service';
   selector: 'app-root',
   imports: [
     CommonModule,
+    RouterLink,
     RouterOutlet,
     NavBarComponent,
     SpinnerComponent,
@@ -51,6 +52,14 @@ import { ProjectService } from '../core/services/project.service';
 })
 
 export class AppComponent {
+  private readonly localizedPublicPaths = new Set([
+    '',
+    'privacy-policy',
+    'use-terms',
+    'contact-us',
+    'how-to-create-budget'
+  ]);
+
   private router = inject(Router);
   private dialog = inject(MatDialog);
   private versionCheckService = inject(VersionCheckService);
@@ -58,6 +67,7 @@ export class AppComponent {
   private noticationService = inject(NotificationService);
   private globalService = inject(GlobalService);
   private projectService = inject(ProjectService);
+  private document = inject(DOCUMENT);
   private appRef = inject(ApplicationRef);
   private platformId = inject(PLATFORM_ID);
   private dateAdapter = inject(DateAdapter<Date>);
@@ -88,14 +98,36 @@ export class AppComponent {
         this.selectedProjectName = userProject?.project?.name ?? null;
       });
 
+      const initialRouteLanguage = this.getPublicRouteLanguageFromPath(this.document.location.pathname)
+        ?? this.getPublicRouteLanguage(this.router.url);
+      if (initialRouteLanguage) {
+        this.selectedLanguage = initialRouteLanguage;
+      }
+
       firstValueFrom(this.appRef.isStable.pipe(filter(Boolean))).then(async () => {
+        const routeLanguage = this.getPublicRouteLanguageFromPath(this.document.location.pathname)
+          ?? this.getPublicRouteLanguage(this.router.url);
         const storageLanguage = localStorage.getItem(this.globalService.languageStorageKey);
 
-        const locale = storageLanguage || navigator.language || this.globalService.currentLanguage || 'en';
+        const locale = routeLanguage || storageLanguage || navigator.language || this.globalService.currentLanguage || 'en';
         await this.globalService.setLocale(locale);
         this.dateAdapter.setLocale(this.globalService.currentLanguage);
         this.selectedLanguage = this.globalService.currentLanguage;
       });
+
+      this.router.events
+        .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+        .subscribe(event => {
+          const routeLanguage = this.getPublicRouteLanguage(event.urlAfterRedirects);
+          if (!routeLanguage || routeLanguage === this.globalService.currentLanguage) {
+            return;
+          }
+
+          void this.globalService.setLocale(routeLanguage).then(() => {
+            this.dateAdapter.setLocale(this.globalService.currentLanguage);
+            this.selectedLanguage = this.globalService.currentLanguage;
+          });
+        });
     }
   }
 
@@ -124,6 +156,22 @@ export class AppComponent {
     await this.globalService.setLocale(languageCode);
     this.dateAdapter.setLocale(this.globalService.currentLanguage);
     this.selectedLanguage = this.globalService.currentLanguage;
+    await this.updatePublicRouteLanguage(this.globalService.currentLanguage);
+  }
+
+  getPublicRoute(path: string = ''): string {
+    const normalizedPath = path.trim().replace(/^\/+|\/+$/g, '');
+    const isPortuguese = this.isPortugueseLanguage(this.selectedLanguage);
+
+    if (isPortuguese) {
+      return normalizedPath ? `/pt/${normalizedPath}` : '/pt';
+    }
+
+    return normalizedPath ? `/${normalizedPath}` : '/';
+  }
+
+  getPublicRouteCommands(path: string = ''): string[] {
+    return this.toAbsoluteCommands(this.getPublicRoute(path));
   }
 
   addFromProject(action: string): void {
@@ -160,5 +208,83 @@ export class AppComponent {
     }).afterClosed().subscribe(() => {
       this.router.navigate([{ outlets: { modal: null } }]);
     });
+  }
+
+  private getPublicRouteLanguage(url: string): string | null {
+    const localizedRoute = this.parseLocalizedPublicRoute(url);
+    return localizedRoute?.language ?? null;
+  }
+
+  private getPublicRouteLanguageFromPath(pathname: string): string | null {
+    const primarySegments = pathname
+      .replace(/^\/+|\/+$/g, '')
+      .split('/')
+      .filter(segment => segment.length > 0);
+
+    const localizedRoute = this.parseLocalizedPublicRouteFromSegments(primarySegments);
+    return localizedRoute?.language ?? null;
+  }
+
+  private parseLocalizedPublicRoute(url: string): { language: 'en' | 'pt', path: string } | null {
+    const primarySegments = this.router.parseUrl(url).root.children['primary']?.segments.map(segment => segment.path) ?? [];
+    return this.parseLocalizedPublicRouteFromSegments(primarySegments);
+  }
+
+  private parseLocalizedPublicRouteFromSegments(primarySegments: string[]): { language: 'en' | 'pt', path: string } | null {
+    if (primarySegments[0] === 'pt') {
+      const localizedPath = primarySegments.slice(1).join('/');
+      if (this.localizedPublicPaths.has(localizedPath)) {
+        return { language: 'pt', path: localizedPath };
+      }
+
+      return null;
+    }
+
+    const defaultPath = primarySegments.join('/');
+    if (this.localizedPublicPaths.has(defaultPath)) {
+      return { language: 'en', path: defaultPath };
+    }
+
+    return null;
+  }
+
+  private async updatePublicRouteLanguage(languageCode: string): Promise<void> {
+    const localizedRoute = this.parseLocalizedPublicRoute(this.router.url);
+    if (!localizedRoute) {
+      return;
+    }
+
+    const targetLanguage: 'en' | 'pt' = this.isPortugueseLanguage(languageCode) ? 'pt' : 'en';
+    if (localizedRoute.language === targetLanguage) {
+      return;
+    }
+
+    const targetPath = targetLanguage === 'pt'
+      ? localizedRoute.path ? `/pt/${localizedRoute.path}` : '/pt'
+      : localizedRoute.path ? `/${localizedRoute.path}` : '/';
+
+    const parsedCurrentUrl = this.router.parseUrl(this.router.url);
+    const urlTree = this.router.createUrlTree(
+      this.toAbsoluteCommands(targetPath),
+      {
+        queryParams: parsedCurrentUrl.queryParams,
+        fragment: parsedCurrentUrl.fragment ?? undefined
+      }
+    );
+
+    await this.router.navigateByUrl(urlTree, { replaceUrl: true });
+  }
+
+  private toAbsoluteCommands(path: string): string[] {
+    const normalizedPath = path.trim().replace(/^\/+|\/+$/g, '');
+    if (!normalizedPath) {
+      return ['/'];
+    }
+
+    return ['/', ...normalizedPath.split('/')];
+  }
+
+  private isPortugueseLanguage(languageCode: string): boolean {
+    return languageCode.toLowerCase().startsWith('pt');
   }
 }

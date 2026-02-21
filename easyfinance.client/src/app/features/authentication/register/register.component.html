@@ -72,7 +72,7 @@
         <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="registerForm.invalid">{{ 'ButtonSignUp' | translate }}</button>
       </form>
       <span class="register-footer">
-        <p class="text-secondary text-start"><small [innerHtml]="'RegisterAdvice' | translate : { termslink: '/use-terms', privacylink: '/privacy-policy' }"></small></p>
+        <p class="text-secondary text-start"><small [innerHtml]="'RegisterAdvice' | translate : { termslink: termsRoute, privacylink: privacyPolicyRoute }"></small></p>
       </span>
     </div>
     <div class="position-absolute top-0 end-0 pt-3 pe-4">

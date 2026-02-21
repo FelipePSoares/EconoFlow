@@ -1,4 +1,10 @@
 /
 /privacy-policy
 /use-terms
+/contact-us
 /how-to-create-budget
+/pt
+/pt/privacy-policy
+/pt/use-terms
+/pt/contact-us
+/pt/how-to-create-budget
