@@ -12,6 +12,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { passwordMatchValidator } from '../../../core/utils/custom-validators/password-match-validator';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
+import { GlobalService } from '../../../core/services/global.service';
 
 @Component({
     selector: 'app-register',
@@ -40,7 +41,13 @@ export class RegisterComponent implements OnInit {
   hasOneSpecial = false;
   hasMinCharacteres = false;
 
-  constructor(private authService: AuthService, private router: Router, private route: ActivatedRoute, private errorMessageService: ErrorMessageService) {
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private route: ActivatedRoute,
+    private errorMessageService: ErrorMessageService,
+    private globalService: GlobalService
+  ) {
   }
 
   ngOnInit() {
@@ -104,6 +111,14 @@ export class RegisterComponent implements OnInit {
     return this.errorMessageService.getFormFieldErrors(this.registerForm, fieldName);
   }
 
+  get termsRoute(): string {
+    return this.getLocalizedPublicRoute('use-terms');
+  }
+
+  get privacyPolicyRoute(): string {
+    return this.getLocalizedPublicRoute('privacy-policy');
+  }
+
   celebrate() {
     const scalar = 2;
     const money = confetti.shapeFromText({ text: '💵', scalar });
@@ -120,5 +135,11 @@ export class RegisterComponent implements OnInit {
         y: 0.5
       }
     });
+  }
+
+  private getLocalizedPublicRoute(path: string): string {
+    return this.globalService.currentLanguage.startsWith('pt')
+      ? `/pt/${path}`
+      : `/${path}`;
   }
 }

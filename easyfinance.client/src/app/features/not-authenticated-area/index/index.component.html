@@ -7,7 +7,7 @@
       {{ 'ShortIndexWebSiteDescription' | translate }}
     </p>
 
-    <a href="/register" class="btn btn-primary btn-lg rounded-pill mb-5 shadow">
+    <a [routerLink]="['/register']" class="btn btn-primary btn-lg rounded-pill mb-5 shadow">
       {{ 'ButtonCreateFreeAccount' | translate }}
     </a>
 
@@ -114,7 +114,7 @@
   <section class="mt-5 mb-5 bg-primary text-white rounded p-5 text-center">
     <h2 class="display-6 fw-bold mb-4">{{ 'StartNowYourJourney' | translate }}</h2>
     <p class="lead mb-5 mx-auto">{{ 'StartNowYourJourneySubText' | translate }}</p>
-    <a href="/register" class="btn btn-light btn-lg rounded-pill text-primary">
+    <a [routerLink]="['/register']" class="btn btn-light btn-lg rounded-pill text-primary">
       {{ 'ButtonCreateFreeAccount' | translate }}
     </a>
   </section>

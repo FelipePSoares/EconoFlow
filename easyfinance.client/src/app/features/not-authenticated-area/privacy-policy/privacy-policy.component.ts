@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
+import { GlobalService } from '../../../core/services/global.service';
 
 @Component({
   selector: 'app-privacy-policy',
@@ -10,5 +11,9 @@ import { TranslateModule } from '@ngx-translate/core';
   styleUrl: './privacy-policy.component.css'
 })
 export class PrivacyPolicyComponent {
+  private globalService = inject(GlobalService);
 
+  isPortuguese(): boolean {
+    return this.globalService.currentLanguage.startsWith('pt');
+  }
 }

@@ -1,81 +1,174 @@
 <main class="container mt-5 mb-5">
-  <h1>Terms of Use</h1>
-  <h2>1. Terms Acceptance</h2>
-  <p>By accessing and using our financial control application, you fully agree to these Terms of Use. It is essential that you carefully read this document.</p>
-  <h2>2. Registration and User Account</h2>
-  <h3>2.1 Eligibility</h3>
-  <ul>
-    <li>You must be of legal age to use the service</li>
-    <li>You must provide true and updated information during registration</li>
-  </ul>
-  <h3>2.2 Account Responsibilities</h3>
-  <ul>
-    <li>You are responsible for the confidentiality of your login credentials</li>
-    <li>Do not share your access information</li>
-    <li>Limit of one account per user</li>
-    <li>You are responsible for all activities performed on your account</li>
-  </ul>
-  <h2>3. Acceptable Service Use</h2>
-  <h3>3.1 Prohibited Conduct</h3>
-  <p>It is expressly forbidden to:</p>
-  <ul>
-    <li>Use the service for illegal activities</li>
-    <li>Insert offensive, discriminatory, or inappropriate content</li>
-    <li>Attempt to violate system security</li>
-    <li>Use for financial fraud or any malicious action</li>
-    <li>Reproduce, copy, or distribute content without authorization</li>
-    <li>Perform reverse engineering or modify the service</li>
-  </ul>
-  <h2>4. User Responsibilities</h2>
-  <h3>4.1 Financial Data</h3>
-  <ul>
-    <li>All financial data entered is entirely your responsibility</li>
-    <li>We recommend periodic verification of information</li>
-    <li>We are not responsible for financial decisions based on the service</li>
-  </ul>
-  <h3>4.2 Information Accuracy</h3>
-  <ul>
-    <li>Commit to maintaining accurate and updated information</li>
-    <li>Regularly update your registration data</li>
-  </ul>
-  <h2>5. Service Limitations</h2>
-  <h3>5.1 Availability</h3>
-  <ul>
-    <li>We do not guarantee uninterrupted service availability</li>
-    <li>Scheduled or unscheduled maintenance may occur</li>
-    <li>We are not responsible for temporary unavailability</li>
-  </ul>
-  <h2>6. Suspension and Cancellation</h2>
-  <h3>6.1 Suspension Conditions</h3>
-  <p>We may suspend or cancel accounts that:</p>
-  <ul>
-    <li>Violate our terms of use</li>
-    <li>Show suspicious activities</li>
-    <li>Remain inactive for an extended period</li>
-    <li>Cause any type of damage to the platform</li>
-  </ul>
-  <h3>6.2 Suspension Effects</h3>
-  <ul>
-    <li>Loss of access to all data and functionalities</li>
-    <li>Possible permanent deletion of information</li>
-  </ul>
-  <h2>7. Notifications</h2>
-  <ul>
-    <li>The user may choose to receive notifications by email, SMS, or mobile application.</li>
-    <li>Notifications are provided as a convenience and may not be delivered in real time. We are not responsible for any damages resulting from failure, delay, or non-receipt of a notification.</li>
-    <li>Users may configure their notification preferences in the application.</li>
-    <li>Contact data provided (such as email, phone number, or device identifiers) will be used exclusively for notification purposes and handled in accordance with our Privacy Policy.</li>
-  </ul>
-  <h2>8. Terms Modifications</h2>
-  <p>We reserve the right to modify these terms at any time. Changes will be communicated to users.</p>
-  <h2>9. Disclaimer</h2>
-  <h3>9.1 Limitation of Liability</h3>
-  <ul>
-    <li>We are not responsible for financial losses</li>
-    <li>The service is provided "as is", without warranties</li>
-    <li>We always recommend consulting financial professionals</li>
-  </ul>
-  <h2>10. Jurisdiction and Forum</h2>
-  <p>Any dispute will be resolved in the court of Salzburg/Austria, waiving any other jurisdiction.</p>
-  <p><strong>Last Updated:</strong> 05/09/2025</p>
+  @if (isPortuguese()) {
+    <h1>Termos de Uso</h1>
+    <p><strong>Em caso de dúvida, divergência ou interpretação, a versão em inglês destes Termos de Uso prevalece.</strong></p>
+
+    <h2>1. Aceitação dos Termos</h2>
+    <p>Ao acessar e utilizar nosso aplicativo de controle financeiro, você concorda integralmente com estes Termos de Uso. É essencial que você leia este documento com atenção.</p>
+
+    <h2>2. Cadastro e Conta de Usuário</h2>
+    <h3>2.1 Elegibilidade</h3>
+    <ul>
+      <li>Você deve ser maior de idade para utilizar o serviço</li>
+      <li>Você deve fornecer informações verdadeiras e atualizadas durante o cadastro</li>
+    </ul>
+    <h3>2.2 Responsabilidades da Conta</h3>
+    <ul>
+      <li>Você é responsável pela confidencialidade de suas credenciais de acesso</li>
+      <li>Não compartilhe suas informações de acesso</li>
+      <li>Limite de uma conta por usuario</li>
+      <li>Você é responsável por todas as atividades realizadas em sua conta</li>
+    </ul>
+
+    <h2>3. Uso Aceitável do Serviço</h2>
+    <h3>3.1 Condutas Proibidas</h3>
+    <p>É expressamente proibido:</p>
+    <ul>
+      <li>Utilizar o serviço para atividades ilegais</li>
+      <li>Inserir conteúdo ofensivo, discriminatório ou inadequado</li>
+      <li>Tentar violar a segurança do sistema</li>
+      <li>Usar o serviço para fraude financeira ou qualquer ação maliciosa</li>
+      <li>Reproduzir, copiar ou distribuir conteúdo sem autorização</li>
+      <li>Realizar engenharia reversa ou modificar o serviço</li>
+    </ul>
+
+    <h2>4. Responsabilidades do Usuário</h2>
+    <h3>4.1 Dados Financeiros</h3>
+    <ul>
+      <li>Todos os dados financeiros inseridos são de sua inteira responsabilidade</li>
+      <li>Recomendamos verificação periódica das informações</li>
+      <li>Não nos responsabilizamos por decisões financeiras baseadas no serviço</li>
+    </ul>
+    <h3>4.2 Precisão das Informações</h3>
+    <ul>
+      <li>Comprometa-se a manter informações precisas e atualizadas</li>
+      <li>Atualize regularmente seus dados cadastrais</li>
+    </ul>
+
+    <h2>5. Limitações do Serviço</h2>
+    <h3>5.1 Disponibilidade</h3>
+    <ul>
+      <li>Não garantimos disponibilidade ininterrupta do serviço</li>
+      <li>Manutenções programadas ou não programadas podem ocorrer</li>
+      <li>Não nos responsabilizamos por indisponibilidade temporária</li>
+    </ul>
+
+    <h2>6. Suspensão e Cancelamento</h2>
+    <h3>6.1 Condições de Suspensão</h3>
+    <p>Podemos suspender ou cancelar contas que:</p>
+    <ul>
+      <li>Violem nossos termos de uso</li>
+      <li>Apresentem atividades suspeitas</li>
+      <li>Permaneçam inativas por período prolongado</li>
+      <li>Causem qualquer tipo de dano a plataforma</li>
+    </ul>
+    <h3>6.2 Efeitos da Suspensão</h3>
+    <ul>
+      <li>Perda de acesso a todos os dados e funcionalidades</li>
+      <li>Possível exclusão permanente das informações</li>
+    </ul>
+
+    <h2>7. Notificações</h2>
+    <ul>
+      <li>O usuário pode optar por receber notificações por e-mail, SMS ou aplicativo móvel.</li>
+      <li>As notificações são fornecidas como conveniência e podem não ser entregues em tempo real. Não nos responsabilizamos por quaisquer danos decorrentes de falha, atraso ou não recebimento de notificações.</li>
+      <li>Os usuários podem configurar suas preferências de notificação no aplicativo.</li>
+      <li>Os dados de contato fornecidos (como e-mail, telefone ou identificadores de dispositivo) serão utilizados exclusivamente para notificações e tratados de acordo com nossa Política de Privacidade.</li>
+    </ul>
+
+    <h2>8. Modificações dos Termos</h2>
+    <p>Reservamo-nos o direito de modificar estes termos a qualquer momento. As alterações serão comunicadas aos usuários.</p>
+
+    <h2>9. Isenção de Responsabilidade</h2>
+    <h3>9.1 Limitação de Responsabilidade</h3>
+    <ul>
+      <li>Não nos responsabilizamos por perdas financeiras</li>
+      <li>O serviço é fornecido "como está", sem garantias</li>
+      <li>Recomendamos sempre consultar profissionais financeiros</li>
+    </ul>
+
+    <h2>10. Jurisdição e Foro</h2>
+    <p>Qualquer disputa será resolvida no foro de Salzburg/Austria, com renúncia a qualquer outro foro.</p>
+    <p><strong>Última Atualização:</strong> 05/09/2025</p>
+  } @else {
+    <h1>Terms of Use</h1>
+    <h2>1. Terms Acceptance</h2>
+    <p>By accessing and using our financial control application, you fully agree to these Terms of Use. It is essential that you carefully read this document.</p>
+    <h2>2. Registration and User Account</h2>
+    <h3>2.1 Eligibility</h3>
+    <ul>
+      <li>You must be of legal age to use the service</li>
+      <li>You must provide true and updated information during registration</li>
+    </ul>
+    <h3>2.2 Account Responsibilities</h3>
+    <ul>
+      <li>You are responsible for the confidentiality of your login credentials</li>
+      <li>Do not share your access information</li>
+      <li>Limit of one account per user</li>
+      <li>You are responsible for all activities performed on your account</li>
+    </ul>
+    <h2>3. Acceptable Service Use</h2>
+    <h3>3.1 Prohibited Conduct</h3>
+    <p>It is expressly forbidden to:</p>
+    <ul>
+      <li>Use the service for illegal activities</li>
+      <li>Insert offensive, discriminatory, or inappropriate content</li>
+      <li>Attempt to violate system security</li>
+      <li>Use for financial fraud or any malicious action</li>
+      <li>Reproduce, copy, or distribute content without authorization</li>
+      <li>Perform reverse engineering or modify the service</li>
+    </ul>
+    <h2>4. User Responsibilities</h2>
+    <h3>4.1 Financial Data</h3>
+    <ul>
+      <li>All financial data entered is entirely your responsibility</li>
+      <li>We recommend periodic verification of information</li>
+      <li>We are not responsible for financial decisions based on the service</li>
+    </ul>
+    <h3>4.2 Information Accuracy</h3>
+    <ul>
+      <li>Commit to maintaining accurate and updated information</li>
+      <li>Regularly update your registration data</li>
+    </ul>
+    <h2>5. Service Limitations</h2>
+    <h3>5.1 Availability</h3>
+    <ul>
+      <li>We do not guarantee uninterrupted service availability</li>
+      <li>Scheduled or unscheduled maintenance may occur</li>
+      <li>We are not responsible for temporary unavailability</li>
+    </ul>
+    <h2>6. Suspension and Cancellation</h2>
+    <h3>6.1 Suspension Conditions</h3>
+    <p>We may suspend or cancel accounts that:</p>
+    <ul>
+      <li>Violate our terms of use</li>
+      <li>Show suspicious activities</li>
+      <li>Remain inactive for an extended period</li>
+      <li>Cause any type of damage to the platform</li>
+    </ul>
+    <h3>6.2 Suspension Effects</h3>
+    <ul>
+      <li>Loss of access to all data and functionalities</li>
+      <li>Possible permanent deletion of information</li>
+    </ul>
+    <h2>7. Notifications</h2>
+    <ul>
+      <li>The user may choose to receive notifications by email, SMS, or mobile application.</li>
+      <li>Notifications are provided as a convenience and may not be delivered in real time. We are not responsible for any damages resulting from failure, delay, or non-receipt of a notification.</li>
+      <li>Users may configure their notification preferences in the application.</li>
+      <li>Contact data provided (such as email, phone number, or device identifiers) will be used exclusively for notification purposes and handled in accordance with our Privacy Policy.</li>
+    </ul>
+    <h2>8. Terms Modifications</h2>
+    <p>We reserve the right to modify these terms at any time. Changes will be communicated to users.</p>
+    <h2>9. Disclaimer</h2>
+    <h3>9.1 Limitation of Liability</h3>
+    <ul>
+      <li>We are not responsible for financial losses</li>
+      <li>The service is provided "as is", without warranties</li>
+      <li>We always recommend consulting financial professionals</li>
+    </ul>
+    <h2>10. Jurisdiction and Forum</h2>
+    <p>Any dispute will be resolved in the court of Salzburg/Austria, waiving any other jurisdiction.</p>
+    <p><strong>Last Updated:</strong> 05/09/2025</p>
+  }
 </main>
