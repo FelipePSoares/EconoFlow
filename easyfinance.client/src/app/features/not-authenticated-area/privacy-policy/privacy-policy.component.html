@@ -1,91 +1,184 @@
 <main class="container mt-5 mb-5">
-  <h1>Privacy Policy</h1>
+  @if (isPortuguese()) {
+    <h1>Política de Privacidade</h1>
+    <p><strong>Em caso de dúvida, divergência ou interpretação, a versão em inglês desta Política de Privacidade prevalece.</strong></p>
 
-  <h2>1. Introduction</h2>
-  <p>Welcome to our financial control application. This Privacy Policy describes how we collect, use, store, and protect your personal information.</p>
+    <h2>1. Introdução</h2>
+    <p>Bem-vindo ao nosso aplicativo de controle financeiro. Esta Política de Privacidade descreve como coletamos, usamos, armazenamos e protegemos suas informações pessoais.</p>
 
-  <h2>2. Collected Information</h2>
-  <h3>2.1 Personal Data</h3>
-  <p>We collect the following information when you register and use our application:</p>
-  <ul>
-    <li>Full name</li>
-    <li>Email address</li>
-    <li>Phone number (if provided)</li>
-    <li>Notification identifiers (such as push tokens or device IDs)</li>
-    <li>Financial data (transactions, income, expenses)</li>
-    <li>Login and authentication information</li>
-  </ul>
+    <h2>2. Informações Coletadas</h2>
+    <h3>2.1 Dados Pessoais</h3>
+    <p>Coletamos as seguintes informações quando você se cadastra e utiliza nosso aplicativo:</p>
+    <ul>
+      <li>Nome completo</li>
+      <li>Endereço de e-mail</li>
+      <li>Número de telefone (se fornecido)</li>
+      <li>Identificadores de notificação (como push tokens ou IDs de dispositivo)</li>
+      <li>Dados financeiros (transações, receitas e despesas)</li>
+      <li>Informações de login e autenticação</li>
+    </ul>
 
-  <h3>2.2 Automatic Data</h3>
-  <p>We may automatically collect:</p>
-  <ul>
-    <li>IP address</li>
-    <li>Device type</li>
-    <li>Operating system</li>
-    <li>Browsing information</li>
-    <li>Application usage logs</li>
-  </ul>
+    <h3>2.2 Dados Automáticos</h3>
+    <p>Podemos coletar automaticamente:</p>
+    <ul>
+      <li>Endereço IP</li>
+      <li>Tipo de dispositivo</li>
+      <li>Sistema operacional</li>
+      <li>Informações de navegação</li>
+      <li>Logs de uso da aplicação</li>
+    </ul>
 
-  <h2>3. Information Use</h2>
-  <p>We use your information to:</p>
-  <ul>
-    <li>Provide and personalize our services</li>
-    <li>Send service-related communications and notifications (such as alerts, reminders, and security messages)</li>
-    <li>Allow users to configure notification preferences</li>
-    <li>Improve user experience</li>
-    <li>Prevent fraud and ensure security</li>
-  </ul>
+    <h2>3. Uso das Informações</h2>
+    <p>Utilizamos suas informações para:</p>
+    <ul>
+      <li>Fornecer e personalizar nossos serviços</li>
+      <li>Enviar comunicações e notificações relacionadas ao serviço (como alertas, lembretes e mensagens de segurança)</li>
+      <li>Permitir que os usuários configurem preferências de notificação</li>
+      <li>Melhorar a experiência do usuário</li>
+      <li>Prevenir fraudes e garantir segurança</li>
+    </ul>
 
-  <h2>4. Information Sharing</h2>
-  <h3>4.1 Internal Sharing</h3>
-  <p>Your information is accessed only by internal teams strictly necessary for service operation.</p>
-  <h3>4.2 External Sharing</h3>
-  <p>We do not sell, rent, or share your personal information with third parties, except:</p>
-  <ul>
-    <li>When legally required</li>
-    <li>With your explicit consent</li>
-    <li>To comply with legal obligations</li>
-  </ul>
+    <h2>4. Compartilhamento de Informações</h2>
+    <h3>4.1 Compartilhamento Interno</h3>
+    <p>Suas informações são acessadas apenas por equipes internas estritamente necessárias para operação do serviço.</p>
+    <h3>4.2 Compartilhamento Externo</h3>
+    <p>Não vendemos, alugamos ou compartilhamos suas informações pessoais com terceiros, exceto:</p>
+    <ul>
+      <li>Quando exigido por lei</li>
+      <li>Com seu consentimento explícito</li>
+      <li>Para cumprimento de obrigações legais</li>
+    </ul>
 
-  <h2>5. Data Security</h2>
-  <p>We implement security measures to protect your information:</p>
-  <ul>
-    <li>Data encryption</li>
-    <li>Access controls</li>
-    <li>System monitoring</li>
-    <li>Secure backups</li>
-    <li>Protection against unauthorized access</li>
-  </ul>
+    <h2>5. Segurança dos Dados</h2>
+    <p>Implementamos medidas de segurança para proteger suas informações:</p>
+    <ul>
+      <li>Criptografia de dados</li>
+      <li>Controles de acesso</li>
+      <li>Monitoramento de sistemas</li>
+      <li>Backups seguros</li>
+      <li>Proteção contra acessos não autorizados</li>
+    </ul>
 
-  <h2>6. User Rights</h2>
-  <p>You have the right to:</p>
-  <ul>
-    <li>Access your personal data</li>
-    <li>Correct incorrect information</li>
-    <li>Request data deletion</li>
-    <li>Export your data</li>
-    <li>Revoke consents</li>
-    <li>Manage your notification preferences</li>
-  </ul>
+    <h2>6. Direitos do Usuario</h2>
+    <p>Você tem o direito de:</p>
+    <ul>
+      <li>Acessar seus dados pessoais</li>
+      <li>Corrigir informações incorretas</li>
+      <li>Solicitar exclusão de dados</li>
+      <li>Exportar seus dados</li>
+      <li>Revogar consentimentos</li>
+      <li>Gerenciar preferências de notificação</li>
+    </ul>
 
-  <h2>7. Cookies and Tracking Technologies</h2>
-  <p>We use cookies to:</p>
-  <ul>
-    <li>Improve navigation</li>
-    <li>Personalize experience</li>
-    <li>Analyze platform usage</li>
-    <li>Support certain notification features (such as web push)</li>
-  </ul>
-  <p>You can manage cookie preferences in your browser settings.</p>
+    <h2>7. Cookies e Tecnologias de Rastreamento</h2>
+    <p>Utilizamos cookies para:</p>
+    <ul>
+      <li>Melhorar a navegação</li>
+      <li>Personalizar a experiência</li>
+      <li>Analisar o uso da plataforma</li>
+      <li>Dar suporte a determinados recursos de notificação (como web push)</li>
+    </ul>
+    <p>Você pode gerenciar preferências de cookies nas configurações do seu navegador.</p>
 
-  <h2>8. Policy Changes</h2>
-  <p>We may update this policy periodically. We recommend regular reviews.</p>
+    <h2>8. Alterações na Política</h2>
+    <p>Podemos atualizar esta política periodicamente. Recomendamos revisões regulares.</p>
 
-  <h2>9. Contact and Legislation</h2>
-  <h3>9.1 Contact</h3>
-  <p>For privacy-related questions or requests, contact us at: <b>contact&#64;econoflow.pt</b></p>
-  <h3>9.2 Applicable Legislation</h3>
-  <p>This policy follows the European General Data Protection Regulation (GDPR).</p>
+    <h2>9. Contato e Legislação</h2>
+    <h3>9.1 Contato</h3>
+    <p>Para dúvidas ou solicitações relacionadas à privacidade, entre em contato em: <b>contact&#64;econoflow.pt</b></p>
+    <h3>9.2 Legislação Aplicável</h3>
+    <p>Esta política segue o Regulamento Geral de Proteção de Dados da União Europeia (GDPR).</p>
 
-  <p><strong>Last Updated:</strong> 05/09/2025</p>
+    <p><strong>Última Atualização:</strong> 05/09/2025</p>
+  } @else {
+    <h1>Privacy Policy</h1>
+
+    <h2>1. Introduction</h2>
+    <p>Welcome to our financial control application. This Privacy Policy describes how we collect, use, store, and protect your personal information.</p>
+
+    <h2>2. Collected Information</h2>
+    <h3>2.1 Personal Data</h3>
+    <p>We collect the following information when you register and use our application:</p>
+    <ul>
+      <li>Full name</li>
+      <li>Email address</li>
+      <li>Phone number (if provided)</li>
+      <li>Notification identifiers (such as push tokens or device IDs)</li>
+      <li>Financial data (transactions, income, expenses)</li>
+      <li>Login and authentication information</li>
+    </ul>
+
+    <h3>2.2 Automatic Data</h3>
+    <p>We may automatically collect:</p>
+    <ul>
+      <li>IP address</li>
+      <li>Device type</li>
+      <li>Operating system</li>
+      <li>Browsing information</li>
+      <li>Application usage logs</li>
+    </ul>
+
+    <h2>3. Information Use</h2>
+    <p>We use your information to:</p>
+    <ul>
+      <li>Provide and personalize our services</li>
+      <li>Send service-related communications and notifications (such as alerts, reminders, and security messages)</li>
+      <li>Allow users to configure notification preferences</li>
+      <li>Improve user experience</li>
+      <li>Prevent fraud and ensure security</li>
+    </ul>
+
+    <h2>4. Information Sharing</h2>
+    <h3>4.1 Internal Sharing</h3>
+    <p>Your information is accessed only by internal teams strictly necessary for service operation.</p>
+    <h3>4.2 External Sharing</h3>
+    <p>We do not sell, rent, or share your personal information with third parties, except:</p>
+    <ul>
+      <li>When legally required</li>
+      <li>With your explicit consent</li>
+      <li>To comply with legal obligations</li>
+    </ul>
+
+    <h2>5. Data Security</h2>
+    <p>We implement security measures to protect your information:</p>
+    <ul>
+      <li>Data encryption</li>
+      <li>Access controls</li>
+      <li>System monitoring</li>
+      <li>Secure backups</li>
+      <li>Protection against unauthorized access</li>
+    </ul>
+
+    <h2>6. User Rights</h2>
+    <p>You have the right to:</p>
+    <ul>
+      <li>Access your personal data</li>
+      <li>Correct incorrect information</li>
+      <li>Request data deletion</li>
+      <li>Export your data</li>
+      <li>Revoke consents</li>
+      <li>Manage your notification preferences</li>
+    </ul>
+
+    <h2>7. Cookies and Tracking Technologies</h2>
+    <p>We use cookies to:</p>
+    <ul>
+      <li>Improve navigation</li>
+      <li>Personalize experience</li>
+      <li>Analyze platform usage</li>
+      <li>Support certain notification features (such as web push)</li>
+    </ul>
+    <p>You can manage cookie preferences in your browser settings.</p>
+
+    <h2>8. Policy Changes</h2>
+    <p>We may update this policy periodically. We recommend regular reviews.</p>
+
+    <h2>9. Contact and Legislation</h2>
+    <h3>9.1 Contact</h3>
+    <p>For privacy-related questions or requests, contact us at: <b>contact&#64;econoflow.pt</b></p>
+    <h3>9.2 Applicable Legislation</h3>
+    <p>This policy follows the European General Data Protection Regulation (GDPR).</p>
+
+    <p><strong>Last Updated:</strong> 05/09/2025</p>
+  }
 </main>
