@@ -324,4 +324,22 @@ Você será redirecionado em 5 segundos...</value>
   <data name="InvalidCultureCode" xml:space="preserve">
     <value>Linguagem inválida.</value>
   </data>
+  <data name="FailedToGenerateAuthenticatorKey" xml:space="preserve">
+    <value>Falha ao gerar a chave do autenticador.</value>
+  </data>
+  <data name="InvalidAuthenticatorCode" xml:space="preserve">
+    <value>Código do autenticador inválido.</value>
+  </data>
+  <data name="InvalidRecoveryCode" xml:space="preserve">
+    <value>Código de recuperação inválido.</value>
+  </data>
+  <data name="InvalidPassword" xml:space="preserve">
+    <value>Senha inválida.</value>
+  </data>
+  <data name="TwoFactorCodeOrRecoveryCodeRequired" xml:space="preserve">
+    <value>É necessário informar o código de dois fatores ou o código de recuperação.</value>
+  </data>
+  <data name="TwoFactorNotEnabled" xml:space="preserve">
+    <value>A autenticação de dois fatores não está habilitada para esta conta.</value>
+  </data>
 </root>
