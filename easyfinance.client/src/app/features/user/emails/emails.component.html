@@ -1,7 +1,5 @@
-<div class="container-fluid">
-  <div class="row">
-    <!-- Main Content -->
-    <div class="col-lg-9 col-xl-10 p-4">
+<div class="settings-page">
+  <div class="settings-content">
 
       <!-- Page Header -->
       <div class="d-flex justify-content-between align-items-center mb-4">
@@ -70,7 +68,7 @@
               @if (user$ | async; as user) {
                 <div class="row g-3 mb-4">
                   <div class="col-12">
-                    <div class="d-flex align-items-center p-3 border rounded"
+                    <div class="d-flex align-items-center p-3 border rounded email-status-card"
                       [class.border-success]="user.emailConfirmed"
                       [class.border-warning]="!user.emailConfirmed">
                       <div class="me-3">
@@ -91,7 +89,7 @@
                       </div>
                       @if (!user.emailConfirmed) {
                         <div>
-                          <button type="button" class="btn btn-outline-primary btn-sm ms-3" (click)="resendVerification()">
+                          <button type="button" class="btn btn-outline-primary btn-sm ms-3 w-100 w-sm-auto" (click)="resendVerification()">
                             <i class="bi bi-arrow-clockwise me-1"></i>
                             {{ 'ResendVerification' | translate }}
                           </button>
@@ -188,6 +186,5 @@
         </div>
       </div>
 
-    </div>
   </div>
 </div>

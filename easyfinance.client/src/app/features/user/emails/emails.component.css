@@ -19,19 +19,8 @@
   min-width: 0;
 }
 
-.notification-item {
+.email-status-card {
   gap: 0.75rem;
-}
-
-.danger-zone-delete {
-  width: 100%;
-  justify-content: center;
-}
-
-@media (min-width: 768px) {
-  .danger-zone-delete {
-    width: auto;
-  }
 }
 
 @media (max-width: 575.98px) {
@@ -48,7 +37,8 @@
     --bs-gutter-x: 0.75rem;
   }
 
-  .notification-item {
+  .email-status-card {
+    align-items: flex-start !important;
     flex-wrap: wrap;
   }
 }

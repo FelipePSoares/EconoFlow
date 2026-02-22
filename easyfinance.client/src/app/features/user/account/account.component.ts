@@ -211,7 +211,7 @@ export class AccountComponent implements OnInit, OnDestroy {
   }
 
   /** Error Handling **/
-  getFormFieldErrors(form: FormGroup<any>, fieldName: string): string[] {
+  getFormFieldErrors(form: FormGroup, fieldName: string): string[] {
     return this.errorMessageService.getFormFieldErrors(form, fieldName);
   }
 

@@ -6,6 +6,13 @@ import { DeleteUser, User } from '../models/user';
 import { LocalService } from './local.service';
 import { Operation } from 'fast-json-patch';
 import { GlobalService } from './global.service';
+import {
+  TwoFactorEnableResponse,
+  TwoFactorRecoveryCodesResponse,
+  TwoFactorSecureActionRequest,
+  TwoFactorSetupResponse,
+  TwoFactorStatusResponse
+} from '../models/two-factor';
 
 @Injectable({
   providedIn: 'root'
@@ -52,10 +59,12 @@ export class UserService {
     }));
   }
 
-  public signIn(email: string, password: string): Observable<User> {
+  public signIn(email: string, password: string, twoFactorCode?: string, twoFactorRecoveryCode?: string): Observable<User> {
     return this.http.post('/api/AccessControl/login', {
       email: email,
-      password: password
+      password: password,
+      twoFactorCode: twoFactorCode,
+      twoFactorRecoveryCode: twoFactorRecoveryCode
     }, {
       observe: 'body',
       responseType: 'json'
@@ -63,6 +72,38 @@ export class UserService {
     .pipe(
       concatMap(() => this.refreshUserInfo())
     );
+  }
+
+  public getTwoFactorSetup(): Observable<TwoFactorSetupResponse> {
+    return this.http.get<TwoFactorSetupResponse>('/api/AccessControl/2fa/setup', {
+      observe: 'body',
+      responseType: 'json'
+    });
+  }
+
+  public enableTwoFactor(code: string): Observable<TwoFactorEnableResponse> {
+    return this.http.post<TwoFactorEnableResponse>('/api/AccessControl/2fa/enable', { code: code }, {
+      observe: 'body',
+      responseType: 'json'
+    }).pipe(
+      concatMap(response => this.refreshUserInfo().pipe(map(() => response)))
+    );
+  }
+
+  public disableTwoFactor(request: TwoFactorSecureActionRequest): Observable<TwoFactorStatusResponse> {
+    return this.http.post<TwoFactorStatusResponse>('/api/AccessControl/2fa/disable', request, {
+      observe: 'body',
+      responseType: 'json'
+    }).pipe(
+      concatMap(response => this.refreshUserInfo().pipe(map(() => response)))
+    );
+  }
+
+  public regenerateTwoFactorRecoveryCodes(request: TwoFactorSecureActionRequest): Observable<TwoFactorRecoveryCodesResponse> {
+    return this.http.post<TwoFactorRecoveryCodesResponse>('/api/AccessControl/2fa/recovery-codes/regenerate', request, {
+      observe: 'body',
+      responseType: 'json'
+    });
   }
 
   public refreshToken(): Observable<User> {

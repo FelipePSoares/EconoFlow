@@ -1,7 +1,5 @@
-<div class="container-fluid">
-  <div class="row">
-    <!-- Main Content -->
-    <div class="col-lg-9 col-xl-10 p-4">
+<div class="settings-page">
+  <div class="settings-content">
 
       <!-- Page Header -->
       <div class="d-flex justify-content-between align-items-center mb-4">
@@ -86,7 +84,7 @@
           <form [formGroup]="notificationForm">
             <div class="row g-4">
               <div class="col-md-6">
-                <div class="d-flex align-items-start justify-content-between p-3 border rounded hover-shadow">
+                <div class="d-flex align-items-start justify-content-between p-3 border rounded notification-item">
                   <div class="d-flex align-items-start text-start">
                     <div class="bg-primary bg-gradient rounded p-2 me-3">
                       <i class="bi bi-envelope-fill text-white"></i>
@@ -101,7 +99,7 @@
               </div>
 
               <div class="col-md-6">
-                <div class="d-flex align-items-start justify-content-between p-3 border rounded hover-shadow">
+                <div class="d-flex align-items-start justify-content-between p-3 border rounded notification-item">
                   <div class="d-flex align-items-start text-start">
                     <div class="bg-warning bg-gradient rounded p-2 me-3">
                       <i class="bi bi-bell-fill text-white"></i>
@@ -133,7 +131,7 @@
               <h5 class="text-danger mb-2">{{ 'DeleteAccountMessage' | translate }}</h5>
             </div>
             <div class="col-md-4 text-md-end mt-3 mt-md-0">
-              <button class="btn btn-outline-danger d-flex align-items-center gap-2" (click)="openDeleteDialog()">
+              <button class="btn btn-outline-danger d-flex align-items-center gap-2 danger-zone-delete" (click)="openDeleteDialog()">
                 <i class="bi bi-trash3-fill"></i>
                 {{ 'ButtonDeleteAccount' | translate }}
               </button>
@@ -141,6 +139,5 @@
           </div>
         </div>
       </div>
-    </div>
   </div>
 </div>

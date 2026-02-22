@@ -16,8 +16,8 @@ export class AuthService {
 
   constructor(private http: HttpClient, private userService: UserService, private notificationService: NotificationService) { }
 
-  public signIn(email: string, password: string): Observable<User> {
-    return this.userService.signIn(email, password)
+  public signIn(email: string, password: string, twoFactorCode?: string, twoFactorRecoveryCode?: string): Observable<User> {
+    return this.userService.signIn(email, password, twoFactorCode, twoFactorRecoveryCode)
       .pipe(map(user => {
         this.startUserPolling();
         this.notificationService.startPolling();
