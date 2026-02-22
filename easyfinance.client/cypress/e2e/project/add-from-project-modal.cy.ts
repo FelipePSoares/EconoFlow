@@ -214,7 +214,7 @@ describe('EconoFlow - global add modal tests', () => {
           const categoryExpenses = categoryResponse.body.expenses as ExpenseRes[];
           expect(categoryExpenses.length).to.be.greaterThan(0);
 
-          const monthValue = toMonthValueFromApiDate(categoryExpenses[0].date);
+          const monthValue = toMonthValueFromApiDate(categoryExpenses[1].date);
           const monthBounds = toMonthBounds(toDateFromMonth(monthValue));
 
           cy.intercept({ method: 'GET', url: categoriesEndpointRegex }).as('getModalCategories');
@@ -233,11 +233,11 @@ describe('EconoFlow - global add modal tests', () => {
             expect(params.get('from')).to.equal(monthBounds.from);
             expect(params.get('to')).to.equal(monthBounds.to);
 
-            const expenseFromSelectedMonth = response?.body.find(expense => expense.id === categoryExpenses[0].id);
+            const expenseFromSelectedMonth = response?.body.find(expense => expense.id === categoryExpenses[1].id);
             expect(expenseFromSelectedMonth).to.not.equal(undefined);
           });
 
-          selectMaterialOption('expenseId', categoryExpenses[0].name);
+          selectMaterialOption('expenseId', categoryExpenses[1].name);
 
           cy.fixture('expenseItems').then((expenseItems) => {
             const expenseItem = expenseItems.testSomeExpenseItem;
@@ -249,7 +249,7 @@ describe('EconoFlow - global add modal tests', () => {
 
           cy.wait('@patchExpense').then(({ request, response }) => {
             expect(response?.statusCode).to.equal(200);
-            expect(request.url).to.include(`/expenses/${categoryExpenses[0].id}`);
+            expect(request.url).to.include(`/expenses/${categoryExpenses[1].id}`);
           });
         });
       });
@@ -311,7 +311,7 @@ describe('EconoFlow - global add modal tests', () => {
           const categoryExpenses = categoryResponse.body.expenses as ExpenseRes[];
           expect(categoryExpenses.length).to.be.greaterThan(0);
 
-          const monthWithExpenses = toMonthValueFromApiDate(categoryExpenses[0].date);
+          const monthWithExpenses = toMonthValueFromApiDate(categoryExpenses[1].date);
           const monthWithoutExpenses = findMonthWithoutExpenses(categoryExpenses);
 
           cy.intercept({ method: 'GET', url: categoriesEndpointRegex }).as('getModalCategories');
@@ -354,7 +354,7 @@ describe('EconoFlow - global add modal tests', () => {
           const categoryExpenses = categoryResponse.body.expenses as ExpenseRes[];
           expect(categoryExpenses.length).to.be.greaterThan(0);
 
-          const monthWithExpenses = toMonthValueFromApiDate(categoryExpenses[0].date);
+          const monthWithExpenses = toMonthValueFromApiDate(categoryExpenses[1].date);
           const monthWithoutExpenses = findMonthWithoutExpenses(categoryExpenses);
           const monthWithoutBounds = toMonthBounds(toDateFromMonth(monthWithoutExpenses));
           let monthlyExpensesRequestCount = 0;
@@ -411,7 +411,7 @@ describe('EconoFlow - global add modal tests', () => {
           const categoryExpenses = categoryResponse.body.expenses as ExpenseRes[];
           expect(categoryExpenses.length).to.be.greaterThan(0);
 
-          const monthWithExpenses = toMonthValueFromApiDate(categoryExpenses[0].date);
+          const monthWithExpenses = toMonthValueFromApiDate(categoryExpenses[1].date);
           const monthWithoutExpenses = findMonthWithoutExpenses(categoryExpenses);
           const monthWithBounds = toMonthBounds(toDateFromMonth(monthWithExpenses));
           const monthWithoutBounds = toMonthBounds(toDateFromMonth(monthWithoutExpenses));
@@ -462,7 +462,7 @@ describe('EconoFlow - global add modal tests', () => {
           const categoryExpenses = categoryResponse.body.expenses as ExpenseRes[];
           expect(categoryExpenses.length).to.be.greaterThan(0);
 
-          const monthWithExpenses = toMonthValueFromApiDate(categoryExpenses[0].date);
+          const monthWithExpenses = toMonthValueFromApiDate(categoryExpenses[1].date);
           const monthWithoutExpenses = findMonthWithoutExpenses(categoryExpenses);
           const monthWithBounds = toMonthBounds(toDateFromMonth(monthWithExpenses));
           const monthWithoutBounds = toMonthBounds(toDateFromMonth(monthWithoutExpenses));
