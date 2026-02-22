@@ -113,12 +113,16 @@ try
         userManager.CreateAsync(user2, "Passw0rd!").GetAwaiter().GetResult();
 
         var notification = new Notification(user, "WelcomeMessage", NotificationType.Information, NotificationCategory.System, limitNotificationChannels: NotificationChannels.InApp);
+        notification.MarkEmailAsSent();
         unitOfWork.NotificationRepository.Insert(notification);
         var notification2 = new Notification(user, "ConfirmEmailMessage", NotificationType.EmailConfirmation, NotificationCategory.Security, "ButtonConfirmEmail", NotificationChannels.InApp, isSticky: true, isActionRequired: true);
+        notification2.MarkEmailAsSent();
         unitOfWork.NotificationRepository.Insert(notification2);
         var notification3 = new Notification(user, "LanguagePreferenceNowAvailableMessage", NotificationType.Information, NotificationCategory.System, "ButtonMyProfile", NotificationChannels.InApp);
+        notification3.MarkEmailAsSent();
         unitOfWork.NotificationRepository.Insert(notification3);
         var notification4 = new Notification(user, "MonthlyAndAnnualOverviewNowAvailableMessage", NotificationType.Information, NotificationCategory.System);
+        notification4.MarkEmailAsSent();
         unitOfWork.NotificationRepository.Insert(notification4);
 
         var income = new Income("Investiments", DateOnly.FromDateTime(DateTime.Now), 3000, user);
