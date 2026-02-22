@@ -1,5 +1,5 @@
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
@@ -22,8 +22,14 @@ import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.co
     MatInputModule,
   ],
   templateUrl: './emails.component.html',
+  styleUrl: './emails.component.css'
 })
 export class EmailsComponent implements OnInit {
+  private userService = inject(UserService);
+  private errorMessageService = inject(ErrorMessageService);
+  private snackbar = inject(SnackbarComponent);
+  private translateService = inject(TranslateService);
+
   // User & Validation State
   isEmailUpdated = false;
   editingUser!: User;
@@ -37,11 +43,7 @@ export class EmailsComponent implements OnInit {
   httpErrors = false;
   errors!: Record<string, string[]>;
 
-  constructor(
-    private userService: UserService,
-    private errorMessageService: ErrorMessageService,
-    private snackbar: SnackbarComponent,
-    private translateService: TranslateService) {
+  constructor() {
     this.user$ = this.userService.loggedUser$;
   }
 
@@ -87,7 +89,7 @@ export class EmailsComponent implements OnInit {
   get email() { return this.userForm.get('email'); }
 
   /** Error Handling **/
-  getFormFieldErrors(form: FormGroup<any>, fieldName: string): string[] {
+  getFormFieldErrors(form: FormGroup, fieldName: string): string[] {
     return this.errorMessageService.getFormFieldErrors(form, fieldName);
   }
 }
