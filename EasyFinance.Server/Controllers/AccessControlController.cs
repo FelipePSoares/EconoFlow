@@ -49,6 +49,12 @@ namespace EasyFinance.Server.Controllers
         private readonly string accessTokenCookieName = "AuthToken";
         private readonly string correlationIdClaimType = "CorrelationId";
         private const double refreshTokenSlowThresholdMs = 250;
+        private const int twoFactorRecoveryCodeAmount = 10;
+        private const string twoFactorAuthenticatorIssuer = "EconoFlow";
+        private const string loginFailureCodeInvalidCredentials = "InvalidCredentials";
+        private const string loginFailureCodeTwoFactorRequired = "TwoFactorRequired";
+        private const string loginFailureCodeInvalidTwoFactorCode = "InvalidTwoFactorCode";
+        private const string loginFailureCodeInvalidTwoFactorRecoveryCode = "InvalidTwoFactorRecoveryCode";
 
         // Validate the email address using DataAnnotations like the UserValidator does when RequireUniqueEmail = true.
         private static readonly EmailAddressAttribute emailAddressAttribute = new();
@@ -239,30 +245,47 @@ namespace EasyFinance.Server.Controllers
 
         [HttpPost("login")]
         [AllowAnonymous]
-        public async Task<IActionResult> SignInAsync([FromBody] LoginRequest login)
+        public async Task<IActionResult> SignInAsync([FromBody] SignInRequestDTO login)
         {
             var user = await userManager.FindByEmailAsync(login.Email);
 
             if (user == null || !user.Enabled)
-                return Unauthorized();
+                return Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidCredentials));
 
             var result = await signInManager.CheckPasswordSignInAsync(user, login.Password, lockoutOnFailure: true);
 
-            if (result.RequiresTwoFactor)
-            {
-                if (!string.IsNullOrEmpty(login.TwoFactorCode))
-                {
-                    result = await signInManager.TwoFactorAuthenticatorSignInAsync(login.TwoFactorCode, isPersistent: false, rememberClient: false);
-                }
-                else if (!string.IsNullOrEmpty(login.TwoFactorRecoveryCode))
-                {
-                    result = await signInManager.TwoFactorRecoveryCodeSignInAsync(login.TwoFactorRecoveryCode);
-                }
-            }
+            if (result.IsLockedOut)
+                return Unauthorized("LockedOut");
 
-            if (!result.Succeeded)
+            if (!result.Succeeded && !result.RequiresTwoFactor)
+                return Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidCredentials));
+
+            var userHasTwoFactorEnabled = await this.userManager.GetTwoFactorEnabledAsync(user);
+            var requiresTwoFactor = result.RequiresTwoFactor || (result.Succeeded && userHasTwoFactorEnabled);
+
+            if (requiresTwoFactor && string.IsNullOrWhiteSpace(login.TwoFactorCode) && string.IsNullOrWhiteSpace(login.TwoFactorRecoveryCode))
+                return Unauthorized(CreateLoginFailureResponse(loginFailureCodeTwoFactorRequired, requiresTwoFactor: true));
+
+            if (requiresTwoFactor)
             {
-                return Unauthorized(result.ToString());
+                if (!string.IsNullOrWhiteSpace(login.TwoFactorCode))
+                {
+                    var normalizedCode = NormalizeTwoFactorCode(login.TwoFactorCode);
+                    var isTwoFactorCodeValid = await this.userManager.VerifyTwoFactorTokenAsync(
+                        user,
+                        this.userManager.Options.Tokens.AuthenticatorTokenProvider,
+                        normalizedCode);
+
+                    if (!isTwoFactorCodeValid)
+                        return Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidTwoFactorCode, requiresTwoFactor: true));
+                }
+                else if (!string.IsNullOrWhiteSpace(login.TwoFactorRecoveryCode))
+                {
+                    var recoveryCodeSignInResult = await this.userManager.RedeemTwoFactorRecoveryCodeAsync(user, NormalizeRecoveryCode(login.TwoFactorRecoveryCode));
+
+                    if (!recoveryCodeSignInResult.Succeeded)
+                        return Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidTwoFactorRecoveryCode, requiresTwoFactor: true));
+                }
             }
 
             var correlationId = HttpContext.Items[correlationIdClaimType].ToString();
@@ -270,6 +293,126 @@ namespace EasyFinance.Server.Controllers
             await GenerateUserToken(user, correlationId);
 
             return Ok();
+        }
+
+        [HttpGet("2fa/setup")]
+        public async Task<IActionResult> GetTwoFactorSetupAsync()
+        {
+            var user = await this.userManager.GetUserAsync(this.HttpContext.User);
+
+            if (user == null)
+                return BadRequest("User not found!");
+
+            var unformattedKey = await this.userManager.GetAuthenticatorKeyAsync(user);
+
+            if (string.IsNullOrWhiteSpace(unformattedKey))
+            {
+                var resetAuthenticatorResult = await this.userManager.ResetAuthenticatorKeyAsync(user);
+
+                if (!resetAuthenticatorResult.Succeeded)
+                    return this.ValidateIdentityResponse(resetAuthenticatorResult);
+
+                unformattedKey = await this.userManager.GetAuthenticatorKeyAsync(user);
+            }
+
+            if (string.IsNullOrWhiteSpace(unformattedKey))
+                return this.ValidateResponse(AppResponse.Error(nameof(TwoFactorSetupResponseDTO.SharedKey), ValidationMessages.FailedToGenerateAuthenticatorKey), HttpStatusCode.OK);
+
+            var email = await this.userManager.GetEmailAsync(user) ?? user.Email ?? user.UserName ?? user.Id.ToString();
+
+            return Ok(new TwoFactorSetupResponseDTO
+            {
+                IsTwoFactorEnabled = await this.userManager.GetTwoFactorEnabledAsync(user),
+                SharedKey = FormatKey(unformattedKey),
+                OtpAuthUri = GenerateOtpAuthUri(email, unformattedKey),
+            });
+        }
+
+        [HttpPost("2fa/enable")]
+        public async Task<IActionResult> EnableTwoFactorAsync([FromBody] TwoFactorEnableRequestDTO request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Code))
+                return this.ValidateResponse(AppResponse.Error(
+                    nameof(TwoFactorEnableRequestDTO.Code),
+                    string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(TwoFactorEnableRequestDTO.Code))),
+                    HttpStatusCode.OK);
+
+            var user = await this.userManager.GetUserAsync(this.HttpContext.User);
+
+            if (user == null)
+                return BadRequest("User not found!");
+
+            var isTwoFactorCodeValid = await this.userManager.VerifyTwoFactorTokenAsync(
+                user,
+                this.userManager.Options.Tokens.AuthenticatorTokenProvider,
+                NormalizeTwoFactorCode(request.Code));
+
+            if (!isTwoFactorCodeValid)
+                return this.ValidateResponse(AppResponse.Error(nameof(TwoFactorEnableRequestDTO.Code), ValidationMessages.InvalidAuthenticatorCode), HttpStatusCode.OK);
+
+            var setTwoFactorResult = await this.userManager.SetTwoFactorEnabledAsync(user, true);
+
+            if (!setTwoFactorResult.Succeeded)
+                return this.ValidateIdentityResponse(setTwoFactorResult);
+
+            var recoveryCodes = await this.userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, twoFactorRecoveryCodeAmount);
+
+            return Ok(new TwoFactorEnableResponseDTO
+            {
+                TwoFactorEnabled = true,
+                RecoveryCodes = recoveryCodes.ToArray()
+            });
+        }
+
+        [HttpPost("2fa/disable")]
+        public async Task<IActionResult> DisableTwoFactorAsync([FromBody] TwoFactorSecureActionRequestDTO request)
+        {
+            var user = await this.userManager.GetUserAsync(this.HttpContext.User);
+
+            if (user == null)
+                return BadRequest("User not found!");
+
+            if (!await this.userManager.GetTwoFactorEnabledAsync(user))
+                return this.ValidateResponse(AppResponse.Error("general", ValidationMessages.TwoFactorNotEnabled), HttpStatusCode.OK);
+
+            var validationResponse = await this.ValidateSecureTwoFactorActionAsync(user, request);
+
+            if (validationResponse.Failed)
+                return this.ValidateResponse(validationResponse, HttpStatusCode.OK);
+
+            var disableTwoFactorResult = await this.userManager.SetTwoFactorEnabledAsync(user, false);
+
+            if (!disableTwoFactorResult.Succeeded)
+                return this.ValidateIdentityResponse(disableTwoFactorResult);
+
+            return Ok(new TwoFactorStatusResponseDTO
+            {
+                TwoFactorEnabled = false
+            });
+        }
+
+        [HttpPost("2fa/recovery-codes/regenerate")]
+        public async Task<IActionResult> RegenerateTwoFactorRecoveryCodesAsync([FromBody] TwoFactorSecureActionRequestDTO request)
+        {
+            var user = await this.userManager.GetUserAsync(this.HttpContext.User);
+
+            if (user == null)
+                return BadRequest("User not found!");
+
+            if (!await this.userManager.GetTwoFactorEnabledAsync(user))
+                return this.ValidateResponse(AppResponse.Error("general", ValidationMessages.TwoFactorNotEnabled), HttpStatusCode.OK);
+
+            var validationResponse = await this.ValidateSecureTwoFactorActionAsync(user, request);
+
+            if (validationResponse.Failed)
+                return this.ValidateResponse(validationResponse, HttpStatusCode.OK);
+
+            var recoveryCodes = await this.userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, twoFactorRecoveryCodeAmount);
+
+            return Ok(new TwoFactorRecoveryCodesResponseDTO
+            {
+                RecoveryCodes = recoveryCodes.ToArray()
+            });
         }
 
         [HttpPost("refresh-token")]
@@ -647,6 +790,83 @@ namespace EasyFinance.Server.Controllers
             this.logger.LogInformation("Email notifications unsubscribed for user {UserId}.", userId);
             return Content("You have been unsubscribed from email notifications.");
         }
+
+        private async Task<AppResponse> ValidateSecureTwoFactorActionAsync(User user, TwoFactorSecureActionRequestDTO request)
+        {
+            if (request == null)
+                return AppResponse.Error(
+                    nameof(TwoFactorSecureActionRequestDTO.Password),
+                    string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(TwoFactorSecureActionRequestDTO.Password)));
+
+            if (string.IsNullOrWhiteSpace(request.Password))
+                return AppResponse.Error(
+                    nameof(TwoFactorSecureActionRequestDTO.Password),
+                    string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(TwoFactorSecureActionRequestDTO.Password)));
+
+            if (!await this.userManager.CheckPasswordAsync(user, request.Password))
+                return AppResponse.Error(nameof(TwoFactorSecureActionRequestDTO.Password), ValidationMessages.InvalidPassword);
+
+            if (string.IsNullOrWhiteSpace(request.TwoFactorCode) && string.IsNullOrWhiteSpace(request.TwoFactorRecoveryCode))
+                return AppResponse.Error("general", ValidationMessages.TwoFactorCodeOrRecoveryCodeRequired);
+
+            if (!string.IsNullOrWhiteSpace(request.TwoFactorCode))
+            {
+                var isTwoFactorCodeValid = await this.userManager.VerifyTwoFactorTokenAsync(
+                    user,
+                    this.userManager.Options.Tokens.AuthenticatorTokenProvider,
+                    NormalizeTwoFactorCode(request.TwoFactorCode));
+
+                if (!isTwoFactorCodeValid)
+                    return AppResponse.Error(nameof(TwoFactorSecureActionRequestDTO.TwoFactorCode), ValidationMessages.InvalidAuthenticatorCode);
+
+                return AppResponse.Success();
+            }
+
+            var recoveryCodeResult = await this.userManager.RedeemTwoFactorRecoveryCodeAsync(user, NormalizeRecoveryCode(request.TwoFactorRecoveryCode));
+
+            if (!recoveryCodeResult.Succeeded)
+                return AppResponse.Error(nameof(TwoFactorSecureActionRequestDTO.TwoFactorRecoveryCode), ValidationMessages.InvalidRecoveryCode);
+
+            return AppResponse.Success();
+        }
+
+        private static LoginFailureResponseDTO CreateLoginFailureResponse(string code, bool requiresTwoFactor = false)
+            => new()
+            {
+                Code = code,
+                RequiresTwoFactor = requiresTwoFactor
+            };
+
+        private static string NormalizeTwoFactorCode(string code)
+            => (code ?? string.Empty).Replace(" ", string.Empty).Replace("-", string.Empty);
+
+        private static string NormalizeRecoveryCode(string code)
+            => (code ?? string.Empty).Replace(" ", string.Empty);
+
+        private static string FormatKey(string unformattedKey)
+        {
+            var builder = new StringBuilder();
+            var currentPosition = 0;
+
+            while (currentPosition + 4 < unformattedKey.Length)
+            {
+                builder.Append(unformattedKey.AsSpan(currentPosition, 4)).Append(' ');
+                currentPosition += 4;
+            }
+
+            if (currentPosition < unformattedKey.Length)
+                builder.Append(unformattedKey.AsSpan(currentPosition));
+
+            return builder.ToString().ToLowerInvariant();
+        }
+
+        private static string GenerateOtpAuthUri(string email, string unformattedKey)
+            => string.Format(
+                CultureInfo.InvariantCulture,
+                "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6",
+                UrlEncoder.Default.Encode(twoFactorAuthenticatorIssuer),
+                UrlEncoder.Default.Encode(email),
+                UrlEncoder.Default.Encode(unformattedKey));
 
         private async Task SendConfirmationEmailAsync(User user, HttpContext context, string email, bool isChange = false)
         {

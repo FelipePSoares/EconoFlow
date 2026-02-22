@@ -323,4 +323,22 @@ You will be redirect in 5 seconds ...</value>
   <data name="InvalidCultureCode" xml:space="preserve">
     <value>Invalid language.</value>
   </data>
+  <data name="FailedToGenerateAuthenticatorKey" xml:space="preserve">
+    <value>Failed to generate authenticator key.</value>
+  </data>
+  <data name="InvalidAuthenticatorCode" xml:space="preserve">
+    <value>Invalid authenticator code.</value>
+  </data>
+  <data name="InvalidRecoveryCode" xml:space="preserve">
+    <value>Invalid recovery code.</value>
+  </data>
+  <data name="InvalidPassword" xml:space="preserve">
+    <value>Invalid password.</value>
+  </data>
+  <data name="TwoFactorCodeOrRecoveryCodeRequired" xml:space="preserve">
+    <value>Two-factor code or recovery code is required.</value>
+  </data>
+  <data name="TwoFactorNotEnabled" xml:space="preserve">
+    <value>Two-factor authentication is not enabled for this account.</value>
+  </data>
 </root>

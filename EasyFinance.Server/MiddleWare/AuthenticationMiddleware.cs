@@ -28,6 +28,7 @@ namespace EasyFinance.Server.Middleware
                 .AddRoles<IdentityRole<Guid>>()
                 .AddEntityFrameworkStores<EasyFinanceDatabaseContext>()
                 .AddClaimsPrincipalFactory<CustomClaimsPrincipalFactory>()
+                .AddTokenProvider<AuthenticatorTokenProvider<User>>(TokenOptions.DefaultAuthenticatorProvider)
                 .AddTokenProvider<DataProtectorTokenProvider<User>>("REFRESHTOKENPROVIDER")
                 .AddApiEndpoints();
 
@@ -48,6 +49,7 @@ namespace EasyFinance.Server.Middleware
                 // Default SignIn settings.
                 options.SignIn.RequireConfirmedEmail = false;
                 options.User.RequireUniqueEmail = true;
+                options.Tokens.AuthenticatorTokenProvider = TokenOptions.DefaultAuthenticatorProvider;
             });
 
             services.Configure<DataProtectionTokenProviderOptions>(options =>
