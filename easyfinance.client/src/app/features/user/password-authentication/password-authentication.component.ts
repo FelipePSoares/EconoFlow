@@ -1,10 +1,11 @@
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
 
 import { TranslateModule } from '@ngx-translate/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIcon } from "@angular/material/icon";
+import { Clipboard } from '@angular/cdk/clipboard';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Subscription, take } from 'rxjs';
 import QRCode from 'qrcode';
@@ -33,6 +34,10 @@ export class PasswordAuthenticationComponent implements OnInit, OnDestroy {
   private userService = inject(UserService);
   private errorMessageService = inject(ErrorMessageService);
   private domSanitizer = inject(DomSanitizer);
+  private clipboard = inject(Clipboard);
+  private ngZone = inject(NgZone);
+  private qrCodeCache = new Map<string, SafeHtml>();
+  private currentQrCodeUri = '';
 
   // User & Validation State
   isPasswordUpdated = false;
@@ -63,13 +68,16 @@ export class PasswordAuthenticationComponent implements OnInit, OnDestroy {
   isLoadingTwoFactorSetup = false;
   isTwoFactorActionRunning = false;
   isTwoFactorSetupVisible = false;
+  isLoadingQrCode = false;
   secureAction: TwoFactorSecureActionType | null = null;
   useRecoveryCodeForSecureAction = false;
   sharedKey = '';
   otpAuthUri = '';
   twoFactorQrCodeSvg: SafeHtml | null = null;
+  manualKeyCopied = false;
   recoveryCodes: string[] = [];
   showRecoveryCodes = false;
+  private manualKeyCopiedTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit(): void {
     this.reset();
@@ -79,6 +87,11 @@ export class PasswordAuthenticationComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.passwordFormSubscription?.unsubscribe();
+
+    if (this.manualKeyCopiedTimeoutId) {
+      clearTimeout(this.manualKeyCopiedTimeoutId);
+      this.manualKeyCopiedTimeoutId = null;
+    }
   }
 
   reset() {
@@ -124,21 +137,30 @@ export class PasswordAuthenticationComponent implements OnInit, OnDestroy {
     this.twoFactorHttpErrors = false;
     this.twoFactorErrors = {};
     this.isLoadingTwoFactorSetup = true;
+    this.isLoadingQrCode = true;
     this.isTwoFactorActionRunning = false;
     this.secureAction = null;
+    this.isTwoFactorSetupVisible = true;
+    this.currentQrCodeUri = '';
+    this.twoFactorQrCodeSvg = null;
+    this.manualKeyCopied = false;
+    this.sharedKey = '';
+    this.otpAuthUri = '';
 
     this.userService.getTwoFactorSetup().subscribe({
       next: response => {
+        this.renderTwoFactorQrCode(response.otpAuthUri);
         this.isLoadingTwoFactorSetup = false;
         this.isTwoFactorEnabled = response.isTwoFactorEnabled;
         this.sharedKey = response.sharedKey;
         this.otpAuthUri = response.otpAuthUri;
         this.isTwoFactorSetupVisible = true;
         this.twoFactorSetupForm.reset({ code: '' });
-        this.renderTwoFactorQrCode(response.otpAuthUri);
       },
       error: (response: ApiErrorResponse) => {
         this.isLoadingTwoFactorSetup = false;
+        this.isLoadingQrCode = false;
+        this.isTwoFactorSetupVisible = false;
         this.handleTwoFactorError(response);
       }
     });
@@ -162,6 +184,9 @@ export class PasswordAuthenticationComponent implements OnInit, OnDestroy {
         this.isTwoFactorEnabled = response.twoFactorEnabled;
         this.isTwoFactorSetupVisible = false;
         this.twoFactorQrCodeSvg = null;
+        this.isLoadingQrCode = false;
+        this.manualKeyCopied = false;
+        this.currentQrCodeUri = '';
         this.sharedKey = '';
         this.otpAuthUri = '';
         this.twoFactorSetupForm.reset({ code: '' });
@@ -246,6 +271,11 @@ export class PasswordAuthenticationComponent implements OnInit, OnDestroy {
           this.sharedKey = '';
           this.otpAuthUri = '';
           this.twoFactorQrCodeSvg = null;
+          this.isLoadingQrCode = false;
+          this.manualKeyCopied = false;
+          this.currentQrCodeUri = '';
+
+          this.userService.prefetchTwoFactorSetup();
         },
         error: (response: ApiErrorResponse) => {
           this.isTwoFactorActionRunning = false;
@@ -271,6 +301,31 @@ export class PasswordAuthenticationComponent implements OnInit, OnDestroy {
 
   dismissRecoveryCodes(): void {
     this.showRecoveryCodes = false;
+  }
+
+  copyManualSetupKey(): void {
+    const manualKey = (this.sharedKey ?? '').trim();
+    if (!manualKey) {
+      return;
+    }
+
+    if (this.clipboard.copy(manualKey)) {
+      this.markManualKeyCopied();
+      return;
+    }
+
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(manualKey)
+        .then(() => this.markManualKeyCopied())
+        .catch(() => {
+          this.twoFactorHttpErrors = true;
+          this.twoFactorErrors = { general: ['ManualSetupKeyCopyFailed'] };
+        });
+      return;
+    }
+
+    this.twoFactorHttpErrors = true;
+    this.twoFactorErrors = { general: ['ManualSetupKeyCopyFailed'] };
   }
 
   /** Getters for Form Controls **/
@@ -304,6 +359,10 @@ export class PasswordAuthenticationComponent implements OnInit, OnDestroy {
   private loadTwoFactorStatus(): void {
     this.userService.loggedUser$.pipe(take(1)).subscribe(user => {
       this.isTwoFactorEnabled = !!user?.twoFactorEnabled;
+
+      if (user?.id && !this.isTwoFactorEnabled) {
+        this.userService.prefetchTwoFactorSetup();
+      }
     });
   }
 
@@ -317,17 +376,52 @@ export class PasswordAuthenticationComponent implements OnInit, OnDestroy {
   }
 
   private renderTwoFactorQrCode(otpAuthUri: string): void {
+    const normalizedOtpAuthUri = (otpAuthUri ?? '').trim();
+    this.currentQrCodeUri = normalizedOtpAuthUri;
+    this.isLoadingQrCode = true;
     this.twoFactorQrCodeSvg = null;
 
-    QRCode.toString(otpAuthUri, {
-      type: 'svg',
-      width: 220,
-      margin: 1
-    }).then(svg => {
-      this.twoFactorQrCodeSvg = this.domSanitizer.bypassSecurityTrustHtml(svg);
-    }).catch(() => {
-      this.twoFactorHttpErrors = true;
-      this.twoFactorErrors = { general: ['TwoFactorQrCodeGenerationFailed'] };
+    if (!normalizedOtpAuthUri) {
+      this.isLoadingQrCode = false;
+      return;
+    }
+
+    const cachedQrCode = this.qrCodeCache.get(normalizedOtpAuthUri);
+    if (cachedQrCode) {
+      this.twoFactorQrCodeSvg = cachedQrCode;
+      this.isLoadingQrCode = false;
+      return;
+    }
+
+    this.ngZone.runOutsideAngular(() => {
+      QRCode.toString(normalizedOtpAuthUri, {
+        type: 'svg',
+        width: 200,
+        margin: 0,
+        errorCorrectionLevel: 'L'
+      }).then(svg => {
+        const safeSvg = this.domSanitizer.bypassSecurityTrustHtml(svg);
+
+        this.ngZone.run(() => {
+          if (this.currentQrCodeUri !== normalizedOtpAuthUri) {
+            return;
+          }
+
+          this.qrCodeCache.set(normalizedOtpAuthUri, safeSvg);
+          this.twoFactorQrCodeSvg = safeSvg;
+          this.isLoadingQrCode = false;
+        });
+      }).catch(() => {
+        this.ngZone.run(() => {
+          if (this.currentQrCodeUri !== normalizedOtpAuthUri) {
+            return;
+          }
+
+          this.isLoadingQrCode = false;
+          this.twoFactorHttpErrors = true;
+          this.twoFactorErrors = { general: ['TwoFactorQrCodeGenerationFailed'] };
+        });
+      });
     });
   }
 
@@ -337,5 +431,18 @@ export class PasswordAuthenticationComponent implements OnInit, OnDestroy {
 
   private normalizeRecoveryCode(code: string): string {
     return (code ?? '').replace(/\s/g, '');
+  }
+
+  private markManualKeyCopied(): void {
+    this.manualKeyCopied = true;
+
+    if (this.manualKeyCopiedTimeoutId) {
+      clearTimeout(this.manualKeyCopiedTimeoutId);
+    }
+
+    this.manualKeyCopiedTimeoutId = setTimeout(() => {
+      this.manualKeyCopied = false;
+      this.manualKeyCopiedTimeoutId = null;
+    }, 2000);
   }
 }

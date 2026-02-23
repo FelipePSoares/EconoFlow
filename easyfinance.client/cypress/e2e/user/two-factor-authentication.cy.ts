@@ -50,10 +50,11 @@ describe('EconoFlow - Two-factor authentication settings', () => {
     cy.get('#twoFactorStartSetup').click();
 
     cy.wait('@getTwoFactorSetup');
-    cy.get('[data-testid="two-factor-qr"] svg').should('exist');
+    cy.get('#twoFactorSetupCode', { timeout: 10000 }).should('be.visible');
+    cy.get('[data-testid="two-factor-qr"] svg', { timeout: 30000 }).should('exist');
     cy.contains('abcd efgh ijkl mnop').should('be.visible');
 
-    cy.get('input[formControlName=code]').type('123456');
+    cy.get('#twoFactorSetupCode').type('123456');
     cy.get('#twoFactorEnableButton').click();
 
     cy.wait('@enableTwoFactor');

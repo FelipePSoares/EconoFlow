@@ -25,6 +25,10 @@ export class UserService {
   private loggedUser = new BehaviorSubject<User | undefined>(undefined);
   private checkStatusRequest$: Observable<boolean> | null = null;
   private refreshTokenRequest$: Observable<User> | null = null;
+  private twoFactorSetupRequest$: Observable<TwoFactorSetupResponse> | null = null;
+  private twoFactorSetupCache: TwoFactorSetupResponse | null = null;
+  private twoFactorSetupCachedAt: number | null = null;
+  private readonly twoFactorSetupCacheTtlMs = 5 * 60 * 1000;
   loggedUser$ = this.loggedUser.asObservable().pipe(switchMap(user => {
     if (user)
       return of(user);
@@ -74,10 +78,38 @@ export class UserService {
     );
   }
 
-  public getTwoFactorSetup(): Observable<TwoFactorSetupResponse> {
-    return this.http.get<TwoFactorSetupResponse>('/api/AccessControl/2fa/setup', {
+  public getTwoFactorSetup(forceRefresh = false): Observable<TwoFactorSetupResponse> {
+    if (forceRefresh)
+      this.clearTwoFactorSetupCache();
+
+    if (this.hasValidTwoFactorSetupCache())
+      return of(this.twoFactorSetupCache as TwoFactorSetupResponse);
+
+    if (this.twoFactorSetupRequest$)
+      return this.twoFactorSetupRequest$;
+
+    this.twoFactorSetupRequest$ = this.http.get<TwoFactorSetupResponse>('/api/AccessControl/2fa/setup', {
       observe: 'body',
       responseType: 'json'
+    }).pipe(
+      tap(response => {
+        this.twoFactorSetupCache = response;
+        this.twoFactorSetupCachedAt = Date.now();
+      }),
+      finalize(() => {
+        this.twoFactorSetupRequest$ = null;
+      }),
+      shareReplay(1)
+    );
+
+    return this.twoFactorSetupRequest$;
+  }
+
+  public prefetchTwoFactorSetup(): void {
+    this.getTwoFactorSetup().subscribe({
+      error: () => {
+        // Prefetch should be opportunistic and silent.
+      }
     });
   }
 
@@ -85,7 +117,9 @@ export class UserService {
     return this.http.post<TwoFactorEnableResponse>('/api/AccessControl/2fa/enable', { code: code }, {
       observe: 'body',
       responseType: 'json'
-    }).pipe(
+    }).pipe(tap(() => {
+      this.clearTwoFactorSetupCache();
+    }),
       concatMap(response => this.refreshUserInfo().pipe(map(() => response)))
     );
   }
@@ -94,7 +128,9 @@ export class UserService {
     return this.http.post<TwoFactorStatusResponse>('/api/AccessControl/2fa/disable', request, {
       observe: 'body',
       responseType: 'json'
-    }).pipe(
+    }).pipe(tap(() => {
+      this.clearTwoFactorSetupCache();
+    }),
       concatMap(response => this.refreshUserInfo().pipe(map(() => response)))
     );
   }
@@ -173,6 +209,7 @@ export class UserService {
 
   public removeUserInfo() {
     this.loggedUser.next(new User());
+    this.clearTwoFactorSetupCache();
     this.localService.clearData();
   }
 
@@ -236,5 +273,17 @@ export class UserService {
       observe: 'body',
       responseType: 'json'
     });
+  }
+
+  private hasValidTwoFactorSetupCache(): boolean {
+    if (!this.twoFactorSetupCache || this.twoFactorSetupCachedAt === null)
+      return false;
+
+    return (Date.now() - this.twoFactorSetupCachedAt) <= this.twoFactorSetupCacheTtlMs;
+  }
+
+  private clearTwoFactorSetupCache(): void {
+    this.twoFactorSetupCache = null;
+    this.twoFactorSetupCachedAt = null;
   }
 }
