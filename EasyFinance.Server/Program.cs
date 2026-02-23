@@ -86,7 +86,6 @@ try
 
     app.UseSafeHeaders();
 
-    // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
     {
         app.UseSwagger();
@@ -101,7 +100,14 @@ try
         DateOnly DateInMonth(DateOnly date, int day)
         {
             var daysInMonth = DateTime.DaysInMonth(date.Year, date.Month);
-            var safeDay = Math.Max(1, Math.Min(day, daysInMonth));
+            var maxAllowedDay = daysInMonth;
+
+            if (date.Year == today.Year && date.Month == today.Month)
+            {
+                maxAllowedDay = Math.Min(maxAllowedDay, today.Day);
+            }
+
+            var safeDay = Math.Max(1, Math.Min(day, maxAllowedDay));
             return new DateOnly(date.Year, date.Month, safeDay);
         }
 
@@ -129,14 +135,12 @@ try
         unitOfWork.NotificationRepository.Insert(notification2);
         var notification3 = new Notification(user, "LanguagePreferenceNowAvailableMessage", NotificationType.Information, NotificationCategory.System, "ButtonMyProfile", NotificationChannels.InApp);
         unitOfWork.NotificationRepository.Insert(notification3);
-        var notification4 = new Notification(user, "MonthlyAndAnnualOverviewNowAvailableMessage", NotificationType.Information, NotificationCategory.System);
-        unitOfWork.NotificationRepository.Insert(notification4);
-        var notification5 = new Notification(user, "TwoFactorNowAvailableAnnouncementMessage", NotificationType.Information, NotificationCategory.Security, "ButtonConfigureTwoFactor", NotificationChannels.InApp, isSticky: false);
+        var notification5 = new Notification(user, "TwoFactorNowAvailableAnnouncementMessage", NotificationType.Information, NotificationCategory.Security, "ButtonConfigureTwoFactor", metadata: $"{{\"firstName\":\"{user.FirstName}\"}}", isSticky: false);
+        notification5.MarkEmailAsSent();
         unitOfWork.NotificationRepository.Insert(notification5);
         var notification6 = new Notification(user, "EnableTwoFactorRecommendationMessage", NotificationType.Information, NotificationCategory.Security, "ButtonConfigureTwoFactor", NotificationChannels.InApp, isSticky: false);
         unitOfWork.NotificationRepository.Insert(notification6);
 
-        // Keep fixture ids/names stable for tests and add richer showcase data around them.
         var income = new Income("Investiments", today, 3000, user);
         income.SetId(new Guid("0bb277f9-a858-4306-148f-08dcf739f7a1"));
         unitOfWork.IncomeRepository.Insert(income);

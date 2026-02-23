@@ -88,10 +88,12 @@
 
   .hero-badge::before {
     content: '';
+    display: block;
     width: 6px;
     height: 6px;
+    flex: 0 0 6px;
     background: #5ee8b5;
-    border-radius: 50%;
+    border-radius: 999px;
     animation: pulse 2s infinite;
   }
 
