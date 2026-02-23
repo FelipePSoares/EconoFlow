@@ -388,6 +388,16 @@ export class DetailProjectComponent implements OnInit, AfterViewInit {
     return '';
   }
 
+  getCategoryFillHeightClass(category: CategoryDto): string {
+    if (!this.setHeight) {
+      return 'card-fill-height-0';
+    }
+
+    const percentage = category.getPercentageSpend() ?? 0;
+    const roundedHeight = this.clampToDisplayHeight(percentage);
+    return `card-fill-height-${roundedHeight}`;
+  }
+
   copyPreviousBudget() {
     this.projectService.copyBudgetPreviousMonth(this.projectId, this.currentDateService.currentDate)
       .subscribe({
@@ -450,6 +460,15 @@ export class DetailProjectComponent implements OnInit, AfterViewInit {
 
   private roundAmount(value: number | undefined): number {
     return Math.round(Number(value || 0));
+  }
+
+  private clampToDisplayHeight(value: number): number {
+    if (!Number.isFinite(value)) {
+      return 0;
+    }
+
+    const bounded = Math.max(0, Math.min(100, value));
+    return Math.round(bounded / 5) * 5;
   }
 
   private formatCategoryTooltipLabel(context: TooltipItem<'doughnut'>): string {

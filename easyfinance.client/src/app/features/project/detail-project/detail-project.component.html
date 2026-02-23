@@ -24,9 +24,10 @@
           @for (category of (categories$ | async); track category.id) {
             <li class="slide me-1">
               <div class="card" [class.archived]="category.isArchived" (click)="selectCategory(category.id)">
-                <div class="card-fill"
-                  [ngClass]="getBgClassBasedOnCategory(category)"
-                [style.height]="setHeight ? category.getPercentageSpend() + 'px' : '0px'"></div>
+                <div
+                  class="card-fill"
+                  [ngClass]="[getBgClassBasedOnCategory(category), getCategoryFillHeightClass(category)]">
+                </div>
                 <div class="card-body">
                   <h3 class="card-title">{{ category.name }}</h3>
 
@@ -153,7 +154,7 @@
               <h3 class="mt-0 mb-3 text-start fw-semibold fs-6">{{ 'IncomeVsExpenseByMonth' | translate }}</h3>
               @if (chartsReady) {
                 @if (yearIncomeExpenseChartData.datasets[0].data.length || yearIncomeExpenseChartData.datasets[1].data.length) {
-                  <div class="position-relative" style="height: 240px;">
+                  <div class="position-relative year-income-expense-chart-container">
                     <canvas
                       baseChart
                       [type]="'bar'"

@@ -81,6 +81,90 @@
   transition: height 3s ease;
 }
 
+.card-fill-height-0 {
+  height: 0;
+}
+
+.card-fill-height-5 {
+  height: 5px;
+}
+
+.card-fill-height-10 {
+  height: 10px;
+}
+
+.card-fill-height-15 {
+  height: 15px;
+}
+
+.card-fill-height-20 {
+  height: 20px;
+}
+
+.card-fill-height-25 {
+  height: 25px;
+}
+
+.card-fill-height-30 {
+  height: 30px;
+}
+
+.card-fill-height-35 {
+  height: 35px;
+}
+
+.card-fill-height-40 {
+  height: 40px;
+}
+
+.card-fill-height-45 {
+  height: 45px;
+}
+
+.card-fill-height-50 {
+  height: 50px;
+}
+
+.card-fill-height-55 {
+  height: 55px;
+}
+
+.card-fill-height-60 {
+  height: 60px;
+}
+
+.card-fill-height-65 {
+  height: 65px;
+}
+
+.card-fill-height-70 {
+  height: 70px;
+}
+
+.card-fill-height-75 {
+  height: 75px;
+}
+
+.card-fill-height-80 {
+  height: 80px;
+}
+
+.card-fill-height-85 {
+  height: 85px;
+}
+
+.card-fill-height-90 {
+  height: 90px;
+}
+
+.card-fill-height-95 {
+  height: 95px;
+}
+
+.card-fill-height-100 {
+  height: 100px;
+}
+
 .card.archived {
   filter: grayscale(100%);
   opacity: 0.5;
@@ -213,4 +297,8 @@
       transform: scale(0.97);
     }
   }
+}
+
+.year-income-expense-chart-container {
+  height: 240px;
 }

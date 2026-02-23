@@ -14,7 +14,7 @@
           <p>{{ 'ResetPasswordInstructions' | translate }}</p>
         </div>
 
-        <mat-form-field class="mb-2" [style.width.%]="100">
+        <mat-form-field class="mb-2 full-width-field">
           <mat-label>{{ 'FieldEmailAddress' | translate }}</mat-label>
           <input id="email" placeholder="{{ 'PlaceholderEmailAddress' | translate }}" matInput formControlName="email">
           @if ((email?.invalid && email?.touched) || httpErrors) {
@@ -37,7 +37,7 @@
           <h3>{{ 'CreateNewPassword' | translate}}</h3>
         </div>
 
-        <mat-form-field class="mb-2" [style.width.%]="100">
+        <mat-form-field class="mb-2 full-width-field">
           <mat-label>{{ 'FieldPassword' | translate }}</mat-label>
           <input placeholder="{{ 'PlaceholderPassword' | translate }}" matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'">
           <mat-icon matSuffix (click)="hidePassword = !hidePassword">{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
@@ -52,16 +52,16 @@
           <div class="col-md">
             {{ 'PasswordMustHave' | translate }}
             <ul>
-              <li [style.color]="hasLowerCase ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">{{ 'OneLowercaseCharacter' | translate }}</li>
-              <li [style.color]="hasUpperCase ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">{{ 'OneUppercaseCharacter' | translate }}</li>
-              <li [style.color]="hasOneNumber ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">{{ 'OneNumber' | translate }}</li>
-              <li [style.color]="hasOneSpecial ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">{{ 'OneSpecialCharacter' | translate }}</li>
-              <li [style.color]="hasMinCharacteres ? 'var(--bs-success)' : 'var(--mat-form-field-error-text-color)'">{{ 'EightCharacters' | translate }}</li>
+              <li [class.password-rule-valid]="hasLowerCase" [class.password-rule-invalid]="!hasLowerCase">{{ 'OneLowercaseCharacter' | translate }}</li>
+              <li [class.password-rule-valid]="hasUpperCase" [class.password-rule-invalid]="!hasUpperCase">{{ 'OneUppercaseCharacter' | translate }}</li>
+              <li [class.password-rule-valid]="hasOneNumber" [class.password-rule-invalid]="!hasOneNumber">{{ 'OneNumber' | translate }}</li>
+              <li [class.password-rule-valid]="hasOneSpecial" [class.password-rule-invalid]="!hasOneSpecial">{{ 'OneSpecialCharacter' | translate }}</li>
+              <li [class.password-rule-valid]="hasMinCharacteres" [class.password-rule-invalid]="!hasMinCharacteres">{{ 'EightCharacters' | translate }}</li>
             </ul>
           </div>
         </div>
 
-        <mat-form-field class="mb-2" [style.width.%]="100">
+        <mat-form-field class="mb-2 full-width-field">
           <mat-label>{{ 'FieldConfirmPassword' | translate }}</mat-label>
           <input placeholder="{{ 'PlaceholderPassword' | translate }}" matInput formControlName="confirmPassword" [type]="hideConfirmPassword ? 'password' : 'text'">
           <mat-icon matSuffix (click)="hideConfirmPassword = !hideConfirmPassword">{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
