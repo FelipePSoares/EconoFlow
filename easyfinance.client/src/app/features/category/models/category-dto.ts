@@ -7,6 +7,7 @@ export class CategoryDto {
   name!: string;
   expenses!: ExpenseDto[];
   isArchived!: boolean;
+  displayOrder = 0;
 
   static fromCategory(category: Category): CategoryDto {
     const dto = new CategoryDto();
@@ -14,6 +15,7 @@ export class CategoryDto {
     dto.name = category.name;
     dto.expenses = category.expenses.map(expense => ExpenseDto.fromExpense(expense));
     dto.isArchived = category.isArchived;
+    dto.displayOrder = category.displayOrder ?? 0;
     return dto;
   }
 

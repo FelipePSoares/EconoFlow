@@ -15,11 +15,16 @@
   transition: all 0.3s ease;
 }
 
-  .archived::after {
-    content: '📁';
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    font-size: 16px;
-    opacity: 0.7;
-  }
+.archived-container {
+  position: relative;
+}
+
+.archived-container::after {
+  content: '\1F4C1';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 16px;
+  filter: grayscale(100%);
+  opacity: 0.7;
+}

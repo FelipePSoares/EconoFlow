@@ -1,11 +1,23 @@
 <div class="container">
   <div class="row">
-    <div class="list-group list-group-flush">
+    <div
+      class="list-group list-group-flush"
+      cdkDropList
+      [cdkDropListData]="(categories$ | async) ?? []"
+      [cdkDropListDisabled]="!canAddOrEdit() || !!editingCategory.id || isSavingOrder"
+      (cdkDropListDropped)="drop($event)">
       @for (category of (categories$ | async); track category.id) {
-        <div class="list-group-item">
+        <div class="list-group-item" cdkDrag [cdkDragDisabled]="!canAddOrEdit() || category.id === editingCategory.id || isSavingOrder">
           @if (category.id != this.editingCategory.id) {
             <div class="d-flex justify-content-between">
-              <h3 class="category-name">{{ category.name }}</h3>
+              <div class="d-flex align-items-center">
+                @if (canAddOrEdit()) {
+                  <button type="button" class="btn btn-link drag-handle p-0 me-2" cdkDragHandle [attr.aria-label]="'Reorder category'">
+                    <i class="bi bi-grip-vertical"></i>
+                  </button>
+                }
+                <h3 class="category-name">{{ category.name }}</h3>
+              </div>
               @if (canAddOrEdit()){
                 <div class="btn-group actions">
                   <button class="btn btn-outline-secondary" (click)="edit(category);">
