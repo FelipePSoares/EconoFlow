@@ -10,5 +10,6 @@ namespace EasyFinance.Application.DTOs.Financial
         public string Name { get; set; }
         public ICollection<Expense> Expenses { get; set; } = new List<Expense>();
         public bool IsArchived { get; set; }
+        public int DisplayOrder { get; set; }
     }
 }

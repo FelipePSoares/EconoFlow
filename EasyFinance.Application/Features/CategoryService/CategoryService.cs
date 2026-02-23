@@ -33,6 +33,9 @@ namespace EasyFinance.Application.Features.CategoryService
             if (categoryExistent != default)
                 return AppResponse<CategoryResponseDTO>.Success(categoryExistent.ToDTO());
 
+            var nextDisplayOrder = project.Categories.Any() ? project.Categories.Max(c => c.DisplayOrder) + 1 : 0;
+            category.SetDisplayOrder(nextDisplayOrder);
+
             var savedCategory = this.unitOfWork.CategoryRepository.InsertOrUpdate(category);
             if (savedCategory.Failed)
                 return AppResponse<CategoryResponseDTO>.Error(savedCategory.Messages);
@@ -69,24 +72,23 @@ namespace EasyFinance.Application.Features.CategoryService
 
         public async Task<AppResponse<ICollection<CategoryResponseDTO>>> GetAllAsync(Guid projectId)
         {
-            var result =
+            var result = SortCategories(
                 (await unitOfWork.ProjectRepository
                 .NoTrackable()
                 .Include(p => p.Categories)
                 .FirstOrDefaultAsync(p => p.Id == projectId))?
                 .Categories
-                .ToDTO()
-                .ToList();
+                .ToDTO());
 
             return AppResponse<ICollection<CategoryResponseDTO>>.Success(result);
         }
 
         public async Task<AppResponse<ICollection<CategoryResponseDTO>>> GetAsync(Guid projectId, DateOnly? from, DateOnly? to)
         {
-            ICollection<CategoryResponseDTO> categories = default;
+            ICollection<CategoryResponseDTO> categories = [];
 
             if (from.HasValue && to.HasValue)
-                categories = (await this.unitOfWork.ProjectRepository.NoTrackable()
+                categories = SortCategories((await this.unitOfWork.ProjectRepository.NoTrackable()
                         .Include(p => p.Categories
                             .Where(c =>
                                 c.Expenses.Any(e => e.Date >= from && e.Date < to) // keep category if it has expenses
@@ -98,15 +100,13 @@ namespace EasyFinance.Application.Features.CategoryService
                         .IgnoreQueryFilters() // ignore global IsArchived filter
                         .FirstOrDefaultAsync(p => p.Id == projectId))?
                         .Categories
-                        .ToDTO()
-                        .ToList();
+                        .ToDTO());
             else
-                categories = (await this.unitOfWork.ProjectRepository.NoTrackable()
+                categories = SortCategories((await this.unitOfWork.ProjectRepository.NoTrackable()
                         .Include(p => p.Categories)
                         .FirstOrDefaultAsync(p => p.Id == projectId))?
                         .Categories
-                        .ToDTO()
-                        .ToList();
+                        .ToDTO());
 
             return AppResponse<ICollection<CategoryResponseDTO>>.Success(categories);
         }
@@ -137,15 +137,14 @@ namespace EasyFinance.Application.Features.CategoryService
 
         public async Task<AppResponse<ICollection<CategoryResponseDTO>>> GetAsync(Guid projectId, int year)
         {
-            var result = (await this.unitOfWork.ProjectRepository.NoTrackable()
+            var result = SortCategories((await this.unitOfWork.ProjectRepository.NoTrackable()
                     .Include(p => p.Categories)
                     .ThenInclude(c => c.Expenses.Where(e => e.Date.Year == year))
                     .ThenInclude(e => e.Items)
                     .IgnoreQueryFilters() // disables the global filter IsArchived
                     .FirstOrDefaultAsync(p => p.Id == projectId))?
                     .Categories
-                    .ToDTO()
-                    .ToList();
+                    .ToDTO());
 
             return AppResponse<ICollection<CategoryResponseDTO>>.Success(result);
         }
@@ -195,6 +194,54 @@ namespace EasyFinance.Application.Features.CategoryService
             var updatedCategory = await UpdateAsync(existingCategory);
 
             return AppResponse<CategoryResponseDTO>.Success(updatedCategory.Data);
+        }
+
+        public async Task<AppResponse> UpdateOrderAsync(Guid projectId, ICollection<CategoryOrderRequestDTO> categoriesOrder)
+        {
+            if (projectId == Guid.Empty)
+                return AppResponse.Error(code: nameof(projectId), description: ValidationMessages.InvalidProjectId);
+
+            if (categoriesOrder == default || !categoriesOrder.Any())
+                return AppResponse.Error(code: nameof(categoriesOrder), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(categoriesOrder)));
+
+            if (categoriesOrder.Any(item => item.CategoryId == Guid.Empty || item.DisplayOrder < 0))
+                return AppResponse.Error(code: nameof(categoriesOrder), description: ValidationMessages.InvalidCategoryId);
+
+            if (categoriesOrder.GroupBy(item => item.CategoryId).Any(group => group.Count() > 1))
+                return AppResponse.Error(code: nameof(categoriesOrder), description: ValidationMessages.InvalidCategoryId);
+
+            var project = await unitOfWork.ProjectRepository
+                .Trackable()
+                .Include(p => p.Categories)
+                .FirstOrDefaultAsync(p => p.Id == projectId);
+
+            if (project == default)
+                return AppResponse.Error(code: nameof(projectId), description: ValidationMessages.ProjectNotFound);
+
+            var categoriesById = project.Categories.ToDictionary(category => category.Id);
+            if (categoriesOrder.Any(item => !categoriesById.ContainsKey(item.CategoryId)))
+                return AppResponse.Error(code: nameof(categoriesOrder), description: ValidationMessages.InvalidCategoryId);
+
+            foreach (var categoryOrder in categoriesOrder)
+            {
+                var category = categoriesById[categoryOrder.CategoryId];
+                category.SetDisplayOrder(categoryOrder.DisplayOrder);
+                var saveCategory = unitOfWork.CategoryRepository.InsertOrUpdate(category);
+
+                if (saveCategory.Failed)
+                    return AppResponse.Error(saveCategory.Messages);
+            }
+
+            await unitOfWork.CommitAsync();
+            return AppResponse.Success();
+        }
+
+        private static ICollection<CategoryResponseDTO> SortCategories(IEnumerable<CategoryResponseDTO> categories)
+        {
+            return categories?
+                .OrderBy(category => category.DisplayOrder)
+                .ThenBy(category => category.Name)
+                .ToList() ?? [];
         }
     }
 }

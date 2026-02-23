@@ -59,8 +59,10 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterVi
 
   public lineChartOptions: ChartOptions<'line'> = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
+        position: 'bottom',
         display: true,
       },
     },

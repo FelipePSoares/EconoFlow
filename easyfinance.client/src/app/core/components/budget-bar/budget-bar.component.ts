@@ -59,6 +59,17 @@ export class BudgetBarComponent {
     return budget === 0 ? 0 : spend * 100 / budget;
   }
 
+  getProgressWidthClass(spend: number, budget: number): string {
+    const percentage = this.getPercentageSpend(spend, budget);
+    const rounded = this.clampPercentage(percentage);
+    return `progress-width-${rounded}`;
+  }
+
+  getWeekLinePositionClass(position: number): string {
+    const rounded = this.clampPercentage(position);
+    return `week-line-${rounded}`;
+  }
+
   getClassBasedOnPercentage(percentage: number): string {
     return this.test(percentage, '', 'warning', 'danger');
   }
@@ -83,6 +94,15 @@ export class BudgetBarComponent {
 
   checktypeMonthOrYear(): string {
     return this.typeMonthOrYear;
+  }
+
+  private clampPercentage(value: number): number {
+    if (!Number.isFinite(value)) {
+      return 0;
+    }
+
+    const bounded = Math.max(0, Math.min(100, value));
+    return Math.round(bounded / 5) * 5;
   }
 
   private test(percentage: number, normalText: string, warningText: string, dangerText: string): string {

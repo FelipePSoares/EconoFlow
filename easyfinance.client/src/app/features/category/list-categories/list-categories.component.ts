@@ -2,6 +2,7 @@ import { AsyncPipe, CommonModule } from '@angular/common';
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { BehaviorSubject, Observable, map, combineLatest } from 'rxjs';
 import { compare } from 'fast-json-patch';
 import { MatButton } from "@angular/material/button";
@@ -33,6 +34,7 @@ import { DefaultCategory } from '../../../core/models/default-category';
       MatInput,
       MatLabel,
       MatAutocompleteModule,
+      DragDropModule,
       TranslateModule
     ],
     templateUrl: './list-categories.component.html',
@@ -55,6 +57,7 @@ export class ListCategoriesComponent implements OnInit {
   httpErrors = false;
   errors!: Record<string, string[]>;
   userProject!: UserProjectDto;
+  isSavingOrder = false;
 
   @Input({ required: true })
   projectId!: string;
@@ -103,7 +106,7 @@ export class ListCategoriesComponent implements OnInit {
       .subscribe(
         {
           next: res => {
-            this.categories.next(res);
+            this.categories.next(this.sortCategories(res));
           }
         });
   }
@@ -125,7 +128,8 @@ export class ListCategoriesComponent implements OnInit {
         id: id,
         name: name,
         expenses: this.editingCategory.expenses,
-        isArchived: this.editingCategory.isArchived
+        isArchived: this.editingCategory.isArchived,
+        displayOrder: this.editingCategory.displayOrder
       }) as CategoryDto;
       const patch = compare(this.editingCategory, newCategory);
 
@@ -177,7 +181,7 @@ export class ListCategoriesComponent implements OnInit {
   remove(id: string): void {
     this.categoryService.remove(this.projectId, id).subscribe({
       next: () => {
-        const categoriesNewArray: CategoryDto[] = this.categories.getValue();
+        const categoriesNewArray: CategoryDto[] = [...this.categories.getValue()];
 
         categoriesNewArray.forEach((item, index) => {
           if (item.id === id) {
@@ -205,6 +209,58 @@ export class ListCategoriesComponent implements OnInit {
 
   canAddOrEdit(): boolean {
     return this.userProject.role === Role.Admin || this.userProject.role === Role.Manager;
+  }
+
+  drop(event: CdkDragDrop<CategoryDto[]>): void {
+    if (!this.canAddOrEdit() || this.isSavingOrder || event.previousIndex === event.currentIndex) {
+      return;
+    }
+
+    const reorderedCategories = [...this.categories.getValue()];
+    moveItemInArray(reorderedCategories, event.previousIndex, event.currentIndex);
+
+    const categoriesToUpdate = reorderedCategories
+      .filter(category => !!category.id)
+      .map((category, index) => ({ category, displayOrder: index }))
+      .filter(item => item.category.displayOrder !== item.displayOrder);
+
+    if (!categoriesToUpdate.length) {
+      this.categories.next(this.sortCategories(reorderedCategories));
+      return;
+    }
+
+    categoriesToUpdate.forEach(item => {
+      item.category.displayOrder = item.displayOrder;
+    });
+
+    this.categories.next(this.sortCategories(reorderedCategories));
+    this.isSavingOrder = true;
+
+    this.categoryService.updateOrder(
+      this.projectId,
+      reorderedCategories
+        .filter(category => !!category.id)
+        .map((category, index) => ({ categoryId: category.id, displayOrder: index }))
+    ).subscribe({
+      next: () => {
+        this.isSavingOrder = false;
+        this.fillData();
+      },
+      error: () => {
+        this.isSavingOrder = false;
+        this.fillData();
+      }
+    });
+  }
+
+  private sortCategories(categories: CategoryDto[]): CategoryDto[] {
+    return [...categories].sort((left, right) => {
+      if (left.displayOrder !== right.displayOrder) {
+        return left.displayOrder - right.displayOrder;
+      }
+
+      return (left.name ?? '').localeCompare(right.name ?? '');
+    });
   }
 
   getFormFieldErrors(fieldName: string): string[] {

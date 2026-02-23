@@ -235,7 +235,23 @@ namespace EasyFinance.Server.Controllers
 
             if (welcomeNotificationResult.Failed)
                 this.logger.LogWarning("Failed to create welcome notification for user {UserId}: {Errors}", user.Id, string.Join(", ", welcomeNotificationResult.Messages.Select(m => m.Description)));
-            
+
+            var twoFactorRecommendationNotification = new NotificationRequestDTO
+            {
+                User = user,
+                CodeMessage = "EnableTwoFactorRecommendationMessage",
+                Type = NotificationType.Information,
+                Category = NotificationCategory.Security,
+                ActionLabelCode = "ButtonConfigureTwoFactor",
+                LimitNotificationChannels = NotificationChannels.InApp,
+                IsSticky = false
+            };
+
+            var twoFactorRecommendationResult = await this.notificationService.CreateNotificationAsync(twoFactorRecommendationNotification);
+
+            if (twoFactorRecommendationResult.Failed)
+                this.logger.LogWarning("Failed to create two-factor recommendation notification for user {UserId}: {Errors}", user.Id, string.Join(", ", twoFactorRecommendationResult.Messages.Select(m => m.Description)));
+             
             var correlationId = HttpContext.Items[correlationIdClaimType].ToString();
 
             await GenerateUserToken(user, correlationId);

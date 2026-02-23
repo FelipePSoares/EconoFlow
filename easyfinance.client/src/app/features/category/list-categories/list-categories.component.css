@@ -1,3 +1,23 @@
 .category-name {
     min-width: 175px;
 }
+
+.drag-handle {
+    color: var(--bs-secondary-color);
+    cursor: grab;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+.cdk-drag-preview {
+    box-sizing: border-box;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+    background: #fff;
+}
+
+.cdk-drag-placeholder {
+    opacity: 0.4;
+}

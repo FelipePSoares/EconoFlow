@@ -10,6 +10,7 @@
         AccessLevelChanged,
         NewSupportMessageReceived,
         WelcomeMessage,
-        MonthlyAndAnnualOverviewNowAvailableMessage
+        MonthlyAndAnnualOverviewNowAvailableMessage,
+        TwoFactorNowAvailableAnnouncementMessage
     }
 }

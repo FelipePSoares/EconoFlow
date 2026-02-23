@@ -1,4 +1,5 @@
-﻿using System.Net;
+using System.Net;
+using System.Collections.Generic;
 using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.Features.CategoryService;
 using EasyFinance.Application.Mappers;
@@ -55,6 +56,15 @@ namespace EasyFinance.Server.Controllers
             var updateResult = await categoryService.UpdateAsync(categoryId: categoryId, categoryDto: categoryDto);
 
             return ValidateResponse(updateResult, HttpStatusCode.OK);
+        }
+
+        [HttpPut("order")]
+        public async Task<IActionResult> UpdateOrder(Guid projectId, [FromBody] ICollection<CategoryOrderRequestDTO> categoriesOrder)
+        {
+            if (categoriesOrder == null) return BadRequest();
+            var updateOrderResult = await categoryService.UpdateOrderAsync(projectId, categoriesOrder);
+
+            return ValidateResponse(updateOrderResult, HttpStatusCode.NoContent);
         }
 
         [HttpPut("{categoryId}/Archive")]

@@ -1,16 +1,15 @@
-import { AfterViewInit, Component, DestroyRef, inject, Input, OnInit, PLATFORM_ID } from '@angular/core';
+import { Component, DestroyRef, inject, Input, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { NavigationEnd, Router, UrlSegment } from '@angular/router';
 import { BehaviorSubject, filter, map, Observable } from 'rxjs';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { CdkTableDataSourceInput } from '@angular/cdk/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
 import { ChartData, ChartOptions, TooltipItem } from 'chart.js';
-import { BaseChartDirective } from 'ng2-charts';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { CategoryService } from '../../../core/services/category.service';
 import { CategoryDto } from '../../category/models/category-dto';
@@ -27,6 +26,7 @@ import { BudgetBarComponent } from '../../../core/components/budget-bar/budget-b
 import { CurrentDateService } from '../../../core/services/current-date.service';
 import { ProjectDto } from '../models/project-dto';
 import { MonthlyExpensesChartComponent } from './monthly-expenses-chart/monthly-expenses-chart.component';
+import { AnnualIncomeExpenseChartComponent } from './annual-income-expense-chart/annual-income-expense-chart.component';
 import { GlobalService } from '../../../core/services/global.service';
 import { TranslateService } from '@ngx-translate/core';
 import { Category } from '../../../core/models/category';
@@ -38,7 +38,7 @@ import { Category } from '../../../core/models/category';
       CurrentDateComponent,
       BudgetBarComponent,
       MonthlyExpensesChartComponent,
-      BaseChartDirective,
+      AnnualIncomeExpenseChartComponent,
       CurrencyFormatPipe,
       MatButtonModule,
       MatIconModule,
@@ -50,11 +50,9 @@ import { Category } from '../../../core/models/category';
     styleUrl: './detail-project.component.scss'
 })
 
-export class DetailProjectComponent implements OnInit, AfterViewInit {
-  readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+export class DetailProjectComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private hadModalOutlet = false;
-  chartsReady = false;
   currentLanguage = this.globalService.currentLanguage;
 
   @Input({ required: true })
@@ -178,14 +176,6 @@ export class DetailProjectComponent implements OnInit, AfterViewInit {
       });
 
     this.fillData(this.currentDateService.currentDate);
-  }
-
-  ngAfterViewInit(): void {
-    if (this.isBrowser) {
-      setTimeout(() => {
-        this.chartsReady = true;
-      }, 0);
-    }
   }
 
   fillData(date: Date) {
@@ -351,7 +341,10 @@ export class DetailProjectComponent implements OnInit, AfterViewInit {
   }
 
   openAnnualOverview(): void {
-    this.router.navigate(['/projects', this.projectId, 'overview', 'annual']);
+    const yearValue = this.currentDateService.currentDate.getFullYear();
+    this.router.navigate(['/projects', this.projectId, 'overview', 'annual'], {
+      queryParams: { year: yearValue }
+    });
   }
 
   openMonthlyOverview(): void {
@@ -386,6 +379,16 @@ export class DetailProjectComponent implements OnInit, AfterViewInit {
     }
 
     return '';
+  }
+
+  getCategoryFillHeightClass(category: CategoryDto): string {
+    if (!this.setHeight) {
+      return 'card-fill-height-0';
+    }
+
+    const percentage = category.getPercentageSpend() ?? 0;
+    const roundedHeight = this.clampToDisplayHeight(percentage);
+    return `card-fill-height-${roundedHeight}`;
   }
 
   copyPreviousBudget() {
@@ -450,6 +453,15 @@ export class DetailProjectComponent implements OnInit, AfterViewInit {
 
   private roundAmount(value: number | undefined): number {
     return Math.round(Number(value || 0));
+  }
+
+  private clampToDisplayHeight(value: number): number {
+    if (!Number.isFinite(value)) {
+      return 0;
+    }
+
+    const bounded = Math.max(0, Math.min(100, value));
+    return Math.round(bounded / 5) * 5;
   }
 
   private formatCategoryTooltipLabel(context: TooltipItem<'doughnut'>): string {

@@ -24,7 +24,7 @@
         [options]="{ prefix: currencySymbol, allowNegative: false, thousands: thousandSeparator, decimal: decimalSeparator, precision: 0 }">
     </mat-form-field>
 
-    <div class="categories" [style.max-height]="annualIncome > 0 ? '1000px' : 0">
+    <div class="categories" [class.expanded]="annualIncome > 0">
       <p class="fs-5 text">
         <strong>{{ 'MonthlyDistribution' | translate }}</strong>
       </p>

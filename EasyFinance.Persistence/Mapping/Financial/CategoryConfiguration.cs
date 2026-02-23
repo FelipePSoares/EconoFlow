@@ -19,6 +19,10 @@ namespace EasyFinance.Persistence.Mapping.Financial
             builder.Property(p => p.IsArchived)
                 .IsRequired();
 
+            builder.Property(p => p.DisplayOrder)
+                .IsRequired()
+                .HasDefaultValue(0);
+
             builder.HasMany(p => p.Expenses)
                 .WithOne();
         }

@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, DestroyRef, EventEmitter, inject, OnInit, Output } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, inject, Input, OnInit, Output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DateAdapter } from '@angular/material/core';
 import { MatDatepicker, MatDatepickerModule } from '@angular/material/datepicker';
@@ -27,6 +27,7 @@ export class CurrentDateComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   currentLanguage = this.globalService.currentLanguage;
 
+  @Input() mode: 'month' | 'year' = 'month';
   @Output() dateUpdatedEvent = new EventEmitter<Date>();
 
   constructor(private currentDateService: CurrentDateService) { }
@@ -45,6 +46,14 @@ export class CurrentDateComponent implements OnInit {
     return this.currentDateService.currentDate;
   }
 
+  get displayFormat(): string {
+    return this.isYearMode ? 'yyyy' : 'MMM yyyy';
+  }
+
+  get pickerStartView(): 'year' | 'multi-year' {
+    return this.isYearMode ? 'multi-year' : 'year';
+  }
+
   previousMonth(): void {
     this.changeDate(-1);
   }
@@ -53,18 +62,48 @@ export class CurrentDateComponent implements OnInit {
     this.changeDate(1);
   }
 
-  changeDate(value: number) {
+  changeDate(value: number): void {
     const currentDate = this.currentDateService.currentDate;
-    currentDate.setDate(1);
-    currentDate.setMonth(currentDate.getMonth() + value);
-    this.currentDateService.currentDate = currentDate;
-    this.dateUpdatedEvent.emit(this.currentDateService.currentDate);
+    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1, 12);
+
+    if (this.isYearMode) {
+      newDate.setFullYear(newDate.getFullYear() + value);
+    } else {
+      newDate.setMonth(newDate.getMonth() + value);
+    }
+
+    this.currentDateService.currentDate = newDate;
+    this.emitCurrentDate();
   }
 
   setMonthAndYear(event: Moment, datepicker: MatDatepicker<Moment>): void {
+    if (this.isYearMode) {
+      return;
+    }
+
     const newDate = new Date(event.year(), event.month(), 1, 12);
     this.currentDateService.currentDate = newDate;
-    this.dateUpdatedEvent.emit(this.currentDateService.currentDate);
+    this.emitCurrentDate();
     datepicker.close();
+  }
+
+  setYear(event: Moment, datepicker: MatDatepicker<Moment>): void {
+    if (!this.isYearMode) {
+      return;
+    }
+
+    const currentDate = this.currentDateService.currentDate;
+    const newDate = new Date(event.year(), currentDate.getMonth(), 1, 12);
+    this.currentDateService.currentDate = newDate;
+    this.emitCurrentDate();
+    datepicker.close();
+  }
+
+  private get isYearMode(): boolean {
+    return this.mode === 'year';
+  }
+
+  private emitCurrentDate(): void {
+    this.dateUpdatedEvent.emit(this.currentDateService.currentDate);
   }
 }

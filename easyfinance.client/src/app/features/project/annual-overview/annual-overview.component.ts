@@ -1,6 +1,6 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { AfterViewInit, Component, inject, Input, OnInit, PLATFORM_ID } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ChartData, ChartOptions, TooltipItem } from 'chart.js';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BaseChartDirective } from 'ng2-charts';
@@ -14,6 +14,8 @@ import { ProjectDto } from '../models/project-dto';
 import { IncomeService } from '../../../core/services/income.service';
 import { CategoryService } from '../../../core/services/category.service';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
+import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
+import { CurrentDateService } from '../../../core/services/current-date.service';
 
 interface CategoryInsight {
   name: string;
@@ -28,7 +30,8 @@ interface CategoryInsight {
     TranslateModule,
     BaseChartDirective,
     CurrencyFormatPipe,
-    ReturnButtonComponent
+    ReturnButtonComponent,
+    CurrentDateComponent
   ],
   providers: [CurrencyFormatPipe],
   templateUrl: './annual-overview.component.html',
@@ -44,13 +47,14 @@ export class AnnualOverviewComponent implements OnInit, AfterViewInit {
   private categoryService = inject(CategoryService);
   private translateService = inject(TranslateService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private currentDateService = inject(CurrentDateService);
   private currencyFormatPipe = inject(CurrencyFormatPipe);
 
   @Input({ required: true })
   projectId!: string;
 
   readonly currentYear = new Date().getFullYear();
-  readonly yearOptions = Array.from({ length: 8 }, (_, index) => this.currentYear - index);
   selectedYear = this.currentYear;
 
   userProject!: UserProjectDto;
@@ -134,7 +138,19 @@ export class AnnualOverviewComponent implements OnInit, AfterViewInit {
       this.projectService.selectUserProject(userProject);
     });
 
-    this.loadYear(this.selectedYear);
+    this.route.queryParamMap.subscribe(params => {
+      const yearParam = params.get('year');
+      const normalizedYear = this.isValidYear(yearParam) ? Number(yearParam) : this.currentYear;
+
+      this.selectedYear = normalizedYear;
+      this.currentDateService.currentDate = new Date(
+        this.selectedYear,
+        this.currentDateService.currentDate.getMonth(),
+        1,
+        12
+      );
+      this.loadYear(this.selectedYear);
+    });
   }
 
   ngAfterViewInit(): void {
@@ -145,11 +161,19 @@ export class AnnualOverviewComponent implements OnInit, AfterViewInit {
     }
   }
 
-  onYearChange(event: Event): void {
-    const target = event.target as HTMLSelectElement | null;
-    const selectedYear = Number(target?.value ?? this.currentYear);
-    this.selectedYear = Number.isFinite(selectedYear) ? selectedYear : this.currentYear;
-    this.loadYear(this.selectedYear);
+  updateDate(newDate: Date): void {
+    const nextYear = newDate.getFullYear();
+
+    if (nextYear === this.selectedYear) {
+      return;
+    }
+
+    this.selectedYear = nextYear;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { year: this.selectedYear },
+      queryParamsHandling: 'merge'
+    });
   }
 
   previous(): void {
@@ -315,5 +339,9 @@ export class AnnualOverviewComponent implements OnInit, AfterViewInit {
 
   private roundAmount(value: number | undefined): number {
     return Math.round(Number(value || 0));
+  }
+
+  private isValidYear(value: string | null): boolean {
+    return !!value && /^\d{4}$/.test(value);
   }
 }

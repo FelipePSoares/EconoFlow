@@ -10,12 +10,28 @@
 
 .notification-item {
   border-bottom: 1px solid #e9ecef;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, opacity 0.18s ease, transform 0.18s ease, max-height 0.22s ease, padding 0.22s ease, margin 0.22s ease, border-color 0.22s ease;
   cursor: default;
+  max-height: 220px;
+  opacity: 1;
+  transform: translateY(0);
+  overflow: hidden;
 }
 
   .notification-item:hover {
     background-color: #f8f9fa;
+  }
+
+  .notification-item.removing {
+    opacity: 0;
+    transform: translateY(-6px);
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    border-bottom-color: transparent;
+    pointer-events: none;
   }
 
   .notification-item.unread {

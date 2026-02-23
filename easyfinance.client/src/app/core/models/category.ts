@@ -5,4 +5,5 @@ export class Category {
   name!: string;
   expenses!: Expense[];
   isArchived!: boolean;
+  displayOrder?: number;
 }

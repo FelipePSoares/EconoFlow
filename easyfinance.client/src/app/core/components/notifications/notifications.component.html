@@ -1,5 +1,6 @@
 <div class="dropdown">
   <button class="btn btn-outline-secondary position-relative"
+          #notificationsToggleButton
           type="button"
           id="dropdownNotifications"
           data-bs-toggle="dropdown"
@@ -31,6 +32,7 @@
       } @else {
       @for (notification of (notifications$ | async); track notification.id) {
       <div class="dropdown-item notification-item"
+           [class.removing]="isRemoving(notification.id)"
            (click)="$event.stopPropagation()">
         <div class="d-flex">
           <div class="notification-icon me-3">
@@ -57,7 +59,7 @@
             <div class="notification-actions d-flex gap-2 align-items-center">
               @if (notification.actionLabelCode){
               <button class="btn btn-sm btn-outline-primary"
-                      (click)="action(notification)"
+                      (click)="onActionButtonClick(notification, $event)"
                       [title]="notification.actionLabelCode | translate">
                 <i class="bi bi-box-arrow-up-right me-1"></i>
                 {{ notification.actionLabelCode  | translate }}
@@ -65,7 +67,7 @@
               }
               @if (!notification.isActionRequired) {
               <button class="btn btn-sm btn-outline-secondary"
-                      (click)="action(notification)"
+                      (click)="onSetAsReadClick(notification, $event)"
                       [title]="'SetAsRead' | translate">
                 <i class="bi bi-check2"></i>
               </button>

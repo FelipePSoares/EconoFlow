@@ -2,6 +2,18 @@
   min-height: 100vh;
 }
 
+.full-width-field {
+  width: 100%;
+}
+
+.password-rule-valid {
+  color: var(--bs-success);
+}
+
+.password-rule-invalid {
+  color: var(--mat-form-field-error-text-color);
+}
+
 .recovery-form-title {
   display: block;
   font-size: 30px;

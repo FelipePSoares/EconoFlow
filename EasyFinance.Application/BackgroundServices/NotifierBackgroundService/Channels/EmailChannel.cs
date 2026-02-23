@@ -46,7 +46,7 @@ namespace EasyFinance.Application.BackgroundServices.NotifierBackgroundService.C
                     return [];
 
                 return dict
-                    .Select(kv => ($"{{{{{kv.Key}}}}}", kv.Value))
+                    .Select(kv => (kv.Key, kv.Value))
                     .ToArray();
             }
             catch (JsonException)

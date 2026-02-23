@@ -7,6 +7,7 @@ const exceptions: any = [
   { method: 'GET', url: '/api/AccessControl/' },
   { method: 'PATCH', url: '/api/AccessControl/' },
   { method: 'GET', url: '/api/AccessControl/search' },
+  { method: 'POST', url: '/api/Account/Notifications/' },
   { method: 'GET', url: '/DefaultCategories' },
   { method: 'GET', url: '/assets/version.json' }
 ];
