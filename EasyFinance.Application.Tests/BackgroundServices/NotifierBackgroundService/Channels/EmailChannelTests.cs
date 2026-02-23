@@ -106,7 +106,7 @@ namespace EasyFinance.Application.Tests.BackgroundServices.NotifierBackgroundSer
                 user.Email,
                 DTOs.BackgroundService.Email.EmailTemplates.ResetPassword,
                 It.IsAny<CultureInfo>(),
-                It.Is<(string token, string replaceWith)[]>(tokens => tokens.Any(t => t.token == "{{callbackUrl}}" && t.replaceWith == metadata.callbackUrl))
+                It.Is<(string token, string replaceWith)[]>(tokens => tokens.Any(t => t.token == "callbackUrl" && t.replaceWith == metadata.callbackUrl))
             ), Times.Once);
         }
     }

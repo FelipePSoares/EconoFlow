@@ -72,6 +72,9 @@
     <None Update="EmailTemplates\en\MonthlyAndAnnualOverviewNowAvailableMessage.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="EmailTemplates\en\TwoFactorNowAvailableAnnouncementMessage.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="EmailTemplates\en\GrantedAccess.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -97,6 +100,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="EmailTemplates\pt\MonthlyAndAnnualOverviewNowAvailableMessage.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="EmailTemplates\pt\TwoFactorNowAvailableAnnouncementMessage.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="EmailTemplates\pt\Default.html">

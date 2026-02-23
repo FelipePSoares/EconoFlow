@@ -152,20 +152,10 @@
             <hr class="solid" />
             <div class="row g-3 mt-1">
               <h3 class="mt-0 mb-3 text-start fw-semibold fs-6">{{ 'IncomeVsExpenseByMonth' | translate }}</h3>
-              @if (chartsReady) {
-                @if (yearIncomeExpenseChartData.datasets[0].data.length || yearIncomeExpenseChartData.datasets[1].data.length) {
-                  <div class="position-relative year-income-expense-chart-container">
-                    <canvas
-                      baseChart
-                      [type]="'bar'"
-                      [data]="yearIncomeExpenseChartData"
-                      [options]="yearIncomeExpenseChartOptions">
-                    </canvas>
-                  </div>
-                } @else {
-                  <p class="text-center text-secondary mb-0">{{ 'NoDataForSelectedPeriod' | translate }}</p>
-                }
-              }
+              <app-annual-income-expense-chart
+                [chartData]="yearIncomeExpenseChartData"
+                [chartOptions]="yearIncomeExpenseChartOptions">
+              </app-annual-income-expense-chart>
             </div>
           </div>
         </div>

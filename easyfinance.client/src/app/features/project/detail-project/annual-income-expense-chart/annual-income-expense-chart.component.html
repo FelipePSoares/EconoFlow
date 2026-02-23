@@ -1,0 +1,14 @@
+@if (chartsReady) {
+  @if (hasData()) {
+    <div class="position-relative year-income-expense-chart-container">
+      <canvas
+        baseChart
+        [type]="'bar'"
+        [data]="chartData"
+        [options]="chartOptions">
+      </canvas>
+    </div>
+  } @else {
+    <p class="text-center text-secondary mb-0">{{ 'NoDataForSelectedPeriod' | translate }}</p>
+  }
+}

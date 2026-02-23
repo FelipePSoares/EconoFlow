@@ -4,13 +4,7 @@
       <div class="d-flex justify-content-between align-items-center mb-4 overview-header">
         <app-return-button (returnButtonEvent)="previous()"></app-return-button>
         <h2 class="text-center flex-grow-1 m-0">{{ userProject.project.name }} - {{ 'AnnualOverview' | translate }}</h2>
-        <div class="header-date-control">
-          <select id="year-selector" class="form-select" [value]="selectedYear" (change)="onYearChange($event)">
-            @for (year of yearOptions; track year) {
-              <option [value]="year">{{ year }}</option>
-            }
-          </select>
-        </div>
+        <app-current-date mode="year" (dateUpdatedEvent)="updateDate($event)"></app-current-date>
       </div>
     </div>
   </div>
