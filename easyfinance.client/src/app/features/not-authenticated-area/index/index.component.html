@@ -1,9 +1,8 @@
 <main class="page">
-
   <section class="hero">
     <div class="hero-grid">
 
-      <div class="hero-copy scroll-hidden anim-fade-right delay-200">
+      <div class="hero-copy scroll-hidden anim-fade-right">
         <p class="hero-badge">{{ 'HomepageNewFeatureBadge' | translate }}</p>
         <h1>{{ 'TransformYourFinancialLife' | translate }}</h1>
         <p class="hero-lead">{{ 'HomepageHeroDescription' | translate }}</p>
@@ -17,12 +16,19 @@
         </div>
       </div>
 
+      <!-- Image 3: Desktop dashboard — most complete view, best for hero -->
       <div class="hero-visual scroll-hidden anim-fade-left delay-200">
         <div class="hero-visual-frame">
-          <img src="/assets/images/analysis.webp"
-               alt="{{ 'DetailedAnalysis' | translate }}"
+          <img src="/assets/images/print-desktop.webp"
+               alt="{{ 'IntuitiveDashboard' | translate }}"
                loading="eager"
                fetchpriority="high">
+        </div>
+        <!-- Image 4: Mobile — floats as a teaser bottom-left -->
+        <div class="hero-mobile-peek">
+          <img src="/assets/images/print-mobile.webp"
+               alt="{{ 'IntuitiveDashboard' | translate }}"
+               loading="eager">
         </div>
         <div class="hero-stat">
           <span class="hero-stat-dot"></span>
@@ -35,9 +41,10 @@
 
   <section class="feature-grid">
 
+    <!-- Image 3: Dashboard overview card -->
     <article class="feature-card scroll-hidden anim-fade-up">
       <div class="feature-img-wrap">
-        <img src="/assets/images/dashboard.webp" alt="{{ 'IntuitiveDashboard' | translate }}" loading="lazy">
+        <img src="/assets/images/print-desktop.webp" alt="{{ 'IntuitiveDashboard' | translate }}" loading="lazy">
         <div class="feature-img-overlay"></div>
       </div>
       <div class="feature-body">
@@ -47,9 +54,10 @@
       </div>
     </article>
 
+    <!-- Image 1: Annual charts — perfect for "Detailed Analysis" -->
     <article class="feature-card scroll-hidden anim-fade-up delay-200">
       <div class="feature-img-wrap">
-        <img src="/assets/images/analysis.webp" alt="{{ 'DetailedAnalysis' | translate }}" loading="lazy">
+        <img src="/assets/images/print-annual-charts-desktop.webp" alt="{{ 'DetailedAnalysis' | translate }}" loading="lazy">
         <div class="feature-img-overlay"></div>
       </div>
       <div class="feature-body">
@@ -61,7 +69,7 @@
 
     <article class="feature-card scroll-hidden anim-fade-up delay-400">
       <div class="feature-img-wrap">
-        <img src="/assets/images/manageUser.webp" alt="{{ 'SmartCollaboration' | translate }}" loading="lazy">
+        <img src="/assets/images/print-manage-user.webp" alt="{{ 'SmartCollaboration' | translate }}" loading="lazy">
         <div class="feature-img-overlay"></div>
       </div>
       <div class="feature-body">
@@ -73,6 +81,7 @@
 
   </section>
 
+  <!-- Image 2: Monthly charts — matches the chart types listed here exactly -->
   <section class="charts-section scroll-hidden anim-fade-up">
     <div class="charts-copy">
       <h2>{{ 'HomepageChartsTitle' | translate }}</h2>
@@ -83,11 +92,26 @@
         <li class="scroll-hidden anim-fade-left delay-300">{{ 'TopExpenseCategories' | translate }}</li>
         <li class="scroll-hidden anim-fade-left delay-400">{{ 'CumulativeIncomeVsExpense' | translate }}</li>
       </ul>
+      <div class="charts-cta scroll-hidden anim-scale-in delay-300">
+        <a [routerLink]="['/register']" class="btn-cta">
+          {{ 'ButtonCreateFreeAccount' | translate }}
+        </a>
+      </div>
     </div>
-    <div class="charts-cta scroll-hidden anim-scale-in delay-200">
-      <a [routerLink]="['/register']" class="btn-cta">
-        {{ 'ButtonCreateFreeAccount' | translate }}
-      </a>
+    <div class="charts-preview scroll-hidden anim-fade-left delay-200">
+      <img src="/assets/images/print-charts-desktop.webp" alt="{{ 'HomepageChartsTitle' | translate }}" loading="lazy">
+    </div>
+  </section>
+
+  <section class="mobile-section scroll-hidden anim-fade-up">
+    <div class="mobile-copy">
+      <h2>{{ 'SmartCollaboration' | translate }}</h2>
+      <p>{{ 'DescriptionSmartCollaboration' | translate }}</p>
+    </div>
+    <div class="mobile-device scroll-hidden anim-scale-in delay-200">
+      <div class="mobile-frame">
+        <img src="/assets/images/print-manage-user-mobile.webp" alt="{{ 'IntuitiveDashboard' | translate }}" loading="lazy">
+      </div>
     </div>
   </section>
 
@@ -111,5 +135,4 @@
       </div>
     </div>
   </section>
-
 </main>

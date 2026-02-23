@@ -42,7 +42,7 @@ export class AccessControlProjectComponent implements OnInit {
   public roles = Object.values(Role) as Role[];
   accessForm!: FormGroup;
   httpErrors = false;
-  errors!: Record<string, string[]>;
+  errors: Record<string, string[]> = {};
   private listCurrentUsersToCompare!: UserProjectDto[];
 
   @Input({ required: true }) projectId!: string;
@@ -57,7 +57,7 @@ export class AccessControlProjectComponent implements OnInit {
 
   ngOnInit(): void {
     this.accessForm = new FormGroup({
-      user: new FormControl<string | UserProjectDto>('', [Validators.required, conditionalEmailValidator()]),
+      user: new FormControl<string | User>('', [Validators.required, conditionalEmailValidator()]),
       role: new FormControl('', [Validators.required])
     });
 
@@ -80,37 +80,51 @@ export class AccessControlProjectComponent implements OnInit {
         next: (users) => {
           this.listCurrentUsersToCompare = JSON.parse(JSON.stringify(users));
           this.currentUsers.next(users);
-      },
-      error: (error) => {
-        console.error('Error fetching categories:', error);
-      }
-    });
+       },
+       error: (error) => {
+          console.error('Error fetching project users:', error);
+       }
+     });
   }
 
-  private searchUsers(searchTerm: string): void {
+  private searchUsers(value: string | User | null): void {
+    if (typeof value !== 'string') {
+      this.filteredUsers.next([]);
+      return;
+    }
+
+    const searchTerm = value.trim();
+
+    if (!searchTerm) {
+      this.filteredUsers.next([]);
+      return;
+    }
+
     this.userService.searchUser(searchTerm, this.projectId)
       .subscribe({
         next: (users) => {
           this.filteredUsers.next(users);
         },
         error: (error) => {
-          console.error('Error fetching categories:', error);
+          console.error('Error searching users:', error);
         }
       });
   }
 
   addUser(): void {
     if (this.accessForm.valid) {
-      let user = this.user?.value;
-      let role = this.role?.value;
+      this.clearHttpErrors();
 
-      var newUserProject = <UserProjectDto>({
-        userId: user?.id ?? '',
-        userEmail: user?.id ? '' : user,
+      const user = this.user?.value as string | User | null;
+      const role = this.role?.value as Role | null;
+
+      const newUserProject = <UserProjectDto>({
+        userId: typeof user === 'string' ? '' : user?.id ?? '',
+        userEmail: typeof user === 'string' ? user : '',
         role: role
       });
 
-      var patch = <Operation[]>[{ op: "add", path: "/-", value: newUserProject }];
+      const patch = <Operation[]>[{ op: "add", path: "/-", value: newUserProject }];
 
       this.updateUsers(patch).subscribe({
         next: users => {
@@ -129,7 +143,13 @@ export class AccessControlProjectComponent implements OnInit {
   }
 
   updateUserRole(): void {
-    var patch = compare(this.listCurrentUsersToCompare, this.currentUsers.value);
+    this.clearHttpErrors();
+
+    const patch = compare(this.listCurrentUsersToCompare, this.currentUsers.value);
+
+    if (patch.length === 0) {
+      return;
+    }
 
     this.updateUsers(patch).subscribe({
       next: users => {
@@ -171,6 +191,11 @@ export class AccessControlProjectComponent implements OnInit {
   }
 
   displayFn(user: User): string {
-    return user && user.fullName ? user.fullName : '';
+    return user?.fullName || user?.email || '';
+  }
+
+  private clearHttpErrors(): void {
+    this.httpErrors = false;
+    this.errors = {};
   }
 }

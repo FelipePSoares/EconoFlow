@@ -95,6 +95,16 @@ try
         using var serviceScope = app.Services.CreateScope();
         var unitOfWork = serviceScope.ServiceProvider.GetRequiredService<IUnitOfWork>();
         var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<User>>();
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var random = new Random(20260223);
+
+        DateOnly DateInMonth(DateOnly date, int day)
+        {
+            var daysInMonth = DateTime.DaysInMonth(date.Year, date.Month);
+            var safeDay = Math.Max(1, Math.Min(day, daysInMonth));
+            return new DateOnly(date.Year, date.Month, safeDay);
+        }
+
         var user = new User(firstName: "Test", lastName: "Admin", enabled: true)
         {
             UserName = "test@test.com",
@@ -110,6 +120,7 @@ try
             Email = "test1@test.com",
             EmailConfirmed = true
         };
+        user2.SetLanguageCode("en");
         userManager.CreateAsync(user2, "Passw0rd!").GetAwaiter().GetResult();
 
         var notification = new Notification(user, "WelcomeMessage", NotificationType.Information, NotificationCategory.System, limitNotificationChannels: NotificationChannels.InApp);
@@ -125,26 +136,27 @@ try
         var notification6 = new Notification(user, "EnableTwoFactorRecommendationMessage", NotificationType.Information, NotificationCategory.Security, "ButtonConfigureTwoFactor", NotificationChannels.InApp, isSticky: false);
         unitOfWork.NotificationRepository.Insert(notification6);
 
-        var income = new Income("Investiments", DateOnly.FromDateTime(DateTime.Now), 3000, user);
+        // Keep fixture ids/names stable for tests and add richer showcase data around them.
+        var income = new Income("Investiments", today, 3000, user);
         income.SetId(new Guid("0bb277f9-a858-4306-148f-08dcf739f7a1"));
         unitOfWork.IncomeRepository.Insert(income);
 
-        var income2 = new Income("Investiments", DateOnly.FromDateTime(DateTime.Now.AddMonths(-1)), 3000, user);
+        var income2 = new Income("Investiments", today.AddMonths(-1), 3000, user);
         unitOfWork.IncomeRepository.Insert(income2);
 
-        var expense = new Expense("Rent", DateOnly.FromDateTime(DateTime.Now), 700, user, budget: 700);
+        var expense = new Expense("Rent", today, 700, user, budget: 700);
         unitOfWork.ExpenseRepository.Insert(expense);
 
-        var expense2 = new Expense("Groceries", DateOnly.FromDateTime(DateTime.Now), 0, user, budget: 450);
-        var expenseItem = new ExpenseItem("Pingo Doce", DateOnly.FromDateTime(DateTime.Now), 100, user);
+        var expense2 = new Expense("Groceries", today, 0, user, budget: 450);
+        var expenseItem = new ExpenseItem("Pingo Doce", today, 100, user);
         expenseItem.SetId(new Guid("16ddf6c1-6b33-4563-dac4-08dcf73a4157"));
-        var expenseItem2 = new ExpenseItem("Continente", DateOnly.FromDateTime(DateTime.Now), 150, user);
+        var expenseItem2 = new ExpenseItem("Continente", today, 150, user);
         expense2.SetId(new Guid("75436cec-70f6-420f-ee8a-08dce6424079"));
         expense2.AddItem(expenseItem);
         expense2.AddItem(expenseItem2);
         unitOfWork.ExpenseRepository.Insert(expense2);
 
-        var category = new Category("Fixed Costs");
+        var category = new Category("Fixed Costs", displayOrder: 0);
         category.SetId(new Guid("ac795272-1ee2-456c-1fa2-08dcbc8250c1"));
         category.AddExpense(expense);
         category.AddExpense(expense2);
@@ -157,6 +169,128 @@ try
         project.AddIncome(income2);
         project.AddCategory(category);
         unitOfWork.ProjectRepository.Insert(project);
+
+        var defaultCategoryRecommendations = Category.GetAllDefaultCategories().ToArray();
+        var categoriesByName = new Dictionary<string, Category>(StringComparer.OrdinalIgnoreCase)
+        {
+            [category.Name] = category
+        };
+
+        for (var categoryIndex = 0; categoryIndex < defaultCategoryRecommendations.Length; categoryIndex++)
+        {
+            var recommendedCategoryName = defaultCategoryRecommendations[categoryIndex].category.Name;
+            if (string.Equals(recommendedCategoryName, category.Name, StringComparison.OrdinalIgnoreCase))
+            {
+                category.SetDisplayOrder(categoryIndex);
+                continue;
+            }
+
+            var recommendedCategory = new Category(name: recommendedCategoryName, displayOrder: categoryIndex);
+            categoriesByName[recommendedCategoryName] = recommendedCategory;
+            project.AddCategory(recommendedCategory);
+            unitOfWork.CategoryRepository.Insert(recommendedCategory);
+        }
+
+        const int monthsToSeed = 18;
+        for (var monthsAgo = monthsToSeed; monthsAgo >= 0; monthsAgo--)
+        {
+            var monthDate = today.AddMonths(-monthsAgo);
+            var trendFactor = 1m + ((monthsToSeed - monthsAgo) * 0.004m);
+
+            var salaryAmount = Math.Round((5200m + random.Next(-120, 180)) * trendFactor, 2);
+            var salary = new Income("Primary Salary", DateInMonth(monthDate, 5), salaryAmount, user);
+            project.AddIncome(salary);
+            unitOfWork.IncomeRepository.Insert(salary);
+
+            var dividendsAmount = Math.Round((260m + random.Next(-35, 70)) * trendFactor, 2);
+            var dividends = new Income("Dividends", DateInMonth(monthDate, 24), dividendsAmount, user);
+            project.AddIncome(dividends);
+            unitOfWork.IncomeRepository.Insert(dividends);
+
+            decimal bonusAmount = 0m;
+            if (monthDate.Month % 3 == 0)
+            {
+                bonusAmount = Math.Round((950m + random.Next(0, 550)) * trendFactor, 2);
+                var quarterlyBonus = new Income("Quarterly Bonus", DateInMonth(monthDate, 18), bonusAmount, user);
+                project.AddIncome(quarterlyBonus);
+                unitOfWork.IncomeRepository.Insert(quarterlyBonus);
+            }
+
+            decimal freelanceAmount = 0m;
+            if (monthsAgo % 2 == 0)
+            {
+                freelanceAmount = Math.Round((420m + random.Next(0, 460)) * trendFactor, 2);
+                var freelance = new Income("Freelance Work", DateInMonth(monthDate, 12), freelanceAmount, user);
+                project.AddIncome(freelance);
+                unitOfWork.IncomeRepository.Insert(freelance);
+            }
+
+            var annualIncomeForBudget = (salaryAmount + dividendsAmount + (bonusAmount / 3m) + (freelanceAmount / 2m)) * 12m;
+            foreach (var recommendation in defaultCategoryRecommendations)
+            {
+                var recommendedCategoryName = recommendation.category.Name;
+                if (!categoriesByName.TryGetValue(recommendedCategoryName, out var targetCategory))
+                {
+                    continue;
+                }
+
+                var categoryWithRecommendedExpenses = Category.CreateDefaultCategoryWithExpense(
+                    user,
+                    recommendedCategoryName,
+                    recommendation.percentage,
+                    annualIncomeForBudget,
+                    monthDate);
+
+                foreach (var seededExpense in categoryWithRecommendedExpenses.Expenses)
+                {
+                    var expenseDate = DateInMonth(monthDate, random.Next(4, 25));
+                    seededExpense.SetDate(expenseDate);
+                    var expectedAmount = Math.Round(seededExpense.Budget * (0.82m + (decimal)random.NextDouble() * 0.34m), 2);
+                    var splitIntoItems = seededExpense.Budget >= 120 && random.NextDouble() >= 0.35;
+
+                    if (splitIntoItems)
+                    {
+                        var remaining = expectedAmount;
+                        var itemCount = random.Next(2, 5);
+                        for (var itemIndex = 0; itemIndex < itemCount; itemIndex++)
+                        {
+                            var isLastItem = itemIndex == itemCount - 1;
+                            decimal itemAmount;
+
+                            if (isLastItem)
+                            {
+                                itemAmount = remaining;
+                            }
+                            else
+                            {
+                                var slotsLeft = itemCount - itemIndex;
+                                var averageAmount = remaining / slotsLeft;
+                                itemAmount = Math.Round(averageAmount * (0.75m + (decimal)random.NextDouble() * 0.5m), 2);
+                                itemAmount = Math.Max(1m, Math.Min(itemAmount, remaining));
+                            }
+
+                            remaining = Math.Round(remaining - itemAmount, 2);
+                            var itemDay = 4 + ((itemIndex + 1) * 6) + random.Next(0, 3);
+                            var itemDate = DateInMonth(monthDate, itemDay);
+                            var itemName = $"{seededExpense.Name} #{itemIndex + 1}";
+                            seededExpense.AddItem(new ExpenseItem(itemName, itemDate, itemAmount, user));
+                        }
+
+                        if (remaining > 0)
+                        {
+                            seededExpense.AddItem(new ExpenseItem("Other", DateInMonth(monthDate, 27), remaining, user));
+                        }
+                    }
+                    else
+                    {
+                        seededExpense.SetAmount(expectedAmount);
+                    }
+
+                    targetCategory.AddExpense(seededExpense);
+                    unitOfWork.ExpenseRepository.Insert(seededExpense);
+                }
+            }
+        }
 
         var userProject = new UserProject(user, project, Role.Admin);
         userProject.SetAccepted();
