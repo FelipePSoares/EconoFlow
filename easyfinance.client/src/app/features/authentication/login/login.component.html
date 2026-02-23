@@ -4,44 +4,106 @@
       <span>
         <img src="/assets/images/logo-without-background-300-min.png" alt="EconoFlow Logo" class="h-10 w-10 mr-3 img-fluid">
       </span>
-      <form class="login-form mt-4 mb-2 text-start" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-        <div class="form-floating mb-1">
-          <p>{{ 'PleaseSignIn' | translate }}</p>
-        </div>
 
-        <mat-form-field class="mb-2" [style.width.%]="100">
-          <mat-label>{{ 'FieldEmailAddress' | translate }}</mat-label>
-          <input id="email" placeholder="{{ 'PlaceholderEmailAddress' | translate }}" matInput formControlName="email">
-          @if ((email?.invalid && email?.touched) || httpErrors) {
-          @for (error of getFormFieldErrors('email'); track error) {
-          <mat-error>{{ error | translate }}</mat-error>
-          }
-          }
-        </mat-form-field>
+      @if (loginStep === 'credentials') {
+        <form class="login-form mt-4 mb-2 text-start" [formGroup]="credentialsForm" (ngSubmit)="onSubmitCredentials()">
+          <div class="form-floating mb-1">
+            <p>{{ 'PleaseSignIn' | translate }}</p>
+          </div>
 
-        <mat-form-field [style.width.%]="100">
-          <mat-label>{{ 'FieldPassword' | translate }}</mat-label>
-          <input id="password" placeholder="{{ 'PlaceholderPassword' | translate }}" matInput formControlName="password"
-                 [type]="hide ? 'password' : 'text'">
-          <mat-icon matSuffix (click)="hide = !hide">{{ hide ? 'visibility_off' : 'visibility' }}</mat-icon>
-          @if ((password?.invalid && password?.touched) || httpErrors) {
-          @for (error of getFormFieldErrors('password'); track error) {
-          <mat-error>{{ error | translate }}</mat-error>
-          }
-          }
-        </mat-form-field>
+          <mat-form-field class="mb-2" [style.width.%]="100">
+            <mat-label>{{ 'FieldEmailAddress' | translate }}</mat-label>
+            <input id="email" placeholder="{{ 'PlaceholderEmailAddress' | translate }}" matInput formControlName="email">
+            @if ((email?.invalid && email?.touched) || httpErrors) {
+              @for (error of getFormFieldErrors(credentialsForm, 'email'); track error) {
+                <mat-error>{{ error | translate }}</mat-error>
+              }
+            }
+          </mat-form-field>
 
-        <a [routerLink]="['/recovery']" class="float-end mb-2" routerLinkActive="active">{{ 'ForgotPassword' | translate }}</a>
-        <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="loginForm.invalid">{{ 'ButtonSignIn' | translate }}</button>
+          <mat-form-field [style.width.%]="100">
+            <mat-label>{{ 'FieldPassword' | translate }}</mat-label>
+            <input id="password" placeholder="{{ 'PlaceholderPassword' | translate }}" matInput formControlName="password"
+                   [type]="hide ? 'password' : 'text'">
+            <mat-icon matSuffix (click)="hide = !hide">{{ hide ? 'visibility_off' : 'visibility' }}</mat-icon>
+            @if ((password?.invalid && password?.touched) || httpErrors) {
+              @for (error of getFormFieldErrors(credentialsForm, 'password'); track error) {
+                <mat-error>{{ error | translate }}</mat-error>
+              }
+            }
+          </mat-form-field>
 
-        @if (httpErrors && errors['general']) {
-        <div>
-          @for (error of errors['general']; track error) {
-          <p class="mt-3 mb-3 text-danger text-center">{{ error | translate }}</p>
+          <a [routerLink]="['/recovery']" class="float-end mb-2" routerLinkActive="active">{{ 'ForgotPassword' | translate }}</a>
+          <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="credentialsForm.invalid">{{ 'ButtonSignIn' | translate }}</button>
+
+          @if (httpErrors && errors['general']) {
+            <div>
+              @for (error of errors['general']; track error) {
+                <p class="mt-3 mb-3 text-danger text-center">{{ error | translate }}</p>
+              }
+            </div>
           }
-        </div>
-        }
-      </form>
+        </form>
+      } @else {
+        <form class="login-form mt-4 mb-2 text-start" [formGroup]="twoFactorForm" (ngSubmit)="onSubmitTwoFactor()">
+          <div class="form-floating mb-1">
+            <p class="mb-1">{{ 'TwoFactorSignInTitle' | translate }}</p>
+            <p class="text-muted small mb-0">{{ 'TwoFactorSignInDescription' | translate }}</p>
+          </div>
+
+          @if (!useRecoveryCode) {
+            <mat-form-field class="mb-2" [style.width.%]="100">
+              <mat-label>{{ 'FieldAuthenticatorCode' | translate }}</mat-label>
+              <input
+                id="twoFactorCode"
+                placeholder="{{ 'PlaceholderAuthenticatorCode' | translate }}"
+                matInput
+                maxlength="6"
+                formControlName="twoFactorCode">
+              @if ((twoFactorCode?.invalid && twoFactorCode?.touched) || httpErrors) {
+                @for (error of getFormFieldErrors(twoFactorForm, 'twoFactorCode'); track error) {
+                  <mat-error>{{ error | translate }}</mat-error>
+                }
+              }
+            </mat-form-field>
+          } @else {
+            <mat-form-field class="mb-2" [style.width.%]="100">
+              <mat-label>{{ 'FieldRecoveryCode' | translate }}</mat-label>
+              <input
+                id="twoFactorRecoveryCode"
+                placeholder="{{ 'PlaceholderRecoveryCode' | translate }}"
+                matInput
+                formControlName="twoFactorRecoveryCode">
+              @if ((twoFactorRecoveryCode?.invalid && twoFactorRecoveryCode?.touched) || httpErrors) {
+                @for (error of getFormFieldErrors(twoFactorForm, 'twoFactorRecoveryCode'); track error) {
+                  <mat-error>{{ error | translate }}</mat-error>
+                }
+              }
+            </mat-form-field>
+          }
+
+          <button
+            type="button"
+            class="btn btn-link p-0 mb-3"
+            (click)="setRecoveryCodeMode(!useRecoveryCode)">
+            {{ (useRecoveryCode ? 'UseAuthenticatorCodeInstead' : 'UseRecoveryCodeInstead') | translate }}
+          </button>
+
+          <div class="d-flex gap-2 mb-2">
+            <button type="button" class="btn btn-outline-secondary w-50" (click)="backToCredentials()">{{ 'BackToCredentials' | translate }}</button>
+            <button type="submit" class="btn btn-primary w-50" [disabled]="twoFactorForm.invalid">{{ 'ButtonVerify' | translate }}</button>
+          </div>
+
+          @if (httpErrors && errors['general']) {
+            <div>
+              @for (error of errors['general']; track error) {
+                <p class="mt-3 mb-3 text-danger text-center">{{ error | translate }}</p>
+              }
+            </div>
+          }
+        </form>
+      }
+
       <span>
         {{ 'NeedAccount' | translate }}
         <a [routerLink]="['/register']" routerLinkActive="active">{{ 'ButtonSignUp' | translate }}</a>

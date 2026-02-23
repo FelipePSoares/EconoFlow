@@ -1,4 +1,4 @@
-import { HttpInterceptorFn, HttpResponse } from '@angular/common/http';
+import { HttpInterceptorFn, HttpRequest, HttpResponse } from '@angular/common/http';
 import { catchError, Subject, switchMap, take, tap, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { inject, Injector, PLATFORM_ID } from '@angular/core';
@@ -9,13 +9,23 @@ import { AuthService } from '../services/auth.service';
 import { ApiErrorResponse } from '../models/error';
 import { SnackbarComponent } from '../components/snackbar/snackbar.component';
 
-const exceptions: any = [
+interface RequestException {
+  method: string;
+  url: string;
+}
+
+const exceptions: RequestException[] = [
   { method: 'GET', url: 'assets/' },
   { method: 'GET', url: 'logout' }
 ];
 
 const correlationIdHeaderName = 'X-Correlation-Id';
 const anonymousClientIdStorageKey = 'anon_client_id';
+const loginFailureCodeLockedOut = 'LockedOut';
+const loginFailureCodeInvalidCredentials = 'InvalidCredentials';
+const loginFailureCodeTwoFactorRequired = 'TwoFactorRequired';
+const loginFailureCodeInvalidTwoFactorCode = 'InvalidTwoFactorCode';
+const loginFailureCodeInvalidTwoFactorRecoveryCode = 'InvalidTwoFactorRecoveryCode';
 
 let isRefreshing = false;
 const refreshTokenSubject = new Subject<boolean>();
@@ -113,10 +123,8 @@ export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
 
       if (err.error?.errors) {
         return throwError(() => err.error as ApiErrorResponse);
-      } else if (isUnauthorized && isLoginRequest && err.error === 'LockedOut') {
-        apiErrorResponse.errors['general'] = ['UserBlocked'];
       } else if (isUnauthorized && isLoginRequest) {
-        apiErrorResponse.errors['general'] = ['LoginError'];
+        return throwError(() => createLoginErrorResponse(err.error));
       } else if (err?.error) {
         console.error(`GenericError: ${JSON.stringify(err?.error)}`);
         apiErrorResponse.errors['general'] = ['GenericError'];
@@ -140,8 +148,8 @@ const getOrCreateAnonymousClientId = (): string => {
   return newClientId;
 };
 
-const isException = (req: any) => {
-  return exceptions.some((exception: any) => {
+const isException = (req: HttpRequest<unknown>) => {
+  return exceptions.some((exception) => {
     return exception.method === req.method && req.url.indexOf(exception.url) >= 0;
   });
 };
@@ -159,4 +167,51 @@ const redirectToLogin = (authService: AuthService, router: Router, matDialog: Ma
   }
 
   router.navigate(['login'], { queryParams: { returnUrl: currentUrl } });
+};
+
+const createLoginErrorResponse = (loginError: unknown): ApiErrorResponse => {
+  const apiErrorResponse: ApiErrorResponse = { errors: {} };
+  const loginErrorCode = getLoginFailureCode(loginError);
+
+  if (loginErrorCode === loginFailureCodeLockedOut) {
+    apiErrorResponse.errors['general'] = ['UserBlocked'];
+    return apiErrorResponse;
+  }
+
+  switch (loginErrorCode) {
+    case loginFailureCodeTwoFactorRequired:
+      apiErrorResponse.errors['general'] = ['TwoFactorRequired'];
+      break;
+    case loginFailureCodeInvalidTwoFactorCode:
+      apiErrorResponse.errors['general'] = ['InvalidTwoFactorCode'];
+      apiErrorResponse.errors['twoFactorCode'] = ['InvalidTwoFactorCode'];
+      break;
+    case loginFailureCodeInvalidTwoFactorRecoveryCode:
+      apiErrorResponse.errors['general'] = ['InvalidTwoFactorRecoveryCode'];
+      apiErrorResponse.errors['twoFactorRecoveryCode'] = ['InvalidTwoFactorRecoveryCode'];
+      break;
+    case loginFailureCodeInvalidCredentials:
+    default:
+      apiErrorResponse.errors['general'] = ['LoginError'];
+      break;
+  }
+
+  return apiErrorResponse;
+};
+
+const getLoginFailureCode = (loginError: unknown): string => {
+  if (typeof loginError === 'string')
+    return loginError;
+
+  if (typeof loginError === 'object' && loginError !== null) {
+    const loginErrorPayload = loginError as { code?: string; requiresTwoFactor?: boolean };
+
+    if (typeof loginErrorPayload.code === 'string' && loginErrorPayload.code.length > 0)
+      return loginErrorPayload.code;
+
+    if (loginErrorPayload.requiresTwoFactor)
+      return loginFailureCodeTwoFactorRequired;
+  }
+
+  return loginFailureCodeInvalidCredentials;
 };
