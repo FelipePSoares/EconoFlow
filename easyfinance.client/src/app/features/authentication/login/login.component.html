@@ -11,7 +11,7 @@
             <p>{{ 'PleaseSignIn' | translate }}</p>
           </div>
 
-          <mat-form-field class="mb-2" [style.width.%]="100">
+          <mat-form-field class="mb-2 full-width-field">
             <mat-label>{{ 'FieldEmailAddress' | translate }}</mat-label>
             <input id="email" placeholder="{{ 'PlaceholderEmailAddress' | translate }}" matInput formControlName="email">
             @if ((email?.invalid && email?.touched) || httpErrors) {
@@ -21,7 +21,7 @@
             }
           </mat-form-field>
 
-          <mat-form-field [style.width.%]="100">
+          <mat-form-field class="full-width-field">
             <mat-label>{{ 'FieldPassword' | translate }}</mat-label>
             <input id="password" placeholder="{{ 'PlaceholderPassword' | translate }}" matInput formControlName="password"
                    [type]="hide ? 'password' : 'text'">
@@ -52,7 +52,7 @@
           </div>
 
           @if (!useRecoveryCode) {
-            <mat-form-field class="mb-2" [style.width.%]="100">
+            <mat-form-field class="mb-2 full-width-field">
               <mat-label>{{ 'FieldAuthenticatorCode' | translate }}</mat-label>
               <input
                 id="twoFactorCode"
@@ -60,21 +60,21 @@
                 matInput
                 maxlength="6"
                 formControlName="twoFactorCode">
-              @if ((twoFactorCode?.invalid && twoFactorCode?.touched) || httpErrors) {
+              @if (twoFactorCode?.invalid && (twoFactorCode?.touched || twoFactorCode?.dirty || !!twoFactorCode?.errors?.['twoFactorCode'])) {
                 @for (error of getFormFieldErrors(twoFactorForm, 'twoFactorCode'); track error) {
                   <mat-error>{{ error | translate }}</mat-error>
                 }
               }
             </mat-form-field>
           } @else {
-            <mat-form-field class="mb-2" [style.width.%]="100">
+            <mat-form-field class="mb-2 full-width-field">
               <mat-label>{{ 'FieldRecoveryCode' | translate }}</mat-label>
               <input
                 id="twoFactorRecoveryCode"
                 placeholder="{{ 'PlaceholderRecoveryCode' | translate }}"
                 matInput
                 formControlName="twoFactorRecoveryCode">
-              @if ((twoFactorRecoveryCode?.invalid && twoFactorRecoveryCode?.touched) || httpErrors) {
+              @if (twoFactorRecoveryCode?.invalid && (twoFactorRecoveryCode?.touched || twoFactorRecoveryCode?.dirty || !!twoFactorRecoveryCode?.errors?.['twoFactorRecoveryCode'])) {
                 @for (error of getFormFieldErrors(twoFactorForm, 'twoFactorRecoveryCode'); track error) {
                   <mat-error>{{ error | translate }}</mat-error>
                 }

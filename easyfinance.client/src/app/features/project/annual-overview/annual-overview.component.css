@@ -2,11 +2,6 @@
   padding-bottom: 1rem;
 }
 
-.overview-header .header-date-control {
-  min-width: 140px;
-  max-width: 160px;
-}
-
 .summary-card {
   text-align: center;
   min-height: 130px;
@@ -45,11 +40,6 @@
 }
 
 @media (max-width: 991px) {
-  .overview-header .header-date-control {
-    min-width: 120px;
-    max-width: 130px;
-  }
-
   .chart-container {
     height: 280px;
   }

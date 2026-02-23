@@ -1,6 +1,11 @@
 .categories {
   overflow: hidden;
   transition: max-height 2s ease-in-out;
+  max-height: 0;
+}
+
+.categories.expanded {
+  max-height: 1000px;
 }
 
 .container > div {

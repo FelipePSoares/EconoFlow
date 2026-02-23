@@ -5,20 +5,19 @@
 <div class="progress-wrapper position-relative">
   <div class="progress mt-1">
     <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-      [ngClass]="getClassToProgressBar(getPercentageSpend(spend, budget + overspend))"
-      [style.width.%]="getPercentageSpend(spend, budget + overspend)"
+      [ngClass]="[getClassToProgressBar(getPercentageSpend(spend, budget + overspend)), getProgressWidthClass(spend, budget + overspend)]"
       [attr.aria-valuenow]="getPercentageSpend(spend, budget + overspend)">
       {{ spend | currencyFormat: hideDecimals }}
     </div>
     <div class="progress-bar progress-bar-striped bg-danger" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-      [style.width.%]="getPercentageSpend(overspend, budget + overspend)"
+      [ngClass]="getProgressWidthClass(overspend, budget + overspend)"
       [attr.aria-valuenow]="getPercentageSpend(overspend, budget + overspend)">
       {{ overspend | currencyFormat: hideDecimals }}
     </div>
   </div>
   @if (checkIfCurrentMonth()) {
     @for (pos of weekLines; track pos) {
-      <div class="week-line" [ngStyle]="{ left: pos + '%' }">
+      <div class="week-line" [ngClass]="getWeekLinePositionClass(pos)">
       </div>
     }
   }

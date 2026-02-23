@@ -18,20 +18,23 @@ namespace EasyFinance.Domain.Financial
 
         private Category() { }
 
-        public Category(string name = "default", ICollection<Expense> expenses = default)
+        public Category(string name = "default", ICollection<Expense> expenses = default, int displayOrder = 0)
         {
             SetName(name);
             SetExpenses(expenses ?? []);
+            SetDisplayOrder(displayOrder);
         }
 
         public Category(string name = "default", params Expense[] expenses)
         {
             SetName(name);
             SetExpenses(expenses);
+            SetDisplayOrder(0);
         }
 
         public string Name { get; private set; } = string.Empty;
         public bool IsArchived { get; private set; }
+        public int DisplayOrder { get; private set; }
         public ICollection<Expense> Expenses { get; private set; } = [];
         public decimal TotalBudget => Expenses.Sum(e => e.Budget);
         public decimal TotalWaste => Expenses.Sum(e => e.Amount);
@@ -67,6 +70,11 @@ namespace EasyFinance.Domain.Financial
         }
 
         public void SetName(string name) => this.Name = name;
+
+        public void SetDisplayOrder(int displayOrder)
+        {
+            DisplayOrder = Math.Max(0, displayOrder);
+        }
 
         public void SetExpenses(ICollection<Expense> expenses)
         {

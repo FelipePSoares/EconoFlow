@@ -184,6 +184,11 @@ export class ListExpensesComponent implements OnInit {
       }) as ExpenseDto;
 
       if (isNewExpense) {
+        if (!this.canCreateExpense()) {
+          this.cancelEdit();
+          return;
+        }
+
         this.expenseService.add(this.projectId, this.categoryId, newExpense).subscribe({
           next: response => {
             const expensesNewArray = [...this.expenses.getValue()];
@@ -287,6 +292,10 @@ export class ListExpensesComponent implements OnInit {
   }
 
   add(): void {
+    if (!this.canCreateExpense()) {
+      return;
+    }
+
     this.httpErrors = false;
     const expensesNewArray = [...this.expenses.getValue()];
 
@@ -347,11 +356,15 @@ export class ListExpensesComponent implements OnInit {
   }
 
   canAddOrEdit(): boolean {
-    return (this.userProject.role === Role.Admin || this.userProject.role === Role.Manager) && !this.isArchived;
+    return this.userProject.role === Role.Admin || this.userProject.role === Role.Manager;
+  }
+
+  canCreateExpense(): boolean {
+    return this.canAddOrEdit() && !this.isArchived;
   }
 
   canAddExpenseItem(expense: ExpenseDto): boolean {
-    return this.canAddOrEdit() && !this.isNewEntity(expense.id);
+    return this.canCreateExpense() && !this.isNewEntity(expense.id);
   }
 
   toggleExpand(expenseId: string) {

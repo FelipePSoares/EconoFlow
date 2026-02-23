@@ -20,7 +20,8 @@ namespace EasyFinance.Application.Mappers
                 Id = category.Id,
                 Name = category.Name,
                 Expenses = category.Expenses,
-                IsArchived = category.IsArchived
+                IsArchived = category.IsArchived,
+                DisplayOrder = category.DisplayOrder
             };
         }
 
@@ -30,7 +31,8 @@ namespace EasyFinance.Application.Mappers
 
             return new CategoryRequestDTO()
             {
-                Name = category.Name
+                Name = category.Name,
+                DisplayOrder = category.DisplayOrder
             };
         }
 
@@ -43,6 +45,8 @@ namespace EasyFinance.Application.Mappers
             if (category != null)
             {
                 category.SetName(categoryDTO.Name);
+                if (categoryDTO.DisplayOrder.HasValue)
+                    category.SetDisplayOrder(categoryDTO.DisplayOrder.Value);
                 return category;
             }
 

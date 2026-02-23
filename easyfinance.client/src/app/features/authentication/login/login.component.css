@@ -1,3 +1,7 @@
 .container > div {
     min-height: 100vh;
 }
+
+.full-width-field {
+  width: 100%;
+}

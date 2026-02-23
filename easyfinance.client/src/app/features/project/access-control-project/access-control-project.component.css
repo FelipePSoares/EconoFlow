@@ -1,7 +1,373 @@
-.list-users {
-  margin-top: 15px;
+:host {
+  --green: #0e9f6e;
+  --green-glow: rgba(14, 159, 110, 0.15);
+  --navy: #061e33;
+  --ink: #0d2137;
+  --ink-soft: rgba(13, 33, 55, 0.6);
+  --surface: #f5f8fc;
+  --white: #ffffff;
+  --border: rgba(13, 33, 55, 0.1);
+  --shadow: 0 4px 24px rgba(6, 30, 51, 0.08);
+  --radius: 20px;
+  display: block;
+  font-family: 'DM Sans', 'Roboto', sans-serif;
 }
 
-.role {
-  max-width: 115px;
+.access-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 0.5rem 0 2rem;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.invite-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.75rem 2rem;
+  box-shadow: var(--shadow);
+}
+
+.invite-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.invite-icon {
+  width: 44px;
+  height: 44px;
+  background: var(--green-glow);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--green);
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.invite-card-header h2 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.25rem;
+  color: var(--ink);
+  margin: 0 0 0.2rem;
+  font-weight: 600;
+}
+
+.invite-card-header p {
+  font-size: 0.87rem;
+  color: var(--ink-soft);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.form-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.form-field-user {
+  flex: 1 1 260px;
+}
+
+.form-field-role {
+  flex: 0 1 160px;
+}
+
+.field-prefix-icon {
+  color: var(--ink-soft);
+  font-size: 1.1rem;
+  margin-right: 4px;
+}
+
+.autocomplete-name {
+  display: block;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+
+.autocomplete-email {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.invite-btn {
+  background: linear-gradient(120deg, var(--green) 0%, #1ac47d 100%) !important;
+  color: #fff !important;
+  border-radius: 12px !important;
+  padding: 0 1.4rem !important;
+  height: 56px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  box-shadow: 0 4px 18px rgba(14, 159, 110, 0.3);
+  transition: transform 0.18s, box-shadow 0.18s;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+  .invite-btn:hover:not([disabled]) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(14, 159, 110, 0.42);
+  }
+
+  .invite-btn[disabled] {
+    opacity: 0.5;
+  }
+
+  .invite-btn mat-icon {
+    font-size: 1.1rem;
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+.form-error-banner {
+  margin-top: 0.75rem;
+  background: rgba(220, 53, 69, 0.08);
+  border: 1px solid rgba(220, 53, 69, 0.2);
+  border-radius: 10px;
+  padding: 0.6rem 0.9rem;
+  color: #c0392b;
+  font-size: 0.86rem;
+}
+
+.users-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.users-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 2rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+  .users-card-header h3 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.1rem;
+    color: var(--ink);
+    margin: 0;
+    font-weight: 600;
+  }
+
+.users-count {
+  background: var(--green-glow);
+  color: var(--green);
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.15rem 0.65rem;
+  min-width: 28px;
+  text-align: center;
+}
+
+.users-table-wrap {
+  overflow-x: auto;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+  .users-table thead th {
+    padding: 0.65rem 1.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+.user-row {
+  transition: background 0.15s;
+}
+
+  .user-row:hover {
+    background: #f8fbff;
+  }
+
+  .user-row td {
+    padding: 0.85rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  .user-row:last-child td {
+    border-bottom: none;
+  }
+
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--navy) 0%, #1a5276 100%);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.user-email {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.role-field {
+  max-width: 130px;
+  width: 100%;
+}
+
+  .role-field ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+    display: none;
+  }
+
+  .role-field ::ng-deep .mat-mdc-text-field-wrapper {
+    padding: 0 0.5rem;
+  }
+
+.accepted-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+  .accepted-badge mat-icon {
+    font-size: 0.9rem;
+    width: 0.9rem;
+    height: 0.9rem;
+  }
+
+.accepted-yes {
+  background: rgba(14, 159, 110, 0.12);
+  color: var(--green);
+}
+
+.accepted-no {
+  background: rgba(255, 193, 7, 0.12);
+  color: #b07d00;
+}
+
+.delete-btn {
+  color: var(--ink-soft) !important;
+  transition: color 0.18s, background 0.18s;
+}
+
+  .delete-btn:hover {
+    color: #dc3545 !important;
+    background: rgba(220, 53, 69, 0.08) !important;
+  }
+
+.users-mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.user-mobile-card {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+  .user-mobile-card:last-child {
+    border-bottom: none;
+  }
+
+  .user-mobile-card:active {
+    background: #f8fbff;
+  }
+
+.user-mobile-top {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.75rem;
+}
+
+  .user-mobile-top .user-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .user-mobile-top .user-name,
+  .user-mobile-top .user-email {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .user-mobile-top .accepted-badge {
+    padding: 0.2rem 0.4rem;
+  }
+
+    .user-mobile-top .accepted-badge span {
+      display: none;
+    }
+
+@media (max-width: 600px) {
+  .invite-card {
+    padding: 1.25rem;
+    border-radius: 16px;
+  }
+
+  .form-field-role {
+    flex: 1 1 120px;
+  }
+
+  .invite-btn span {
+    display: none;
+  }
+
+  .invite-btn {
+    padding: 0 1rem !important;
+    min-width: 48px;
+  }
+
+  .users-card-header {
+    padding: 1rem 1.25rem 0.75rem;
+  }
 }

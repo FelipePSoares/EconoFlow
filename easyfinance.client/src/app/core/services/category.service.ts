@@ -6,6 +6,11 @@ import { Category } from '../models/category';
 import { formatDate } from '../utils/date';
 import { DefaultCategory } from '../models/default-category';
 
+export interface CategoryOrderRequest {
+  categoryId: string;
+  displayOrder: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -59,6 +64,12 @@ export class CategoryService {
       observe: 'body',
       responseType: 'json'
     });
+  }
+
+  updateOrder(projectId: string, categoriesOrder: CategoryOrderRequest[]): Observable<boolean> {
+    return this.http.put('/api/projects/' + projectId + '/categories/order', categoriesOrder, {
+      observe: 'response'
+    }).pipe(map(res => res.ok));
   }
 
   remove(projectId: string, id: string): Observable<boolean> {

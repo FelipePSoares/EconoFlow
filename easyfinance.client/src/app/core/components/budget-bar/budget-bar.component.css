@@ -1,14 +1,109 @@
 .progress-wrapper {
-    width: 100%;
-    position: relative;
-  }
-  
-  .week-line {
-      position: absolute;
-      top: 0;
-      height: 25px;
-      border-left: 2px dashed #2d3236; 
-      z-index: 1;
-      margin-top: -5px;
-    }
-  
+  width: 100%;
+  position: relative;
+}
+
+.week-line {
+  position: absolute;
+  top: 0;
+  height: 25px;
+  border-left: 2px dashed #2d3236;
+  z-index: 1;
+  margin-top: -5px;
+}
+
+.week-line-25 {
+  left: 25%;
+}
+
+.week-line-50 {
+  left: 50%;
+}
+
+.week-line-75 {
+  left: 75%;
+}
+
+.progress-width-0 {
+  width: 0%;
+}
+
+.progress-width-5 {
+  width: 5%;
+}
+
+.progress-width-10 {
+  width: 10%;
+}
+
+.progress-width-15 {
+  width: 15%;
+}
+
+.progress-width-20 {
+  width: 20%;
+}
+
+.progress-width-25 {
+  width: 25%;
+}
+
+.progress-width-30 {
+  width: 30%;
+}
+
+.progress-width-35 {
+  width: 35%;
+}
+
+.progress-width-40 {
+  width: 40%;
+}
+
+.progress-width-45 {
+  width: 45%;
+}
+
+.progress-width-50 {
+  width: 50%;
+}
+
+.progress-width-55 {
+  width: 55%;
+}
+
+.progress-width-60 {
+  width: 60%;
+}
+
+.progress-width-65 {
+  width: 65%;
+}
+
+.progress-width-70 {
+  width: 70%;
+}
+
+.progress-width-75 {
+  width: 75%;
+}
+
+.progress-width-80 {
+  width: 80%;
+}
+
+.progress-width-85 {
+  width: 85%;
+}
+
+.progress-width-90 {
+  width: 90%;
+}
+
+.progress-width-95 {
+  width: 95%;
+}
+
+.progress-width-100 {
+  width: 100%;
+}
