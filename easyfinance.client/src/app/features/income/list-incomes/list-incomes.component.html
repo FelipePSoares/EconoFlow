@@ -14,17 +14,6 @@
       <mat-card class="mb-4">
         <mat-card-content>
           <div class="list-group list-group-flush">
-            @if (isCreatingIncome) {
-              <div class="list-group-item">
-                <app-add-income
-                  [projectId]="projectId"
-                  [inlineMode]="true"
-                  (saved)="onIncomeSaved()"
-                  (canceled)="cancelIncomeForm()">
-                </app-add-income>
-              </div>
-            }
-
             @for (income of (incomes$ | async); track income.id) {
               <div class="list-group-item">
                 @if (isEditingIncome(income)) {
@@ -73,6 +62,17 @@
                     }
                   </div>
                 }
+              </div>
+            }
+
+            @if (isCreatingIncome) {
+              <div class="list-group-item">
+                <app-add-income
+                  [projectId]="projectId"
+                  [inlineMode]="true"
+                  (saved)="onIncomeSaved()"
+                  (canceled)="cancelIncomeForm()">
+                </app-add-income>
               </div>
             }
 

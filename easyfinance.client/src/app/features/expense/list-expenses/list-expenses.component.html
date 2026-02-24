@@ -12,18 +12,6 @@
       <mat-card class="mb-4">
         <mat-card-content [class.archived-container]="isArchived">
           <div class="list-group list-group-flush">
-            @if (isCreatingExpense) {
-              <div class="list-group-item">
-                <app-expense
-                  [projectId]="projectId"
-                  [categoryId]="categoryId"
-                  [inlineMode]="true"
-                  (saved)="onExpenseSaved()"
-                  (canceled)="cancelExpenseForm()">
-                </app-expense>
-              </div>
-            }
-
             @for (expense of (expenses$ | async); track expense.id) {
               <div class="list-group-item">
                 @if (isEditingExpense(expense)) {
@@ -142,6 +130,18 @@
                     }
                   </div>
                 }
+              </div>
+            }
+
+            @if (isCreatingExpense) {
+              <div class="list-group-item text-center">
+                <app-expense
+                  [projectId]="projectId"
+                  [categoryId]="categoryId"
+                  [inlineMode]="true"
+                  (saved)="onExpenseSaved()"
+                  (canceled)="cancelExpenseForm()">
+                </app-expense>
               </div>
             }
 
