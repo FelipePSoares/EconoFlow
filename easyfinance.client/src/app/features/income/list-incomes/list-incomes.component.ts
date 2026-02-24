@@ -1,52 +1,35 @@
-import { Component, DestroyRef, ElementRef, inject, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, map } from 'rxjs';
 import { IncomeService } from 'src/app/core/services/income.service';
 import { IncomeDto } from '../models/income-dto';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { compare } from 'fast-json-patch';
-import { MatInput } from "@angular/material/input";
-import { MatButton } from "@angular/material/button";
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { MatDatepickerModule } from "@angular/material/datepicker";
-import { MatError, MatFormField, MatLabel, MatSuffix } from "@angular/material/form-field";
 import { MatCardModule } from '@angular/material/card';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
-import { ApiErrorResponse } from "../../../core/models/error";
-import { ErrorMessageService } from "../../../core/services/error-message.service";
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
-import { formatDate, toLocalNoonDate } from '../../../core/utils/date';
 import { GlobalService } from '../../../core/services/global.service';
-import { CurrencyMaskModule } from 'ng2-currency-mask';
 import { MatDialog } from '@angular/material/dialog';
 import { ProjectService } from '../../../core/services/project.service';
 import { UserProjectDto } from '../../project/models/user-project-dto';
 import { Role } from '../../../core/enums/Role';
 import { CurrentDateService } from '../../../core/services/current-date.service';
 import { DateAdapter } from '@angular/material/core';
+import { AddIncomeComponent } from '../add-income/add-income.component';
 
 @Component({
     selector: 'app-list-incomes',
     imports: [
         CommonModule,
         AsyncPipe,
-        ReactiveFormsModule,
         MatCardModule,
         ReturnButtonComponent,
         CurrentDateComponent,
         CurrencyFormatPipe,
-        MatDatepickerModule,
-        MatError,
-        MatFormField,
-        MatInput,
-        MatLabel,
-        MatSuffix,
-        MatButton,
-        CurrencyMaskModule,
+        AddIncomeComponent,
         TranslateModule
     ],
     templateUrl: './list-incomes.component.html',
@@ -56,7 +39,6 @@ import { DateAdapter } from '@angular/material/core';
 export class ListIncomesComponent implements OnInit {
   private incomeService = inject(IncomeService);
   private router = inject(Router);
-  private errorMessageService = inject(ErrorMessageService);
   private globalService = inject(GlobalService);
   private dialog = inject(MatDialog);
   private projectService = inject(ProjectService);
@@ -67,28 +49,14 @@ export class ListIncomesComponent implements OnInit {
 
   private incomes: BehaviorSubject<IncomeDto[]> = new BehaviorSubject<IncomeDto[]>([]);
   incomes$: Observable<IncomeDto[]> = this.incomes.asObservable();
-  incomeForm!: FormGroup;
-  editingIncome: IncomeDto = new IncomeDto();
+  isCreatingIncome = false;
+  editingIncomeId: string | null = null;
   itemToDelete!: string;
-  httpErrors = false;
-  thousandSeparator!: string; 
-  decimalSeparator !: string; 
-  errors!: Record<string, string[]>;
-  currencySymbol!: string;
   currentLanguage = this.globalService.currentLanguage;
   userProject!: UserProjectDto;
 
   @Input({ required: true })
   projectId!: string;
-
-  @ViewChild('nameInput')
-  nameInput?: ElementRef<HTMLInputElement>;
-
-  constructor() {
-    this.thousandSeparator = this.globalService.groupSeparator;
-    this.decimalSeparator = this.globalService.decimalSeparator;
-    this.currencySymbol = this.globalService.currencySymbol;
-  }
 
   ngOnInit(): void {
     this.dateAdapter.setLocale(this.globalService.currentLanguage);
@@ -99,154 +67,73 @@ export class ListIncomesComponent implements OnInit {
         this.dateAdapter.setLocale(event.lang);
       });
 
-    this.projectService.selectedUserProject$.subscribe(userProject => {
-      if (userProject) {
-        this.userProject = userProject;
-      } else {
+    this.projectService.selectedUserProject$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(userProject => {
+        if (userProject) {
+          this.userProject = userProject;
+          return;
+        }
+
         this.projectService.getUserProject(this.projectId)
           .subscribe(res => {
             this.projectService.selectUserProject(res);
             this.userProject = res;
           });
-      }
-    });
+      });
 
     this.fillData(this.currentDateService.currentDate);
-    this.edit(new IncomeDto());
   }
 
-  fillData(date: Date) {
+  fillData(date: Date): void {
     this.incomeService.get(this.projectId, date)
       .pipe(map(incomes => IncomeDto.fromIncomes(incomes)))
-      .subscribe(
-        {
-          next: res => { this.incomes.next(res); }
-        });
-  }
-
-  get id() {
-    return this.incomeForm.get('id');
-  }
-  get name() {
-    return this.incomeForm.get('name');
-  }
-  get date() {
-    return this.incomeForm.get('date');
-  }
-  get amount() {
-    return this.incomeForm.get('amount');
-  }
-
-  save(): void {
-    if (this.incomeForm.valid) {
-      this.httpErrors = false;
-      const id = this.id?.value;
-      const name = this.name?.value;
-      const date: any = formatDate(this.date?.value);
-      const amount = this.amount?.value;
-
-      const isNewIncome = this.isNewEntity(id);
-      const newIncome = ({
-        id: isNewIncome ? undefined : id,
-        name: name,
-        amount: amount === "" || amount === null ? 0 : amount,
-        date: date
-      }) as IncomeDto;
-
-      if (isNewIncome) {
-        this.incomeService.add(this.projectId, newIncome).subscribe({
-          next: response => {
-            const incomesNewArray = [...this.incomes.getValue()];
-            const index = incomesNewArray.findIndex(item => item.id === id);
-
-            if (index !== -1) {
-              incomesNewArray[index] = IncomeDto.fromIncome(response);
-              this.incomes.next(incomesNewArray);
-            } else {
-              this.fillData(this.currentDateService.currentDate);
-            }
-
-            this.editingIncome = new IncomeDto();
-          },
-          error: (response: ApiErrorResponse) => {
-            this.httpErrors = true;
-            this.errors = response.errors;
-
-            this.errorMessageService.setFormErrors(this.incomeForm, this.errors);
-          }
-        });
-        return;
-      }
-
-      const patch = compare(this.editingIncome, newIncome);
-
-      this.incomeService.update(this.projectId, id, patch).subscribe({
-        next: response => {
-          this.editingIncome.name = response.name;
-          this.editingIncome.amount = response.amount;
-          this.editingIncome.date = response.date;
-          this.editingIncome = new IncomeDto();
-        },
-        error: (response: ApiErrorResponse) => {
-          this.httpErrors = true;
-          this.errors = response.errors;
-
-          this.errorMessageService.setFormErrors(this.incomeForm, this.errors);
-        }
+      .subscribe({
+        next: res => this.incomes.next(res)
       });
-    }
   }
 
-  add() {
-    this.httpErrors = false;
-    const incomesNewArray = [...this.incomes.getValue()];
-
-    const newIncome = new IncomeDto();
-    newIncome.id = this.generateTempId('income');
-    newIncome.name = '';
-    newIncome.date = toLocalNoonDate(this.currentDateService.currentDate);
-    newIncome.amount = 0;
-
-    incomesNewArray.push(newIncome);
-    this.incomes.next(incomesNewArray);
-    this.edit(newIncome);
-    this.focusNameInput();
-  }
-
-  edit(income: IncomeDto): void {
-    this.editingIncome = income;
-    const newDate = new Date(income.date);
-    this.incomeForm = new FormGroup({
-      id: new FormControl(income.id),
-      name: new FormControl(income.name, [Validators.required, Validators.maxLength(100)]),
-      date: new FormControl(newDate, [Validators.required]),
-      amount: new FormControl(income.amount, [Validators.min(0)]),
-    });
-  }
-
-  cancelEdit(): void {
-    if (this.isNewEntity(this.editingIncome.id)) {
-      const incomesNewArray = this.incomes
-        .getValue()
-        .filter(item => item.id !== this.editingIncome.id);
-      this.incomes.next(incomesNewArray);
+  startCreateIncome(): void {
+    if (!this.canAddOrEdit()) {
+      return;
     }
 
-    this.editingIncome = new IncomeDto();
+    this.editingIncomeId = null;
+    this.isCreatingIncome = true;
+  }
+
+  startEditIncome(income: IncomeDto): void {
+    if (!this.canAddOrEdit()) {
+      return;
+    }
+
+    this.isCreatingIncome = false;
+    this.editingIncomeId = income.id;
+  }
+
+  cancelIncomeForm(): void {
+    this.isCreatingIncome = false;
+    this.editingIncomeId = null;
+  }
+
+  onIncomeSaved(): void {
+    this.cancelIncomeForm();
+    this.fillData(this.currentDateService.currentDate);
+  }
+
+  isEditingIncome(income: IncomeDto): boolean {
+    return this.editingIncomeId === income.id;
   }
 
   remove(id: string): void {
     this.incomeService.remove(this.projectId, id).subscribe({
       next: () => {
-        const incomesNewArray: IncomeDto[] = this.incomes.getValue();
-
-        incomesNewArray.forEach((item, index) => {
-          if (item.id === id) { incomesNewArray.splice(index, 1); }
-        });
-
+        const incomesNewArray = this.incomes
+          .getValue()
+          .filter(item => item.id !== id);
         this.incomes.next(incomesNewArray);
       }
-    })
+    });
   }
 
   triggerDelete(income: IncomeDto): void {
@@ -263,6 +150,7 @@ export class ListIncomesComponent implements OnInit {
   }
 
   updateDate(newDate: Date) {
+    this.resetEditionState();
     this.fillData(newDate);
   }
 
@@ -270,23 +158,11 @@ export class ListIncomesComponent implements OnInit {
     this.router.navigate(['/projects', this.projectId]);
   }
 
-  getFormFieldErrors(fieldName: string): string[] {
-    return this.errorMessageService.getFormFieldErrors(this.incomeForm, fieldName);
-  }
-
   canAddOrEdit(): boolean {
-    return this.userProject.role === Role.Admin || this.userProject.role === Role.Manager;
+    return !!this.userProject && (this.userProject.role === Role.Admin || this.userProject.role === Role.Manager);
   }
 
-  private isNewEntity(id: string | undefined): boolean {
-    return !!id && id.startsWith('new-');
-  }
-
-  private generateTempId(prefix: string): string {
-    return `new-${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
-  }
-
-  private focusNameInput(): void {
-    setTimeout(() => this.nameInput?.nativeElement?.focus());
+  private resetEditionState(): void {
+    this.cancelIncomeForm();
   }
 }

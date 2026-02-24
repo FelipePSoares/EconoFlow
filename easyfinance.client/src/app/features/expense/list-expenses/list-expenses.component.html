@@ -1,7 +1,6 @@
 <div class="container py-4">
   <div class="row justify-content-center">
     <div class="col-12 col-md-10 col-lg-8">
-      <!-- Header Section (unchanged) -->
       <div class="d-flex justify-content-between align-items-center mb-4">
         <app-return-button (returnButtonEvent)="previous()"></app-return-button>
 
@@ -13,134 +12,117 @@
       <mat-card class="mb-4">
         <mat-card-content [class.archived-container]="isArchived">
           <div class="list-group list-group-flush">
-            @for (expense of (expenses$ | async); track expense.id){
+            @for (expense of (expenses$ | async); track expense.id) {
               <div class="list-group-item">
-                <div class="d-flex align-items-center expense-item">
-                  @if(canAddOrEdit() || (expense.items && expense.items.length > 0)) {
-                    <button class="btn btn-link p-0 me-3"
-                      (click)="toggleExpand(expense.id)"
-                      [attr.aria-expanded]="isExpanded(expense.id)">
-                      <i class="bi" [class]="isExpanded(expense.id) ? 'bi-chevron-down' : 'bi-chevron-right'"></i>
-                    </button>
-                  }
-                  <div class="flex-grow-1">
-                    @if(expense.id != this.editingExpense.id) {
-                      <div>
-                        <div class="d-flex justify-content-between align-items-center">
-                          <h2 class="mb-1 fw-bold name mb-3" [class.archived]="isArchived && expense.id !== this.editingExpense.id">{{ expense.name }}</h2>
-                          @if (canAddOrEdit()){
-                            <div class="btn-group">
-                              <button name="edit" class="btn btn-outline-secondary" (click)="edit(expense); $event.stopPropagation();">
+                @if (isEditingExpense(expense)) {
+                  <app-expense
+                    [projectId]="projectId"
+                    [categoryId]="categoryId"
+                    [expense]="expense"
+                    [inlineMode]="true"
+                    (saved)="onExpenseSaved()"
+                    (canceled)="cancelExpenseForm()">
+                  </app-expense>
+                } @else {
+                  <div class="d-flex align-items-center expense-item">
+                    @if(canAddOrEdit() || (expense.items && expense.items.length > 0)) {
+                      <button class="btn btn-link p-0 me-3"
+                        (click)="toggleExpand(expense.id)"
+                        [attr.aria-expanded]="isExpanded(expense.id)">
+                        <i class="bi" [class]="isExpanded(expense.id) ? 'bi-chevron-down' : 'bi-chevron-right'"></i>
+                      </button>
+                    }
+
+                    <div class="flex-grow-1">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <h2 class="mb-1 fw-bold name mb-3" [class.archived]="isArchived">{{ expense.name }}</h2>
+
+                        @if (canAddOrEdit()) {
+                          <div class="btn-group">
+                            <button name="edit" class="btn btn-outline-secondary" (click)="startEditExpense(expense)">
+                              <i class="bi bi-pencil-square"></i>
+                            </button>
+                            <button name="delete" class="btn btn-outline-danger" (click)="triggerDelete(expense)">
+                              <i class="bi bi-trash"></i>
+                            </button>
+                          </div>
+                        }
+                      </div>
+
+                      <div [class.archived]="isArchived">
+                        <app-budget-bar [spend]="expense.getSpend()"
+                          [budget]="expense.budget"
+                          [overspend]="expense.getOverspend()"
+                          [remaining]="expense.getRemaining()"
+                          [date]="expense?.items && expense.items.length > 0 ? undefined : expense.date">
+                        </app-budget-bar>
+                      </div>
+                    </div>
+                  </div>
+                }
+
+                @if (isExpanded(expense.id)) {
+                  <div class="sublist mt-2 ms-4 border-top pt-2" [class.archived]="isArchived">
+                    @for (subExpense of expense.items; track subExpense.id) {
+                      @if (isEditingSubExpense(expense, subExpense)) {
+                        <app-expense-item
+                          [projectId]="projectId"
+                          [categoryId]="categoryId"
+                          [parentExpense]="expense"
+                          [expenseItem]="subExpense"
+                          [inlineMode]="true"
+                          (saved)="onSubExpenseSaved()"
+                          (canceled)="cancelSubExpenseForm()">
+                        </app-expense-item>
+                      } @else {
+                        <div class="d-flex align-items-center mb-2">
+                          <div class="flex-grow-1">
+                            @if (subExpense.name && subExpense.name.trim()) {
+                              <span class="fw-normal name-sub">{{ subExpense.name }}</span>
+                            } @else {
+                              <span class="fw-normal text-muted fst-italic name-sub-placeholder">{{ 'PlaceholderItemWithoutName' | translate }}</span>
+                            }
+
+                            <p class="text-muted fs-6 mb-1">
+                              <span class="me-3 date-sub">
+                                <i class="bi bi-calendar me-1"></i>
+                                {{ subExpense.date | date: 'shortDate' : undefined : currentLanguage }}
+                              </span>
+                              <span class="text-nowrap amount-sub">
+                                <i class="bi bi-cash-coin me-1"></i>
+                                {{ subExpense.amount | currencyFormat }}
+                              </span>
+                            </p>
+                          </div>
+
+                          @if (canAddOrEdit()) {
+                            <div class="btn-group btn-group-sm">
+                              <button name="edit-sub" class="btn btn-outline-secondary" (click)="startEditSubExpense(expense, subExpense)">
                                 <i class="bi bi-pencil-square"></i>
                               </button>
-                              <button name="delete" class="btn btn-outline-danger" (click)="triggerDelete(expense); $event.stopPropagation();">
+                              <button name="delete-sub" class="btn btn-outline-danger" (click)="triggerDeleteSubExpense(expense, subExpense)">
                                 <i class="bi bi-trash"></i>
                               </button>
                             </div>
                           }
                         </div>
-                        <div [class.archived]="isArchived && expense.id !== this.editingExpense.id">
-                          <app-budget-bar [spend]="expense.getSpend()"
-                            [budget]="expense.budget"
-                            [overspend]="expense.getOverspend()"
-                            [remaining]="expense.getRemaining()"
-                            [date]="expense?.items && expense.items.length > 0 ? undefined : expense.date">
-                          </app-budget-bar>
-                        </div>
-                      </div>
-                    } @else {
-                      <form [formGroup]="expenseForm" (ngSubmit)="save()">
-                        <div class="row g-3">
-                          <div class="col-md-6">
-                            <mat-form-field appearance="fill" class="w-100">
-                              <mat-label>{{ 'FieldExpenseName' | translate }} </mat-label>
-                              <input matInput #nameInput id="name" placeholder="{{ 'PlaceholderExpenseName' | translate }}" formControlName="name"
-                                [class.is-invalid]="name?.invalid && name?.touched">
-                              @if ((name?.invalid && name?.touched) || httpErrors){
-                                @for (error of getFormFieldErrors('name'); track error) {
-                                  <mat-error>{{ error |  translate }}</mat-error>
-                                }
-                              }
-                            </mat-form-field>
-                          </div>
-
-                          <div class="col-md-6">
-                            <mat-form-field appearance="fill" class="w-100">
-                              <mat-label>{{ 'FieldDate' | translate }}</mat-label>
-                              <input matInput [matDatepicker]="picker" formControlName="date">
-                              <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-                              <mat-datepicker #picker></mat-datepicker>
-                              @if ((date?.invalid && date?.touched) || httpErrors){
-                                @for (error of getFormFieldErrors('date'); track error) {
-                                  <mat-error>{{ error |  translate }}</mat-error>
-                                }
-                              }
-                            </mat-form-field>
-                          </div>
-
-                          <div class="col-md-6">
-                            <mat-form-field appearance="fill" class="w-100">
-                              <mat-label>{{ 'FieldBudget' | translate }}</mat-label>
-                              <span matTextPrefix>{{ currencySymbol }}&nbsp;</span>
-                              <input matInput type="number" step="1" min="0" id="budget" formControlName="budget">
-                              @if ((budget?.invalid && budget?.touched) || httpErrors){
-                                @for (error of getFormFieldErrors('budget'); track error) {
-                                  <mat-error>{{ error |  translate }}</mat-error>
-                                }
-                              }
-                            </mat-form-field>
-                          </div>
-
-                          <div class="col-md-6">
-                            <mat-form-field appearance="fill" class="w-100">
-                              <mat-label>{{ 'FieldAmount' | translate }}</mat-label>
-                              <input matInput
-                                type="text"
-                                inputmode="numeric"
-                                currencyMask
-                                [options]="{ prefix: currencySymbol, allowNegative: false, thousands: thousandSeparator, decimal: decimalSeparator, precision: 2 }"
-                                formControlName="amount">
-                              @if ((amount?.invalid && amount?.touched) || httpErrors){
-                                @for (error of getFormFieldErrors('amount'); track error) {
-                                  <mat-error>{{ error |  translate }}</mat-error>
-                                }
-                              }
-                            </mat-form-field>
-                          </div>
-
-                          <div class="col-12 d-flex justify-content-end">
-                            <button mat-stroked-button type="button" class="me-2" (click)="cancelEdit()">{{ 'ButtonCancel' | translate }}</button>
-                            <button mat-raised-button color="primary" type="submit" [disabled]="expenseForm.invalid">{{ 'ButtonSave' | translate }}</button>
-                          </div>
-                        </div>
-                      </form>
-
-                      @if (httpErrors && errors['general']) {
-                        <div>
-                          @for (error of errors['general']; track error) {
-                            <p class="mb-3 text-danger text-center">{{ error | translate }}</p>
-                          }
-                        </div>
                       }
                     }
-                  </div>
-                </div>
 
-                <!-- Sublist Section -->
-                @if (isExpanded(expense.id)) {
-                  <div class="sublist mt-2 ms-4 border-top pt-2" [class.archived]="isArchived">
-                    @for (subExpense of expense.items; track subExpense.id) {
-                      <app-expense-item [projectId]="projectId"
+                    @if (isCreatingSubExpense(expense)) {
+                      <app-expense-item
+                        [projectId]="projectId"
                         [categoryId]="categoryId"
-                        [expense]="expense"
-                        [subExpense]="subExpense"
-                        [canAddOrEdit]="canAddOrEdit()"
-                        (expenseUpdateEvent)="updateExpense()">
+                        [parentExpense]="expense"
+                        [inlineMode]="true"
+                        (saved)="onSubExpenseSaved()"
+                        (canceled)="cancelSubExpenseForm()">
                       </app-expense-item>
                     }
-                    @if (canAddExpenseItem(expense)){
+
+                    @if (canAddExpenseItem() && !isCreatingSubExpense(expense)) {
                       <div class="mt-2">
-                        <button class="btn btn-sm btn-outline-primary" (click)="addSubExpense(expense)">
+                        <button class="btn btn-sm btn-outline-primary" (click)="startCreateSubExpense(expense)">
                           <i class="bi bi-plus me-1"></i>
                           {{ 'ButtonAddItem' | translate }}
                         </button>
@@ -151,10 +133,22 @@
               </div>
             }
 
-            @if (canCreateExpense()){
+            @if (isCreatingExpense) {
+              <div class="list-group-item text-center">
+                <app-expense
+                  [projectId]="projectId"
+                  [categoryId]="categoryId"
+                  [inlineMode]="true"
+                  (saved)="onExpenseSaved()"
+                  (canceled)="cancelExpenseForm()">
+                </app-expense>
+              </div>
+            }
+
+            @if (canCreateExpense() && !isCreatingExpense) {
               <div class="list-group-item text-center">
                 <button class="btn btn-primary btn-add btn-lg w-100 d-flex justify-content-center align-items-center"
-                  (click)="add()">
+                  (click)="startCreateExpense()">
                   <i class="bi bi-plus me-2"></i>
                   {{ 'ButtonAddExpense' | translate }}
                 </button>

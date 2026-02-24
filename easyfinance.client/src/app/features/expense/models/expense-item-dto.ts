@@ -1,4 +1,5 @@
 import { ExpenseItem } from "src/app/core/models/expense-item";
+import { toLocalDate } from "src/app/core/utils/date";
 
 export class ExpenseItemDto {
   id!: string;
@@ -11,7 +12,7 @@ export class ExpenseItemDto {
     const dto = new ExpenseItemDto();
     dto.id = expenseItem.id;
     dto.name = expenseItem.name;
-    dto.date = expenseItem.date;
+    dto.date = toLocalDate(expenseItem.date);
     dto.amount = expenseItem.amount;
     dto.items = expenseItem.items.map(ei => ExpenseItemDto.fromExpenseItem(ei));
     return dto;

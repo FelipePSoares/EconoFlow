@@ -11,6 +11,7 @@ import { CategoryService } from '../../../core/services/category.service';
 import { GlobalService } from '../../../core/services/global.service';
 import { IncomeService } from '../../../core/services/income.service';
 import { ProjectService } from '../../../core/services/project.service';
+import { toLocalDate } from '../../../core/utils/date';
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
 import { ProjectDto } from '../models/project-dto';
 import { UserProjectDto } from '../models/user-project-dto';
@@ -229,14 +230,14 @@ export class MonthlyOverviewComponent implements OnInit, AfterViewInit {
     const dailyExpense = new Array(daysInCurrentMonth || daysInMonth).fill(0);
 
     incomes.forEach(income => {
-      const day = new Date(income.date).getDate();
+      const day = toLocalDate(income.date).getDate();
       if (day >= 1 && day <= (daysInCurrentMonth || daysInMonth)) {
         dailyIncome[day - 1] += Number(income.amount || 0);
       }
     });
 
     expenses.forEach(expense => {
-      const day = new Date(expense.date).getDate();
+      const day = toLocalDate(expense.date).getDate();
       if (day >= 1 && day <= (daysInCurrentMonth || daysInMonth)) {
         dailyExpense[day - 1] += Number(expense.amount || 0);
       }
