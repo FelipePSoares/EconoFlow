@@ -30,6 +30,7 @@ import { AnnualIncomeExpenseChartComponent } from './annual-income-expense-chart
 import { GlobalService } from '../../../core/services/global.service';
 import { TranslateService } from '@ngx-translate/core';
 import { Category } from '../../../core/models/category';
+import { toLocalDate } from '../../../core/utils/date';
 
 @Component({
     selector: 'app-detail-project',
@@ -282,7 +283,7 @@ export class DetailProjectComponent implements OnInit {
         const expensesByMonth = new Map<string, number>(monthKeys.map(key => [key, 0]));
 
         incomes.forEach(income => {
-          const incomeDate = new Date(income.date);
+          const incomeDate = toLocalDate(income.date);
           const key = `${incomeDate.getFullYear()}-${String(incomeDate.getMonth() + 1).padStart(2, '0')}`;
           if (incomesByMonth.has(key)) {
             incomesByMonth.set(key, (incomesByMonth.get(key) || 0) + Number(income.amount || 0));
@@ -291,7 +292,7 @@ export class DetailProjectComponent implements OnInit {
 
         categoriesInRange.forEach(category => {
           category.expenses?.forEach(expense => {
-            const expenseDate = new Date(expense.date);
+            const expenseDate = toLocalDate(expense.date);
             const key = `${expenseDate.getFullYear()}-${String(expenseDate.getMonth() + 1).padStart(2, '0')}`;
             const amount = Number(expense.amount || 0);
 
@@ -481,7 +482,7 @@ export class DetailProjectComponent implements OnInit {
       .map(category => ({
         ...category,
         expenses: (category.expenses || []).filter(expense => {
-          const expenseDate = new Date(expense.date);
+          const expenseDate = toLocalDate(expense.date);
           return expenseDate.getFullYear() === targetYear && expenseDate.getMonth() === targetMonth;
         })
       }))
