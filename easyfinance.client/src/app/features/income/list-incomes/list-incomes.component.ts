@@ -1,7 +1,7 @@
 import { Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, map } from 'rxjs';
+import { NavigationEnd, Router, UrlSegment } from '@angular/router';
+import { BehaviorSubject, Observable, filter, map } from 'rxjs';
 import { IncomeService } from 'src/app/core/services/income.service';
 import { IncomeDto } from '../models/income-dto';
 import { AsyncPipe, CommonModule } from '@angular/common';
@@ -37,6 +37,7 @@ import { AddIncomeComponent } from '../add-income/add-income.component';
 })
 
 export class ListIncomesComponent implements OnInit {
+  private hadModalOutlet = false;
   private incomeService = inject(IncomeService);
   private router = inject(Router);
   private globalService = inject(GlobalService);
@@ -59,12 +60,29 @@ export class ListIncomesComponent implements OnInit {
   projectId!: string;
 
   ngOnInit(): void {
+    this.hadModalOutlet = this.hasModalOutlet(this.router.url);
+
     this.dateAdapter.setLocale(this.globalService.currentLanguage);
     this.translateService.onLangChange
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(event => {
         this.currentLanguage = event.lang;
         this.dateAdapter.setLocale(event.lang);
+      });
+
+    this.router.events
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(event => {
+        const hasModalOutlet = this.hasModalOutlet(event.urlAfterRedirects);
+
+        if (this.hadModalOutlet && !hasModalOutlet && this.isCurrentIncomesRoute(event.urlAfterRedirects)) {
+          this.fillData(this.currentDateService.currentDate);
+        }
+
+        this.hadModalOutlet = hasModalOutlet;
       });
 
     this.projectService.selectedUserProject$
@@ -164,5 +182,23 @@ export class ListIncomesComponent implements OnInit {
 
   private resetEditionState(): void {
     this.cancelIncomeForm();
+  }
+
+  private hasModalOutlet(url: string): boolean {
+    return !!this.router.parseUrl(url).root.children['modal'];
+  }
+
+  private isCurrentIncomesRoute(url: string): boolean {
+    const primarySegments = this.router.parseUrl(url).root.children['primary']?.segments ?? [];
+    const projectIdSegment = this.getSegmentPath(primarySegments, 1);
+
+    return this.getSegmentPath(primarySegments, 0) === 'projects'
+      && projectIdSegment === this.projectId
+      && this.getSegmentPath(primarySegments, 2) === 'incomes'
+      && primarySegments.length === 3;
+  }
+
+  private getSegmentPath(segments: UrlSegment[], index: number): string {
+    return segments.at(index)?.path ?? '';
   }
 }
