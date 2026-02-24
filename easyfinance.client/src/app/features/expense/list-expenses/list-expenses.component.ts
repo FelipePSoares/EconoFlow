@@ -4,11 +4,12 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DateAdapter } from '@angular/material/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatCardModule } from '@angular/material/card';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router, UrlSegment } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
 import { Observable } from 'rxjs/internal/Observable';
 import { map } from 'rxjs/internal/operators/map';
+import { filter } from 'rxjs';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
@@ -45,6 +46,7 @@ import { ExpenseItemDto } from '../models/expense-item-dto';
   styleUrl: './list-expenses.component.css'
 })
 export class ListExpensesComponent implements OnInit {
+  private hadModalOutlet = false;
   private expenseService = inject(ExpenseService);
   private categoryService = inject(CategoryService);
   private router = inject(Router);
@@ -81,12 +83,29 @@ export class ListExpensesComponent implements OnInit {
   categoryId!: string;
 
   ngOnInit(): void {
+    this.hadModalOutlet = this.hasModalOutlet(this.router.url);
+
     this.dateAdapter.setLocale(this.globalService.currentLanguage);
     this.translateService.onLangChange
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(event => {
         this.currentLanguage = event.lang;
         this.dateAdapter.setLocale(event.lang);
+      });
+
+    this.router.events
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(event => {
+        const hasModalOutlet = this.hasModalOutlet(event.urlAfterRedirects);
+
+        if (this.hadModalOutlet && !hasModalOutlet && this.isCurrentExpensesRoute(event.urlAfterRedirects)) {
+          this.fillData(this.currentDateService.currentDate);
+        }
+
+        this.hadModalOutlet = hasModalOutlet;
       });
 
     this.projectService.selectedUserProject$
@@ -281,5 +300,26 @@ export class ListExpensesComponent implements OnInit {
   private resetEditionState(): void {
     this.cancelExpenseForm();
     this.cancelSubExpenseForm();
+  }
+
+  private hasModalOutlet(url: string): boolean {
+    return !!this.router.parseUrl(url).root.children['modal'];
+  }
+
+  private isCurrentExpensesRoute(url: string): boolean {
+    const primarySegments = this.router.parseUrl(url).root.children['primary']?.segments ?? [];
+    const projectIdSegment = this.getSegmentPath(primarySegments, 1);
+    const categoryIdSegment = this.getSegmentPath(primarySegments, 3);
+
+    return this.getSegmentPath(primarySegments, 0) === 'projects'
+      && projectIdSegment === this.projectId
+      && this.getSegmentPath(primarySegments, 2) === 'categories'
+      && categoryIdSegment === this.categoryId
+      && this.getSegmentPath(primarySegments, 4) === 'expenses'
+      && primarySegments.length === 5;
+  }
+
+  private getSegmentPath(segments: UrlSegment[], index: number): string {
+    return segments.at(index)?.path ?? '';
   }
 }
