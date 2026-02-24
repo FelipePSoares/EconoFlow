@@ -3,6 +3,7 @@ using System.Net;
 using EasyFinance.Application;
 using EasyFinance.Application.BackgroundServices.NotifierBackgroundService;
 using EasyFinance.Application.Contracts.Persistence;
+using EasyFinance.Application.Features.WebPushService;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Account;
 using EasyFinance.Domain.Financial;
@@ -28,6 +29,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddApplicationServices();
 builder.Services.Configure<NotifierFallbackOptions>(builder.Configuration.GetSection(NotifierFallbackOptions.SectionName));
+builder.Services.Configure<WebPushOptions>(builder.Configuration.GetSection(WebPushOptions.SectionName));
 builder.Services.AddAuthenticationServices(builder.Configuration, builder.Environment);
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 

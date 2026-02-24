@@ -25,7 +25,8 @@
               "src/assets",
               "src/robots.txt",
               "src/sitemap.xml",
-              "src/LLMs.txt"
+              "src/LLMs.txt",
+              "src/web-push-sw.js"
             ],
             "styles": [
               "@angular/material/prebuilt-themes/deeppurple-amber.css",

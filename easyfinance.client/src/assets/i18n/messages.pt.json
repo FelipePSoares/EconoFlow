@@ -81,6 +81,8 @@
   "ButtonICopiedCodes": "Já salvei esses códigos",
   "ButtonCopyManualSetupKey": "Copiar chave",
   "ButtonConfigureTwoFactor": "Configurar 2FA",
+  "ButtonEnableNotifications": "Ativar notificacoes",
+  "ButtonTryAgain": "Tentar novamente",
 
   "MenuAccount": "Conta",
   "MenuPasswordAuthentication": "Senhas e Autenticação",
@@ -327,6 +329,13 @@
   "LanguagePreferenceNowAvailableMessage": "Agora você pode selecionar seu idioma preferido nas opções do perfil.",
   "MonthlyAndAnnualOverviewNowAvailableMessage": "Novidade: Visão Mensal e Visão Anual já estão disponíveis. Abra a página de Visão Geral e clique no mês para a Visão Mensal ou no ano para a Visão Anual.",
   "TwoFactorNowAvailableAnnouncementMessage": "Atualização de segurança: o 2FA já está disponível. Abra as configurações de segurança da sua conta para configurar.",
-  "EnableTwoFactorRecommendationMessage": "Recomendação: ative a autenticação de dois fatores para proteger sua conta."
+  "EnableTwoFactorRecommendationMessage": "Recomendação: ative a autenticação de dois fatores para proteger sua conta.",
+  "WebPushPermissionPrePromptTitle": "Receba notificacoes no navegador",
+  "WebPushPermissionPrePromptMessage": "Ative as notificacoes do navegador para receber alertas importantes da conta e dos projetos em tempo real. Voce pode alterar isso depois nas configuracoes do navegador.",
+  "WebPushPermissionBlockedTitle": "Notificacoes do navegador bloqueadas",
+  "WebPushPermissionBlockedDescription": "As notificacoes estao bloqueadas para este site. Para ativar notificacoes web, altere a permissao no navegador e tente novamente.",
+  "WebPushPermissionBlockedStep1": "Abra as configuracoes do site no navegador para este website.",
+  "WebPushPermissionBlockedStep2": "Localize a permissao de Notificacoes.",
+  "WebPushPermissionBlockedStep3": "Altere de Bloquear para Permitir e clique em Tentar novamente."
 }
 

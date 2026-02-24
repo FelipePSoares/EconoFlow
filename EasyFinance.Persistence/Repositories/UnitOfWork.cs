@@ -22,6 +22,7 @@ namespace EasyFinance.Persistence.Repositories
         private readonly Lazy<IGenericRepository<ExpenseItem>> expenseItemRepository;
         private readonly Lazy<IGenericRepository<ContactUs>> contactUsRepository;
         private readonly Lazy<IGenericRepository<Notification>> notificationRepository;
+        private readonly Lazy<IGenericRepository<WebPushSubscription>> webPushSubscriptionRepository;
 
         public UnitOfWork(EasyFinanceDatabaseContext dbContext)
         {
@@ -34,6 +35,7 @@ namespace EasyFinance.Persistence.Repositories
             this.expenseItemRepository = new Lazy<IGenericRepository<ExpenseItem>>(() => new GenericRepository<ExpenseItem>(this.context));
             this.contactUsRepository = new Lazy<IGenericRepository<ContactUs>>(() => new GenericRepository<ContactUs>(this.context));
             this.notificationRepository = new Lazy<IGenericRepository<Notification>>(() => new GenericRepository<Notification>(this.context));
+            this.webPushSubscriptionRepository = new Lazy<IGenericRepository<WebPushSubscription>>(() => new GenericRepository<WebPushSubscription>(this.context));
         }
 
         public IGenericRepository<Project> ProjectRepository => this.projectRepository.Value;
@@ -44,6 +46,7 @@ namespace EasyFinance.Persistence.Repositories
         public IGenericRepository<ExpenseItem> ExpenseItemRepository => this.expenseItemRepository.Value;
         public IGenericRepository<ContactUs> ContactUsRepository => this.contactUsRepository.Value;
         public IGenericRepository<Notification> NotificationRepository => this.notificationRepository.Value;
+        public IGenericRepository<WebPushSubscription> WebPushSubscriptionRepository => this.webPushSubscriptionRepository.Value;
 
         public async Task CommitAsync()
         {

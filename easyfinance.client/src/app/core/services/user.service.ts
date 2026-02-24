@@ -216,7 +216,6 @@ export class UserService {
   public update(patch: Operation[]): Observable<User> {
     return this.http.patch<User>('/api/AccessControl/', patch).pipe(tap(user => {
       this.globalService.setLocale(user.languageCode);
-
       this.loggedUser.next(user);
       this.localService.saveData(this.localService.USER_DATA, user).subscribe();
     }));

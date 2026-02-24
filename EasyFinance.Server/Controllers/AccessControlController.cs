@@ -24,6 +24,7 @@ using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 
@@ -103,18 +104,37 @@ namespace EasyFinance.Server.Controllers
             var dto = existentUser.ToRequestDTO();
             userRequestDto.ApplyTo(dto);
 
-            existentUser.SetFirstName(dto.FirstName);
-            existentUser.SetLastName(dto.LastName);
-            existentUser.SetLanguageCode(dto.LanguageCode);
-            existentUser.SetNotificationChannels(dto.NotificationChannels);
+            var updatedFields = userRequestDto.Operations
+                .Select(operation => operation.path)
+                .Where(path => !string.IsNullOrWhiteSpace(path))
+                .Select(path => path!.Trim().TrimStart('/').Split('/')[0].ToLowerInvariant())
+                .ToHashSet();
+
+            if (updatedFields.Contains("firstname"))
+                existentUser.SetFirstName(dto.FirstName);
+
+            if (updatedFields.Contains("lastname"))
+                existentUser.SetLastName(dto.LastName);
+
+            if (updatedFields.Contains("languagecode"))
+                existentUser.SetLanguageCode(dto.LanguageCode);
+
+            if (updatedFields.Contains("notificationchannels"))
+                existentUser.SetNotificationChannels(dto.NotificationChannels);
 
             var result = existentUser.Validate;
             if (result.Failed)
                 return this.ValidateResponse(result, HttpStatusCode.OK);
 
-            await this.userManager.UpdateAsync(existentUser);
+            var updateResult = await this.userManager.UpdateAsync(existentUser);
+            if (!updateResult.Succeeded)
+                return this.ValidateIdentityResponse(updateResult);
 
-            return Ok(new UserResponseDTO(existentUser));
+            var refreshedUser = await this.userManager.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(user => user.Id == existentUser.Id);
+
+            return Ok(new UserResponseDTO(refreshedUser ?? existentUser));
         }
 
         [HttpPut("default-project/{defaultProjectId?}")]

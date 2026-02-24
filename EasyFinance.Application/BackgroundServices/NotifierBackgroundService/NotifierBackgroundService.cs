@@ -118,8 +118,9 @@ namespace EasyFinance.Application.BackgroundServices.NotifierBackgroundService
             var notificationChannels = notification.LimitNotificationChannels == NotificationChannels.None
                 ? notification.User.NotificationChannels
                 : notification.LimitNotificationChannels & notification.User.NotificationChannels;
+            var nonEmailChannels = notificationChannels & ~NotificationChannels.Email;
 
-            if (!notificationChannels.HasFlag(NotificationChannels.Email))
+            if (notificationChannels == NotificationChannels.None)
             {
                 return await MarkDeliveryStatusAsync(
                     () => notificationService.MarkEmailDeliverySucceededAsync(notificationId, stoppingToken),
@@ -129,11 +130,36 @@ namespace EasyFinance.Application.BackgroundServices.NotifierBackgroundService
 
             try
             {
-                var compound = new NotificationChannelFactory(scope.ServiceProvider)
-                    .Create(notificationChannels & NotificationChannels.Email);
+                var nonEmailResult = AppResponse.Success();
+                if (nonEmailChannels != NotificationChannels.None)
+                {
+                    var nonEmailCompound = new NotificationChannelFactory(scope.ServiceProvider)
+                        .Create(nonEmailChannels);
+                    nonEmailResult = await nonEmailCompound.SendAsync(notification);
+                }
 
-                var sendResult = await compound.SendAsync(notification);
-                if (sendResult.Succeeded)
+                if (!notificationChannels.HasFlag(NotificationChannels.Email))
+                {
+                    if (nonEmailResult.Succeeded)
+                    {
+                        return await MarkDeliveryStatusAsync(
+                            () => notificationService.MarkEmailDeliverySucceededAsync(notificationId, stoppingToken),
+                            notificationId,
+                            "sent");
+                    }
+
+                    await MarkDeliveryStatusAsync(
+                        () => notificationService.MarkEmailDeliveryAsPendingAsync(notificationId, stoppingToken),
+                        notificationId,
+                        "pending");
+                    return nonEmailResult;
+                }
+
+                var emailCompound = new NotificationChannelFactory(scope.ServiceProvider)
+                    .Create(notificationChannels & NotificationChannels.Email);
+                var emailResult = await emailCompound.SendAsync(notification);
+
+                if (emailResult.Succeeded)
                 {
                     return await MarkDeliveryStatusAsync(
                         () => notificationService.MarkEmailDeliverySucceededAsync(notificationId, stoppingToken),
@@ -141,20 +167,20 @@ namespace EasyFinance.Application.BackgroundServices.NotifierBackgroundService
                         "sent");
                 }
 
-                if (sendResult.Messages.Any(m => string.Equals(m.Description, "Email template not found", StringComparison.OrdinalIgnoreCase)))
+                if (emailResult.Messages.Any(m => string.Equals(m.Description, "Email template not found", StringComparison.OrdinalIgnoreCase)))
                 {
                     await MarkDeliveryStatusAsync(
                         () => notificationService.MarkEmailDeliveryAsFailedAsync(notificationId, stoppingToken),
                         notificationId,
                         "failed");
-                    return sendResult;
+                    return emailResult;
                 }
 
                 await MarkDeliveryStatusAsync(
                     () => notificationService.MarkEmailDeliveryAsPendingAsync(notificationId, stoppingToken),
                     notificationId,
                     "pending");
-                return sendResult;
+                return emailResult;
             }
             catch (Exception ex)
             {

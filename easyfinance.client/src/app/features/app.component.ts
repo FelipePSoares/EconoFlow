@@ -1,5 +1,5 @@
 
-import { filter, firstValueFrom } from 'rxjs';
+import { distinctUntilChanged, filter, firstValueFrom } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { ApplicationRef, Component, inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, DOCUMENT, isPlatformBrowser } from '@angular/common';
@@ -20,6 +20,7 @@ import { DateAdapter } from '@angular/material/core';
 import { NotificationService } from '../core/services/notification.service';
 import { GlobalService } from '../core/services/global.service';
 import { ProjectService } from '../core/services/project.service';
+import { WebPushService } from '../core/services/web-push.service';
 
 @Component({
   selector: 'app-root',
@@ -53,6 +54,7 @@ export class AppComponent {
   private noticationService = inject(NotificationService);
   private globalService = inject(GlobalService);
   private projectService = inject(ProjectService);
+  private webPushService = inject(WebPushService);
   private document = inject(DOCUMENT);
   private appRef = inject(ApplicationRef);
   private platformId = inject(PLATFORM_ID);
@@ -72,10 +74,11 @@ export class AppComponent {
       const authService = inject(AuthService);
       this.isSignedIn$ = authService.isSignedIn$;
 
-      authService.isSignedIn$.subscribe(isSignedIn => {
+      authService.isSignedIn$.pipe(distinctUntilChanged()).subscribe(isSignedIn => {
         if (isSignedIn) {
           authService.startUserPolling();
           this.noticationService.startPolling();
+          void this.webPushService.initializeForCurrentUser();
         }
       });
 

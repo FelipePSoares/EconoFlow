@@ -1,0 +1,23 @@
+<div class="web-push-dialog">
+  <div class="icon-badge" aria-hidden="true">
+    <mat-icon>notifications_off</mat-icon>
+  </div>
+
+  <h2>{{ 'WebPushPermissionBlockedTitle' | translate }}</h2>
+  <p>{{ 'WebPushPermissionBlockedDescription' | translate }}</p>
+
+  <ul>
+    <li>{{ 'WebPushPermissionBlockedStep1' | translate }}</li>
+    <li>{{ 'WebPushPermissionBlockedStep2' | translate }}</li>
+    <li>{{ 'WebPushPermissionBlockedStep3' | translate }}</li>
+  </ul>
+
+  <div class="actions">
+    <button mat-stroked-button type="button" (click)="close(false)">
+      {{ 'ButtonCancel' | translate }}
+    </button>
+    <button mat-flat-button color="primary" type="button" (click)="close(true)">
+      {{ 'ButtonTryAgain' | translate }}
+    </button>
+  </div>
+</div>

@@ -1,0 +1,17 @@
+<div class="web-push-dialog">
+  <div class="icon-badge" aria-hidden="true">
+    <mat-icon>notifications_active</mat-icon>
+  </div>
+
+  <h2>{{ 'WebPushPermissionPrePromptTitle' | translate }}</h2>
+  <p>{{ 'WebPushPermissionPrePromptMessage' | translate }}</p>
+
+  <div class="actions">
+    <button mat-stroked-button type="button" (click)="close(false)">
+      {{ 'ButtonCancel' | translate }}
+    </button>
+    <button mat-flat-button color="primary" type="button" (click)="close(true)">
+      {{ 'ButtonEnableNotifications' | translate }}
+    </button>
+  </div>
+</div>
