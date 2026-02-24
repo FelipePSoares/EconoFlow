@@ -17,7 +17,7 @@ describe('EconoFlow - income add Tests', () => {
 
   it('should appear name validation error', () => {
     cy.get('input[formControlName=name]').blur()
-    cy.get('mat-error').should('have.text', ' This field is required. ')
+    cy.get('mat-error').should('have.text', 'This field is required.')
   })
 
   it('should add a new income', () => {

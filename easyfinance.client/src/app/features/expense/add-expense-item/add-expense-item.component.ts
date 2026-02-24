@@ -409,8 +409,9 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
   }
 
   private handleSaved(expense: ExpenseDto): void {
+    this.snackBar.openSuccessSnackbar(this.translateService.instant('CreatedSuccess'));
+
     if (!this.inlineMode) {
-      this.snackBar.openSuccessSnackbar(this.translateService.instant('CreatedSuccess'));
       this.router.navigate([{ outlets: { modal: null } }]);
     }
 
