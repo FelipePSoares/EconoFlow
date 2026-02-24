@@ -16,6 +16,7 @@ import { CategoryService } from '../../../core/services/category.service';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { CurrentDateService } from '../../../core/services/current-date.service';
+import { toLocalDate } from '../../../core/utils/date';
 
 interface CategoryInsight {
   name: string;
@@ -225,7 +226,7 @@ export class AnnualOverviewComponent implements OnInit, AfterViewInit {
         const expensesByMonth = new Array<number>(12).fill(0);
 
         incomes.forEach(income => {
-          const incomeDate = new Date(income.date);
+          const incomeDate = toLocalDate(income.date);
           if (incomeDate.getFullYear() === year) {
             incomesByMonth[incomeDate.getMonth()] += Number(income.amount || 0);
           }
@@ -233,7 +234,7 @@ export class AnnualOverviewComponent implements OnInit, AfterViewInit {
 
         categories.forEach(category => {
           category.expenses?.forEach(expense => {
-            const expenseDate = new Date(expense.date);
+            const expenseDate = toLocalDate(expense.date);
             if (expenseDate.getFullYear() === year) {
               expensesByMonth[expenseDate.getMonth()] += Number(expense.amount || 0);
             }

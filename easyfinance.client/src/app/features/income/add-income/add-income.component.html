@@ -6,7 +6,7 @@
       <mat-form-field appearance="fill" class="w-100">
         <mat-label>{{ 'FieldIncomeName' |  translate }}</mat-label>
         <input matInput #nameInput id="name" placeholder="{{ 'PlaceholderIncomeName' | translate }}" formControlName="name">
-        @if (name?.invalid && name?.touched){
+        @if ((name?.invalid && name?.touched) || httpErrors){
           @for (error of getFormFieldErrors('name'); track error) {
             <mat-error>{{ error |  translate }}</mat-error>
           }
@@ -19,7 +19,7 @@
         <input matInput id="date" [matDatepicker]="picker" formControlName="date">
         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
         <mat-datepicker #picker></mat-datepicker>
-        @if (date?.invalid && date?.touched){
+        @if ((date?.invalid && date?.touched) || httpErrors){
           @for (error of getFormFieldErrors('date'); track error) {
             <mat-error>{{ error |  translate }}</mat-error>
           }
@@ -35,7 +35,7 @@
           currencyMask
           [options]="{ prefix: currencySymbol, allowNegative: false, thousands: thousandSeparator, decimal: decimalSeparator, precision: 2 }"
           formControlName="amount">
-        @if (amount?.invalid && amount?.touched){
+        @if ((amount?.invalid && amount?.touched) || httpErrors){
           @for (error of getFormFieldErrors('amount'); track error) {
             <mat-error>{{ error |  translate }}</mat-error>
           }
@@ -51,10 +51,12 @@
         </div>
       }
 
-      <!-- Submit Button -->
-      <div class="float-end">
-        <button mat-raised-button color="primary" type="submit" [disabled]="incomeForm.invalid">
-          {{ 'ButtonCreate' | translate }}
+      <div class="d-flex justify-content-end gap-2">
+        <button mat-stroked-button type="button" (click)="cancel()">
+          {{ 'ButtonCancel' | translate }}
+        </button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="incomeForm.invalid || isSaving">
+          {{ (isEditing ? 'ButtonSave' : 'ButtonCreate') | translate }}
         </button>
       </div>
     </form>

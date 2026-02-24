@@ -16,7 +16,15 @@
           <div class="list-group list-group-flush">
             @for (income of (incomes$ | async); track income.id) {
               <div class="list-group-item">
-                @if (income.id != this.editingIncome.id) {
+                @if (isEditingIncome(income)) {
+                  <app-add-income
+                    [projectId]="projectId"
+                    [income]="income"
+                    [inlineMode]="true"
+                    (saved)="onIncomeSaved()"
+                    (canceled)="cancelIncomeForm()">
+                  </app-add-income>
+                } @else {
                   <div class="d-flex w-100 justify-content-between align-items-center">
                     <div class="flex-grow-1">
                       <div class="d-flex align-items-center">
@@ -40,7 +48,7 @@
                       <div class="btn-group ms-3">
                         <button name="edit"
                           class="btn btn-outline-secondary"
-                          (click)="edit(income)"
+                          (click)="startEditIncome(income)"
                           aria-label="Editar receita">
                           <i class="bi bi-pencil-square"></i>
                         </button>
@@ -53,105 +61,26 @@
                       </div>
                     }
                   </div>
-                } @else {
-                  <!-- Inline Edit Form -->
-                  <form [formGroup]="incomeForm" (ngSubmit)="save()">
-                    <div class="row g-3">
-                      <div class="col-md-6">
-                        <mat-form-field appearance="fill" class="w-100">
-                          <mat-label>{{ 'FieldIncomeName' | translate }}</mat-label>
-                          <input matInput
-                            #nameInput
-                            id="name"
-                            placeholder="{{ 'PlaceholderIncomeName' | translate }}"
-                            formControlName="name">
-                          @if ((name?.invalid && name?.touched) || httpErrors) {
-                            @for (error of getFormFieldErrors('name'); track error) {
-                              <mat-error>
-                                {{ error | translate }}
-                              </mat-error>
-                            }
-                          }
-                        </mat-form-field>
-                      </div>
-
-                      <div class="col-md-6">
-                        <mat-form-field appearance="fill" class="w-100">
-                          <mat-label>{{ 'FieldDate' | translate }}</mat-label>
-                          <input matInput
-                            [matDatepicker]="picker"
-                            formControlName="date"
-                            id="date">
-                          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-                          <mat-datepicker #picker></mat-datepicker>
-                          @if ((date?.invalid && date?.touched) || httpErrors) {
-                            @for (error of getFormFieldErrors('date'); track error) {
-                              <mat-error>
-                                {{ error | translate }}
-                              </mat-error>
-                            }
-                          }
-                        </mat-form-field>
-                      </div>
-
-                      <div class="col-md-6">
-                        <mat-form-field appearance="fill" class="w-100">
-                          <mat-label>{{ 'FieldAmount' | translate }}</mat-label>
-                          <input matInput
-                            type="text"
-                            inputmode="numeric"
-                            currencyMask
-                             [options]="{
-                              prefix: currencySymbol,
-                              allowNegative: false,
-                              thousands: thousandSeparator,
-                              decimal: decimalSeparator,
-                              precision: 2
-                            }"
-                            formControlName="amount">
-                          @if ((amount?.invalid && amount?.touched) || httpErrors) {
-                            @for (error of getFormFieldErrors('amount'); track error) {
-                              <mat-error>
-                                {{ error | translate }}
-                              </mat-error>
-                            }
-                          }
-                        </mat-form-field>
-                      </div>
-
-                      <div class="col-12 d-flex justify-content-end">
-                        <button mat-stroked-button
-                          type="button"
-                          class="me-2"
-                          (click)="cancelEdit()">
-                          {{ 'ButtonCancel' | translate }}
-                        </button>
-                        <button mat-raised-button
-                          color="primary"
-                          type="submit"
-                          [disabled]="incomeForm.invalid">
-                          {{ 'ButtonSave' | translate }}
-                        </button>
-                      </div>
-                    </div>
-                  </form>
-
-                  @if (httpErrors && errors['general']) {
-                    <div>
-                      @for (error of errors['general']; track error) {
-                        <p class="mb-3 text-danger text-center">{{ error | translate }}</p>
-                      }
-                    </div>
-                  }
                 }
               </div>
             }
 
-            @if (canAddOrEdit()) {
+            @if (isCreatingIncome) {
+              <div class="list-group-item">
+                <app-add-income
+                  [projectId]="projectId"
+                  [inlineMode]="true"
+                  (saved)="onIncomeSaved()"
+                  (canceled)="cancelIncomeForm()">
+                </app-add-income>
+              </div>
+            }
+
+            @if (canAddOrEdit() && !isCreatingIncome) {
               <div class="list-group-item text-center">
                 <button
                   class="btn btn-primary btn-add btn-lg w-100 d-flex justify-content-center align-items-center"
-                  (click)="add()"
+                  (click)="startCreateIncome()"
                   >
                   <i class="bi bi-plus me-2"></i>
                   {{ 'ButtonAddIncome' | translate }}

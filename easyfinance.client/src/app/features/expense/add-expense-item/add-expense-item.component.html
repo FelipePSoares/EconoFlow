@@ -3,19 +3,21 @@
     <form [formGroup]="expenseItemForm" (ngSubmit)="save()">
 
       <!-- Category Field -->
-      <mat-form-field appearance="fill" class="w-100">
-        <mat-label>{{ 'FieldCategoryName' | translate }}</mat-label>
-        <mat-select #categorySelect formControlName="categoryId">
-          @for (category of categories; track category.id) {
-            <mat-option [value]="category.id">{{ category.name }}</mat-option>
+      @if (showCategorySelector) {
+        <mat-form-field appearance="fill" class="w-100">
+          <mat-label>{{ 'FieldCategoryName' | translate }}</mat-label>
+          <mat-select #categorySelect formControlName="categoryId">
+            @for (category of categories; track category.id) {
+              <mat-option [value]="category.id">{{ category.name }}</mat-option>
+            }
+          </mat-select>
+          @if ((categoryIdControl?.invalid && categoryIdControl?.touched) || httpErrors){
+            @for (error of getFormFieldErrors('categoryId'); track error) {
+              <mat-error>{{ error |  translate }}</mat-error>
+            }
           }
-        </mat-select>
-        @if (categoryIdControl?.invalid && categoryIdControl?.touched){
-          @for (error of getFormFieldErrors('categoryId'); track error) {
-            <mat-error>{{ error |  translate }}</mat-error>
-          }
-        }
-      </mat-form-field>
+        </mat-form-field>
+      }
 
       <!-- Date Field with Date Picker -->
       <mat-form-field appearance="fill" class="w-100">
@@ -23,7 +25,7 @@
         <input matInput [matDatepicker]="picker" formControlName="date">
         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
         <mat-datepicker #picker></mat-datepicker>
-        @if (date?.invalid && date?.touched){
+        @if ((date?.invalid && date?.touched) || httpErrors){
           @for (error of getFormFieldErrors('date'); track error) {
             <mat-error>{{ error |  translate }}</mat-error>
           }
@@ -31,21 +33,23 @@
       </mat-form-field>
 
       <!-- Expense Field -->
-      <mat-form-field appearance="fill" class="w-100">
-        <mat-label>{{ 'FieldParentExpenseName' | translate }}</mat-label>
-        <mat-select formControlName="expenseId">
-          @for (expense of expenses; track expense.id) {
-            <mat-option [value]="expense.id">{{ expense.name }}</mat-option>
+      @if (showExpenseSelector) {
+        <mat-form-field appearance="fill" class="w-100">
+          <mat-label>{{ 'FieldParentExpenseName' | translate }}</mat-label>
+          <mat-select formControlName="expenseId">
+            @for (expense of expenses; track expense.id) {
+              <mat-option [value]="expense.id">{{ expense.name }}</mat-option>
+            }
+          </mat-select>
+          @if ((expenseIdControl?.invalid && expenseIdControl?.touched) || httpErrors){
+            @for (error of getFormFieldErrors('expenseId'); track error) {
+              <mat-error>{{ error |  translate }}</mat-error>
+            }
           }
-        </mat-select>
-        @if (expenseIdControl?.invalid && expenseIdControl?.touched){
-          @for (error of getFormFieldErrors('expenseId'); track error) {
-            <mat-error>{{ error |  translate }}</mat-error>
-          }
-        }
-      </mat-form-field>
+        </mat-form-field>
+      }
 
-      @if (categoryIdControl?.value && !isLoadingExpenses && hasLoadedExpenses && expenses.length === 0) {
+      @if (showExpenseSelector && categoryIdControl?.value && !isLoadingExpenses && hasLoadedExpenses && expenses.length === 0) {
         <p data-testid="no-parent-expense-message" class="text-start text-muted mb-3">
           {{ 'NoDataForSelectedMonth' | translate }}
         </p>
@@ -55,7 +59,7 @@
       <mat-form-field appearance="fill" class="w-100">
         <mat-label>{{ 'FieldExpenseName' | translate }} </mat-label>
         <input matInput id="name" placeholder="{{ 'PlaceholderExpenseName' | translate }}" formControlName="name">
-        @if (name?.invalid && name?.touched){
+        @if ((name?.invalid && name?.touched) || httpErrors){
           @for (error of getFormFieldErrors('name'); track error) {
             <mat-error>{{ error |  translate }}</mat-error>
           }
@@ -71,7 +75,7 @@
           currencyMask
           [options]="{ prefix: currencySymbol, allowNegative: false, thousands: thousandSeparator, decimal: decimalSeparator, precision: 2 }"
           formControlName="amount">
-        @if (amount?.invalid && amount?.touched){
+        @if ((amount?.invalid && amount?.touched) || httpErrors){
           @for (error of getFormFieldErrors('amount'); track error) {
             <mat-error>{{ error |  translate }}</mat-error>
           }
@@ -87,10 +91,12 @@
         </div>
       }
 
-      <!-- Submit Button -->
-      <div class="float-end">
-        <button mat-raised-button color="primary" type="submit" [disabled]="expenseItemForm.invalid">
-          {{ 'ButtonCreate' | translate }}
+      <div class="d-flex justify-content-end gap-2">
+        <button mat-stroked-button type="button" (click)="cancel()">
+          {{ 'ButtonCancel' | translate }}
+        </button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="expenseItemForm.invalid || isSaving">
+          {{ (isEditing ? 'ButtonSave' : 'ButtonCreate') | translate }}
         </button>
       </div>
     </form>

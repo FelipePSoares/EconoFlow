@@ -1,4 +1,5 @@
-import { AfterViewInit, Component, inject, Input, OnInit, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AfterViewInit, Component, DestroyRef, EventEmitter, Input, OnInit, Output, ViewChild, inject } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { debounceTime, map } from 'rxjs';
@@ -13,11 +14,12 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ExpenseService } from '../../../core/services/expense.service';
 import { ExpenseItemDto } from '../models/expense-item-dto';
 import { ExpenseDto } from '../models/expense-dto';
+import { ExpensePatchModel } from '../models/expense-patch-model';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.component';
 import { DateAdapter, MatNativeDateModule } from '@angular/material/core';
-import { formatDate } from '../../../core/utils/date';
+import { formatDate, toLocalDate } from '../../../core/utils/date';
 import { GlobalService } from '../../../core/services/global.service';
 import { CurrentDateService } from '../../../core/services/current-date.service';
 import { CategoryService } from '../../../core/services/category.service';
@@ -25,7 +27,7 @@ import { CategoryDto } from '../../category/models/category-dto';
 import { MatSelect, MatSelectModule } from '@angular/material/select';
 
 @Component({
-    selector: 'app-add-expense-item',
+    selector: 'app-expense-item',
     imports: [
     FormsModule,
     ReactiveFormsModule,
@@ -52,15 +54,18 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
   private translateService = inject(TranslateService);
   private currentDateService = inject(CurrentDateService);
   private dateAdapter = inject(DateAdapter<Date>);
+  private destroyRef = inject(DestroyRef);
 
   private expense?: ExpenseDto;
-  private currentDate!: Date;
+  private currentDate = new Date();
+  private editingExpenseItem: ExpenseItemDto | null = null;
   private expensesLoadToken = 0;
   expenseItemForm!: FormGroup;
   categories: CategoryDto[] = [];
   expenses: ExpenseDto[] = [];
   isLoadingExpenses = false;
   hasLoadedExpenses = false;
+  isSaving = false;
   thousandSeparator!: string; 
   decimalSeparator!: string; 
   httpErrors = false;
@@ -75,6 +80,22 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
 
   @Input()
   expenseId?: string;
+
+  @Input()
+  parentExpense?: ExpenseDto | null;
+
+  @Input()
+  expenseItem?: ExpenseItemDto | null;
+
+  @Input()
+  inlineMode = false;
+
+  @Output()
+  saved = new EventEmitter<ExpenseDto>();
+
+  @Output()
+  canceled = new EventEmitter<void>();
+
   @ViewChild('categorySelect') categorySelect?: MatSelect;
 
   constructor() {
@@ -85,31 +106,55 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.dateAdapter.setLocale(this.globalService.currentLanguage);
+    this.translateService.onLangChange
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(event => this.dateAdapter.setLocale(event.lang));
 
-    this.currentDate = new Date();
-    if (this.currentDateService.currentDate.getFullYear() !== this.currentDate.getFullYear() || this.currentDateService.currentDate.getMonth() !== this.currentDate.getMonth()) {
-      this.currentDate = this.currentDateService.currentDate;
-    }
+    this.currentDate = toLocalDate(this.currentDateService.currentDate);
+    this.editingExpenseItem = this.expenseItem && !this.isNewEntity(this.expenseItem.id)
+      ? structuredClone(this.expenseItem)
+      : null;
+    const initialDate = this.editingExpenseItem?.date
+      ? toLocalDate(this.editingExpenseItem.date)
+      : this.currentDate;
+    const initialExpenseId = this.expenseId ?? this.parentExpense?.id ?? '';
 
     this.expenseItemForm = new FormGroup({
       categoryId: new FormControl(this.categoryId ?? '', [Validators.required]),
-      expenseId: new FormControl({ value: this.expenseId ?? '', disabled: true }, [Validators.required]),
-      name: new FormControl('', [Validators.maxLength(100)]),
-      date: new FormControl(this.currentDate, [Validators.required]),
-      amount: new FormControl(0, [Validators.min(0)])
+      expenseId: new FormControl(initialExpenseId, [Validators.required]),
+      name: new FormControl(this.editingExpenseItem?.name ?? '', [Validators.maxLength(100)]),
+      date: new FormControl(initialDate, [Validators.required]),
+      amount: new FormControl(this.editingExpenseItem?.amount ?? 0, [Validators.min(0)])
     });
 
-    this.categoryService.get(this.projectId)
-      .pipe(map(categories => CategoryDto.fromCategories(categories)))
-      .subscribe(res => {
-        this.categories = res.filter(category => !category.isArchived);
+    if (this.categoryId) {
+      this.categoryIdControl?.setValue(this.categoryId);
+    }
 
-        if (this.categoryIdControl?.value) {
-          const preferredExpenseId = this.expenseIdControl?.value;
-          this.resetExpenseSelection();
-          this.loadExpenses(this.categoryIdControl.value, preferredExpenseId, this.getSelectedDate());
-        }
-      });
+    if (this.parentExpense) {
+      this.expense = structuredClone(this.parentExpense);
+      this.expenses = [this.expense];
+      this.expenseIdControl?.setValue(this.expense.id, { emitEvent: false });
+      this.hasLoadedExpenses = true;
+      return;
+    }
+
+    if (this.showCategorySelector) {
+      this.categoryService.get(this.projectId)
+        .pipe(map(categories => CategoryDto.fromCategories(categories)))
+        .subscribe(res => {
+          this.categories = res.filter(category => !category.isArchived);
+          const categoryId = this.categoryIdControl?.value;
+          if (categoryId) {
+            this.resetExpenseSelection();
+            this.loadExpenses(categoryId, this.expenseIdControl?.value, this.getSelectedDate());
+          }
+        });
+    }
+
+    if (this.categoryIdControl?.value) {
+      this.loadExpenses(this.categoryIdControl.value, this.expenseIdControl?.value, this.getSelectedDate());
+    }
 
     this.categoryIdControl?.valueChanges.subscribe(categoryId => {
       this.invalidateExpenseLoads();
@@ -149,6 +194,10 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    if (!this.showCategorySelector) {
+      return;
+    }
+
     setTimeout(() => this.categorySelect?.focus());
   }
 
@@ -170,48 +219,102 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
     return this.expenseItemForm.get('amount');
   }
 
-  save() {
-    if (this.expenseItemForm.valid) {
-      const categoryId = this.categoryIdControl?.value;
-      const expenseId = this.expenseIdControl?.value;
+  get isEditing(): boolean {
+    return !!this.editingExpenseItem;
+  }
 
-      if (!categoryId || !expenseId || !this.expense) {
+  get showCategorySelector(): boolean {
+    return !this.categoryId && !this.parentExpense;
+  }
+
+  get showExpenseSelector(): boolean {
+    return !this.parentExpense;
+  }
+
+  save() {
+    if (!this.expenseItemForm.valid || this.isSaving) {
+      return;
+    }
+
+    const categoryId = this.categoryId ?? this.categoryIdControl?.value;
+    if (!categoryId) {
+      return;
+    }
+
+    const currentExpense = this.expense;
+    if (!currentExpense) {
+      return;
+    }
+
+    this.httpErrors = false;
+    this.errors = {};
+
+    const name = this.name?.value;
+    const date: any = formatDate(this.date?.value);
+    const amount = this.amount?.value;
+    const parsedAmount = amount === "" || amount === null ? 0 : amount;
+
+    const baseExpense = structuredClone(currentExpense);
+    const newExpense = structuredClone(baseExpense);
+
+    if (this.editingExpenseItem) {
+      const index = newExpense.items.findIndex(item => item.id === this.editingExpenseItem?.id);
+      if (index === -1) {
         return;
       }
 
-      const name = this.name?.value;
-      const date: any = formatDate(this.date?.value);
-      const amount = this.amount?.value;
+      newExpense.items[index].name = name;
+      newExpense.items[index].date = date;
+      newExpense.items[index].amount = parsedAmount;
+    } else {
+      const newExpenseItem = new ExpenseItemDto();
+      newExpenseItem.name = name;
+      newExpenseItem.date = date;
+      newExpenseItem.amount = parsedAmount;
 
-      const newExpenseItem = ({
-        name: name,
-        date: date,
-        amount: amount === "" || amount === null ? 0 : amount,
-      }) as ExpenseItemDto;
-
-      const newExpense = structuredClone(this.expense)
       newExpense.items.push(newExpenseItem);
-
-      const patch = compare(this.expense, newExpense);
-
-      this.expenseService.update(this.projectId, categoryId, expenseId, patch).subscribe({
-        next: () => {
-          this.snackBar.openSuccessSnackbar(this.translateService.instant('CreatedSuccess'));
-          this.router.navigate([{ outlets: { modal: null } }]);
-        },
-        error: (response: ApiErrorResponse) => {
-          this.httpErrors = true;
-          this.errors = {};
-
-          Object.entries(response.errors).forEach(([key, value]) => {
-            const newKey = key.startsWith('Items.') ? key.replace(/^Items\./, '') : key;
-            this.errors[newKey] = value;
-          });
-
-          this.errorMessageService.setFormErrors(this.expenseItemForm, this.errors);
-        }
-      });
     }
+
+    const patch = compare(
+      ExpensePatchModel.fromExpense(baseExpense),
+      ExpensePatchModel.fromExpense(newExpense)
+    );
+    if (patch.length === 0) {
+      this.handleSaved(currentExpense);
+      return;
+    }
+
+    this.isSaving = true;
+
+    this.expenseService.update(this.projectId, categoryId, currentExpense.id, patch).subscribe({
+      next: response => {
+        this.isSaving = false;
+        const dto = ExpenseDto.fromExpense(response);
+        this.expense = dto;
+        this.handleSaved(dto);
+      },
+      error: (response: ApiErrorResponse) => {
+        this.isSaving = false;
+        this.httpErrors = true;
+        this.errors = {};
+
+        Object.entries(response.errors).forEach(([key, value]) => {
+          const newKey = key.replace(/^Items\.\d+\./, '').replace(/^Items\./, '');
+          this.errors[newKey] = value;
+        });
+
+        this.errorMessageService.setFormErrors(this.expenseItemForm, this.errors);
+      }
+    });
+  }
+
+  cancel(): void {
+    if (this.inlineMode) {
+      this.canceled.emit();
+      return;
+    }
+
+    this.router.navigate([{ outlets: { modal: null } }]);
   }
 
   getFormFieldErrors(fieldName: string): string[] {
@@ -268,12 +371,12 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
     }
 
     const value = this.date?.value;
-
-    if (value instanceof Date && !isNaN(value.getTime())) {
-      return value;
+    if (!value) {
+      return null;
     }
 
-    return null;
+    const parsed = toLocalDate(value);
+    return isNaN(parsed.getTime()) ? null : parsed;
   }
 
   private loadExpenseDetails(categoryId: string, expenseId: string): void {
@@ -304,4 +407,19 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
     this.expensesLoadToken++;
     this.isLoadingExpenses = false;
   }
+
+  private handleSaved(expense: ExpenseDto): void {
+    this.snackBar.openSuccessSnackbar(this.translateService.instant('CreatedSuccess'));
+
+    if (!this.inlineMode) {
+      this.router.navigate([{ outlets: { modal: null } }]);
+    }
+
+    this.saved.emit(expense);
+  }
+
+  private isNewEntity(id: string | undefined): boolean {
+    return !!id && id.startsWith('new-');
+  }
 }
+

@@ -5,6 +5,7 @@ import { BaseChartDirective } from 'ng2-charts';
 import { ExpenseDto } from '../../../expense/models/expense-dto';
 import { CurrentDateService } from '../../../../core/services/current-date.service';
 import { TranslateService } from '@ngx-translate/core';
+import { toLocalDate } from '../../../../core/utils/date';
 
 @Component({
   selector: 'app-monthly-expenses-chart',
@@ -143,7 +144,7 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterVi
 
       // Extract date
       if (record.date) {
-        date = new Date(record.date);
+        date = toLocalDate(record.date);
       }
 
       if (amount > 0 && date) {
