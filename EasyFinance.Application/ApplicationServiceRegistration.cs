@@ -11,6 +11,7 @@ using EasyFinance.Application.Features.CategoryService;
 using EasyFinance.Application.Features.EmailService;
 using EasyFinance.Application.Features.ExpenseItemService;
 using EasyFinance.Application.Features.ExpenseService;
+using EasyFinance.Application.Features.FeatureRolloutService;
 using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Application.Features.NotificationService;
 using EasyFinance.Application.Features.ProjectService;
@@ -37,6 +38,7 @@ namespace EasyFinance.Application
             services.AddScoped<IExpenseService, ExpenseService>();
             services.AddScoped<IExpenseItemService, ExpenseItemService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IFeatureRolloutService, FeatureRolloutService>();
             services.AddScoped<IContactService, ContactService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<INotificationService, NotificationService>();

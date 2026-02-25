@@ -8,8 +8,11 @@ using System.Threading.Tasks;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.DTOs.Account;
 using EasyFinance.Application.DTOs.BackgroundService.Notification;
+using EasyFinance.Application.Features.FeatureRolloutService;
+using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Account;
 using EasyFinance.Infrastructure.DTOs;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -20,6 +23,8 @@ namespace EasyFinance.Application.Features.WebPushService
     public class WebPushService(
         IUnitOfWork unitOfWork,
         IOptions<WebPushOptions> webPushOptions,
+        UserManager<User> userManager,
+        IFeatureRolloutService featureRolloutService,
         ILogger<WebPushService> logger) : IWebPushService
     {
         private static readonly JsonSerializerOptions serializerOptions = new()
@@ -29,6 +34,8 @@ namespace EasyFinance.Application.Features.WebPushService
 
         private readonly IUnitOfWork unitOfWork = unitOfWork;
         private readonly WebPushOptions webPushOptions = webPushOptions.Value;
+        private readonly UserManager<User> userManager = userManager;
+        private readonly IFeatureRolloutService featureRolloutService = featureRolloutService;
         private readonly ILogger<WebPushService> logger = logger;
 
         public AppResponse<WebPushPublicKeyResponseDTO> GetPublicKey()
@@ -47,6 +54,9 @@ namespace EasyFinance.Application.Features.WebPushService
         {
             if (dto == null)
                 return AppResponse.Error("Web push subscription payload is required.");
+
+            if (!await IsFeatureEnabledForUserAsync(userId, cancellationToken))
+                return AppResponse.Error("Web push is not enabled for this user.");
 
             var endpoint = dto.Endpoint?.Trim() ?? string.Empty;
             var existingSubscription = await unitOfWork.WebPushSubscriptionRepository
@@ -118,6 +128,9 @@ namespace EasyFinance.Application.Features.WebPushService
 
         private async Task<AppResponse> SendPayloadToUserAsync(Guid userId, WebPushPayload payload, CancellationToken cancellationToken)
         {
+            if (!await IsFeatureEnabledForUserAsync(userId, cancellationToken))
+                return AppResponse.Success();
+
             var subscriptions = await unitOfWork.WebPushSubscriptionRepository
                 .Trackable()
                 .Where(s => s.UserId == userId && !s.RevokedAt.HasValue)
@@ -230,6 +243,19 @@ namespace EasyFinance.Application.Features.WebPushService
                 return "/user/authentication";
 
             return "/";
+        }
+
+        private async Task<bool> IsFeatureEnabledForUserAsync(Guid userId, CancellationToken cancellationToken)
+        {
+            var user = await this.userManager.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+            if (user == null || !user.Enabled)
+                return false;
+
+            var roles = await this.userManager.GetRolesAsync(user);
+            return this.featureRolloutService.IsEnabled(roles, FeatureFlags.WebPush);
         }
 
     }

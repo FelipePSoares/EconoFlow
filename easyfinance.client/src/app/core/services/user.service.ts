@@ -52,8 +52,10 @@ export class UserService {
 
       return this.localService.getData<User>(this.localService.USER_DATA).pipe(
         switchMap(user => {
-          if (user)
+          if (user) {
+            user.enabledFeatures = Array.isArray(user.enabledFeatures) ? user.enabledFeatures : [];
             return of(user);
+          }
 
           return this.refreshUserInfo();
         }),

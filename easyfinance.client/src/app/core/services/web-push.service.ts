@@ -5,6 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
 import { WebPushBlockedDialogComponent } from '../components/web-push-blocked-dialog/web-push-blocked-dialog.component';
 import { WebPushPermissionDialogComponent } from '../components/web-push-permission-dialog/web-push-permission-dialog.component';
+import { FeatureFlag } from '../enums/feature-flag';
 import { WebPushDeviceType } from '../enums/web-push-device-type';
 import { WebPushPublicKeyResponse } from '../models/web-push-public-key-response';
 import { WebPushSubscriptionRequest } from '../models/web-push-subscription-request';
@@ -51,7 +52,9 @@ export class WebPushService {
 
     try {
       const user = await firstValueFrom(this.userService.loggedUser$);
-      if (!user?.enabled || !user.id || !user.notificationChannels?.includes('Push'))
+      const hasWebPushFeature = user?.enabledFeatures?.includes(FeatureFlag.WebPush) ?? false;
+
+      if (!user?.enabled || !user.id || !user.notificationChannels?.includes('Push') || !hasWebPushFeature)
         return;
 
       if (!forceReinitialize && this.initializedForUserId === user.id)

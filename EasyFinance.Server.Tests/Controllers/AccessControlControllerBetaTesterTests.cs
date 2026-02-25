@@ -4,7 +4,6 @@ using EasyFinance.Application.Features.NotificationService;
 using EasyFinance.Application.Features.UserService;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure.Authentication;
-using EasyFinance.Infrastructure.DTOs;
 using EasyFinance.Server.Controllers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -17,14 +16,17 @@ using Shouldly;
 
 namespace EasyFinance.Server.Tests.Controllers
 {
-    public class AccessControlControllerUnsubscribeTests
+    public class AccessControlControllerBetaTesterTests : IDisposable
     {
-        private readonly Mock<IUserService> userServiceMock;
+        private const string BetaTesterAdminKeyEnvironmentVariable = "EconoFlow_BETA_TESTER_ADMIN_KEY";
+        private readonly string? previousEnvValue;
         private readonly Mock<UserManager<User>> userManagerMock;
         private readonly AccessControlController controller;
 
-        public AccessControlControllerUnsubscribeTests()
+        public AccessControlControllerBetaTesterTests()
         {
+            this.previousEnvValue = Environment.GetEnvironmentVariable(BetaTesterAdminKeyEnvironmentVariable);
+
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
             var userStoreMock = new Mock<IUserStore<User>>();
             this.userManagerMock = new Mock<UserManager<User>>(
@@ -48,13 +50,11 @@ namespace EasyFinance.Server.Tests.Controllers
                 null);
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
-            this.userServiceMock = new Mock<IUserService>();
-
             this.controller = new AccessControlController(
                 userManager: this.userManagerMock.Object,
                 signInManager: signInManagerMock.Object,
                 emailSender: Mock.Of<IEmailSender<User>>(),
-                userService: this.userServiceMock.Object,
+                userService: Mock.Of<IUserService>(),
                 linkGenerator: Mock.Of<LinkGenerator>(),
                 accessControlService: Mock.Of<IAccessControlService>(),
                 featureRolloutService: Mock.Of<IFeatureRolloutService>(),
@@ -64,55 +64,60 @@ namespace EasyFinance.Server.Tests.Controllers
         }
 
         [Fact]
-        public async Task UnsubscribeFromEmailNotificationsAsync_EmptySignature_ShouldReturnBadRequest()
+        public async Task SetBetaTesterAsync_WhenAdminKeyIsNotConfigured_ShouldReturnForbidden()
         {
             // Arrange
-            var userId = Guid.NewGuid();
+            Environment.SetEnvironmentVariable(BetaTesterAdminKeyEnvironmentVariable, null);
 
             // Act
-            var result = await this.controller.UnsubscribeFromEmailNotificationsAsync(userId, string.Empty);
+            var result = await this.controller.SetBetaTesterAsync(Guid.NewGuid(), true, "any-key");
 
             // Assert
-            result.ShouldBeOfType<BadRequestObjectResult>();
-            this.userServiceMock.Verify(service => service.UnsubscribeFromEmailNotificationsAsync(It.IsAny<Guid>()), Times.Never);
+            var statusCodeResult = result.ShouldBeOfType<StatusCodeResult>();
+            statusCodeResult.StatusCode.ShouldBe(StatusCodes.Status403Forbidden);
         }
 
         [Fact]
-        public async Task UnsubscribeFromEmailNotificationsAsync_InvalidSignature_ShouldReturnBadRequest()
+        public async Task SetBetaTesterAsync_WhenAdminKeyIsInvalid_ShouldReturnForbidden()
         {
             // Arrange
-            var userId = Guid.NewGuid();
-            this.userServiceMock
-                .Setup(service => service.ValidateUnsubscribeSignature(userId, "invalid-signature"))
-                .Returns(false);
+            Environment.SetEnvironmentVariable(BetaTesterAdminKeyEnvironmentVariable, "correct-key");
 
             // Act
-            var result = await this.controller.UnsubscribeFromEmailNotificationsAsync(userId, "invalid-signature");
+            var result = await this.controller.SetBetaTesterAsync(Guid.NewGuid(), true, "invalid-key");
 
             // Assert
-            result.ShouldBeOfType<BadRequestObjectResult>();
-            this.userServiceMock.Verify(service => service.UnsubscribeFromEmailNotificationsAsync(It.IsAny<Guid>()), Times.Never);
+            var statusCodeResult = result.ShouldBeOfType<StatusCodeResult>();
+            statusCodeResult.StatusCode.ShouldBe(StatusCodes.Status403Forbidden);
         }
 
         [Fact]
-        public async Task UnsubscribeFromEmailNotificationsAsync_ValidSignature_ShouldReturnContentResult()
+        public async Task SetBetaTesterAsync_WhenAdminKeyIsValidAndEnabledIsTrue_ShouldAddRoleAndReturnNoContent()
         {
             // Arrange
+            Environment.SetEnvironmentVariable(BetaTesterAdminKeyEnvironmentVariable, "correct-key");
+
             var userId = Guid.NewGuid();
-            this.userServiceMock
-                .Setup(service => service.ValidateUnsubscribeSignature(userId, "valid-signature"))
-                .Returns(true);
-            this.userServiceMock
-                .Setup(service => service.UnsubscribeFromEmailNotificationsAsync(userId))
-                .ReturnsAsync(AppResponse.Success());
+            var user = new User(firstName: "Beta", lastName: "User", enabled: true)
+            {
+                Id = userId
+            };
+
+            this.userManagerMock.Setup(x => x.FindByIdAsync(userId.ToString())).ReturnsAsync(user);
+            this.userManagerMock.Setup(x => x.IsInRoleAsync(user, SystemRoles.BetaTester)).ReturnsAsync(false);
+            this.userManagerMock.Setup(x => x.AddToRoleAsync(user, SystemRoles.BetaTester)).ReturnsAsync(IdentityResult.Success);
 
             // Act
-            var result = await this.controller.UnsubscribeFromEmailNotificationsAsync(userId, "valid-signature");
+            var result = await this.controller.SetBetaTesterAsync(userId, true, "correct-key");
 
             // Assert
-            var contentResult = result.ShouldBeOfType<ContentResult>();
-            contentResult.Content.ShouldBe("You have been unsubscribed from email notifications.");
-            this.userServiceMock.Verify(service => service.UnsubscribeFromEmailNotificationsAsync(userId), Times.Once);
+            result.ShouldBeOfType<NoContentResult>();
+            this.userManagerMock.Verify(x => x.AddToRoleAsync(user, SystemRoles.BetaTester), Times.Once);
+        }
+
+        public void Dispose()
+        {
+            Environment.SetEnvironmentVariable(BetaTesterAdminKeyEnvironmentVariable, this.previousEnvValue);
         }
     }
 }
