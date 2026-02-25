@@ -1,10 +1,10 @@
 import { ApplicationConfig, CSP_NONCE, DOCUMENT, isDevMode, provideStabilityDebugging } from '@angular/core';
 import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
-import { MatNativeDateModule } from '@angular/material/core';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { HttpClient, provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
+import { MAT_MOMENT_DATE_FORMATS, provideMomentDateAdapter } from '@angular/material-moment-adapter';
 import { routes } from './features/app-routing.module';
 import { HttpRequestInterceptor } from './core/interceptor/http-request-interceptor';
 import { LoadingInterceptor } from './core/interceptor/loading.interceptor';
@@ -25,8 +25,8 @@ export const appConfig: ApplicationConfig = {
       withComponentInputBinding(),
       withInMemoryScrolling({ scrollPositionRestoration: 'top' })
     ),
+    provideMomentDateAdapter(MAT_MOMENT_DATE_FORMATS, { useUtc: true }),
     importProvidersFrom(
-      MatNativeDateModule,
       TranslateModule.forRoot({
         loader: {
           provide: TranslateLoader,
