@@ -8,7 +8,7 @@ namespace EasyFinance.Application.DTOs.Financial
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
-        public ICollection<ExpenseResponseDTO> Expenses { get; set; } = new List<ExpenseResponseDTO>();
+        public IEnumerable<ExpenseResponseDTO> Expenses { get; set; } = new List<ExpenseResponseDTO>();
         public bool IsArchived { get; set; }
         public int DisplayOrder { get; set; }
     }
