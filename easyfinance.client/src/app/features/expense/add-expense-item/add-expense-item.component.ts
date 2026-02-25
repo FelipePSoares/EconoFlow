@@ -10,6 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
+import { Moment } from 'moment';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ExpenseService } from '../../../core/services/expense.service';
 import { ExpenseItemDto } from '../models/expense-item-dto';
@@ -19,7 +20,7 @@ import { ErrorMessageService } from '../../../core/services/error-message.servic
 import { ApiErrorResponse } from '../../../core/models/error';
 import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.component';
 import { DateAdapter, MatNativeDateModule } from '@angular/material/core';
-import { formatDate, toLocalDate } from '../../../core/utils/date';
+import { formatDate, toLocalDate, toUtcMomentDate } from '../../../core/utils/date';
 import { GlobalService } from '../../../core/services/global.service';
 import { CurrentDateService } from '../../../core/services/current-date.service';
 import { CategoryService } from '../../../core/services/category.service';
@@ -57,7 +58,7 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
   private destroyRef = inject(DestroyRef);
 
   private expense?: ExpenseDto;
-  private currentDate = new Date();
+  private currentDate!: Moment;
   private editingExpenseItem: ExpenseItemDto | null = null;
   private expensesLoadToken = 0;
   expenseItemForm!: FormGroup;
@@ -110,12 +111,12 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(event => this.dateAdapter.setLocale(event.lang));
 
-    this.currentDate = toLocalDate(this.currentDateService.currentDate);
+    this.currentDate = toUtcMomentDate(this.currentDateService.currentDate);
     this.editingExpenseItem = this.expenseItem && !this.isNewEntity(this.expenseItem.id)
       ? structuredClone(this.expenseItem)
       : null;
     const initialDate = this.editingExpenseItem?.date
-      ? toLocalDate(this.editingExpenseItem.date)
+      ? toUtcMomentDate(this.editingExpenseItem.date)
       : this.currentDate;
     const initialExpenseId = this.expenseId ?? this.parentExpense?.id ?? '';
 

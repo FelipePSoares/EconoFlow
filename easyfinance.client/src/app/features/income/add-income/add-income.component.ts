@@ -12,12 +12,13 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { DateAdapter, MatNativeDateModule } from '@angular/material/core';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { Moment } from 'moment';
 import { IncomeService } from '../../../core/services/income.service';
 import { IncomeDto } from '../models/income-dto';
 import { IncomePatchModel } from '../models/income-patch-model';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
-import { formatDate, toLocalDate } from '../../../core/utils/date';
+import { formatDate, toLocalDate, toUtcMomentDate } from '../../../core/utils/date';
 import { GlobalService } from '../../../core/services/global.service';
 import { CurrentDateService } from '../../../core/services/current-date.service';
 
@@ -48,7 +49,7 @@ export class AddIncomeComponent implements OnInit, AfterViewInit {
   private translateService = inject(TranslateService);
   private destroyRef = inject(DestroyRef);
 
-  private currentDate = new Date();
+  private currentDate!: Moment;
   private editingIncome: IncomeDto | null = null;
   incomeForm!: FormGroup;
   isSaving = false;
@@ -87,13 +88,13 @@ export class AddIncomeComponent implements OnInit, AfterViewInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(event => this.dateAdapter.setLocale(event.lang));
 
-    this.currentDate = toLocalDate(this.currentDateService.currentDate);
+    this.currentDate = toUtcMomentDate(this.currentDateService.currentDate);
     this.editingIncome = this.income && !this.isNewEntity(this.income.id)
       ? structuredClone(this.income)
       : null;
 
     const initialDate = this.editingIncome?.date
-      ? toLocalDate(this.editingIncome.date)
+      ? toUtcMomentDate(this.editingIncome.date)
       : this.currentDate;
 
     this.incomeForm = new FormGroup({
