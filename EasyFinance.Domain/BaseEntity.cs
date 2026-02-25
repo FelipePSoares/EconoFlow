@@ -24,7 +24,6 @@ namespace EasyFinance.Domain
         public DateTime CreatedDate { get; set; } = DateTime.Now;
         public DateTime ModifiedAt { get; set; } = DateTime.Now;
         
-        [JsonIgnore]
         public abstract AppResponse Validate { get; }
     }
 }
