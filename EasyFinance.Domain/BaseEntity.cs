@@ -23,7 +23,8 @@ namespace EasyFinance.Domain
         public Guid Id { get; private set; } = default;
         public DateTime CreatedDate { get; set; } = DateTime.Now;
         public DateTime ModifiedAt { get; set; } = DateTime.Now;
-
+        
+        [JsonIgnore]
         public abstract AppResponse Validate { get; }
     }
 }
