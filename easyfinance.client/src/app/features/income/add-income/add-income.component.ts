@@ -9,7 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { DateAdapter, MatNativeDateModule } from '@angular/material/core';
+import { DateAdapter } from '@angular/material/core';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Moment } from 'moment';
@@ -32,7 +32,6 @@ import { CurrentDateService } from '../../../core/services/current-date.service'
     MatButtonModule,
     MatIconModule,
     MatDatepickerModule,
-    MatNativeDateModule,
     CurrencyMaskModule,
     TranslateModule
 ],

@@ -19,7 +19,7 @@ import { ExpensePatchModel } from '../models/expense-patch-model';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.component';
-import { DateAdapter, MatNativeDateModule } from '@angular/material/core';
+import { DateAdapter } from '@angular/material/core';
 import { formatDate, toLocalDate, toUtcMomentDate } from '../../../core/utils/date';
 import { GlobalService } from '../../../core/services/global.service';
 import { CurrentDateService } from '../../../core/services/current-date.service';
@@ -37,7 +37,6 @@ import { MatSelect, MatSelectModule } from '@angular/material/select';
     MatButtonModule,
     MatIconModule,
     MatDatepickerModule,
-    MatNativeDateModule,
     CurrencyMaskModule,
     MatSelectModule,
     TranslateModule

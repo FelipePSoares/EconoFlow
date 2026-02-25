@@ -5,7 +5,6 @@ import { ApplicationRef, Component, inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS, MAT_MOMENT_DATE_FORMATS } from '@angular/material-moment-adapter';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
 import { Observable } from 'rxjs/internal/Observable';
 import { AuthService } from '../core/services/auth.service';
@@ -17,11 +16,7 @@ import { CanonicalService } from '../core/services/canonical.service';
 import { AddButtonComponent } from '../core/components/add-button/add-button.component';
 import { PageModalComponent } from '../core/components/page-modal/page-modal.component';
 
-import {
-  DateAdapter,
-  MAT_DATE_FORMATS,
-  MAT_DATE_LOCALE,
-} from '@angular/material/core';
+import { DateAdapter } from '@angular/material/core';
 import { NotificationService } from '../core/services/notification.service';
 import { GlobalService } from '../core/services/global.service';
 import { ProjectService } from '../core/services/project.service';
@@ -39,16 +34,7 @@ import { ProjectService } from '../core/services/project.service';
     AddButtonComponent
   ],
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css'],
-  providers: [
-    { provide: MAT_MOMENT_DATE_ADAPTER_OPTIONS, useValue: { useUtc: true } },
-    {
-      provide: DateAdapter,
-      useClass: MomentDateAdapter,
-      deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS],
-    },
-    { provide: MAT_DATE_FORMATS, useValue: MAT_MOMENT_DATE_FORMATS },
-  ]
+  styleUrls: ['./app.component.css']
 })
 
 export class AppComponent {

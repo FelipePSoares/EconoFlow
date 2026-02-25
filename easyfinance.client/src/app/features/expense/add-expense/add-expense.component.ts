@@ -10,7 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { DateAdapter, MatNativeDateModule } from '@angular/material/core';
+import { DateAdapter } from '@angular/material/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Moment } from 'moment';
 import { ExpenseService } from '../../../core/services/expense.service';
@@ -36,7 +36,6 @@ import { MatSelect, MatSelectModule } from '@angular/material/select';
     MatButtonModule,
     MatIconModule,
     MatDatepickerModule,
-    MatNativeDateModule,
     CurrencyMaskModule,
     MatSelectModule,
     TranslateModule
