@@ -1,21 +1,19 @@
 self.addEventListener('push', event => {
-  if (!event.data) {
-    return;
-  }
+  let payload = { title: 'EconoFlow', body: 'Push recebido (sem payload).' };
 
-  let payload = {};
-
-  try {
-    payload = event.data.json();
-  } catch {
-    payload = { body: event.data.text() };
+  if (event.data) {
+    try {
+      payload = event.data.json();
+    } catch {
+      payload = { title: 'EconoFlow', body: event.data.text() };
+    }
   }
 
   const title = payload.title || 'EconoFlow';
   const options = {
     body: payload.body || '',
-    icon: payload.icon || '/assets/favicon.ico',
-    badge: payload.badge || '/assets/favicon.ico',
+    icon: payload.icon || '/assets/images/logo-without-text-background-512-min.png',
+    badge: payload.badge || '/assets/images/logo-minimalist-192.png',
     tag: payload.tag || 'econoflow-web-push',
     requireInteraction: Boolean(payload.requireInteraction),
     data: {
