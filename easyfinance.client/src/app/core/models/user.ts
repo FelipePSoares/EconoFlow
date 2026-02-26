@@ -11,6 +11,8 @@ export class User {
   defaultProjectId!: string;
   notificationChannels!: string[];
   languageCode!: string;
+  isBetaTester!: boolean;
+  enabledFeatures!: string[];
 }
 
 export class DeleteUser {

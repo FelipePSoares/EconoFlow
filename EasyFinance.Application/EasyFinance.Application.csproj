@@ -12,6 +12,7 @@
     <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="8.0.12" />
     <PackageReference Include="Smtp2Go.ApiClient" Version="0.0.5" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.3.1" />
+    <PackageReference Include="WebPush" Version="1.0.12" />
   </ItemGroup>
 
   <ItemGroup>

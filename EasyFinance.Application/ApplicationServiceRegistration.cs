@@ -11,12 +11,14 @@ using EasyFinance.Application.Features.CategoryService;
 using EasyFinance.Application.Features.EmailService;
 using EasyFinance.Application.Features.ExpenseItemService;
 using EasyFinance.Application.Features.ExpenseService;
+using EasyFinance.Application.Features.FeatureRolloutService;
 using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Application.Features.NotificationService;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Application.Features.SupportService;
 using EasyFinance.Application.Features.UserKeyService;
 using EasyFinance.Application.Features.UserService;
+using EasyFinance.Application.Features.WebPushService;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EasyFinance.Application
@@ -36,21 +38,25 @@ namespace EasyFinance.Application
             services.AddScoped<IExpenseService, ExpenseService>();
             services.AddScoped<IExpenseItemService, ExpenseItemService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IFeatureRolloutService, FeatureRolloutService>();
             services.AddScoped<IContactService, ContactService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<IWebPushService, WebPushService>();
             services.AddScoped<IUserKeyService>(provider => new UserKeyService(userKeySalt));
 
             // Support Service
             services.AddTransient<EmailChannel>();
             services.AddTransient<SmsChannel>();
             services.AddTransient<PushChannel>();
+            services.AddTransient<WebPushChannel>();
             services.AddTransient<CompoundNotificationChannel>();
 
             // Background Services
             services.AddHostedService<EmailBackgroundService>();
             services.AddHostedService<NotifierBackgroundService>();
             services.AddOptions<NotifierFallbackOptions>();
+            services.AddOptions<WebPushOptions>();
 
             // Register Channels
             var emailChannel = Channel.CreateUnbounded<EmailRequest>();

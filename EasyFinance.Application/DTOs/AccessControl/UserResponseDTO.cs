@@ -6,7 +6,10 @@ namespace EasyFinance.Application.DTOs.AccessControl
 {
     public class UserResponseDTO
     {
-        public UserResponseDTO(User user)
+        public UserResponseDTO(
+            User user,
+            bool isBetaTester = false,
+            FeatureFlags enabledFeatures = FeatureFlags.None)
         {
             if (user != null)
             {
@@ -22,6 +25,8 @@ namespace EasyFinance.Application.DTOs.AccessControl
                 DefaultProjectId = user.DefaultProjectId;
                 NotificationChannels = user.NotificationChannels;
                 LanguageCode = user.LanguageCode;
+                IsBetaTester = isBetaTester;
+                EnabledFeatures = enabledFeatures;
             }
         }
 
@@ -37,5 +42,7 @@ namespace EasyFinance.Application.DTOs.AccessControl
         public Guid? DefaultProjectId {  get; init; }
         public NotificationChannels NotificationChannels { get; init; }
         public string LanguageCode { get; init; }
+        public bool IsBetaTester { get; init; }
+        public FeatureFlags EnabledFeatures { get; init; }
     }
 }

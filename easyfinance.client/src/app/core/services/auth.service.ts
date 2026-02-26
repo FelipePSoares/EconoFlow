@@ -4,6 +4,7 @@ import { Observable, Subscription, interval, map, switchMap } from 'rxjs';
 import { UserService } from '../services/user.service';
 import { User } from '../models/user';
 import { NotificationService } from './notification.service';
+import { WebPushService } from './web-push.service';
 
 @Injectable({
   providedIn: 'root',
@@ -14,7 +15,11 @@ export class AuthService {
   isSignedIn$: Observable<boolean> = this.userService.loggedUser$.pipe(map(user => user.enabled));
   isSignedOut$: Observable<boolean> = this.isSignedIn$.pipe(map(isLoggedIn => !isLoggedIn));
 
-  constructor(private http: HttpClient, private userService: UserService, private notificationService: NotificationService) { }
+  constructor(
+    private http: HttpClient,
+    private userService: UserService,
+    private notificationService: NotificationService,
+    private webPushService: WebPushService) { }
 
   public signIn(email: string, password: string, twoFactorCode?: string, twoFactorRecoveryCode?: string): Observable<User> {
     return this.userService.signIn(email, password, twoFactorCode, twoFactorRecoveryCode)
@@ -34,6 +39,7 @@ export class AuthService {
   public signOut(): void {
     this.stopUserPolling();
     this.notificationService.stopPolling();
+    this.webPushService.resetState();
 
     this.userService.removeUserInfo();
 

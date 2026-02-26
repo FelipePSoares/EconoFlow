@@ -52,8 +52,10 @@ export class UserService {
 
       return this.localService.getData<User>(this.localService.USER_DATA).pipe(
         switchMap(user => {
-          if (user)
+          if (user) {
+            user.enabledFeatures = Array.isArray(user.enabledFeatures) ? user.enabledFeatures : [];
             return of(user);
+          }
 
           return this.refreshUserInfo();
         }),
@@ -216,7 +218,6 @@ export class UserService {
   public update(patch: Operation[]): Observable<User> {
     return this.http.patch<User>('/api/AccessControl/', patch).pipe(tap(user => {
       this.globalService.setLocale(user.languageCode);
-
       this.loggedUser.next(user);
       this.localService.saveData(this.localService.USER_DATA, user).subscribe();
     }));

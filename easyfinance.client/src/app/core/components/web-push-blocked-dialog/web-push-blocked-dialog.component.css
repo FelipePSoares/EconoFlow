@@ -1,0 +1,58 @@
+:host {
+  display: block;
+}
+
+.web-push-dialog {
+  padding: 24px 24px 20px;
+  max-width: 520px;
+}
+
+.icon-badge {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(237, 137, 54, 0.16);
+  color: #b45309;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.icon-badge mat-icon {
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+}
+
+h2 {
+  margin: 0 0 10px;
+  font-size: 1.2rem;
+  line-height: 1.5rem;
+  font-weight: 600;
+}
+
+p {
+  margin: 0;
+  color: #4b5563;
+  line-height: 1.45rem;
+}
+
+ul {
+  margin: 12px 0 0;
+  padding-left: 20px;
+  color: #374151;
+}
+
+li {
+  margin-bottom: 8px;
+  line-height: 1.35rem;
+}
+
+.actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
