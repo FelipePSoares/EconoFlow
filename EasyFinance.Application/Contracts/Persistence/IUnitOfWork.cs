@@ -18,6 +18,7 @@ namespace EasyFinance.Application.Contracts.Persistence
         IGenericRepository<Category> CategoryRepository { get; }
         IGenericRepository<Expense> ExpenseRepository { get; }
         IGenericRepository<ExpenseItem> ExpenseItemRepository { get; }
+        IGenericRepository<Attachment> AttachmentRepository { get; }
         IGenericRepository<ContactUs> ContactUsRepository { get; }
         IGenericRepository<Notification> NotificationRepository { get; }
         IGenericRepository<WebPushSubscription> WebPushSubscriptionRepository { get; }

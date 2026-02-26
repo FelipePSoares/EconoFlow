@@ -18,13 +18,16 @@ namespace EasyFinance.Domain.Financial
             User createdBy = default,
             ICollection<Attachment> attachments = default,
             ICollection<ExpenseItem> items = default,
-            int budget = default)
+            int budget = default,
+            bool isDeductible = false)
             : base(name, date, amount, createdBy, attachments, items)
         {
             SetBudget(budget);
+            SetIsDeductible(isDeductible);
         }
 
         public int Budget { get; private set; }
+        public bool IsDeductible { get; private set; }
 
         public override AppResponse Validate
         {
@@ -49,6 +52,7 @@ namespace EasyFinance.Domain.Financial
         }
 
         public void SetBudget(int budget) => Budget = budget;
+        public void SetIsDeductible(bool isDeductible) => IsDeductible = isDeductible;
 
         public AppResponse<Expense> CopyBudgetToNextMonth(User createdBy)
         {

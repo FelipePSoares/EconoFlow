@@ -341,4 +341,37 @@ You will be redirect in 5 seconds ...</value>
   <data name="TwoFactorNotEnabled" xml:space="preserve">
     <value>Two-factor authentication is not enabled for this account.</value>
   </data>
+  <data name="ExpenseItemNotFound" xml:space="preserve">
+    <value>Expense item not found.</value>
+  </data>
+  <data name="InvalidAttachmentId" xml:space="preserve">
+    <value>AttachmentId is not valid.</value>
+  </data>
+  <data name="AttachmentNotFound" xml:space="preserve">
+    <value>Attachment not found.</value>
+  </data>
+  <data name="AttachmentFileIsEmpty" xml:space="preserve">
+    <value>Attachment must not be empty.</value>
+  </data>
+  <data name="AttachmentFileSizeExceeded" xml:space="preserve">
+    <value>Attachment exceeds the maximum allowed size ({0} MB).</value>
+  </data>
+  <data name="AttachmentContentTypeNotSupported" xml:space="preserve">
+    <value>Unsupported attachment content type. Allowed types: {0}.</value>
+  </data>
+  <data name="InvalidAttachmentType" xml:space="preserve">
+    <value>Invalid attachment type.</value>
+  </data>
+  <data name="AttachmentParentRequired" xml:space="preserve">
+    <value>Attachment must be linked to an expense, expense item, or income.</value>
+  </data>
+  <data name="AttachmentSingleParentRequired" xml:space="preserve">
+    <value>Attachment cannot be linked to more than one parent entity.</value>
+  </data>
+  <data name="TemporaryAttachmentCannotHaveParent" xml:space="preserve">
+    <value>Temporary attachment cannot be linked to a parent entity.</value>
+  </data>
+  <data name="TemporaryAttachmentNotFoundOrInvalid" xml:space="preserve">
+    <value>One or more temporary attachments were not found or are not valid for this user.</value>
+  </data>
 </root>

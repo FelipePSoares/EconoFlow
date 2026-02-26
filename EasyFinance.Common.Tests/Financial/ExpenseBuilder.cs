@@ -13,5 +13,11 @@ namespace EasyFinance.Common.Tests.Financial
             this.entity.SetBudget(budget);
             return this;
         }
+
+        public ExpenseBuilder SetIsDeductible(bool isDeductible)
+        {
+            this.entity.SetIsDeductible(isDeductible);
+            return this;
+        }
     }
 }

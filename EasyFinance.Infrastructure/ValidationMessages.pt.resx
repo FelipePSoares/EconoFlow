@@ -342,4 +342,37 @@ Você será redirecionado em 5 segundos...</value>
   <data name="TwoFactorNotEnabled" xml:space="preserve">
     <value>A autenticação de dois fatores não está habilitada para esta conta.</value>
   </data>
+  <data name="ExpenseItemNotFound" xml:space="preserve">
+    <value>Item de despesa não encontrado.</value>
+  </data>
+  <data name="InvalidAttachmentId" xml:space="preserve">
+    <value>AttachmentId é inválido.</value>
+  </data>
+  <data name="AttachmentNotFound" xml:space="preserve">
+    <value>Anexo não encontrado.</value>
+  </data>
+  <data name="AttachmentFileIsEmpty" xml:space="preserve">
+    <value>O anexo não pode estar vazio.</value>
+  </data>
+  <data name="AttachmentFileSizeExceeded" xml:space="preserve">
+    <value>O anexo excede o tamanho máximo permitido ({0} MB).</value>
+  </data>
+  <data name="AttachmentContentTypeNotSupported" xml:space="preserve">
+    <value>Tipo de conteúdo do anexo não suportado. Tipos permitidos: {0}.</value>
+  </data>
+  <data name="InvalidAttachmentType" xml:space="preserve">
+    <value>Tipo de anexo inválido.</value>
+  </data>
+  <data name="AttachmentParentRequired" xml:space="preserve">
+    <value>O anexo precisa estar vinculado a uma despesa, item de despesa ou renda.</value>
+  </data>
+  <data name="AttachmentSingleParentRequired" xml:space="preserve">
+    <value>O anexo não pode estar vinculado a mais de uma entidade pai.</value>
+  </data>
+  <data name="TemporaryAttachmentCannotHaveParent" xml:space="preserve">
+    <value>O anexo temporário não pode estar vinculado a uma entidade pai.</value>
+  </data>
+  <data name="TemporaryAttachmentNotFoundOrInvalid" xml:space="preserve">
+    <value>Um ou mais anexos temporários não foram encontrados ou não são válidos para este usuário.</value>
+  </data>
 </root>

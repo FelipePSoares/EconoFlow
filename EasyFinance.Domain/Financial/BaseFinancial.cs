@@ -77,5 +77,17 @@ namespace EasyFinance.Domain.Financial
         {
             Attachments = attachments ?? throw new ArgumentNullException(null, string.Format(ValidationMessages.PropertyCantBeNull, nameof(attachments)));
         }
+
+        public void AddAttachment(Attachment attachment)
+        {
+            ArgumentNullException.ThrowIfNull(attachment);
+            Attachments.Add(attachment);
+        }
+
+        public void RemoveAttachment(Attachment attachment)
+        {
+            ArgumentNullException.ThrowIfNull(attachment);
+            Attachments.Remove(attachment);
+        }
     }
 }

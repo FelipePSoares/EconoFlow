@@ -20,7 +20,8 @@ namespace EasyFinance.Application.Mappers
                 Id = expenseItem.Id,
                 Name = expenseItem.Name,
                 Date = expenseItem.Date,
-                Amount = expenseItem.Amount
+                Amount = expenseItem.Amount,
+                Attachments = expenseItem.Attachments.ToExpenseAttachmentDTO()
             };
         }
 
@@ -32,7 +33,8 @@ namespace EasyFinance.Application.Mappers
             {
                 Name = expenseItem.Name,
                 Date = expenseItem.Date,
-                Amount = expenseItem.Amount
+                Amount = expenseItem.Amount,
+                TemporaryAttachmentIds = [],
             };
         }
 
