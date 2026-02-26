@@ -1,5 +1,5 @@
 
-import { distinctUntilChanged, filter, firstValueFrom } from 'rxjs';
+import { distinctUntilChanged, filter, firstValueFrom, map } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { ApplicationRef, Component, inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, DOCUMENT, isPlatformBrowser } from '@angular/common';
@@ -21,6 +21,8 @@ import { NotificationService } from '../core/services/notification.service';
 import { GlobalService } from '../core/services/global.service';
 import { ProjectService } from '../core/services/project.service';
 import { WebPushService } from '../core/services/web-push.service';
+import { UserService } from '../core/services/user.service';
+import { FeatureFlag } from '../core/enums/feature-flag';
 
 @Component({
   selector: 'app-root',
@@ -55,6 +57,7 @@ export class AppComponent {
   private globalService = inject(GlobalService);
   private projectService = inject(ProjectService);
   private webPushService = inject(WebPushService);
+  private userService = inject(UserService);
   private document = inject(DOCUMENT);
   private appRef = inject(ApplicationRef);
   private platformId = inject(PLATFORM_ID);
@@ -78,9 +81,27 @@ export class AppComponent {
         if (isSignedIn) {
           authService.startUserPolling();
           this.noticationService.startPolling();
-          void this.webPushService.initializeForCurrentUser();
         }
       });
+
+      this.userService.loggedUser$
+        .pipe(
+          map(user => ({
+            id: user?.id ?? '',
+            enabled: !!user?.enabled,
+            hasPushChannel: user?.notificationChannels?.includes('Push') ?? false,
+            hasWebPushFeature: user?.enabledFeatures?.includes(FeatureFlag.WebPush) ?? false
+          })),
+          distinctUntilChanged((previous, current) =>
+            previous.id === current.id
+            && previous.enabled === current.enabled
+            && previous.hasPushChannel === current.hasPushChannel
+            && previous.hasWebPushFeature === current.hasWebPushFeature)
+        )
+        .subscribe(state => {
+          if (state.enabled && state.id && state.hasPushChannel && state.hasWebPushFeature)
+            void this.webPushService.initializeForCurrentUser();
+        });
 
       this.projectService.selectedUserProject$.subscribe(userProject => {
         this.selectedProjectId = userProject?.project?.id ?? null;
