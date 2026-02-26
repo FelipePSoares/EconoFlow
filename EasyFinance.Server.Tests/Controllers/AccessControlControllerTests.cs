@@ -2,6 +2,7 @@
 using System.Security.Principal;
 using EasyFinance.Application.DTOs.AccessControl;
 using EasyFinance.Application.Features.AccessControlService;
+using EasyFinance.Application.Features.FeatureRolloutService;
 using EasyFinance.Application.Features.NotificationService;
 using EasyFinance.Application.Features.UserService;
 using EasyFinance.Application.Mappers;
@@ -69,6 +70,7 @@ namespace EasyFinance.Server.Tests.Controllers
                userService: Mock.Of<IUserService>(),
                linkGenerator: Mock.Of<LinkGenerator>(),
                accessControlService: Mock.Of<IAccessControlService>(),
+               featureRolloutService: Mock.Of<IFeatureRolloutService>(),
                tokenSettings: tokenSettings,
                notificationService: Mock.Of<INotificationService>(),
                logger: Mock.Of<ILogger<AccessControlController>>()

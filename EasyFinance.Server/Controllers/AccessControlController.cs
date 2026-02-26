@@ -3,12 +3,14 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Net;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.RegularExpressions;
 using EasyFinance.Application.DTOs.AccessControl;
 using EasyFinance.Application.DTOs.Account;
 using EasyFinance.Application.Features.AccessControlService;
+using EasyFinance.Application.Features.FeatureRolloutService;
 using EasyFinance.Application.Features.NotificationService;
 using EasyFinance.Application.Features.UserService;
 using EasyFinance.Application.Mappers;
@@ -24,6 +26,7 @@ using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 
@@ -39,6 +42,7 @@ namespace EasyFinance.Server.Controllers
         IUserService userService,
         LinkGenerator linkGenerator,
         IAccessControlService accessControlService,
+        IFeatureRolloutService featureRolloutService,
         TokenSettings tokenSettings,
         INotificationService notificationService,
         ILogger<AccessControlController> logger) : BaseController
@@ -55,6 +59,8 @@ namespace EasyFinance.Server.Controllers
         private const string loginFailureCodeTwoFactorRequired = "TwoFactorRequired";
         private const string loginFailureCodeInvalidTwoFactorCode = "InvalidTwoFactorCode";
         private const string loginFailureCodeInvalidTwoFactorRecoveryCode = "InvalidTwoFactorRecoveryCode";
+        private const string betaTesterAdminKeyEnvironmentVariable = "EconoFlow_BETA_TESTER_ADMIN_KEY";
+        private const string betaTesterAdminKeyHeaderName = "X-Rollout-Key";
 
         // Validate the email address using DataAnnotations like the UserValidator does when RequireUniqueEmail = true.
         private static readonly EmailAddressAttribute emailAddressAttribute = new();
@@ -65,6 +71,7 @@ namespace EasyFinance.Server.Controllers
         private readonly IUserService userService = userService;
         private readonly LinkGenerator linkGenerator = linkGenerator;
         private readonly IAccessControlService accessControlService = accessControlService;
+        private readonly IFeatureRolloutService featureRolloutService = featureRolloutService;
         private readonly TokenSettings tokenSettings = tokenSettings;
         private readonly INotificationService notificationService = notificationService;
         private readonly ILogger<AccessControlController> logger = logger;
@@ -77,7 +84,7 @@ namespace EasyFinance.Server.Controllers
             if (user == null)
                 return BadRequest("User not found!");
 
-            return Ok(new UserResponseDTO(user));
+            return Ok(await this.CreateUserResponseAsync(user));
         }
 
         [HttpGet("IsLogged")]
@@ -103,18 +110,37 @@ namespace EasyFinance.Server.Controllers
             var dto = existentUser.ToRequestDTO();
             userRequestDto.ApplyTo(dto);
 
-            existentUser.SetFirstName(dto.FirstName);
-            existentUser.SetLastName(dto.LastName);
-            existentUser.SetLanguageCode(dto.LanguageCode);
-            existentUser.SetNotificationChannels(dto.NotificationChannels);
+            var updatedFields = userRequestDto.Operations
+                .Select(operation => operation.path)
+                .Where(path => !string.IsNullOrWhiteSpace(path))
+                .Select(path => path!.Trim().TrimStart('/').Split('/')[0].ToLowerInvariant())
+                .ToHashSet();
+
+            if (updatedFields.Contains("firstname"))
+                existentUser.SetFirstName(dto.FirstName);
+
+            if (updatedFields.Contains("lastname"))
+                existentUser.SetLastName(dto.LastName);
+
+            if (updatedFields.Contains("languagecode"))
+                existentUser.SetLanguageCode(dto.LanguageCode);
+
+            if (updatedFields.Contains("notificationchannels"))
+                existentUser.SetNotificationChannels(dto.NotificationChannels);
 
             var result = existentUser.Validate;
             if (result.Failed)
                 return this.ValidateResponse(result, HttpStatusCode.OK);
 
-            await this.userManager.UpdateAsync(existentUser);
+            var updateResult = await this.userManager.UpdateAsync(existentUser);
+            if (!updateResult.Succeeded)
+                return this.ValidateIdentityResponse(updateResult);
 
-            return Ok(new UserResponseDTO(existentUser));
+            var refreshedUser = await this.userManager.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(user => user.Id == existentUser.Id);
+
+            return Ok(await this.CreateUserResponseAsync(refreshedUser ?? existentUser));
         }
 
         [HttpPut("default-project/{defaultProjectId?}")]
@@ -650,6 +676,46 @@ namespace EasyFinance.Server.Controllers
             return Ok(await CreateInfoResponseAsync(user, userManager));
         }
 
+        [AllowAnonymous]
+        [HttpPut("users/{userId:guid}/beta")]
+        public async Task<IActionResult> SetBetaTesterAsync(
+            [FromRoute] Guid userId,
+            [FromQuery] bool enabled = true,
+            [FromHeader(Name = betaTesterAdminKeyHeaderName)] string rolloutKey = "")
+        {
+            if (!TryValidateBetaTesterAdminKey(rolloutKey))
+                return StatusCode((int)HttpStatusCode.Forbidden);
+
+            var user = await this.userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
+                return NotFound("User not found!");
+
+            var isBetaTester = await this.userManager.IsInRoleAsync(user, SystemRoles.BetaTester);
+
+            if (enabled)
+            {
+                if (isBetaTester)
+                    return NoContent();
+
+                var addRoleResult = await this.userManager.AddToRoleAsync(user, SystemRoles.BetaTester);
+                if (!addRoleResult.Succeeded)
+                    return this.ValidateIdentityResponse(addRoleResult);
+
+                this.logger.LogInformation("User {UserId} added to role {RoleName}.", user.Id, SystemRoles.BetaTester);
+                return NoContent();
+            }
+
+            if (!isBetaTester)
+                return NoContent();
+
+            var removeRoleResult = await this.userManager.RemoveFromRoleAsync(user, SystemRoles.BetaTester);
+            if (!removeRoleResult.Succeeded)
+                return this.ValidateIdentityResponse(removeRoleResult);
+
+            this.logger.LogInformation("User {UserId} removed from role {RoleName}.", user.Id, SystemRoles.BetaTester);
+            return NoContent();
+        }
+
         [HttpPut("deactivate")]
         public async Task<IActionResult> DeactivateUserAsync()
         {
@@ -844,6 +910,34 @@ namespace EasyFinance.Server.Controllers
                 return AppResponse.Error(nameof(TwoFactorSecureActionRequestDTO.TwoFactorRecoveryCode), ValidationMessages.InvalidRecoveryCode);
 
             return AppResponse.Success();
+        }
+
+        private async Task<UserResponseDTO> CreateUserResponseAsync(User user)
+        {
+            var roles = await this.userManager.GetRolesAsync(user);
+
+            return new UserResponseDTO(
+                user,
+                isBetaTester: this.featureRolloutService.IsBetaTester(roles),
+                enabledFeatures: this.featureRolloutService.GetEnabledFeatures(roles));
+        }
+
+        private static bool TryValidateBetaTesterAdminKey(string providedKey)
+        {
+            var configuredKey = Environment.GetEnvironmentVariable(betaTesterAdminKeyEnvironmentVariable);
+            if (string.IsNullOrWhiteSpace(configuredKey))
+                return false;
+
+            if (string.IsNullOrWhiteSpace(providedKey))
+                return false;
+
+            var configuredBytes = Encoding.UTF8.GetBytes(configuredKey.Trim());
+            var providedBytes = Encoding.UTF8.GetBytes(providedKey.Trim());
+
+            if (configuredBytes.Length != providedBytes.Length)
+                return false;
+
+            return CryptographicOperations.FixedTimeEquals(configuredBytes, providedBytes);
         }
 
         private static LoginFailureResponseDTO CreateLoginFailureResponse(string code, bool requiresTwoFactor = false)

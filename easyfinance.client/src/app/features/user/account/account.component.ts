@@ -19,6 +19,7 @@ import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.co
 import { MatDialog } from '@angular/material/dialog';
 import { compare } from 'fast-json-patch';
 import { GlobalService } from '../../../core/services/global.service';
+import { WebPushService } from '../../../core/services/web-push.service';
 
 @Component({
   selector: 'app-account',
@@ -44,9 +45,11 @@ export class AccountComponent implements OnInit, OnDestroy {
   private dialog = inject(MatDialog);
   private translateService = inject(TranslateService);
   private globalService = inject(GlobalService);
+  private webPushService = inject(WebPushService);
 
   // Private Properties
   private deleteToken!: string;
+  private userSub!: Subscription;
   private sub!: Subscription;
   private sub2!: Subscription;
 
@@ -76,37 +79,63 @@ export class AccountComponent implements OnInit, OnDestroy {
 
   /** User Form Initialization **/
   reset() {
-    this.user$.subscribe(user => {
-      this.userForm = new FormGroup({
-        firstName: new FormControl(user.firstName, [Validators.required, Validators.maxLength(100)]),
-        lastName: new FormControl(user.lastName, [Validators.required, Validators.maxLength(100)]),
-        languageCode: new FormControl(user.languageCode, [Validators.required])
-      });
-
-      this.sub = this.userForm.valueChanges
-        .pipe(
-          debounceTime(800),
-          distinctUntilChanged()
-        )
-        .subscribe(() => {
-          this.saveGeneralInfo();
-        });
-
-      this.notificationForm = new FormGroup({
-        isEmailNotificationChecked: new FormControl(user.notificationChannels?.some(n => n == "Email")),
-        isPushNotificationChecked: new FormControl(user.notificationChannels?.some(n => n == "Push"))
-      });
-
-      this.sub2 = this.notificationForm.valueChanges
-        .pipe(
-          distinctUntilChanged()
-      )
-        .subscribe(change => {
-          this.saveNotificationPreferences(change);
-        });
-
+    this.userSub = this.user$.subscribe(user => {
       this.editingUser = user;
+
+      if (!this.userForm || !this.notificationForm) {
+        this.initializeForms(user);
+        return;
+      }
+
+      this.syncFormsFromUser(user);
     });
+  }
+
+  private initializeForms(user: User): void {
+    this.userForm = new FormGroup({
+      firstName: new FormControl(user.firstName, [Validators.required, Validators.maxLength(100)]),
+      lastName: new FormControl(user.lastName, [Validators.required, Validators.maxLength(100)]),
+      languageCode: new FormControl(user.languageCode, [Validators.required])
+    });
+
+    this.sub = this.userForm.valueChanges
+      .pipe(
+        debounceTime(800),
+        distinctUntilChanged()
+      )
+      .subscribe(() => {
+        this.saveGeneralInfo();
+      });
+
+    this.notificationForm = new FormGroup({
+      isEmailNotificationChecked: new FormControl(user.notificationChannels?.some(n => n == "Email")),
+      isPushNotificationChecked: new FormControl(user.notificationChannels?.some(n => n == "Push"))
+    });
+
+    this.sub2 = this.notificationForm.valueChanges
+      .pipe(
+        distinctUntilChanged()
+      )
+      .subscribe(change => {
+        this.saveNotificationPreferences(change);
+      });
+  }
+
+  private syncFormsFromUser(user: User): void {
+    if (!this.userForm.dirty) {
+      this.userForm.patchValue({
+        firstName: user.firstName,
+        lastName: user.lastName,
+        languageCode: user.languageCode
+      }, { emitEvent: false });
+    }
+
+    if (!this.notificationForm.dirty) {
+      this.notificationForm.patchValue({
+        isEmailNotificationChecked: user.notificationChannels?.some(n => n == "Email"),
+        isPushNotificationChecked: user.notificationChannels?.some(n => n == "Push")
+      }, { emitEvent: false });
+    }
   }
 
   /** Deletion Handling **/
@@ -158,9 +187,15 @@ export class AccountComponent implements OnInit, OnDestroy {
       });
 
       const patch = compare(oldUser, newUser);
+      if (!patch.length)
+        return;
 
       this.userService.update(patch).subscribe({
-        next: (response: User) => this.editingUser = response,
+        next: (response: User) => {
+          this.editingUser = response;
+          this.userForm.markAsPristine();
+          this.syncFormsFromUser(response);
+        },
         error: (response: ApiErrorResponse) => {
           this.httpErrors = true;
           this.errors = response.errors;
@@ -192,14 +227,21 @@ export class AccountComponent implements OnInit, OnDestroy {
     });
 
     const patch = compare(oldUser, newUser);
+    if (!patch.length)
+      return;
 
     this.userService.update(patch).subscribe({
-      next: (response: User) => this.editingUser = response,
+      next: (response: User) => {
+        this.editingUser = response;
+        this.notificationForm.markAsPristine();
+        this.syncFormsFromUser(response);
+
+        if (value.isPushNotificationChecked)
+          void this.webPushService.initializeForCurrentUserFromUserAction();
+      },
       error: (response: ApiErrorResponse) => {
         this.httpErrors = true;
         this.errors = response.errors;
-
-        this.user$ = this.userService.loggedUser$;
 
         this.errorMessageService.setFormErrors(this.userForm, this.errors);
 
@@ -216,6 +258,7 @@ export class AccountComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.userSub.unsubscribe();
     this.sub.unsubscribe();
     this.sub2.unsubscribe();
   }

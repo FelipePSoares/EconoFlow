@@ -17,6 +17,7 @@ namespace EasyFinance.Persistence.DatabaseContext
         {
             // Account
             modelBuilder.ApplyConfiguration(new NotificationConfiguration());
+            modelBuilder.ApplyConfiguration(new WebPushSubscriptionConfiguration());
 
             // Access Control
             modelBuilder.ApplyConfiguration(new UserConfiguration());

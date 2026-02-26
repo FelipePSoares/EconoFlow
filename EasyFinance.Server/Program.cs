@@ -3,6 +3,8 @@ using System.Net;
 using EasyFinance.Application;
 using EasyFinance.Application.BackgroundServices.NotifierBackgroundService;
 using EasyFinance.Application.Contracts.Persistence;
+using EasyFinance.Application.Features.FeatureRolloutService;
+using EasyFinance.Application.Features.WebPushService;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Account;
 using EasyFinance.Domain.Financial;
@@ -28,6 +30,8 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddApplicationServices();
 builder.Services.Configure<NotifierFallbackOptions>(builder.Configuration.GetSection(NotifierFallbackOptions.SectionName));
+builder.Services.Configure<WebPushOptions>(builder.Configuration.GetSection(WebPushOptions.SectionName));
+builder.Services.Configure<FeatureRolloutOptions>(builder.Configuration.GetSection(FeatureRolloutOptions.SectionName));
 builder.Services.AddAuthenticationServices(builder.Configuration, builder.Environment);
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 
@@ -78,6 +82,22 @@ if (!builder.Environment.IsDevelopment())
         keys.ProtectKeysWithDpapi(false);
 }
 
+async Task EnsureSystemRolesAsync(IServiceProvider services)
+{
+    using var roleScope = services.CreateScope();
+    var roleManager = roleScope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+
+    if (!await roleManager.RoleExistsAsync(SystemRoles.BetaTester))
+    {
+        var createRoleResult = await roleManager.CreateAsync(new IdentityRole<Guid>(SystemRoles.BetaTester));
+        if (!createRoleResult.Succeeded)
+        {
+            var roleCreationErrors = string.Join(", ", createRoleResult.Errors.Select(error => error.Description));
+            throw new InvalidOperationException($"Failed to create required role '{SystemRoles.BetaTester}'. Errors: {roleCreationErrors}");
+        }
+    }
+}
+
 try
 {
     var app = builder.Build();
@@ -88,6 +108,7 @@ try
 
     if (app.Environment.IsDevelopment())
     {
+        EnsureSystemRolesAsync(app.Services).GetAwaiter().GetResult();
         app.UseSwagger();
         app.UseSwaggerUI();
 
@@ -119,6 +140,7 @@ try
         };
         user.SetLanguageCode("en");
         userManager.CreateAsync(user, "Passw0rd!").GetAwaiter().GetResult();
+        userManager.AddToRoleAsync(user, SystemRoles.BetaTester).GetAwaiter().GetResult();
 
         var user2 = new User(firstName: "Second", lastName: "User", enabled: true)
         {
@@ -314,6 +336,7 @@ try
         app.UseHsts();
         app.UseSecutiryPolicy();
         app.UseMigration();
+        EnsureSystemRolesAsync(app.Services).GetAwaiter().GetResult();
     }
 
     app.UseDefaultFiles();

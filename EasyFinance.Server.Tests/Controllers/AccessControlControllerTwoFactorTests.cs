@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using EasyFinance.Application.DTOs.AccessControl;
 using EasyFinance.Application.Features.AccessControlService;
+using EasyFinance.Application.Features.FeatureRolloutService;
 using EasyFinance.Application.Features.NotificationService;
 using EasyFinance.Application.Features.UserService;
 using EasyFinance.Domain.AccessControl;
@@ -65,6 +66,7 @@ namespace EasyFinance.Server.Tests.Controllers
                 userService: Mock.Of<IUserService>(),
                 linkGenerator: Mock.Of<LinkGenerator>(),
                 accessControlService: Mock.Of<IAccessControlService>(),
+                featureRolloutService: Mock.Of<IFeatureRolloutService>(),
                 tokenSettings: new TokenSettings { SecretKey = Guid.NewGuid().ToString() },
                 notificationService: Mock.Of<INotificationService>(),
                 logger: Mock.Of<ILogger<AccessControlController>>());
