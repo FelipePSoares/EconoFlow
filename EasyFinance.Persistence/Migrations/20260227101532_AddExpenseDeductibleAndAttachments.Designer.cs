@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EasyFinance.Persistence.Migrations
 {
     [DbContext(typeof(EasyFinanceDatabaseContext))]
-    [Migration("20260226195325_AddExpenseDeductibleAndAttachments")]
+    [Migration("20260227101532_AddExpenseDeductibleAndAttachments")]
     partial class AddExpenseDeductibleAndAttachments
     {
         /// <inheritdoc />
@@ -328,6 +328,11 @@ namespace EasyFinance.Persistence.Migrations
                     b.Property<Guid?>("IncomeId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<bool>("IsTemporary")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
                     b.Property<DateTime>("ModifiedAt")
                         .HasColumnType("datetime2");
 
@@ -473,6 +478,11 @@ namespace EasyFinance.Persistence.Migrations
 
                     b.Property<Guid?>("ExpenseItemId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeductible")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<DateTime>("ModifiedAt")
                         .HasColumnType("datetime2");

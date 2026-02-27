@@ -34,6 +34,13 @@ namespace EasyFinance.Persistence.Migrations
                 nullable: false,
                 defaultValue: false);
 
+            migrationBuilder.AddColumn<bool>(
+                name: "IsDeductible",
+                table: "ExpenseItems",
+                type: "bit",
+                nullable: false,
+                defaultValue: false);
+
             migrationBuilder.AlterColumn<Guid>(
                 name: "IncomeId",
                 table: "Attachments",
@@ -72,6 +79,13 @@ namespace EasyFinance.Persistence.Migrations
                 maxLength: 200,
                 nullable: false,
                 defaultValue: "");
+
+            migrationBuilder.AddColumn<bool>(
+                name: "IsTemporary",
+                table: "Attachments",
+                type: "bit",
+                nullable: false,
+                defaultValue: false);
 
             migrationBuilder.AddColumn<long>(
                 name: "Size",
@@ -144,11 +158,19 @@ namespace EasyFinance.Persistence.Migrations
                 table: "Expenses");
 
             migrationBuilder.DropColumn(
+                name: "IsDeductible",
+                table: "ExpenseItems");
+
+            migrationBuilder.DropColumn(
                 name: "AttachmentType",
                 table: "Attachments");
 
             migrationBuilder.DropColumn(
                 name: "ContentType",
+                table: "Attachments");
+
+            migrationBuilder.DropColumn(
+                name: "IsTemporary",
                 table: "Attachments");
 
             migrationBuilder.DropColumn(

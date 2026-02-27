@@ -63,9 +63,10 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpPost("temporary-attachments")]
+        [Consumes("multipart/form-data")]
         public async Task<IActionResult> UploadTemporaryAttachmentAsync(
             Guid projectId,
-            [FromForm] IFormFile file,
+            IFormFile file,
             [FromForm] AttachmentType attachmentType = AttachmentType.General)
         {
             if (file == null || file.Length == 0)
@@ -113,11 +114,12 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpPost("{expenseId}/attachments")]
+        [Consumes("multipart/form-data")]
         public async Task<IActionResult> UploadAttachmentAsync(
             Guid projectId,
             Guid categoryId,
             Guid expenseId,
-            [FromForm] IFormFile file,
+            IFormFile file,
             [FromForm] AttachmentType attachmentType = AttachmentType.General)
         {
             if (file == null || file.Length == 0)

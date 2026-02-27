@@ -34,13 +34,40 @@ namespace EasyFinance.Server.Controllers
             return ValidateResponse(result, HttpStatusCode.OK);
         }
 
+        [HttpPost("temporary-attachments")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UploadTemporaryAttachmentAsync(
+            Guid projectId,
+            IFormFile file,
+            [FromForm] AttachmentType attachmentType = AttachmentType.General)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest();
+
+            var id = HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier);
+            var user = await userManager.FindByIdAsync(id.Value);
+
+            await using var stream = file.OpenReadStream();
+            var uploadResponse = await this.attachmentService.UploadTemporaryAttachmentAsync(
+                user: user,
+                projectId: projectId,
+                content: stream,
+                fileName: file.FileName,
+                contentType: file.ContentType,
+                size: file.Length,
+                attachmentType: attachmentType);
+
+            return ValidateResponse(uploadResponse, HttpStatusCode.Created);
+        }
+
         [HttpPost("{expenseItemId}/attachments")]
+        [Consumes("multipart/form-data")]
         public async Task<IActionResult> UploadAttachmentAsync(
             Guid projectId,
             Guid categoryId,
             Guid expenseId,
             Guid expenseItemId,
-            [FromForm] IFormFile file,
+            IFormFile file,
             [FromForm] AttachmentType attachmentType = AttachmentType.General)
         {
             if (file == null || file.Length == 0)

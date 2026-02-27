@@ -10,6 +10,10 @@ namespace EasyFinance.Persistence.Mapping.Financial
         {
             builder.ToTable("ExpenseItems");
 
+            builder.Property(p => p.IsDeductible)
+                .HasDefaultValue(false)
+                .IsRequired();
+
             builder.Property(p => p.Name)
                 .HasMaxLength(150)
                 .IsRequired();
