@@ -71,6 +71,75 @@
         }
       </mat-form-field>
 
+      <div class="w-100 text-start mb-3">
+        <mat-slide-toggle formControlName="isDeductible" data-testid="is-deductible-toggle">
+          {{ 'FieldIsDeductible' | translate }}
+        </mat-slide-toggle>
+      </div>
+
+      @if (isDeductibleControl?.value) {
+        <section class="deductible-proof-section mb-3 text-start" data-testid="deductible-proof-section">
+          <p class="mb-2 fw-semibold">{{ 'DeductibleProofOptional' | translate }}</p>
+
+          @if (deductibleProofAttachment && !pendingDeductibleProofFileName) {
+            <div class="deductible-proof-existing mb-2" data-testid="deductible-proof-existing">
+              <span class="me-2">{{ deductibleProofAttachment.name }}</span>
+              @if (getDeductibleProofDownloadUrl(); as downloadUrl) {
+                <a [href]="downloadUrl" target="_blank" rel="noopener noreferrer" data-testid="deductible-proof-download-link">
+                  {{ 'ButtonDownload' | translate }}
+                </a>
+              }
+            </div>
+          }
+
+          @if (pendingDeductibleProofFileName) {
+            <div class="deductible-proof-selected mb-2" data-testid="deductible-proof-pending">
+              <span>{{ pendingDeductibleProofFileName }}</span>
+            </div>
+          }
+
+          <input
+            #deductibleProofInput
+            type="file"
+            class="form-control"
+            data-testid="deductible-proof-input"
+            accept=".pdf,image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif"
+            [disabled]="isSaving || isProofOperationInProgress || !canUploadDeductibleProof"
+            (change)="onDeductibleProofSelected($event)" />
+
+          @if (deductibleProofAttachment || pendingDeductibleProofFileName) {
+            <div class="mt-2">
+              <button
+                type="button"
+                class="btn btn-outline-danger btn-sm"
+                data-testid="deductible-proof-remove-button"
+                [disabled]="isSaving || isProofOperationInProgress"
+                (click)="removeDeductibleProof()">
+                {{ 'ButtonRemove' | translate }}
+              </button>
+            </div>
+          }
+
+          @if (isProofOperationInProgress) {
+            <div class="mt-2" data-testid="deductible-proof-progress">
+              <div class="progress deductible-proof-progress-bar">
+                <div
+                  class="progress-bar progress-bar-striped progress-bar-animated"
+                  role="progressbar"
+                  [style.width.%]="proofUploadProgress"
+                  [attr.aria-valuenow]="proofUploadProgress"
+                  aria-valuemin="0"
+                  aria-valuemax="100">
+                </div>
+              </div>
+              <div class="text-muted mt-1">
+                {{ 'DeductibleProofUploading' | translate }} ({{ proofUploadProgress }}%)
+              </div>
+            </div>
+          }
+        </section>
+      }
+
       <!-- General Error Display -->
       @if (httpErrors && errors['general']) {
         <div>
@@ -84,7 +153,7 @@
         <button mat-stroked-button type="button" (click)="cancel()">
           {{ 'ButtonCancel' | translate }}
         </button>
-        <button mat-raised-button color="primary" type="submit" [disabled]="expenseForm.invalid || isSaving">
+        <button mat-raised-button color="primary" type="submit" [disabled]="expenseForm.invalid || isSaving || isProofOperationInProgress">
           {{ (isEditing ? 'ButtonSave' : 'ButtonCreate') | translate }}
         </button>
       </div>

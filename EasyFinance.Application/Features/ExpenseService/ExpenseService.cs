@@ -39,10 +39,11 @@ namespace EasyFinance.Application.Features.ExpenseService
                 .NoTrackable()
                 .IgnoreQueryFilters()
                 .Include(p => p.Expenses.Where(e => e.Date >= from && e.Date < to))
-                .ThenInclude(e => e.Items.Where(i => i.Date >= from && i.Date < to)
-                .OrderBy(item => item.Date))
+                    .ThenInclude(e => e.Items.Where(i => i.Date >= from && i.Date < to)
+                        .OrderBy(item => item.Date))
+                        .ThenInclude(item => item.Attachments)
                 .Include(p => p.Expenses.Where(e => e.Date >= from && e.Date < to))
-                .ThenInclude(e => e.Attachments)
+                    .ThenInclude(e => e.Attachments)
                 .FirstOrDefaultAsync(p => p.Id == categoryId) ?? throw new KeyNotFoundException(ValidationMessages.CategoryNotFound);
 
             var expenses = category.Expenses;
