@@ -46,17 +46,17 @@ namespace EasyFinance.Persistence.Mapping.Financial
             builder.HasOne<Expense>()
                 .WithMany(e => e.Attachments)
                 .HasForeignKey(p => p.ExpenseId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne<ExpenseItem>()
                 .WithMany(e => e.Attachments)
                 .HasForeignKey(p => p.ExpenseItemId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne<Income>()
                 .WithMany(e => e.Attachments)
                 .HasForeignKey(p => p.IncomeId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasIndex(p => new { p.ExpenseId, p.AttachmentType })
                 .IsUnique()

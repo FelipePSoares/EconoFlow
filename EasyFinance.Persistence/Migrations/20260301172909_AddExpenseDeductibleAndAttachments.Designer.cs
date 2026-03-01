@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EasyFinance.Persistence.Migrations
 {
     [DbContext(typeof(EasyFinanceDatabaseContext))]
-    [Migration("20260227101532_AddExpenseDeductibleAndAttachments")]
+    [Migration("20260301172909_AddExpenseDeductibleAndAttachments")]
     partial class AddExpenseDeductibleAndAttachments
     {
         /// <inheritdoc />
@@ -806,17 +806,17 @@ namespace EasyFinance.Persistence.Migrations
                     b.HasOne("EasyFinance.Domain.Financial.Expense", null)
                         .WithMany("Attachments")
                         .HasForeignKey("ExpenseId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("EasyFinance.Domain.Financial.ExpenseItem", null)
                         .WithMany("Attachments")
                         .HasForeignKey("ExpenseItemId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("EasyFinance.Domain.Financial.Income", null)
                         .WithMany("Attachments")
                         .HasForeignKey("IncomeId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("CreatedBy");
                 });
