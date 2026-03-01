@@ -210,7 +210,7 @@ namespace EasyFinance.Domain.Tests.Financial
             var today = DateTime.Today;
             var expense = new ExpenseBuilder().SetBudget(20).AddDate(new DateOnly(today.Year, today.Month, today.Day + 2)).Build();
 
-            var item = new ExpenseItemBuilder().AddDate(new DateOnly(today.Year, today.Month, today.Day - 1)).AddAmount(10).Build();
+            var item = new ExpenseItemBuilder().AddDate(new DateOnly(today.Year, today.Month, today.Day > 1 ? today.Day - 1 : today.Day)).AddAmount(10).Build();
 
             // Act
             expense.AddItem(item);
