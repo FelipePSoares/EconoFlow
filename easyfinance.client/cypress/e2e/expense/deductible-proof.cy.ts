@@ -1,5 +1,13 @@
 describe('EconoFlow - deductible proof Tests', () => {
+  interface ExpensePatchOperation {
+    op: string;
+    path: string;
+    value?: boolean | number | string | string[] | null;
+  }
+
   beforeEach(() => {
+    cy.intercept('GET', '**/expenses?*').as('getExpenses');
+
     cy.fixture('users').then((users) => {
       const user = users.testUser;
 
@@ -10,6 +18,7 @@ describe('EconoFlow - deductible proof Tests', () => {
         cy.fixture('categories').then((categories) => {
           const category = categories.defaultCategory;
           cy.visit('/projects/' + project.id + '/categories/' + category.id + '/expenses');
+          cy.wait('@getExpenses');
         });
       });
     });
@@ -26,24 +35,42 @@ describe('EconoFlow - deductible proof Tests', () => {
       mimeType: 'application/pdf',
       lastModified: Date.now()
     });
-    cy.get('button[type=submit]').click();
   };
 
-  it('should upload deductible proof while editing expense and keep deductible checked', () => {
+  it('should upload temporary deductible proof while editing expense and show proof in list', () => {
     cy.intercept('PATCH', '**/expenses/*').as('patchExpense');
-    cy.intercept('POST', '**/expenses/*/attachments').as('uploadAttachment');
+    cy.intercept('POST', '**/expenses/temporary-attachments').as('postTemporaryAttachment');
+
+    let editedExpenseName = '';
+    cy.get('.name').first().invoke('text').then((value) => {
+      editedExpenseName = value.trim();
+    });
 
     attachDeductibleProofToFirstExpense();
 
-    cy.wait('@patchExpense').then(({ request, response }) => {
-      expect(response?.statusCode).to.equal(200);
-      const hasDeductiblePatch = (request.body as { path: string; value: boolean }[])
-        .some(operation => operation.path?.toLowerCase() === '/isdeductible' && operation.value === true);
-      expect(hasDeductiblePatch).to.equal(true);
+    cy.wait('@postTemporaryAttachment').then(({ response }) => {
+      expect(response?.statusCode).to.equal(201);
     });
 
-    cy.wait('@uploadAttachment').then(({ response }) => {
-      expect(response?.statusCode).to.equal(201);
+    cy.get('button[type=submit]').should('not.be.disabled').click();
+
+    cy.wait('@patchExpense').then(({ request, response }) => {
+      expect(response?.statusCode).to.equal(200);
+      const operations = request.body as ExpensePatchOperation[];
+      const hasDeductiblePatch = operations
+        .some(operation => operation.path?.toLowerCase() === '/isdeductible' && operation.value === true);
+      expect(hasDeductiblePatch).to.equal(true);
+
+      const temporaryAttachmentOperation = operations
+        .find(operation => operation.path === '/temporaryAttachmentIds');
+      const temporaryAttachmentIds = temporaryAttachmentOperation?.value as string[] | undefined;
+      expect(temporaryAttachmentIds ?? []).to.have.length(1);
+    });
+
+    cy.wait('@getExpenses');
+    cy.contains('.name', editedExpenseName).closest('.list-group-item').within(() => {
+      cy.get('[data-testid="expense-deductible-flag"]').should('be.visible');
+      cy.get('[data-testid="expense-proof-flag"]').should('be.visible');
     });
 
     cy.get('button[name=edit]').first().click();
@@ -51,14 +78,43 @@ describe('EconoFlow - deductible proof Tests', () => {
     cy.get('[data-testid="deductible-proof-existing"]').should('be.visible');
   });
 
+  it('should disable submit while temporary proof upload is in progress', () => {
+    cy.intercept('POST', '**/expenses/temporary-attachments', (request) => {
+      request.reply({
+        delay: 1200,
+        statusCode: 201,
+        body: {
+          id: 'temp-proof-expense',
+          name: 'deductible-proof.pdf',
+          contentType: 'application/pdf',
+          size: 24,
+          attachmentType: 'DeductibleProof',
+          isTemporary: true
+        }
+      });
+    }).as('postTemporaryAttachment');
+
+    attachDeductibleProofToFirstExpense();
+
+    cy.get('[data-testid="deductible-proof-progress"]').should('be.visible');
+    cy.get('button[type=submit]').should('be.disabled');
+
+    cy.wait('@postTemporaryAttachment').then(({ response }) => {
+      expect(response?.statusCode).to.equal(201);
+    });
+
+    cy.get('button[type=submit]').should('not.be.disabled');
+  });
+
   it('should delete deductible proof attachment', () => {
     cy.intercept('PATCH', '**/expenses/*').as('patchExpense');
-    cy.intercept('POST', '**/expenses/*/attachments').as('uploadAttachment');
+    cy.intercept('POST', '**/expenses/temporary-attachments').as('postTemporaryAttachment');
     cy.intercept('DELETE', '**/expenses/*/attachments/*').as('deleteAttachment');
 
     attachDeductibleProofToFirstExpense();
+    cy.wait('@postTemporaryAttachment');
+    cy.get('button[type=submit]').click();
     cy.wait('@patchExpense');
-    cy.wait('@uploadAttachment');
 
     cy.get('button[name=edit]').first().click();
     cy.get('[data-testid="deductible-proof-existing"]').should('be.visible');
