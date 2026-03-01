@@ -1,4 +1,5 @@
 import { ExpenseItem } from "./expense-item";
+import { ExpenseAttachment } from "./expense-attachment";
 
 export class Expense {
   id!: string;
@@ -6,5 +7,8 @@ export class Expense {
   date!: Date;
   amount!: number;
   budget!: number;
+  isDeductible!: boolean;
+  attachments!: ExpenseAttachment[];
+  temporaryAttachmentIds!: string[];
   items!: ExpenseItem[];
 }

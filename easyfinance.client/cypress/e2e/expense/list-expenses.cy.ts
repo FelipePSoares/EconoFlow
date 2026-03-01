@@ -43,10 +43,14 @@ describe('EconoFlow - expense list Tests', () => {
       const value = `name_${Math.random()}`;
 
       cy.get('button[name=edit]').first().click()
+      cy.intercept('GET', '**/expenses*').as('getExpenses')
       cy.get('input[formControlName=name]').clear().type(`${value}{enter}`)
 
       cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(200)
+
+        cy.wait('@getExpenses')
+
         cy.get('.name').first().contains(`${value}`)
       })
     })
@@ -121,10 +125,14 @@ describe('EconoFlow - expense list Tests', () => {
       const expectedAmountWithComma = expectedAmount.replace('.', ',');
 
       cy.get('button[name=edit]').first().click()
+      cy.intercept('GET', '**/expenses*').as('getExpenses')
       cy.get('input[formControlName=amount]').clear().type(`${value}{enter}`)
       
       cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(200)
+
+        cy.wait('@getExpenses')
+
         cy.get('.progress-bar').first().invoke('text').then((text) => {
           const hasExpectedAmount = text.includes(expectedAmount) || text.includes(expectedAmountWithComma);
           expect(hasExpectedAmount).to.equal(true);
