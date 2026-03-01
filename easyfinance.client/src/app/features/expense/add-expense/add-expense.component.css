@@ -1,0 +1,11 @@
+.deductible-proof-section {
+  border: 1px solid #d8dee4;
+  border-radius: 8px;
+  padding: 12px;
+  background-color: #fafbfc;
+}
+
+.deductible-proof-existing,
+.deductible-proof-selected {
+  font-size: 0.95rem;
+}

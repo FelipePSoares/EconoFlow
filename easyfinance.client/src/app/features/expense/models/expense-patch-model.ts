@@ -1,6 +1,6 @@
 import { ExpenseDto } from './expense-dto';
 import { ExpenseItemPatchModel } from './expense-item-patch-model';
-import { toDateOnlyString } from 'src/app/core/utils/date';
+import { formatDate } from 'src/app/core/utils/date';
 
 export class ExpensePatchModel {
   id?: string;
@@ -8,16 +8,21 @@ export class ExpensePatchModel {
   date!: string;
   amount!: number;
   budget!: number;
+  isDeductible!: boolean;
+  temporaryAttachmentIds!: string[];
   items!: ExpenseItemPatchModel[];
 
   static fromExpense(expense: ExpenseDto): ExpensePatchModel {
     const model = new ExpensePatchModel();
     model.id = expense.id;
     model.name = expense.name ?? '';
-    model.date = toDateOnlyString(expense.date);
+    model.date = formatDate(expense.date);
     model.amount = expense.amount ?? 0;
     model.budget = expense.budget ?? 0;
+    model.isDeductible = expense.isDeductible ?? false;
+    model.temporaryAttachmentIds = [...(expense.temporaryAttachmentIds ?? [])];
     model.items = (expense.items ?? []).map(item => ExpenseItemPatchModel.fromExpenseItem(item));
     return model;
   }
 }
+

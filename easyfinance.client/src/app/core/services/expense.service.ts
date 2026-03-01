@@ -1,16 +1,17 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { Operation } from 'fast-json-patch';
 import { Expense } from '../models/expense';
+import { ExpenseAttachment } from '../models/expense-attachment';
+import { AttachmentType } from '../enums/attachment-type';
 import { formatDate } from '../utils/date';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ExpenseService {
-
-  constructor(private http: HttpClient) { }
+  private http = inject(HttpClient);
 
   get(projectId: string, categoryId: string, currentDate: Date) {
     const year = currentDate.getFullYear();
@@ -46,6 +47,38 @@ export class ExpenseService {
       observe: 'body',
       responseType: 'json'
     });
+  }
+
+  uploadTemporaryAttachment(projectId: string, categoryId: string, file: File, attachmentType: AttachmentType): Observable<ExpenseAttachment> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('attachmentType', attachmentType.toString());
+
+    return this.http.post<ExpenseAttachment>('/api/projects/' + projectId + '/categories/' + categoryId + '/expenses/temporary-attachments', formData, {
+      observe: 'body',
+      responseType: 'json'
+    });
+  }
+
+  uploadAttachment(projectId: string, categoryId: string, expenseId: string, file: File, attachmentType: AttachmentType): Observable<ExpenseAttachment> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('attachmentType', attachmentType.toString());
+
+    return this.http.post<ExpenseAttachment>('/api/projects/' + projectId + '/categories/' + categoryId + '/expenses/' + expenseId + '/attachments', formData, {
+      observe: 'body',
+      responseType: 'json'
+    });
+  }
+
+  removeAttachment(projectId: string, categoryId: string, expenseId: string, attachmentId: string): Observable<boolean> {
+    return this.http.delete('/api/projects/' + projectId + '/categories/' + categoryId + '/expenses/' + expenseId + '/attachments/' + attachmentId, {
+      observe: 'response'
+    }).pipe(map(res => res.ok));
+  }
+
+  getAttachmentDownloadUrl(projectId: string, categoryId: string, expenseId: string, attachmentId: string): string {
+    return '/api/projects/' + projectId + '/categories/' + categoryId + '/expenses/' + expenseId + '/attachments/' + attachmentId;
   }
 
   remove(projectId: string, categoryId: string, id: string): Observable<boolean> {
