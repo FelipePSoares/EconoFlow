@@ -11,6 +11,9 @@ namespace EasyFinance.Persistence.Mapping.Financial
             builder.ToTable("Expenses");
 
             builder.Property(p => p.Budget);
+            builder.Property(p => p.IsDeductible)
+                .HasDefaultValue(false)
+                .IsRequired();
 
             builder.Property(p => p.Name)
                 .HasMaxLength(150)
@@ -26,11 +29,6 @@ namespace EasyFinance.Persistence.Mapping.Financial
 
             builder.HasOne(p => p.CreatedBy)
                 .WithMany();
-
-            builder.HasMany(p => p.Attachments)
-                .WithOne()
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany(p => p.Items)
                 .WithOne()

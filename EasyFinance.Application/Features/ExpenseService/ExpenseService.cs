@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.DTOs.Financial;
+using EasyFinance.Application.Features.AttachmentService;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Financial;
@@ -19,11 +20,13 @@ namespace EasyFinance.Application.Features.ExpenseService
     public class ExpenseService : IExpenseService
     {
         private readonly IUnitOfWork unitOfWork;
+        private readonly IAttachmentService attachmentService;
         private readonly ILogger<ExpenseService> logger;
 
-        public ExpenseService(IUnitOfWork unitOfWork, ILogger<ExpenseService> logger)
+        public ExpenseService(IUnitOfWork unitOfWork, IAttachmentService attachmentService, ILogger<ExpenseService> logger)
         {
             this.unitOfWork = unitOfWork;
+            this.attachmentService = attachmentService;
             this.logger = logger;
         }
 
@@ -38,6 +41,8 @@ namespace EasyFinance.Application.Features.ExpenseService
                 .Include(p => p.Expenses.Where(e => e.Date >= from && e.Date < to))
                 .ThenInclude(e => e.Items.Where(i => i.Date >= from && i.Date < to)
                 .OrderBy(item => item.Date))
+                .Include(p => p.Expenses.Where(e => e.Date >= from && e.Date < to))
+                .ThenInclude(e => e.Attachments)
                 .FirstOrDefaultAsync(p => p.Id == categoryId) ?? throw new KeyNotFoundException(ValidationMessages.CategoryNotFound);
 
             var expenses = category.Expenses;
@@ -50,6 +55,8 @@ namespace EasyFinance.Application.Features.ExpenseService
             var expense = await unitOfWork.ExpenseRepository.Trackable()
                 .Include(e => e.Items.OrderBy(item => item.Date))
                 .ThenInclude(e => e.CreatedBy)
+                .Include(e => e.Items)
+                .ThenInclude(e => e.Attachments)
                 .Include(e => e.Attachments)
                 .Include(e => e.CreatedBy)
                 .FirstOrDefaultAsync(p => p.Id == expenseId) ?? throw new KeyNotFoundException(ValidationMessages.ExpenseNotFound); 
@@ -57,14 +64,15 @@ namespace EasyFinance.Application.Features.ExpenseService
             return AppResponse<ExpenseResponseDTO>.Success(expense.ToDTO());
         }
 
-        public async Task<AppResponse<ExpenseResponseDTO>> CreateAsync(User user, Guid categoryId, Expense expense)
+        public async Task<AppResponse<ExpenseResponseDTO>> CreateAsync(User user, Guid projectId, Guid categoryId, ExpenseRequestDTO expenseDto)
         {
-            if (expense == default)
-                return AppResponse<ExpenseResponseDTO>.Error(code: nameof(expense), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(expense)));
+            if (expenseDto == default)
+                return AppResponse<ExpenseResponseDTO>.Error(code: nameof(expenseDto), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(expenseDto)));
 
             if (user == default)
                 return AppResponse<ExpenseResponseDTO>.Error(code: nameof(user), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(user)));
 
+            var expense = expenseDto.FromDTO();
             expense.SetCreatedBy(user);
 
             var category = unitOfWork.CategoryRepository
@@ -85,14 +93,44 @@ namespace EasyFinance.Application.Features.ExpenseService
 
             await unitOfWork.CommitAsync();
 
-            return AppResponse<ExpenseResponseDTO>.Success(expense.ToDTO());
+            if (expenseDto.TemporaryAttachmentIds.Count > 0)
+            {
+                var attachTemporaryResponse = await this.attachmentService.AttachTemporaryToExpenseAsync(
+                    user: user,
+                    projectId: projectId,
+                    categoryId: categoryId,
+                    expenseId: expense.Id,
+                    temporaryAttachmentIds: expenseDto.TemporaryAttachmentIds);
+
+                if (attachTemporaryResponse.Failed)
+                    return AppResponse<ExpenseResponseDTO>.Error(attachTemporaryResponse.Messages);
+            }
+
+            var attachTemporaryItemResponse = await this.AttachTemporaryToExpenseItemsAsync(
+                user: user,
+                projectId: projectId,
+                categoryId: categoryId,
+                expenseId: expense.Id,
+                expenseItemDtos: expenseDto.Items,
+                persistedExpenseItems: expense.Items);
+
+            if (attachTemporaryItemResponse.Failed)
+                return AppResponse<ExpenseResponseDTO>.Error(attachTemporaryItemResponse.Messages);
+
+            var persistedExpense = await this.unitOfWork.ExpenseRepository.Trackable()
+                .Include(e => e.Items.OrderBy(item => item.Date))
+                .Include(e => e.Attachments)
+                .FirstOrDefaultAsync(e => e.Id == expense.Id);
+
+            return AppResponse<ExpenseResponseDTO>.Success(persistedExpense.ToDTO());
         }
 
         public async Task<AppResponse<ExpenseResponseDTO>> UpdateAsync(
            User user,
+           Guid projectId,
            Guid categoryId,
            Guid expenseId,
-           JsonPatchDocument<ExpenseRequestDTO> expenseDto)
+            JsonPatchDocument<ExpenseRequestDTO> expenseDto)
         {
             if (expenseId == default)
                 return AppResponse<ExpenseResponseDTO>.Error(code: nameof(expenseId), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(expenseId)));
@@ -100,6 +138,8 @@ namespace EasyFinance.Application.Features.ExpenseService
             var existingExpense = await this.unitOfWork.ExpenseRepository.Trackable()
                .Include(e => e.Items.OrderBy(item => item.Date))
                     .ThenInclude(e => e.CreatedBy)
+               .Include(e => e.Items)
+                    .ThenInclude(e => e.Attachments)
                .Include(e => e.Attachments)
                .Include(e => e.CreatedBy)
                .FirstOrDefaultAsync(p => p.Id == expenseId);
@@ -133,7 +173,39 @@ namespace EasyFinance.Application.Features.ExpenseService
 
             await unitOfWork.CommitAsync();
 
-            return AppResponse<ExpenseResponseDTO>.Success(existingExpense.ToDTO());
+            if (dto.TemporaryAttachmentIds.Count > 0)
+            {
+                var attachTemporaryResponse = await this.attachmentService.AttachTemporaryToExpenseAsync(
+                    user: user,
+                    projectId: projectId,
+                    categoryId: categoryId,
+                    expenseId: existingExpense.Id,
+                    temporaryAttachmentIds: dto.TemporaryAttachmentIds);
+
+                if (attachTemporaryResponse.Failed)
+                    return AppResponse<ExpenseResponseDTO>.Error(attachTemporaryResponse.Messages);
+            }
+
+            var attachTemporaryItemResponse = await this.AttachTemporaryToExpenseItemsAsync(
+                user: user,
+                projectId: projectId,
+                categoryId: categoryId,
+                expenseId: existingExpense.Id,
+                expenseItemDtos: dto.Items,
+                persistedExpenseItems: existingExpense.Items);
+
+            if (attachTemporaryItemResponse.Failed)
+                return AppResponse<ExpenseResponseDTO>.Error(attachTemporaryItemResponse.Messages);
+
+            var refreshedExpense = await this.unitOfWork.ExpenseRepository.Trackable()
+                .Include(e => e.Items.OrderBy(item => item.Date))
+                .Include(e => e.Items)
+                .ThenInclude(item => item.Attachments)
+                .Include(e => e.Attachments)
+                .Include(e => e.CreatedBy)
+                .FirstOrDefaultAsync(p => p.Id == expenseId);
+
+            return AppResponse<ExpenseResponseDTO>.Success(refreshedExpense.ToDTO());
         }
 
         public async Task<AppResponse> DeleteAsync(Guid expenseId)
@@ -151,6 +223,46 @@ namespace EasyFinance.Application.Features.ExpenseService
 
             unitOfWork.ExpenseRepository.Delete(expense);
             await unitOfWork.CommitAsync();
+
+            return AppResponse.Success();
+        }
+
+        private async Task<AppResponse> AttachTemporaryToExpenseItemsAsync(
+            User user,
+            Guid projectId,
+            Guid categoryId,
+            Guid expenseId,
+            ICollection<ExpenseItemRequestDTO> expenseItemDtos,
+            ICollection<ExpenseItem> persistedExpenseItems)
+        {
+            if (expenseItemDtos == null || persistedExpenseItems == null)
+                return AppResponse.Success();
+
+            var dtoItems = expenseItemDtos.ToList();
+            var persistedItems = persistedExpenseItems.ToList();
+            var maxIndex = Math.Min(dtoItems.Count, persistedItems.Count);
+
+            for (var index = 0; index < maxIndex; index++)
+            {
+                var temporaryAttachmentIds = dtoItems[index].TemporaryAttachmentIds;
+                if (temporaryAttachmentIds == null || temporaryAttachmentIds.Count == 0)
+                    continue;
+
+                var expenseItemId = persistedItems[index].Id;
+                if (expenseItemId == Guid.Empty)
+                    return AppResponse.Error(nameof(expenseItemDtos), ValidationMessages.InvalidExpenseItemId);
+
+                var attachTemporaryResponse = await this.attachmentService.AttachTemporaryToExpenseItemAsync(
+                    user: user,
+                    projectId: projectId,
+                    categoryId: categoryId,
+                    expenseId: expenseId,
+                    expenseItemId: expenseItemId,
+                    temporaryAttachmentIds: temporaryAttachmentIds);
+
+                if (attachTemporaryResponse.Failed)
+                    return attachTemporaryResponse;
+            }
 
             return AppResponse.Success();
         }

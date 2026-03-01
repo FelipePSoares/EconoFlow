@@ -35,6 +35,22 @@ describe('EconoFlow - expense item list Tests', () => {
     })
   })
 
+  afterEach(function () {
+    if (this.currentTest.title === 'should update date after success update') {
+      if (new Date().getDate() == 1) {
+        let formattedDate = ''
+        cy.get('button[name=edit]').first().click()
+        const today = new Date()
+
+        cy.window().then((win) => {
+          const locale = win.localStorage.getItem('language-key') || win.navigator.language || 'en-US'
+          formattedDate = today.toLocaleDateString(locale)
+          cy.get('input[formControlName=date]').clear().type(`${formattedDate}{enter}`)
+        })
+      }
+    }
+  })
+
   it('should update name after success update', () => {
     const value = `name_${Math.random()}`;
 
@@ -49,11 +65,19 @@ describe('EconoFlow - expense item list Tests', () => {
 
   it('should update date after success update', () => {
     const today = new Date()
-    today.setDate(Math.floor(Math.random() * today.getDate()) + 1)
+    if (today.getDate() == 1)
+      today.setDate(2);
+    else
+      today.setDate(Math.floor(Math.random() * today.getDate()) + 1)
+
     let formattedDate = ''
     let expectedDates: string[] = []
 
     cy.get('button[name=edit-sub]').last().click()
+
+    if (new Date().getDate() == 1)
+      cy.get('input[formControlName=amount]').clear().type(`0`)
+
     cy.window().then((win) => {
       const locale = win.localStorage.getItem('language-key') || win.navigator.language || 'en-US'
       formattedDate = today.toLocaleDateString(locale)

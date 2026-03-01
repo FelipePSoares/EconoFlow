@@ -19,6 +19,7 @@ using Xunit;
 using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Application.Features.ExpenseService;
 using EasyFinance.Application.Features.ExpenseItemService;
+using EasyFinance.Application.Features.AttachmentService;
 
 namespace EasyFinance.Common.Tests
 {
@@ -67,7 +68,10 @@ namespace EasyFinance.Common.Tests
             services.AddScoped<IProjectService, ProjectService>();
             services.AddScoped<IExpenseService, ExpenseService>();
             services.AddScoped<IExpenseItemService, ExpenseItemService>();
+            services.AddScoped<IAttachmentService, AttachmentService>();
+            services.AddSingleton<IAttachmentStorageService, FileSystemAttachmentStorageService>();
             services.AddScoped<IIncomeService, IncomeService>();
+            services.AddLogging();
 
             services.AddIdentityCore<User>()
                     .AddEntityFrameworkStores<EasyFinanceDatabaseContext>();

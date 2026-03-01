@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Net;
 using EasyFinance.Application;
+using EasyFinance.Application.BackgroundServices.AttachmentCleanup;
 using EasyFinance.Application.BackgroundServices.NotifierBackgroundService;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.Features.FeatureRolloutService;
@@ -32,6 +33,7 @@ builder.Services.AddApplicationServices();
 builder.Services.Configure<NotifierFallbackOptions>(builder.Configuration.GetSection(NotifierFallbackOptions.SectionName));
 builder.Services.Configure<WebPushOptions>(builder.Configuration.GetSection(WebPushOptions.SectionName));
 builder.Services.Configure<FeatureRolloutOptions>(builder.Configuration.GetSection(FeatureRolloutOptions.SectionName));
+builder.Services.Configure<TemporaryAttachmentCleanupOptions>(builder.Configuration.GetSection(TemporaryAttachmentCleanupOptions.SectionName));
 builder.Services.AddAuthenticationServices(builder.Configuration, builder.Environment);
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 

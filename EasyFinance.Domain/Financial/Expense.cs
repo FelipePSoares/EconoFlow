@@ -18,8 +18,9 @@ namespace EasyFinance.Domain.Financial
             User createdBy = default,
             ICollection<Attachment> attachments = default,
             ICollection<ExpenseItem> items = default,
-            int budget = default)
-            : base(name, date, amount, createdBy, attachments, items)
+            int budget = default,
+            bool isDeductible = false)
+            : base(name, date, amount, createdBy, attachments, items, isDeductible)
         {
             SetBudget(budget);
         }
@@ -52,7 +53,7 @@ namespace EasyFinance.Domain.Financial
 
         public AppResponse<Expense> CopyBudgetToNextMonth(User createdBy)
         {
-            var expense = new Expense(name: Name, date: Date.AddMonths(1), createdBy: createdBy, budget: Budget);
+            var expense = new Expense(name: Name, date: Date.AddMonths(1), createdBy: createdBy, budget: Budget, isDeductible: IsDeductible);
             return AppResponse<Expense>.Success(expense);
         }
     }

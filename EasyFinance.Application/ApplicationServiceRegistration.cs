@@ -1,11 +1,13 @@
-﻿using System;
+using System;
 using System.Threading.Channels;
+using EasyFinance.Application.BackgroundServices.AttachmentCleanup;
 using EasyFinance.Application.BackgroundServices.EmailBackgroundService;
 using EasyFinance.Application.BackgroundServices.NotifierBackgroundService;
 using EasyFinance.Application.BackgroundServices.NotifierBackgroundService.Channels;
 using EasyFinance.Application.DTOs.BackgroundService.Email;
 using EasyFinance.Application.DTOs.BackgroundService.Notification;
 using EasyFinance.Application.Features.AccessControlService;
+using EasyFinance.Application.Features.AttachmentService;
 using EasyFinance.Application.Features.CallbackService;
 using EasyFinance.Application.Features.CategoryService;
 using EasyFinance.Application.Features.EmailService;
@@ -37,6 +39,8 @@ namespace EasyFinance.Application
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IExpenseService, ExpenseService>();
             services.AddScoped<IExpenseItemService, ExpenseItemService>();
+            services.AddScoped<IAttachmentService, AttachmentService>();
+            services.AddSingleton<IAttachmentStorageService, FileSystemAttachmentStorageService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IFeatureRolloutService, FeatureRolloutService>();
             services.AddScoped<IContactService, ContactService>();
@@ -57,6 +61,7 @@ namespace EasyFinance.Application
             services.AddHostedService<NotifierBackgroundService>();
             services.AddOptions<NotifierFallbackOptions>();
             services.AddOptions<WebPushOptions>();
+            services.AddOptions<TemporaryAttachmentCleanupOptions>();
 
             // Register Channels
             var emailChannel = Channel.CreateUnbounded<EmailRequest>();
@@ -64,6 +69,9 @@ namespace EasyFinance.Application
 
             var notificationChannel = Channel.CreateUnbounded<NotificationRequest>();
             services.AddSingleton(notificationChannel);
+
+            services.AddSingleton<ITemporaryAttachmentCleanupService, TemporaryAttachmentCleanupService>();
+            services.AddHostedService(provider => (TemporaryAttachmentCleanupService)provider.GetRequiredService<ITemporaryAttachmentCleanupService>());
 
             return services;
         }

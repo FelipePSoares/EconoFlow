@@ -7,5 +7,11 @@ namespace EasyFinance.Common.Tests.Financial
         public ExpenseItemBuilder() : base(new ExpenseItem())
         {
         }
+
+        public new ExpenseItemBuilder SetIsDeductible(bool isDeductible)
+        {
+            this.entity.SetIsDeductible(isDeductible);
+            return this;
+        }
     }
 }

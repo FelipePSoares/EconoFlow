@@ -20,6 +20,7 @@ namespace EasyFinance.Persistence.Repositories
         private readonly Lazy<IGenericRepository<Category>> categoryRepository;
         private readonly Lazy<IGenericRepository<Expense>> expenseRepository;
         private readonly Lazy<IGenericRepository<ExpenseItem>> expenseItemRepository;
+        private readonly Lazy<IGenericRepository<Attachment>> attachmentRepository;
         private readonly Lazy<IGenericRepository<ContactUs>> contactUsRepository;
         private readonly Lazy<IGenericRepository<Notification>> notificationRepository;
         private readonly Lazy<IGenericRepository<WebPushSubscription>> webPushSubscriptionRepository;
@@ -33,6 +34,7 @@ namespace EasyFinance.Persistence.Repositories
             this.categoryRepository = new Lazy<IGenericRepository<Category>>(() => new GenericRepository<Category>(this.context));
             this.expenseRepository = new Lazy<IGenericRepository<Expense>>(() => new GenericRepository<Expense>(this.context));
             this.expenseItemRepository = new Lazy<IGenericRepository<ExpenseItem>>(() => new GenericRepository<ExpenseItem>(this.context));
+            this.attachmentRepository = new Lazy<IGenericRepository<Attachment>>(() => new GenericRepository<Attachment>(this.context));
             this.contactUsRepository = new Lazy<IGenericRepository<ContactUs>>(() => new GenericRepository<ContactUs>(this.context));
             this.notificationRepository = new Lazy<IGenericRepository<Notification>>(() => new GenericRepository<Notification>(this.context));
             this.webPushSubscriptionRepository = new Lazy<IGenericRepository<WebPushSubscription>>(() => new GenericRepository<WebPushSubscription>(this.context));
@@ -44,6 +46,7 @@ namespace EasyFinance.Persistence.Repositories
         public IGenericRepository<Category> CategoryRepository => this.categoryRepository.Value;
         public IGenericRepository<Expense> ExpenseRepository => this.expenseRepository.Value;
         public IGenericRepository<ExpenseItem> ExpenseItemRepository => this.expenseItemRepository.Value;
+        public IGenericRepository<Attachment> AttachmentRepository => this.attachmentRepository.Value;
         public IGenericRepository<ContactUs> ContactUsRepository => this.contactUsRepository.Value;
         public IGenericRepository<Notification> NotificationRepository => this.notificationRepository.Value;
         public IGenericRepository<WebPushSubscription> WebPushSubscriptionRepository => this.webPushSubscriptionRepository.Value;
