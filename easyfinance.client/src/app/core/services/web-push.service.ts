@@ -24,6 +24,7 @@ export class WebPushService {
   private readonly permissionStorageKey = 'webPushPermissionStatus';
   private readonly prePromptDismissedStorageKey = 'webPushPrePromptDismissed';
   private readonly browserPromptAttemptedStorageKey = 'webPushBrowserPromptAttempted';
+  private readonly syncedSubscriptionStorageKey = 'webPushSyncedSubscriptionState';
 
   private initializedForUserId: string | null = null;
   private initializationInProgress = false;
@@ -83,7 +84,14 @@ export class WebPushService {
         return;
       }
 
+      const payloadFingerprint = this.buildPayloadFingerprint(payload);
+      if (!forceReinitialize && this.hasSyncedSubscription(user.id, payloadFingerprint)) {
+        this.initializedForUserId = user.id;
+        return;
+      }
+
       await firstValueFrom(this.http.post('/api/Account/WebPush/Subscriptions', payload));
+      this.markSubscriptionAsSynced(user.id, payloadFingerprint);
 
       if (!existingSubscription)
         await firstValueFrom(this.http.post('/api/Account/WebPush/Test', {}));
@@ -213,6 +221,36 @@ export class WebPushService {
 
   private savePermissionStatus(permission: NotificationPermission): void {
     localStorage.setItem(this.permissionStorageKey, permission);
+  }
+
+  private buildPayloadFingerprint(payload: WebPushSubscriptionRequest): string {
+    return [
+      payload.endpoint,
+      payload.p256dh,
+      payload.auth,
+      payload.deviceType,
+      payload.permissionStatus
+    ].join('|');
+  }
+
+  private hasSyncedSubscription(userId: string, payloadFingerprint: string): boolean {
+    const rawValue = localStorage.getItem(this.syncedSubscriptionStorageKey);
+    if (!rawValue)
+      return false;
+
+    try {
+      const parsed = JSON.parse(rawValue) as { userId?: string, payloadFingerprint?: string };
+      return parsed.userId === userId && parsed.payloadFingerprint === payloadFingerprint;
+    } catch {
+      return false;
+    }
+  }
+
+  private markSubscriptionAsSynced(userId: string, payloadFingerprint: string): void {
+    localStorage.setItem(this.syncedSubscriptionStorageKey, JSON.stringify({
+      userId,
+      payloadFingerprint
+    }));
   }
 
   private toRequestPayload(subscription: PushSubscription, permission: NotificationPermission): WebPushSubscriptionRequest | null {
