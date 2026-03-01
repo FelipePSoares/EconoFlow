@@ -56,5 +56,58 @@ namespace EasyFinance.Domain.Tests.Financial
             action.Should().Throw<ArgumentNullException>()
                 .WithMessage(string.Format(ValidationMessages.PropertyCantBeNull, "CreatedBy"));
         }
+
+        [Fact]
+        public void Validate_WhenAttachmentHasNoParent_ShouldFail()
+        {
+            // Arrange
+            var attachment = new AttachmentBuilder()
+                .AddExpenseId(null)
+                .AddExpenseItemId(null)
+                .AddIncomeId(null)
+                .Build();
+
+            // Act
+            var result = attachment.Validate;
+
+            // Assert
+            result.Failed.Should().BeTrue();
+            result.Messages.Should().Contain(message => message.Code == "ParentId");
+        }
+
+        [Fact]
+        public void Validate_WhenAttachmentHasMoreThanOneParent_ShouldFail()
+        {
+            // Arrange
+            var attachment = new AttachmentBuilder()
+                .AddExpenseId(Guid.NewGuid())
+                .AddExpenseItemId(Guid.NewGuid())
+                .Build();
+
+            // Act
+            var result = attachment.Validate;
+
+            // Assert
+            result.Failed.Should().BeTrue();
+            result.Messages.Should().Contain(message => message.Code == "ParentId");
+        }
+
+        [Fact]
+        public void Validate_WhenAttachmentIsTemporaryAndHasNoParent_ShouldSucceed()
+        {
+            // Arrange
+            var attachment = new AttachmentBuilder()
+                .AddExpenseId(null)
+                .AddExpenseItemId(null)
+                .AddIncomeId(null)
+                .AddIsTemporary(true)
+                .Build();
+
+            // Act
+            var result = attachment.Validate;
+
+            // Assert
+            result.Succeeded.Should().BeTrue();
+        }
     }
 }

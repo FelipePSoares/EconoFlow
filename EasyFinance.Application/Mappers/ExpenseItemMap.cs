@@ -20,7 +20,9 @@ namespace EasyFinance.Application.Mappers
                 Id = expenseItem.Id,
                 Name = expenseItem.Name,
                 Date = expenseItem.Date,
-                Amount = expenseItem.Amount
+                Amount = expenseItem.Amount,
+                IsDeductible = expenseItem.IsDeductible,
+                Attachments = expenseItem.Attachments.ToExpenseAttachmentDTO()
             };
         }
 
@@ -32,7 +34,9 @@ namespace EasyFinance.Application.Mappers
             {
                 Name = expenseItem.Name,
                 Date = expenseItem.Date,
-                Amount = expenseItem.Amount
+                Amount = expenseItem.Amount,
+                IsDeductible = expenseItem.IsDeductible,
+                TemporaryAttachmentIds = [],
             };
         }
 
@@ -57,10 +61,11 @@ namespace EasyFinance.Application.Mappers
                 expenseItem.SetName(expenseItemDTO.Name);
                 expenseItem.SetAmount(expenseItemDTO.Amount);
                 expenseItem.SetDate(expenseItemDTO.Date);
+                expenseItem.SetIsDeductible(expenseItemDTO.IsDeductible);
                 return expenseItem;
             }
 
-            return new ExpenseItem(expenseItemDTO.Name, expenseItemDTO.Date, expenseItemDTO.Amount);
+            return new ExpenseItem(expenseItemDTO.Name, expenseItemDTO.Date, expenseItemDTO.Amount, isDeductible: expenseItemDTO.IsDeductible);
         }
     }
 }

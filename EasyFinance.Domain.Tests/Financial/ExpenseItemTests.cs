@@ -135,5 +135,21 @@ namespace EasyFinance.Domain.Tests.Financial
             action.Should().Throw<ArgumentNullException>()
                 .WithParameterName("item");
         }
+
+        [Fact]
+        public void SetIsDeductible_ShouldBeIndependentFromParentExpense()
+        {
+            var deductibleItem = new ExpenseItemBuilder()
+                .SetIsDeductible(true)
+                .Build();
+
+            var expense = new ExpenseBuilder()
+                .SetIsDeductible(false)
+                .AddItem(deductibleItem)
+                .Build();
+
+            expense.IsDeductible.Should().BeFalse();
+            deductibleItem.IsDeductible.Should().BeTrue();
+        }
     }
 }

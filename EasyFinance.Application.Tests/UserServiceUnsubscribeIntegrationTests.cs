@@ -1,4 +1,5 @@
 using EasyFinance.Application.Contracts.Persistence;
+using EasyFinance.Application.Features.AttachmentService;
 using EasyFinance.Application.Features.ExpenseItemService;
 using EasyFinance.Application.Features.ExpenseService;
 using EasyFinance.Application.Features.IncomeService;
@@ -31,7 +32,10 @@ namespace EasyFinance.Application.Tests
             services.AddScoped<IExpenseService, ExpenseService>();
             services.AddScoped<IExpenseItemService, ExpenseItemService>();
             services.AddScoped<IIncomeService, IncomeService>();
+            services.AddScoped<IAttachmentService, AttachmentService>();
+            services.AddSingleton<IAttachmentStorageService, FileSystemAttachmentStorageService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddLogging();
 
             services.AddIdentityCore<User>()
                 .AddEntityFrameworkStores<EasyFinanceDatabaseContext>();

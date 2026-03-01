@@ -17,8 +17,9 @@ namespace EasyFinance.Domain.Financial
             decimal amount = default,
             User createdBy = default,
             ICollection<Attachment> attachments = default,
-            ICollection<ExpenseItem> items = default)
-            : base(name, date, amount, createdBy, attachments, items)
+            ICollection<ExpenseItem> items = default,
+            bool isDeductible = false)
+            : base(name, date, amount, createdBy, attachments, items, isDeductible)
         {
         }
 

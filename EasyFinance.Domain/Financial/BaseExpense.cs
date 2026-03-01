@@ -18,14 +18,17 @@ namespace EasyFinance.Domain.Financial
             decimal amount = default,
             User createdBy = default,
             ICollection<Attachment> attachments = default,
-            ICollection<ExpenseItem> items = default)
+            ICollection<ExpenseItem> items = default,
+            bool isDeductible = false)
             : base(name, date, amount, createdBy, attachments)
         {
             SetItems(items ?? []);
+            SetIsDeductible(isDeductible);
         }
 
         public override decimal Amount => Items.Count > 0 ? Items.Sum(e => e.Amount) : base.Amount;
         public ICollection<ExpenseItem> Items { get; private set; } = [];
+        public bool IsDeductible { get; private set; }
 
         public override AppResponse Validate
         {
@@ -60,5 +63,7 @@ namespace EasyFinance.Domain.Financial
 
             Items.Add(item);
         }
+
+        public void SetIsDeductible(bool isDeductible) => IsDeductible = isDeductible;
     }
 }

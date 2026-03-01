@@ -141,5 +141,33 @@ namespace EasyFinance.Server.Tests
             this.requestDelegateMock.Invocations.Count().Should().Be(0);
             this.httpResponse.VerifySet(content => content.StatusCode = It.Is<int>(sc => sc == (int)HttpStatusCode.Forbidden));
         }
+
+        [Fact]
+        public async Task InvokeAsync_PostRequest_ShouldRequireManagerAuthorization()
+        {
+            // Arrange
+            var routeValues = new Dictionary<string, object?>()
+            {
+                { "Action", "UploadAttachmentAsync" },
+                { "Controller", "Expenses" },
+                { "ProjectId", "54993d43-1ddd-4d83-a05a-addca7fce71d" }
+            };
+            this.httpRequest.Setup(hr => hr.RouteValues).Returns(new Microsoft.AspNetCore.Routing.RouteValueDictionary(routeValues));
+            this.httpRequest.Setup(hr => hr.Method).Returns("POST");
+
+            var user = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>()
+            {
+                new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())
+            }));
+            this.httpContext.Setup(hc => hc.User).Returns(user);
+            this.accessControlService.Setup(acs => acs.HasAuthorization(It.IsAny<Guid>(), It.IsAny<Guid>(), Role.Manager)).Returns(true);
+
+            // Act
+            await this.projectAuthorization.InvokeAsync(this.httpContext.Object, this.accessControlService.Object, this.projectService.Object);
+
+            // Assert
+            this.requestDelegateMock.Invocations.Count().Should().Be(1);
+            this.accessControlService.Verify(acs => acs.HasAuthorization(It.IsAny<Guid>(), It.IsAny<Guid>(), Role.Manager), Times.Once);
+        }
     }
 }
