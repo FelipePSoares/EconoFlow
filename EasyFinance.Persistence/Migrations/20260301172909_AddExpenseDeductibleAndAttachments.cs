@@ -11,18 +11,6 @@ namespace EasyFinance.Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Attachments_ExpenseItems_ExpenseItemId",
-                table: "Attachments");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_Attachments_Expenses_ExpenseId",
-                table: "Attachments");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_Attachments_Incomes_IncomeId",
-                table: "Attachments");
-
             migrationBuilder.DropIndex(
                 name: "IX_Attachments_ExpenseId",
                 table: "Attachments");
@@ -108,47 +96,11 @@ namespace EasyFinance.Persistence.Migrations
                 columns: new[] { "ExpenseId", "AttachmentType" },
                 unique: true,
                 filter: "[ExpenseId] IS NOT NULL AND [AttachmentType] = 1");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Attachments_ExpenseItems_ExpenseItemId",
-                table: "Attachments",
-                column: "ExpenseItemId",
-                principalTable: "ExpenseItems",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Attachments_Expenses_ExpenseId",
-                table: "Attachments",
-                column: "ExpenseId",
-                principalTable: "Expenses",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Attachments_Incomes_IncomeId",
-                table: "Attachments",
-                column: "IncomeId",
-                principalTable: "Incomes",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Attachments_ExpenseItems_ExpenseItemId",
-                table: "Attachments");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_Attachments_Expenses_ExpenseId",
-                table: "Attachments");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_Attachments_Incomes_IncomeId",
-                table: "Attachments");
-
             migrationBuilder.DropIndex(
                 name: "IX_Attachments_ExpenseId_AttachmentType",
                 table: "Attachments");
@@ -215,30 +167,6 @@ namespace EasyFinance.Persistence.Migrations
                 name: "IX_Attachments_ExpenseId",
                 table: "Attachments",
                 column: "ExpenseId");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Attachments_ExpenseItems_ExpenseItemId",
-                table: "Attachments",
-                column: "ExpenseItemId",
-                principalTable: "ExpenseItems",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Attachments_Expenses_ExpenseId",
-                table: "Attachments",
-                column: "ExpenseId",
-                principalTable: "Expenses",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Attachments_Incomes_IncomeId",
-                table: "Attachments",
-                column: "IncomeId",
-                principalTable: "Incomes",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
         }
     }
 }
