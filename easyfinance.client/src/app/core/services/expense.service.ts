@@ -1,6 +1,6 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpEventType, HttpParams, HttpResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable, filter, map } from 'rxjs';
 import { Operation } from 'fast-json-patch';
 import { Expense } from '../models/expense';
 import { ExpenseAttachment } from '../models/expense-attachment';
@@ -50,12 +50,20 @@ export class ExpenseService {
   }
 
   uploadTemporaryAttachment(projectId: string, categoryId: string, file: File, attachmentType: AttachmentType): Observable<ExpenseAttachment> {
+    return this.uploadTemporaryAttachmentWithProgress(projectId, categoryId, file, attachmentType).pipe(
+      filter((event): event is HttpResponse<ExpenseAttachment> => event.type === HttpEventType.Response),
+      map(event => event.body as ExpenseAttachment)
+    );
+  }
+
+  uploadTemporaryAttachmentWithProgress(projectId: string, categoryId: string, file: File, attachmentType: AttachmentType): Observable<HttpEvent<ExpenseAttachment>> {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('attachmentType', attachmentType.toString());
 
     return this.http.post<ExpenseAttachment>('/api/projects/' + projectId + '/categories/' + categoryId + '/expenses/temporary-attachments', formData, {
-      observe: 'body',
+      observe: 'events',
+      reportProgress: true,
       responseType: 'json'
     });
   }

@@ -1,6 +1,7 @@
 ﻿import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
+import { HttpEventType } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { TranslateModule } from '@ngx-translate/core';
@@ -17,8 +18,36 @@ import { AttachmentType } from '../../../core/enums/attachment-type';
 describe('AddExpenseComponent', () => {
   let fixture: ComponentFixture<AddExpenseComponent>;
   let component: AddExpenseComponent;
+  let expenseServiceMock: jasmine.SpyObj<ExpenseService>;
 
   beforeEach(async () => {
+    expenseServiceMock = jasmine.createSpyObj<ExpenseService>('ExpenseService', [
+      'add',
+      'update',
+      'uploadTemporaryAttachment',
+      'uploadTemporaryAttachmentWithProgress',
+      'uploadAttachment',
+      'removeAttachment',
+      'getAttachmentDownloadUrl'
+    ]);
+    expenseServiceMock.add.and.returnValue(of({} as any));
+    expenseServiceMock.update.and.returnValue(of({} as any));
+    expenseServiceMock.uploadTemporaryAttachment.and.returnValue(of({ id: 'temp-1' } as any));
+    expenseServiceMock.uploadTemporaryAttachmentWithProgress.and.returnValue(of({
+      type: HttpEventType.Response,
+      body: {
+        id: 'temp-1',
+        name: 'deductible-proof.pdf',
+        contentType: 'application/pdf',
+        size: 1234,
+        attachmentType: AttachmentType.DeductibleProof,
+        isTemporary: true
+      }
+    } as any));
+    expenseServiceMock.uploadAttachment.and.returnValue(of({ id: 'attachment-1' } as any));
+    expenseServiceMock.removeAttachment.and.returnValue(of(true));
+    expenseServiceMock.getAttachmentDownloadUrl.and.returnValue('/api/mock/attachment');
+
     await TestBed.configureTestingModule({
       imports: [
         AddExpenseComponent,
@@ -29,14 +58,7 @@ describe('AddExpenseComponent', () => {
         provideNativeDateAdapter(),
         {
           provide: ExpenseService,
-          useValue: {
-            add: () => of({}),
-            update: () => of({}),
-            uploadTemporaryAttachment: () => of({ id: 'temp-1' }),
-            uploadAttachment: () => of({ id: 'attachment-1' }),
-            removeAttachment: () => of(true),
-            getAttachmentDownloadUrl: () => '/api/mock/attachment'
-          }
+          useValue: expenseServiceMock
         },
         {
           provide: CategoryService,
@@ -135,6 +157,43 @@ describe('AddExpenseComponent', () => {
     const existingProof = fixture.nativeElement.querySelector('[data-testid="deductible-proof-existing"]');
     expect(existingProof).not.toBeNull();
     expect(existingProof.textContent).toContain('invoice.pdf');
+  });
+
+  it('should upload deductible proof immediately after file selection', async () => {
+    setupComponent();
+    component.isDeductibleControl?.setValue(true);
+
+    const file = new File(['proof-content'], 'deductible-proof.pdf', { type: 'application/pdf' });
+    const inputElement = document.createElement('input');
+    Object.defineProperty(inputElement, 'files', {
+      value: [file],
+      configurable: true
+    });
+    const changeEvent = new Event('change');
+    Object.defineProperty(changeEvent, 'target', {
+      value: inputElement,
+      configurable: true
+    });
+
+    await component.onDeductibleProofSelected(changeEvent);
+
+    expect(expenseServiceMock.uploadTemporaryAttachmentWithProgress).toHaveBeenCalledWith(
+      'project-1',
+      'category-1',
+      file,
+      AttachmentType.DeductibleProof
+    );
+    expect(component.pendingDeductibleProofAttachment?.id).toBe('temp-1');
+    expect(component.pendingDeductibleProofFileName).toBe('deductible-proof.pdf');
+  });
+
+  it('should disable submit while proof upload is in progress', () => {
+    setupComponent();
+    component.isProofOperationInProgress = true;
+    fixture.detectChanges();
+
+    const submitButton = fixture.nativeElement.querySelector('button[type=submit]') as HTMLButtonElement;
+    expect(submitButton.disabled).toBeTrue();
   });
 });
 

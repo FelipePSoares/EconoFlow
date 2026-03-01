@@ -110,6 +110,7 @@
   "FailToDeleteAccount": "Failed to delete account! Please try again later.",
   "AttentionTotalExceeds": "Attention: Total exceeds 100%",
   "DeductibleProofOptional": "Deductible proof (optional)",
+  "DeductibleProofAttached": "Proof attached",
   "DeductibleProofUploading": "Uploading deductible proof",
   "DeductibleProofUploadFailed": "Failed to upload deductible proof. Please try again.",
   "DeductibleProofDeleteFailed": "Failed to remove deductible proof. Please try again.",

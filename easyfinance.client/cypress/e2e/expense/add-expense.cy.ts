@@ -88,14 +88,14 @@ describe('EconoFlow - expense add Tests', () => {
         lastModified: Date.now()
       });
 
+      cy.wait('@postTemporaryAttachment').then(({ response }) => {
+        expect(response?.statusCode).to.equal(201);
+      });
+
       cy.get('input[formControlName=name]').type(`${expense.name}-with-proof`);
       cy.get('input[formControlName=budget]').type(expense.budget);
       cy.get('input[formControlName=amount]').type(expense.amount);
       cy.get('button[type=submit]').click();
-
-      cy.wait('@postTemporaryAttachment').then(({ response }) => {
-        expect(response?.statusCode).to.equal(201);
-      });
 
       cy.wait<ExpenseReq, ExpenseRes>('@postExpenses').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(201);

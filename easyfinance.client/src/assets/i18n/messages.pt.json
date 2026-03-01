@@ -110,6 +110,7 @@
   "FailToDeleteAccount": "Falha ao deletar a conta! Por favor, tente novamente mais tarde.",
   "AttentionTotalExceeds": "Atenção: O total excede 100%",
   "DeductibleProofOptional": "Comprovante dedutível (opcional)",
+  "DeductibleProofAttached": "Comprovante anexado",
   "DeductibleProofUploading": "Enviando comprovante dedutível",
   "DeductibleProofUploadFailed": "Falha ao enviar o comprovante dedutível. Tente novamente.",
   "DeductibleProofDeleteFailed": "Falha ao remover o comprovante dedutível. Tente novamente.",

@@ -1,4 +1,4 @@
 export enum AttachmentType {
-  General = 0,
-  DeductibleProof = 1
+  General = 'General',
+  DeductibleProof = 'DeductibleProof'
 }

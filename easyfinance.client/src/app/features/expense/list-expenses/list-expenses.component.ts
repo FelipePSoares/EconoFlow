@@ -297,6 +297,10 @@ export class ListExpensesComponent implements OnInit {
     return this.editingSubExpense?.parentId === expense.id && this.editingSubExpense?.subExpenseId === subExpense.id;
   }
 
+  hasDeductibleProof(expense: ExpenseDto): boolean {
+    return !!expense.getDeductibleProofAttachment();
+  }
+
   private resetEditionState(): void {
     this.cancelExpenseForm();
     this.cancelSubExpenseForm();

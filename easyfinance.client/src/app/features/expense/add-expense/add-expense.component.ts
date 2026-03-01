@@ -1,8 +1,9 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AfterViewInit, Component, DestroyRef, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild, inject } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { HttpEventType } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { firstValueFrom, map } from 'rxjs';
+import { filter, firstValueFrom, map } from 'rxjs';
 import { compare } from 'fast-json-patch';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -74,7 +75,7 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
   private currentDate!: Moment;
   private editingExpense: ExpenseDto | null = null;
   deductibleProofAttachment: ExpenseAttachmentDto | null = null;
-  pendingDeductibleProofFile: File | null = null;
+  pendingDeductibleProofAttachment: ExpenseAttachmentDto | null = null;
   pendingDeductibleProofFileName: string | null = null;
   expenseForm!: FormGroup;
   categories: CategoryDto[] = [];
@@ -204,6 +205,13 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
     return !this.categoryId;
   }
 
+  get canUploadDeductibleProof(): boolean {
+    if (this.categoryId)
+      return true;
+
+    return !!this.expenseForm?.get('categoryId')?.value;
+  }
+
   async save(): Promise<void> {
     if (!this.expenseForm.valid || this.isSaving || this.isProofOperationInProgress) {
       return;
@@ -238,7 +246,9 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
         updatedPatchModel.amount = parsedAmount;
         updatedPatchModel.budget = parsedBudget;
         updatedPatchModel.isDeductible = isDeductible;
-        updatedPatchModel.temporaryAttachmentIds = [];
+        updatedPatchModel.temporaryAttachmentIds = isDeductible && this.pendingDeductibleProofAttachment
+          ? [this.pendingDeductibleProofAttachment.id]
+          : [];
 
         const patch = compare(currentPatchModel, updatedPatchModel);
 
@@ -260,12 +270,7 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
           this.deductibleProofAttachment = null;
         }
 
-        if (isDeductible && this.pendingDeductibleProofFile) {
-          const uploadedProof = await this.uploadDeductibleProofAsync(selectedCategoryId, savedExpense.id, this.pendingDeductibleProofFile);
-          savedExpense.attachments = (savedExpense.attachments ?? [])
-            .filter(attachment => attachment.attachmentType !== AttachmentType.DeductibleProof);
-          savedExpense.attachments.push(uploadedProof);
-          this.deductibleProofAttachment = uploadedProof;
+        if (this.pendingDeductibleProofAttachment) {
           this.clearPendingDeductibleProof();
         }
 
@@ -286,9 +291,8 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
         temporaryAttachmentIds: []
       };
 
-      if (isDeductible && this.pendingDeductibleProofFile) {
-        const temporaryProof = await this.uploadTemporaryDeductibleProofAsync(selectedCategoryId, this.pendingDeductibleProofFile);
-        newExpense.temporaryAttachmentIds = [temporaryProof.id];
+      if (isDeductible && this.pendingDeductibleProofAttachment) {
+        newExpense.temporaryAttachmentIds = [this.pendingDeductibleProofAttachment.id];
       }
 
       const createResponse = await firstValueFrom(this.expenseService.add(this.projectId, selectedCategoryId, newExpense));
@@ -317,7 +321,7 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
     }
   }
 
-  onDeductibleProofSelected(event: Event): void {
+  async onDeductibleProofSelected(event: Event): Promise<void> {
     const inputElement = event.target as HTMLInputElement;
     const file = inputElement.files?.[0];
 
@@ -336,15 +340,28 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    this.pendingDeductibleProofFile = file;
+    const selectedCategoryId = this.categoryId ?? this.categoryIdControl?.value;
+    if (!selectedCategoryId) {
+      this.categoryIdControl?.markAsTouched();
+      inputElement.value = '';
+      return;
+    }
+
     this.pendingDeductibleProofFileName = file.name;
+    this.pendingDeductibleProofAttachment = null;
+
+    try {
+      this.pendingDeductibleProofAttachment = await this.uploadTemporaryDeductibleProofAsync(selectedCategoryId, file);
+    } catch {
+      this.clearPendingDeductibleProof();
+    }
   }
 
   async removeDeductibleProof(): Promise<void> {
     if (this.isSaving || this.isProofOperationInProgress)
       return;
 
-    if (this.pendingDeductibleProofFile) {
+    if (this.pendingDeductibleProofAttachment) {
       this.clearPendingDeductibleProof();
       return;
     }
@@ -416,7 +433,7 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
       .find(attachment => attachment.attachmentType === AttachmentType.DeductibleProof) ?? null;
   }
   private clearPendingDeductibleProof(): void {
-    this.pendingDeductibleProofFile = null;
+    this.pendingDeductibleProofAttachment = null;
     this.pendingDeductibleProofFileName = null;
 
     if (this.deductibleProofInput?.nativeElement)
@@ -428,34 +445,34 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
     this.proofUploadProgress = 0;
 
     try {
-      this.proofUploadProgress = 30;
       const uploadResponse = await firstValueFrom(
-        this.expenseService.uploadTemporaryAttachment(this.projectId, categoryId, file, AttachmentType.DeductibleProof)
+        this.expenseService.uploadTemporaryAttachmentWithProgress(this.projectId, categoryId, file, AttachmentType.DeductibleProof)
+          .pipe(
+            map(event => {
+              if (event.type === HttpEventType.UploadProgress) {
+                const total = event.total ?? file.size;
+                if (total > 0)
+                  this.proofUploadProgress = Math.min(99, Math.round((event.loaded / total) * 100));
+
+                return null;
+              }
+
+              if (event.type === HttpEventType.Response) {
+                this.proofUploadProgress = 100;
+                return event.body
+                  ? ExpenseAttachmentDto.fromExpenseAttachment(event.body)
+                  : null;
+              }
+
+              return null;
+            }),
+            filter((attachment): attachment is ExpenseAttachmentDto => attachment !== null)
+          )
       );
-      this.proofUploadProgress = 100;
-      return ExpenseAttachmentDto.fromExpenseAttachment(uploadResponse);
+      return uploadResponse;
     } catch {
       this.snackBar.openErrorSnackbar(this.translateService.instant('DeductibleProofUploadFailed'));
       throw new Error('Temporary deductible proof upload failed.');
-    } finally {
-      this.isProofOperationInProgress = false;
-    }
-  }
-
-  private async uploadDeductibleProofAsync(categoryId: string, expenseId: string, file: File): Promise<ExpenseAttachmentDto> {
-    this.isProofOperationInProgress = true;
-    this.proofUploadProgress = 0;
-
-    try {
-      this.proofUploadProgress = 30;
-      const uploadResponse = await firstValueFrom(
-        this.expenseService.uploadAttachment(this.projectId, categoryId, expenseId, file, AttachmentType.DeductibleProof)
-      );
-      this.proofUploadProgress = 100;
-      return ExpenseAttachmentDto.fromExpenseAttachment(uploadResponse);
-    } catch {
-      this.snackBar.openErrorSnackbar(this.translateService.instant('DeductibleProofUploadFailed'));
-      throw new Error('Deductible proof upload failed.');
     } finally {
       this.isProofOperationInProgress = false;
     }

@@ -28,3 +28,31 @@
   filter: grayscale(100%);
   opacity: 0.7;
 }
+
+.expense-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.expense-flag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  padding: 4px 10px;
+}
+
+.expense-flag-deductible {
+  background-color: #e9f5ff;
+  color: #0b5394;
+  border: 1px solid #c9e3ff;
+}
+
+.expense-flag-proof {
+  background-color: #edf5e7;
+  color: #2f6b2f;
+  border: 1px solid #d7ebc9;
+}

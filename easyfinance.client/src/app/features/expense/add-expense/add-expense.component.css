@@ -9,3 +9,7 @@
 .deductible-proof-selected {
   font-size: 0.95rem;
 }
+
+.deductible-proof-progress-bar {
+  height: 8px;
+}
