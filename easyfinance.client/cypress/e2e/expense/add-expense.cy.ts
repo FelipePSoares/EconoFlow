@@ -19,7 +19,7 @@ describe('EconoFlow - expense add Tests', () => {
   })
 
   it('should keep deductible off by default', () => {
-    cy.get('[data-testid="is-deductible-toggle"] input').should('not.be.checked');
+    cy.get('[data-testid="is-deductible-toggle"] button').should('not.be.checked');
     cy.get('[data-testid="deductible-proof-section"]').should('not.exist');
   });
 

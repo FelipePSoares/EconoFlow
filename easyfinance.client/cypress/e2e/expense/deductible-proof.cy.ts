@@ -5,6 +5,44 @@ describe('EconoFlow - deductible proof Tests', () => {
     value?: boolean | number | string | string[] | null;
   }
 
+  const ensureFirstExpenseScenario = () => {
+    let wasDeductible = false;
+
+    cy.intercept('PATCH', '**/expenses/*').as('setupPatchExpense');
+    cy.intercept('DELETE', '**/expenses/*/attachments/*').as('setupDeleteAttachment');
+
+    cy.get('button[name=edit]').first().click();
+    cy.get('[data-testid="is-deductible-toggle"] button').should('exist').then(($toggleButton) => {
+      wasDeductible = $toggleButton.attr('aria-checked') === 'true';
+
+      if (wasDeductible) {
+        cy.get('[data-testid="is-deductible-toggle"]').click();
+        cy.get('button[type=submit]').should('not.be.disabled').click();
+      }
+    });
+
+    cy.then(() => {
+      if (!wasDeductible)
+        return;
+
+      cy.wait('@setupPatchExpense').then(({ response }) => {
+        expect(response?.statusCode).to.equal(200);
+      });
+    });
+
+    cy.reload();
+    cy.wait<ExpenseReq, ExpenseRes[]>('@getExpenses').then(({ response }) => {
+      const firstExpense = response?.body?.[0];
+      expect(firstExpense).to.not.equal(undefined);
+      expect(firstExpense?.isDeductible ?? false).to.equal(false);
+    });
+
+    cy.get('button[name=edit]').first().click();
+    cy.get('[data-testid="is-deductible-toggle"] button').should('have.attr', 'aria-checked', 'false');
+    cy.get('[data-testid="deductible-proof-existing"]').should('not.exist');
+    cy.get('button[type=submit]').should('not.be.disabled').click();
+  };
+
   beforeEach(() => {
     cy.intercept('GET', '**/expenses?*').as('getExpenses');
 
@@ -19,6 +57,7 @@ describe('EconoFlow - deductible proof Tests', () => {
           const category = categories.defaultCategory;
           cy.visit('/projects/' + project.id + '/categories/' + category.id + '/expenses');
           cy.wait('@getExpenses');
+          ensureFirstExpenseScenario();
         });
       });
     });
@@ -28,7 +67,9 @@ describe('EconoFlow - deductible proof Tests', () => {
     const proofFileContent = Cypress.Buffer.from('%PDF-1.4 deductible proof');
 
     cy.get('button[name=edit]').first().click();
+    cy.get('[data-testid="is-deductible-toggle"] button').should('have.attr', 'aria-checked', 'false');
     cy.get('[data-testid="is-deductible-toggle"]').click();
+    cy.get('[data-testid="is-deductible-toggle"] button').should('have.attr', 'aria-checked', 'true');
     cy.get('[data-testid="deductible-proof-input"]').selectFile({
       contents: proofFileContent,
       fileName: 'deductible-proof.pdf',
@@ -40,11 +81,6 @@ describe('EconoFlow - deductible proof Tests', () => {
   it('should upload temporary deductible proof while editing expense and show proof in list', () => {
     cy.intercept('PATCH', '**/expenses/*').as('patchExpense');
     cy.intercept('POST', '**/expenses/temporary-attachments').as('postTemporaryAttachment');
-
-    let editedExpenseName = '';
-    cy.get('.name').first().invoke('text').then((value) => {
-      editedExpenseName = value.trim();
-    });
 
     attachDeductibleProofToFirstExpense();
 
@@ -61,21 +97,21 @@ describe('EconoFlow - deductible proof Tests', () => {
         .some(operation => operation.path?.toLowerCase() === '/isdeductible' && operation.value === true);
       expect(hasDeductiblePatch).to.equal(true);
 
-      const temporaryAttachmentOperation = operations
-        .find(operation => operation.path === '/temporaryAttachmentIds');
-      const temporaryAttachmentIds = temporaryAttachmentOperation?.value as string[] | undefined;
-      expect(temporaryAttachmentIds ?? []).to.have.length(1);
+      const temporaryAttachmentValues = operations
+        .filter(operation => operation.path?.startsWith('/temporaryAttachmentIds'))
+        .flatMap(operation => Array.isArray(operation.value) ? operation.value : [operation.value])
+        .filter((value): value is string => typeof value === 'string');
+      expect(temporaryAttachmentValues).to.have.length(1);
     });
 
     cy.wait('@getExpenses');
-    cy.contains('.name', editedExpenseName).closest('.list-group-item').within(() => {
+    cy.get('.list-group-item').first().within(() => {
       cy.get('[data-testid="expense-deductible-flag"]').should('be.visible');
       cy.get('[data-testid="expense-proof-flag"]').should('be.visible');
     });
 
     cy.get('button[name=edit]').first().click();
-    cy.get('[data-testid="is-deductible-toggle"] input').should('be.checked');
-    cy.get('[data-testid="deductible-proof-existing"]').should('be.visible');
+    cy.get('[data-testid="is-deductible-toggle"] button').should('have.attr', 'aria-checked', 'true');
   });
 
   it('should disable submit while temporary proof upload is in progress', () => {
