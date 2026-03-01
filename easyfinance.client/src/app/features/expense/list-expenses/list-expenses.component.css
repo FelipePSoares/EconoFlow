@@ -56,3 +56,8 @@
   color: #2f6b2f;
   border: 1px solid #d7ebc9;
 }
+
+.expense-item-flags .expense-flag {
+  font-size: 0.68rem;
+  padding: 3px 8px;
+}

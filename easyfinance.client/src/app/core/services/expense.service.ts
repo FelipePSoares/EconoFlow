@@ -89,6 +89,40 @@ export class ExpenseService {
     return '/api/projects/' + projectId + '/categories/' + categoryId + '/expenses/' + expenseId + '/attachments/' + attachmentId;
   }
 
+  uploadTemporaryExpenseItemAttachment(projectId: string, categoryId: string, expenseId: string, file: File, attachmentType: AttachmentType): Observable<ExpenseAttachment> {
+    return this.uploadTemporaryExpenseItemAttachmentWithProgress(projectId, categoryId, expenseId, file, attachmentType).pipe(
+      filter((event): event is HttpResponse<ExpenseAttachment> => event.type === HttpEventType.Response),
+      map(event => event.body as ExpenseAttachment)
+    );
+  }
+
+  uploadTemporaryExpenseItemAttachmentWithProgress(projectId: string, categoryId: string, expenseId: string, file: File, attachmentType: AttachmentType): Observable<HttpEvent<ExpenseAttachment>> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('attachmentType', attachmentType.toString());
+
+    return this.http.post<ExpenseAttachment>(
+      '/api/projects/' + projectId + '/categories/' + categoryId + '/expenses/' + expenseId + '/expenseItems/temporary-attachments',
+      formData,
+      {
+        observe: 'events',
+        reportProgress: true,
+        responseType: 'json'
+      });
+  }
+
+  removeExpenseItemAttachment(projectId: string, categoryId: string, expenseId: string, expenseItemId: string, attachmentId: string): Observable<boolean> {
+    return this.http.delete(
+      '/api/projects/' + projectId + '/categories/' + categoryId + '/expenses/' + expenseId + '/expenseItems/' + expenseItemId + '/attachments/' + attachmentId,
+      {
+        observe: 'response'
+      }).pipe(map(res => res.ok));
+  }
+
+  getExpenseItemAttachmentDownloadUrl(projectId: string, categoryId: string, expenseId: string, expenseItemId: string, attachmentId: string): string {
+    return '/api/projects/' + projectId + '/categories/' + categoryId + '/expenses/' + expenseId + '/expenseItems/' + expenseItemId + '/attachments/' + attachmentId;
+  }
+
   remove(projectId: string, categoryId: string, id: string): Observable<boolean> {
     return this.http.delete('/api/projects/' + projectId + '/categories/' + categoryId + '/expenses/' + id, {
       observe: 'response'
