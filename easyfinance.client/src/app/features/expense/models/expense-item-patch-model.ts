@@ -6,6 +6,8 @@ export class ExpenseItemPatchModel {
   name!: string;
   date!: string;
   amount!: number;
+  isDeductible!: boolean;
+  temporaryAttachmentIds!: string[];
   items!: ExpenseItemPatchModel[];
 
   static fromExpenseItem(item: ExpenseItemDto): ExpenseItemPatchModel {
@@ -14,6 +16,8 @@ export class ExpenseItemPatchModel {
     model.name = item.name ?? '';
     model.date = toDateOnlyString(item.date);
     model.amount = item.amount ?? 0;
+    model.isDeductible = item.isDeductible ?? false;
+    model.temporaryAttachmentIds = [...(item.temporaryAttachmentIds ?? [])];
     model.items = (item.items ?? []).map(child => ExpenseItemPatchModel.fromExpenseItem(child));
     return model;
   }

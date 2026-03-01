@@ -49,6 +49,22 @@
                         }
                       </div>
 
+                      <div class="expense-flags mb-2" [class.archived]="isArchived">
+                        @if (expense.isDeductible) {
+                          <span class="expense-flag expense-flag-deductible" data-testid="expense-deductible-flag">
+                            <i class="bi bi-receipt-cutoff me-1"></i>
+                            {{ 'FieldIsDeductible' | translate }}
+                          </span>
+                        }
+
+                        @if (hasDeductibleProof(expense)) {
+                          <span class="expense-flag expense-flag-proof" data-testid="expense-proof-flag">
+                            <i class="bi bi-paperclip me-1"></i>
+                            {{ 'DeductibleProofAttached' | translate }}
+                          </span>
+                        }
+                      </div>
+
                       <div [class.archived]="isArchived">
                         <app-budget-bar [spend]="expense.getSpend()"
                           [budget]="expense.budget"
@@ -82,6 +98,22 @@
                             } @else {
                               <span class="fw-normal text-muted fst-italic name-sub-placeholder">{{ 'PlaceholderItemWithoutName' | translate }}</span>
                             }
+
+                            <div class="expense-flags expense-item-flags my-1" [class.archived]="isArchived">
+                              @if (subExpense.isDeductible) {
+                                <span class="expense-flag expense-flag-deductible" data-testid="expense-item-deductible-flag">
+                                  <i class="bi bi-receipt-cutoff me-1"></i>
+                                  {{ 'FieldIsDeductible' | translate }}
+                                </span>
+                              }
+
+                              @if (hasDeductibleProofItem(subExpense)) {
+                                <span class="expense-flag expense-flag-proof" data-testid="expense-item-proof-flag">
+                                  <i class="bi bi-paperclip me-1"></i>
+                                  {{ 'DeductibleProofAttached' | translate }}
+                                </span>
+                              }
+                            </div>
 
                             <p class="text-muted fs-6 mb-1">
                               <span class="me-3 date-sub">

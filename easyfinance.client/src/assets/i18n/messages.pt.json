@@ -18,6 +18,7 @@
   "FieldExpenseName": "Nome da Despesa",
   "FieldParentExpenseName": "Despesa Principal",
   "FieldBudget": "Orçamento",
+  "FieldIsDeductible": "É dedutível",
   "FieldAnnualIncome": "Por favor, insira a sua renda média anual (Não Mensal)",
   "FieldAnnualIncomeTooltip": "Nós usamos este valor para calcular a distrubuição mensal. Por favor insira sua renda média anual.",
   "FieldEmail": "Notificações por E-mail",
@@ -57,6 +58,8 @@
   "ButtonInvite": "Convidar",
   "ButtonCancel": "Cancelar",
   "ButtonDelete": "Deletar",
+  "ButtonRemove": "Remover",
+  "ButtonDownload": "Baixar",
   "ButtonSave": "Salvar",
   "ButtonDeleteAccount": "Deletar Conta",
   "ButtonClonePreviousBudget": "Clonar Orçamento Anterior",
@@ -81,7 +84,7 @@
   "ButtonICopiedCodes": "Já salvei esses códigos",
   "ButtonCopyManualSetupKey": "Copiar chave",
   "ButtonConfigureTwoFactor": "Configurar 2FA",
-  "ButtonEnableNotifications": "Ativar notificacoes",
+  "ButtonEnableNotifications": "Ativar notificações",
   "ButtonTryAgain": "Tentar novamente",
 
   "MenuAccount": "Conta",
@@ -106,6 +109,13 @@
   "ManualSetupKeyCopyFailed": "Não foi possível copiar a chave de configuração. Copie manualmente.",
   "FailToDeleteAccount": "Falha ao deletar a conta! Por favor, tente novamente mais tarde.",
   "AttentionTotalExceeds": "Atenção: O total excede 100%",
+  "DeductibleProofOptional": "Comprovante dedutível (opcional)",
+  "DeductibleProofAttached": "Comprovante anexado",
+  "DeductibleProofUploading": "Enviando comprovante dedutível",
+  "DeductibleProofUploadFailed": "Falha ao enviar o comprovante dedutível. Tente novamente.",
+  "DeductibleProofDeleteFailed": "Falha ao remover o comprovante dedutível. Tente novamente.",
+  "DeductibleProofInvalidFileType": "Tipo de arquivo não suportado. Use PDF ou imagem.",
+  "DeductibleProofFileSizeExceeded": "Arquivo muito grande. O tamanho máximo é 10 MB.",
 
   "how-to-create-budget": "teste <b>texto</b>",
 
@@ -330,12 +340,12 @@
   "MonthlyAndAnnualOverviewNowAvailableMessage": "Novidade: Visão Mensal e Visão Anual já estão disponíveis. Abra a página de Visão Geral e clique no mês para a Visão Mensal ou no ano para a Visão Anual.",
   "TwoFactorNowAvailableAnnouncementMessage": "Atualização de segurança: o 2FA já está disponível. Abra as configurações de segurança da sua conta para configurar.",
   "EnableTwoFactorRecommendationMessage": "Recomendação: ative a autenticação de dois fatores para proteger sua conta.",
-  "WebPushPermissionPrePromptTitle": "Receba notificacoes no navegador",
-  "WebPushPermissionPrePromptMessage": "Ative as notificacoes do navegador para receber alertas importantes da conta e dos projetos em tempo real. Voce pode alterar isso depois nas configuracoes do navegador.",
-  "WebPushPermissionBlockedTitle": "Notificacoes do navegador bloqueadas",
-  "WebPushPermissionBlockedDescription": "As notificacoes estao bloqueadas para este site. Para ativar notificacoes web, altere a permissao no navegador e tente novamente.",
-  "WebPushPermissionBlockedStep1": "Abra as configuracoes do site no navegador para este website.",
-  "WebPushPermissionBlockedStep2": "Localize a permissao de Notificacoes.",
+  "WebPushPermissionPrePromptTitle": "Receba notificações no navegador",
+  "WebPushPermissionPrePromptMessage": "Ative as notificações do navegador para receber alertas importantes da conta e dos projetos em tempo real. Você pode alterar isso depois nas configurações do navegador.",
+  "WebPushPermissionBlockedTitle": "Notificações do navegador bloqueadas",
+  "WebPushPermissionBlockedDescription": "As notificações estão bloqueadas para este site. Para ativar notificações web, altere a permissão no navegador e tente novamente.",
+  "WebPushPermissionBlockedStep1": "Abra as configurações do site no navegador para este website.",
+  "WebPushPermissionBlockedStep2": "Localize a permissão de Notificações.",
   "WebPushPermissionBlockedStep3": "Altere de Bloquear para Permitir e clique em Tentar novamente."
 }
 
