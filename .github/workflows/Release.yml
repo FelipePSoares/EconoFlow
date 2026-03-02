@@ -3,9 +3,7 @@ name: Release
 permissions: read-all
 
 on:
-  workflow_run:
-    workflows: [ "MR build and tests" ]
-    types: [completed]
+  push:
     branches: [ "master" ]
 
 concurrency:
