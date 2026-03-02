@@ -3,40 +3,32 @@ name: Release
 permissions: read-all
 
 on:
-  push:
+  workflow_run:
+    workflows: [ "MR build and tests" ]
+    types: [completed]
     branches: [ "master" ]
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ github.event.workflow_run.head_sha || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build:
+  publish:
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'master'
     runs-on: windows-latest
     timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - name: Download release artifact
+        uses: actions/download-artifact@v4
         with:
-          dotnet-version: 8.0.x
-    
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        with:
-          path: ./easyfinance.client/node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
-
-      - name: Publish
-        run: dotnet publish --configuration Release
-
-      - name: Archive publish files
-        uses: actions/upload-artifact@v4
-        with:
-          name: publish
-          path: ./EasyFinance.Server/bin/Release/net8.0/publish/
-          retention-days: 5
+          name: release-publish
+          path: ./release-publish
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
 
       - name: Replace values on appsettings.json
         shell: bash
@@ -44,7 +36,7 @@ jobs:
           TOKEN: ${{ secrets.BETTERSTACK_SOURCE_TOKEN }}
           ENDPOINT: ${{ secrets.BETTERSTACK_ENDPOINT }}
         run: |
-          FILE="${{ github.workspace }}/EasyFinance.Server/bin/Release/net8.0/publish/appsettings.json"
+          FILE="${{ github.workspace }}/release-publish/appsettings.json"
           if [ ! -f "$FILE" ]; then
             echo "File not found: $FILE"
             exit 1
@@ -60,5 +52,5 @@ jobs:
           msdeploy-service-url: ${{ secrets.FTP_SERVER }}
           msdeploy-username: ${{ secrets.FTP_USERNAME }}
           msdeploy-password: ${{ secrets.FTP_PASSWORD }}
-          source-path: ${{ github.workspace }}\EasyFinance.Server\bin\Release\net8.0\publish\
+          source-path: ${{ github.workspace }}\release-publish\
           skip-extra-files: 0

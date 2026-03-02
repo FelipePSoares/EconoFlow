@@ -6,6 +6,8 @@ name: MR build and tests
 on:
   pull_request:
     branches: [ "master" ]
+  push:
+    branches: [ "master" ]
 
 concurrency:
   group: mr-build-tests-${{ github.event.pull_request.number || github.ref }}
@@ -45,6 +47,7 @@ jobs:
 
     - name: Auto bump frontend version for PR changes
       if: >
+        github.event_name == 'pull_request' &&
         steps.changes.outputs.client == 'true' &&
         steps.changes.outputs.version_files != 'true' &&
         github.actor != 'github-actions[bot]' &&
@@ -226,4 +229,47 @@ jobs:
       with:
         name: cypress-screenshots
         path: ./easyfinance.client/cypress/screenshots
+        retention-days: 5
+
+  release-artifact:
+    needs: [unit-tests, integration-tests]
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Install Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+
+    - name: Cache node_modules
+      id: cache-node-modules-release
+      uses: actions/cache@v4
+      with:
+        path: ./easyfinance.client/node_modules
+        key: node-modules-${{ runner.os }}-${{ hashFiles('./easyfinance.client/package-lock.json') }}
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Install dependencies
+      if: steps.cache-node-modules-release.outputs.cache-hit != 'true'
+      run: npm install
+      working-directory: ./easyfinance.client
+
+    - name: Publish release package
+      run: dotnet publish ./EasyFinance.Server/EasyFinance.Server.csproj --configuration Release --no-restore
+
+    - name: Upload release artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-publish
+        path: ./EasyFinance.Server/bin/Release/net8.0/publish/
         retention-days: 5
