@@ -232,7 +232,6 @@ jobs:
         retention-days: 5
 
   release-artifact:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     needs: [unit-tests, integration-tests]
     runs-on: windows-latest
     timeout-minutes: 30
