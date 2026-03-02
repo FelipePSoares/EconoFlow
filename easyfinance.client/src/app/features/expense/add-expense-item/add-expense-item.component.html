@@ -136,8 +136,8 @@
               <div class="progress deductible-proof-progress-bar">
                 <div
                   class="progress-bar progress-bar-striped progress-bar-animated"
+                  [ngClass]="proofProgressWidthClass"
                   role="progressbar"
-                  [style.width.%]="proofUploadProgress"
                   [attr.aria-valuenow]="proofUploadProgress"
                   aria-valuemin="0"
                   aria-valuemax="100">
