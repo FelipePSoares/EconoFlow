@@ -58,10 +58,21 @@
                         }
 
                         @if (hasDeductibleProof(expense)) {
-                          <span class="expense-flag expense-flag-proof" data-testid="expense-proof-flag">
-                            <i class="bi bi-paperclip me-1"></i>
-                            {{ 'DeductibleProofAttached' | translate }}
-                          </span>
+                          @if (getDeductibleProofDownloadUrl(expense); as proofDownloadUrl) {
+                            <a class="expense-flag expense-flag-proof expense-flag-link"
+                              [href]="proofDownloadUrl"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              data-testid="expense-proof-flag">
+                              <i class="bi bi-paperclip me-1"></i>
+                              {{ 'DeductibleProofAttached' | translate }}
+                            </a>
+                          } @else {
+                            <span class="expense-flag expense-flag-proof" data-testid="expense-proof-flag">
+                              <i class="bi bi-paperclip me-1"></i>
+                              {{ 'DeductibleProofAttached' | translate }}
+                            </span>
+                          }
                         }
                       </div>
 
@@ -108,10 +119,21 @@
                               }
 
                               @if (hasDeductibleProofItem(subExpense)) {
-                                <span class="expense-flag expense-flag-proof" data-testid="expense-item-proof-flag">
-                                  <i class="bi bi-paperclip me-1"></i>
-                                  {{ 'DeductibleProofAttached' | translate }}
-                                </span>
+                                @if (getDeductibleProofItemDownloadUrl(expense, subExpense); as proofItemDownloadUrl) {
+                                  <a class="expense-flag expense-flag-proof expense-flag-link"
+                                    [href]="proofItemDownloadUrl"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    data-testid="expense-item-proof-flag">
+                                    <i class="bi bi-paperclip me-1"></i>
+                                    {{ 'DeductibleProofAttached' | translate }}
+                                  </a>
+                                } @else {
+                                  <span class="expense-flag expense-flag-proof" data-testid="expense-item-proof-flag">
+                                    <i class="bi bi-paperclip me-1"></i>
+                                    {{ 'DeductibleProofAttached' | translate }}
+                                  </span>
+                                }
                               }
                             </div>
 

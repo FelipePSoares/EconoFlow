@@ -1,4 +1,4 @@
-import { HttpClient, HttpEvent, HttpEventType, HttpParams, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpEventType, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable, filter, map } from 'rxjs';
 import { Operation } from 'fast-json-patch';
@@ -6,6 +6,7 @@ import { Expense } from '../models/expense';
 import { ExpenseAttachment } from '../models/expense-attachment';
 import { AttachmentType } from '../enums/attachment-type';
 import { formatDate } from '../utils/date';
+import { UploadState } from '../types/upload-state';
 
 @Injectable({
   providedIn: 'root'
@@ -51,12 +52,12 @@ export class ExpenseService {
 
   uploadTemporaryAttachment(projectId: string, categoryId: string, file: File, attachmentType: AttachmentType): Observable<ExpenseAttachment> {
     return this.uploadTemporaryAttachmentWithProgress(projectId, categoryId, file, attachmentType).pipe(
-      filter((event): event is HttpResponse<ExpenseAttachment> => event.type === HttpEventType.Response),
-      map(event => event.body as ExpenseAttachment)
+      filter((state): state is { kind: 'done'; body: ExpenseAttachment } => state.kind === 'done'),
+      map(state => state.body)
     );
   }
 
-  uploadTemporaryAttachmentWithProgress(projectId: string, categoryId: string, file: File, attachmentType: AttachmentType): Observable<HttpEvent<ExpenseAttachment>> {
+  uploadTemporaryAttachmentWithProgress(projectId: string, categoryId: string, file: File, attachmentType: AttachmentType): Observable<UploadState<ExpenseAttachment>> {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('attachmentType', attachmentType.toString());
@@ -65,7 +66,10 @@ export class ExpenseService {
       observe: 'events',
       reportProgress: true,
       responseType: 'json'
-    });
+    }).pipe(
+      map(event => this.mapUploadState(event, file.size)),
+      filter((state): state is UploadState<ExpenseAttachment> => state !== null)
+    );
   }
 
   uploadAttachment(projectId: string, categoryId: string, expenseId: string, file: File, attachmentType: AttachmentType): Observable<ExpenseAttachment> {
@@ -91,12 +95,12 @@ export class ExpenseService {
 
   uploadTemporaryExpenseItemAttachment(projectId: string, categoryId: string, expenseId: string, file: File, attachmentType: AttachmentType): Observable<ExpenseAttachment> {
     return this.uploadTemporaryExpenseItemAttachmentWithProgress(projectId, categoryId, expenseId, file, attachmentType).pipe(
-      filter((event): event is HttpResponse<ExpenseAttachment> => event.type === HttpEventType.Response),
-      map(event => event.body as ExpenseAttachment)
+      filter((state): state is { kind: 'done'; body: ExpenseAttachment } => state.kind === 'done'),
+      map(state => state.body)
     );
   }
 
-  uploadTemporaryExpenseItemAttachmentWithProgress(projectId: string, categoryId: string, expenseId: string, file: File, attachmentType: AttachmentType): Observable<HttpEvent<ExpenseAttachment>> {
+  uploadTemporaryExpenseItemAttachmentWithProgress(projectId: string, categoryId: string, expenseId: string, file: File, attachmentType: AttachmentType): Observable<UploadState<ExpenseAttachment>> {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('attachmentType', attachmentType.toString());
@@ -108,7 +112,10 @@ export class ExpenseService {
         observe: 'events',
         reportProgress: true,
         responseType: 'json'
-      });
+      }).pipe(
+        map(event => this.mapUploadState(event, file.size)),
+        filter((state): state is UploadState<ExpenseAttachment> => state !== null)
+      );
   }
 
   removeExpenseItemAttachment(projectId: string, categoryId: string, expenseId: string, expenseItemId: string, attachmentId: string): Observable<boolean> {
@@ -133,5 +140,23 @@ export class ExpenseService {
     return this.http.delete('/api/projects/' + projectId + '/categories/' + categoryId + '/expenses/' + expenseId + '/expenseItems/' + expenseItemId, {
       observe: 'response'
     }).pipe(map(res => res.ok));
+  }
+
+  private mapUploadState<T>(event: HttpEvent<T>, fallbackTotal: number): UploadState<T> | null {
+    switch (event.type) {
+      case HttpEventType.UploadProgress: {
+        const total = event.total && event.total > 0
+          ? event.total
+          : fallbackTotal;
+        const percent = total > 0
+          ? Math.min(99, Math.max(0, Math.round((event.loaded / total) * 100)))
+          : 0;
+        return { kind: 'progress', percent };
+      }
+      case HttpEventType.Response:
+        return { kind: 'done', body: event.body as T };
+      default:
+        return null;
+    }
   }
 }

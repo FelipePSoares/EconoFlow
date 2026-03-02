@@ -1,9 +1,9 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AfterViewInit, Component, DestroyRef, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, DestroyRef, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild, inject } from '@angular/core';
+import { NgClass } from '@angular/common';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { HttpEventType } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { filter, firstValueFrom, map } from 'rxjs';
+import { Subscription, firstValueFrom, map } from 'rxjs';
 import { compare } from 'fast-json-patch';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -44,6 +44,7 @@ import { Expense } from '../../../core/models/expense';
     MatSlideToggleModule,
     CurrencyMaskModule,
     MatSelectModule,
+    NgClass,
     TranslateModule
 ],
     templateUrl: './add-expense.component.html',
@@ -71,6 +72,8 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
   private translateService = inject(TranslateService);
   private snackBar = inject(SnackbarComponent);
   private destroyRef = inject(DestroyRef);
+  private cdr = inject(ChangeDetectorRef);
+  private proofUploadSubscription?: Subscription;
 
   private currentDate!: Moment;
   private editingExpense: ExpenseDto | null = null;
@@ -212,6 +215,11 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
     return !!this.expenseForm?.get('categoryId')?.value;
   }
 
+  get proofProgressWidthClass(): string {
+    const progress = Math.max(0, Math.min(100, Math.round(this.proofUploadProgress)));
+    return `progress-width-${progress}`;
+  }
+
   async save(): Promise<void> {
     if (!this.expenseForm.valid || this.isSaving || this.isProofOperationInProgress) {
       return;
@@ -318,10 +326,11 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
       this.isSaving = false;
       this.isProofOperationInProgress = false;
       this.proofUploadProgress = 0;
+      this.cdr.detectChanges();
     }
   }
 
-  async onDeductibleProofSelected(event: Event): Promise<void> {
+  onDeductibleProofSelected(event: Event): void {
     const inputElement = event.target as HTMLInputElement;
     const file = inputElement.files?.[0];
 
@@ -349,12 +358,7 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
 
     this.pendingDeductibleProofFileName = file.name;
     this.pendingDeductibleProofAttachment = null;
-
-    try {
-      this.pendingDeductibleProofAttachment = await this.uploadTemporaryDeductibleProofAsync(selectedCategoryId, file);
-    } catch {
-      this.clearPendingDeductibleProof();
-    }
+    this.uploadTemporaryDeductibleProof(selectedCategoryId, file);
   }
 
   async removeDeductibleProof(): Promise<void> {
@@ -383,6 +387,7 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
     } finally {
       this.isProofOperationInProgress = false;
       this.proofUploadProgress = 0;
+      this.cdr.detectChanges();
     }
   }
 
@@ -433,54 +438,53 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
       .find(attachment => attachment.attachmentType === AttachmentType.DeductibleProof) ?? null;
   }
   private clearPendingDeductibleProof(): void {
+    this.proofUploadSubscription?.unsubscribe();
+    this.proofUploadSubscription = undefined;
+    this.isProofOperationInProgress = false;
+    this.proofUploadProgress = 0;
     this.pendingDeductibleProofAttachment = null;
     this.pendingDeductibleProofFileName = null;
 
     if (this.deductibleProofInput?.nativeElement)
       this.deductibleProofInput.nativeElement.value = '';
+
+    this.cdr.detectChanges();
   }
 
-  private async uploadTemporaryDeductibleProofAsync(categoryId: string, file: File): Promise<ExpenseAttachmentDto> {
+  private uploadTemporaryDeductibleProof(categoryId: string, file: File): void {
+    this.proofUploadSubscription?.unsubscribe();
     this.isProofOperationInProgress = true;
     this.proofUploadProgress = 0;
+    this.cdr.detectChanges();
 
-    try {
-      const uploadResponse = await firstValueFrom(
-        this.expenseService.uploadTemporaryAttachmentWithProgress(this.projectId, categoryId, file, AttachmentType.DeductibleProof)
-          .pipe(
-            map(event => {
-              if (event.type === HttpEventType.UploadProgress) {
-                const total = event.total ?? file.size;
-                if (total > 0)
-                  this.proofUploadProgress = Math.min(99, Math.round((event.loaded / total) * 100));
+    this.proofUploadSubscription = this.expenseService
+      .uploadTemporaryAttachmentWithProgress(this.projectId, categoryId, file, AttachmentType.DeductibleProof)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: state => {
+          if (state.kind === 'progress') {
+            this.proofUploadProgress = state.percent;
+            this.cdr.detectChanges();
+            return;
+          }
 
-                return null;
-              }
-
-              if (event.type === HttpEventType.Response) {
-                this.proofUploadProgress = 100;
-                return event.body
-                  ? ExpenseAttachmentDto.fromExpenseAttachment(event.body)
-                  : null;
-              }
-
-              return null;
-            }),
-            filter((attachment): attachment is ExpenseAttachmentDto => attachment !== null)
-          )
-      );
-      return uploadResponse;
-    } catch {
-      this.snackBar.openErrorSnackbar(this.translateService.instant('DeductibleProofUploadFailed'));
-      throw new Error('Temporary deductible proof upload failed.');
-    } finally {
-      this.isProofOperationInProgress = false;
-    }
+          this.pendingDeductibleProofAttachment = ExpenseAttachmentDto.fromExpenseAttachment(state.body);
+          this.proofUploadProgress = 100;
+          this.isProofOperationInProgress = false;
+          this.proofUploadSubscription = undefined;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.snackBar.openErrorSnackbar(this.translateService.instant('DeductibleProofUploadFailed'));
+          this.clearPendingDeductibleProof();
+        }
+      });
   }
 
   private async deleteDeductibleProofAsync(categoryId: string, expenseId: string, attachmentId: string): Promise<void> {
     this.isProofOperationInProgress = true;
     this.proofUploadProgress = 0;
+    this.cdr.detectChanges();
 
     const result = await firstValueFrom(
       this.expenseService.removeAttachment(this.projectId, categoryId, expenseId, attachmentId)
