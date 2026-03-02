@@ -3,30 +3,66 @@ name: Release
 permissions: read-all
 
 on:
-  push:
+  pull_request:
     branches: [ "master" ]
+    types: [closed]
 
 concurrency:
-  group: release-${{ github.event.workflow_run.head_sha || github.ref }}
+  group: release-pr-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   publish:
     if: >
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push' &&
-      github.event.workflow_run.head_branch == 'master'
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.base.ref == 'master' &&
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: windows-latest
     timeout-minutes: 30
 
     steps:
+      - name: Resolve successful PR build run
+        id: resolve-run
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const workflow_id = 'BuildAndTests.yml';
+            const prNumber = context.payload.pull_request.number;
+            const headSha = context.payload.pull_request.head.sha;
+
+            const runs = await github.paginate(github.rest.actions.listWorkflowRunsForWorkflow, {
+              owner,
+              repo,
+              workflow_id,
+              event: 'pull_request',
+              per_page: 100
+            });
+
+            const run = runs.find(r =>
+              r.head_sha === headSha &&
+              r.conclusion === 'success' &&
+              Array.isArray(r.pull_requests) &&
+              r.pull_requests.some(pr => pr.number === prNumber)
+            );
+
+            if (!run) {
+              core.setFailed(`No successful 'MR build and tests' run found for PR #${prNumber} and head SHA ${headSha}.`);
+              return;
+            }
+
+            core.info(`Using workflow run id ${run.id} for artifact download.`);
+            core.setOutput('run_id', String(run.id));
+
       - name: Download release artifact
         uses: actions/download-artifact@v4
         with:
           name: release-publish
           path: ./release-publish
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ github.event.workflow_run.id }}
+          run-id: ${{ steps.resolve-run.outputs.run_id }}
 
       - name: Replace values on appsettings.json
         shell: bash
