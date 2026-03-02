@@ -5,6 +5,40 @@ describe('EconoFlow - income list Tests', () => {
     return Array.from(new Set([fullYear, shortYear]));
   };
 
+  const parseDayFromLocalizedDate = (value: string, locale: string): number | null => {
+    const parts = value.match(/\d+/g);
+    if (!parts || parts.length < 2) {
+      return null;
+    }
+
+    if (locale.toLowerCase().startsWith('pt')) {
+      return Number(parts[0]);
+    }
+
+    return Number(parts[1]);
+  };
+
+  const resolveDateForUpdate = (currentInputValue: string, locale: string): { updatedDate: Date; requiresZeroAmount: boolean } => {
+    const today = new Date();
+    const todayDay = today.getDate();
+    const currentDay = parseDayFromLocalizedDate(currentInputValue, locale);
+
+    let targetDay = 1;
+    if (todayDay === 1) {
+      targetDay = currentDay === 2 ? 1 : 2;
+    } else {
+      targetDay = currentDay === 1 ? 2 : 1;
+    }
+
+    const updatedDate = new Date(today);
+    updatedDate.setDate(targetDay);
+
+    return {
+      updatedDate,
+      requiresZeroAmount: targetDay > todayDay
+    };
+  };
+
   beforeEach(() => {
     cy.fixture('users').then((users) => {
       const user = users.testUser;
@@ -20,8 +54,8 @@ describe('EconoFlow - income list Tests', () => {
     })
   })
 
-  afterEach(() => {
-    if (new Date().getDate() == 1) {
+  afterEach(function () {
+    if (this.currentTest.title === 'should update date after success update' && new Date().getDate() == 1) {
       let formattedDate = ''
       cy.get('button[name=edit]').first().click()
       const today = new Date()
@@ -47,26 +81,25 @@ describe('EconoFlow - income list Tests', () => {
   })
 
   it('should update date after success update', () => {
-    const today = new Date()
-    if (today.getDate() == 1)
-      today.setDate(2);
-    else
-      today.setDate(Math.floor(Math.random() * today.getDate()) + 1)
-
     let formattedDate = ''
     let expectedDates: string[] = []
 
     cy.get('button[name=edit]').first().click()
     cy.intercept('GET', '**/incomes*').as('getIncomes')
-
-    if (new Date().getDate() == 1)
-      cy.get('input[formControlName=amount]').clear().type(`0`)
-
     cy.window().then((win) => {
       const locale = win.localStorage.getItem('language-key') || win.navigator.language || 'en-US'
-      formattedDate = today.toLocaleDateString(locale)
-      expectedDates = buildDateVariants(today, locale)
-      cy.get('input[formControlName=date]').clear().type(`${formattedDate}{enter}`)
+      cy.get('input[formControlName=date]').invoke('val').then((currentValue) => {
+        const { updatedDate, requiresZeroAmount } = resolveDateForUpdate(String(currentValue ?? ''), locale);
+
+        formattedDate = updatedDate.toLocaleDateString(locale)
+        expectedDates = buildDateVariants(updatedDate, locale)
+
+        if (requiresZeroAmount) {
+          cy.get('input[formControlName=amount]').clear().type('0')
+        }
+
+        cy.get('input[formControlName=date]').clear().type(`${formattedDate}{enter}`)
+      })
     })
 
     cy.wait<IncomeReq, IncomeRes>('@patchIncomes').then(({ request, response }) => {
