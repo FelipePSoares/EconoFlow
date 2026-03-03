@@ -55,10 +55,14 @@ describe('EconoFlow - expense item list Tests', () => {
     const value = `name_${Math.random()}`;
 
     cy.get('button[name=edit-sub]').last().click()
+    cy.intercept('GET', '**/expenses*').as('getExpenses')
     cy.get('input[formControlName=name]').clear().type(`${value}{enter}`)
 
     cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
       expect(response?.statusCode).to.equal(200)
+
+      cy.wait('@getExpenses')
+
       cy.get('.name-sub').contains(`${value}`)
     })
   })
@@ -75,6 +79,8 @@ describe('EconoFlow - expense item list Tests', () => {
 
     cy.get('button[name=edit-sub]').last().click()
 
+    cy.intercept('GET', '**/expenses*').as('getExpenses')
+
     if (new Date().getDate() == 1)
       cy.get('input[formControlName=amount]').clear().type(`0`)
 
@@ -87,6 +93,9 @@ describe('EconoFlow - expense item list Tests', () => {
 
     cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
       expect(response?.statusCode).to.equal(200)
+
+      cy.wait('@getExpenses')
+
       cy.get('.date-sub').invoke('text').then((text) => {
         const hasExpectedDate = expectedDates.some(date => text.includes(date))
         expect(hasExpectedDate).to.equal(true)
@@ -100,6 +109,7 @@ describe('EconoFlow - expense item list Tests', () => {
     let formattedDate = ''
 
     cy.get('button[name=edit-sub]').first().click()
+
     cy.window().then((win) => {
       const locale = win.localStorage.getItem('language-key') || win.navigator.language || 'en-US'
       formattedDate = today.toLocaleDateString(locale)
@@ -118,10 +128,16 @@ describe('EconoFlow - expense item list Tests', () => {
     const expectedAmountWithComma = expectedAmount.replace('.', ',');
 
     cy.get('button[name=edit-sub]').first().click()
+
+    cy.intercept('GET', '**/expenses*').as('getExpenses')
+
     cy.get('input[formControlName=amount]').clear().type(`${value}{enter}`)
 
     cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
       expect(response?.statusCode).to.equal(200)
+
+      cy.wait('@getExpenses')
+
       cy.get('.amount-sub').invoke('text').then((text) => {
         const hasExpectedAmount = text.includes(expectedAmount) || text.includes(expectedAmountWithComma);
         expect(hasExpectedAmount).to.equal(true);
