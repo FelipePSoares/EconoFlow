@@ -225,6 +225,11 @@ jobs:
         name: backend-build-debug
         path: .
 
+    - name: Restore apphost execute permission
+      shell: bash
+      run: |
+        find ./EasyFinance.Server/bin/Debug -type f -name EasyFinance.Server -exec chmod +x {} \;
+
     - name: Start application
       id: dotnet
       run: dotnet run --project ./EasyFinance.Server --configuration Debug --no-build --no-restore --urls https://localhost:7003/ &
