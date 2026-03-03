@@ -107,6 +107,15 @@ jobs:
     - name: Build backend application
       run: dotnet build --configuration Debug --no-restore
 
+    - name: Upload backend build outputs
+      uses: actions/upload-artifact@v4
+      with:
+        name: backend-build-debug
+        path: |
+          EasyFinance*/bin/Debug/**
+          EasyFinance*/obj/**
+        retention-days: 1
+
     - name: Install dependencies
       if: steps.cache-node-modules-build.outputs.cache-hit != 'true'
       run: npm install
@@ -142,8 +151,14 @@ jobs:
       run: npm install
       working-directory: ./easyfinance.client
 
+    - name: Download backend build outputs
+      uses: actions/download-artifact@v4
+      with:
+        name: backend-build-debug
+        path: .
+
     - name: Run .Net tests
-      run: dotnet test --configuration Debug --verbosity normal --logger trx --collect:"XPlat Code Coverage"
+      run: dotnet test --configuration Debug --no-build --no-restore --verbosity normal --logger trx --collect:"XPlat Code Coverage"
 
     - name: Upload Test Results
       uses: actions/upload-artifact@v4
@@ -204,12 +219,22 @@ jobs:
       run: npm install
       working-directory: ./easyfinance.client
 
-    - name: Build application
-      run: dotnet build --configuration Debug
+    - name: Download backend build outputs
+      uses: actions/download-artifact@v4
+      with:
+        name: backend-build-debug
+        path: .
 
     - name: Start application
       id: dotnet
-      run: dotnet run --project ./EasyFinance.Server --urls https://localhost:7003/ &
+      shell: bash
+      run: |
+        SERVER_DLL="$(find ./EasyFinance.Server/bin/Debug -type f -name EasyFinance.Server.dll | head -n 1)"
+        if [ -z "$SERVER_DLL" ]; then
+          echo "EasyFinance.Server.dll not found in downloaded build outputs."
+          exit 1
+        fi
+        dotnet "$SERVER_DLL" --urls https://localhost:7003/ &
 
     - name: wait application startup
       run: sleep 10s
