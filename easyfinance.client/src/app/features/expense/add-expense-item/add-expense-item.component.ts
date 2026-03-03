@@ -106,6 +106,9 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
   expenseId?: string;
 
   @Input()
+  expenseItemId?: string;
+
+  @Input()
   parentExpense?: ExpenseDto | null;
 
   @Input()
@@ -129,7 +132,7 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
     this.currencySymbol = this.globalService.currencySymbol;
    }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.dateAdapter.setLocale(this.globalService.currentLanguage);
     this.translateService.onLangChange
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -157,6 +160,8 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
     if (this.categoryId) {
       this.categoryIdControl?.setValue(this.categoryId);
     }
+
+    await this.loadExpenseItemFromRouteIfNeeded();
 
     this.isDeductibleControl?.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -267,7 +272,7 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
   }
 
   get showExpenseSelector(): boolean {
-    return !this.parentExpense;
+    return !this.parentExpense && !this.editingExpenseItem;
   }
 
   get canUploadDeductibleProof(): boolean {
@@ -582,6 +587,44 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
           }
         }
       });
+  }
+
+  private async loadExpenseItemFromRouteIfNeeded(): Promise<void> {
+    if (this.editingExpenseItem || !this.categoryId || !this.expenseId || !this.expenseItemId) {
+      return;
+    }
+
+    try {
+      const loadedExpense = await firstValueFrom(
+        this.expenseService.getById(this.projectId, this.categoryId, this.expenseId)
+          .pipe(map(expense => ExpenseDto.fromExpense(expense)))
+      );
+
+      const loadedExpenseItem = loadedExpense.items.find(item => item.id === this.expenseItemId) ?? null;
+      if (!loadedExpenseItem) {
+        this.httpErrors = true;
+        this.errors = { general: ['GenericError'] };
+        return;
+      }
+
+      this.expense = loadedExpense;
+      this.expenses = [loadedExpense];
+      this.editingExpenseItem = structuredClone(loadedExpenseItem);
+      this.deductibleProofAttachment = this.getDeductibleProofAttachment(loadedExpenseItem);
+      this.hasLoadedExpenses = true;
+
+      this.expenseItemForm.patchValue({
+        categoryId: this.categoryId,
+        expenseId: loadedExpense.id,
+        name: loadedExpenseItem.name ?? '',
+        date: toUtcMomentDate(loadedExpenseItem.date),
+        amount: loadedExpenseItem.amount ?? 0,
+        isDeductible: loadedExpenseItem.isDeductible ?? false
+      }, { emitEvent: false });
+    } catch {
+      this.httpErrors = true;
+      this.errors = { general: ['GenericError'] };
+    }
   }
 
   private getSelectedCategoryId(): string | null {
