@@ -21,8 +21,6 @@ describe('EconoFlow - user account Tests', () => {
     const lastNameValue = 'lastName' + Math.floor(Math.random() * 1000).toString();
     lastNameInput.clear().type(lastNameValue);
 
-    cy.wait(810);
-
     cy.wait<UserReq, UserRes>('@patchAccount').then(({ request, response }) => {
       expect(response?.statusCode).to.equal(200)
 
@@ -81,10 +79,14 @@ describe('EconoFlow - user account Tests', () => {
   it('should be possible delete user', () => {
     cy.fixture('users').then((users) => {
       const user = users.userToDelete;
+      const uniqueUser = {
+        username: user.username.replace('@', `+delete-${Date.now()}@`),
+        password: user.password
+      };
 
       cy.intercept('DELETE', '**/AccessControl*').as('deleteAccount')
       cy.visit('/logout')
-      cy.register(user.username, user.password)
+      cy.register(uniqueUser.username, uniqueUser.password)
       cy.visit('/user')
       cy.get('.btn').contains('Delete Account').click();
       cy.wait('@deleteAccount').then((interception) => {
@@ -101,11 +103,15 @@ describe('EconoFlow - user account Tests', () => {
   it('can\'t delete user', () => {
     cy.fixture('users').then((users) => {
       const user = users.userToNotDelete;
+      const uniqueUser = {
+        username: user.username.replace('@', `+keep-${Date.now()}@`),
+        password: user.password
+      };
 
       cy.intercept('DELETE', '**/AccessControl*').as('deleteAccount')
 
       cy.visit('/logout')
-      cy.register(user.username, user.password)
+      cy.register(uniqueUser.username, uniqueUser.password)
       cy.visit('/user')
       cy.get('.btn').contains('Delete Account').click();
       cy.wait('@deleteAccount').then((interception) => {

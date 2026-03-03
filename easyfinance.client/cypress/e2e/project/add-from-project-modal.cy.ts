@@ -391,7 +391,7 @@ describe('EconoFlow - global add modal tests', () => {
             expect(response?.body).to.have.length(0);
           });
 
-          cy.wait(400);
+          cy.wait(300);
           cy.then(() => {
             expect(monthlyExpensesRequestCount).to.equal(1);
           });

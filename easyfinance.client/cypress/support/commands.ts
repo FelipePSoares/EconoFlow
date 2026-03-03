@@ -7,6 +7,7 @@ Cypress.Commands.add('login', (username, password) => {
       password
     })
   }, {
+    cacheAcrossSpecs: true,
     validate: () => {
       cy.request({
         method: 'GET',
@@ -39,6 +40,7 @@ Cypress.Commands.add('register', (username, password) => {
       })
     },
     {
+      cacheAcrossSpecs: true,
       validate: () => {
         cy.login(username, password)
         cy.getCookie('AuthToken').should('exist')

@@ -55,38 +55,53 @@ describe('EconoFlow - expense item list Tests', () => {
     const value = `name_${Math.random()}`;
 
     cy.get('button[name=edit-sub]').last().click()
+    cy.intercept('GET', '**/expenses*').as('getExpenses')
     cy.get('input[formControlName=name]').clear().type(`${value}{enter}`)
 
     cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
       expect(response?.statusCode).to.equal(200)
+
+      cy.wait('@getExpenses')
+
       cy.get('.name-sub').contains(`${value}`)
     })
   })
 
   it('should update date after success update', () => {
-    const today = new Date()
-    if (today.getDate() == 1)
-      today.setDate(2);
-    else
-      today.setDate(Math.floor(Math.random() * today.getDate()) + 1)
+    const firstDayCandidate = new Date();
+    firstDayCandidate.setDate(1);
+    const secondDayCandidate = new Date();
+    secondDayCandidate.setDate(2);
 
-    let formattedDate = ''
     let expectedDates: string[] = []
 
     cy.get('button[name=edit-sub]').last().click()
+
+    cy.intercept('GET', '**/expenses*').as('getExpenses')
 
     if (new Date().getDate() == 1)
       cy.get('input[formControlName=amount]').clear().type(`0`)
 
     cy.window().then((win) => {
       const locale = win.localStorage.getItem('language-key') || win.navigator.language || 'en-US'
-      formattedDate = today.toLocaleDateString(locale)
-      expectedDates = buildDateVariants(today, locale)
-      cy.get('input[formControlName=date]').clear().type(`${formattedDate}{enter}`)
+      const firstDayVariants = buildDateVariants(firstDayCandidate, locale)
+      const secondDayVariants = buildDateVariants(secondDayCandidate, locale)
+
+      cy.get('input[formControlName=date]').invoke('val').then((currentValue) => {
+        const currentDateValue = String(currentValue ?? '').trim()
+        const shouldUseSecondDay = firstDayVariants.includes(currentDateValue)
+        const targetDate = shouldUseSecondDay ? secondDayCandidate : firstDayCandidate
+
+        expectedDates = buildDateVariants(targetDate, locale)
+        cy.get('input[formControlName=date]').clear().type(`${targetDate.toLocaleDateString(locale)}{enter}`)
+      })
     })
 
     cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
       expect(response?.statusCode).to.equal(200)
+
+      cy.wait('@getExpenses')
+
       cy.get('.date-sub').invoke('text').then((text) => {
         const hasExpectedDate = expectedDates.some(date => text.includes(date))
         expect(hasExpectedDate).to.equal(true)
@@ -100,6 +115,7 @@ describe('EconoFlow - expense item list Tests', () => {
     let formattedDate = ''
 
     cy.get('button[name=edit-sub]').first().click()
+
     cy.window().then((win) => {
       const locale = win.localStorage.getItem('language-key') || win.navigator.language || 'en-US'
       formattedDate = today.toLocaleDateString(locale)
@@ -118,10 +134,16 @@ describe('EconoFlow - expense item list Tests', () => {
     const expectedAmountWithComma = expectedAmount.replace('.', ',');
 
     cy.get('button[name=edit-sub]').first().click()
+
+    cy.intercept('GET', '**/expenses*').as('getExpenses')
+
     cy.get('input[formControlName=amount]').clear().type(`${value}{enter}`)
 
     cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
       expect(response?.statusCode).to.equal(200)
+
+      cy.wait('@getExpenses')
+
       cy.get('.amount-sub').invoke('text').then((text) => {
         const hasExpectedAmount = text.includes(expectedAmount) || text.includes(expectedAmountWithComma);
         expect(hasExpectedAmount).to.equal(true);

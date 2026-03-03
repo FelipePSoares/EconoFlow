@@ -98,6 +98,9 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
   categoryId?: string;
 
   @Input()
+  expenseId?: string;
+
+  @Input()
   expense?: ExpenseDto | null;
 
   @Input()
@@ -118,7 +121,7 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
     this.currencySymbol = this.globalService.currencySymbol;
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.dateAdapter.setLocale(this.globalService.currentLanguage);
     this.translateService.onLangChange
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -147,10 +150,9 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
       this.categoryIdControl?.setValue(this.categoryId);
     }
 
-    if ((this.editingExpense?.items?.length ?? 0) > 0) {
-      this.expenseForm.controls['date'].disable();
-      this.expenseForm.controls['amount'].disable();
-    }
+    this.updateDateAndAmountControlState();
+
+    await this.loadExpenseFromRouteIfNeeded();
 
     this.isDeductibleControl?.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -431,6 +433,52 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
 
   private isNewEntity(id: string | undefined): boolean {
     return !!id && id.startsWith('new-');
+  }
+
+  private async loadExpenseFromRouteIfNeeded(): Promise<void> {
+    if (this.editingExpense || !this.categoryId || !this.expenseId) {
+      return;
+    }
+
+    try {
+      const loadedExpense = await firstValueFrom(
+        this.expenseService.getById(this.projectId, this.categoryId, this.expenseId)
+          .pipe(map(expense => ExpenseDto.fromExpense(expense)))
+      );
+
+      this.editingExpense = loadedExpense;
+      this.deductibleProofAttachment = this.getDeductibleProofAttachment(this.editingExpense);
+
+      this.expenseForm.patchValue({
+        categoryId: this.categoryId,
+        name: loadedExpense.name ?? '',
+        date: toUtcMomentDate(loadedExpense.date),
+        amount: loadedExpense.amount ?? 0,
+        budget: loadedExpense.budget ?? 0,
+        isDeductible: loadedExpense.isDeductible ?? false
+      });
+
+      this.updateDateAndAmountControlState();
+      this.cdr.detectChanges();
+    } catch {
+      this.httpErrors = true;
+      this.errors = { general: ['GenericError'] };
+    }
+  }
+
+  private updateDateAndAmountControlState(): void {
+    const hasItems = (this.editingExpense?.items?.length ?? 0) > 0;
+    const dateControl = this.expenseForm.controls['date'];
+    const amountControl = this.expenseForm.controls['amount'];
+
+    if (hasItems) {
+      dateControl.disable({ emitEvent: false });
+      amountControl.disable({ emitEvent: false });
+      return;
+    }
+
+    dateControl.enable({ emitEvent: false });
+    amountControl.enable({ emitEvent: false });
   }
 
   private getDeductibleProofAttachment(expense: ExpenseDto | null): ExpenseAttachmentDto | null {
