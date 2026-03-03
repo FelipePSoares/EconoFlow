@@ -66,6 +66,7 @@ describe('EconoFlow - expense list Tests', () => {
       let expectedDates: string[] = []
 
       cy.get('button[name=edit]').first().click()
+      cy.intercept('GET', '**/expenses*').as('getExpenses')
 
       if (new Date().getDate() == 1)
         cy.get('input[formControlName=amount]').clear().type(`0`)
@@ -79,6 +80,9 @@ describe('EconoFlow - expense list Tests', () => {
 
       cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(200)
+
+        cy.wait('@getExpenses')
+
         cy.get('.date').first().invoke('text').then((text) => {
           const hasExpectedDate = expectedDates.some(date => text.includes(date))
           expect(hasExpectedDate).to.equal(true)

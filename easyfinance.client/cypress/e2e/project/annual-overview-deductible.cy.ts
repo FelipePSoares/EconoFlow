@@ -1,6 +1,15 @@
 describe('EconoFlow - annual overview deductible expenses', () => {
   const currentYear = new Date().getFullYear();
   const previousYear = currentYear - 1;
+  const getYearSummaryAlias = (year: number) => `getYearSummary_${year}`;
+  const getAnnualExpensesByCategoryAlias = (year: number) => `getAnnualExpensesByCategory_${year}`;
+  const getIncomesAlias = (year: number) => `getIncomes_${year}`;
+  const getCategoriesAlias = (year: number) => `getCategories_${year}`;
+
+  const parseYear = (rawYear: string | null | undefined, fallbackYear: number): number => {
+    const parsedYear = Number(rawYear);
+    return Number.isFinite(parsedYear) ? parsedYear : fallbackYear;
+  };
 
   const createCategoriesResponse = (year: number): CategoryRes[] => {
     if (year !== currentYear) {
@@ -56,7 +65,8 @@ describe('EconoFlow - annual overview deductible expenses', () => {
 
   const setupAnnualOverviewStubs = (projectId: string) => {
     cy.intercept('GET', `**/projects/${projectId}/year-summary/*`, (request) => {
-      const year = Number(request.url.split('/').pop()?.split('?')[0] ?? currentYear);
+      const year = parseYear(request.url.split('/').pop()?.split('?')[0], currentYear);
+      request.alias = getYearSummaryAlias(year);
 
       request.reply({
         totalBudget: 1000,
@@ -65,25 +75,31 @@ describe('EconoFlow - annual overview deductible expenses', () => {
         totalRemaining: year === currentYear ? 770 : 0,
         totalEarned: year === currentYear ? 1200 : 0
       });
-    }).as('getYearSummary');
+    });
 
     cy.intercept('GET', `**/projects/${projectId}/overview/annual/*/expenses-by-category`, (request) => {
-      const year = Number(request.url.split('/').at(-2) ?? currentYear);
+      const year = parseYear(request.url.split('/').at(-2), currentYear);
+      request.alias = getAnnualExpensesByCategoryAlias(year);
 
       request.reply(year === currentYear
         ? [{ name: 'Taxes', amount: 230 }]
         : []);
-    }).as('getAnnualExpensesByCategory');
+    });
 
-    cy.intercept('GET', `**/projects/${projectId}/incomes?*`, []).as('getIncomes');
+    cy.intercept('GET', `**/projects/${projectId}/incomes?*`, (request) => {
+      const requestUrl = new URL(request.url);
+      const year = parseYear(requestUrl.searchParams.get('from')?.split('-')[0], currentYear);
+      request.alias = getIncomesAlias(year);
+      request.reply([]);
+    });
 
     cy.intercept('GET', `**/projects/${projectId}/categories?*`, (request) => {
       const requestUrl = new URL(request.url);
-      const from = requestUrl.searchParams.get('from') ?? `${currentYear}-01-01`;
-      const year = Number(from.split('-')[0]);
+      const year = parseYear(requestUrl.searchParams.get('from')?.split('-')[0], currentYear);
+      request.alias = getCategoriesAlias(year);
 
       request.reply(createCategoriesResponse(year));
-    }).as('getCategories');
+    });
 
     cy.intercept('GET', `**/projects/${projectId}/categories/category-1`, {
       id: 'category-1',
@@ -130,12 +146,16 @@ describe('EconoFlow - annual overview deductible expenses', () => {
     }).as('getExpenseWithItemById');
   };
 
+  const waitForAnnualOverviewRequests = (year: number) => {
+    cy.wait(`@${getYearSummaryAlias(year)}`);
+    cy.wait(`@${getAnnualExpensesByCategoryAlias(year)}`);
+    cy.wait(`@${getCategoriesAlias(year)}`);
+    cy.wait(`@${getIncomesAlias(year)}`);
+  };
+
   const visitAnnualOverview = (projectId: string, year: number) => {
     cy.visit(`/projects/${projectId}/overview/annual?year=${year}`);
-    cy.wait('@getYearSummary');
-    cy.wait('@getAnnualExpensesByCategory');
-    cy.wait('@getCategories');
-    cy.wait('@getIncomes');
+    waitForAnnualOverviewRequests(year);
   };
 
   beforeEach(() => {
@@ -165,10 +185,13 @@ describe('EconoFlow - annual overview deductible expenses', () => {
 
       visitAnnualOverview(projectId, currentYear);
 
-      cy.get('#previous').click();
-      cy.wait('@getYearSummary').then(({ request }) => {
+      cy.get('app-current-date #previous').click();
+      cy.wait(`@${getYearSummaryAlias(previousYear)}`).then(({ request }) => {
         expect(request.url).to.include(`/year-summary/${previousYear}`);
       });
+      cy.wait(`@${getAnnualExpensesByCategoryAlias(previousYear)}`);
+      cy.wait(`@${getCategoriesAlias(previousYear)}`);
+      cy.wait(`@${getIncomesAlias(previousYear)}`);
 
       cy.get('[data-testid="deductible-empty"]').should('be.visible');
     });
@@ -186,7 +209,7 @@ describe('EconoFlow - annual overview deductible expenses', () => {
         .click();
       cy.wait('@getExpenseById');
       cy.get('.mat-mdc-dialog-container', { timeout: 10000 }).should('be.visible');
-      cy.url().should('include', `/projects/${projectId}/add-expense`);
+      cy.url().should('include', `(modal:projects/${projectId}/add-expense)`);
       cy.url().should('include', 'categoryId=category-1');
       cy.url().should('include', 'expenseId=expense-1');
       cy.get('input[formControlName="name"]').should('have.value', 'Accountant fee');
@@ -205,7 +228,7 @@ describe('EconoFlow - annual overview deductible expenses', () => {
         .click();
       cy.wait('@getExpenseWithItemById');
       cy.get('.mat-mdc-dialog-container', { timeout: 10000 }).should('be.visible');
-      cy.url().should('include', `/projects/${projectId}/add-expense-item`);
+      cy.url().should('include', `(modal:projects/${projectId}/add-expense-item)`);
       cy.url().should('include', 'categoryId=category-1');
       cy.url().should('include', 'expenseId=expense-2');
       cy.url().should('include', 'expenseItemId=expense-item-1');
