@@ -227,14 +227,7 @@ jobs:
 
     - name: Start application
       id: dotnet
-      shell: bash
-      run: |
-        SERVER_DLL="$(find ./EasyFinance.Server/bin/Debug -type f -name EasyFinance.Server.dll | head -n 1)"
-        if [ -z "$SERVER_DLL" ]; then
-          echo "EasyFinance.Server.dll not found in downloaded build outputs."
-          exit 1
-        fi
-        dotnet "$SERVER_DLL" --urls https://localhost:7003/ &
+      run: dotnet run --project ./EasyFinance.Server --configuration Debug --no-build --no-restore --urls https://localhost:7003/ &
 
     - name: wait application startup
       run: sleep 10s
