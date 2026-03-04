@@ -14,6 +14,7 @@ namespace EasyFinance.Domain.Shared
             [PropertyType.UserProjectEmail] = 256,
             [PropertyType.AttachmentName] = 150,
             [PropertyType.CategoryName] = 150,
+            [PropertyType.DeductibleGroupName] = 150,
             [PropertyType.ExpenseName] = 150,
             [PropertyType.ExpenseItemName] = 150,
             [PropertyType.IncomeName] = 150,

@@ -375,4 +375,28 @@ Você será redirecionado em 5 segundos...</value>
   <data name="TemporaryAttachmentNotFoundOrInvalid" xml:space="preserve">
     <value>Um ou mais anexos temporários não foram encontrados ou não são válidos para este usuário.</value>
   </data>
+  <data name="TaxYearNotConfigured" xml:space="preserve">
+    <value>A regra de ano fiscal não está configurada para este projeto.</value>
+  </data>
+  <data name="InvalidTaxYearStartMonth" xml:space="preserve">
+    <value>O mês de início do ano fiscal deve estar entre 1 e 12.</value>
+  </data>
+  <data name="InvalidTaxYearStartDay" xml:space="preserve">
+    <value>O dia de início do ano fiscal é inválido para o mês configurado.</value>
+  </data>
+  <data name="InvalidTaxYearId" xml:space="preserve">
+    <value>TaxYearId é inválido.</value>
+  </data>
+  <data name="DeductibleGroupNotFound" xml:space="preserve">
+    <value>Grupo dedutível não encontrado.</value>
+  </data>
+  <data name="ExpenseMustBeDeductible" xml:space="preserve">
+    <value>Apenas despesas dedutíveis podem ser atribuídas.</value>
+  </data>
+  <data name="ExpenseTaxYearMismatch" xml:space="preserve">
+    <value>O ano fiscal da despesa não corresponde ao ano fiscal do grupo.</value>
+  </data>
+  <data name="ExpenseNotInProject" xml:space="preserve">
+    <value>A despesa não pertence ao projeto informado.</value>
+  </data>
 </root>

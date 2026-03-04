@@ -24,6 +24,16 @@ namespace EasyFinance.Persistence.Mapping.FinancialProject
                 .IsRequired()
                 .HasDefaultValue("EUR");
 
+            builder.Property(p => p.TaxYearType)
+                .HasConversion<int?>();
+
+            builder.Property(p => p.TaxYearStartMonth);
+
+            builder.Property(p => p.TaxYearStartDay);
+
+            builder.Property(p => p.TaxYearLabeling)
+                .HasConversion<int?>();
+
             builder.HasMany(p => p.Categories)
                 .WithOne()
                 .IsRequired();
