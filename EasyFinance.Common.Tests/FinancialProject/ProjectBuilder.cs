@@ -60,6 +60,16 @@ namespace EasyFinance.Common.Tests.FinancialProject
             return this;
         }
 
+        public ProjectBuilder AddTaxYearRule(
+            TaxYearType taxYearType,
+            int? taxYearStartMonth = null,
+            int? taxYearStartDay = null,
+            TaxYearLabeling? taxYearLabeling = null)
+        {
+            this.project.SetTaxYearRule(taxYearType, taxYearStartMonth, taxYearStartDay, taxYearLabeling);
+            return this;
+        }
+
         public Project Build() => this.project;
 
     }

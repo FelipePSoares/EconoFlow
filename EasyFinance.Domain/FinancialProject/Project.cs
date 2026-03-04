@@ -28,6 +28,10 @@ namespace EasyFinance.Domain.FinancialProject
         public string PreferredCurrency { get; private set; } = string.Empty;
         public ICollection<Category> Categories { get; private set; } = [];
         public ICollection<Income> Incomes { get; private set; } = [];
+        public global::EasyFinance.Domain.FinancialProject.TaxYearType? TaxYearType { get; private set; }
+        public int? TaxYearStartMonth { get; private set; }
+        public int? TaxYearStartDay { get; private set; }
+        public global::EasyFinance.Domain.FinancialProject.TaxYearLabeling? TaxYearLabeling { get; private set; }
 
         public override AppResponse Validate
         {
@@ -48,6 +52,25 @@ namespace EasyFinance.Domain.FinancialProject
                     response.AddErrorMessage(nameof(PreferredCurrency), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(PreferredCurrency)));
                 else if (!CurrencyValidator.IsValidCurrencyCode(PreferredCurrency))
                     response.AddErrorMessage(nameof(PreferredCurrency), ValidationMessages.InvalidCurrencyCode);
+
+                if (TaxYearType.HasValue && TaxYearType.Value == global::EasyFinance.Domain.FinancialProject.TaxYearType.CustomStartMonth)
+                {
+                    if (!TaxYearStartMonth.HasValue || TaxYearStartMonth.Value < 1 || TaxYearStartMonth.Value > 12)
+                        response.AddErrorMessage(nameof(TaxYearStartMonth), ValidationMessages.InvalidTaxYearStartMonth);
+
+                    if (!TaxYearStartDay.HasValue || TaxYearStartDay.Value < 1)
+                        response.AddErrorMessage(nameof(TaxYearStartDay), ValidationMessages.InvalidTaxYearStartDay);
+
+                    if (!TaxYearLabeling.HasValue)
+                        response.AddErrorMessage(nameof(TaxYearLabeling), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(TaxYearLabeling)));
+
+                    if (TaxYearStartMonth.HasValue && TaxYearStartDay.HasValue)
+                    {
+                        var maxDaysInMonth = DateTime.DaysInMonth(2001, TaxYearStartMonth.Value);
+                        if (TaxYearStartDay.Value > maxDaysInMonth)
+                            response.AddErrorMessage(nameof(TaxYearStartDay), ValidationMessages.InvalidTaxYearStartDay);
+                    }
+                }
 
                 var categoriesValidation = Categories.Select(c => c.Validate).ToList();
                 if (categoriesValidation.Any(c => c.Failed))
@@ -84,6 +107,27 @@ namespace EasyFinance.Domain.FinancialProject
         public void SetPreferredCurrency(string preferredCurrency)
         {
             PreferredCurrency = preferredCurrency;
+        }
+
+        public void SetTaxYearRule(
+            global::EasyFinance.Domain.FinancialProject.TaxYearType taxYearType,
+            int? taxYearStartMonth = null,
+            int? taxYearStartDay = null,
+            global::EasyFinance.Domain.FinancialProject.TaxYearLabeling? taxYearLabeling = null)
+        {
+            TaxYearType = taxYearType;
+
+            if (taxYearType == global::EasyFinance.Domain.FinancialProject.TaxYearType.CalendarYear)
+            {
+                TaxYearStartMonth = null;
+                TaxYearStartDay = null;
+                TaxYearLabeling = null;
+                return;
+            }
+
+            TaxYearStartMonth = taxYearStartMonth;
+            TaxYearStartDay = taxYearStartDay ?? 1;
+            TaxYearLabeling = taxYearLabeling ?? global::EasyFinance.Domain.FinancialProject.TaxYearLabeling.ByStartYear;
         }
 
         public void SetName(string name)

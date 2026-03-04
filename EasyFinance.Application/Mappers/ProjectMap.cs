@@ -19,7 +19,11 @@ namespace EasyFinance.Application.Mappers
             {
                 Id = project.Id,
                 Name = project.Name,
-                PreferredCurrency = project.PreferredCurrency
+                PreferredCurrency = project.PreferredCurrency,
+                TaxYearType = project.TaxYearType,
+                TaxYearStartMonth = project.TaxYearStartMonth,
+                TaxYearStartDay = project.TaxYearStartDay,
+                TaxYearLabeling = project.TaxYearLabeling
             };
         }
 
