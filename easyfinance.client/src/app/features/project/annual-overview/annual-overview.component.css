@@ -14,46 +14,31 @@
   font-size: 1rem;
 }
 
+.summary-card-link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+.summary-card-link:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.summary-card-link:active {
+  opacity: 0.88;
+}
+
+.overview-icon {
+  font-size: 0.65em;
+  color: var(--bs-primary);
+  transform: translateY(-2px);
+}
+
 .value {
   font-size: 1.4rem;
   font-weight: 700;
-}
-
-.deductible-summary-card {
-  text-align: center;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 10px;
-  min-height: 120px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.deductible-summary-card h4 {
-  font-size: 0.95rem;
-  margin-bottom: 0.5rem;
-}
-
-.deductible-table th {
-  white-space: nowrap;
-}
-
-.actions-cell {
-  white-space: nowrap;
-}
-
-.proof-indicator {
-  display: inline-flex;
-  align-items: center;
-  font-weight: 600;
-}
-
-.has-proof {
-  color: #0d7a3d;
-}
-
-.missing-proof {
-  color: #c47a00;
 }
 
 .chart-container {

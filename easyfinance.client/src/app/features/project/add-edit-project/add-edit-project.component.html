@@ -33,6 +33,65 @@
         }
       </mat-form-field>
 
+      <div class="text-start mt-3 mb-2">
+        <h3 class="h6 mb-1">{{ 'TaxYearRuleSectionTitle' | translate }}</h3>
+        <p class="text-muted small mb-0">{{ 'TaxYearRuleSectionDescription' | translate }}</p>
+      </div>
+
+      <mat-form-field appearance="fill" class="w-100">
+        <mat-label>{{ 'FieldTaxYearType' | translate }}</mat-label>
+        <mat-select formControlName="taxYearType">
+          @for (taxYearTypeOption of taxYearTypeOptions; track taxYearTypeOption.value) {
+            <mat-option [value]="taxYearTypeOption.value">{{ taxYearTypeOption.label | translate }}</mat-option>
+          }
+        </mat-select>
+        @if (taxYearTypeControl?.invalid && taxYearTypeControl?.touched){
+          @for (error of getFormFieldErrors('taxYearType'); track error) {
+            <mat-error>{{ error |  translate }}</mat-error>
+          }
+        }
+      </mat-form-field>
+
+      @if (isCustomTaxYearTypeSelected()) {
+        <mat-form-field appearance="fill" class="w-100">
+          <mat-label>{{ 'FieldTaxYearStartMonth' | translate }}</mat-label>
+          <mat-select formControlName="taxYearStartMonth">
+            @for (month of months; track month.value) {
+              <mat-option [value]="month.value">{{ month.label }}</mat-option>
+            }
+          </mat-select>
+          @if (taxYearStartMonthControl?.invalid && taxYearStartMonthControl?.touched){
+            @for (error of getFormFieldErrors('taxYearStartMonth'); track error) {
+              <mat-error>{{ error |  translate }}</mat-error>
+            }
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="w-100">
+          <mat-label>{{ 'FieldTaxYearStartDay' | translate }}</mat-label>
+          <input matInput formControlName="taxYearStartDay" type="number" min="1" max="31">
+          @if (taxYearStartDayControl?.invalid && taxYearStartDayControl?.touched){
+            @for (error of getFormFieldErrors('taxYearStartDay'); track error) {
+              <mat-error>{{ error |  translate }}</mat-error>
+            }
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="w-100">
+          <mat-label>{{ 'FieldTaxYearLabeling' | translate }}</mat-label>
+          <mat-select formControlName="taxYearLabeling">
+            @for (taxYearLabelingOption of taxYearLabelingOptions; track taxYearLabelingOption.value) {
+              <mat-option [value]="taxYearLabelingOption.value">{{ taxYearLabelingOption.label | translate }}</mat-option>
+            }
+          </mat-select>
+          @if (taxYearLabelingControl?.invalid && taxYearLabelingControl?.touched){
+            @for (error of getFormFieldErrors('taxYearLabeling'); track error) {
+              <mat-error>{{ error |  translate }}</mat-error>
+            }
+          }
+        </mat-form-field>
+      }
+
       <!-- General Error Display -->
       @if (httpErrors && errors['general']) {
         <div>

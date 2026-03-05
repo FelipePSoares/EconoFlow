@@ -16,8 +16,8 @@ namespace EasyFinance.Application.Features.TaxYearService
         Task<AppResponse<DeductibleGroupResponseDTO>> UpdateDeductibleGroupAsync(Guid projectId, string taxYearId, Guid groupId, DeductibleGroupRequestDTO requestDto);
         Task<AppResponse> DeleteDeductibleGroupAsync(Guid projectId, string taxYearId, Guid groupId);
         Task<AppResponse<ICollection<DeductibleGroupExpenseResponseDTO>>> GetGroupExpensesAsync(Guid projectId, string taxYearId, Guid groupId);
-        Task<AppResponse> AssignExpenseToGroupAsync(Guid projectId, string taxYearId, Guid groupId, Guid expenseId);
-        Task<AppResponse> RemoveExpenseFromGroupAsync(Guid projectId, string taxYearId, Guid groupId, Guid expenseId);
+        Task<AppResponse> AssignExpenseToGroupAsync(Guid projectId, string taxYearId, Guid groupId, Guid? expenseId, Guid? expenseItemId);
+        Task<AppResponse> RemoveExpenseFromGroupAsync(Guid projectId, string taxYearId, Guid groupId, Guid? expenseId, Guid? expenseItemId);
         Task<AppResponse<DeductibleGroupTotalsResponseDTO>> GetTotalsAsync(Guid projectId, string taxYearId);
     }
 }

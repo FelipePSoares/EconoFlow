@@ -1,0 +1,123 @@
+.deductions-page {
+  padding-bottom: 1rem;
+}
+
+.header-spacer {
+  width: 40px;
+}
+
+.header-tax-year-form {
+  width: 320px;
+  max-width: 45%;
+}
+
+.summary-card {
+  text-align: center;
+  min-height: 130px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.summary-card h3 {
+  font-size: 1rem;
+}
+
+.value {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.group-board {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+}
+
+.group-column {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  min-height: 220px;
+}
+
+.group-column-header {
+  padding: 12px 12px 8px;
+}
+
+.group-column h4 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.group-column-total {
+  padding: 0 12px 10px;
+  font-weight: 600;
+}
+
+.group-drop-list {
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  min-height: 90px;
+}
+
+.deduction-entry-item {
+  border: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.deduction-entry-item:last-child {
+  border-bottom: 0;
+}
+
+.entry-selected {
+  background: rgba(var(--bs-primary-rgb), 0.1);
+}
+
+.drag-handle {
+  color: var(--bs-secondary-color);
+  cursor: grab;
+  line-height: 1;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.proof-indicator {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.has-proof {
+  color: #0d7a3d;
+}
+
+.missing-proof {
+  color: #c47a00;
+}
+
+.cdk-drag-preview {
+  box-sizing: border-box;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  background: #fff;
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.35;
+}
+
+@media (max-width: 991px) {
+  .header-spacer {
+    width: 24px;
+  }
+
+  .header-tax-year-form {
+    width: 240px;
+    max-width: 52%;
+  }
+}

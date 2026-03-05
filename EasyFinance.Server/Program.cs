@@ -172,11 +172,11 @@ try
         var income2 = new Income("Investiments", today.AddMonths(-1), 3000, user);
         unitOfWork.IncomeRepository.Insert(income2);
 
-        var expense = new Expense("Rent", today, 700, user, budget: 700);
+        var expense = new Expense("Rent", today, 700, user, budget: 700, isDeductible: true);
         unitOfWork.ExpenseRepository.Insert(expense);
 
         var expense2 = new Expense("Groceries", today, 0, user, budget: 450);
-        var expenseItem = new ExpenseItem("Pingo Doce", today, 100, user);
+        var expenseItem = new ExpenseItem("Pingo Doce", today, 100, user, isDeductible: true);
         expenseItem.SetId(new Guid("16ddf6c1-6b33-4563-dac4-08dcf73a4157"));
         var expenseItem2 = new ExpenseItem("Continente", today, 150, user);
         expense2.SetId(new Guid("75436cec-70f6-420f-ee8a-08dce6424079"));
@@ -275,6 +275,8 @@ try
                     seededExpense.SetDate(expenseDate);
                     var expectedAmount = Math.Round(seededExpense.Budget * (0.82m + (decimal)random.NextDouble() * 0.34m), 2);
                     var splitIntoItems = seededExpense.Budget >= 120 && random.NextDouble() >= 0.35;
+                    var markExpenseAsDeductible = random.NextDouble() < 0.20;
+                    seededExpense.SetIsDeductible(markExpenseAsDeductible);
 
                     if (splitIntoItems)
                     {
@@ -301,7 +303,8 @@ try
                             var itemDay = 4 + ((itemIndex + 1) * 6) + random.Next(0, 3);
                             var itemDate = DateInMonth(monthDate, itemDay);
                             var itemName = $"{seededExpense.Name} #{itemIndex + 1}";
-                            seededExpense.AddItem(new ExpenseItem(itemName, itemDate, itemAmount, user));
+                            var markExpenseItemAsDeductible = !markExpenseAsDeductible && itemIndex == 0 && random.NextDouble() < 0.55;
+                            seededExpense.AddItem(new ExpenseItem(itemName, itemDate, itemAmount, user, isDeductible: markExpenseItemAsDeductible));
                         }
 
                         if (remaining > 0)

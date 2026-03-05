@@ -61,13 +61,41 @@ namespace EasyFinance.Application.Mappers
             return new DeductibleGroupExpenseResponseDTO
             {
                 ExpenseId = expense.Id,
+                ExpenseItemId = null,
                 Name = expense.Name,
                 Date = expense.Date,
                 Amount = expense.Amount
             };
         }
 
-        public static ICollection<DeductibleGroupExpenseResponseDTO> ToDeductibleGroupExpenseDTO(this IEnumerable<Expense> expenses)
-            => expenses.Select(expense => expense.ToDeductibleGroupExpenseDTO()).ToList();
+        public static DeductibleGroupExpenseResponseDTO ToDeductibleGroupExpenseDTO(this ExpenseItem expenseItem)
+        {
+            ArgumentNullException.ThrowIfNull(expenseItem);
+
+            return new DeductibleGroupExpenseResponseDTO
+            {
+                ExpenseId = null,
+                ExpenseItemId = expenseItem.Id,
+                Name = expenseItem.Name,
+                Date = expenseItem.Date,
+                Amount = expenseItem.Amount
+            };
+        }
+
+        public static DeductibleGroupExpenseResponseDTO ToDeductibleGroupExpenseDTO(this DeductibleGroupExpense assignment)
+        {
+            ArgumentNullException.ThrowIfNull(assignment);
+
+            if (assignment.ExpenseItem != null)
+                return assignment.ExpenseItem.ToDeductibleGroupExpenseDTO();
+
+            if (assignment.Expense != null)
+                return assignment.Expense.ToDeductibleGroupExpenseDTO();
+
+            return new DeductibleGroupExpenseResponseDTO();
+        }
+
+        public static ICollection<DeductibleGroupExpenseResponseDTO> ToDeductibleGroupExpenseDTO(this IEnumerable<DeductibleGroupExpense> assignments)
+            => assignments.Select(assignment => assignment.ToDeductibleGroupExpenseDTO()).ToList();
     }
 }

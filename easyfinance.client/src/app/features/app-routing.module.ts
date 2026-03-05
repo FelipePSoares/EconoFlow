@@ -21,6 +21,7 @@ import { AccessControlProjectComponent } from './project/access-control-project/
 import { SmartSetupComponent } from './project/smart-setup/smart-setup.component';
 import { AnnualOverviewComponent } from './project/annual-overview/annual-overview.component';
 import { MonthlyOverviewComponent } from './project/monthly-overview/monthly-overview.component';
+import { DeductionsComponent } from './project/deductions/deductions.component';
 
 import { ListIncomesComponent } from './income/list-incomes/list-incomes.component';
 import { AddIncomeComponent } from './income/add-income/add-income.component';
@@ -61,6 +62,7 @@ export const routes: Routes = [
   { path: 'add-edit-project', component: AddEditProjectComponent, canActivate: mapToCanActivate([AuthGuard]), outlet: 'modal', data: { title: 'CreateEditProject' } },
   { path: 'projects', component: ListProjectsComponent, canActivate: mapToCanActivate([AuthGuard]) },
   { path: 'projects/:projectId', component: DetailProjectComponent, canActivate: mapToCanActivate([AuthGuard]) },
+  { path: 'projects/:projectId/deductions', component: DeductionsComponent, canActivate: mapToCanActivate([AuthGuard]) },
   { path: 'projects/:projectId/overview/annual', component: AnnualOverviewComponent, canActivate: mapToCanActivate([AuthGuard]) },
   { path: 'projects/:projectId/overview/monthly', component: MonthlyOverviewComponent, canActivate: mapToCanActivate([AuthGuard]) },
   { path: 'projects/:projectId/smart-setup', component: SmartSetupComponent, canActivate: mapToCanActivate([AuthGuard]), outlet: 'modal', data: { title: 'SmartSetup', hasCloseButton: false } },

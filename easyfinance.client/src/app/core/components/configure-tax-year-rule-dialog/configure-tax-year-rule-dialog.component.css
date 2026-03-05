@@ -1,0 +1,11 @@
+:host {
+  display: block;
+}
+
+.dialog-header {
+  margin-bottom: 0.75rem;
+}
+
+.dialog-header h2 {
+  margin: 0;
+}

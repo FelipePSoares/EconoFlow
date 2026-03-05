@@ -10,23 +10,42 @@
   </div>
 
   <div class="row mt-2">
-    <div class="col-12 col-md-4">
+    <div class="col-12 col-md-6 col-lg-3">
       <div class="summary-card wrap p-3">
         <h3>{{ 'TotalExpenses' | translate }}</h3>
         <p class="value danger mb-0">{{ totalExpenses | currencyFormat: true }}</p>
       </div>
     </div>
-    <div class="col-12 col-md-4">
+    <div class="col-12 col-md-6 col-lg-3">
       <div class="summary-card wrap p-3">
         <h3>{{ 'TotalIncomes' | translate }}</h3>
         <p class="value success mb-0">{{ totalIncomes | currencyFormat: true }}</p>
       </div>
     </div>
-    <div class="col-12 col-md-4">
+    <div class="col-12 col-md-6 col-lg-3">
       <div class="summary-card wrap p-3">
         <h3>{{ 'Balance' | translate }}</h3>
         <p class="value mb-0" [ngClass]="balance < 0 ? 'danger' : 'success'">{{ balance | currencyFormat: true }}</p>
       </div>
+    </div>
+    <div class="col-12 col-md-6 col-lg-3" id="deductible-overview" data-testid="deductible-overview-section">
+      <a
+        class="summary-card summary-card-link wrap p-3"
+        (click)="openDeductions()"
+        role="button"
+        title="{{ 'OpenDeductionsPage' | translate }}">
+        <h3 class="mb-0">
+          {{ 'TotalDeductibleAmount' | translate }}
+          <i class="bi bi-box-arrow-up-right overview-icon"></i>
+        </h3>
+        @if (isDeductibleLoading) {
+          <p class="text-center text-secondary mb-0 mt-2" data-testid="deductible-loading">{{ 'LoadingData' | translate }}</p>
+        } @else if (deductibleLoadFailed) {
+          <p class="text-center text-warning mb-0 mt-2" data-testid="deductible-error">{{ 'DeductibleExpensesLoadError' | translate }}</p>
+        } @else {
+          <p class="value mb-0 mt-2" data-testid="deductible-total-amount">{{ totalDeductibleAmount | currencyFormat: true }}</p>
+        }
+      </a>
     </div>
   </div>
 
@@ -91,105 +110,6 @@
           </ul>
         } @else {
           <p class="text-center text-secondary mb-0">{{ 'NoDataForSelectedYear' | translate }}</p>
-        }
-      </div>
-    </div>
-  </div>
-
-  <div class="row mt-2" id="deductible-overview" data-testid="deductible-overview-section">
-    <div class="col-12">
-      <div class="wrap p-3">
-        <h3 class="text-center mb-3">{{ 'DeductibleExpensesOverview' | translate }}</h3>
-
-        <div class="row g-2 mb-3">
-          <div class="col-12 col-md-4">
-            <div class="deductible-summary-card p-3">
-              <h4>{{ 'TotalDeductibleAmount' | translate }}</h4>
-              <p class="value mb-0" data-testid="deductible-total-amount">{{ totalDeductibleAmount | currencyFormat: true }}</p>
-            </div>
-          </div>
-          <div class="col-12 col-md-4">
-            <div class="deductible-summary-card p-3">
-              <h4>{{ 'DeductibleExpensesCount' | translate }}</h4>
-              <p class="value mb-0" data-testid="deductible-total-count">{{ deductibleExpensesCount }}</p>
-            </div>
-          </div>
-          <div class="col-12 col-md-4">
-            <div class="deductible-summary-card p-3">
-              <h4>{{ 'MissingProofCount' | translate }}</h4>
-              <p class="value mb-0 text-warning" data-testid="deductible-missing-proof-count">{{ missingProofCount }}</p>
-            </div>
-          </div>
-        </div>
-
-        @if (isDeductibleLoading) {
-          <p class="text-center text-secondary mb-0" data-testid="deductible-loading">{{ 'LoadingData' | translate }}</p>
-        } @else if (deductibleLoadFailed) {
-          <div class="alert alert-warning text-center mb-0" role="alert" data-testid="deductible-error">
-            {{ 'DeductibleExpensesLoadError' | translate }}
-          </div>
-        } @else if (deductibleExpenses.length) {
-          <div class="table-responsive">
-            <table class="table table-hover align-middle deductible-table mb-0" data-testid="deductible-table">
-              <thead>
-                <tr>
-                  <th scope="col">{{ 'Date' | translate }}</th>
-                  <th scope="col">{{ 'Description' | translate }}</th>
-                  <th scope="col">{{ 'FieldCategoryName' | translate }}</th>
-                  <th scope="col" class="text-end">{{ 'Amount' | translate }}</th>
-                  <th scope="col">{{ 'HasProof' | translate }}</th>
-                  <th scope="col">{{ 'Actions' | translate }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (expense of deductibleExpenses; track expense.id) {
-                  <tr>
-                    <td class="text-nowrap">{{ expense.date | date: 'shortDate' : undefined : currentLanguage }}</td>
-                    <td>{{ expense.description }}</td>
-                    <td>{{ expense.categoryName }}</td>
-                    <td class="text-end text-nowrap">{{ expense.amount | currencyFormat: true }}</td>
-                    <td>
-                      @if (expense.hasProof) {
-                        <span class="proof-indicator has-proof" data-testid="deductible-proof-yes">
-                          <i class="bi bi-check-circle-fill me-1"></i>
-                          {{ 'Yes' | translate }}
-                        </span>
-                      } @else {
-                        <span class="proof-indicator missing-proof" data-testid="deductible-proof-no">
-                          <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                          {{ 'No' | translate }}
-                        </span>
-                      }
-                    </td>
-                    <td class="actions-cell">
-                      <button
-                        type="button"
-                        class="btn btn-sm btn-outline-primary me-2 mb-1"
-                        (click)="openDeductibleExpense(expense)"
-                        data-testid="deductible-open-expense">
-                        <i class="bi bi-pencil-square me-1"></i>
-                        {{ 'ButtonOpenEditExpense' | translate }}
-                      </button>
-
-                      @if (expense.proofDownloadUrl) {
-                        <a
-                          class="btn btn-sm btn-outline-secondary mb-1"
-                          [href]="expense.proofDownloadUrl"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          data-testid="deductible-view-proof">
-                          <i class="bi bi-paperclip me-1"></i>
-                          {{ 'ButtonViewProof' | translate }}
-                        </a>
-                      }
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        } @else {
-          <p class="text-center text-secondary mb-0" data-testid="deductible-empty">{{ 'NoDeductibleExpensesForSelectedYear' | translate }}</p>
         }
       </div>
     </div>
