@@ -45,12 +45,14 @@ namespace EasyFinance.Application.DTOs.FinancialProject
 
     public class DeductibleGroupExpenseRequestDTO
     {
-        public Guid ExpenseId { get; set; }
+        public Guid? ExpenseId { get; set; }
+        public Guid? ExpenseItemId { get; set; }
     }
 
     public class DeductibleGroupExpenseResponseDTO
     {
-        public Guid ExpenseId { get; set; }
+        public Guid? ExpenseId { get; set; }
+        public Guid? ExpenseItemId { get; set; }
         public string Name { get; set; } = string.Empty;
         public DateOnly Date { get; set; }
         public decimal Amount { get; set; }

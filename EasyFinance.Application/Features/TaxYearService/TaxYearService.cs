@@ -259,25 +259,41 @@ namespace EasyFinance.Application.Features.TaxYearService
             if (!groupExists)
                 throw new KeyNotFoundException(ValidationMessages.DeductibleGroupNotFound);
 
-            var expenses = await this.unitOfWork.DeductibleGroupExpenseRepository
+            var assignments = await this.unitOfWork.DeductibleGroupExpenseRepository
                 .NoTrackable()
                 .Where(assignment => assignment.GroupId == groupId)
                 .Include(assignment => assignment.Expense)
-                .Select(assignment => assignment.Expense)
-                .OrderByDescending(expense => expense.Date)
-                .ThenBy(expense => expense.Name)
+                .Include(assignment => assignment.ExpenseItem)
                 .ToListAsync();
 
-            return AppResponse<ICollection<DeductibleGroupExpenseResponseDTO>>.Success(expenses.ToDeductibleGroupExpenseDTO());
+            var groupedExpenses = assignments
+                .OrderByDescending(assignment => assignment.ExpenseItem?.Date ?? assignment.Expense?.Date ?? DateOnly.MinValue)
+                .ThenBy(assignment => assignment.ExpenseItem?.Name ?? assignment.Expense?.Name ?? string.Empty)
+                .ToDeductibleGroupExpenseDTO();
+
+            return AppResponse<ICollection<DeductibleGroupExpenseResponseDTO>>.Success(groupedExpenses);
         }
 
-        public async Task<AppResponse> AssignExpenseToGroupAsync(Guid projectId, string taxYearId, Guid groupId, Guid expenseId)
+        public async Task<AppResponse> AssignExpenseToGroupAsync(Guid projectId, string taxYearId, Guid groupId, Guid? expenseId, Guid? expenseItemId)
         {
             if (groupId == Guid.Empty)
                 return AppResponse.Error(nameof(groupId), ValidationMessages.DeductibleGroupNotFound);
 
-            if (expenseId == Guid.Empty)
+            if (expenseId.HasValue && expenseId.Value == Guid.Empty)
                 return AppResponse.Error(nameof(expenseId), ValidationMessages.InvalidExpenseId);
+
+            if (expenseItemId.HasValue && expenseItemId.Value == Guid.Empty)
+                return AppResponse.Error(nameof(expenseItemId), ValidationMessages.InvalidExpenseItemId);
+
+            var hasExpenseId = expenseId.HasValue && expenseId.Value != Guid.Empty;
+            var hasExpenseItemId = expenseItemId.HasValue && expenseItemId.Value != Guid.Empty;
+            if (hasExpenseId == hasExpenseItemId)
+            {
+                return AppResponse.Error([
+                    new AppMessage(nameof(expenseId), ValidationMessages.InvalidExpenseId),
+                    new AppMessage(nameof(expenseItemId), ValidationMessages.InvalidExpenseItemId)
+                ]);
+            }
 
             var projectResponse = await GetProjectAsync(projectId, trackable: false, requireConfiguredTaxYear: true);
             if (projectResponse.Failed)
@@ -298,47 +314,97 @@ namespace EasyFinance.Application.Features.TaxYearService
             if (!groupExists)
                 throw new KeyNotFoundException(ValidationMessages.DeductibleGroupNotFound);
 
-            var expense = await this.unitOfWork.ProjectRepository
+            if (hasExpenseId)
+            {
+                var effectiveExpenseId = expenseId.Value;
+                var expense = await this.unitOfWork.ProjectRepository
+                    .NoTrackable()
+                    .IgnoreQueryFilters()
+                    .Where(p => p.Id == projectId)
+                    .SelectMany(p => p.Categories.SelectMany(c => c.Expenses))
+                    .FirstOrDefaultAsync(e => e.Id == effectiveExpenseId);
+
+                if (expense == null)
+                    return AppResponse.Error(nameof(expenseId), ValidationMessages.ExpenseNotInProject);
+
+                if (!expense.IsDeductible)
+                    return AppResponse.Error(nameof(expenseId), ValidationMessages.ExpenseMustBeDeductible);
+
+                var expenseTaxYearId = TaxYearCalculator.GetPeriod(project, expense.Date).TaxYearId;
+                if (expenseTaxYearId != normalizedTaxYearId)
+                    return AppResponse.Error(nameof(expenseId), ValidationMessages.ExpenseTaxYearMismatch);
+
+                var alreadyAssigned = await this.unitOfWork.DeductibleGroupExpenseRepository
+                    .NoTrackable()
+                    .AnyAsync(a => a.GroupId == groupId && a.ExpenseId == effectiveExpenseId && a.ExpenseItemId == null);
+
+                if (alreadyAssigned)
+                    return AppResponse.Success();
+
+                var assignment = new DeductibleGroupExpense(groupId, effectiveExpenseId, null);
+                var saveAssignment = this.unitOfWork.DeductibleGroupExpenseRepository.InsertOrUpdate(assignment);
+                if (saveAssignment.Failed)
+                    return AppResponse.Error(saveAssignment.Messages);
+
+                await this.unitOfWork.CommitAsync();
+                return AppResponse.Success();
+            }
+
+            var effectiveExpenseItemId = expenseItemId.Value;
+            var expenseItem = await this.unitOfWork.ProjectRepository
                 .NoTrackable()
                 .IgnoreQueryFilters()
                 .Where(p => p.Id == projectId)
-                .SelectMany(p => p.Categories.SelectMany(c => c.Expenses))
-                .FirstOrDefaultAsync(e => e.Id == expenseId);
+                .SelectMany(p => p.Categories.SelectMany(c => c.Expenses.SelectMany(e => e.Items)))
+                .FirstOrDefaultAsync(item => item.Id == effectiveExpenseItemId);
 
-            if (expense == null)
-                return AppResponse.Error(nameof(expenseId), ValidationMessages.ExpenseNotInProject);
+            if (expenseItem == null)
+                return AppResponse.Error(nameof(expenseItemId), ValidationMessages.ExpenseItemNotFound);
 
-            if (!expense.IsDeductible)
-                return AppResponse.Error(nameof(expenseId), ValidationMessages.ExpenseMustBeDeductible);
+            if (!expenseItem.IsDeductible)
+                return AppResponse.Error(nameof(expenseItemId), ValidationMessages.ExpenseMustBeDeductible);
 
-            var expenseTaxYearId = TaxYearCalculator.GetPeriod(project, expense.Date).TaxYearId;
-            if (expenseTaxYearId != normalizedTaxYearId)
-                return AppResponse.Error(nameof(expenseId), ValidationMessages.ExpenseTaxYearMismatch);
+            var expenseItemTaxYearId = TaxYearCalculator.GetPeriod(project, expenseItem.Date).TaxYearId;
+            if (expenseItemTaxYearId != normalizedTaxYearId)
+                return AppResponse.Error(nameof(expenseItemId), ValidationMessages.ExpenseTaxYearMismatch);
 
-            var alreadyAssigned = await this.unitOfWork.DeductibleGroupExpenseRepository
+            var itemAlreadyAssigned = await this.unitOfWork.DeductibleGroupExpenseRepository
                 .NoTrackable()
-                .AnyAsync(a => a.GroupId == groupId && a.ExpenseId == expenseId);
+                .AnyAsync(a => a.GroupId == groupId && a.ExpenseItemId == effectiveExpenseItemId && a.ExpenseId == null);
 
-            if (alreadyAssigned)
+            if (itemAlreadyAssigned)
                 return AppResponse.Success();
 
-            var assignment = new DeductibleGroupExpense(groupId, expenseId);
-            var saveAssignment = this.unitOfWork.DeductibleGroupExpenseRepository.InsertOrUpdate(assignment);
-            if (saveAssignment.Failed)
-                return AppResponse.Error(saveAssignment.Messages);
+            var itemAssignment = new DeductibleGroupExpense(groupId, null, effectiveExpenseItemId);
+            var saveItemAssignment = this.unitOfWork.DeductibleGroupExpenseRepository.InsertOrUpdate(itemAssignment);
+            if (saveItemAssignment.Failed)
+                return AppResponse.Error(saveItemAssignment.Messages);
 
             await this.unitOfWork.CommitAsync();
 
             return AppResponse.Success();
         }
 
-        public async Task<AppResponse> RemoveExpenseFromGroupAsync(Guid projectId, string taxYearId, Guid groupId, Guid expenseId)
+        public async Task<AppResponse> RemoveExpenseFromGroupAsync(Guid projectId, string taxYearId, Guid groupId, Guid? expenseId, Guid? expenseItemId)
         {
             if (groupId == Guid.Empty)
                 return AppResponse.Error(nameof(groupId), ValidationMessages.DeductibleGroupNotFound);
 
-            if (expenseId == Guid.Empty)
+            if (expenseId.HasValue && expenseId.Value == Guid.Empty)
                 return AppResponse.Error(nameof(expenseId), ValidationMessages.InvalidExpenseId);
+
+            if (expenseItemId.HasValue && expenseItemId.Value == Guid.Empty)
+                return AppResponse.Error(nameof(expenseItemId), ValidationMessages.InvalidExpenseItemId);
+
+            var hasExpenseId = expenseId.HasValue && expenseId.Value != Guid.Empty;
+            var hasExpenseItemId = expenseItemId.HasValue && expenseItemId.Value != Guid.Empty;
+            if (hasExpenseId == hasExpenseItemId)
+            {
+                return AppResponse.Error([
+                    new AppMessage(nameof(expenseId), ValidationMessages.InvalidExpenseId),
+                    new AppMessage(nameof(expenseItemId), ValidationMessages.InvalidExpenseItemId)
+                ]);
+            }
 
             var projectResponse = await GetProjectAsync(projectId, trackable: false, requireConfiguredTaxYear: true);
             if (projectResponse.Failed)
@@ -359,7 +425,9 @@ namespace EasyFinance.Application.Features.TaxYearService
 
             var assignment = await this.unitOfWork.DeductibleGroupExpenseRepository
                 .Trackable()
-                .FirstOrDefaultAsync(a => a.GroupId == groupId && a.ExpenseId == expenseId);
+                .FirstOrDefaultAsync(a => a.GroupId == groupId
+                    && a.ExpenseId == (hasExpenseId ? expenseId : null)
+                    && a.ExpenseItemId == (hasExpenseItemId ? expenseItemId : null));
 
             if (assignment == null)
                 return AppResponse.Success();
@@ -387,6 +455,8 @@ namespace EasyFinance.Application.Features.TaxYearService
                 .Where(g => g.ProjectId == projectId && g.TaxYearId == normalizedTaxYearId)
                 .Include(g => g.GroupExpenses)
                     .ThenInclude(assignment => assignment.Expense)
+                .Include(g => g.GroupExpenses)
+                    .ThenInclude(assignment => assignment.ExpenseItem)
                 .OrderBy(g => g.Name)
                 .ToListAsync();
 
@@ -396,7 +466,7 @@ namespace EasyFinance.Application.Features.TaxYearService
                     GroupId = group.Id,
                     Name = group.Name,
                     ExpenseCount = group.GroupExpenses.Count,
-                    TotalAmount = group.GroupExpenses.Sum(assignment => assignment.Expense?.Amount ?? 0m)
+                    TotalAmount = group.GroupExpenses.Sum(assignment => assignment.Expense?.Amount ?? assignment.ExpenseItem?.Amount ?? 0m)
                 })
                 .ToList();
 

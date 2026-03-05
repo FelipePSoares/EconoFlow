@@ -87,14 +87,14 @@ namespace EasyFinance.Server.Controllers
             if (requestDto == null)
                 return BadRequest();
 
-            var response = await this.taxYearService.AssignExpenseToGroupAsync(projectId, taxYearId, groupId, requestDto.ExpenseId);
+            var response = await this.taxYearService.AssignExpenseToGroupAsync(projectId, taxYearId, groupId, requestDto.ExpenseId, requestDto.ExpenseItemId);
             return ValidateResponse(response, HttpStatusCode.Created);
         }
 
-        [HttpDelete("tax-years/{taxYearId}/deductible-groups/{groupId}/expenses/{expenseId}")]
-        public async Task<IActionResult> RemoveExpenseAsync(Guid projectId, string taxYearId, Guid groupId, Guid expenseId)
+        [HttpDelete("tax-years/{taxYearId}/deductible-groups/{groupId}/expenses")]
+        public async Task<IActionResult> RemoveExpenseAsync(Guid projectId, string taxYearId, Guid groupId, [FromQuery] Guid? expenseId, [FromQuery] Guid? expenseItemId)
         {
-            var response = await this.taxYearService.RemoveExpenseFromGroupAsync(projectId, taxYearId, groupId, expenseId);
+            var response = await this.taxYearService.RemoveExpenseFromGroupAsync(projectId, taxYearId, groupId, expenseId, expenseItemId);
             return ValidateResponse(response, HttpStatusCode.NoContent);
         }
 
