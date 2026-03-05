@@ -32,17 +32,6 @@
     "5000": { "label": "ASP.NET HTTP" },
     "5001": { "label": "ASP.NET HTTPS" }
   },
-
-  "mounts": [
-    "source=nuget-cache,target=/home/vscode/.nuget/packages,type=volume",
-    "source=pnpm-store,target=/home/vscode/.local/share/pnpm/store,type=volume"
-  ],
-
-  "remoteEnv": {
-    "NUGET_PACKAGES": "/home/vscode/.nuget/packages"
-  },
-
-  "postCreateCommand": "bash -lc 'corepack enable || true; pnpm config set store-dir /home/vscode/.local/share/pnpm/store || true'",
-
+  
   "remoteUser": "vscode"
 }
