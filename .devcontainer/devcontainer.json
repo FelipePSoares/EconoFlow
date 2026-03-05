@@ -47,19 +47,5 @@
     "source=pnpm-store,target=/home/vscode/.local/share/pnpm/store,type=volume"
   ],
 
-  "postCreateCommand": "bash -lc '\n" +
-    "set -e\n" +
-    "CLIENT_DIR=\"./easyfinance.client\"\n" +
-    "echo \"==> dotnet restore\"\n" +
-    "dotnet restore || true\n" +
-    "if [ -f \"$CLIENT_DIR/package.json\" ]; then\n" +
-    "  echo \"==> pnpm install ($CLIENT_DIR)\"\n" +
-    "  corepack enable >/dev/null 2>&1 || true\n" +
-    "  cd \"$CLIENT_DIR\" && pnpm install\n" +
-    "else\n" +
-    "  echo \"(skipping frontend install) no $CLIENT_DIR/package.json found\"\n" +
-    "fi\n" +
-    "'",
-
   "remoteUser": "vscode"
 }
