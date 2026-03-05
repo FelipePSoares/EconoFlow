@@ -33,3 +33,4 @@ Welcome to join us and contribute code to EconoFlow together.
 <a href="https://github.com/FelipePSoares/EconoFlow/graphs/contributors">
    <img src="https://contrib.rocks/image?repo=FelipePSoares/EconoFlow" />
 </a>
+
