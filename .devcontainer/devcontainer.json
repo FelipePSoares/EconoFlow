@@ -1,6 +1,5 @@
 {
   "name": ".NET 8 + Angular 21 (pnpm)",
-
   "image": "mcr.microsoft.com/devcontainers/dotnet:1-8.0",
 
   "features": {
@@ -34,18 +33,16 @@
     "5001": { "label": "ASP.NET HTTPS" }
   },
 
-  "remoteEnv": {
-    "DOTNET_CLI_HOME": "/home/vscode/.dotnet",
-    "NUGET_PACKAGES": "/home/vscode/.nuget/packages",
-    "PNPM_HOME": "/home/vscode/.pnpm",
-    "PATH": "/home/vscode/.pnpm:/home/vscode/.dotnet/tools:${PATH}"
-  },
-
   "mounts": [
-    "source=nuget-cache,target=/home/vscode/.nuget,type=volume",
-    "source=dotnet-cache,target=/home/vscode/.dotnet,type=volume",
+    "source=nuget-cache,target=/home/vscode/.nuget/packages,type=volume",
     "source=pnpm-store,target=/home/vscode/.local/share/pnpm/store,type=volume"
   ],
+
+  "remoteEnv": {
+    "NUGET_PACKAGES": "/home/vscode/.nuget/packages"
+  },
+
+  "postCreateCommand": "bash -lc 'corepack enable || true; pnpm config set store-dir /home/vscode/.local/share/pnpm/store || true'",
 
   "remoteUser": "vscode"
 }
