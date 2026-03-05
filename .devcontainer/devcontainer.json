@@ -1,32 +1,65 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/dotnet
 {
-	"name": "C# (.NET)",
-	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/dotnet:1-8.0",
-	"features": {
-		"ghcr.io/devcontainers/features/dotnet:2": {},
-		"ghcr.io/devcontainers/features/node:1": {},
-		"ghcr.io/devcontainers-community/npm-features/typescript:1": {}
-	}
+  "name": ".NET 8 + Angular 21 (pnpm)",
 
-	// Features to add to the dev container. More info: https://containers.dev/features.
-	// "features": {},
+  "image": "mcr.microsoft.com/devcontainers/dotnet:1-8.0",
 
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [5000, 5001],
-	// "portsAttributes": {
-	//		"5001": {
-	//			"protocol": "https"
-	//		}
-	// }
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts",
+      "pnpmVersion": "latest",
+      "nodeGypDependencies": true
+    }
+  },
 
-	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "dotnet restore",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csharp",
+        "ms-dotnettools.csdevkit",
+        "Angular.ng-template",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "dotnet.defaultSolution": "**/*.sln"
+      }
+    }
+  },
 
-	// Configure tool-specific properties.
-	// "customizations": {},
+  "forwardPorts": [4200, 5000, 5001],
+  "portsAttributes": {
+    "4200": { "label": "Angular dev server" },
+    "5000": { "label": "ASP.NET HTTP" },
+    "5001": { "label": "ASP.NET HTTPS" }
+  },
 
-	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-	// "remoteUser": "root"
+  "remoteEnv": {
+    "DOTNET_CLI_HOME": "/home/vscode/.dotnet",
+    "NUGET_PACKAGES": "/home/vscode/.nuget/packages",
+    "PNPM_HOME": "/home/vscode/.pnpm",
+    "PATH": "/home/vscode/.pnpm:/home/vscode/.dotnet/tools:${PATH}"
+  },
+
+  "mounts": [
+    "source=nuget-cache,target=/home/vscode/.nuget,type=volume",
+    "source=dotnet-cache,target=/home/vscode/.dotnet,type=volume",
+    "source=pnpm-store,target=/home/vscode/.local/share/pnpm/store,type=volume"
+  ],
+
+  "postCreateCommand": "bash -lc '\n" +
+    "set -e\n" +
+    "CLIENT_DIR=\"./easyfinance.client\"\n" +
+    "echo \"==> dotnet restore\"\n" +
+    "dotnet restore || true\n" +
+    "if [ -f \"$CLIENT_DIR/package.json\" ]; then\n" +
+    "  echo \"==> pnpm install ($CLIENT_DIR)\"\n" +
+    "  corepack enable >/dev/null 2>&1 || true\n" +
+    "  cd \"$CLIENT_DIR\" && pnpm install\n" +
+    "else\n" +
+    "  echo \"(skipping frontend install) no $CLIENT_DIR/package.json found\"\n" +
+    "fi\n" +
+    "'",
+
+  "remoteUser": "vscode"
 }
