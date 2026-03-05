@@ -9,7 +9,9 @@ const exceptions: any = [
   { method: 'GET', url: '/api/AccessControl/search' },
   { method: 'POST', url: '/api/Account/Notifications/' },
   { method: 'GET', url: '/DefaultCategories' },
-  { method: 'GET', url: '/assets/version.json' }
+  { method: 'GET', url: '/assets/version.json' },
+  { method: 'POST', url: '/temporary-attachments' },
+  { method: 'POST', url: '/attachments' }
 ];
 
 let totalRequests = 0;

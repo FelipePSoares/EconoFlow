@@ -8,6 +8,7 @@
         UserProjectEmail,
         AttachmentName,
         CategoryName,
+        DeductibleGroupName,
         ExpenseName,
         ExpenseItemName,
         IncomeName,

@@ -543,6 +543,67 @@ namespace EasyFinance.Persistence.Migrations
                     b.ToTable("Incomes", (string)null);
                 });
 
+            modelBuilder.Entity("EasyFinance.Domain.FinancialProject.DeductibleGroup", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TaxYearId")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId", "TaxYearId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("DeductibleGroups", (string)null);
+                });
+
+            modelBuilder.Entity("EasyFinance.Domain.FinancialProject.DeductibleGroupExpense", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("ExpenseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpenseId");
+
+                    b.HasIndex("GroupId", "ExpenseId")
+                        .IsUnique();
+
+                    b.ToTable("DeductibleGroupExpenses", (string)null);
+                });
+
             modelBuilder.Entity("EasyFinance.Domain.FinancialProject.Project", b =>
                 {
                     b.Property<Guid>("Id")
@@ -569,6 +630,18 @@ namespace EasyFinance.Persistence.Migrations
                         .HasMaxLength(3)
                         .HasColumnType("nvarchar(3)")
                         .HasDefaultValue("EUR");
+
+                    b.Property<int?>("TaxYearLabeling")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TaxYearStartDay")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TaxYearStartMonth")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TaxYearType")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -874,6 +947,36 @@ namespace EasyFinance.Persistence.Migrations
                     b.Navigation("CreatedBy");
                 });
 
+            modelBuilder.Entity("EasyFinance.Domain.FinancialProject.DeductibleGroup", b =>
+                {
+                    b.HasOne("EasyFinance.Domain.FinancialProject.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("EasyFinance.Domain.FinancialProject.DeductibleGroupExpense", b =>
+                {
+                    b.HasOne("EasyFinance.Domain.Financial.Expense", "Expense")
+                        .WithMany()
+                        .HasForeignKey("ExpenseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EasyFinance.Domain.FinancialProject.DeductibleGroup", "Group")
+                        .WithMany("GroupExpenses")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Expense");
+
+                    b.Navigation("Group");
+                });
+
             modelBuilder.Entity("EasyFinance.Domain.Support.ContactUs", b =>
                 {
                     b.HasOne("EasyFinance.Domain.AccessControl.User", "CreatedBy")
@@ -956,6 +1059,11 @@ namespace EasyFinance.Persistence.Migrations
             modelBuilder.Entity("EasyFinance.Domain.Financial.Income", b =>
                 {
                     b.Navigation("Attachments");
+                });
+
+            modelBuilder.Entity("EasyFinance.Domain.FinancialProject.DeductibleGroup", b =>
+                {
+                    b.Navigation("GroupExpenses");
                 });
 
             modelBuilder.Entity("EasyFinance.Domain.FinancialProject.Project", b =>

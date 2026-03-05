@@ -18,6 +18,7 @@ using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Application.Features.NotificationService;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Application.Features.SupportService;
+using EasyFinance.Application.Features.TaxYearService;
 using EasyFinance.Application.Features.UserKeyService;
 using EasyFinance.Application.Features.UserService;
 using EasyFinance.Application.Features.WebPushService;
@@ -39,6 +40,7 @@ namespace EasyFinance.Application
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IExpenseService, ExpenseService>();
             services.AddScoped<IExpenseItemService, ExpenseItemService>();
+            services.AddScoped<ITaxYearService, TaxYearService>();
             services.AddScoped<IAttachmentService, AttachmentService>();
             services.AddSingleton<IAttachmentStorageService, FileSystemAttachmentStorageService>();
             services.AddScoped<IUserService, UserService>();

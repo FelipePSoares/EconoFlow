@@ -96,7 +96,16 @@ namespace EasyFinance.Application.Features.CategoryService
                             ))
                                 .ThenInclude(c => c.Expenses
                                     .Where(e => e.Date >= from && e.Date < to))
+                                        .ThenInclude(e => e.Attachments)
+                        .Include(p => p.Categories
+                            .Where(c =>
+                                c.Expenses.Any(e => e.Date >= from && e.Date < to)
+                                || !c.IsArchived
+                            ))
+                                .ThenInclude(c => c.Expenses
+                                    .Where(e => e.Date >= from && e.Date < to))
                                         .ThenInclude(e => e.Items)
+                                            .ThenInclude(i => i.Attachments)
                         .IgnoreQueryFilters() // ignore global IsArchived filter
                         .FirstOrDefaultAsync(p => p.Id == projectId))?
                         .Categories
@@ -140,7 +149,11 @@ namespace EasyFinance.Application.Features.CategoryService
             var result = SortCategories((await this.unitOfWork.ProjectRepository.NoTrackable()
                     .Include(p => p.Categories)
                     .ThenInclude(c => c.Expenses.Where(e => e.Date.Year == year))
+                    .ThenInclude(e => e.Attachments)
+                    .Include(p => p.Categories)
+                    .ThenInclude(c => c.Expenses.Where(e => e.Date.Year == year))
                     .ThenInclude(e => e.Items)
+                    .ThenInclude(i => i.Attachments)
                     .IgnoreQueryFilters() // disables the global filter IsArchived
                     .FirstOrDefaultAsync(p => p.Id == projectId))?
                     .Categories

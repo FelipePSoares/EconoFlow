@@ -61,3 +61,11 @@
   font-size: 0.68rem;
   padding: 3px 8px;
 }
+
+.expense-flag-link {
+  text-decoration: none;
+}
+
+.expense-flag-link:hover {
+  filter: brightness(0.95);
+}

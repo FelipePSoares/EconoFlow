@@ -374,4 +374,28 @@ You will be redirect in 5 seconds ...</value>
   <data name="TemporaryAttachmentNotFoundOrInvalid" xml:space="preserve">
     <value>One or more temporary attachments were not found or are not valid for this user.</value>
   </data>
+  <data name="TaxYearNotConfigured" xml:space="preserve">
+    <value>Tax year rule is not configured for this project.</value>
+  </data>
+  <data name="InvalidTaxYearStartMonth" xml:space="preserve">
+    <value>Tax year start month must be between 1 and 12.</value>
+  </data>
+  <data name="InvalidTaxYearStartDay" xml:space="preserve">
+    <value>Tax year start day is invalid for the configured month.</value>
+  </data>
+  <data name="InvalidTaxYearId" xml:space="preserve">
+    <value>TaxYearId is not valid.</value>
+  </data>
+  <data name="DeductibleGroupNotFound" xml:space="preserve">
+    <value>Deductible group not found.</value>
+  </data>
+  <data name="ExpenseMustBeDeductible" xml:space="preserve">
+    <value>Only deductible expenses can be assigned.</value>
+  </data>
+  <data name="ExpenseTaxYearMismatch" xml:space="preserve">
+    <value>Expense tax year does not match the group's tax year.</value>
+  </data>
+  <data name="ExpenseNotInProject" xml:space="preserve">
+    <value>Expense does not belong to the provided project.</value>
+  </data>
 </root>

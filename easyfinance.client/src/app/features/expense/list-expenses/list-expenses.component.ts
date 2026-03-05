@@ -305,6 +305,35 @@ export class ListExpensesComponent implements OnInit {
     return !!expenseItem.getDeductibleProofAttachment();
   }
 
+  getDeductibleProofDownloadUrl(expense: ExpenseDto): string | null {
+    const attachment = expense.getDeductibleProofAttachment();
+    if (!attachment?.id) {
+      return null;
+    }
+
+    return this.expenseService.getAttachmentDownloadUrl(
+      this.projectId,
+      this.categoryId,
+      expense.id,
+      attachment.id
+    );
+  }
+
+  getDeductibleProofItemDownloadUrl(expense: ExpenseDto, expenseItem: ExpenseItemDto): string | null {
+    const attachment = expenseItem.getDeductibleProofAttachment();
+    if (!attachment?.id) {
+      return null;
+    }
+
+    return this.expenseService.getExpenseItemAttachmentDownloadUrl(
+      this.projectId,
+      this.categoryId,
+      expense.id,
+      expenseItem.id,
+      attachment.id
+    );
+  }
+
   private resetEditionState(): void {
     this.cancelExpenseForm();
     this.cancelSubExpenseForm();
