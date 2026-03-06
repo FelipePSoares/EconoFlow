@@ -14,6 +14,12 @@ describe('EconoFlow - expense item add Tests', () => {
 
   beforeEach(() => {
     cy.intercept('GET', '**/expenses?*').as('getExpense')
+    cy.intercept('GET', '**/projects/*/settings/tax-year', {
+      taxYearType: 'CalendarYear',
+      taxYearStartMonth: null,
+      taxYearStartDay: null,
+      taxYearLabeling: 'ByStartYear'
+    }).as('getTaxYearSettings');
 
     cy.fixture('users').then((users) => {
       const user = users.testUser;
@@ -32,6 +38,7 @@ describe('EconoFlow - expense item add Tests', () => {
           cy.get('.btn-link').last().click()
 
           cy.get('button').contains('Add Item').click();
+          cy.wait('@getTaxYearSettings');
         })
       })
     })
@@ -41,6 +48,10 @@ describe('EconoFlow - expense item add Tests', () => {
     const proofFileContent = Cypress.Buffer.from('%PDF-1.4 deductible proof item');
 
     cy.get('[data-testid="is-deductible-item-toggle"]').click();
+    cy.wait('@getTaxYearSettings');
+    cy.get('app-configure-tax-year-rule-dialog').should('not.exist');
+    cy.get('.cdk-overlay-backdrop-showing').should('not.exist');
+    cy.get('[data-testid="deductible-proof-item-input"]').should('be.enabled');
     cy.get('[data-testid="deductible-proof-item-input"]').selectFile({
       contents: proofFileContent,
       fileName: 'deductible-proof-item.pdf',

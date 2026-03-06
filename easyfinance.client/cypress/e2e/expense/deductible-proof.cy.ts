@@ -45,6 +45,12 @@ describe('EconoFlow - deductible proof Tests', () => {
 
   beforeEach(() => {
     cy.intercept('GET', '**/expenses?*').as('getExpenses');
+    cy.intercept('GET', '**/projects/*/settings/tax-year', {
+      taxYearType: 'CalendarYear',
+      taxYearStartMonth: null,
+      taxYearStartDay: null,
+      taxYearLabeling: 'ByStartYear'
+    }).as('getTaxYearSettings');
 
     cy.fixture('users').then((users) => {
       const user = users.testUser;
@@ -69,7 +75,9 @@ describe('EconoFlow - deductible proof Tests', () => {
     cy.get('button[name=edit]').first().click();
     cy.get('[data-testid="is-deductible-toggle"] button').should('have.attr', 'aria-checked', 'false');
     cy.get('[data-testid="is-deductible-toggle"]').click();
+    cy.wait('@getTaxYearSettings');
     cy.get('[data-testid="is-deductible-toggle"] button').should('have.attr', 'aria-checked', 'true');
+    cy.get('.cdk-overlay-backdrop-showing').should('not.exist');
     cy.get('[data-testid="deductible-proof-input"]').selectFile({
       contents: proofFileContent,
       fileName: 'deductible-proof.pdf',

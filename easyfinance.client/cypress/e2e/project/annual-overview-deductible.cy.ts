@@ -1,6 +1,8 @@
 describe('EconoFlow - annual overview deductible expenses', () => {
   const currentYear = new Date().getFullYear();
   const previousYear = currentYear - 1;
+  const currentTaxYearId = `tax-year-${currentYear}`;
+
   const getYearSummaryAlias = (year: number) => `getYearSummary_${year}`;
   const getAnnualExpensesByCategoryAlias = (year: number) => `getAnnualExpensesByCategory_${year}`;
   const getIncomesAlias = (year: number) => `getIncomes_${year}`;
@@ -101,6 +103,17 @@ describe('EconoFlow - annual overview deductible expenses', () => {
       request.reply(createCategoriesResponse(year));
     });
 
+    cy.intercept('GET', `**/projects/${projectId}/tax-years`, [
+      {
+        taxYearId: currentTaxYearId,
+        label: `${currentYear}`,
+        startDate: `${currentYear}-01-01`,
+        endDate: `${currentYear}-12-31`
+      }
+    ]).as('getTaxYears');
+
+    cy.intercept('GET', `**/projects/${projectId}/tax-years/${encodeURIComponent(currentTaxYearId)}/deductible-groups`, []).as('getDeductibleGroups');
+
     cy.intercept('GET', `**/projects/${projectId}/categories/category-1`, {
       id: 'category-1',
       name: 'Taxes',
@@ -158,6 +171,14 @@ describe('EconoFlow - annual overview deductible expenses', () => {
     waitForAnnualOverviewRequests(year);
   };
 
+  const openDeductionsFromAnnualOverview = (projectId: string, year: number) => {
+    visitAnnualOverview(projectId, year);
+    cy.get('[data-testid="deductible-overview-section"] .summary-card-link').click();
+    cy.wait('@getTaxYears');
+    cy.wait('@getDeductibleGroups');
+    cy.wait(`@${getCategoriesAlias(year)}`);
+  };
+
   beforeEach(() => {
     cy.fixture('users').then((users) => {
       const user = users.testUser;
@@ -165,7 +186,7 @@ describe('EconoFlow - annual overview deductible expenses', () => {
     });
   });
 
-  it('should load deductible list for default selected year', () => {
+  it('should load deductible amount for default selected year', () => {
     cy.fixture('projects').then((projects) => {
       const projectId = projects.defaultProject.id;
       setupAnnualOverviewStubs(projectId);
@@ -173,12 +194,11 @@ describe('EconoFlow - annual overview deductible expenses', () => {
       visitAnnualOverview(projectId, currentYear);
 
       cy.get('[data-testid="deductible-overview-section"]').should('be.visible');
-      cy.get('[data-testid="deductible-table"]').should('be.visible');
-      cy.get('[data-testid="deductible-total-count"]').should('contain', '3');
+      cy.get('[data-testid="deductible-total-amount"]').should('contain', '260');
     });
   });
 
-  it('should refresh deductible data when changing year', () => {
+  it('should refresh deductible amount when changing year', () => {
     cy.fixture('projects').then((projects) => {
       const projectId = projects.defaultProject.id;
       setupAnnualOverviewStubs(projectId);
@@ -193,38 +213,51 @@ describe('EconoFlow - annual overview deductible expenses', () => {
       cy.wait(`@${getCategoriesAlias(previousYear)}`);
       cy.wait(`@${getIncomesAlias(previousYear)}`);
 
-      cy.get('[data-testid="deductible-empty"]').should('be.visible');
+      cy.get('[data-testid="deductible-total-amount"]').should('contain', '0');
     });
   });
 
-  it('should open expense edit modal from deductible actions', () => {
+  it('should open deductions page from annual overview card', () => {
     cy.fixture('projects').then((projects) => {
       const projectId = projects.defaultProject.id;
       setupAnnualOverviewStubs(projectId);
 
-      visitAnnualOverview(projectId, currentYear);
+      openDeductionsFromAnnualOverview(projectId, currentYear);
 
-      cy.contains('tr', 'Accountant fee')
-        .find('[data-testid="deductible-open-expense"]')
+      cy.url().should('include', `/projects/${projectId}/deductions`);
+      cy.get('.deductions-page').should('be.visible');
+    });
+  });
+
+  it('should open expense edit modal from deductions page', () => {
+    cy.fixture('projects').then((projects) => {
+      const projectId = projects.defaultProject.id;
+      setupAnnualOverviewStubs(projectId);
+
+      openDeductionsFromAnnualOverview(projectId, currentYear);
+
+      cy.contains('.deduction-entry-item', 'Accountant fee')
+        .find('button.btn-outline-primary')
         .click();
       cy.wait('@getExpenseById');
       cy.get('.mat-mdc-dialog-container', { timeout: 10000 }).should('be.visible');
       cy.url().should('include', `(modal:projects/${projectId}/add-expense)`);
       cy.url().should('include', 'categoryId=category-1');
       cy.url().should('include', 'expenseId=expense-1');
+      cy.url().should('include', `selectedTaxYearId=${currentTaxYearId}`);
       cy.get('input[formControlName="name"]').should('have.value', 'Accountant fee');
     });
   });
 
-  it('should open expense item edit modal from deductible actions', () => {
+  it('should open expense item edit modal from deductions page', () => {
     cy.fixture('projects').then((projects) => {
       const projectId = projects.defaultProject.id;
       setupAnnualOverviewStubs(projectId);
 
-      visitAnnualOverview(projectId, currentYear);
+      openDeductionsFromAnnualOverview(projectId, currentYear);
 
-      cy.contains('tr', 'Taxi receipt (Business lunch)')
-        .find('[data-testid="deductible-open-expense"]')
+      cy.contains('.deduction-entry-item', 'Taxi receipt (Business lunch)')
+        .find('button.btn-outline-primary')
         .click();
       cy.wait('@getExpenseWithItemById');
       cy.get('.mat-mdc-dialog-container', { timeout: 10000 }).should('be.visible');
@@ -232,19 +265,20 @@ describe('EconoFlow - annual overview deductible expenses', () => {
       cy.url().should('include', 'categoryId=category-1');
       cy.url().should('include', 'expenseId=expense-2');
       cy.url().should('include', 'expenseItemId=expense-item-1');
+      cy.url().should('include', `selectedTaxYearId=${currentTaxYearId}`);
       cy.get('input[formControlName="name"]').should('have.value', 'Taxi receipt');
     });
   });
 
-  it('should display proof indicators for rows with and without attachment', () => {
+  it('should display proof indicators in deductions page entries', () => {
     cy.fixture('projects').then((projects) => {
       const projectId = projects.defaultProject.id;
       setupAnnualOverviewStubs(projectId);
 
-      visitAnnualOverview(projectId, currentYear);
+      openDeductionsFromAnnualOverview(projectId, currentYear);
 
-      cy.get('[data-testid="deductible-proof-yes"]').should('have.length', 1);
-      cy.get('[data-testid="deductible-proof-no"]').should('have.length', 2);
+      cy.get('.proof-indicator.has-proof').should('have.length', 1);
+      cy.get('.proof-indicator.missing-proof').should('have.length', 2);
     });
   });
 });

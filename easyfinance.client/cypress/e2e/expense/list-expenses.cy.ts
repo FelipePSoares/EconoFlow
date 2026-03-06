@@ -1,4 +1,10 @@
 describe('EconoFlow - expense list Tests', () => {
+    interface ExpensePatchOperation {
+      op: string;
+      path: string;
+      value?: boolean | number | string | string[] | null;
+    }
+
     const buildDateVariants = (value: Date, locale: string): string[] => {
       const fullYear = value.toLocaleDateString(locale, { year: 'numeric', month: 'numeric', day: 'numeric' });
       const shortYear = value.toLocaleDateString(locale, { year: '2-digit', month: 'numeric', day: 'numeric' });
@@ -13,9 +19,9 @@ describe('EconoFlow - expense list Tests', () => {
         cy.login(user.username, user.password)
 
         cy.fixture('projects').then((projects) => {
-            var project = projects.defaultProject;
+            const project = projects.defaultProject;
             cy.fixture('categories').then((categories) => {
-              var category = categories.defaultCategory;
+              const category = categories.defaultCategory;
           
               cy.visit('/projects/' + project.id + '/categories/' + category.id + '/expenses')
             })
@@ -46,7 +52,7 @@ describe('EconoFlow - expense list Tests', () => {
       cy.intercept('GET', '**/expenses*').as('getExpenses')
       cy.get('input[formControlName=name]').clear().type(`${value}{enter}`)
 
-      cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
+      cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ response }) => {
         expect(response?.statusCode).to.equal(200)
 
         cy.wait('@getExpenses')
@@ -78,7 +84,7 @@ describe('EconoFlow - expense list Tests', () => {
         cy.get('input[formControlName=date]').clear().type(`${formattedDate}{enter}`)
       })
 
-      cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
+      cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ response }) => {
         expect(response?.statusCode).to.equal(200)
 
         cy.wait('@getExpenses')
@@ -105,42 +111,59 @@ describe('EconoFlow - expense list Tests', () => {
         cy.get('input[formControlName=date]').clear().type(`${formattedDate}{enter}`)
       })
 
-      cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
+      cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ response }) => {
         expect(response?.statusCode).to.equal(400)
         cy.get('mat-error').should('have.text', 'A future expense can\u0027t have a amount')
       })
     })
   
     it('should update budget after success update', () => {
-      let value = Math.floor(Math.random() * 1000);
+      const value = Math.floor(Math.random() * 1000);
 
       cy.get('button[name=edit]').first().click()
       cy.get('input[formControlName=budget]').clear().type(`${value}{enter}`)
       
-      cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
+      cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ response }) => {
         expect(response?.statusCode).to.equal(200)
         cy.get('.budget').first().contains(`${value}`)
       })
     })
   
     it('should update amount after success update', () => {
-      let value = Math.floor(Math.random() * 1000);
-      const expectedAmount = (value / 100).toFixed(2);
-      const expectedAmountWithComma = expectedAmount.replace('.', ',');
+      let value = 12345;
+      const fallbackValue = 23456;
 
       cy.get('button[name=edit]').first().click()
       cy.intercept('GET', '**/expenses*').as('getExpenses')
-      cy.get('input[formControlName=amount]').clear().type(`${value}{enter}`)
+
+      cy.get('input[formControlName=amount]').invoke('val').then((currentValue) => {
+        const currentNormalized = String(currentValue ?? '').replace(/\./g, '').replace(',', '.')
+        const currentAsNumber = Number(currentNormalized.replace(/[^\d.-]/g, ''))
+        const expectedAmount = value / 100;
+
+        if (Number.isFinite(currentAsNumber) && currentAsNumber === expectedAmount) {
+          value = fallbackValue;
+        }
+
+        cy.get('input[formControlName=amount]').clear().type(`${value}{enter}`)
+      })
       
       cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(200)
+        const operations = request.body as ExpensePatchOperation[];
+        const amountOperation = operations.find(operation => operation.path?.toLowerCase() === '/amount');
+        const targetAmount = Number(amountOperation?.value);
+        const expenseId = request.url.match(/\/expenses\/([^/?]+)/)?.[1] ?? '';
 
-        cy.wait('@getExpenses')
+        expect(Number.isFinite(targetAmount)).to.equal(true);
+        expect(expenseId).to.not.equal('');
 
-        cy.get('.progress-bar').first().invoke('text').then((text) => {
-          const hasExpectedAmount = text.includes(expectedAmount) || text.includes(expectedAmountWithComma);
-          expect(hasExpectedAmount).to.equal(true);
-        });
+        cy.wait<ExpenseReq, ExpenseRes[]>('@getExpenses').then(({ response: getExpensesResponse }) => {
+          const updatedExpense = getExpensesResponse?.body.find(expense => expense.id === expenseId);
+          expect(updatedExpense).to.not.equal(undefined);
+          expect(updatedExpense?.amount).to.equal(targetAmount);
+        })
+
       })
     })
 })
