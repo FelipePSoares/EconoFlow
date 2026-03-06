@@ -11,6 +11,19 @@ describe('EconoFlow - expense item list Tests', () => {
     return Array.from(new Set([fullYear, shortYear]));
   };
 
+  const toDateKey = (value: unknown): string | null => {
+    if (!value) {
+      return null;
+    }
+
+    const parsed = new Date(String(value));
+    if (Number.isNaN(parsed.getTime())) {
+      return null;
+    }
+
+    return `${parsed.getFullYear()}-${parsed.getMonth()}-${parsed.getDate()}`;
+  };
+
   beforeEach(() => {
     cy.intercept('GET', '**/expenses?*').as('getExpense')
 
@@ -79,8 +92,6 @@ describe('EconoFlow - expense item list Tests', () => {
     const secondDayCandidate = new Date();
     secondDayCandidate.setDate(2);
 
-    let expectedDates: string[] = []
-
     cy.get('button[name=edit-sub]').last().click()
 
     cy.intercept('GET', '**/expenses*').as('getExpenses')
@@ -97,19 +108,29 @@ describe('EconoFlow - expense item list Tests', () => {
         const shouldUseSecondDay = firstDayVariants.includes(currentDateValue)
         const targetDate = shouldUseSecondDay ? secondDayCandidate : firstDayCandidate
 
-        expectedDates = buildDateVariants(targetDate, locale)
         cy.get('input[formControlName=date]').clear().type(`${targetDate.toLocaleDateString(locale)}{enter}`)
       })
     })
 
-    cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ response }) => {
+    cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
       expect(response?.statusCode).to.equal(200)
+      const operations = request.body as ExpensePatchOperation[];
+      const dateOperation = operations.find(operation => /\/items\/\d+\/date$/i.test(operation.path));
+      const itemIndexMatch = dateOperation?.path.match(/\/items\/(\d+)\/date/i);
+      const itemIndex = itemIndexMatch ? Number(itemIndexMatch[1]) : -1;
+      const expectedDateKey = toDateKey(dateOperation?.value);
+      const expenseId = request.url.match(/\/expenses\/([^/?]+)/)?.[1] ?? '';
 
-      cy.wait('@getExpenses')
+      expect(itemIndex).to.be.greaterThan(-1);
+      expect(expectedDateKey).to.not.equal(null);
+      expect(expenseId).to.not.equal('');
 
-      cy.get('.date-sub').invoke('text').then((text) => {
-        const hasExpectedDate = expectedDates.some(date => text.includes(date))
-        expect(hasExpectedDate).to.equal(true)
+      cy.wait<ExpenseReq, ExpenseRes[]>('@getExpenses').then(({ response: getExpensesResponse }) => {
+        const updatedExpense = getExpensesResponse?.body.find(expense => expense.id === expenseId);
+        expect(updatedExpense).to.not.equal(undefined);
+        const updatedItem = updatedExpense?.items[itemIndex] as (ExpenseRes['items'][number] & { date?: string | Date }) | undefined;
+        const updatedDateKey = toDateKey(updatedItem?.date);
+        expect(updatedDateKey).to.equal(expectedDateKey);
       })
     })
   })
