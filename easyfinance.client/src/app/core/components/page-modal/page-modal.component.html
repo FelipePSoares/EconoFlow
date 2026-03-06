@@ -12,5 +12,9 @@
   }
 </div>
 <mat-dialog-content>
-  <router-outlet name="modal"></router-outlet>
+  @if (component) {
+    <ng-container *ngComponentOutlet="component; inputs: componentInputs"></ng-container>
+  } @else {
+    <router-outlet name="modal"></router-outlet>
+  }
 </mat-dialog-content>

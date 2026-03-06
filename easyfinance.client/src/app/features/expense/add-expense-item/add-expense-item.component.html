@@ -149,6 +149,22 @@
             </div>
           }
         </section>
+
+        <section class="deductible-group-section mb-3 text-start" data-testid="deductible-item-tax-year-section">
+          <p class="mb-2 fw-semibold">{{ 'TaxYear' | translate }}</p>
+
+          @if (currentExpenseItemTaxYearId) {
+            <p class="text-muted mb-2">
+              {{ 'TaxYear' | translate }}: <strong>{{ currentExpenseItemTaxYearId }}</strong>
+            </p>
+          }
+
+          @if (hasTaxYearContextMismatch && currentExpenseItemTaxYearId) {
+            <div class="alert alert-warning py-2 mb-2">
+              {{ 'ExpenseBelongsToTaxYearHint' | translate: { taxYearId: currentExpenseItemTaxYearId } }}
+            </div>
+          }
+        </section>
       }
 
       <!-- General Error Display -->

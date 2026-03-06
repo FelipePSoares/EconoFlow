@@ -10,6 +10,7 @@ namespace EasyFinance.Persistence.Mapping.FinancialProject
         public override void ConfigureEntity(EntityTypeBuilder<DeductibleGroup> builder)
         {
             builder.ToTable("DeductibleGroups");
+            builder.HasQueryFilter(p => !p.Project.IsArchived);
 
             builder.Property(p => p.ProjectId)
                 .IsRequired();

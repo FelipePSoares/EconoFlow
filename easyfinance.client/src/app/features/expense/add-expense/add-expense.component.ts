@@ -12,6 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { DateAdapter } from '@angular/material/core';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Moment } from 'moment';
 import { ExpenseService } from '../../../core/services/expense.service';
@@ -30,6 +31,11 @@ import { MatSelect, MatSelectModule } from '@angular/material/select';
 import { AttachmentType } from '../../../core/enums/attachment-type';
 import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.component';
 import { Expense } from '../../../core/models/expense';
+import { ProjectService } from '../../../core/services/project.service';
+import { ProjectTaxYearSettings } from '../../../core/models/project-tax-year-settings';
+import { computeTaxYearPeriod, hasTaxYearRuleConfigured } from '../../../core/utils/tax-year';
+import { ConfigureTaxYearRuleDialogComponent } from '../../../core/components/configure-tax-year-rule-dialog/configure-tax-year-rule-dialog.component';
+import { PageModalComponent, PageModalDialogData } from '../../../core/components/page-modal/page-modal.component';
 
 @Component({
     selector: 'app-expense',
@@ -73,6 +79,8 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
   private snackBar = inject(SnackbarComponent);
   private destroyRef = inject(DestroyRef);
   private cdr = inject(ChangeDetectorRef);
+  private dialog = inject(MatDialog);
+  private projectService = inject(ProjectService);
   private proofUploadSubscription?: Subscription;
 
   private currentDate!: Moment;
@@ -82,9 +90,14 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
   pendingDeductibleProofFileName: string | null = null;
   expenseForm!: FormGroup;
   categories: CategoryDto[] = [];
+  projectTaxYearSettings: ProjectTaxYearSettings | null = null;
+  currentExpenseTaxYearId: string | null = null;
+  currentExpenseTaxYearLabel: string | null = null;
   isSaving = false;
   isProofOperationInProgress = false;
   proofUploadProgress = 0;
+  isTaxYearDialogInProgress = false;
+  isProgrammaticDeductibleToggle = false;
   httpErrors = false;
   errors!: Record<string, string[]>;
   currencySymbol!: string;
@@ -99,6 +112,9 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
 
   @Input()
   expenseId?: string;
+
+  @Input()
+  selectedTaxYearId?: string;
 
   @Input()
   expense?: ExpenseDto | null;
@@ -152,13 +168,30 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
 
     this.updateDateAndAmountControlState();
 
+    await this.loadProjectTaxYearSettings();
     await this.loadExpenseFromRouteIfNeeded();
 
     this.isDeductibleControl?.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(isDeductible => {
+        if (this.isProgrammaticDeductibleToggle) {
+          return;
+        }
+
         if (!isDeductible) {
           this.clearPendingDeductibleProof();
+          this.clearDeductibleGroupContext();
+          return;
+        }
+
+        void this.ensureTaxYearRuleConfiguredForDeductible();
+      });
+
+    this.date?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        if (this.isDeductibleControl?.value) {
+          void this.refreshDeductibleGroupContext();
         }
       });
 
@@ -172,6 +205,10 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
             this.categoryIdControl?.setValue(this.categoryId);
           }
         });
+    }
+
+    if (this.isDeductibleControl?.value) {
+      await this.refreshDeductibleGroupContext();
     }
   }
 
@@ -220,6 +257,12 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
   get proofProgressWidthClass(): string {
     const progress = Math.max(0, Math.min(100, Math.round(this.proofUploadProgress)));
     return `progress-width-${progress}`;
+  }
+
+  get hasTaxYearContextMismatch(): boolean {
+    return !!this.selectedTaxYearId
+      && !!this.currentExpenseTaxYearId
+      && this.selectedTaxYearId !== this.currentExpenseTaxYearId;
   }
 
   async save(): Promise<void> {
@@ -464,6 +507,109 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
       this.httpErrors = true;
       this.errors = { general: ['GenericError'] };
     }
+  }
+
+  private async loadProjectTaxYearSettings(): Promise<void> {
+    try {
+      this.projectTaxYearSettings = await firstValueFrom(this.projectService.getTaxYearSettings(this.projectId));
+    } catch {
+      this.projectTaxYearSettings = null;
+    }
+  }
+
+  private async ensureTaxYearRuleConfiguredForDeductible(): Promise<void> {
+    if (this.isTaxYearDialogInProgress) {
+      return;
+    }
+
+    this.isTaxYearDialogInProgress = true;
+
+    try {
+      await this.loadProjectTaxYearSettings();
+      if (hasTaxYearRuleConfigured(this.projectTaxYearSettings)) {
+        await this.refreshDeductibleGroupContext();
+        return;
+      }
+
+      let dialogRef: MatDialogRef<PageModalComponent, ProjectTaxYearSettings | null>;
+      const componentInputs = {
+        projectId: this.projectId,
+        initialSettings: this.projectTaxYearSettings,
+        closeDialog: (result: ProjectTaxYearSettings | null) => dialogRef.close(result)
+      };
+
+      dialogRef = this.dialog.open<
+        PageModalComponent,
+        PageModalDialogData,
+        ProjectTaxYearSettings | null
+      >(PageModalComponent, {
+        autoFocus: false,
+        width: '560px',
+        maxWidth: '95vw',
+        disableClose: true,
+        data: {
+          title: 'ConfigureTaxYearRuleModalTitle',
+          hasCloseButton: false,
+          component: ConfigureTaxYearRuleDialogComponent,
+          componentInputs
+        }
+      });
+
+      const configuredSettings = await firstValueFrom(dialogRef.afterClosed());
+      if (!configuredSettings) {
+        this.setDeductibleToggle(false);
+        this.clearDeductibleGroupContext();
+        this.snackBar.openErrorSnackbar(this.translateService.instant('TaxYearRuleConfigurationCanceled'));
+        return;
+      }
+
+      this.projectTaxYearSettings = configuredSettings;
+      await this.refreshDeductibleGroupContext();
+    } catch {
+      this.setDeductibleToggle(false);
+      this.clearDeductibleGroupContext();
+      this.snackBar.openErrorSnackbar(this.translateService.instant('TaxYearRuleRequiredBeforeDeductible'));
+    } finally {
+      this.isTaxYearDialogInProgress = false;
+    }
+  }
+
+  private setDeductibleToggle(value: boolean): void {
+    this.isProgrammaticDeductibleToggle = true;
+    this.isDeductibleControl?.setValue(value);
+    this.isProgrammaticDeductibleToggle = false;
+  }
+
+  private clearDeductibleGroupContext(): void {
+    this.currentExpenseTaxYearId = null;
+    this.currentExpenseTaxYearLabel = null;
+  }
+
+  private async refreshDeductibleGroupContext(): Promise<void> {
+    if (!this.isDeductibleControl?.value) {
+      this.clearDeductibleGroupContext();
+      return;
+    }
+
+    if (!hasTaxYearRuleConfigured(this.projectTaxYearSettings)) {
+      this.clearDeductibleGroupContext();
+      return;
+    }
+
+    const dateValue = this.date?.value;
+    if (!dateValue) {
+      this.clearDeductibleGroupContext();
+      return;
+    }
+
+    const period = computeTaxYearPeriod(this.projectTaxYearSettings, dateValue);
+    if (!period) {
+      this.clearDeductibleGroupContext();
+      return;
+    }
+
+    this.currentExpenseTaxYearId = period.taxYearId;
+    this.currentExpenseTaxYearLabel = period.label;
   }
 
   private updateDateAndAmountControlState(): void {

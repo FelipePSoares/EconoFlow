@@ -1,53 +1,109 @@
-<div class="container text-center">
-  <div class="row justify-content-md-center">
-    <form [formGroup]="projectForm" (ngSubmit)="saveProject()">
-
-      <!-- Name Field -->
-      <mat-form-field appearance="fill" class="w-100">
-        <mat-label>{{ 'FieldProjectName' | translate }}</mat-label>
-        <input matInput id="name" placeholder="{{ 'PlaceholderProjectName' | translate }}" formControlName="name">
-        @if (name?.invalid && name?.touched){
-          @for (error of getFormFieldErrors('name'); track error) {
-            <mat-error>{{ error |  translate }}</mat-error>
-          }
+<div class="project-form-modal">
+  <form class="project-form" [formGroup]="projectForm" (ngSubmit)="saveProject()">
+    <mat-form-field appearance="fill" class="field-full">
+      <mat-label>{{ 'FieldProjectName' | translate }}</mat-label>
+      <input matInput id="name" placeholder="{{ 'PlaceholderProjectName' | translate }}" formControlName="name">
+      @if (name?.invalid && name?.touched){
+        @for (error of getFormFieldErrors('name'); track error) {
+          <mat-error>{{ error |  translate }}</mat-error>
         }
-      </mat-form-field>
+      }
+    </mat-form-field>
 
-      <!-- Preferred Currency Field -->
-      <mat-form-field appearance="fill" class="w-100">
-        <mat-label>{{ 'FieldCurrency' | translate }}</mat-label>
-        <mat-select formControlName="preferredCurrency">
-          @for (currency of getCurrencies(); track currency) {
-            <mat-option [value]="currency">{{currency}}</mat-option>
-          }
-          @if (preferredCurrency?.invalid && preferredCurrency?.touched){
-            @for (error of getFormFieldErrors('preferredCurrency'); track error) {
-              <mat-error>{{ error |  translate }}</mat-error>
-            }
-          }
-        </mat-select>
+    <mat-form-field appearance="fill" class="field-full">
+      <mat-label>{{ 'FieldCurrency' | translate }}</mat-label>
+      <mat-select formControlName="preferredCurrency">
+        @for (currency of getCurrencies(); track currency) {
+          <mat-option [value]="currency">{{currency}}</mat-option>
+        }
         @if (preferredCurrency?.invalid && preferredCurrency?.touched){
           @for (error of getFormFieldErrors('preferredCurrency'); track error) {
             <mat-error>{{ error |  translate }}</mat-error>
           }
         }
+      </mat-select>
+      @if (preferredCurrency?.invalid && preferredCurrency?.touched){
+        @for (error of getFormFieldErrors('preferredCurrency'); track error) {
+          <mat-error>{{ error |  translate }}</mat-error>
+        }
+      }
+    </mat-form-field>
+
+    <section class="tax-year-panel">
+      <div class="panel-head">
+        <h3>{{ 'TaxYearRuleSectionTitle' | translate }}</h3>
+        <p>{{ 'TaxYearRuleSectionDescription' | translate }}</p>
+      </div>
+
+      <mat-form-field appearance="fill" class="field-full">
+        <mat-label>{{ 'FieldTaxYearType' | translate }}</mat-label>
+        <mat-select formControlName="taxYearType">
+          @for (taxYearTypeOption of taxYearTypeOptions; track taxYearTypeOption.value) {
+            <mat-option [value]="taxYearTypeOption.value">{{ taxYearTypeOption.label | translate }}</mat-option>
+          }
+        </mat-select>
+        @if (taxYearTypeControl?.invalid && taxYearTypeControl?.touched){
+          @for (error of getFormFieldErrors('taxYearType'); track error) {
+            <mat-error>{{ error |  translate }}</mat-error>
+          }
+        }
       </mat-form-field>
 
-      <!-- General Error Display -->
-      @if (httpErrors && errors['general']) {
-        <div>
-          @for (error of errors['general']; track error) {
-            <p class="mb-3 text-danger text-center">{{ error | translate }}</p>
-          }
-        </div>
-      }
+      @if (isCustomTaxYearTypeSelected()) {
+        <div class="tax-year-grid">
+          <mat-form-field appearance="fill" class="field-full">
+            <mat-label>{{ 'FieldTaxYearStartMonth' | translate }}</mat-label>
+            <mat-select formControlName="taxYearStartMonth">
+              @for (month of months; track month.value) {
+                <mat-option [value]="month.value">{{ month.label }}</mat-option>
+              }
+            </mat-select>
+            @if (taxYearStartMonthControl?.invalid && taxYearStartMonthControl?.touched){
+              @for (error of getFormFieldErrors('taxYearStartMonth'); track error) {
+                <mat-error>{{ error |  translate }}</mat-error>
+              }
+            }
+          </mat-form-field>
 
-      <!-- Submit Button -->
-      <div class="float-end">
-        <button mat-raised-button color="primary" type="submit" [disabled]="projectForm.invalid">
-          {{ (editingProject.id ? 'ButtonUpdate' : 'ButtonCreate') | translate }}
-        </button>
+          <mat-form-field appearance="fill" class="field-full">
+            <mat-label>{{ 'FieldTaxYearStartDay' | translate }}</mat-label>
+            <input matInput formControlName="taxYearStartDay" type="number" min="1" max="31">
+            @if (taxYearStartDayControl?.invalid && taxYearStartDayControl?.touched){
+              @for (error of getFormFieldErrors('taxYearStartDay'); track error) {
+                <mat-error>{{ error |  translate }}</mat-error>
+              }
+            }
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="fill" class="field-full">
+          <mat-label>{{ 'FieldTaxYearLabeling' | translate }}</mat-label>
+          <mat-select formControlName="taxYearLabeling">
+            @for (taxYearLabelingOption of taxYearLabelingOptions; track taxYearLabelingOption.value) {
+              <mat-option [value]="taxYearLabelingOption.value">{{ taxYearLabelingOption.label | translate }}</mat-option>
+            }
+          </mat-select>
+          @if (taxYearLabelingControl?.invalid && taxYearLabelingControl?.touched){
+            @for (error of getFormFieldErrors('taxYearLabeling'); track error) {
+              <mat-error>{{ error |  translate }}</mat-error>
+            }
+          }
+        </mat-form-field>
+      }
+    </section>
+
+    @if (httpErrors && errors['general']) {
+      <div>
+        @for (error of errors['general']; track error) {
+          <p class="mb-3 text-danger text-center">{{ error | translate }}</p>
+        }
       </div>
-    </form>
-  </div>
+    }
+
+    <div class="form-actions">
+      <button mat-raised-button color="primary" type="submit" [disabled]="projectForm.invalid">
+        {{ (editingProject.id ? 'ButtonUpdate' : 'ButtonCreate') | translate }}
+      </button>
+    </div>
+  </form>
 </div>

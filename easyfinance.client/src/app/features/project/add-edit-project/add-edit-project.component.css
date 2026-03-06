@@ -1,0 +1,56 @@
+:host {
+  display: block;
+}
+
+.project-form-modal {
+  max-width: 460px;
+  margin: 0 auto;
+}
+
+.project-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field-full {
+  width: 100%;
+}
+
+.tax-year-panel {
+  margin-top: 2px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background-color: #f8fafc;
+}
+
+.panel-head h3 {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.panel-head p {
+  margin: 0 0 10px;
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+.tax-year-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 130px;
+  gap: 10px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 2px;
+}
+
+@media (max-width: 575.98px) {
+  .tax-year-grid {
+    grid-template-columns: 1fr;
+  }
+}

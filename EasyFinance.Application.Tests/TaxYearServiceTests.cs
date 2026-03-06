@@ -70,7 +70,8 @@ namespace EasyFinance.Application.Tests
                 projectId: project.Id,
                 taxYearId: "2025-04",
                 groupId: createGroupResponse.Data.Id,
-                expenseId: crossPeriodExpense.Id);
+                expenseId: crossPeriodExpense.Id,
+                expenseItemId: null);
 
             assignResponse.Failed.Should().BeTrue();
             assignResponse.Messages.Should().ContainSingle(message =>

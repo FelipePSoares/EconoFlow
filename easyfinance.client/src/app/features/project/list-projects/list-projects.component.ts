@@ -57,7 +57,9 @@ export class ListProjectsComponent implements OnInit {
     this.router.navigate([{ outlets: { modal: ['add-edit-project'] } }]);
 
     this.dialog.open(PageModalComponent, {
-      autoFocus: 'input'
+      autoFocus: 'input',
+      width: '560px',
+      maxWidth: '95vw'
     }).afterClosed().subscribe((result) => {
       this.router.navigate([{ outlets: { modal: null } }]);
     });
@@ -82,7 +84,9 @@ export class ListProjectsComponent implements OnInit {
     this.router.navigate([{ outlets: { modal: ['add-edit-project'] } }]);
 
     this.dialog.open(PageModalComponent, {
-      autoFocus: 'input'
+      autoFocus: 'input',
+      width: '560px',
+      maxWidth: '95vw'
     }).afterClosed().subscribe((result) => {
       if (result) {
         this.loadProjects();

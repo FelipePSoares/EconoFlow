@@ -1,5 +1,12 @@
 describe('EconoFlow - expense add Tests', () => {
   beforeEach(() => {
+    cy.intercept('GET', '**/projects/*/settings/tax-year', {
+      taxYearType: 'CalendarYear',
+      taxYearStartMonth: null,
+      taxYearStartDay: null,
+      taxYearLabeling: 'ByStartYear'
+    }).as('getTaxYearSettings');
+
     cy.fixture('users').then((users) => {
       const user = users.testUser;
 
@@ -10,13 +17,21 @@ describe('EconoFlow - expense add Tests', () => {
           cy.fixture('categories').then((categories) => {
             const category = categories.defaultCategory;
 
-            cy.visit('/projects/' + project.id + '/categories/' + category.id + '/expenses')
+              cy.visit('/projects/' + project.id + '/categories/' + category.id + '/expenses')
 
-            cy.get('.btn-add').click();
-          })
+              cy.get('.btn-add').click();
+              cy.wait('@getTaxYearSettings');
+            })
         })
       })
   })
+
+  const enableDeductibleMode = () => {
+    cy.get('[data-testid="is-deductible-toggle"]').click();
+    cy.wait('@getTaxYearSettings');
+    cy.get('app-configure-tax-year-rule-dialog').should('not.exist');
+    cy.get('.cdk-overlay-backdrop-showing').should('not.exist');
+  };
 
   it('should keep deductible off by default', () => {
     cy.get('[data-testid="is-deductible-toggle"] button').should('not.be.checked');
@@ -24,8 +39,8 @@ describe('EconoFlow - expense add Tests', () => {
   });
 
   it('should show and hide proof section when deductible is toggled', () => {
-    cy.get('[data-testid="is-deductible-toggle"]').click();
-    cy.get('[data-testid="deductible-proof-section"]').should('be.visible');
+    enableDeductibleMode();
+    cy.get('[data-testid="deductible-proof-section"]').should('exist');
 
     cy.get('[data-testid="is-deductible-toggle"]').click();
     cy.get('[data-testid="deductible-proof-section"]').should('not.exist');
@@ -56,7 +71,7 @@ describe('EconoFlow - expense add Tests', () => {
 
     cy.fixture('expenses').then((expenses) => {
       const expense = expenses.testSomeExpense;
-      cy.get('[data-testid="is-deductible-toggle"]').click();
+      enableDeductibleMode();
 
       cy.get('input[formControlName=name]').type(`${expense.name}-deductible`);
       cy.get('input[formControlName=budget]').type(expense.budget);
@@ -80,7 +95,8 @@ describe('EconoFlow - expense add Tests', () => {
       const expense = expenses.testSomeExpense;
       const proofFileContent = Cypress.Buffer.from('%PDF-1.4 deductible proof');
 
-      cy.get('[data-testid="is-deductible-toggle"]').click();
+      enableDeductibleMode();
+      cy.get('[data-testid="deductible-proof-input"]').should('be.enabled');
       cy.get('[data-testid="deductible-proof-input"]').selectFile({
         contents: proofFileContent,
         fileName: 'deductible-proof.pdf',
