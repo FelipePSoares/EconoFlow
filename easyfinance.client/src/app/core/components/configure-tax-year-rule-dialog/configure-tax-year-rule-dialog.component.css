@@ -2,10 +2,42 @@
   display: block;
 }
 
-.dialog-header {
-  margin-bottom: 0.75rem;
+.tax-year-dialog {
+  max-width: 430px;
+  margin: 0 auto;
 }
 
-.dialog-header h2 {
-  margin: 0;
+.dialog-description {
+  margin: 0 0 14px;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.tax-year-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field-full {
+  width: 100%;
+}
+
+.custom-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 130px;
+  gap: 10px;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+@media (max-width: 575.98px) {
+  .custom-grid {
+    grid-template-columns: 1fr;
+  }
 }

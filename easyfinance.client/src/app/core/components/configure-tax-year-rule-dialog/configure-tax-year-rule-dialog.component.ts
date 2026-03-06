@@ -1,6 +1,5 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -13,11 +12,6 @@ import { TaxYearType } from '../../enums/tax-year-type';
 import { TaxYearLabeling } from '../../enums/tax-year-labeling';
 import { ProjectTaxYearSettings, ProjectTaxYearSettingsRequest } from '../../models/project-tax-year-settings';
 import { ApiErrorResponse } from '../../models/error';
-
-export interface ConfigureTaxYearRuleDialogData {
-  projectId: string;
-  initialSettings?: ProjectTaxYearSettings | null;
-}
 
 @Component({
   selector: 'app-configure-tax-year-rule-dialog',
@@ -32,7 +26,16 @@ export interface ConfigureTaxYearRuleDialogData {
   templateUrl: './configure-tax-year-rule-dialog.component.html',
   styleUrl: './configure-tax-year-rule-dialog.component.css'
 })
-export class ConfigureTaxYearRuleDialogComponent {
+export class ConfigureTaxYearRuleDialogComponent implements OnInit {
+  @Input({ required: true })
+  projectId!: string;
+
+  @Input()
+  initialSettings: ProjectTaxYearSettings | null = null;
+
+  @Input()
+  closeDialog: ((result: ProjectTaxYearSettings | null) => void) | null = null;
+
   taxYearForm: FormGroup;
   httpErrors = false;
   errors!: Record<string, string[]>;
@@ -52,29 +55,36 @@ export class ConfigureTaxYearRuleDialogComponent {
   }));
 
   constructor(
-    private dialogRef: MatDialogRef<ConfigureTaxYearRuleDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: ConfigureTaxYearRuleDialogData,
     private projectService: ProjectService,
     private errorMessageService: ErrorMessageService
   ) {
-    const initialTaxYearType = data.initialSettings?.taxYearType ?? TaxYearType.CalendarYear;
-    const initialStartMonth = data.initialSettings?.taxYearStartMonth ?? 1;
-    const initialStartDay = data.initialSettings?.taxYearStartDay ?? 1;
-    const initialLabeling = data.initialSettings?.taxYearLabeling ?? TaxYearLabeling.ByStartYear;
-
     this.taxYearForm = new FormGroup({
-      taxYearType: new FormControl(initialTaxYearType, [Validators.required]),
-      taxYearStartMonth: new FormControl(initialStartMonth),
-      taxYearStartDay: new FormControl(initialStartDay),
-      taxYearLabeling: new FormControl(initialLabeling)
+      taxYearType: new FormControl(TaxYearType.CalendarYear, [Validators.required]),
+      taxYearStartMonth: new FormControl(1),
+      taxYearStartDay: new FormControl(1),
+      taxYearLabeling: new FormControl(TaxYearLabeling.ByStartYear)
     });
+  }
+
+  ngOnInit(): void {
+    const initialTaxYearType = this.initialSettings?.taxYearType ?? TaxYearType.CalendarYear;
+    const initialStartMonth = this.initialSettings?.taxYearStartMonth ?? 1;
+    const initialStartDay = this.initialSettings?.taxYearStartDay ?? 1;
+    const initialLabeling = this.initialSettings?.taxYearLabeling ?? TaxYearLabeling.ByStartYear;
+
+    this.taxYearForm.setValue({
+      taxYearType: initialTaxYearType,
+      taxYearStartMonth: initialStartMonth,
+      taxYearStartDay: initialStartDay,
+      taxYearLabeling: initialLabeling
+    }, { emitEvent: false });
 
     this.updateTaxYearControlValidation();
     this.taxYearTypeControl?.valueChanges.subscribe(() => this.updateTaxYearControlValidation());
   }
 
   close(): void {
-    this.dialogRef.close(null);
+    this.closeDialog?.(null);
   }
 
   async save(): Promise<void> {
@@ -88,8 +98,8 @@ export class ConfigureTaxYearRuleDialogComponent {
 
     try {
       const request = this.getTaxYearSettingsRequest();
-      const response = await firstValueFrom(this.projectService.upsertTaxYearSettings(this.data.projectId, request));
-      this.dialogRef.close(response);
+      const response = await firstValueFrom(this.projectService.upsertTaxYearSettings(this.projectId, request));
+      this.closeDialog?.(response);
     } catch (error) {
       this.handleFormError(error as ApiErrorResponse);
     } finally {

@@ -4,7 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -14,10 +14,9 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 import {
-  ConfigureTaxYearRuleDialogComponent,
-  ConfigureTaxYearRuleDialogData
+  ConfigureTaxYearRuleDialogComponent
 } from '../../../core/components/configure-tax-year-rule-dialog/configure-tax-year-rule-dialog.component';
-import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
+import { PageModalComponent, PageModalDialogData } from '../../../core/components/page-modal/page-modal.component';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.component';
 import { Role } from '../../../core/enums/Role';
@@ -165,16 +164,26 @@ export class DeductionsComponent implements OnInit {
   }
 
   async openTaxYearConfigurationDialog(): Promise<void> {
-    const dialogRef = this.dialog.open<
-      ConfigureTaxYearRuleDialogComponent,
-      ConfigureTaxYearRuleDialogData,
+    let dialogRef: MatDialogRef<PageModalComponent, ProjectTaxYearSettings | null>;
+    const componentInputs = {
+      projectId: this.projectId,
+      closeDialog: (result: ProjectTaxYearSettings | null) => dialogRef.close(result)
+    };
+
+    dialogRef = this.dialog.open<
+      PageModalComponent,
+      PageModalDialogData,
       ProjectTaxYearSettings | null
-    >(ConfigureTaxYearRuleDialogComponent, {
+    >(PageModalComponent, {
+      autoFocus: false,
       width: '560px',
       maxWidth: '95vw',
       disableClose: true,
       data: {
-        projectId: this.projectId
+        title: 'ConfigureTaxYearRuleModalTitle',
+        hasCloseButton: false,
+        component: ConfigureTaxYearRuleDialogComponent,
+        componentInputs
       }
     });
 

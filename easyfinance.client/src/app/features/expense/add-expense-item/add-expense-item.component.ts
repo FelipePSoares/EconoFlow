@@ -11,7 +11,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
 import { Moment } from 'moment';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -34,10 +34,8 @@ import { AttachmentType } from '../../../core/enums/attachment-type';
 import { ProjectService } from '../../../core/services/project.service';
 import { ProjectTaxYearSettings } from '../../../core/models/project-tax-year-settings';
 import { computeTaxYearPeriod, hasTaxYearRuleConfigured } from '../../../core/utils/tax-year';
-import {
-  ConfigureTaxYearRuleDialogComponent,
-  ConfigureTaxYearRuleDialogData
-} from '../../../core/components/configure-tax-year-rule-dialog/configure-tax-year-rule-dialog.component';
+import { ConfigureTaxYearRuleDialogComponent } from '../../../core/components/configure-tax-year-rule-dialog/configure-tax-year-rule-dialog.component';
+import { PageModalComponent, PageModalDialogData } from '../../../core/components/page-modal/page-modal.component';
 
 @Component({
     selector: 'app-expense-item',
@@ -701,17 +699,27 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
         return;
       }
 
-      const dialogRef = this.dialog.open<
-        ConfigureTaxYearRuleDialogComponent,
-        ConfigureTaxYearRuleDialogData,
+      let dialogRef: MatDialogRef<PageModalComponent, ProjectTaxYearSettings | null>;
+      const componentInputs = {
+        projectId: this.projectId,
+        initialSettings: this.projectTaxYearSettings,
+        closeDialog: (result: ProjectTaxYearSettings | null) => dialogRef.close(result)
+      };
+
+      dialogRef = this.dialog.open<
+        PageModalComponent,
+        PageModalDialogData,
         ProjectTaxYearSettings | null
-      >(ConfigureTaxYearRuleDialogComponent, {
+      >(PageModalComponent, {
+        autoFocus: false,
         width: '560px',
         maxWidth: '95vw',
         disableClose: true,
         data: {
-          projectId: this.projectId,
-          initialSettings: this.projectTaxYearSettings
+          title: 'ConfigureTaxYearRuleModalTitle',
+          hasCloseButton: false,
+          component: ConfigureTaxYearRuleDialogComponent,
+          componentInputs
         }
       });
 
