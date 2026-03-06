@@ -24,6 +24,9 @@ describe('EconoFlow - expense item list Tests', () => {
     return `${parsed.getFullYear()}-${parsed.getMonth()}-${parsed.getDate()}`;
   };
 
+  let selectedExpenseId = '';
+  let editedExpenseItemId = '';
+
   beforeEach(() => {
     cy.intercept('GET', '**/expenses?*').as('getExpense')
 
@@ -45,6 +48,12 @@ describe('EconoFlow - expense item list Tests', () => {
             cy.wait<ExpenseReq, ExpenseRes[]>('@getExpense').then(({ response }) => {
               console.log(response?.body);
               const index = response?.body.findIndex(element => element.name === defaultExpense.name);
+              const selectedExpense = index !== undefined && index > -1
+                ? response?.body[index]
+                : undefined;
+
+              selectedExpenseId = selectedExpense?.id ?? '';
+              editedExpenseItemId = selectedExpense?.items?.at(-1)?.id ?? '';
 
               cy.get('.btn-link').eq(index).click()
             })
@@ -116,19 +125,16 @@ describe('EconoFlow - expense item list Tests', () => {
       expect(response?.statusCode).to.equal(200)
       const operations = request.body as ExpensePatchOperation[];
       const dateOperation = operations.find(operation => /\/items\/\d+\/date$/i.test(operation.path));
-      const itemIndexMatch = dateOperation?.path.match(/\/items\/(\d+)\/date/i);
-      const itemIndex = itemIndexMatch ? Number(itemIndexMatch[1]) : -1;
       const expectedDateKey = toDateKey(dateOperation?.value);
-      const expenseId = request.url.match(/\/expenses\/([^/?]+)/)?.[1] ?? '';
 
-      expect(itemIndex).to.be.greaterThan(-1);
       expect(expectedDateKey).to.not.equal(null);
-      expect(expenseId).to.not.equal('');
+      expect(selectedExpenseId).to.not.equal('');
+      expect(editedExpenseItemId).to.not.equal('');
 
       cy.wait<ExpenseReq, ExpenseRes[]>('@getExpenses').then(({ response: getExpensesResponse }) => {
-        const updatedExpense = getExpensesResponse?.body.find(expense => expense.id === expenseId);
+        const updatedExpense = getExpensesResponse?.body.find(expense => expense.id === selectedExpenseId);
         expect(updatedExpense).to.not.equal(undefined);
-        const updatedItem = updatedExpense?.items[itemIndex] as (ExpenseRes['items'][number] & { date?: string | Date }) | undefined;
+        const updatedItem = updatedExpense?.items.find(item => item.id === editedExpenseItemId) as (ExpenseRes['items'][number] & { date?: string | Date }) | undefined;
         const updatedDateKey = toDateKey(updatedItem?.date);
         expect(updatedDateKey).to.equal(expectedDateKey);
       })
