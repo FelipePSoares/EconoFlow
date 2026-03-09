@@ -1,0 +1,30 @@
+{
+  "name": "EconoFlow - Smart Personal Finance",
+  "short_name": "EconoFlow",
+  "description": "Manage expenses, track budgets, and stay in control of your projects from any device.",
+  "theme_color": "#0d6efd",
+  "background_color": "#f5f8fc",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "lang": "en",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/assets/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/icons/icon-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ]
+}

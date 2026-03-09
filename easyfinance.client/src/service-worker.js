@@ -1,5 +1,7 @@
+importScripts('./ngsw-worker.js');
+
 self.addEventListener('push', event => {
-  let payload = { title: 'EconoFlow', body: 'Push recebido (sem payload).' };
+  let payload = { title: 'EconoFlow', body: 'You have a new notification.' };
 
   if (event.data) {
     try {
@@ -9,12 +11,12 @@ self.addEventListener('push', event => {
     }
   }
 
-  const title = payload.title || 'EconoFlow';
   const targetUrl = payload?.data?.url || payload?.url || '/';
+  const title = payload.title || 'EconoFlow';
   const options = {
     body: payload.body || '',
-    icon: payload.icon || '/assets/images/logo-without-text-background-512-min.png',
-    badge: payload.badge || '/assets/images/logo-minimalist-192.png',
+    icon: payload.icon || '/assets/icons/notification-icon-192x192.png',
+    badge: payload.badge || '/assets/icons/notification-badge-72x72.png',
     tag: payload.tag || 'econoflow-web-push',
     requireInteraction: Boolean(payload.requireInteraction),
     data: {
@@ -36,17 +38,19 @@ self.addEventListener('notificationclick', event => {
     });
 
     for (const client of matchedClients) {
-      if (client.url && 'focus' in client) {
-        try {
-          const clientUrl = new URL(client.url);
-          if (clientUrl.origin === self.location.origin) {
-            await client.navigate(targetUrl);
-            await client.focus();
-            return;
-          }
-        } catch {
-          // Ignore malformed URLs from old clients.
+      if (!client.url || !('focus' in client)) {
+        continue;
+      }
+
+      try {
+        const clientUrl = new URL(client.url);
+        if (clientUrl.origin === self.location.origin) {
+          await client.navigate(targetUrl);
+          await client.focus();
+          return;
         }
+      } catch {
+        // Ignore malformed URLs from old clients.
       }
     }
 

@@ -1,3 +1,4 @@
 export enum FeatureFlag {
-  WebPush = 'WebPush'
+  WebPush = 'WebPush',
+  PwaInstall = 'PwaInstall'
 }

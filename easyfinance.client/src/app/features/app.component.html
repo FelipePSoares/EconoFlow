@@ -1,4 +1,20 @@
 <div class="main">
+  @if (updateAvailable$ | async) {
+    <div class="update-banner">
+      <div class="container update-banner-content">
+        <span>{{ 'UpdateAvailableMessage' | translate }}</span>
+        <div class="update-banner-actions">
+          <button type="button" class="btn btn-sm btn-primary" (click)="reloadWithUpdate()">
+            {{ 'ButtonUpdateNow' | translate }}
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" (click)="dismissUpdateBanner()">
+            {{ 'ButtonLater' | translate }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
   <main>
     @if ((isSignedIn$ | async)) {
     <app-nav-bar></app-nav-bar>
@@ -16,9 +32,16 @@
           <span class="fw-bold text-primary fs-4">EconoFlow</span>
         </a>
 
-        <a [routerLink]="['/login']" class="btn btn-primary rounded-pill">
-          {{ 'ButtonLogIn' | translate }}
-        </a>
+        <div class="d-flex align-items-center gap-2">
+          @if (canInstall$ | async) {
+            <button type="button" class="btn btn-outline-primary rounded-pill" (click)="installApp()">
+              {{ 'ButtonInstallApp' | translate }}
+            </button>
+          }
+          <a [routerLink]="['/login']" class="btn btn-primary rounded-pill">
+            {{ 'ButtonLogIn' | translate }}
+          </a>
+        </div>
       </div>
     </nav>
     }
@@ -56,6 +79,7 @@
             <li><a [routerLink]="getPublicRouteCommands('privacy-policy')" class="link-secondary">{{ 'PrivacyPolicy' | translate }}</a></li>
             <li><a [routerLink]="getPublicRouteCommands('use-terms')" class="link-secondary">{{ 'UseTerms' | translate }}</a></li>
             <li><a [routerLink]="getPublicRouteCommands('contact-us')" class="link-secondary">{{ 'ContactUs' | translate }}</a></li>
+            <li><a [routerLink]="getPublicRouteCommands('offline')" class="link-secondary">{{ 'OfflinePageTitle' | translate }}</a></li>
           </ul>
         </div>
         <div class="col-md-4">
