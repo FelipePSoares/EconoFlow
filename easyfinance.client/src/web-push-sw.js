@@ -13,7 +13,7 @@ self.addEventListener('push', event => {
   const targetUrl = payload?.data?.url || payload?.url || '/';
   const options = {
     body: payload.body || '',
-    icon: payload.icon || '/assets/images/logo-without-text-background-512-min.png',
+    icon: payload.icon || '/assets/images/logo-without-text-background-512.png',
     badge: payload.badge || '/assets/images/logo-minimalist-192.png',
     tag: payload.tag || 'econoflow-web-push',
     requireInteraction: Boolean(payload.requireInteraction),

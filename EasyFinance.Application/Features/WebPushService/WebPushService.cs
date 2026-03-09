@@ -188,7 +188,7 @@ namespace EasyFinance.Application.Features.WebPushService
                     Body = "Web push notifications are now active.",
                     Url = "/",
                     Tag = $"web-push-test-{Guid.NewGuid():N}",
-                    Icon = "/assets/images/logo-without-text-background-512-min.png",
+                    Icon = "/assets/images/logo-without-text-background-512.png",
                     Badge = "/assets/images/logo-minimalist-192.png"
                 },
                 cancellationToken);
@@ -207,7 +207,7 @@ namespace EasyFinance.Application.Features.WebPushService
                     Url = ResolveActionUrl(notification.ActionLabelCode),
                     Tag = $"notification-{notification.Id}",
                     RequireInteraction = notification.IsSticky,
-                    Icon = "/assets/images/logo-without-text-background-512-min.png",
+                    Icon = "/assets/images/logo-without-text-background-512.png",
                     Badge = "/assets/images/logo-minimalist-192.png"
                 },
                 cancellationToken);
