@@ -85,6 +85,25 @@
                 {{ 'ButtonMyProfile' | translate }}
               </a>
             </li>
+            <li>
+              <button type="button"
+                      class="dropdown-item py-2 d-flex align-items-center justify-content-between privacy-toggle-item"
+                      data-testid="privacy-mode-navbar-toggle-desktop"
+                      (click)="togglePrivacyMode()">
+                <span>
+                  <i class="bi bi-eye-slash me-2"></i>
+                  {{ 'PrivacyMode' | translate }}
+                </span>
+                <span class="badge rounded-pill"
+                      [class.text-bg-dark]="privacyModeEnabled$ | async"
+                      [class.text-bg-secondary]="!(privacyModeEnabled$ | async)">
+                  {{ (privacyModeEnabled$ | async) ? ('PrivacyModeEnabled' | translate) : ('PrivacyModeDisabled' | translate) }}
+                </span>
+              </button>
+            </li>
+            <li>
+              <p class="dropdown-item-hint mb-0 px-3 pb-2">{{ 'PrivacyModeDescription' | translate }}</p>
+            </li>
             <li><hr class="dropdown-divider"></li>
             <li>
               <a class="dropdown-item py-2 text-danger" [routerLink]="['/logout']">
@@ -115,6 +134,23 @@
               <i class="bi bi-gear me-2"></i>
               {{ 'ButtonMyProfile' | translate }}
             </a>
+          </li>
+          <li class="nav-item">
+            <button type="button"
+                    class="nav-link px-3 py-2 rounded-2 w-100 text-start d-flex align-items-center justify-content-between mobile-privacy-toggle"
+                    data-testid="privacy-mode-navbar-toggle-mobile"
+                    (click)="togglePrivacyMode()">
+              <span>
+                <i class="bi bi-eye-slash me-2"></i>
+                {{ 'PrivacyMode' | translate }}
+              </span>
+              <span class="badge rounded-pill"
+                    [class.text-bg-dark]="privacyModeEnabled$ | async"
+                    [class.text-bg-secondary]="!(privacyModeEnabled$ | async)">
+                {{ (privacyModeEnabled$ | async) ? ('PrivacyModeEnabled' | translate) : ('PrivacyModeDisabled' | translate) }}
+              </span>
+            </button>
+            <p class="mobile-privacy-hint text-muted small px-3 mb-2">{{ 'PrivacyModeDescription' | translate }}</p>
           </li>
           <li class="nav-item">
             <a class="nav-link px-3 py-2 rounded-2 text-danger" [routerLink]="['/logout']">

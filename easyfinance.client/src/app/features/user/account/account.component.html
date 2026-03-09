@@ -117,6 +117,34 @@
         </div>
       </div>
 
+      <!-- Privacy Mode Card -->
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white py-3">
+          <h3 class="card-title mb-0 h5">
+            <i class="bi bi-eye-slash me-2 text-secondary"></i>
+            {{ 'PrivacyMode' | translate }}
+          </h3>
+        </div>
+
+        <div class="card-body p-4">
+          <div class="d-flex align-items-start justify-content-between p-3 border rounded notification-item">
+            <div class="d-flex align-items-start text-start">
+              <div class="bg-secondary bg-gradient rounded p-2 me-3">
+                <i class="bi bi-eye-slash-fill text-white"></i>
+              </div>
+              <div class="text-dark">
+                <h5 class="mb-1">{{ 'PrivacyMode' | translate }}</h5>
+                <p class="text-muted small mb-0">{{ 'PrivacyModeDescription' | translate }}</p>
+              </div>
+            </div>
+            <mat-slide-toggle id="privacyModeToggle"
+                              class="ms-3"
+                              [checked]="(privacyModeEnabled$ | async) ?? false"
+                              (change)="onPrivacyModeChange($event)"></mat-slide-toggle>
+          </div>
+        </div>
+      </div>
+
       <!-- Danger Zone Card -->
       <div class="card border-danger shadow-sm">
         <div class="card-header bg-danger bg-gradient text-white py-3">

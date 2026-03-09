@@ -21,6 +21,7 @@ import { NotificationService } from '../core/services/notification.service';
 import { GlobalService } from '../core/services/global.service';
 import { ProjectService } from '../core/services/project.service';
 import { WebPushService } from '../core/services/web-push.service';
+import { PrivacyModeService } from '../core/services/privacy-mode.service';
 
 @Component({
   selector: 'app-root',
@@ -55,6 +56,7 @@ export class AppComponent {
   private globalService = inject(GlobalService);
   private projectService = inject(ProjectService);
   private webPushService = inject(WebPushService);
+  private privacyModeService = inject(PrivacyModeService);
   private document = inject(DOCUMENT);
   private appRef = inject(ApplicationRef);
   private platformId = inject(PLATFORM_ID);
@@ -62,6 +64,7 @@ export class AppComponent {
 
   private isSignedIn: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   isSignedIn$: Observable<boolean> = this.isSignedIn.asObservable();
+  privacyModeEnabled$ = this.privacyModeService.isEnabled$;
   supportedLanguages = this.globalService.supportedLanguages;
   selectedLanguage = this.globalService.currentLanguage;
   selectedProjectId: string | null = null;
@@ -130,6 +133,13 @@ export class AppComponent {
 
   isRecovery(): boolean {
     return this.getPrimaryRoutePath() === '/recovery';
+  }
+
+  isAuthenticatedContentRoute(): boolean {
+    return !this.isLogin()
+      && !this.isRegister()
+      && !this.isRecovery()
+      && this.parseLocalizedPublicRoute(this.router.url) === null;
   }
 
   private getPrimaryRoutePath(): string {

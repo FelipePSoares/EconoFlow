@@ -12,7 +12,7 @@
           <div class="card-body">
             <h3 class="card-title">{{ 'TotalIncome' | translate }}</h3>
             <div>
-              <span class="card-value success">
+              <span class="card-value success privacy-sensitive-value">
                 {{ month.earned | currencyFormat: true }}
               </span>
             </div>
@@ -32,7 +32,7 @@
                   <h3 class="card-title">{{ category.name }}</h3>
 
                   <div>
-                    <span class="card-value danger d-block">
+                    <span class="card-value danger d-block privacy-sensitive-value">
                       {{ (category.getTotalSpend() + category.getTotalOverspend()) | currencyFormat: true }}
                     </span>
                     @if(!category.hasBudget()){
@@ -43,7 +43,7 @@
                       </span>
                     } @else {
                       <span class="card-small-text" [ngClass]="getClassBasedOnCategory(category)">
-                        {{ category.getTotalRemaining() | currencyFormat: true }} {{ 'Remaining' | translate }}
+                        <span class="privacy-sensitive-value">{{ category.getTotalRemaining() | currencyFormat: true }}</span> {{ 'Remaining' | translate }}
                       </span>
                     }
                   </div>
@@ -103,11 +103,11 @@
             <div class="d-grid label-money">
               <div class="mt-2">
                 <span class="float-start"><i class="bi bi-arrow-up-right money-out"></i> {{ 'MoneyOut' | translate }}</span>
-                <span class="float-end danger">{{ month.spend + month.overspend | currencyFormat: true }}</span>
+                <span class="float-end danger privacy-sensitive-value">{{ month.spend + month.overspend | currencyFormat: true }}</span>
               </div>
               <div class="mt-2">
                 <span class="float-start"><i class="bi bi-arrow-down-left money-in"></i> {{ 'MoneyIn' | translate }}</span>
-                <span class="float-end success">{{ month.earned | currencyFormat: true }}</span>
+                <span class="float-end success privacy-sensitive-value">{{ month.earned | currencyFormat: true }}</span>
               </div>
             </div>
             <hr class="solid" />
@@ -142,11 +142,11 @@
             <div class="d-grid label-money">
               <div class="mt-2">
                 <span class="float-start"><i class="bi bi-arrow-up-right money-out"></i> {{ 'MoneyOut' | translate }}</span>
-                <span class="float-end danger">{{ year.spend + year.overspend | currencyFormat: true }}</span>
+                <span class="float-end danger privacy-sensitive-value">{{ year.spend + year.overspend | currencyFormat: true }}</span>
               </div>
               <div class="mt-2">
                 <span class="float-start"><i class="bi bi-arrow-down-left money-in"></i> {{ 'MoneyIn' | translate }}</span>
-                <span class="float-end success">{{ year.earned | currencyFormat: true }}</span>
+                <span class="float-end success privacy-sensitive-value">{{ year.earned | currencyFormat: true }}</span>
               </div>
             </div>
             <hr class="solid" />
@@ -211,7 +211,7 @@
                 <ng-container matColumnDef="amount">
                   <th mat-header-cell *matHeaderCellDef class="pe-4 text-end"> {{ 'Amount' | translate }} </th>
                   <td mat-cell *matCellDef="let row" class="pe-4 text-end">
-                    <div [class]="row.type === 'Income' ? 'text-success fw-medium' : 'text-danger fw-medium'">
+                    <div [class]="row.type === 'Income' ? 'text-success fw-medium privacy-sensitive-value' : 'text-danger fw-medium privacy-sensitive-value'">
                       {{ row.amount | currencyFormat }}
                     </div>
                   </td>
