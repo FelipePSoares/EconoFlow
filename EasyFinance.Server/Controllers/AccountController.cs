@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using System.Net;
 using System.Security.Claims;
 using EasyFinance.Application.DTOs.Account;
@@ -6,6 +8,7 @@ using EasyFinance.Application.Features.NotificationService;
 using EasyFinance.Application.Features.WebPushService;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Account;
+using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -90,6 +93,23 @@ namespace EasyFinance.Server.Controllers
                 return Forbid();
 
             var response = await this.webPushService.UpsertSubscriptionAsync(user.Id, request, cancellationToken);
+            if (HasForbiddenError(response))
+                return Forbid();
+
+            return this.ValidateResponse(response, HttpStatusCode.NoContent);
+        }
+
+        [HttpDelete("WebPush/Subscriptions")]
+        public async Task<IActionResult> UnsubscribeWebPushSubscriptionAsync([FromBody] WebPushUnsubscribeRequestDTO request, CancellationToken cancellationToken)
+        {
+            var user = await this.userManager.GetUserAsync(this.HttpContext.User);
+            if (user == null)
+                return BadRequest("User not found!");
+
+            var response = await this.webPushService.UnsubscribeAsync(user.Id, request?.Endpoint ?? string.Empty, cancellationToken);
+            if (HasForbiddenError(response))
+                return Forbid();
+
             return this.ValidateResponse(response, HttpStatusCode.NoContent);
         }
 
@@ -107,5 +127,8 @@ namespace EasyFinance.Server.Controllers
             var response = await this.webPushService.SendTestNotificationAsync(user.Id, cancellationToken);
             return this.ValidateResponse(response, HttpStatusCode.NoContent);
         }
+
+        private static bool HasForbiddenError(AppResponse response)
+            => response.Messages.Any(message => string.Equals(message.Code, "forbidden", StringComparison.OrdinalIgnoreCase));
     }
 }
