@@ -1,0 +1,15 @@
+<section class="offline-wrapper">
+  <div class="offline-card">
+    <h1>{{ 'OfflinePageTitle' | translate }}</h1>
+    <p>{{ 'OfflinePageDescription' | translate }}</p>
+
+    <div class="offline-actions">
+      <button type="button" class="btn btn-primary" (click)="reloadPage()">
+        {{ 'ButtonRetryConnection' | translate }}
+      </button>
+      <a [routerLink]="['/']" class="btn btn-outline-secondary">
+        {{ 'HomePage' | translate }}
+      </a>
+    </div>
+  </div>
+</section>

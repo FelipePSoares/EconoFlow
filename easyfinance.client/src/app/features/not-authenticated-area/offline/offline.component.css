@@ -1,0 +1,34 @@
+.offline-wrapper {
+  min-height: calc(100vh - 96px);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.offline-card {
+  width: min(520px, 100%);
+  background: #fff;
+  border: 1px solid #dfe7f3;
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(14, 31, 53, 0.09);
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.offline-card h1 {
+  margin-bottom: 0.75rem;
+  font-size: 1.5rem;
+}
+
+.offline-card p {
+  margin: 0;
+  color: #55657a;
+}
+
+.offline-actions {
+  margin-top: 1.25rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}

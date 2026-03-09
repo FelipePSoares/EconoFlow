@@ -1,5 +1,5 @@
 
-import { distinctUntilChanged, filter, firstValueFrom } from 'rxjs';
+import { combineLatest, distinctUntilChanged, filter, firstValueFrom, map } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { ApplicationRef, Component, inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, DOCUMENT, isPlatformBrowser } from '@angular/common';
@@ -22,6 +22,10 @@ import { GlobalService } from '../core/services/global.service';
 import { ProjectService } from '../core/services/project.service';
 import { WebPushService } from '../core/services/web-push.service';
 import { PrivacyModeService } from '../core/services/privacy-mode.service';
+import { PwaInstallService } from '../core/services/pwa-install.service';
+import { PwaUpdateService } from '../core/services/pwa-update.service';
+import { UserService } from '../core/services/user.service';
+import { FeatureFlag } from '../core/enums/feature-flag';
 
 @Component({
   selector: 'app-root',
@@ -45,18 +49,23 @@ export class AppComponent {
     'privacy-policy',
     'use-terms',
     'contact-us',
+    'offline',
     'how-to-create-budget'
   ]);
 
   private router = inject(Router);
   private dialog = inject(MatDialog);
+  private authService = inject(AuthService);
   private versionCheckService = inject(VersionCheckService);
   private canonicalService = inject(CanonicalService);
   private noticationService = inject(NotificationService);
   private globalService = inject(GlobalService);
   private projectService = inject(ProjectService);
+  private userService = inject(UserService);
   private webPushService = inject(WebPushService);
   private privacyModeService = inject(PrivacyModeService);
+  private pwaInstallService = inject(PwaInstallService);
+  private pwaUpdateService = inject(PwaUpdateService);
   private document = inject(DOCUMENT);
   private appRef = inject(ApplicationRef);
   private platformId = inject(PLATFORM_ID);
@@ -65,6 +74,14 @@ export class AppComponent {
   private isSignedIn: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   isSignedIn$: Observable<boolean> = this.isSignedIn.asObservable();
   privacyModeEnabled$ = this.privacyModeService.isEnabled$;
+  canInstall$ = combineLatest([
+    this.pwaInstallService.canInstall$,
+    this.userService.loggedUser$.pipe(map(user => user?.enabledFeatures?.includes(FeatureFlag.PwaInstall) ?? false)),
+    this.authService.isSignedIn$
+  ]).pipe(
+    map(([canInstall, hasPwaInstallFeature, isSignedIn]) => canInstall && hasPwaInstallFeature && isSignedIn)
+  );
+  updateAvailable$ = this.pwaUpdateService.updateAvailable$;
   supportedLanguages = this.globalService.supportedLanguages;
   selectedLanguage = this.globalService.currentLanguage;
   selectedProjectId: string | null = null;
@@ -74,12 +91,11 @@ export class AppComponent {
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
       this.versionCheckService.init();
-      const authService = inject(AuthService);
-      this.isSignedIn$ = authService.isSignedIn$;
+      this.isSignedIn$ = this.authService.isSignedIn$;
 
-      authService.isSignedIn$.pipe(distinctUntilChanged()).subscribe(isSignedIn => {
+      this.authService.isSignedIn$.pipe(distinctUntilChanged()).subscribe(isSignedIn => {
         if (isSignedIn) {
-          authService.startUserPolling();
+          this.authService.startUserPolling();
           this.noticationService.startPolling();
           void this.webPushService.initializeForCurrentUser();
         }
@@ -207,6 +223,18 @@ export class AppComponent {
     }).afterClosed().subscribe(() => {
       this.router.navigate([{ outlets: { modal: null } }]);
     });
+  }
+
+  installApp(): void {
+    void this.pwaInstallService.promptInstall();
+  }
+
+  reloadWithUpdate(): void {
+    void this.pwaUpdateService.activateUpdateAndReload();
+  }
+
+  dismissUpdateBanner(): void {
+    this.pwaUpdateService.dismissUpdate();
   }
 
   private getPublicRouteLanguage(url: string): string | null {

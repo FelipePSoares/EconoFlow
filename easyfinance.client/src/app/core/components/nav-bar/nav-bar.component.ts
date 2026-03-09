@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable, combineLatest, map } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
@@ -9,6 +9,8 @@ import { Project } from '../../models/project';
 import { NotificationsComponent } from '../notifications/notifications.component';
 import { StickyNotificationsComponent } from '../sticky-notifications/sticky-notifications.component';
 import { PrivacyModeService } from '../../services/privacy-mode.service';
+import { PwaInstallService } from '../../services/pwa-install.service';
+import { FeatureFlag } from '../../enums/feature-flag';
 
 @Component({
   selector: 'app-nav-bar',
@@ -28,17 +30,25 @@ export class NavBarComponent {
   selectedProject$: Observable<Project | undefined>;
   readonly logoLink$: Observable<string[]>;
   privacyModeEnabled$ = this.privacyModeService.isEnabled$;
+  canInstall$: Observable<boolean>;
 
   constructor(
     public userService: UserService,
     private projectService: ProjectService,
     private router: Router,
-    private privacyModeService: PrivacyModeService
+    private privacyModeService: PrivacyModeService,
+    private pwaInstallService: PwaInstallService
   ) {
     this.fullName$ = userService.loggedUser$.pipe(map(user => user.fullName));
     this.selectedProject$ = projectService.selectedUserProject$.pipe(map(up => up?.project));
     this.logoLink$ = this.selectedProject$.pipe(
       map(project => project?.id ? ['/projects', project.id] : ['/projects'])
+    );
+    const hasPwaInstallFeature$ = this.userService.loggedUser$.pipe(
+      map(user => user?.enabledFeatures?.includes(FeatureFlag.PwaInstall) ?? false)
+    );
+    this.canInstall$ = combineLatest([this.pwaInstallService.canInstall$, hasPwaInstallFeature$]).pipe(
+      map(([canInstall, hasPwaInstallFeature]) => canInstall && hasPwaInstallFeature)
     );
   }
 
@@ -56,5 +66,9 @@ export class NavBarComponent {
 
   togglePrivacyMode(): void {
     this.privacyModeService.toggle();
+  }
+
+  installApp(): void {
+    void this.pwaInstallService.promptInstall();
   }
 }

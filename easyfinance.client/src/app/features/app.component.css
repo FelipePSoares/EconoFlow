@@ -3,6 +3,30 @@
   min-height: 100vh;
 }
 
+.update-banner {
+  position: sticky;
+  top: 0;
+  z-index: 1250;
+  background: #fff7e6;
+  border-bottom: 1px solid #f1d9a6;
+}
+
+.update-banner-content {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+}
+
+.update-banner-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .main-container {
   position: relative;
   transition: filter 0.2s ease-in-out;
@@ -28,5 +52,12 @@
   .global-add-button {
     right: 24px;
     bottom: 24px;
+  }
+}
+
+@media (max-width: 576px) {
+  .update-banner-content {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

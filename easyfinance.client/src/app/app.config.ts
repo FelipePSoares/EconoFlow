@@ -1,4 +1,4 @@
-import { ApplicationConfig, CSP_NONCE, DOCUMENT } from '@angular/core';
+import { ApplicationConfig, CSP_NONCE, DOCUMENT, isDevMode } from '@angular/core';
 import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
@@ -13,6 +13,7 @@ import { importProvidersFrom, inject } from '@angular/core';
 import { GlobalService } from './core/services/global.service';
 import { TranslateHttpLoader } from './core/utils/loaders/translate-http-loader';
 import { LanguageInterceptor } from './core/interceptor/language-interceptor';
+import { provideServiceWorker } from '@angular/service-worker';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -43,6 +44,10 @@ export const appConfig: ApplicationConfig = {
         LanguageInterceptor])
     ),
     provideClientHydration(withEventReplay()),
+    provideServiceWorker('service-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000'
+    }),
     {
       provide: CSP_NONCE,
       useFactory: () => {
