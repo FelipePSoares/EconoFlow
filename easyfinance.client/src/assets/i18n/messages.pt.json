@@ -400,11 +400,16 @@
   "WebPushPermissionBlockedStep2": "Localize a permissão de Notificações.",
   "WebPushPermissionBlockedStep3": "Altere de Bloquear para Permitir e clique em Tentar novamente.",
   "ButtonInstallApp": "Instalar App",
-  "UpdateAvailableMessage": "Uma nova versao do EconoFlow esta pronta.",
+  "ButtonUnderstood": "Entendi",
+  "PwaInstallIosGuideTitle": "Instalar o EconoFlow no iPhone",
+  "PwaInstallIosGuideDescription": "No Safari do iOS, a instalação do app é manual.",
+  "PwaInstallIosGuideStep1": "Toque em Compartilhar no Safari.",
+  "PwaInstallIosGuideStep2": "Toque em Adicionar à Tela de Início.",
+  "UpdateAvailableMessage": "Uma nova versão do EconoFlow está pronta.",
   "ButtonUpdateNow": "Atualizar agora",
   "ButtonLater": "Depois",
   "OfflinePageTitle": "Modo offline",
-  "OfflinePageDescription": "Voce esta offline agora. Paginas e recursos ja carregados continuam disponiveis.",
-  "ButtonRetryConnection": "Tentar conexao"
+  "OfflinePageDescription": "Você está offline agora. Páginas e recursos já carregados continuam disponíveis.",
+  "ButtonRetryConnection": "Tentar conexão"
 }
 
