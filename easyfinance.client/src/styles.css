@@ -20,6 +20,17 @@ body {
   min-height: 90vh;
 }
 
+.main-container.privacy-mode .privacy-sensitive-value {
+  filter: blur(8px);
+  user-select: none;
+  transition: filter 0.2s ease-in-out;
+}
+
+.main-container.privacy-mode .privacy-sensitive-chart {
+  filter: blur(8px);
+  transition: filter 0.2s ease-in-out;
+}
+
 .mat-mdc-snack-bar-container.success-snackbar {
   --mat-snackbar-container-color: #2ecc71;
   --mat-mdc-snack-bar-button-color: #fff;

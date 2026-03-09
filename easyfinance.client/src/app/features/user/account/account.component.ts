@@ -1,4 +1,5 @@
 import { Component, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, Observable, Subscription } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -6,7 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatSlideToggleChange, MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { UserService } from '../../../core/services/user.service';
@@ -20,11 +21,13 @@ import { MatDialog } from '@angular/material/dialog';
 import { compare } from 'fast-json-patch';
 import { GlobalService } from '../../../core/services/global.service';
 import { WebPushService } from '../../../core/services/web-push.service';
+import { PrivacyModeService } from '../../../core/services/privacy-mode.service';
 
 @Component({
   selector: 'app-account',
   imports: [
     FormsModule,
+    AsyncPipe,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
@@ -33,7 +36,7 @@ import { WebPushService } from '../../../core/services/web-push.service';
     MatOptionModule,
     TranslateModule,
     MatSlideToggleModule
-],
+  ],
   templateUrl: './account.component.html',
   styleUrl: './account.component.css'
 })
@@ -46,6 +49,7 @@ export class AccountComponent implements OnInit, OnDestroy {
   private translateService = inject(TranslateService);
   private globalService = inject(GlobalService);
   private webPushService = inject(WebPushService);
+  private privacyModeService = inject(PrivacyModeService);
 
   // Private Properties
   private deleteToken!: string;
@@ -58,6 +62,7 @@ export class AccountComponent implements OnInit, OnDestroy {
 
   // Observables & Forms
   user$: Observable<User>;
+  privacyModeEnabled$ = this.privacyModeService.isEnabled$;
   userForm!: FormGroup;
   notificationForm!: FormGroup;
 
@@ -255,6 +260,10 @@ export class AccountComponent implements OnInit, OnDestroy {
   /** Error Handling **/
   getFormFieldErrors(form: FormGroup, fieldName: string): string[] {
     return this.errorMessageService.getFormFieldErrors(form, fieldName);
+  }
+
+  onPrivacyModeChange(event: MatSlideToggleChange): void {
+    this.privacyModeService.setEnabled(event.checked);
   }
 
   ngOnDestroy() {

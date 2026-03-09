@@ -8,6 +8,7 @@ import { ProjectService } from '../../services/project.service';
 import { Project } from '../../models/project';
 import { NotificationsComponent } from '../notifications/notifications.component';
 import { StickyNotificationsComponent } from '../sticky-notifications/sticky-notifications.component';
+import { PrivacyModeService } from '../../services/privacy-mode.service';
 
 @Component({
   selector: 'app-nav-bar',
@@ -26,11 +27,13 @@ export class NavBarComponent {
   fullName$: Observable<string>;
   selectedProject$: Observable<Project | undefined>;
   readonly logoLink$: Observable<string[]>;
+  privacyModeEnabled$ = this.privacyModeService.isEnabled$;
 
   constructor(
     public userService: UserService,
     private projectService: ProjectService,
-    private router: Router
+    private router: Router,
+    private privacyModeService: PrivacyModeService
   ) {
     this.fullName$ = userService.loggedUser$.pipe(map(user => user.fullName));
     this.selectedProject$ = projectService.selectedUserProject$.pipe(map(up => up?.project));
@@ -49,5 +52,9 @@ export class NavBarComponent {
     const projectOverviewRoot = `${projectRoot}/overview`;
 
     return currentPath === projectRoot || currentPath === projectOverviewRoot || currentPath.startsWith(`${projectOverviewRoot}/`);
+  }
+
+  togglePrivacyMode(): void {
+    this.privacyModeService.toggle();
   }
 }

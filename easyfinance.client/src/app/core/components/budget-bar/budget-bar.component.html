@@ -1,18 +1,18 @@
 <div class="clearfix">
   <span class="float-start text-muted">{{ 'Budget' | translate }}:</span>
-  <span class="float-end" [ngClass]="getClassBasedOnPercentage(getPercentageSpend(spend + overspend, budget))">{{getTextBasedOnPercentage(getPercentageSpend(spend + overspend, budget)) | translate }} {{ remaining | currencyFormat: hideDecimals }} {{ 'Left' | translate }}</span>
+  <span class="float-end" [ngClass]="getClassBasedOnPercentage(getPercentageSpend(spend + overspend, budget))">{{getTextBasedOnPercentage(getPercentageSpend(spend + overspend, budget)) | translate }} <span class="privacy-sensitive-value">{{ remaining | currencyFormat: hideDecimals }}</span> {{ 'Left' | translate }}</span>
 </div>
 <div class="progress-wrapper position-relative">
   <div class="progress mt-1">
     <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
       [ngClass]="[getClassToProgressBar(getPercentageSpend(spend, budget + overspend)), getProgressWidthClass(spend, budget + overspend)]"
       [attr.aria-valuenow]="getPercentageSpend(spend, budget + overspend)">
-      {{ spend | currencyFormat: hideDecimals }}
+      <span class="privacy-sensitive-value">{{ spend | currencyFormat: hideDecimals }}</span>
     </div>
     <div class="progress-bar progress-bar-striped bg-danger" role="progressbar" aria-valuemin="0" aria-valuemax="100"
       [ngClass]="getProgressWidthClass(overspend, budget + overspend)"
       [attr.aria-valuenow]="getPercentageSpend(overspend, budget + overspend)">
-      {{ overspend | currencyFormat: hideDecimals }}
+      <span class="privacy-sensitive-value">{{ overspend | currencyFormat: hideDecimals }}</span>
     </div>
   </div>
   @if (checkIfCurrentMonth()) {
@@ -27,8 +27,8 @@
     <span class="float-start date"><i class="bi bi-calendar me-1"></i>{{ date | date: 'shortDate' : undefined : currentLanguage }}</span>
   }
   @if (overspend > 0) {
-    <span class="float-end budget">{{ 'Of' | translate }} <s>{{ budget | currencyFormat: hideDecimals }}</s> {{ budget + overspend | currencyFormat: hideDecimals }}</span>
+    <span class="float-end budget">{{ 'Of' | translate }} <s class="privacy-sensitive-value">{{ budget | currencyFormat: hideDecimals }}</s> <span class="privacy-sensitive-value">{{ budget + overspend | currencyFormat: hideDecimals }}</span></span>
   } @else {
-    <span class="float-end budget">{{ 'Of' | translate }} {{ budget | currencyFormat: hideDecimals }}</span>
+    <span class="float-end budget">{{ 'Of' | translate }} <span class="privacy-sensitive-value">{{ budget | currencyFormat: hideDecimals }}</span></span>
   }
 </div>

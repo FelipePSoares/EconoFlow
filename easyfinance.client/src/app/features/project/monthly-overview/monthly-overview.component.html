@@ -13,19 +13,19 @@
     <div class="col-12 col-md-4">
       <div class="summary-card wrap p-3">
         <h3>{{ 'TotalExpenses' | translate }}</h3>
-        <p class="value danger mb-0">{{ totalExpenses | currencyFormat: true }}</p>
+        <p class="value danger mb-0 privacy-sensitive-value">{{ totalExpenses | currencyFormat: true }}</p>
       </div>
     </div>
     <div class="col-12 col-md-4">
       <div class="summary-card wrap p-3">
         <h3>{{ 'TotalIncomes' | translate }}</h3>
-        <p class="value success mb-0">{{ totalIncomes | currencyFormat: true }}</p>
+        <p class="value success mb-0 privacy-sensitive-value">{{ totalIncomes | currencyFormat: true }}</p>
       </div>
     </div>
     <div class="col-12 col-md-4">
       <div class="summary-card wrap p-3">
         <h3>{{ 'Balance' | translate }}</h3>
-        <p class="value mb-0" [ngClass]="balance < 0 ? 'danger' : 'success'">{{ balance | currencyFormat: true }}</p>
+        <p class="value mb-0 privacy-sensitive-value" [ngClass]="balance < 0 ? 'danger' : 'success'">{{ balance | currencyFormat: true }}</p>
       </div>
     </div>
   </div>
@@ -38,7 +38,7 @@
             <h3 class="text-center mb-3">{{ 'CumulativeIncomeVsExpense' | translate }}</h3>
             @if (chartsReady) {
               @if (dailyIncomeExpenseChartData.datasets[0].data.length || dailyIncomeExpenseChartData.datasets[1].data.length || dailyIncomeExpenseChartData.datasets[2].data.length) {
-                <div class="chart-container">
+                <div class="chart-container privacy-sensitive-chart">
                   <canvas
                     baseChart
                     [type]="'line'"
@@ -55,7 +55,7 @@
             <h3 class="text-center mb-3">{{ 'ExpensesByCategory' | translate }}</h3>
             @if (chartsReady) {
               @if (expenseChartData.datasets[0].data.length) {
-                <div class="chart-container">
+                <div class="chart-container privacy-sensitive-chart">
                   <canvas
                     baseChart
                     [type]="'doughnut'"
@@ -83,7 +83,7 @@
               <li class="list-group-item d-flex justify-content-between align-items-center">
                 <span>{{ item.name }}</span>
                 <span class="text-end">
-                  <strong>{{ item.amount | currencyFormat: true }}</strong>
+                  <strong class="privacy-sensitive-value">{{ item.amount | currencyFormat: true }}</strong>
                   <span class="text-secondary ms-2">({{ item.percentage | number: '1.1-1' }}%)</span>
                 </span>
               </li>

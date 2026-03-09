@@ -3,6 +3,11 @@
   min-height: 100vh;
 }
 
+.main-container {
+  position: relative;
+  transition: filter 0.2s ease-in-out;
+}
+
 .shadow-sm {
   box-shadow: 0 2px 4px rgba(0,0,0,0.08) !important;
 }
