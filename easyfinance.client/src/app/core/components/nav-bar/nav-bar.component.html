@@ -85,6 +85,14 @@
                 {{ 'ButtonMyProfile' | translate }}
               </a>
             </li>
+            @if (canInstall$ | async) {
+              <li>
+                <a class="dropdown-item py-2" data-testid="install-app-navbar-toggle-desktop" (click)="installApp()">
+                  <i class="bi bi-download me-2"></i>
+                  {{ 'ButtonInstallApp' | translate }}
+                </a>
+              </li>
+            }
             <li>
               <button type="button"
                       class="dropdown-item py-2 d-flex align-items-center justify-content-between privacy-toggle-item"
@@ -116,7 +124,7 @@
       </ul>
 
       <!-- Mobile User Menu (Direct Links) -->
-      <div class="d-lg-none">
+      <div class="d-lg-none mobile-user-menu">
         <hr class="my-3">
 
         <!-- User Info -->
@@ -135,6 +143,17 @@
               {{ 'ButtonMyProfile' | translate }}
             </a>
           </li>
+          @if (canInstall$ | async) {
+            <li class="nav-item">
+              <a href="#"
+                 class="nav-link px-3 py-2 rounded-2"
+                 data-testid="install-app-navbar-toggle-mobile"
+                 (click)="$event.preventDefault(); installApp()">
+                <i class="bi bi-download me-2"></i>
+                {{ 'ButtonInstallApp' | translate }}
+              </a>
+            </li>
+          }
           <li class="nav-item">
             <button type="button"
                     class="nav-link px-3 py-2 rounded-2 w-100 text-start d-flex align-items-center justify-content-between mobile-privacy-toggle"
@@ -153,7 +172,7 @@
             <p class="mobile-privacy-hint text-muted small px-3 mb-2">{{ 'PrivacyModeDescription' | translate }}</p>
           </li>
           <li class="nav-item">
-            <a class="nav-link px-3 py-2 rounded-2 text-danger" [routerLink]="['/logout']">
+            <a class="nav-link px-3 py-2 rounded-2 text-danger mobile-logout-link" [routerLink]="['/logout']">
               <i class="bi bi-box-arrow-right me-2"></i>
               {{ 'ButtonSignOut' | translate }}
             </a>

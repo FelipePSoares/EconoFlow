@@ -25,6 +25,7 @@ export class WebPushService {
   private readonly prePromptDismissedStorageKey = 'webPushPrePromptDismissed';
   private readonly browserPromptAttemptedStorageKey = 'webPushBrowserPromptAttempted';
   private readonly syncedSubscriptionStorageKey = 'webPushSyncedSubscriptionState';
+  private readonly serviceWorkerPath = '/service-worker.js';
 
   private initializedForUserId: string | null = null;
   private initializationInProgress = false;
@@ -55,8 +56,10 @@ export class WebPushService {
       const user = await firstValueFrom(this.userService.loggedUser$);
       const hasWebPushFeature = user?.enabledFeatures?.includes(FeatureFlag.WebPush) ?? false;
 
-      if (!user?.enabled || !user.id || !user.notificationChannels?.includes('Push') || !hasWebPushFeature)
+      if (!user?.enabled || !user.id || !user.notificationChannels?.includes('Push') || !hasWebPushFeature) {
+        await this.unsubscribeBrowserSubscription();
         return;
+      }
 
       if (!forceReinitialize && this.initializedForUserId === user.id)
         return;
@@ -65,11 +68,12 @@ export class WebPushService {
       this.savePermissionStatus(permission);
 
       if (permission !== 'granted') {
+        await this.unsubscribeBrowserSubscription();
         this.initializedForUserId = user.id;
         return;
       }
 
-      const registration = await navigator.serviceWorker.register('/web-push-sw.js');
+      const registration = await this.getServiceWorkerRegistration();
       const existingSubscription = await registration.pushManager.getSubscription();
       const subscription = existingSubscription ?? await this.subscribe(registration);
 
@@ -90,7 +94,7 @@ export class WebPushService {
         return;
       }
 
-      await firstValueFrom(this.http.post('/api/Account/WebPush/Subscriptions', payload));
+      await firstValueFrom(this.http.post('/push/subscribe', payload));
       this.markSubscriptionAsSynced(user.id, payloadFingerprint);
 
       if (!existingSubscription)
@@ -128,7 +132,7 @@ export class WebPushService {
     if (this.vapidPublicKey)
       return this.vapidPublicKey;
 
-    const response = await firstValueFrom(this.http.get<WebPushPublicKeyResponse>('/api/Account/WebPush/PublicKey'));
+    const response = await firstValueFrom(this.http.get<WebPushPublicKeyResponse>('/push/public-key'));
     const publicKey = response?.publicKey?.trim();
 
     if (!publicKey)
@@ -290,6 +294,42 @@ export class WebPushService {
 
   private isWebPushSupported(): boolean {
     return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  }
+
+  private async getServiceWorkerRegistration(): Promise<ServiceWorkerRegistration> {
+    const currentRegistration = await navigator.serviceWorker.getRegistration();
+    if (currentRegistration) {
+      return currentRegistration;
+    }
+
+    return navigator.serviceWorker.register(this.serviceWorkerPath);
+  }
+
+  private async unsubscribeBrowserSubscription(): Promise<void> {
+    const registration = await navigator.serviceWorker.getRegistration();
+    if (!registration) {
+      localStorage.removeItem(this.syncedSubscriptionStorageKey);
+      return;
+    }
+
+    const subscription = await registration.pushManager.getSubscription();
+    if (!subscription) {
+      localStorage.removeItem(this.syncedSubscriptionStorageKey);
+      return;
+    }
+
+    try {
+      await firstValueFrom(this.http.delete('/push/unsubscribe', {
+        body: {
+          endpoint: subscription.endpoint
+        }
+      }));
+    } catch {
+      // Keep this flow silent. Unsubscribe is best effort.
+    }
+
+    await subscription.unsubscribe();
+    localStorage.removeItem(this.syncedSubscriptionStorageKey);
   }
 
   private base64UrlToArrayBuffer(base64UrlString: string): ArrayBuffer {

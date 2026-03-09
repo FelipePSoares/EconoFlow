@@ -6,6 +6,7 @@ namespace EasyFinance.Domain.AccessControl
     public enum FeatureFlags
     {
         None = 0,
-        WebPush = 1 << 0
+        WebPush = 1 << 0,
+        PwaInstall = 1 << 1
     }
 }

@@ -399,5 +399,12 @@
   "WebPushPermissionBlockedDescription": "Notifications are currently blocked for this site. To enable web notifications, update your browser permissions and try again.",
   "WebPushPermissionBlockedStep1": "Open your browser site settings for this website.",
   "WebPushPermissionBlockedStep2": "Find the Notifications permission.",
-  "WebPushPermissionBlockedStep3": "Change it from Block to Allow, then click Try Again."
+  "WebPushPermissionBlockedStep3": "Change it from Block to Allow, then click Try Again.",
+  "ButtonInstallApp": "Install App",
+  "UpdateAvailableMessage": "A new version of EconoFlow is ready.",
+  "ButtonUpdateNow": "Update now",
+  "ButtonLater": "Later",
+  "OfflinePageTitle": "Offline mode",
+  "OfflinePageDescription": "You are offline right now. Previously loaded pages and assets remain available.",
+  "ButtonRetryConnection": "Retry connection"
 }

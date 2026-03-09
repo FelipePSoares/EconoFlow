@@ -57,9 +57,29 @@
   width: 24px;
 }
 
+.mobile-user-menu .navbar-nav {
+  width: 100%;
+}
+
+.mobile-user-menu .nav-item {
+  width: 100%;
+}
+
+.mobile-user-menu .nav-link {
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
 .mobile-privacy-toggle {
   border: 0;
   background: transparent;
+  justify-content: space-between;
+}
+
+.mobile-logout-link:hover {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: var(--bs-danger) !important;
 }
 
 .mobile-privacy-hint {
