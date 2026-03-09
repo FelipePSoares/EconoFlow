@@ -15,7 +15,7 @@ self.addEventListener('push', event => {
   const title = payload.title || 'EconoFlow';
   const options = {
     body: payload.body || '',
-    icon: payload.icon || '/assets/icons/notification-icon-192x192.png',
+    icon: payload.icon || '/assets/icons/icon-192x192.png',
     badge: payload.badge || '/assets/icons/notification-badge-72x72.png',
     tag: payload.tag || 'econoflow-web-push',
     requireInteraction: Boolean(payload.requireInteraction),
