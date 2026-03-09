@@ -42,7 +42,7 @@
       <div class="col-12 col-md-4">
         <div class="summary-card wrap p-3">
           <h3>{{ 'TotalDeductibleAmount' | translate }}</h3>
-          <p class="value mb-0">{{ totalDeductibleAmount | currencyFormat }}</p>
+          <p class="value mb-0 privacy-sensitive-value">{{ totalDeductibleAmount | currencyFormat }}</p>
         </div>
       </div>
       <div class="col-12 col-md-4">
@@ -124,7 +124,7 @@
                   <h4 class="mb-1">{{ 'DeductibleGroupNone' | translate }}</h4>
                   <p class="text-muted mb-0">{{ getAssignableEntriesForGroup(null).length }} {{ 'DeductibleExpensesCount' | translate }}</p>
                 </div>
-                <div class="group-column-total">{{ getSectionTotal(getAssignableEntriesForGroup(null)) | currencyFormat }}</div>
+                <div class="group-column-total privacy-sensitive-value">{{ getSectionTotal(getAssignableEntriesForGroup(null)) | currencyFormat }}</div>
 
                 <div
                   cdkDropList
@@ -159,7 +159,7 @@
                           <p class="mb-0 text-muted small">{{ entry.date | date: 'shortDate' }} - {{ entry.categoryName }}</p>
                         </div>
                         <div class="text-end">
-                          <p class="mb-1 fw-semibold text-nowrap">{{ entry.amount | currencyFormat }}</p>
+                          <p class="mb-1 fw-semibold text-nowrap privacy-sensitive-value">{{ entry.amount | currencyFormat }}</p>
                           @if (entry.hasProof) {
                             <span class="proof-indicator has-proof">{{ 'Yes' | translate }}</span>
                           } @else {
@@ -222,7 +222,7 @@
                       }
                     }
                   </div>
-                  <div class="group-column-total">{{ getSectionTotal(getAssignableEntriesForGroup(group.id)) | currencyFormat }}</div>
+                  <div class="group-column-total privacy-sensitive-value">{{ getSectionTotal(getAssignableEntriesForGroup(group.id)) | currencyFormat }}</div>
 
                   <div
                     cdkDropList
@@ -257,7 +257,7 @@
                             <p class="mb-0 text-muted small">{{ entry.date | date: 'shortDate' }} - {{ entry.categoryName }}</p>
                           </div>
                           <div class="text-end">
-                            <p class="mb-1 fw-semibold text-nowrap">{{ entry.amount | currencyFormat }}</p>
+                            <p class="mb-1 fw-semibold text-nowrap privacy-sensitive-value">{{ entry.amount | currencyFormat }}</p>
                             @if (entry.hasProof) {
                               <span class="proof-indicator has-proof">{{ 'Yes' | translate }}</span>
                             } @else {

@@ -24,7 +24,9 @@
     }
   </main>
 
-  <div class="main-container">
+  <div class="main-container"
+       data-testid="authenticated-content"
+       [class.privacy-mode]="(isSignedIn$ | async) && (privacyModeEnabled$ | async) && isAuthenticatedContentRoute()">
     <router-outlet></router-outlet>
   </div>
 
