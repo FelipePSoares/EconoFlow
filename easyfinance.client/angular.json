@@ -26,7 +26,8 @@
               "src/manifest.webmanifest",
               "src/robots.txt",
               "src/sitemap.xml",
-              "src/LLMs.txt",
+              "src/llms.txt",
+              "src/llms-full.txt",
               "src/service-worker.js",
               "src/web-push-sw.js"
             ],
