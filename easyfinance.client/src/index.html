@@ -13,6 +13,59 @@
   <meta name="theme-color" content="#0f76a8">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <style nonce="{{nonce}}">
+    html,
+    body {
+      background-color: #f5f8fc;
+    }
+
+    html[data-theme='dark'],
+    html[data-theme='dark'] body {
+      background-color: #0f1724;
+    }
+  </style>
+  <script nonce="{{nonce}}">
+    (function () {
+      const storageKey = 'theme-mode';
+      const darkThemeColor = '#0f1724';
+      const lightThemeColor = '#0f76a8';
+      const darkManifestHref = '/manifest.dark.webmanifest';
+      const lightManifestHref = '/manifest.webmanifest';
+
+      let storedTheme = null;
+      try {
+        storedTheme = window.localStorage.getItem(storageKey);
+      } catch {
+        storedTheme = null;
+      }
+
+      const prefersDark = typeof window.matchMedia === 'function'
+        && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const resolvedTheme = storedTheme === 'dark' || storedTheme === 'light'
+        ? storedTheme
+        : (prefersDark ? 'dark' : 'light');
+
+      const isDarkTheme = resolvedTheme === 'dark';
+      const root = document.documentElement;
+      root.setAttribute('data-theme', resolvedTheme);
+      root.style.colorScheme = resolvedTheme;
+
+      const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute('content', isDarkTheme ? darkThemeColor : lightThemeColor);
+      }
+
+      const appleStatusBarMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+      if (appleStatusBarMeta) {
+        appleStatusBarMeta.setAttribute('content', isDarkTheme ? 'black-translucent' : 'default');
+      }
+
+      const manifestLink = document.querySelector('link[rel="manifest"]');
+      if (manifestLink) {
+        manifestLink.setAttribute('href', isDarkTheme ? darkManifestHref : lightManifestHref);
+      }
+    })();
+  </script>
 
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">

@@ -3,8 +3,8 @@
   "name": "EconoFlow - Smart Personal Finance",
   "short_name": "EconoFlow",
   "description": "Manage expenses, track budgets, and stay in control of your projects from any device.",
-  "theme_color": "#0f76a8",
-  "background_color": "#f5f8fc",
+  "theme_color": "#0f1724",
+  "background_color": "#0f1724",
   "display": "standalone",
   "display_override": [
     "standalone",
