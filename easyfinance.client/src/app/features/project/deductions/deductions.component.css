@@ -35,9 +35,10 @@
 }
 
 .group-column {
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--app-border-color);
   border-radius: 10px;
-  background: #fff;
+  background: var(--app-surface);
+  color: var(--app-text-color);
   display: flex;
   flex-direction: column;
   min-height: 220px;
@@ -58,13 +59,13 @@
 }
 
 .group-drop-list {
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  border-top: 1px solid var(--app-border-color);
   min-height: 90px;
 }
 
 .deduction-entry-item {
   border: 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid var(--app-border-color);
 }
 
 .deduction-entry-item:last-child {
@@ -103,8 +104,10 @@
 .cdk-drag-preview {
   box-sizing: border-box;
   border-radius: 8px;
+  border: 1px solid var(--app-border-color);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
-  background: #fff;
+  background: var(--app-surface);
+  color: var(--app-text-color);
 }
 
 .cdk-drag-placeholder {
