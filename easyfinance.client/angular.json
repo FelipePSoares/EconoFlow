@@ -24,6 +24,7 @@
             "assets": [
               "src/assets",
               "src/manifest.webmanifest",
+              "src/manifest.dark.webmanifest",
               "src/robots.txt",
               "src/sitemap.xml",
               "src/llms.txt",
