@@ -106,6 +106,25 @@ namespace EasyFinance.Server.Controllers
             return ValidateResponse(result, HttpStatusCode.OK);
         }
 
+        [HttpPost("{expenseId}/move")]
+        public async Task<IActionResult> MoveAsync(
+            Guid projectId,
+            Guid categoryId,
+            Guid expenseId,
+            [FromBody] MoveExpenseRequestDTO requestDto)
+        {
+            if (requestDto == null)
+                return BadRequest();
+
+            var result = await this.expenseService.MoveAsync(
+                projectId: projectId,
+                sourceCategoryId: categoryId,
+                expenseId: expenseId,
+                targetCategoryId: requestDto.TargetCategoryId);
+
+            return ValidateResponse(result, HttpStatusCode.OK);
+        }
+
         [HttpDelete("{expenseId}")]
         public async Task<IActionResult> DeleteAsync(Guid expenseId)
         {

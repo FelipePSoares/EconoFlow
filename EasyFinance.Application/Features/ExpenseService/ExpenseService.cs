@@ -209,6 +209,58 @@ namespace EasyFinance.Application.Features.ExpenseService
             return AppResponse<ExpenseResponseDTO>.Success(refreshedExpense.ToDTO());
         }
 
+        public async Task<AppResponse> MoveAsync(
+            Guid projectId,
+            Guid sourceCategoryId,
+            Guid expenseId,
+            Guid targetCategoryId)
+        {
+            if (projectId == Guid.Empty)
+                return AppResponse.Error(code: nameof(projectId), description: ValidationMessages.InvalidProjectId);
+
+            if (sourceCategoryId == Guid.Empty)
+                return AppResponse.Error(code: nameof(sourceCategoryId), description: ValidationMessages.InvalidCategoryId);
+
+            if (expenseId == Guid.Empty)
+                return AppResponse.Error(code: nameof(expenseId), description: ValidationMessages.InvalidExpenseId);
+
+            if (targetCategoryId == Guid.Empty)
+                return AppResponse.Error(code: nameof(targetCategoryId), description: ValidationMessages.InvalidCategoryId);
+
+            var project = await this.unitOfWork.ProjectRepository
+                .Trackable()
+                .IgnoreQueryFilters()
+                .Where(p => p.Id == projectId)
+                .Include(p => p.Categories.Where(c => c.Id == sourceCategoryId || c.Id == targetCategoryId))
+                    .ThenInclude(c => c.Expenses.Where(e => e.Id == expenseId))
+                .FirstOrDefaultAsync();
+
+            if (project == null)
+                return AppResponse.Error(code: nameof(projectId), description: ValidationMessages.ProjectNotFound);
+
+            var sourceCategory = project.Categories.FirstOrDefault(c => c.Id == sourceCategoryId);
+            if (sourceCategory == null)
+                return AppResponse.Error(code: nameof(sourceCategoryId), description: ValidationMessages.CategoryNotFound);
+
+            var targetCategory = project.Categories.FirstOrDefault(c => c.Id == targetCategoryId);
+            if (targetCategory == null || targetCategory.IsArchived)
+                return AppResponse.Error(code: nameof(targetCategoryId), description: ValidationMessages.CategoryNotFound);
+
+            var expense = sourceCategory.Expenses.FirstOrDefault(e => e.Id == expenseId);
+            if (expense == null)
+                return AppResponse.Error(code: nameof(expenseId), description: ValidationMessages.ExpenseNotFound);
+
+            if (sourceCategory.Id == targetCategory.Id)
+                return AppResponse.Success();
+
+            sourceCategory.Expenses.Remove(expense);
+            targetCategory.AddExpense(expense);
+
+            await this.unitOfWork.CommitAsync();
+
+            return AppResponse.Success();
+        }
+
         public async Task<AppResponse> DeleteAsync(Guid expenseId)
         {
             if (expenseId == Guid.Empty)
