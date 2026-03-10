@@ -2,6 +2,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  color: var(--app-text-color);
 }
 
   .current-date * {
@@ -10,9 +11,23 @@
 
   .current-date h3 {
     display: inline-block;
+    color: inherit;
   }
 
   .current-date input {
     visibility: hidden;
     width: 0;
+  }
+
+  .current-date .btn-default {
+    color: inherit;
+    border-color: var(--app-border-color);
+  }
+
+  .current-date .btn-default:hover {
+    background-color: rgba(148, 163, 184, 0.18);
+  }
+
+  .current-date .mat-mdc-icon-button {
+    color: inherit;
   }

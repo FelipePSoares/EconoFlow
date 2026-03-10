@@ -29,10 +29,20 @@
                class="me-2"
                width="32"
                height="32">
-          <span class="fw-bold text-primary fs-4">EconoFlow</span>
+          <span class="fw-bold brand-wordmark fs-4">EconoFlow</span>
         </a>
 
         <div class="d-flex align-items-center gap-2">
+          <button type="button"
+                  class="btn btn-outline-secondary rounded-pill public-theme-toggle"
+                  data-testid="theme-toggle-public"
+                  [attr.aria-label]="'Theme' | translate"
+                  (click)="toggleTheme()">
+            <i class="bi me-1"
+               [class.bi-moon-stars-fill]="isDarkTheme$ | async"
+               [class.bi-sun-fill]="!(isDarkTheme$ | async)"></i>
+            {{ (isDarkTheme$ | async) ? ('ThemeDark' | translate) : ('ThemeLight' | translate) }}
+          </button>
           @if (canInstall$ | async) {
             <button type="button" class="btn btn-outline-primary rounded-pill" (click)="installApp()">
               {{ 'ButtonInstallApp' | translate }}
@@ -79,7 +89,6 @@
             <li><a [routerLink]="getPublicRouteCommands('privacy-policy')" class="link-secondary">{{ 'PrivacyPolicy' | translate }}</a></li>
             <li><a [routerLink]="getPublicRouteCommands('use-terms')" class="link-secondary">{{ 'UseTerms' | translate }}</a></li>
             <li><a [routerLink]="getPublicRouteCommands('contact-us')" class="link-secondary">{{ 'ContactUs' | translate }}</a></li>
-            <li><a [routerLink]="getPublicRouteCommands('offline')" class="link-secondary">{{ 'OfflinePageTitle' | translate }}</a></li>
           </ul>
         </div>
         <div class="col-md-4">

@@ -26,8 +26,8 @@
   }
 
   .sticky-notification-card.category-system {
-    border-left-color: #0d6efd;
-    background: linear-gradient(to right, rgba(13, 110, 253, 0.03), white);
+    border-left-color: var(--bs-primary);
+    background: linear-gradient(to right, rgba(var(--bs-primary-rgb), 0.03), white);
   }
 
   .sticky-notification-card.category-finance {
@@ -65,8 +65,8 @@
 }
 
 .category-system .notification-icon-large {
-  background: rgba(13, 110, 253, 0.1);
-  color: #0d6efd;
+  background: rgba(var(--bs-primary-rgb), 0.1);
+  color: var(--bs-primary);
 }
 
 .category-finance .notification-icon-large {
@@ -145,10 +145,45 @@
 
   .btn-close-notification:hover {
     background: #e9ecef;
-    color: #212529;
+    color: var(--app-text-color);
     opacity: 1;
     transform: scale(1.1);
   }
+
+:host-context([data-theme='dark']) .sticky-notification-card {
+  background: var(--app-surface);
+  color: var(--app-text-color);
+}
+
+:host-context([data-theme='dark']) .sticky-notification-card.category-system {
+  background: linear-gradient(to right, rgba(var(--bs-primary-rgb), 0.1), var(--app-surface));
+}
+
+:host-context([data-theme='dark']) .sticky-notification-card.category-finance {
+  background: linear-gradient(to right, rgba(25, 135, 84, 0.1), var(--app-surface));
+}
+
+:host-context([data-theme='dark']) .sticky-notification-card.category-security {
+  background: linear-gradient(to right, rgba(255, 193, 7, 0.12), var(--app-surface));
+}
+
+:host-context([data-theme='dark']) .sticky-notification-card.category-collaboration {
+  background: linear-gradient(to right, rgba(13, 202, 240, 0.1), var(--app-surface));
+}
+
+:host-context([data-theme='dark']) .notification-icon-large {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:host-context([data-theme='dark']) .btn-close-notification {
+  background: var(--app-surface-alt);
+  color: var(--app-muted-text);
+}
+
+:host-context([data-theme='dark']) .btn-close-notification:hover {
+  background: rgba(168, 182, 199, 0.18);
+  color: var(--app-text-color);
+}
 
 @keyframes slideDown {
   from {

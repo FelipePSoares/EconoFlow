@@ -26,6 +26,7 @@ import { PwaInstallService } from '../core/services/pwa-install.service';
 import { PwaUpdateService } from '../core/services/pwa-update.service';
 import { UserService } from '../core/services/user.service';
 import { FeatureFlag } from '../core/enums/feature-flag';
+import { ThemeService } from '../core/services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -64,6 +65,7 @@ export class AppComponent {
   private userService = inject(UserService);
   private webPushService = inject(WebPushService);
   private privacyModeService = inject(PrivacyModeService);
+  private themeService = inject(ThemeService);
   private pwaInstallService = inject(PwaInstallService);
   private pwaUpdateService = inject(PwaUpdateService);
   private document = inject(DOCUMENT);
@@ -74,6 +76,7 @@ export class AppComponent {
   private isSignedIn: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   isSignedIn$: Observable<boolean> = this.isSignedIn.asObservable();
   privacyModeEnabled$ = this.privacyModeService.isEnabled$;
+  isDarkTheme$ = this.themeService.isDarkTheme$;
   canInstall$ = combineLatest([
     this.pwaInstallService.canInstall$,
     this.userService.loggedUser$.pipe(map(user => user?.enabledFeatures?.includes(FeatureFlag.PwaInstall) ?? false)),
@@ -235,6 +238,10 @@ export class AppComponent {
 
   dismissUpdateBanner(): void {
     this.pwaUpdateService.dismissUpdate();
+  }
+
+  toggleTheme(): void {
+    this.themeService.toggleTheme();
   }
 
   private getPublicRouteLanguage(url: string): string | null {

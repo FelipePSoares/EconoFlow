@@ -20,9 +20,11 @@
 .tax-year-panel {
   margin-top: 2px;
   padding: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--app-border-color);
   border-radius: 10px;
-  background-color: #f8fafc;
+  background-color: var(--app-surface-alt);
+  color: var(--app-text-color);
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
 }
 
 .panel-head h3 {
@@ -33,7 +35,7 @@
 
 .panel-head p {
   margin: 0 0 10px;
-  color: #64748b;
+  color: var(--app-muted-text);
   font-size: 0.82rem;
 }
 

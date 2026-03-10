@@ -11,6 +11,7 @@ import { MatIcon } from "@angular/material/icon";
 import { TranslateModule } from '@ngx-translate/core';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { User } from '../../../core/models/user';
+import { ThemeService } from '../../../core/services/theme.service';
 
 type LoginStep = 'credentials' | 'twoFactor';
 interface SignInCredentials {
@@ -36,6 +37,7 @@ export class LoginComponent {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private errorMessageService = inject(ErrorMessageService);
+  private themeService = inject(ThemeService);
 
   credentialsForm = new FormGroup({
     email: new FormControl('', [Validators.email, Validators.required, Validators.maxLength(256)]),
@@ -52,6 +54,12 @@ export class LoginComponent {
   loginStep: LoginStep = 'credentials';
   useRecoveryCode = false;
   private pendingCredentials: SignInCredentials | null = null;
+
+  get logoSrc(): string {
+    return this.themeService.currentTheme === 'dark'
+      ? '/assets/images/logo-without-background-300-min-dark-theme.png'
+      : '/assets/images/logo-without-background-300-min.png';
+  }
 
   constructor() {
     this.setTwoFactorValidators();

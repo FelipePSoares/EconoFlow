@@ -7,7 +7,7 @@
 }
 
   .nav-pills .nav-link:hover {
-    background-color: rgba(13, 110, 253, 0.1);
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
     color: var(--bs-primary);
   }
 
@@ -42,13 +42,13 @@
 }
 
   .mobile-tab:hover {
-    background-color: rgba(13, 110, 253, 0.05) !important;
+    background-color: rgba(var(--bs-primary-rgb), 0.05) !important;
     color: var(--bs-primary);
   }
 
   .mobile-tab.active {
     color: var(--bs-primary) !important;
-    background-color: rgba(13, 110, 253, 0.1) !important;
+    background-color: rgba(var(--bs-primary-rgb), 0.1) !important;
   }
 
     .mobile-tab.active::after {

@@ -17,7 +17,7 @@
 .recovery-form-title {
   display: block;
   font-size: 30px;
-  color: #333333;
+  color: var(--app-text-color);
   line-height: 1.2;
   text-align: center;
 }

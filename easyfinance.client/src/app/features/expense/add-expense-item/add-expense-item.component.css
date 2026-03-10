@@ -1,8 +1,8 @@
 .deductible-proof-section {
-  border: 1px solid #d8dee4;
+  border: 1px solid var(--app-border-color);
   border-radius: 8px;
   padding: 12px;
-  background-color: #fafbfc;
+  background-color: var(--app-surface-alt);
 }
 
 .deductible-proof-existing,

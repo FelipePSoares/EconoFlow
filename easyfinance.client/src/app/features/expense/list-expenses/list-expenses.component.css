@@ -69,3 +69,15 @@
 .expense-flag-link:hover {
   filter: brightness(0.95);
 }
+
+:host-context([data-theme='dark']) .expense-flag-deductible {
+  background-color: rgba(93, 173, 226, 0.2);
+  color: #b9deff;
+  border-color: #4d7394;
+}
+
+:host-context([data-theme='dark']) .expense-flag-proof {
+  background-color: rgba(88, 214, 141, 0.18);
+  color: #bff1cf;
+  border-color: #4f8762;
+}
