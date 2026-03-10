@@ -1,5 +1,6 @@
 using System.Net;
 using System.Security.Claims;
+using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.Features.AttachmentService;
 using EasyFinance.Application.Features.ExpenseItemService;
 using EasyFinance.Domain.AccessControl;
@@ -31,6 +32,28 @@ namespace EasyFinance.Server.Controllers
         public async Task<IActionResult> DeleteAsync(Guid expenseItemId)
         {
             var result = await this.expenseItemService.DeleteAsync(expenseItemId);
+            return ValidateResponse(result, HttpStatusCode.OK);
+        }
+
+        [HttpPost("{expenseItemId}/move")]
+        public async Task<IActionResult> MoveAsync(
+            Guid projectId,
+            Guid categoryId,
+            Guid expenseId,
+            Guid expenseItemId,
+            [FromBody] MoveExpenseItemRequestDTO requestDto)
+        {
+            if (requestDto == null)
+                return BadRequest();
+
+            var result = await this.expenseItemService.MoveAsync(
+                projectId: projectId,
+                sourceCategoryId: categoryId,
+                sourceExpenseId: expenseId,
+                expenseItemId: expenseItemId,
+                targetCategoryId: requestDto.TargetCategoryId,
+                targetExpenseId: requestDto.TargetExpenseId);
+
             return ValidateResponse(result, HttpStatusCode.OK);
         }
 
