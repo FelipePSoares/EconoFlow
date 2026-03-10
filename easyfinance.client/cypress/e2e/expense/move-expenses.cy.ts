@@ -1,4 +1,10 @@
 describe('EconoFlow - move expense and item tests', () => {
+  interface ExpensePatchOperation {
+    op: string;
+    path: string;
+    value?: unknown;
+  }
+
   interface CategoryResponse {
     id: string;
     name: string;
@@ -18,12 +24,35 @@ describe('EconoFlow - move expense and item tests', () => {
 
   let projectId = '';
   let sourceCategoryId = '';
+  let serverNow = new Date();
 
   const toDateOnly = (value: Date): string => {
     const year = value.getFullYear();
     const month = String(value.getMonth() + 1).padStart(2, '0');
     const day = String(value.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  };
+
+  const toMonthDiff = (targetDate: Date): number => {
+    const clientNow = new Date();
+    return (targetDate.getFullYear() - clientNow.getFullYear()) * 12
+      + (targetDate.getMonth() - clientNow.getMonth());
+  };
+
+  const openExpensesPageForMonth = (categoryId: string, targetDate: Date): void => {
+    cy.visit(`/projects/${projectId}/categories/${categoryId}/expenses`);
+    cy.wait('@getExpenses');
+
+    const monthDiff = toMonthDiff(targetDate);
+    if (monthDiff === 0) {
+      return;
+    }
+
+    const navigationSelector = monthDiff > 0 ? '#next' : '#previous';
+    for (let i = 0; i < Math.abs(monthDiff); i++) {
+      cy.get(navigationSelector).click();
+      cy.wait('@getExpenses');
+    }
   };
 
   const createCategory = (name: string): Cypress.Chainable<CategoryResponse> => {
@@ -35,33 +64,42 @@ describe('EconoFlow - move expense and item tests', () => {
   const createExpense = (
     categoryId: string,
     name: string,
-    date: string,
-    itemName?: string
+    date: string
   ): Cypress.Chainable<ExpenseResponse> => {
-    const requestBody: ExpenseReq = {
+    return cy.request('POST', `/api/projects/${projectId}/categories/${categoryId}/expenses`, {
       name,
-      date: date as unknown as Date,
+      date,
       amount: 100,
       budget: 200,
       isDeductible: false,
-      temporaryAttachmentIds: []
-    };
-
-    return cy.request('POST', `/api/projects/${projectId}/categories/${categoryId}/expenses`, {
-      ...requestBody,
-      items: itemName
-        ? [
-          {
-            name: itemName,
-            date,
-            amount: 25,
-            isDeductible: false,
-            temporaryAttachmentIds: [],
-            items: []
-          }
-        ]
-        : []
+      temporaryAttachmentIds: [],
+      items: []
     }).its('body');
+  };
+
+  const addExpenseItem = (
+    categoryId: string,
+    expenseId: string,
+    itemName: string,
+    itemDate: string
+  ): Cypress.Chainable<ExpenseResponse> => {
+    const patchBody: ExpensePatchOperation[] = [
+      {
+        op: 'add',
+        path: '/items/0',
+        value: {
+          name: itemName,
+          date: itemDate,
+          amount: 25,
+          isDeductible: false,
+          temporaryAttachmentIds: [],
+          items: []
+        }
+      }
+    ];
+
+    return cy.request('PATCH', `/api/projects/${projectId}/categories/${categoryId}/expenses/${expenseId}`, patchBody)
+      .its('body');
   };
 
   const ensureExpenseExpanded = (expenseName: string): void => {
@@ -94,21 +132,30 @@ describe('EconoFlow - move expense and item tests', () => {
     cy.fixture('categories').then((categories) => {
       sourceCategoryId = categories.defaultCategory.id;
     });
+
+    cy.then(() => {
+      cy.request('GET', `/api/projects/${projectId}/categories`).then((response) => {
+        const headerDate = response.headers['date'];
+        const parsedServerDate = headerDate ? new Date(String(headerDate)) : new Date();
+        serverNow = Number.isNaN(parsedServerDate.getTime()) ? new Date() : parsedServerDate;
+      });
+    });
   });
 
   it('moves an expense to another category', () => {
     const now = Date.now();
     const sourceExpenseName = `move-expense-${now}`;
     const targetCategoryName = `Move Category ${now}`;
-    const expenseDate = toDateOnly(new Date());
+    const safeDay = Math.min(serverNow.getDate(), 28);
+    const sourceMonthDate = new Date(serverNow.getFullYear(), serverNow.getMonth(), safeDay);
+    const expenseDate = toDateOnly(sourceMonthDate);
 
     cy.intercept('GET', '**/expenses?*').as('getExpenses');
     cy.intercept('POST', '**/categories/*/expenses/*/move').as('moveExpense');
 
     createCategory(targetCategoryName).then(targetCategory => {
       createExpense(sourceCategoryId, sourceExpenseName, expenseDate).then(() => {
-        cy.visit(`/projects/${projectId}/categories/${sourceCategoryId}/expenses`);
-        cy.wait('@getExpenses');
+        openExpensesPageForMonth(sourceCategoryId, sourceMonthDate);
 
         cy.contains('.name', sourceExpenseName)
           .closest('.list-group-item')
@@ -124,8 +171,7 @@ describe('EconoFlow - move expense and item tests', () => {
         cy.get('mat-snack-bar-container').should('contain.text', 'Moved successfully!');
         cy.contains('.name', sourceExpenseName).should('not.exist');
 
-        cy.visit(`/projects/${projectId}/categories/${targetCategory.id}/expenses`);
-        cy.wait('@getExpenses');
+        openExpensesPageForMonth(targetCategory.id, sourceMonthDate);
         cy.contains('.name', sourceExpenseName).should('exist');
       });
     });
@@ -136,62 +182,17 @@ describe('EconoFlow - move expense and item tests', () => {
     const itemName = `move-item-${now}`;
     const sourceExpenseName = `move-item-source-${now}`;
     const targetExpenseName = `move-item-target-${now}`;
-    const expenseDate = toDateOnly(new Date());
+    const safeDay = Math.min(serverNow.getDate(), 28);
+    const sourceMonthDate = new Date(serverNow.getFullYear(), serverNow.getMonth(), safeDay);
+    const expenseDate = toDateOnly(sourceMonthDate);
 
     cy.intercept('GET', '**/expenses?*').as('getExpenses');
     cy.intercept('POST', '**/expenseItems/*/move').as('moveExpenseItem');
 
-    createExpense(sourceCategoryId, sourceExpenseName, expenseDate, itemName).then(() => {
-      createExpense(sourceCategoryId, targetExpenseName, expenseDate).then(() => {
-        cy.visit(`/projects/${projectId}/categories/${sourceCategoryId}/expenses`);
-        cy.wait('@getExpenses');
-
-        ensureExpenseExpanded(sourceExpenseName);
-
-        cy.contains('.name-sub', itemName)
-          .closest('.d-flex')
-          .within(() => {
-            cy.get('button[name=move-sub]').click();
-          });
-
-        selectMatOption('expenseId', targetExpenseName);
-        cy.get('app-expense-item form button[type=submit]').click();
-
-        cy.wait('@moveExpenseItem').its('response.statusCode').should('eq', 200);
-        cy.wait('@getExpenses');
-        cy.get('mat-snack-bar-container').should('contain.text', 'Moved successfully!');
-
-        ensureExpenseExpanded(sourceExpenseName);
-        cy.contains('.name', sourceExpenseName)
-          .closest('.list-group-item')
-          .find('.sublist')
-          .should('not.contain.text', itemName);
-
-        ensureExpenseExpanded(targetExpenseName);
-        cy.contains('.name', targetExpenseName)
-          .closest('.list-group-item')
-          .find('.sublist')
-          .should('contain.text', itemName);
-      });
-    });
-  });
-
-  it('moves an expense item to another category and expense', () => {
-    const now = Date.now();
-    const itemName = `move-cross-item-${now}`;
-    const sourceExpenseName = `move-cross-source-${now}`;
-    const targetExpenseName = `move-cross-target-${now}`;
-    const targetCategoryName = `Move Cross Category ${now}`;
-    const expenseDate = toDateOnly(new Date());
-
-    cy.intercept('GET', '**/expenses?*').as('getExpenses');
-    cy.intercept('POST', '**/expenseItems/*/move').as('moveExpenseItem');
-
-    createCategory(targetCategoryName).then(targetCategory => {
-      createExpense(sourceCategoryId, sourceExpenseName, expenseDate, itemName).then(() => {
-        createExpense(targetCategory.id, targetExpenseName, expenseDate).then(() => {
-          cy.visit(`/projects/${projectId}/categories/${sourceCategoryId}/expenses`);
-          cy.wait('@getExpenses');
+    createExpense(sourceCategoryId, sourceExpenseName, expenseDate).then(sourceExpense => {
+      addExpenseItem(sourceCategoryId, sourceExpense.id, itemName, expenseDate).then(() => {
+        createExpense(sourceCategoryId, targetExpenseName, expenseDate).then(() => {
+          openExpensesPageForMonth(sourceCategoryId, sourceMonthDate);
 
           ensureExpenseExpanded(sourceExpenseName);
 
@@ -201,8 +202,6 @@ describe('EconoFlow - move expense and item tests', () => {
               cy.get('button[name=move-sub]').click();
             });
 
-          selectMatOption('categoryId', targetCategoryName);
-          cy.wait('@getExpenses');
           selectMatOption('expenseId', targetExpenseName);
           cy.get('app-expense-item form button[type=submit]').click();
 
@@ -216,9 +215,6 @@ describe('EconoFlow - move expense and item tests', () => {
             .find('.sublist')
             .should('not.contain.text', itemName);
 
-          cy.visit(`/projects/${projectId}/categories/${targetCategory.id}/expenses`);
-          cy.wait('@getExpenses');
-
           ensureExpenseExpanded(targetExpenseName);
           cy.contains('.name', targetExpenseName)
             .closest('.list-group-item')
@@ -229,49 +225,104 @@ describe('EconoFlow - move expense and item tests', () => {
     });
   });
 
+  it('moves an expense item to another category and expense', () => {
+    const now = Date.now();
+    const itemName = `move-cross-item-${now}`;
+    const sourceExpenseName = `move-cross-source-${now}`;
+    const targetExpenseName = `move-cross-target-${now}`;
+    const targetCategoryName = `Move Cross Category ${now}`;
+    const safeDay = Math.min(serverNow.getDate(), 28);
+    const sourceMonthDate = new Date(serverNow.getFullYear(), serverNow.getMonth(), safeDay);
+    const expenseDate = toDateOnly(sourceMonthDate);
+
+    cy.intercept('GET', '**/expenses?*').as('getExpenses');
+    cy.intercept('POST', '**/expenseItems/*/move').as('moveExpenseItem');
+
+    createCategory(targetCategoryName).then(targetCategory => {
+      createExpense(sourceCategoryId, sourceExpenseName, expenseDate).then(sourceExpense => {
+        addExpenseItem(sourceCategoryId, sourceExpense.id, itemName, expenseDate).then(() => {
+          createExpense(targetCategory.id, targetExpenseName, expenseDate).then(() => {
+            openExpensesPageForMonth(sourceCategoryId, sourceMonthDate);
+
+            ensureExpenseExpanded(sourceExpenseName);
+
+            cy.contains('.name-sub', itemName)
+              .closest('.d-flex')
+              .within(() => {
+                cy.get('button[name=move-sub]').click();
+              });
+
+            selectMatOption('categoryId', targetCategoryName);
+            cy.wait('@getExpenses');
+            selectMatOption('expenseId', targetExpenseName);
+            cy.get('app-expense-item form button[type=submit]').click();
+
+            cy.wait('@moveExpenseItem').its('response.statusCode').should('eq', 200);
+            cy.wait('@getExpenses');
+            cy.get('mat-snack-bar-container').should('contain.text', 'Moved successfully!');
+
+            ensureExpenseExpanded(sourceExpenseName);
+            cy.contains('.name', sourceExpenseName)
+              .closest('.list-group-item')
+              .find('.sublist')
+              .should('not.contain.text', itemName);
+
+            openExpensesPageForMonth(targetCategory.id, sourceMonthDate);
+
+            ensureExpenseExpanded(targetExpenseName);
+            cy.contains('.name', targetExpenseName)
+              .closest('.list-group-item')
+              .find('.sublist')
+              .should('contain.text', itemName);
+          });
+        });
+      });
+    });
+  });
+
   it('shows backend validation error for invalid cross-month move', () => {
     const now = Date.now();
     const itemName = `move-invalid-item-${now}`;
     const sourceExpenseName = `move-invalid-source-${now}`;
     const validTargetExpenseName = `move-invalid-target-valid-${now}`;
-    const invalidTargetExpenseName = `move-invalid-target-next-month-${now}`;
-    const currentMonthDate = new Date();
-    const nextMonthDate = new Date();
-    nextMonthDate.setDate(10);
-    nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
+    const invalidTargetExpenseName = `move-invalid-target-prev-month-${now}`;
+    const safeDay = Math.min(serverNow.getDate(), 28);
+    const currentMonthDate = new Date(serverNow.getFullYear(), serverNow.getMonth(), safeDay);
+    const previousMonthDate = new Date(serverNow.getFullYear(), serverNow.getMonth() - 1, safeDay);
 
     const currentMonthDateOnly = toDateOnly(currentMonthDate);
-    const nextMonthDateOnly = toDateOnly(nextMonthDate);
+    const previousMonthDateOnly = toDateOnly(previousMonthDate);
     let invalidTargetExpenseId = '';
 
     cy.intercept('GET', '**/expenses?*').as('getExpenses');
 
-    createExpense(sourceCategoryId, sourceExpenseName, currentMonthDateOnly, itemName).then(() => {
-      createExpense(sourceCategoryId, validTargetExpenseName, currentMonthDateOnly).then(() => {
-        createExpense(sourceCategoryId, invalidTargetExpenseName, nextMonthDateOnly).then(invalidTargetExpense => {
-          invalidTargetExpenseId = invalidTargetExpense.id;
+    createExpense(sourceCategoryId, sourceExpenseName, currentMonthDateOnly).then(sourceExpense => {
+      addExpenseItem(sourceCategoryId, sourceExpense.id, itemName, currentMonthDateOnly).then(() => {
+        createExpense(sourceCategoryId, validTargetExpenseName, currentMonthDateOnly).then(() => {
+          createExpense(sourceCategoryId, invalidTargetExpenseName, previousMonthDateOnly).then(invalidTargetExpense => {
+            invalidTargetExpenseId = invalidTargetExpense.id;
 
-          cy.visit(`/projects/${projectId}/categories/${sourceCategoryId}/expenses`);
-          cy.wait('@getExpenses');
+            openExpensesPageForMonth(sourceCategoryId, currentMonthDate);
 
-          ensureExpenseExpanded(sourceExpenseName);
+            ensureExpenseExpanded(sourceExpenseName);
 
-          cy.contains('.name-sub', itemName)
-            .closest('.d-flex')
-            .within(() => {
-              cy.get('button[name=move-sub]').click();
-            });
+            cy.contains('.name-sub', itemName)
+              .closest('.d-flex')
+              .within(() => {
+                cy.get('button[name=move-sub]').click();
+              });
 
-          selectMatOption('expenseId', validTargetExpenseName);
+            selectMatOption('expenseId', validTargetExpenseName);
 
-          cy.intercept('POST', '**/expenseItems/*/move', (request) => {
-            request.body.targetExpenseId = invalidTargetExpenseId;
-          }).as('moveExpenseItemInvalid');
+            cy.intercept('POST', '**/expenseItems/*/move', (request) => {
+              request.body.targetExpenseId = invalidTargetExpenseId;
+            }).as('moveExpenseItemInvalid');
 
-          cy.get('app-expense-item form button[type=submit]').click();
+            cy.get('app-expense-item form button[type=submit]').click();
 
-          cy.wait('@moveExpenseItemInvalid').its('response.statusCode').should('eq', 400);
-          cy.get('app-expense-item form').should('contain.text', 'Can\'t add an expense item with different year or month from expense');
+            cy.wait('@moveExpenseItemInvalid').its('response.statusCode').should('eq', 400);
+            cy.get('app-expense-item form').should('contain.text', 'Can\'t add an expense item with different year or month from expense');
+          });
         });
       });
     });
