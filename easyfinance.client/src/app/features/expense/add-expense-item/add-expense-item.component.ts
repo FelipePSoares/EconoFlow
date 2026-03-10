@@ -86,6 +86,9 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
   private expense?: ExpenseDto;
   private currentDate!: Moment;
   private editingExpenseItem: ExpenseItemDto | null = null;
+  private sourceExpenseForEdit: ExpenseDto | null = null;
+  private initialCategoryId: string | null = null;
+  private initialExpenseId: string | null = null;
   private expensesLoadToken = 0;
   deductibleProofAttachment: ExpenseAttachmentDto | null = null;
   pendingDeductibleProofAttachment: ExpenseAttachmentDto | null = null;
@@ -133,6 +136,9 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
   @Input()
   inlineMode = false;
 
+  @Input()
+  moveMode = false;
+
   @Output()
   saved = new EventEmitter<ExpenseDto>();
 
@@ -176,6 +182,12 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
     if (this.categoryId) {
       this.categoryIdControl?.setValue(this.categoryId);
     }
+    this.initialCategoryId = this.editingExpenseItem
+      ? (this.categoryIdControl?.value ?? this.categoryId ?? null)
+      : null;
+    this.initialExpenseId = this.editingExpenseItem
+      ? (this.expenseIdControl?.value ?? this.expenseId ?? this.parentExpense?.id ?? null)
+      : null;
 
     await this.loadProjectTaxYearSettings();
     await this.loadExpenseItemFromRouteIfNeeded();
@@ -198,15 +210,23 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
 
     if (this.parentExpense) {
       this.expense = structuredClone(this.parentExpense);
-      this.expenses = [this.expense];
-      this.expenseIdControl?.setValue(this.expense.id, { emitEvent: false });
-      this.hasLoadedExpenses = true;
-
-      if (this.isDeductibleControl?.value) {
-        await this.refreshDeductibleTaxYearContext();
+      if (this.editingExpenseItem) {
+        this.sourceExpenseForEdit = structuredClone(this.expense);
+        this.initialExpenseId = this.expense.id;
+        this.initialCategoryId = this.initialCategoryId ?? this.categoryId ?? this.categoryIdControl?.value ?? null;
       }
 
-      return;
+      if (!this.moveMode) {
+        this.expenses = [this.expense];
+        this.expenseIdControl?.setValue(this.expense.id, { emitEvent: false });
+        this.hasLoadedExpenses = true;
+
+        if (this.isDeductibleControl?.value) {
+          await this.refreshDeductibleTaxYearContext();
+        }
+
+        return;
+      }
     }
 
     if (this.showCategorySelector) {
@@ -216,8 +236,9 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
           this.categories = res.filter(category => !category.isArchived);
           const categoryId = this.categoryIdControl?.value;
           if (categoryId) {
-            this.resetExpenseSelection();
-            this.loadExpenses(categoryId, this.expenseIdControl?.value, this.getSelectedDate());
+            const preferredExpenseId = this.expenseIdControl?.value;
+            this.resetExpenseSelection(this.isEditing && this.moveMode);
+            this.loadExpenses(categoryId, preferredExpenseId, this.getSelectedDate());
           }
         });
     }
@@ -229,7 +250,7 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
     this.categoryIdControl?.valueChanges.subscribe(categoryId => {
       this.invalidateExpenseLoads();
       this.hasLoadedExpenses = false;
-      this.resetExpenseSelection();
+      this.resetExpenseSelection(this.isEditing && this.moveMode);
 
       if (categoryId) {
         this.loadExpenses(categoryId, undefined, this.getSelectedDate());
@@ -249,7 +270,7 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
       const preferredExpenseId = this.expenseIdControl?.value;
       this.invalidateExpenseLoads();
       this.hasLoadedExpenses = false;
-      this.resetExpenseSelection();
+      this.resetExpenseSelection(this.isEditing && this.moveMode);
 
       if (!selectedDate) {
         if (this.isDeductibleControl?.value) {
@@ -266,6 +287,10 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
     });
 
     this.expenseIdControl?.valueChanges.subscribe(expenseId => {
+      if (this.isEditing && this.moveMode) {
+        return;
+      }
+
       const categoryId = this.categoryIdControl?.value;
       if (categoryId && expenseId) {
         this.loadExpenseDetails(categoryId, expenseId);
@@ -312,11 +337,11 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
   }
 
   get showCategorySelector(): boolean {
-    return !this.categoryId && !this.parentExpense;
+    return (!this.categoryId && !this.parentExpense) || (this.moveMode && this.isEditing);
   }
 
   get showExpenseSelector(): boolean {
-    return !this.parentExpense && !this.editingExpenseItem;
+    return (!this.parentExpense && !this.editingExpenseItem) || (this.moveMode && this.isEditing);
   }
 
   get canUploadDeductibleProof(): boolean {
@@ -339,13 +364,24 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const categoryId = this.getSelectedCategoryId();
-    if (!categoryId) {
+    const targetCategoryId = this.getSelectedCategoryId();
+    const targetExpenseId = this.getSelectedExpenseId();
+    if (!targetCategoryId || !targetExpenseId) {
       return;
     }
 
-    const currentExpense = this.expense;
-    if (!currentExpense) {
+    const editingExpenseItemId = this.editingExpenseItem?.id ?? null;
+    const sourceCategoryId = editingExpenseItemId
+      ? (this.initialCategoryId ?? targetCategoryId)
+      : targetCategoryId;
+    const sourceExpenseId = editingExpenseItemId
+      ? (this.initialExpenseId ?? targetExpenseId)
+      : targetExpenseId;
+    const currentExpense = editingExpenseItemId
+      ? (this.sourceExpenseForEdit ?? this.expense)
+      : this.expense;
+
+    if (!currentExpense || !sourceCategoryId || !sourceExpenseId) {
       return;
     }
 
@@ -360,7 +396,6 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
 
     const baseExpense = structuredClone(currentExpense);
     const newExpense = structuredClone(baseExpense);
-    const editingExpenseItemId = this.editingExpenseItem?.id ?? null;
     let previousDeductibleProofAttachment: ExpenseAttachmentDto | null = null;
 
     if (editingExpenseItemId) {
@@ -397,7 +432,10 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
       ExpensePatchModel.fromExpense(newExpense)
     );
 
-    if (patch.length === 0) {
+    const shouldMoveEditedItem = !!editingExpenseItemId
+      && (sourceCategoryId !== targetCategoryId || sourceExpenseId !== targetExpenseId);
+
+    if (patch.length === 0 && !shouldMoveEditedItem) {
       this.handleSaved(currentExpense);
       return;
     }
@@ -406,9 +444,22 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
     let savedExpense: ExpenseDto | null = null;
 
     try {
-      const response = await firstValueFrom(this.expenseService.update(this.projectId, categoryId, currentExpense.id, patch));
-      savedExpense = ExpenseDto.fromExpense(response);
+      if (patch.length > 0) {
+        const response = await firstValueFrom(this.expenseService.update(
+          this.projectId,
+          sourceCategoryId,
+          sourceExpenseId,
+          patch
+        ));
+        savedExpense = ExpenseDto.fromExpense(response);
+      } else {
+        savedExpense = structuredClone(currentExpense);
+      }
+
       this.expense = savedExpense;
+      if (editingExpenseItemId) {
+        this.sourceExpenseForEdit = structuredClone(savedExpense);
+      }
 
       if (editingExpenseItemId) {
         const savedItem = savedExpense.items.find(item => item.id === editingExpenseItemId) ?? null;
@@ -418,7 +469,7 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
 
         if (savedItem && shouldRemoveExistingProof) {
           try {
-            await this.deleteDeductibleProofAsync(categoryId, savedExpense.id, savedItem.id, previousProof.id);
+            await this.deleteDeductibleProofAsync(sourceCategoryId, sourceExpenseId, savedItem.id, previousProof.id);
             savedItem.attachments = (savedItem.attachments ?? [])
               .filter(attachment => attachment.id !== previousProof.id);
           } catch {
@@ -434,23 +485,37 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
         }
       }
 
+      if (editingExpenseItemId && shouldMoveEditedItem) {
+        const moved = await firstValueFrom(this.expenseService.moveExpenseItem(
+          this.projectId,
+          sourceCategoryId,
+          sourceExpenseId,
+          editingExpenseItemId,
+          targetCategoryId,
+          targetExpenseId
+        ));
+
+        if (!moved) {
+          throw new Error('Expense item move failed.');
+        }
+      }
+
       if (this.pendingDeductibleProofAttachment) {
         this.clearPendingDeductibleProof();
       }
 
-      this.handleSaved(savedExpense);
+      if (!savedExpense) {
+        throw new Error('Expense item save failed.');
+      }
+
+      this.handleSaved(savedExpense, shouldMoveEditedItem ? 'MovedSuccess' : 'CreatedSuccess');
     } catch (error) {
       this.httpErrors = true;
       this.errors = {};
 
       const typedError = error as ApiErrorResponse;
       if (typedError?.errors) {
-        Object.entries(typedError.errors).forEach(([key, value]) => {
-          const newKey = key.replace(/^Items\.\d+\./, '').replace(/^Items\./, '');
-          this.errors[newKey] = value;
-        });
-
-        this.errorMessageService.setFormErrors(this.expenseItemForm, this.errors);
+        this.applyApiErrors(typedError.errors);
       } else {
         this.errors = { general: ['GenericError'] };
       }
@@ -502,8 +567,8 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const categoryId = this.getSelectedCategoryId();
-    const expenseId = this.getSelectedExpenseId();
+    const categoryId = this.getAttachmentCategoryId();
+    const expenseId = this.getAttachmentExpenseId();
     if (!categoryId || !expenseId) {
       inputElement.value = '';
       return;
@@ -525,8 +590,8 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
     }
 
     const editingExpenseItem = this.editingExpenseItem;
-    const categoryId = this.getSelectedCategoryId();
-    const expenseId = this.getSelectedExpenseId();
+    const categoryId = this.getAttachmentCategoryId();
+    const expenseId = this.getAttachmentExpenseId();
     const expenseItemId = editingExpenseItem?.id;
     if (!categoryId || !expenseId || !expenseItemId || !this.deductibleProofAttachment || !editingExpenseItem) {
       return;
@@ -547,8 +612,8 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
   }
 
   getDeductibleProofDownloadUrl(): string | null {
-    const categoryId = this.getSelectedCategoryId();
-    const expenseId = this.getSelectedExpenseId();
+    const categoryId = this.getAttachmentCategoryId();
+    const expenseId = this.getAttachmentExpenseId();
     const expenseItemId = this.editingExpenseItem?.id;
     const attachmentId = this.deductibleProofAttachment?.id;
 
@@ -568,6 +633,7 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    const preserveEditingSource = this.isEditing && this.moveMode;
     const currentLoadToken = ++this.expensesLoadToken;
     this.isLoadingExpenses = true;
     this.hasLoadedExpenses = false;
@@ -589,8 +655,10 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
         this.updateExpenseSelectionAvailability();
 
         if (selectedExpenseId) {
-          this.loadExpenseDetails(categoryId, selectedExpenseId);
-        } else {
+          if (!preserveEditingSource) {
+            this.loadExpenseDetails(categoryId, selectedExpenseId);
+          }
+        } else if (!preserveEditingSource) {
           this.expense = undefined;
           this.deductibleProofAttachment = null;
           this.clearPendingDeductibleProof();
@@ -603,7 +671,7 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
           return;
         }
 
-        this.resetExpenseSelection();
+        this.resetExpenseSelection(preserveEditingSource);
         this.isLoadingExpenses = false;
         this.hasLoadedExpenses = true;
       });
@@ -660,6 +728,9 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
       this.expense = loadedExpense;
       this.expenses = [loadedExpense];
       this.editingExpenseItem = structuredClone(loadedExpenseItem);
+      this.sourceExpenseForEdit = structuredClone(loadedExpense);
+      this.initialCategoryId = this.categoryId ?? this.categoryIdControl?.value ?? null;
+      this.initialExpenseId = loadedExpense.id;
       this.deductibleProofAttachment = this.getDeductibleProofAttachment(loadedExpenseItem);
       this.hasLoadedExpenses = true;
 
@@ -781,11 +852,27 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
   }
 
   private getSelectedCategoryId(): string | null {
-    return this.categoryId ?? this.categoryIdControl?.value ?? null;
+    return this.categoryIdControl?.value ?? this.categoryId ?? null;
   }
 
   private getSelectedExpenseId(): string | null {
-    return this.parentExpense?.id ?? this.expenseIdControl?.value ?? this.expense?.id ?? null;
+    return this.expenseIdControl?.value ?? this.parentExpense?.id ?? this.expense?.id ?? null;
+  }
+
+  private getAttachmentCategoryId(): string | null {
+    if (this.editingExpenseItem && this.moveMode) {
+      return this.initialCategoryId ?? this.getSelectedCategoryId();
+    }
+
+    return this.getSelectedCategoryId();
+  }
+
+  private getAttachmentExpenseId(): string | null {
+    if (this.editingExpenseItem && this.moveMode) {
+      return this.initialExpenseId ?? this.getSelectedExpenseId();
+    }
+
+    return this.getSelectedExpenseId();
   }
 
   private getDeductibleProofAttachment(expenseItem: ExpenseItemDto | null): ExpenseAttachmentDto | null {
@@ -850,11 +937,16 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
       throw new Error('Expense item deductible proof delete failed.');
   }
 
-  private resetExpenseSelection(): void {
+  private resetExpenseSelection(preserveEditingSource = false): void {
     this.expenses = [];
-    this.expense = undefined;
-    this.deductibleProofAttachment = null;
-    this.clearPendingDeductibleProof();
+
+    if (!preserveEditingSource) {
+      this.expense = undefined;
+      this.sourceExpenseForEdit = null;
+      this.deductibleProofAttachment = null;
+      this.clearPendingDeductibleProof();
+    }
+
     this.expenseIdControl?.setValue('', { emitEvent: false });
     this.expenseIdControl?.disable({ emitEvent: false });
   }
@@ -873,14 +965,67 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
     this.isLoadingExpenses = false;
   }
 
-  private handleSaved(expense: ExpenseDto): void {
-    this.snackBar.openSuccessSnackbar(this.translateService.instant('CreatedSuccess'));
+  private handleSaved(expense: ExpenseDto, messageKey = 'CreatedSuccess'): void {
+    this.snackBar.openSuccessSnackbar(this.translateService.instant(messageKey));
 
     if (!this.inlineMode) {
       this.router.navigate([{ outlets: { modal: null } }]);
     }
 
     this.saved.emit(expense);
+  }
+
+  private applyApiErrors(apiErrors: Record<string, string[]>): void {
+    this.errors = {};
+    const generalErrors: string[] = [];
+
+    Object.entries(apiErrors).forEach(([key, value]) => {
+      const normalizedKey = key.replace(/^Items\.\d+\./, '').replace(/^Items\./, '');
+      const formControlName = this.mapErrorKeyToFormControl(normalizedKey);
+
+      if (formControlName) {
+        this.errors[formControlName] = value;
+        return;
+      }
+
+      generalErrors.push(...value);
+    });
+
+    if (generalErrors.length > 0) {
+      this.errors['general'] = generalErrors;
+    }
+
+    if (Object.keys(this.errors).length === 0) {
+      this.errors = { general: ['GenericError'] };
+    }
+
+    this.errorMessageService.setFormErrors(this.expenseItemForm, this.errors);
+  }
+
+  private mapErrorKeyToFormControl(errorKey: string): string | null {
+    const normalizedKey = errorKey.trim().toLowerCase();
+
+    switch (normalizedKey) {
+      case 'targetcategoryid':
+      case 'sourcecategoryid':
+      case 'categoryid':
+        return 'categoryId';
+      case 'targetexpenseid':
+      case 'sourceexpenseid':
+      case 'expenseid':
+        return 'expenseId';
+      case 'name':
+        return 'name';
+      case 'date':
+        return 'date';
+      case 'amount':
+        return 'amount';
+      case 'isdeductible':
+        return 'isDeductible';
+      default:
+        return Object.keys(this.expenseItemForm.controls)
+          .find(controlName => controlName.toLowerCase() === normalizedKey) ?? null;
+    }
   }
 
   private isNewEntity(id: string | undefined): boolean {

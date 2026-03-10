@@ -73,8 +73,10 @@ export class ListExpensesComponent implements OnInit {
 
   isCreatingExpense = false;
   editingExpenseId: string | null = null;
+  movingExpenseId: string | null = null;
   creatingSubExpenseParentId: string | null = null;
   editingSubExpense: { parentId: string, subExpenseId: string } | null = null;
+  movingSubExpense: { parentId: string, subExpenseId: string } | null = null;
 
   @Input({ required: true })
   projectId!: string;
@@ -229,6 +231,7 @@ export class ListExpensesComponent implements OnInit {
     }
 
     this.cancelSubExpenseForm();
+    this.movingExpenseId = null;
     this.editingExpenseId = null;
     this.isCreatingExpense = true;
   }
@@ -239,13 +242,26 @@ export class ListExpensesComponent implements OnInit {
     }
 
     this.cancelSubExpenseForm();
+    this.movingExpenseId = null;
     this.isCreatingExpense = false;
     this.editingExpenseId = expense.id;
+  }
+
+  startMoveExpense(expense: ExpenseDto): void {
+    if (!this.canCreateExpense()) {
+      return;
+    }
+
+    this.cancelSubExpenseForm();
+    this.isCreatingExpense = false;
+    this.editingExpenseId = null;
+    this.movingExpenseId = expense.id;
   }
 
   cancelExpenseForm(): void {
     this.isCreatingExpense = false;
     this.editingExpenseId = null;
+    this.movingExpenseId = null;
   }
 
   onExpenseSaved(): void {
@@ -257,11 +273,16 @@ export class ListExpensesComponent implements OnInit {
     return this.editingExpenseId === expense.id;
   }
 
+  isMovingExpense(expense: ExpenseDto): boolean {
+    return this.movingExpenseId === expense.id;
+  }
+
   startCreateSubExpense(parentExpense: ExpenseDto): void {
     if (!this.canAddExpenseItem()) {
       return;
     }
 
+    this.movingSubExpense = null;
     this.cancelExpenseForm();
     this.creatingSubExpenseParentId = parentExpense.id;
     this.editingSubExpense = null;
@@ -273,15 +294,29 @@ export class ListExpensesComponent implements OnInit {
       return;
     }
 
+    this.movingSubExpense = null;
     this.cancelExpenseForm();
     this.creatingSubExpenseParentId = null;
     this.editingSubExpense = { parentId: parentExpense.id, subExpenseId: subExpense.id };
     this.expandedExpenses.add(parentExpense.id);
   }
 
+  startMoveSubExpense(parentExpense: ExpenseDto, subExpense: ExpenseItemDto): void {
+    if (!this.canAddExpenseItem()) {
+      return;
+    }
+
+    this.cancelExpenseForm();
+    this.creatingSubExpenseParentId = null;
+    this.editingSubExpense = null;
+    this.movingSubExpense = { parentId: parentExpense.id, subExpenseId: subExpense.id };
+    this.expandedExpenses.add(parentExpense.id);
+  }
+
   cancelSubExpenseForm(): void {
     this.creatingSubExpenseParentId = null;
     this.editingSubExpense = null;
+    this.movingSubExpense = null;
   }
 
   onSubExpenseSaved(): void {
@@ -295,6 +330,10 @@ export class ListExpensesComponent implements OnInit {
 
   isEditingSubExpense(expense: ExpenseDto, subExpense: ExpenseItemDto): boolean {
     return this.editingSubExpense?.parentId === expense.id && this.editingSubExpense?.subExpenseId === subExpense.id;
+  }
+
+  isMovingSubExpense(expense: ExpenseDto, subExpense: ExpenseItemDto): boolean {
+    return this.movingSubExpense?.parentId === expense.id && this.movingSubExpense?.subExpenseId === subExpense.id;
   }
 
   hasDeductibleProof(expense: ExpenseDto): boolean {

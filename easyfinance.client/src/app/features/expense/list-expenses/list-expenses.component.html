@@ -14,12 +14,13 @@
           <div class="list-group list-group-flush">
             @for (expense of (expenses$ | async); track expense.id) {
               <div class="list-group-item">
-                @if (isEditingExpense(expense)) {
+                @if (isEditingExpense(expense) || isMovingExpense(expense)) {
                   <app-expense
                     [projectId]="projectId"
                     [categoryId]="categoryId"
                     [expense]="expense"
                     [inlineMode]="true"
+                    [moveMode]="isMovingExpense(expense)"
                     (saved)="onExpenseSaved()"
                     (canceled)="cancelExpenseForm()">
                   </app-expense>
@@ -41,6 +42,14 @@
                           <div class="btn-group">
                             <button name="edit" class="btn btn-outline-secondary" (click)="startEditExpense(expense)">
                               <i class="bi bi-pencil-square"></i>
+                            </button>
+                            <button
+                              name="move"
+                              class="btn btn-outline-secondary"
+                              [attr.aria-label]="'ButtonMove' | translate"
+                              [title]="'ButtonMove' | translate"
+                              (click)="startMoveExpense(expense)">
+                              <i class="bi bi-arrow-left-right"></i>
                             </button>
                             <button name="delete" class="btn btn-outline-danger" (click)="triggerDelete(expense)">
                               <i class="bi bi-trash"></i>
@@ -91,13 +100,14 @@
                 @if (isExpanded(expense.id)) {
                   <div class="sublist mt-2 ms-4 border-top pt-2" [class.archived]="isArchived">
                     @for (subExpense of expense.items; track subExpense.id) {
-                      @if (isEditingSubExpense(expense, subExpense)) {
+                      @if (isEditingSubExpense(expense, subExpense) || isMovingSubExpense(expense, subExpense)) {
                         <app-expense-item
                           [projectId]="projectId"
                           [categoryId]="categoryId"
                           [parentExpense]="expense"
                           [expenseItem]="subExpense"
                           [inlineMode]="true"
+                          [moveMode]="isMovingSubExpense(expense, subExpense)"
                           (saved)="onSubExpenseSaved()"
                           (canceled)="cancelSubExpenseForm()">
                         </app-expense-item>
@@ -153,6 +163,14 @@
                             <div class="btn-group btn-group-sm">
                               <button name="edit-sub" class="btn btn-outline-secondary" (click)="startEditSubExpense(expense, subExpense)">
                                 <i class="bi bi-pencil-square"></i>
+                              </button>
+                              <button
+                                name="move-sub"
+                                class="btn btn-outline-secondary"
+                                [attr.aria-label]="'ButtonMove' | translate"
+                                [title]="'ButtonMove' | translate"
+                                (click)="startMoveSubExpense(expense, subExpense)">
+                                <i class="bi bi-arrow-left-right"></i>
                               </button>
                               <button name="delete-sub" class="btn btn-outline-danger" (click)="triggerDeleteSubExpense(expense, subExpense)">
                                 <i class="bi bi-trash"></i>
