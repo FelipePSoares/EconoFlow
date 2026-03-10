@@ -50,6 +50,32 @@ export class ExpenseService {
     });
   }
 
+  moveExpense(projectId: string, sourceCategoryId: string, expenseId: string, targetCategoryId: string): Observable<boolean> {
+    return this.http.post(
+      '/api/projects/' + projectId + '/categories/' + sourceCategoryId + '/expenses/' + expenseId + '/move',
+      { targetCategoryId },
+      {
+        observe: 'response'
+      }
+    ).pipe(map(res => res.ok));
+  }
+
+  moveExpenseItem(
+    projectId: string,
+    sourceCategoryId: string,
+    sourceExpenseId: string,
+    expenseItemId: string,
+    targetCategoryId: string,
+    targetExpenseId: string): Observable<boolean> {
+    return this.http.post(
+      '/api/projects/' + projectId + '/categories/' + sourceCategoryId + '/expenses/' + sourceExpenseId + '/expenseItems/' + expenseItemId + '/move',
+      { targetCategoryId, targetExpenseId },
+      {
+        observe: 'response'
+      }
+    ).pipe(map(res => res.ok));
+  }
+
   uploadTemporaryAttachment(projectId: string, categoryId: string, file: File, attachmentType: AttachmentType): Observable<ExpenseAttachment> {
     return this.uploadTemporaryAttachmentWithProgress(projectId, categoryId, file, attachmentType).pipe(
       filter((state): state is { kind: 'done'; body: ExpenseAttachment } => state.kind === 'done'),

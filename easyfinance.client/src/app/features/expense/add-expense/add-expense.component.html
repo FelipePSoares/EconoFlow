@@ -170,7 +170,7 @@
           {{ 'ButtonCancel' | translate }}
         </button>
         <button mat-raised-button color="primary" type="submit" [disabled]="expenseForm.invalid || isSaving || isProofOperationInProgress">
-          {{ (isEditing ? 'ButtonSave' : 'ButtonCreate') | translate }}
+          {{ (moveMode && isEditing ? 'ButtonMove' : (isEditing ? 'ButtonSave' : 'ButtonCreate')) | translate }}
         </button>
       </div>
     </form>

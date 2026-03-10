@@ -68,6 +68,7 @@
   "ButtonRemove": "Remove",
   "ButtonDownload": "Download",
   "ButtonSave": "Save",
+  "ButtonMove": "Move",
   "ButtonDeleteAccount": "Delete Account",
   "ButtonClonePreviousBudget": "Clone Previous Budget",
   "ButtonArchive": "Archive",
@@ -126,6 +127,9 @@
   "DeductibleProofDeleteFailed": "Failed to remove deductible proof. Please try again.",
   "DeductibleProofInvalidFileType": "Unsupported file type. Please use PDF or image files.",
   "DeductibleProofFileSizeExceeded": "File is too large. Maximum size is 10 MB.",
+  "Can't add an expense item with different year or month from expense": "Can't add an expense item with different year or month from expense",
+  "Category not found.": "Category not found.",
+  "Expense not found.": "Expense not found.",
 
   "how-to-create-budget": "test <b>text</b>",
 
@@ -259,6 +263,7 @@
   "AreYouSureYouWantDeleteExpense": "Are you sure you want to delete the <b>{{value}}</b> expense?",
   "CreateExpense": "Create Expense",
   "CreatedSuccess": "Created Successfully!",
+  "MovedSuccess": "Moved successfully!",
   "MessageSuccess": "Message Sent Successfully!",
   "DeletedSuccess": "Deleted successfully!",
   "AddAndEdit": "Add & Edit",

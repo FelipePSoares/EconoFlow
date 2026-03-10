@@ -9,9 +9,8 @@
   --app-brand-wordmark: #0b3a5d;
   --app-bg-color: #f5f8fc;
   --app-bg-image:
-    radial-gradient(1200px 500px at -12% -8%, rgba(14, 159, 110, 0.14) 0%, rgba(14, 159, 110, 0) 58%),
-    radial-gradient(980px 460px at 112% -6%, rgba(6, 30, 51, 0.12) 0%, rgba(6, 30, 51, 0) 55%),
-    linear-gradient(160deg, #f9fcff 0%, #f2f7fd 56%, #eef4fb 100%);
+    linear-gradient(180deg, #f9fcff 0%, #eef4fb 58%, #f5f8fc 100%),
+    linear-gradient(145deg, rgba(15, 118, 168, 0.08) 0%, rgba(15, 118, 168, 0.02) 46%, rgba(15, 118, 168, 0) 72%);
   --app-text-color: #0d2137;
   --app-surface: #ffffff;
   --app-surface-alt: #f8f9fa;
@@ -31,9 +30,8 @@
   --app-brand-wordmark: #8fd1ea;
   --app-bg-color: #0f1724;
   --app-bg-image:
-    radial-gradient(1200px 560px at -10% -10%, rgba(37, 99, 235, 0.2) 0%, rgba(37, 99, 235, 0) 58%),
-    radial-gradient(920px 460px at 110% -6%, rgba(56, 189, 248, 0.16) 0%, rgba(56, 189, 248, 0) 54%),
-    linear-gradient(160deg, #0f1724 0%, #111b2b 56%, #162233 100%);
+    linear-gradient(180deg, #17263a 0%, #132033 56%, #0f1724 100%),
+    linear-gradient(145deg, rgba(77, 167, 214, 0.11) 0%, rgba(77, 167, 214, 0.03) 48%, rgba(77, 167, 214, 0) 74%);
   --app-text-color: #e6edf3;
   --app-surface: #172233;
   --app-surface-alt: #1d2b3e;
@@ -98,7 +96,11 @@ body {
   font-family: Roboto, "Helvetica Neue", sans-serif;
   background-color: var(--app-bg-color);
   background-image: var(--app-bg-image);
-  background-attachment: fixed;
+  background-repeat: no-repeat;
+  /* Keep gradient in the first viewport, then blend into solid bg color seamlessly */
+  background-size: 100% 100vh, 100% 100vh;
+  background-position: top left, top left;
+  background-attachment: scroll;
   color: var(--app-text-color);
   transition: background-color 0.25s ease, color 0.25s ease;
 }
