@@ -1,5 +1,5 @@
 
-import { combineLatest, distinctUntilChanged, filter, firstValueFrom, map } from 'rxjs';
+import { combineLatest, distinctUntilChanged, filter, firstValueFrom, map, take } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { ApplicationRef, Component, inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, DOCUMENT, isPlatformBrowser } from '@angular/common';
@@ -72,6 +72,7 @@ export class AppComponent {
   private appRef = inject(ApplicationRef);
   private platformId = inject(PLATFORM_ID);
   private dateAdapter = inject(DateAdapter<Date>);
+  private handledStandaloneLaunchRedirect = false;
 
   private isSignedIn: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   isSignedIn$: Observable<boolean> = this.isSignedIn.asObservable();
@@ -103,6 +104,8 @@ export class AppComponent {
           void this.webPushService.initializeForCurrentUser();
         }
       });
+
+      this.setupStandaloneLaunchRedirect();
 
       this.projectService.selectedUserProject$.subscribe(userProject => {
         this.selectedProjectId = userProject?.project?.id ?? null;
@@ -177,7 +180,7 @@ export class AppComponent {
     await this.updatePublicRouteLanguage(this.globalService.currentLanguage);
   }
 
-  getPublicRoute(path: string = ''): string {
+  getPublicRoute(path = ''): string {
     const normalizedPath = path.trim().replace(/^\/+|\/+$/g, '');
     const isPortuguese = this.isPortugueseLanguage(this.selectedLanguage);
 
@@ -188,7 +191,7 @@ export class AppComponent {
     return normalizedPath ? `/${normalizedPath}` : '/';
   }
 
-  getPublicRouteCommands(path: string = ''): string[] {
+  getPublicRouteCommands(path = ''): string[] {
     return this.toAbsoluteCommands(this.getPublicRoute(path));
   }
 
@@ -320,5 +323,49 @@ export class AppComponent {
 
   private isPortugueseLanguage(languageCode: string): boolean {
     return languageCode.toLowerCase().startsWith('pt');
+  }
+
+  private setupStandaloneLaunchRedirect(): void {
+    combineLatest([
+      this.authService.isSignedIn$,
+      this.pwaInstallService.isStandalone$,
+      this.projectService.selectedUserProject$
+    ])
+      .pipe(
+        filter(([isSignedIn, isStandalone]) => isSignedIn && isStandalone)
+      )
+      .subscribe(([, , selectedUserProject]) => {
+        void this.redirectStandaloneLaunchToDefaultOverview(selectedUserProject?.project?.id);
+      });
+  }
+
+  private async redirectStandaloneLaunchToDefaultOverview(selectedProjectId?: string): Promise<void> {
+    if (this.handledStandaloneLaunchRedirect || !this.isStandaloneLandingRoute()) {
+      return;
+    }
+
+    this.handledStandaloneLaunchRedirect = true;
+
+    const defaultProjectId = selectedProjectId || await this.getCurrentUserDefaultProjectId();
+    const targetCommands = defaultProjectId
+      ? ['/', 'projects', defaultProjectId, 'overview', 'annual']
+      : ['/', 'projects'];
+
+    await this.router.navigate(targetCommands, { replaceUrl: true });
+  }
+
+  private isStandaloneLandingRoute(): boolean {
+    const primarySegments = this.router.parseUrl(this.router.url).root.children['primary']?.segments ?? [];
+
+    if (primarySegments.length === 0) {
+      return true;
+    }
+
+    return primarySegments.length === 1 && primarySegments[0].path === 'pt';
+  }
+
+  private async getCurrentUserDefaultProjectId(): Promise<string | undefined> {
+    const user = await firstValueFrom(this.userService.loggedUser$.pipe(take(1)));
+    return user?.defaultProjectId || undefined;
   }
 }
