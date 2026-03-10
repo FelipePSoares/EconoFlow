@@ -66,7 +66,7 @@
 
 .notification-message {
   font-size: 0.9rem;
-  color: #212529;
+  color: var(--app-text-color);
   line-height: 1.4;
   white-space: normal;
   word-wrap: break-word;
@@ -94,6 +94,30 @@
 .dropdown-header h6 {
   font-size: 1rem;
   font-weight: 600;
+}
+
+:host-context([data-theme='dark']) .notification-item {
+  border-bottom-color: var(--app-border-color);
+}
+
+:host-context([data-theme='dark']) .notification-item:hover {
+  background-color: rgba(168, 182, 199, 0.12);
+}
+
+:host-context([data-theme='dark']) .notification-item.unread {
+  background-color: rgba(37, 99, 235, 0.2);
+}
+
+:host-context([data-theme='dark']) .notification-item.unread:hover {
+  background-color: rgba(37, 99, 235, 0.28);
+}
+
+:host-context([data-theme='dark']) .notification-icon {
+  background-color: var(--app-surface-alt);
+}
+
+:host-context([data-theme='dark']) .notification-item.unread .notification-icon {
+  background-color: rgba(168, 182, 199, 0.12);
 }
 
 @media (max-width: 768px) {

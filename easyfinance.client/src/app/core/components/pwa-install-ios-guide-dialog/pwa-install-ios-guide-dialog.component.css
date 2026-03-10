@@ -11,8 +11,8 @@
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  background: rgba(13, 110, 253, 0.15);
-  color: #0d6efd;
+  background: rgba(var(--bs-primary-rgb), 0.15);
+  color: var(--bs-primary);
   display: flex;
   align-items: center;
   justify-content: center;

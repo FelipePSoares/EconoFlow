@@ -5,8 +5,13 @@
 .dialog-header h2 {
     display: inline-block;
     margin: 8px 24px;
+    color: var(--app-text-color);
 }
 
 .project-suffix {
   font-weight: 500;
+}
+
+.dialog-header button {
+  color: var(--app-text-color);
 }

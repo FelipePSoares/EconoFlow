@@ -4,16 +4,67 @@
   --green-glow: rgba(14, 159, 110, 0.22);
   --navy: #061e33;
   --navy-mid: #0c3350;
-  --ink: #0d2137;
-  --ink-soft: rgba(13, 33, 55, 0.68);
-  --surface: #f5f8fc;
-  --white: #ffffff;
-  --border: rgba(13, 33, 55, 0.1);
-  --card-shadow: 0 4px 24px rgba(6, 30, 51, 0.09);
+  --ink: var(--app-text-color);
+  --ink-soft: var(--app-muted-text);
+  --surface: var(--app-bg-color);
+  --white: var(--app-surface);
+  --border: var(--app-border-color);
+  --card-shadow: var(--app-shadow-sm);
+  --hero-bg: linear-gradient(140deg, #061e33 0%, #0c3350 55%, #0f4a6a 100%);
+  --hero-blob-1: radial-gradient(circle, rgba(14, 159, 110, 0.18), transparent 70%);
+  --hero-blob-2: radial-gradient(circle, rgba(15, 74, 106, 0.5), transparent 70%);
+  --hero-title: #ffffff;
+  --hero-lead: rgba(235, 247, 255, 0.78);
+  --hero-outline-bg: rgba(255, 255, 255, 0.07);
+  --hero-outline-border: rgba(255, 255, 255, 0.28);
+  --hero-outline-text: rgba(255, 255, 255, 0.9);
+  --hero-outline-hover-bg: rgba(255, 255, 255, 0.14);
+  --hero-frame-bg: rgba(255, 255, 255, 0.06);
+  --hero-frame-border: rgba(255, 255, 255, 0.14);
+  --hero-stat-bg: #ffffff;
+  --feature-overlay: linear-gradient(to bottom, transparent 40%, rgba(6, 30, 51, 0.35) 100%);
+  --charts-bg: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+  --charts-title: #ffffff;
+  --charts-text: rgba(235, 247, 255, 0.74);
+  --charts-item: rgba(235, 247, 255, 0.88);
+  --charts-edge: var(--navy);
+  --mobile-bg: linear-gradient(135deg, #ffffff 0%, #eef4ff 100%);
+  --mobile-copy-title: var(--ink);
+  --mobile-copy-text: var(--ink-soft);
+  --mobile-border: rgba(13, 33, 55, 0.1);
   display: block;
   background: var(--surface);
   font-family: 'DM Sans', sans-serif;
   color: var(--ink);
+}
+
+:host-context([data-theme='dark']) {
+  --green-glow: rgba(14, 159, 110, 0.18);
+  --navy: #10273d;
+  --navy-mid: #184363;
+  --card-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+  --hero-bg: linear-gradient(140deg, #10273d 0%, #184363 55%, #1e5f82 100%);
+  --hero-blob-1: radial-gradient(circle, rgba(77, 167, 214, 0.22), transparent 70%);
+  --hero-blob-2: radial-gradient(circle, rgba(14, 159, 110, 0.18), transparent 70%);
+  --hero-title: #f4f9ff;
+  --hero-lead: rgba(222, 236, 247, 0.82);
+  --hero-outline-bg: rgba(8, 23, 37, 0.5);
+  --hero-outline-border: rgba(143, 209, 234, 0.32);
+  --hero-outline-text: #dcebf6;
+  --hero-outline-hover-bg: rgba(15, 39, 60, 0.72);
+  --hero-frame-bg: rgba(6, 20, 32, 0.52);
+  --hero-frame-border: rgba(143, 209, 234, 0.24);
+  --hero-stat-bg: var(--app-surface);
+  --feature-overlay: linear-gradient(to bottom, transparent 32%, rgba(8, 18, 30, 0.58) 100%);
+  --charts-bg: linear-gradient(135deg, #122a42 0%, #1a4a6c 100%);
+  --charts-title: #f4f9ff;
+  --charts-text: rgba(219, 234, 246, 0.8);
+  --charts-item: rgba(219, 234, 246, 0.9);
+  --charts-edge: #122a42;
+  --mobile-bg: linear-gradient(135deg, #152235 0%, #1a2e46 100%);
+  --mobile-copy-title: #edf5fc;
+  --mobile-copy-text: #b8c8d8;
+  --mobile-border: rgba(143, 209, 234, 0.2);
 }
 
 /* ── Layout ─────────────────────────────────────────── */
@@ -29,7 +80,7 @@
 /* ── Hero ────────────────────────────────────────────── */
 .hero {
   position: relative;
-  background: linear-gradient(140deg, #061e33 0%, #0c3350 55%, #0f4a6a 100%);
+  background: var(--hero-bg);
   border-radius: 28px;
   padding: 3rem 3rem 3rem 3.5rem;
   overflow: hidden;
@@ -48,7 +99,7 @@
   .hero::before {
     width: 420px;
     height: 420px;
-    background: radial-gradient(circle, rgba(14, 159, 110, 0.18), transparent 70%);
+    background: var(--hero-blob-1);
     top: -120px;
     left: -80px;
   }
@@ -56,7 +107,7 @@
   .hero::after {
     width: 320px;
     height: 320px;
-    background: radial-gradient(circle, rgba(15, 74, 106, 0.5), transparent 70%);
+    background: var(--hero-blob-2);
     bottom: -100px;
     right: -60px;
   }
@@ -113,14 +164,13 @@
   font-family: 'Playfair Display', Georgia, serif;
   font-size: clamp(2rem, 3.8vw, 3rem);
   font-weight: 700;
-  color: #ffffff;
+  color: var(--hero-title);
   line-height: 1.18;
   margin-bottom: 1.1rem;
-  letter-spacing: -0.01em;
 }
 
 .hero-lead {
-  color: rgba(235, 247, 255, 0.78);
+  color: var(--hero-lead);
   font-size: 1.05rem;
   line-height: 1.65;
   max-width: 38rem;
@@ -158,9 +208,9 @@
   }
 
 .btn-hero-outline {
-  background: rgba(255,255,255,0.07);
-  color: rgba(255,255,255,0.9);
-  border: 1px solid rgba(255,255,255,0.28);
+  background: var(--hero-outline-bg);
+  color: var(--hero-outline-text);
+  border: 1px solid var(--hero-outline-border);
   border-radius: 12px;
   padding: 0.8rem 1.6rem;
   font-family: 'DM Sans', sans-serif;
@@ -175,9 +225,9 @@
 }
 
   .btn-hero-outline:hover {
-    background: rgba(255,255,255,0.14);
+    background: var(--hero-outline-hover-bg);
     transform: translateY(-2px);
-    color: #fff;
+    color: var(--hero-outline-text);
   }
 
 .hero-visual {
@@ -186,8 +236,8 @@
 
 .hero-visual-frame {
   border-radius: 20px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.14);
+  background: var(--hero-frame-bg);
+  border: 1px solid var(--hero-frame-border);
   padding: 0.65rem;
   box-shadow: 0 24px 48px rgba(0,0,0,0.3);
 }
@@ -203,7 +253,7 @@
   position: absolute;
   bottom: -14px;
   left: -18px;
-  background: white;
+  background: var(--hero-stat-bg);
   border-radius: 14px;
   padding: 0.6rem 1rem;
   display: flex;
@@ -271,7 +321,7 @@
 .feature-img-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, transparent 40%, rgba(6,30,51,0.35) 100%);
+  background: var(--feature-overlay);
 }
 
 .feature-body {
@@ -307,45 +357,6 @@
   margin: 0;
 }
 
-/* ── Charts CTA ──────────────────────────────────────── */
-.charts-section {
-  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
-  border-radius: 24px;
-  padding: 2rem 2.5rem;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 2rem;
-  align-items: center;
-  box-shadow: 0 12px 40px rgba(6, 30, 51, 0.22);
-  position: relative;
-  overflow: hidden;
-}
-
-  .charts-section::before {
-    content: '';
-    position: absolute;
-    width: 280px;
-    height: 280px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(14,159,110,0.15), transparent 70%);
-    top: -80px;
-    right: 80px;
-    pointer-events: none;
-  }
-
-  .charts-section h2 {
-    font-family: 'Playfair Display', serif;
-    color: #fff;
-    font-size: 1.55rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .charts-section > .charts-copy > p {
-    color: rgba(235,247,255,0.74);
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
-  }
-
 .charts-list {
   list-style: none;
   padding: 0;
@@ -356,7 +367,7 @@
 }
 
   .charts-list li {
-    color: rgba(235,247,255,0.88);
+    color: var(--charts-item);
     font-size: 0.86rem;
     display: flex;
     align-items: center;
@@ -382,7 +393,6 @@
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  white-space: nowrap;
   transition: transform 0.18s, box-shadow 0.18s;
   box-shadow: 0 6px 24px rgba(14,159,110,0.35);
   text-decoration: none;
@@ -458,22 +468,6 @@
     display: block;
   }
 
-/* ── Scroll Animations ───────────────────────────────── */
-/* Moved to global styles.css — see scroll-animations.css  */
-
-/* Keyframe for hero badge pulse */
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.4;
-    transform: scale(1.4);
-  }
-}
-
 /* Touch feedback on mobile */
 @media (hover: none) {
   .feature-card:active {
@@ -512,7 +506,7 @@
 
 /* ── Charts section with preview image ──────────────── */
 .charts-section {
-  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+  background: var(--charts-bg);
   border-radius: 24px;
   padding: 2rem 0 2rem 2.5rem;
   display: grid;
@@ -545,13 +539,13 @@
 
 .charts-section h2 {
   font-family: 'Playfair Display', serif;
-  color: #fff;
+  color: var(--charts-title);
   font-size: 1.55rem;
   margin-bottom: 0.5rem;
 }
 
 .charts-section > .charts-copy > p {
-  color: rgba(235,247,255,0.74);
+  color: var(--charts-text);
   font-size: 0.9rem;
   margin-bottom: 1rem;
 }
@@ -587,14 +581,14 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(to right, var(--navy) 0%, transparent 30%);
+    background: linear-gradient(to right, var(--charts-edge) 0%, transparent 30%);
     z-index: 1;
     pointer-events: none;
   }
 
 /* ── Mobile showcase section ─────────────────────────── */
 .mobile-section {
-  background: linear-gradient(135deg, #ffffff 0%, #eef4ff 100%);
+  background: var(--mobile-bg);
   border: 1px solid var(--border);
   border-radius: 24px;
   padding: 2.5rem;
@@ -622,12 +616,12 @@
 .mobile-copy h2 {
   font-family: 'Playfair Display', serif;
   font-size: 1.55rem;
-  color: var(--ink);
+  color: var(--mobile-copy-title);
   margin-bottom: 0.6rem;
 }
 
 .mobile-copy p {
-  color: var(--ink-soft);
+  color: var(--mobile-copy-text);
   font-size: 0.93rem;
   line-height: 1.6;
   margin: 0;
@@ -650,7 +644,7 @@
     width: 100%;
     border-radius: 24px;
     display: block;
-    border: 3px solid rgba(13, 33, 55, 0.1);
+    border: 3px solid var(--mobile-border);
   }
 
 /* ── Responsive ──────────────────────────────────────── */

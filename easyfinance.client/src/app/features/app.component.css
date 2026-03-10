@@ -11,6 +11,15 @@
   border-bottom: 1px solid #f1d9a6;
 }
 
+.public-theme-toggle {
+  min-width: 104px;
+}
+
+.public-theme-toggle i {
+  width: 1rem;
+  text-align: center;
+}
+
 .update-banner-content {
   min-height: 52px;
   display: flex;
@@ -60,4 +69,10 @@
     align-items: flex-start;
     flex-direction: column;
   }
+}
+
+:root[data-theme='dark'] .update-banner {
+  background: #2c2414;
+  border-bottom-color: #6f5a2a;
+  color: #f4e2bf;
 }

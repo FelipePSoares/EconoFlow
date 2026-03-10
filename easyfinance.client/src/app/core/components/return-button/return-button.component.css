@@ -7,6 +7,13 @@
   border-radius: 50%;
   width: 50px;
   height: 50px;
+  color: var(--app-text-color);
+  border-color: var(--app-border-color);
+  background-color: transparent;
+}
+
+.btn-return:hover {
+  background-color: rgba(148, 163, 184, 0.18);
 }
 
 @media (min-width: 576px) {
