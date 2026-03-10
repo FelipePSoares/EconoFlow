@@ -4,7 +4,9 @@
   "scripts": {
     "ng": "ng",
     "start": "run-script-os",
+    "prebuild": "npm run generate:sitemap",
     "build": "ng build",
+    "generate:sitemap": "node ./scripts/generate-sitemap.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "start:windows": "ng serve --host=127.0.0.1",

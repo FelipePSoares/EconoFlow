@@ -3,10 +3,8 @@
 /use-terms
 /contact-us
 /offline
-/how-to-create-budget
 /pt
 /pt/privacy-policy
 /pt/use-terms
 /pt/contact-us
 /pt/offline
-/pt/how-to-create-budget

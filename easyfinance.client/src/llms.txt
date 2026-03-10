@@ -1,0 +1,22 @@
+# EconoFlow
+
+> EconoFlow is an open-source web application for personal and collaborative finance management.
+
+## Public Pages
+- [Home](https://econoflow.pt/): Product overview, feature highlights, and account creation entry points.
+- [Privacy Policy](https://econoflow.pt/privacy-policy): Personal data handling, legal rights, and GDPR alignment.
+- [Terms of Use](https://econoflow.pt/use-terms): Service rules, account responsibilities, and platform limitations.
+- [Contact Us](https://econoflow.pt/contact-us): Public contact form for support questions and feedback.
+- [Offline Mode](https://econoflow.pt/offline): Offline fallback experience with retry guidance.
+
+## Public Pages (Portuguese)
+- [Home (PT)](https://econoflow.pt/pt): Portuguese localized page for Product overview, feature highlights, and account creation entry points.
+- [Privacy Policy (PT)](https://econoflow.pt/pt/privacy-policy): Portuguese localized page for Personal data handling, legal rights, and GDPR alignment.
+- [Terms of Use (PT)](https://econoflow.pt/pt/use-terms): Portuguese localized page for Service rules, account responsibilities, and platform limitations.
+- [Contact Us (PT)](https://econoflow.pt/pt/contact-us): Portuguese localized page for Public contact form for support questions and feedback.
+- [Offline Mode (PT)](https://econoflow.pt/pt/offline): Portuguese localized page for Offline fallback experience with retry guidance.
+
+## Machine-Readable Endpoints
+- [Sitemap](https://econoflow.pt/sitemap.xml): XML sitemap generated from public routes and source update history.
+- [LLMs Full](https://econoflow.pt/llms-full.txt): Full route catalog including last modified timestamps.
+- [Robots](https://econoflow.pt/robots.txt): Crawl allow/disallow directives for the site.
