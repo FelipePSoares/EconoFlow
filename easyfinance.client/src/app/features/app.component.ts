@@ -348,7 +348,7 @@ export class AppComponent {
 
     const defaultProjectId = selectedProjectId || await this.getCurrentUserDefaultProjectId();
     const targetCommands = defaultProjectId
-      ? ['/', 'projects', defaultProjectId, 'overview', 'annual']
+      ? ['/', 'projects', defaultProjectId]
       : ['/', 'projects'];
 
     await this.router.navigate(targetCommands, { replaceUrl: true });
