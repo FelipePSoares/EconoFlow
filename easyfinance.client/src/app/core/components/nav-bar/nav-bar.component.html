@@ -7,7 +7,7 @@
            class="me-2"
            width="32"
            height="32">
-      <span class="fw-bold text-primary fs-4">EconoFlow</span>
+      <span class="fw-bold brand-wordmark fs-4">EconoFlow</span>
     </a>
 
     <div class="d-flex">
@@ -94,6 +94,23 @@
               </li>
             }
             <li>
+              <a class="dropdown-item py-2" data-testid="theme-toggle-navbar-desktop" (click)="toggleTheme()">
+                <span>
+                  <i class="bi bi-circle-half me-2"></i>
+                  {{ 'Theme' | translate }}
+                </span>
+                <span class="badge rounded-pill"
+                      [class.text-bg-dark]="isDarkTheme$ | async"
+                      [class.text-bg-secondary]="!(isDarkTheme$ | async)">
+                  {{ (isDarkTheme$ | async) ? ('ThemeDark' | translate) : ('ThemeLight' | translate) }}
+                </span>
+              </a>
+            </li>
+            <li>
+              <p class="dropdown-item-hint mb-0 px-3 pb-2">{{ 'ThemeDescription' | translate }}</p>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
               <button type="button"
                       class="dropdown-item py-2 d-flex align-items-center justify-content-between privacy-toggle-item"
                       data-testid="privacy-mode-navbar-toggle-desktop"
@@ -154,6 +171,23 @@
               </a>
             </li>
           }
+          <li class="nav-item">
+            <button type="button"
+                    class="nav-link px-3 py-2 rounded-2 w-100 text-start d-flex align-items-center justify-content-between mobile-theme-toggle"
+                    data-testid="theme-toggle-navbar-mobile"
+                    (click)="toggleTheme()">
+              <span>
+                <i class="bi bi-circle-half me-2"></i>
+                {{ 'Theme' | translate }}
+              </span>
+              <span class="badge rounded-pill"
+                    [class.text-bg-dark]="isDarkTheme$ | async"
+                    [class.text-bg-secondary]="!(isDarkTheme$ | async)">
+                {{ (isDarkTheme$ | async) ? ('ThemeDark' | translate) : ('ThemeLight' | translate) }}
+              </span>
+            </button>
+            <p class="mobile-theme-hint text-muted small px-3 mb-2">{{ 'ThemeDescription' | translate }}</p>
+          </li>
           <li class="nav-item">
             <button type="button"
                     class="nav-link px-3 py-2 rounded-2 w-100 text-start d-flex align-items-center justify-content-between mobile-privacy-toggle"

@@ -27,7 +27,7 @@
 
 .slide {
   height: 115px;
-  color: #333;
+  color: var(--app-text-color);
   display: flex;
   align-items: center;
 }
@@ -53,7 +53,7 @@
   text-align: start;
   align-items: start;
   justify-content: start;
-  color: #000;
+  color: var(--app-text-color);
 }
 
 .card-title{
@@ -297,4 +297,35 @@
       transform: scale(0.97);
     }
   }
+}
+
+.latest-transactions-table {
+  background-color: transparent;
+}
+
+.latest-transactions-table .mat-mdc-header-cell,
+.latest-transactions-table .mat-mdc-cell {
+  border-bottom-color: var(--app-border-color);
+}
+
+:host-context([data-theme='dark']) .latest-transactions-table {
+  background-color: var(--app-surface);
+  color: var(--app-text-color);
+}
+
+:host-context([data-theme='dark']) .latest-transactions-table .mat-mdc-header-cell,
+:host-context([data-theme='dark']) .latest-transactions-table .mat-mdc-cell,
+:host-context([data-theme='dark']) .latest-transactions-table .mdc-data-table__header-cell,
+:host-context([data-theme='dark']) .latest-transactions-table .mdc-data-table__cell {
+  color: var(--app-text-color);
+  border-bottom-color: var(--app-border-color);
+}
+
+:host-context([data-theme='dark']) .latest-transactions-table .mat-mdc-row:hover,
+:host-context([data-theme='dark']) .latest-transactions-table .hover-row:hover {
+  background-color: rgba(148, 163, 184, 0.12);
+}
+
+:host-context([data-theme='dark']) .latest-transactions-table .text-secondary {
+  color: var(--app-muted-text) !important;
 }

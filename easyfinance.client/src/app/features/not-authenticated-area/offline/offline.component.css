@@ -7,22 +7,25 @@
 
 .offline-card {
   width: min(520px, 100%);
-  background: #fff;
-  border: 1px solid #dfe7f3;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border-color);
   border-radius: 14px;
-  box-shadow: 0 12px 40px rgba(14, 31, 53, 0.09);
+  box-shadow: var(--app-shadow-sm);
   padding: 1.5rem;
   text-align: center;
+  color: var(--app-text-color);
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
 }
 
 .offline-card h1 {
   margin-bottom: 0.75rem;
   font-size: 1.5rem;
+  color: var(--app-brand-wordmark);
 }
 
 .offline-card p {
   margin: 0;
-  color: #55657a;
+  color: var(--app-muted-text);
 }
 
 .offline-actions {

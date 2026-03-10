@@ -11,6 +11,7 @@ import { StickyNotificationsComponent } from '../sticky-notifications/sticky-not
 import { PrivacyModeService } from '../../services/privacy-mode.service';
 import { PwaInstallService } from '../../services/pwa-install.service';
 import { FeatureFlag } from '../../enums/feature-flag';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-nav-bar',
@@ -30,6 +31,7 @@ export class NavBarComponent {
   selectedProject$: Observable<Project | undefined>;
   readonly logoLink$: Observable<string[]>;
   privacyModeEnabled$ = this.privacyModeService.isEnabled$;
+  isDarkTheme$ = this.themeService.isDarkTheme$;
   canInstall$: Observable<boolean>;
 
   constructor(
@@ -37,7 +39,8 @@ export class NavBarComponent {
     private projectService: ProjectService,
     private router: Router,
     private privacyModeService: PrivacyModeService,
-    private pwaInstallService: PwaInstallService
+    private pwaInstallService: PwaInstallService,
+    private themeService: ThemeService
   ) {
     this.fullName$ = userService.loggedUser$.pipe(map(user => user.fullName));
     this.selectedProject$ = projectService.selectedUserProject$.pipe(map(up => up?.project));
@@ -66,6 +69,10 @@ export class NavBarComponent {
 
   togglePrivacyMode(): void {
     this.privacyModeService.toggle();
+  }
+
+  toggleTheme(): void {
+    this.themeService.toggleTheme();
   }
 
   installApp(): void {

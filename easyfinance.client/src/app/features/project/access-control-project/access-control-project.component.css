@@ -2,12 +2,12 @@
   --green: #0e9f6e;
   --green-glow: rgba(14, 159, 110, 0.15);
   --navy: #061e33;
-  --ink: #0d2137;
-  --ink-soft: rgba(13, 33, 55, 0.6);
-  --surface: #f5f8fc;
-  --white: #ffffff;
-  --border: rgba(13, 33, 55, 0.1);
-  --shadow: 0 4px 24px rgba(6, 30, 51, 0.08);
+  --ink: var(--app-text-color);
+  --ink-soft: var(--app-muted-text);
+  --surface: var(--app-surface-alt);
+  --white: var(--app-surface);
+  --border: var(--app-border-color);
+  --shadow: var(--app-shadow-sm);
   --radius: 20px;
   display: block;
   font-family: 'DM Sans', 'Roboto', sans-serif;
@@ -203,7 +203,7 @@
 }
 
   .user-row:hover {
-    background: #f8fbff;
+    background: var(--app-surface-alt);
   }
 
   .user-row td {
@@ -318,7 +318,7 @@
   }
 
   .user-mobile-card:active {
-    background: #f8fbff;
+    background: var(--app-surface-alt);
   }
 
 .user-mobile-top {

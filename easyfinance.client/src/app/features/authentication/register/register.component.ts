@@ -13,6 +13,7 @@ import { passwordMatchValidator } from '../../../core/utils/custom-validators/pa
 import { ApiErrorResponse } from '../../../core/models/error';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { GlobalService } from '../../../core/services/global.service';
+import { ThemeService } from '../../../core/services/theme.service';
 
 @Component({
     selector: 'app-register',
@@ -46,8 +47,15 @@ export class RegisterComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private errorMessageService: ErrorMessageService,
-    private globalService: GlobalService
+    private globalService: GlobalService,
+    private themeService: ThemeService
   ) {
+  }
+
+  get logoSrc(): string {
+    return this.themeService.currentTheme === 'dark'
+      ? '/assets/images/logo-without-background-300-min-dark-theme.png'
+      : '/assets/images/logo-without-background-300-min.png';
   }
 
   ngOnInit() {
