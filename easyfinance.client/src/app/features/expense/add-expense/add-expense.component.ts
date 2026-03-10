@@ -85,6 +85,7 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
 
   private currentDate!: Moment;
   private editingExpense: ExpenseDto | null = null;
+  private initialCategoryId: string | null = null;
   deductibleProofAttachment: ExpenseAttachmentDto | null = null;
   pendingDeductibleProofAttachment: ExpenseAttachmentDto | null = null;
   pendingDeductibleProofFileName: string | null = null;
@@ -121,6 +122,9 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
 
   @Input()
   inlineMode = false;
+
+  @Input()
+  moveMode = false;
 
   @Output()
   saved = new EventEmitter<ExpenseDto>();
@@ -165,6 +169,9 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
     if (this.categoryId) {
       this.categoryIdControl?.setValue(this.categoryId);
     }
+    this.initialCategoryId = this.editingExpense
+      ? (this.categoryIdControl?.value ?? this.categoryId ?? null)
+      : null;
 
     this.updateDateAndAmountControlState();
 
@@ -244,14 +251,11 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
   }
 
   get showCategorySelector(): boolean {
-    return !this.categoryId;
+    return !this.categoryId || (this.moveMode && this.isEditing);
   }
 
   get canUploadDeductibleProof(): boolean {
-    if (this.categoryId)
-      return true;
-
-    return !!this.expenseForm?.get('categoryId')?.value;
+    return !!this.getSelectedCategoryId();
   }
 
   get proofProgressWidthClass(): string {
@@ -273,7 +277,7 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
     this.httpErrors = false;
     this.errors = {};
 
-    const selectedCategoryId = this.categoryId ?? this.categoryIdControl?.value;
+    const selectedCategoryId = this.getSelectedCategoryId();
     if (!selectedCategoryId) {
       return;
     }
@@ -292,6 +296,11 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
 
     try {
       if (this.editingExpense) {
+        const sourceCategoryId = this.initialCategoryId ?? selectedCategoryId;
+        if (!sourceCategoryId) {
+          return;
+        }
+
         const currentPatchModel = ExpensePatchModel.fromExpense(this.editingExpense);
         const updatedPatchModel = structuredClone(currentPatchModel);
         updatedPatchModel.name = name;
@@ -306,7 +315,7 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
         const patch = compare(currentPatchModel, updatedPatchModel);
 
         if (patch.length > 0) {
-          const updateResponse = await firstValueFrom(this.expenseService.update(this.projectId, selectedCategoryId, this.editingExpense.id, patch));
+          const updateResponse = await firstValueFrom(this.expenseService.update(this.projectId, sourceCategoryId, this.editingExpense.id, patch));
           savedExpense = ExpenseDto.fromExpense(updateResponse);
         } else {
           savedExpense = structuredClone(this.editingExpense);
@@ -317,10 +326,25 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
         }
 
         if (!isDeductible && this.deductibleProofAttachment) {
-          await this.deleteDeductibleProofAsync(selectedCategoryId, savedExpense.id, this.deductibleProofAttachment.id);
+          await this.deleteDeductibleProofAsync(sourceCategoryId, savedExpense.id, this.deductibleProofAttachment.id);
           savedExpense.attachments = (savedExpense.attachments ?? [])
             .filter(attachment => attachment.id !== this.deductibleProofAttachment?.id);
           this.deductibleProofAttachment = null;
+        }
+
+        if (sourceCategoryId !== selectedCategoryId) {
+          const moved = await firstValueFrom(this.expenseService.moveExpense(
+            this.projectId,
+            sourceCategoryId,
+            savedExpense.id,
+            selectedCategoryId
+          ));
+
+          if (!moved) {
+            throw new Error('Expense move failed.');
+          }
+
+          this.snackBar.openSuccessSnackbar(this.translateService.instant('MovedSuccess'));
         }
 
         if (this.pendingDeductibleProofAttachment) {
@@ -394,7 +418,7 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const selectedCategoryId = this.categoryId ?? this.categoryIdControl?.value;
+    const selectedCategoryId = this.getSelectedCategoryId();
     if (!selectedCategoryId) {
       this.categoryIdControl?.markAsTouched();
       inputElement.value = '';
@@ -418,7 +442,7 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
     if (!this.editingExpense || !this.deductibleProofAttachment)
       return;
 
-    const selectedCategoryId = this.categoryId ?? this.categoryIdControl?.value;
+    const selectedCategoryId = this.getSelectedCategoryId();
     if (!selectedCategoryId)
       return;
 
@@ -440,7 +464,7 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
     if (!this.editingExpense?.id || !this.deductibleProofAttachment?.id)
       return null;
 
-    const selectedCategoryId = this.categoryId ?? this.categoryIdControl?.value;
+    const selectedCategoryId = this.getSelectedCategoryId();
     if (!selectedCategoryId)
       return null;
 
@@ -491,6 +515,7 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
 
       this.editingExpense = loadedExpense;
       this.deductibleProofAttachment = this.getDeductibleProofAttachment(this.editingExpense);
+      this.initialCategoryId = this.categoryId ?? this.categoryIdControl?.value ?? null;
 
       this.expenseForm.patchValue({
         categoryId: this.categoryId,
@@ -693,12 +718,62 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
     this.httpErrors = true;
 
     if (error?.errors) {
-      this.errors = error.errors;
+      this.errors = {};
+      const generalErrors: string[] = [];
+
+      Object.entries(error.errors).forEach(([key, value]) => {
+        const normalizedKey = key.replace(/^Items\.\d+\./, '').replace(/^Items\./, '');
+        const formControlName = this.mapErrorKeyToFormControl(normalizedKey);
+
+        if (formControlName) {
+          this.errors[formControlName] = value;
+          return;
+        }
+
+        generalErrors.push(...value);
+      });
+
+      if (generalErrors.length > 0) {
+        this.errors['general'] = generalErrors;
+      }
+
+      if (Object.keys(this.errors).length === 0) {
+        this.errors = { general: ['GenericError'] };
+      }
+
       this.errorMessageService.setFormErrors(this.expenseForm, this.errors);
       return;
     }
 
     this.errors = { general: ['GenericError'] };
+  }
+
+  private mapErrorKeyToFormControl(errorKey: string): string | null {
+    const normalizedKey = errorKey.trim().toLowerCase();
+
+    switch (normalizedKey) {
+      case 'targetcategoryid':
+      case 'sourcecategoryid':
+      case 'categoryid':
+        return 'categoryId';
+      case 'name':
+        return 'name';
+      case 'date':
+        return 'date';
+      case 'amount':
+        return 'amount';
+      case 'budget':
+        return 'budget';
+      case 'isdeductible':
+        return 'isDeductible';
+      default:
+        return Object.keys(this.expenseForm.controls)
+          .find(controlName => controlName.toLowerCase() === normalizedKey) ?? null;
+    }
+  }
+
+  private getSelectedCategoryId(): string | null {
+    return this.categoryIdControl?.value ?? this.categoryId ?? null;
   }
 }
 

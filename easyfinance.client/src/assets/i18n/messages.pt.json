@@ -68,6 +68,7 @@
   "ButtonRemove": "Remover",
   "ButtonDownload": "Baixar",
   "ButtonSave": "Salvar",
+  "ButtonMove": "Mover",
   "ButtonDeleteAccount": "Deletar Conta",
   "ButtonClonePreviousBudget": "Clonar Orçamento Anterior",
   "ButtonArchive": "Arquivar",
@@ -126,6 +127,9 @@
   "DeductibleProofDeleteFailed": "Falha ao remover o comprovante dedutível. Tente novamente.",
   "DeductibleProofInvalidFileType": "Tipo de arquivo não suportado. Use PDF ou imagem.",
   "DeductibleProofFileSizeExceeded": "Arquivo muito grande. O tamanho máximo é 10 MB.",
+  "Can't add an expense item with different year or month from expense": "Não é possível adicionar um item de despesa com ano ou mês diferente da despesa.",
+  "Category not found.": "Categoria não encontrada.",
+  "Expense not found.": "Despesa não encontrada.",
 
   "how-to-create-budget": "teste <b>texto</b>",
 
@@ -259,6 +263,7 @@
   "AreYouSureYouWantDeleteExpense": "Você tem certeza que quer deletar a despesa <b>{{value}}</b>?",
   "CreateExpense": "Criar Despesa",
   "CreatedSuccess": "Criado com Sucesso!",
+  "MovedSuccess": "Movido com sucesso!",
   "DeletedSuccess": "Deletado com Sucesso!",
   "AddAndEdit": "Add/Edit",
   "ListCategories": "Categorias",
