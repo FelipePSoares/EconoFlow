@@ -235,13 +235,13 @@ namespace EasyFinance.Application.Features.ProjectService
             if (!projectExists)
                 throw new KeyNotFoundException(ValidationMessages.ProjectNotFound);
 
-            var totalIncomeTask = this.unitOfWork.ProjectRepository
+            var totalIncome = await this.unitOfWork.ProjectRepository
                 .NoTrackable()
                 .Where(project => project.Id == projectId)
                 .SelectMany(project => project.Incomes.Where(income => income.Date >= from && income.Date < to))
                 .SumAsync(income => (decimal?)income.Amount);
 
-            var expensesTask = this.unitOfWork.ProjectRepository
+            var expenses = await this.unitOfWork.ProjectRepository
                 .NoTrackable()
                 .IgnoreQueryFilters()
                 .Where(project => project.Id == projectId)
@@ -250,15 +250,13 @@ namespace EasyFinance.Application.Features.ProjectService
                 .Include(expense => expense.Items)
                 .ToListAsync();
 
-            var latestTransactionsTask = this.GetLatestTransactionsInternalAsync(projectId, numberOfTransactions, from, to);
-
-            await Task.WhenAll(totalIncomeTask, expensesTask, latestTransactionsTask);
+            var latestTransactions = await this.GetLatestTransactionsInternalAsync(projectId, numberOfTransactions, from, to);
 
             var response = new ProjectOverviewSummaryResponseDTO
             {
-                TotalIncome = totalIncomeTask.Result ?? 0m,
-                TotalExpense = expensesTask.Result.Sum(expense => expense.Amount),
-                LatestTransactions = latestTransactionsTask.Result
+                TotalIncome = totalIncome ?? 0m,
+                TotalExpense = expenses.Sum(expense => expense.Amount),
+                LatestTransactions = latestTransactions
             };
 
             return AppResponse<ProjectOverviewSummaryResponseDTO>.Success(response);
@@ -266,7 +264,7 @@ namespace EasyFinance.Application.Features.ProjectService
 
         private async Task<ICollection<TransactionResponseDTO>> GetLatestTransactionsInternalAsync(Guid projectId, int numberOfTransactions, DateOnly? from = null, DateOnly? to = null)
         {
-            var incomesTask = this.unitOfWork.ProjectRepository
+            var incomes = await this.unitOfWork.ProjectRepository
                 .NoTrackable()
                 .Where(project => project.Id == projectId)
                 .SelectMany(project => project.Incomes
@@ -287,7 +285,7 @@ namespace EasyFinance.Application.Features.ProjectService
                     }))
                 .ToListAsync();
 
-            var expensesTask = this.unitOfWork.ProjectRepository
+            var expenses = await this.unitOfWork.ProjectRepository
                 .NoTrackable()
                 .IgnoreQueryFilters()
                 .Where(project => project.Id == projectId)
@@ -310,7 +308,7 @@ namespace EasyFinance.Application.Features.ProjectService
                     })))
                 .ToListAsync();
 
-            var expenseItemsTask = this.unitOfWork.ProjectRepository
+            var expenseItems = await this.unitOfWork.ProjectRepository
                 .NoTrackable()
                 .IgnoreQueryFilters()
                 .Where(project => project.Id == projectId)
@@ -334,11 +332,9 @@ namespace EasyFinance.Application.Features.ProjectService
                         }))))
                 .ToListAsync();
 
-            await Task.WhenAll(incomesTask, expensesTask, expenseItemsTask);
-
-            var result = incomesTask.Result
-                .Concat(expensesTask.Result)
-                .Concat(expenseItemsTask.Result)
+            var result = incomes
+                .Concat(expenses)
+                .Concat(expenseItems)
                 .OrderByDescending(transaction => transaction.Date)
                 .Take(numberOfTransactions)
                 .ToList();
