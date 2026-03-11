@@ -87,11 +87,11 @@ describe('EconoFlow - user account Tests', () => {
       cy.intercept('DELETE', '**/AccessControl*').as('deleteAccount')
       cy.visit('/logout')
       cy.register(uniqueUser.username, uniqueUser.password)
-      cy.visit('/user')
-      cy.get('.btn').contains('Delete Account').click();
+      cy.visit('/user/account')
+      cy.get('button.danger-zone-delete').should('be.visible').click();
       cy.wait('@deleteAccount').then((interception) => {
         expect(interception?.response?.statusCode).to.equal(202)
-        cy.get('app-confirm-dialog button').contains('Delete').click();
+        cy.get('app-confirm-dialog button[mat-raised-button]').click();
 
         cy.wait('@deleteAccount').then((interception2) => {
           expect(interception2?.response?.statusCode).to.equal(200);
@@ -112,11 +112,11 @@ describe('EconoFlow - user account Tests', () => {
 
       cy.visit('/logout')
       cy.register(uniqueUser.username, uniqueUser.password)
-      cy.visit('/user')
-      cy.get('.btn').contains('Delete Account').click();
+      cy.visit('/user/account')
+      cy.get('button.danger-zone-delete').should('be.visible').click();
       cy.wait('@deleteAccount').then((interception) => {
         expect(interception?.response?.statusCode).to.equal(202)
-        cy.get('app-confirm-dialog button').contains('Cancel').click();
+        cy.get('app-confirm-dialog button[mat-stroked-button]').click();
 
         cy.visit('/')
         cy.url().should('not.contain', 'login')
