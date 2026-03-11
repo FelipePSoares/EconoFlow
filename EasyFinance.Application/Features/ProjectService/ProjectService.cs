@@ -212,103 +212,138 @@ namespace EasyFinance.Application.Features.ProjectService
 
         public async Task<AppResponse<ICollection<TransactionResponseDTO>>> GetLatestAsync(Guid projectId, int numberOfTransactions)
         {
-            var incomes = await unitOfWork.ProjectRepository
-                .NoTrackable()
-                .Where(p => p.Id == projectId)
-                .SelectMany(p => p.Incomes
-                    .Where(i => i.Amount > 0)
-                    .OrderByDescending(i => i.Date)
-                    .Take(numberOfTransactions)
-                    .Select(i => new {
-                        i.Id,
-                        i.Name,
-                        i.Date,
-                        i.Amount
-                    })
-                ).ToListAsync();
-
-            var expenses = await unitOfWork.ProjectRepository
-                .NoTrackable()
-                .IgnoreQueryFilters() // this removes filters from Projects + related Categories
-                .Where(p => p.Id == projectId)
-                .SelectMany(p => p.Categories.SelectMany(c => c.Expenses
-                    .Where(e => e.Amount > 0 && e.Items.Count == 0)
-                    .OrderByDescending(i => i.Date)
-                    .Take(numberOfTransactions)
-                    .Select(e => new {
-                        e.Id,
-                        e.Name,
-                        e.Date,
-                        e.Amount,
-                        CategoryName = c.Name
-                    })
-                )).ToListAsync();
-
-            var expenseItems = await unitOfWork.ProjectRepository
-                .NoTrackable()
-                .IgnoreQueryFilters() // this removes filters from Projects + related Categories
-                .Where(p => p.Id == projectId)
-                .SelectMany(p => p.Categories.SelectMany(c => c.Expenses
-                    .Where(e => e.Items.Count > 0)
-                    .OrderByDescending(i => i.Date)
-                    .Take(numberOfTransactions)
-                    .SelectMany(e => e.Items
-                        .Where(i => i.Amount > 0)
-                        .Select(i => new {
-                                i.Id,
-                                i.Name,
-                                i.Date,
-                                i.Amount,
-                                CategoryName = c.Name,
-                                ParentExpenseName = e.Name
-                            })
-                    ))
-                ).ToListAsync();
-
-            var result = new List<TransactionResponseDTO>();
-            
-            result.AddRange(
-                incomes
-                .Select(income => new TransactionResponseDTO()
-                {
-                    Id = income.Id,
-                    Amount = income.Amount,
-                    Date = income.Date,
-                    Name = income.Name,
-                    Type = TransactionType.Income,
-                    CategoryName = null,
-                    ParentExpenseName = null
-                }));
-
-            result.AddRange(
-                expenses
-                .Select(expense => new TransactionResponseDTO()
-                {
-                    Id = expense.Id,
-                    Name = expense.Name,
-                    Date = expense.Date,
-                    Amount = expense.Amount,
-                    Type = TransactionType.Expense,
-                    CategoryName = expense.CategoryName,
-                    ParentExpenseName = null
-                }));
-
-            result.AddRange(
-                expenseItems
-                .Select(expense => new TransactionResponseDTO()
-                {
-                    Id = expense.Id,
-                    Name = expense.Name,
-                    Date = expense.Date,
-                    Amount = expense.Amount,
-                    Type = TransactionType.Expense,
-                    CategoryName = expense.CategoryName,
-                    ParentExpenseName = expense.ParentExpenseName
-                }));
-
-            result = result.OrderByDescending(i => i.Date).Take(numberOfTransactions).ToList();
-
+            var result = await this.GetLatestTransactionsInternalAsync(projectId, numberOfTransactions);
             return AppResponse<ICollection<TransactionResponseDTO>>.Success(result);
+        }
+
+        public async Task<AppResponse<ProjectOverviewSummaryResponseDTO>> GetOverviewSummaryAsync(Guid projectId, DateOnly from, DateOnly to, int numberOfTransactions)
+        {
+            if (projectId == Guid.Empty)
+                return AppResponse<ProjectOverviewSummaryResponseDTO>.Error(nameof(projectId), ValidationMessages.InvalidProjectId);
+
+            if (from >= to)
+                return AppResponse<ProjectOverviewSummaryResponseDTO>.Error(nameof(from), ValidationMessages.InvalidDate);
+
+            if (numberOfTransactions <= 0)
+                return AppResponse<ProjectOverviewSummaryResponseDTO>.Error(nameof(numberOfTransactions), ValidationMessages.InvalidData);
+
+            var projectExists = await this.unitOfWork.ProjectRepository
+                .NoTrackable()
+                .IgnoreQueryFilters()
+                .AnyAsync(project => project.Id == projectId);
+
+            if (!projectExists)
+                throw new KeyNotFoundException(ValidationMessages.ProjectNotFound);
+
+            var totalIncomeTask = this.unitOfWork.ProjectRepository
+                .NoTrackable()
+                .Where(project => project.Id == projectId)
+                .SelectMany(project => project.Incomes.Where(income => income.Date >= from && income.Date < to))
+                .SumAsync(income => (decimal?)income.Amount);
+
+            var expensesTask = this.unitOfWork.ProjectRepository
+                .NoTrackable()
+                .IgnoreQueryFilters()
+                .Where(project => project.Id == projectId)
+                .SelectMany(project => project.Categories.SelectMany(category => category.Expenses
+                    .Where(expense => expense.Date >= from && expense.Date < to)))
+                .Include(expense => expense.Items)
+                .ToListAsync();
+
+            var latestTransactionsTask = this.GetLatestTransactionsInternalAsync(projectId, numberOfTransactions, from, to);
+
+            await Task.WhenAll(totalIncomeTask, expensesTask, latestTransactionsTask);
+
+            var response = new ProjectOverviewSummaryResponseDTO
+            {
+                TotalIncome = totalIncomeTask.Result ?? 0m,
+                TotalExpense = expensesTask.Result.Sum(expense => expense.Amount),
+                LatestTransactions = latestTransactionsTask.Result
+            };
+
+            return AppResponse<ProjectOverviewSummaryResponseDTO>.Success(response);
+        }
+
+        private async Task<ICollection<TransactionResponseDTO>> GetLatestTransactionsInternalAsync(Guid projectId, int numberOfTransactions, DateOnly? from = null, DateOnly? to = null)
+        {
+            var incomesTask = this.unitOfWork.ProjectRepository
+                .NoTrackable()
+                .Where(project => project.Id == projectId)
+                .SelectMany(project => project.Incomes
+                    .Where(income => income.Amount > 0
+                        && (!from.HasValue || income.Date >= from.Value)
+                        && (!to.HasValue || income.Date < to.Value))
+                    .OrderByDescending(income => income.Date)
+                    .Take(numberOfTransactions)
+                    .Select(income => new TransactionResponseDTO
+                    {
+                        Id = income.Id,
+                        Name = income.Name,
+                        Date = income.Date,
+                        Amount = income.Amount,
+                        Type = TransactionType.Income,
+                        CategoryName = null,
+                        ParentExpenseName = null
+                    }))
+                .ToListAsync();
+
+            var expensesTask = this.unitOfWork.ProjectRepository
+                .NoTrackable()
+                .IgnoreQueryFilters()
+                .Where(project => project.Id == projectId)
+                .SelectMany(project => project.Categories.SelectMany(category => category.Expenses
+                    .Where(expense => expense.Amount > 0
+                        && expense.Items.Count == 0
+                        && (!from.HasValue || expense.Date >= from.Value)
+                        && (!to.HasValue || expense.Date < to.Value))
+                    .OrderByDescending(expense => expense.Date)
+                    .Take(numberOfTransactions)
+                    .Select(expense => new TransactionResponseDTO
+                    {
+                        Id = expense.Id,
+                        Name = expense.Name,
+                        Date = expense.Date,
+                        Amount = expense.Amount,
+                        Type = TransactionType.Expense,
+                        CategoryName = category.Name,
+                        ParentExpenseName = null
+                    })))
+                .ToListAsync();
+
+            var expenseItemsTask = this.unitOfWork.ProjectRepository
+                .NoTrackable()
+                .IgnoreQueryFilters()
+                .Where(project => project.Id == projectId)
+                .SelectMany(project => project.Categories.SelectMany(category => category.Expenses
+                    .Where(expense => expense.Items.Count > 0)
+                    .OrderByDescending(expense => expense.Date)
+                    .Take(numberOfTransactions)
+                    .SelectMany(expense => expense.Items
+                        .Where(item => item.Amount > 0
+                            && (!from.HasValue || item.Date >= from.Value)
+                            && (!to.HasValue || item.Date < to.Value))
+                        .Select(item => new TransactionResponseDTO
+                        {
+                            Id = item.Id,
+                            Name = item.Name,
+                            Date = item.Date,
+                            Amount = item.Amount,
+                            Type = TransactionType.Expense,
+                            CategoryName = category.Name,
+                            ParentExpenseName = expense.Name
+                        }))))
+                .ToListAsync();
+
+            await Task.WhenAll(incomesTask, expensesTask, expenseItemsTask);
+
+            var result = incomesTask.Result
+                .Concat(expensesTask.Result)
+                .Concat(expenseItemsTask.Result)
+                .OrderByDescending(transaction => transaction.Date)
+                .Take(numberOfTransactions)
+                .ToList();
+
+            return result;
         }
 
         public async Task<AppResponse> SmartSetupAsync(User user, Guid projectId, SmartSetupRequestDTO smartRequest)

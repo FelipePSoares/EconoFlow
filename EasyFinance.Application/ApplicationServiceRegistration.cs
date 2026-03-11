@@ -16,6 +16,7 @@ using EasyFinance.Application.Features.ExpenseService;
 using EasyFinance.Application.Features.FeatureRolloutService;
 using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Application.Features.NotificationService;
+using EasyFinance.Application.Features.PlanService;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Application.Features.SupportService;
 using EasyFinance.Application.Features.TaxYearService;
@@ -35,6 +36,7 @@ namespace EasyFinance.Application
             services.AddSingleton<ICallbackService, CallbackService>();
 
             services.AddScoped<IProjectService, ProjectService>();
+            services.AddScoped<IPlanService, PlanService>();
             services.AddScoped<IAccessControlService, AccessControlService>();
             services.AddScoped<IIncomeService, IncomeService>();
             services.AddScoped<ICategoryService, CategoryService>();

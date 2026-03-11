@@ -249,6 +249,9 @@ Você será redirecionado em 5 segundos...</value>
   <data name="ProjectNotFoundOrInsufficientUserPermissions" xml:space="preserve">
     <value>Projeto não encontrado ou permissões de usuário insuficientes.</value>
   </data>
+  <data name="OnlyOneEmergencyReservePerProject" xml:space="preserve">
+    <value>Apenas um plano ativo de reserva de emergência é permitido por projeto.</value>
+  </data>
   <data name="SmartSetupNotAvailable" xml:space="preserve">
     <value>Não é possível usar a configuração inteligente em projetos já em uso.</value>
   </data>
@@ -398,5 +401,8 @@ Você será redirecionado em 5 segundos...</value>
   </data>
   <data name="ExpenseNotInProject" xml:space="preserve">
     <value>A despesa não pertence ao projeto informado.</value>
+  </data>
+  <data name="AmountSignedMustBeDifferentFromZero" xml:space="preserve">
+    <value>O valor informado deve ser diferente de zero.</value>
   </data>
 </root>
