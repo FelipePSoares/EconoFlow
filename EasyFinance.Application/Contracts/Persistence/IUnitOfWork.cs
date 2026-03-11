@@ -13,6 +13,8 @@ namespace EasyFinance.Application.Contracts.Persistence
     public interface IUnitOfWork
     {
         IGenericRepository<Project> ProjectRepository { get; }
+        IGenericRepository<Plan> PlanRepository { get; }
+        IGenericRepository<PlanEntry> PlanEntryRepository { get; }
         IGenericRepository<DeductibleGroup> DeductibleGroupRepository { get; }
         IGenericRepository<DeductibleGroupExpense> DeductibleGroupExpenseRepository { get; }
         IGenericRepository<UserProject> UserProjectRepository { get; }

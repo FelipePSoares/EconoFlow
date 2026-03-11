@@ -15,6 +15,8 @@ namespace EasyFinance.Persistence.Repositories
         private bool disposed = false;
         private readonly EasyFinanceDatabaseContext context;
         private readonly Lazy<IGenericRepository<Project>> projectRepository;
+        private readonly Lazy<IGenericRepository<Plan>> planRepository;
+        private readonly Lazy<IGenericRepository<PlanEntry>> planEntryRepository;
         private readonly Lazy<IGenericRepository<DeductibleGroup>> deductibleGroupRepository;
         private readonly Lazy<IGenericRepository<DeductibleGroupExpense>> deductibleGroupExpenseRepository;
         private readonly Lazy<IGenericRepository<UserProject>> userProjectRepository;
@@ -31,6 +33,8 @@ namespace EasyFinance.Persistence.Repositories
         {
             this.context = dbContext;
             this.projectRepository = new Lazy<IGenericRepository<Project>>(() => new GenericRepository<Project>(this.context));
+            this.planRepository = new Lazy<IGenericRepository<Plan>>(() => new GenericRepository<Plan>(this.context));
+            this.planEntryRepository = new Lazy<IGenericRepository<PlanEntry>>(() => new GenericRepository<PlanEntry>(this.context));
             this.deductibleGroupRepository = new Lazy<IGenericRepository<DeductibleGroup>>(() => new GenericRepository<DeductibleGroup>(this.context));
             this.deductibleGroupExpenseRepository = new Lazy<IGenericRepository<DeductibleGroupExpense>>(() => new GenericRepository<DeductibleGroupExpense>(this.context));
             this.userProjectRepository = new Lazy<IGenericRepository<UserProject>>(() => new GenericRepository<UserProject>(this.context));
@@ -45,6 +49,8 @@ namespace EasyFinance.Persistence.Repositories
         }
 
         public IGenericRepository<Project> ProjectRepository => this.projectRepository.Value;
+        public IGenericRepository<Plan> PlanRepository => this.planRepository.Value;
+        public IGenericRepository<PlanEntry> PlanEntryRepository => this.planEntryRepository.Value;
         public IGenericRepository<DeductibleGroup> DeductibleGroupRepository => this.deductibleGroupRepository.Value;
         public IGenericRepository<DeductibleGroupExpense> DeductibleGroupExpenseRepository => this.deductibleGroupExpenseRepository.Value;
         public IGenericRepository<UserProject> UserProjectRepository => this.userProjectRepository.Value;

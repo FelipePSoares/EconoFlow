@@ -4,6 +4,7 @@ using System.Linq;
 using AutoFixture;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.Features.ProjectService;
+using EasyFinance.Application.Features.PlanService;
 using EasyFinance.Common.Tests.AccessControl;
 using EasyFinance.Common.Tests.Financial;
 using EasyFinance.Common.Tests.FinancialProject;
@@ -67,6 +68,7 @@ namespace EasyFinance.Common.Tests
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IProjectService, ProjectService>();
+            services.AddScoped<IPlanService, PlanService>();
             services.AddScoped<IExpenseService, ExpenseService>();
             services.AddScoped<IExpenseItemService, ExpenseItemService>();
             services.AddScoped<ITaxYearService, TaxYearService>();

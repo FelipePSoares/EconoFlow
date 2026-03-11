@@ -34,6 +34,8 @@ namespace EasyFinance.Persistence.DatabaseContext
             modelBuilder.ApplyConfiguration(new ProjectConfiguration());
             modelBuilder.ApplyConfiguration(new DeductibleGroupConfiguration());
             modelBuilder.ApplyConfiguration(new DeductibleGroupExpenseConfiguration());
+            modelBuilder.ApplyConfiguration(new PlanConfiguration());
+            modelBuilder.ApplyConfiguration(new PlanEntryConfiguration());
 
             //Support
             modelBuilder.ApplyConfiguration(new ContactUsConfiguration());
