@@ -10,6 +10,8 @@ namespace EasyFinance.Persistence.Mapping.FinancialProject
         {
             builder.ToTable("PlanEntries");
 
+            builder.HasQueryFilter(entry => !entry.Plan.IsArchived);
+
             builder.Property(entry => entry.PlanId)
                 .IsRequired();
 

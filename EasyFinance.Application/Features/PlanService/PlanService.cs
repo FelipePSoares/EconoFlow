@@ -153,6 +153,7 @@ namespace EasyFinance.Application.Features.PlanService
 
             var entries = await this.unitOfWork.PlanEntryRepository
                 .NoTrackable()
+                .IgnoreQueryFilters()
                 .Where(entry => entry.PlanId == planId)
                 .OrderByDescending(entry => entry.Date)
                 .ThenByDescending(entry => entry.CreatedDate)
