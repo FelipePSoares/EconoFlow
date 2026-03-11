@@ -248,6 +248,9 @@ You will be redirect in 5 seconds ...</value>
   <data name="ProjectNotFoundOrInsufficientUserPermissions" xml:space="preserve">
     <value>Project not found or insufficient user permissions.</value>
   </data>
+  <data name="OnlyOneEmergencyReservePerProject" xml:space="preserve">
+    <value>Only one active emergency reserve plan is allowed per project.</value>
+  </data>
   <data name="SmartSetupNotAvailable" xml:space="preserve">
     <value>You cannot use smart configuration on projects already in use.</value>
   </data>
@@ -397,5 +400,8 @@ You will be redirect in 5 seconds ...</value>
   </data>
   <data name="ExpenseNotInProject" xml:space="preserve">
     <value>Expense does not belong to the provided project.</value>
+  </data>
+  <data name="AmountSignedMustBeDifferentFromZero" xml:space="preserve">
+    <value>Amount signed must be different from zero.</value>
   </data>
 </root>

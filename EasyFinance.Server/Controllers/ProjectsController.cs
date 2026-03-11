@@ -105,6 +105,13 @@ namespace EasyFinance.Server.Controllers
             return Ok(response);
         }
 
+        [HttpGet("{projectId}/overview/summary")]
+        public async Task<IActionResult> GetOverviewSummary(Guid projectId, [FromQuery] DateOnly from, [FromQuery] DateOnly to, [FromQuery] int numberOfTransactions = 10)
+        {
+            var response = await this.projectService.GetOverviewSummaryAsync(projectId, from, to, numberOfTransactions);
+            return ValidateResponse(response, HttpStatusCode.OK);
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateProject([FromBody] ProjectRequestDTO projectDto)
         {
