@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideNativeDateAdapter } from '@angular/material/core';
+import { MAT_MOMENT_DATE_FORMATS, provideMomentDateAdapter } from '@angular/material-moment-adapter';
 import { TranslateModule } from '@ngx-translate/core';
 import { of } from 'rxjs';
 import { CurrentDateService } from '../../../core/services/current-date.service';
@@ -30,7 +30,7 @@ describe('AddPlanEntryComponent', () => {
         TranslateModule.forRoot()
       ],
       providers: [
-        provideNativeDateAdapter(),
+        provideMomentDateAdapter(MAT_MOMENT_DATE_FORMATS, { useUtc: true }),
         {
           provide: PlanService,
           useValue: planServiceMock

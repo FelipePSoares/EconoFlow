@@ -55,8 +55,10 @@ describe('EconoFlow - category add Tests', () => {
     cy.fixture('projects').then((projects) => {
       cy.fixture('categories').then((categories) => {
         cy.fixture('expenses').then((expenses) => {
+          const archivedCategoryName = `${categories.testArchivedCategory.name}-${Date.now()}`;
+
           cy.request('POST', 'api/Projects/' + projects.defaultProject.id + '/Categories', {
-            name: categories.testArchivedCategory.name
+            name: archivedCategoryName
           }).then((resp) => {
             expect(resp?.status).to.equal(201)
 
@@ -77,9 +79,9 @@ describe('EconoFlow - category add Tests', () => {
                 cy.wait<ProjectReq, ProjectRes>('@getProjects').then(({ request, response }) => {
                   cy.wait<CategoryReq, CategoryRes[]>('@getCategories').then(({ request, response }) => {
                     cy.log(JSON.stringify(response?.body))
-                    cy.get('.card').should('not.have.class', 'archived');
+                    cy.contains('.slider-container .card-title', archivedCategoryName).should('not.exist');
 
-                    cy.get('#previous').click()
+                    cy.get('app-current-date #previous').click()
 
                     cy.wait<CategoryReq, CategoryRes[]>('@getCategories').then(({ request, response }) => {
                       cy.log(JSON.stringify(response?.body))
@@ -87,7 +89,9 @@ describe('EconoFlow - category add Tests', () => {
                       expect(exists2).to.be.true
                       const category = response?.body.find(item => item.id == archivedCategory?.id);
                       expect(category?.isArchived).to.be.true
-                      cy.get('.card').should('have.class', 'archived');
+                      cy.contains('.slider-container .card-title', archivedCategoryName, { timeout: 10000 })
+                        .closest('.card')
+                        .should('have.class', 'archived');
                     })
                   })
                 })
