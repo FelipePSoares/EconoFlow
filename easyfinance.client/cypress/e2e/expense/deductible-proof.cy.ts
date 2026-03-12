@@ -74,8 +74,8 @@ describe('EconoFlow - deductible proof Tests', () => {
 
     cy.get('button[name=edit]').first().click();
     cy.get('[data-testid="is-deductible-toggle"] button').should('have.attr', 'aria-checked', 'false');
-    cy.get('[data-testid="is-deductible-toggle"]').click();
-    cy.wait('@getTaxYearSettings');
+    cy.get('[data-testid="is-deductible-toggle"] button').click();
+    cy.waitForLoader();
     cy.get('[data-testid="is-deductible-toggle"] button').should('have.attr', 'aria-checked', 'true');
     cy.get('.cdk-overlay-backdrop-showing').should('not.exist');
     cy.get('[data-testid="deductible-proof-input"]').selectFile({

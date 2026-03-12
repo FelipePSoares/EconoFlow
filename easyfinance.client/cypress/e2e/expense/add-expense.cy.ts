@@ -20,21 +20,23 @@ describe('EconoFlow - expense add Tests', () => {
               cy.visit('/projects/' + project.id + '/categories/' + category.id + '/expenses')
 
               cy.get('.btn-add').click();
-              cy.wait('@getTaxYearSettings');
+              cy.waitForLoader();
+              cy.get('[data-testid="is-deductible-toggle"]').should('be.visible');
             })
         })
       })
   })
 
   const enableDeductibleMode = () => {
-    cy.get('[data-testid="is-deductible-toggle"]').click();
-    cy.wait('@getTaxYearSettings');
+    cy.get('[data-testid="is-deductible-toggle"] button').click();
+    cy.waitForLoader();
+    cy.get('[data-testid="is-deductible-toggle"] button').should('have.attr', 'aria-checked', 'true');
     cy.get('app-configure-tax-year-rule-dialog').should('not.exist');
     cy.get('.cdk-overlay-backdrop-showing').should('not.exist');
   };
 
   it('should keep deductible off by default', () => {
-    cy.get('[data-testid="is-deductible-toggle"] button').should('not.be.checked');
+    cy.get('[data-testid="is-deductible-toggle"] button').should('have.attr', 'aria-checked', 'false');
     cy.get('[data-testid="deductible-proof-section"]').should('not.exist');
   });
 
@@ -42,7 +44,9 @@ describe('EconoFlow - expense add Tests', () => {
     enableDeductibleMode();
     cy.get('[data-testid="deductible-proof-section"]').should('exist');
 
-    cy.get('[data-testid="is-deductible-toggle"]').click();
+    cy.get('[data-testid="is-deductible-toggle"] button').click();
+    cy.waitForLoader();
+    cy.get('[data-testid="is-deductible-toggle"] button').should('have.attr', 'aria-checked', 'false');
     cy.get('[data-testid="deductible-proof-section"]').should('not.exist');
   });
 
