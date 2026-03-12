@@ -28,5 +28,13 @@
         <StronglyTypedClassName>ValidationMessages</StronglyTypedClassName>
         <PublicClass>true</PublicClass>
     </EmbeddedResource>
+    <EmbeddedResource Update="NotificationMessages.resx">
+        <Generator>MSBuild:Compile</Generator>
+        <StronglyTypedFileName>$(IntermediateOutputPath)\NotificationMessages.Designer.cs</StronglyTypedFileName>
+        <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
+        <StronglyTypedNamespace>EasyFinance.Infrastructure</StronglyTypedNamespace>
+        <StronglyTypedClassName>NotificationMessages</StronglyTypedClassName>
+        <PublicClass>true</PublicClass>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>

@@ -27,7 +27,7 @@
 
       <div class="notification-body">
         <h5 class="notification-title">{{ notification.category }}</h5>
-        <p class="notification-message">{{ notification.codeMessage | translate }}</p>
+        <p class="notification-message">{{ notification.codeMessage | translate: getMessageTranslationParams(notification) }}</p>
 
         <div class="notification-actions">
           @if (notification.actionLabelCode) {

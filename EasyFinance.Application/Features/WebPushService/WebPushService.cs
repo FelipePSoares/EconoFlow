@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Text.Json;
@@ -8,10 +9,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.DTOs.Account;
+using EasyFinance.Application.DTOs.BackgroundService.Email;
 using EasyFinance.Application.DTOs.BackgroundService.Notification;
 using EasyFinance.Application.Features.FeatureRolloutService;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Account;
+using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -203,8 +206,8 @@ namespace EasyFinance.Application.Features.WebPushService
                 new WebPushPayload
                 {
                     Title = "EconoFlow",
-                    Body = notification.CodeMessage,
-                    Url = ResolveActionUrl(notification.ActionLabelCode),
+                    Body = ResolveNotificationBody(notification),
+                    Url = ResolveActionUrl(notification),
                     Tag = $"notification-{notification.Id}",
                     RequireInteraction = notification.IsSticky,
                     Icon = "/assets/images/logo-without-text-background-512.png",
@@ -391,7 +394,40 @@ namespace EasyFinance.Application.Features.WebPushService
             return (Environment.GetEnvironmentVariable(environmentVariableName) ?? string.Empty).Trim();
         }
 
-        private static string ResolveActionUrl(string actionLabelCode)
+        private static string ResolveActionUrl(Notification notification)
+        {
+            var actionUrlFromMetadata = ResolveActionUrlFromMetadata(notification.Metadata);
+            if (!string.IsNullOrWhiteSpace(actionUrlFromMetadata))
+                return actionUrlFromMetadata;
+
+            return ResolveActionUrlFromActionLabel(notification.ActionLabelCode);
+        }
+
+        private static string ResolveNotificationBody(Notification notification)
+        {
+            var projectName = ResolveMetadataValue(notification.Metadata, "ProjectName");
+            if (string.Equals(notification.CodeMessage, EmailTemplates.GrantedAccess.ToString(), StringComparison.Ordinal))
+            {
+                var culture = ResolveNotificationCulture(notification.User?.Culture);
+                var messageTemplate = string.IsNullOrWhiteSpace(projectName)
+                    ? NotificationMessages.ResourceManager.GetString(nameof(NotificationMessages.ProjectInvitationPushBodyNoProject), culture)
+                    : NotificationMessages.ResourceManager.GetString(nameof(NotificationMessages.ProjectInvitationPushBodyWithProject), culture);
+
+                if (string.IsNullOrWhiteSpace(messageTemplate))
+                    return notification.CodeMessage;
+
+                return string.IsNullOrWhiteSpace(projectName)
+                    ? messageTemplate
+                    : string.Format(culture, messageTemplate, projectName);
+            }
+
+            return notification.CodeMessage;
+        }
+
+        private static CultureInfo ResolveNotificationCulture(CultureInfo culture)
+            => culture ?? CultureInfo.InvariantCulture;
+
+        private static string ResolveActionUrlFromActionLabel(string actionLabelCode)
         {
             if (string.Equals(actionLabelCode, "ButtonMyProfile", StringComparison.Ordinal))
                 return "/user";
@@ -400,6 +436,59 @@ namespace EasyFinance.Application.Features.WebPushService
                 return "/user/authentication";
 
             return "/";
+        }
+
+        private static string ResolveActionUrlFromMetadata(string metadata)
+        {
+            var actionPath = ResolveMetadataValue(metadata, "actionPath");
+            if (string.IsNullOrWhiteSpace(actionPath))
+                return string.Empty;
+
+            return NormalizeActionUrl(actionPath);
+        }
+
+        private static string NormalizeActionUrl(string actionUrl)
+        {
+            if (string.IsNullOrWhiteSpace(actionUrl))
+                return string.Empty;
+
+            var normalizedActionUrl = actionUrl.Trim();
+            if (normalizedActionUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+                || normalizedActionUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                return string.Empty;
+            }
+
+            if (normalizedActionUrl.StartsWith('/'))
+                return normalizedActionUrl;
+
+            return $"/{normalizedActionUrl}";
+        }
+
+        private static string ResolveMetadataValue(string metadata, string key)
+        {
+            if (string.IsNullOrWhiteSpace(metadata))
+                return string.Empty;
+
+            try
+            {
+                var parsedMetadata = JsonSerializer.Deserialize<Dictionary<string, string>>(metadata);
+                if (parsedMetadata == null)
+                    return string.Empty;
+
+                if (parsedMetadata.TryGetValue(key, out var value) && !string.IsNullOrWhiteSpace(value))
+                    return value.Trim();
+
+                var caseInsensitiveMatch = parsedMetadata.FirstOrDefault(entry => string.Equals(entry.Key, key, StringComparison.OrdinalIgnoreCase));
+                if (caseInsensitiveMatch.Equals(default(KeyValuePair<string, string>)) || string.IsNullOrWhiteSpace(caseInsensitiveMatch.Value))
+                    return string.Empty;
+
+                return caseInsensitiveMatch.Value.Trim();
+            }
+            catch (JsonException)
+            {
+                return string.Empty;
+            }
         }
 
         private async Task<bool> IsFeatureEnabledForUserAsync(Guid userId, CancellationToken cancellationToken)

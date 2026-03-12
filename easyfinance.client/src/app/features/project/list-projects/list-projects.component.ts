@@ -79,8 +79,12 @@ export class ListProjectsComponent implements OnInit {
     }).afterClosed().subscribe();
   }
 
-  edit(project: ProjectDto): void {
-    this.projectService.setEditingProject(project);
+  edit(userProject: UserProjectDto): void {
+    if (!this.canEditProject(userProject)) {
+      return;
+    }
+
+    this.projectService.setEditingProject(userProject.project);
     this.router.navigate([{ outlets: { modal: ['add-edit-project'] } }]);
 
     this.dialog.open(PageModalComponent, {
@@ -100,5 +104,9 @@ export class ListProjectsComponent implements OnInit {
 
   isAdmin(userProject: UserProjectDto): boolean{
     return userProject.role === Role.Admin;
+  }
+
+  canEditProject(userProject: UserProjectDto): boolean {
+    return userProject.role === Role.Admin || userProject.role === Role.Manager;
   }
 }

@@ -167,6 +167,10 @@ export class DeductionsComponent implements OnInit {
   }
 
   async openTaxYearConfigurationDialog(): Promise<void> {
+    if (!this.canManageGroups) {
+      return;
+    }
+
     let dialogRef: MatDialogRef<PageModalComponent, ProjectTaxYearSettings | null>;
     const componentInputs = {
       projectId: this.projectId,
@@ -331,6 +335,10 @@ export class DeductionsComponent implements OnInit {
   }
 
   openDeductibleEntry(entry: DeductibleEntry): void {
+    if (!this.canManageGroups) {
+      return;
+    }
+
     this.currentDateService.currentDate = new Date(entry.date.getFullYear(), entry.date.getMonth(), 1, 12);
 
     const isExpenseItem = !!entry.expenseItemId;
