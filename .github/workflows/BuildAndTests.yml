@@ -38,7 +38,7 @@ jobs:
       with:
         filters: |
           client:
-            - 'easyfinance.client/**'
+            - 'easyfinance.client/src/**'
           version_files:
             - 'easyfinance.client/src/assets/version.json'
             - 'easyfinance.client/src/app/core/utils/loaders/translate-http-loader.ts'
