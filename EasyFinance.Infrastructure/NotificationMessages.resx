@@ -18,4 +18,16 @@
   <data name="ProjectInvitationPushBodyWithProject" xml:space="preserve">
     <value>You received a project invitation to {0}.</value>
   </data>
+  <data name="ProjectAccessLevelChangedPushBody" xml:space="preserve">
+    <value>{0} changed your access level to {1} in project {2}.</value>
+  </data>
+  <data name="NotificationRoleViewer" xml:space="preserve">
+    <value>Viewer</value>
+  </data>
+  <data name="NotificationRoleManager" xml:space="preserve">
+    <value>Manager</value>
+  </data>
+  <data name="NotificationRoleAdmin" xml:space="preserve">
+    <value>Admin</value>
+  </data>
 </root>

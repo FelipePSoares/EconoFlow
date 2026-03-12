@@ -100,7 +100,7 @@ namespace EasyFinance.Application.Features.AccessControlService
 
             await unitOfWork.CommitAsync();
 
-            await this.SendEmailsToAffectedUsersAsync(inviterUser, entities, affectedUsers);
+            await this.NotifyAffectedUsersAsync(inviterUser, entities, affectedUsers);
 
             return AppResponse<IEnumerable<UserProjectResponseDTO>>.Success(entities.ToDTO());
         }
@@ -132,7 +132,7 @@ namespace EasyFinance.Application.Features.AccessControlService
             return appResponse;
         }
 
-        private async Task SendEmailsToAffectedUsersAsync(User inviterUser, IEnumerable<UserProject> userProjects, ICollection<Guid> affectedUsers)
+        private async Task NotifyAffectedUsersAsync(User inviterUser, IEnumerable<UserProject> userProjects, ICollection<Guid> affectedUsers)
         {
             try
             {
@@ -172,15 +172,7 @@ namespace EasyFinance.Application.Features.AccessControlService
 
                 foreach (var userProject in userProjects.Where(up => up.Accepted && affectedUsers.Contains(up.User.Id)))
                 {
-                    sendingEmails.Add(emailService.SendEmailAsync(
-                        userProject.User.Id,
-                        userProject.User.Email,
-                        EmailTemplates.AccessLevelChanged,
-                        userProject.User.Culture,
-                        ("FirstName", userProject.User.FirstName),
-                        ("ProjectName", userProject.Project.Name),
-                        ("FullName", inviterUser.FullName),
-                        ("Role", userProject.Role.ToString())));
+                    this.QueueAccessLevelChangedNotification(userProject, inviterUser);
                 }
 
                 await Task.WhenAll([.. sendingEmails]);
@@ -218,6 +210,32 @@ namespace EasyFinance.Application.Features.AccessControlService
             }
         }
 
+        private void QueueAccessLevelChangedNotification(UserProject userProject, User inviterUser)
+        {
+            if (userProject.User == null || userProject.User.Id == Guid.Empty)
+                return;
+
+            var notification = new Notification(
+                user: userProject.User,
+                codeMessage: EmailTemplates.AccessLevelChanged.ToString(),
+                type: NotificationType.Information,
+                category: NotificationCategory.Collaboration,
+                actionLabelCode: "Projects",
+                limitNotificationChannels: NotificationChannels.None,
+                metadata: this.BuildAccessLevelChangedMetadata(userProject, inviterUser),
+                isActionRequired: false);
+
+            var notificationResult = this.unitOfWork.NotificationRepository.InsertOrUpdate(notification);
+            if (notificationResult.Failed)
+            {
+                this.logger.LogWarning(
+                    "Failed to queue access-level notification for user {UserId} in project {ProjectId}. Errors: {Errors}",
+                    userProject.User.Id,
+                    userProject.Project?.Id,
+                    string.Join(", ", notificationResult.Messages.Select(message => message.Description)));
+            }
+        }
+
         private string BuildInvitationMetadata(UserProject userProject, User inviterUser, string callbackUrl)
         {
             var metadata = new JObject
@@ -227,6 +245,20 @@ namespace EasyFinance.Application.Features.AccessControlService
                 ["FullName"] = inviterUser.FullName,
                 ["ProjectName"] = userProject.Project?.Name,
                 ["CallbackUrl"] = callbackUrl
+            };
+
+            return metadata.ToString(Newtonsoft.Json.Formatting.None);
+        }
+
+        private string BuildAccessLevelChangedMetadata(UserProject userProject, User inviterUser)
+        {
+            var metadata = new JObject
+            {
+                ["actionPath"] = $"/projects/{userProject.Project?.Id}",
+                ["FirstName"] = userProject.User?.FirstName,
+                ["FullName"] = inviterUser.FullName,
+                ["ProjectName"] = userProject.Project?.Name,
+                ["Role"] = userProject.Role.ToString()
             };
 
             return metadata.ToString(Newtonsoft.Json.Formatting.None);

@@ -54,8 +54,8 @@
 
         <!-- Submit -->
         <button mat-flat-button class="invite-btn" type="submit" [disabled]="accessForm.invalid">
-          <mat-icon>send</mat-icon>
-          <span>{{ 'ButtonInvite' | translate }}</span>
+          <mat-icon class="invite-btn-icon">send</mat-icon>
+          <span class="invite-btn-text">{{ 'ButtonInvite' | translate }}</span>
         </button>
 
       </div>
@@ -77,22 +77,36 @@
       <span class="users-count">{{ (currentUsers$ | async)?.length ?? 0 }}</span>
     </div>
 
-    <div class="users-table-wrap d-none d-md-block">
+    <div class="users-table-wrap">
       <table class="users-table">
         <thead>
           <tr>
-            <th>{{ 'User' | translate }}</th>
-            <th>{{ 'Role' | translate }}</th>
-            <th>{{ 'Accepted' | translate }}</th>
-            <th>{{ 'Actions' | translate }}</th>
+            <th class="col-user">{{ 'User' | translate }}</th>
+            <th class="col-role">{{ 'Role' | translate }}</th>
+            <th class="col-accepted accepted-col">{{ 'Accepted' | translate }}</th>
+            <th class="col-actions">{{ 'Actions' | translate }}</th>
           </tr>
         </thead>
         <tbody>
           @for (user of currentUsers$ | async; track user) {
           <tr class="user-row">
-            <td>
+            <td class="col-user">
               <div class="user-cell">
-                <div class="user-avatar">{{ (user.userName || user.userEmail)[0].toUpperCase() }}</div>
+                <div class="user-avatar-wrap">
+                  <div
+                    class="user-avatar"
+                    [class.avatar-accepted-yes]="user.accepted"
+                    [class.avatar-accepted-no]="!user.accepted">
+                    {{ (user.userName || user.userEmail)[0].toUpperCase() }}
+                  </div>
+                  <span
+                    class="avatar-accepted-indicator"
+                    [class.indicator-accepted-yes]="user.accepted"
+                    [class.indicator-accepted-no]="!user.accepted"
+                    [attr.title]="(user.accepted ? 'Yes' : 'No') | translate"
+                    aria-hidden="true">
+                  </span>
+                </div>
                 <div class="user-info">
                   @if (user.userName) {
                   <span class="user-name">{{ user.userName }}</span>
@@ -103,7 +117,7 @@
                 </div>
               </div>
             </td>
-            <td>
+            <td class="col-role">
               <mat-form-field appearance="fill" class="role-field">
                 <mat-select [(ngModel)]="user.role" (selectionChange)="updateUserRole()">
                   @for (role of roles; track role) {
@@ -112,13 +126,13 @@
                 </mat-select>
               </mat-form-field>
             </td>
-            <td>
+            <td class="col-accepted accepted-col">
               <span class="accepted-badge" [class.accepted-yes]="user.accepted" [class.accepted-no]="!user.accepted">
                 <mat-icon>{{ user.accepted ? 'check_circle' : 'schedule' }}</mat-icon>
-                {{ (user.accepted ? 'Yes' : 'No') | translate }}
+                <span class="accepted-label">{{ (user.accepted ? 'Yes' : 'No') | translate }}</span>
               </span>
             </td>
-            <td>
+            <td class="col-actions">
               <button
                 mat-icon-button
                 class="delete-btn"
@@ -131,42 +145,6 @@
           }
         </tbody>
       </table>
-    </div>
-
-    <div class="users-mobile d-md-none">
-      @for (user of currentUsers$ | async; track user) {
-      <div class="user-mobile-card">
-        <div class="user-mobile-top">
-          <div class="user-avatar">{{ (user.userName || user.userEmail)[0].toUpperCase() }}</div>
-          <div class="user-info">
-            @if (user.userName) {
-            <span class="user-name">{{ user.userName }}</span>
-            <span class="user-email">{{ user.userEmail }}</span>
-            } @else {
-            <span class="user-name">{{ user.userEmail }}</span>
-            }
-          </div>
-          <span class="accepted-badge" [class.accepted-yes]="user.accepted" [class.accepted-no]="!user.accepted">
-            <mat-icon>{{ user.accepted ? 'check_circle' : 'schedule' }}</mat-icon>
-          </span>
-          <button
-            mat-icon-button
-            class="delete-btn"
-            (click)="removeUser(user.id)"
-            [attr.aria-label]="'AccessControlRemoveUserAriaLabel' | translate">
-            <mat-icon>delete_outline</mat-icon>
-          </button>
-        </div>
-        <mat-form-field appearance="outline" class="role-field w-100">
-          <mat-label>{{ 'FieldRole' | translate }}</mat-label>
-          <mat-select [(ngModel)]="user.role" (selectionChange)="updateUserRole()">
-            @for (role of roles; track role) {
-            <mat-option [value]="role">{{ role2LabelMapping[role] | translate }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-      </div>
-      }
     </div>
 
   </div>

@@ -421,11 +421,47 @@ namespace EasyFinance.Application.Features.WebPushService
                     : string.Format(culture, messageTemplate, projectName);
             }
 
+            if (string.Equals(notification.CodeMessage, EmailTemplates.AccessLevelChanged.ToString(), StringComparison.Ordinal))
+            {
+                var culture = ResolveNotificationCulture(notification.User?.Culture);
+                var messageTemplate = NotificationMessages.ResourceManager.GetString(nameof(NotificationMessages.ProjectAccessLevelChangedPushBody), culture);
+                if (string.IsNullOrWhiteSpace(messageTemplate))
+                    return notification.CodeMessage;
+
+                var inviterName = ResolveMetadataValue(notification.Metadata, "FullName");
+                var roleValue = ResolveMetadataValue(notification.Metadata, "Role");
+                var roleLabel = ResolveRoleLabel(roleValue, culture);
+
+                return string.Format(culture, messageTemplate, inviterName, roleLabel, projectName);
+            }
+
             return notification.CodeMessage;
         }
 
         private static CultureInfo ResolveNotificationCulture(CultureInfo culture)
             => culture ?? CultureInfo.InvariantCulture;
+
+        private static string ResolveRoleLabel(string roleValue, CultureInfo culture)
+        {
+            if (string.IsNullOrWhiteSpace(roleValue))
+                return string.Empty;
+
+            if (!Enum.TryParse<Role>(roleValue, ignoreCase: true, out var role))
+                return roleValue;
+
+            var key = role switch
+            {
+                Role.Viewer => nameof(NotificationMessages.NotificationRoleViewer),
+                Role.Manager => nameof(NotificationMessages.NotificationRoleManager),
+                Role.Admin => nameof(NotificationMessages.NotificationRoleAdmin),
+                _ => string.Empty
+            };
+
+            if (string.IsNullOrWhiteSpace(key))
+                return roleValue;
+
+            return NotificationMessages.ResourceManager.GetString(key, culture) ?? roleValue;
+        }
 
         private static string ResolveActionUrlFromActionLabel(string actionLabelCode)
         {

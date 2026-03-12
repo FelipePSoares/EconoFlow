@@ -366,7 +366,7 @@ namespace EasyFinance.Application.Tests
         }
 
         [Fact]
-        public async Task SendEmailsAsync_UpdateExistingUserGrant_ShouldSendEmails()
+        public async Task SendEmailsAsync_UpdateExistingUserGrant_ShouldQueueNotificationForAllConfiguredChannels()
         {
             // Arrange
             var inviterUser = new UserBuilder()
@@ -418,7 +418,20 @@ namespace EasyFinance.Application.Tests
                 It.Is<string>(e => e == "existinguser@example.com"),
                 It.Is<EmailTemplates>(e => e == EmailTemplates.AccessLevelChanged),
                 It.IsAny<CultureInfo>(),
-                It.IsAny<(string, string)[]>()), Times.Once);
+                It.IsAny<(string, string)[]>()), Times.Never);
+
+            this.notificationRepository.Verify(nr => nr.InsertOrUpdate(It.Is<Notification>(n =>
+                n.User.Id == existingUser.Id
+                && n.CodeMessage == EmailTemplates.AccessLevelChanged.ToString()
+                && n.Type == NotificationType.Information
+                && n.Category == NotificationCategory.Collaboration
+                && n.ActionLabelCode == "Projects"
+                && !n.IsActionRequired
+                && n.LimitNotificationChannels == NotificationChannels.None
+                && n.Metadata.Contains($"\"actionPath\":\"/projects/{project.Id}/overview/annual\"")
+                && n.Metadata.Contains("\"ProjectName\":\"Project A\"")
+                && n.Metadata.Contains("\"Role\":\"Manager\"")
+                && n.Metadata.Contains("\"FullName\":\"Inviter User\""))), Times.Once);
         }
 
         [Fact]

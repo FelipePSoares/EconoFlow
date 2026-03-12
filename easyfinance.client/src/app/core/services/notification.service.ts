@@ -2,6 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription, catchError, interval, startWith, switchMap, tap, throwError } from 'rxjs';
 import { Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 import { NotificationCategory } from '../enums/notification-category';
 import { NotificationType } from '../enums/notification-type';
 import { Notification } from '../models/notification';
@@ -12,6 +13,7 @@ import { Notification } from '../models/notification';
 export class NotificationService {
   private http = inject(HttpClient);
   private router = inject(Router);
+  private translateService = inject(TranslateService);
 
   private pollingSubscription: Subscription | null = null;
 
@@ -104,13 +106,23 @@ export class NotificationService {
   }
 
   public getMessageTranslationParams(notification: Notification): Record<string, string> | undefined {
-    if (notification.codeMessage !== 'GrantedAccess')
-      return undefined;
+    if (notification.codeMessage === 'GrantedAccess') {
+      const projectName = this.resolveMetadataValue(notification, 'ProjectName');
+      return {
+        projectName: projectName ?? ''
+      };
+    }
 
-    const projectName = this.resolveMetadataValue(notification, 'ProjectName');
-    return {
-      projectName: projectName ?? ''
-    };
+    if (notification.codeMessage === 'AccessLevelChanged') {
+      const roleKey = this.resolveMetadataValue(notification, 'Role') ?? '';
+      return {
+        fullName: this.resolveMetadataValue(notification, 'FullName') ?? '',
+        projectName: this.resolveMetadataValue(notification, 'ProjectName') ?? '',
+        role: roleKey ? this.translateService.instant(roleKey) : ''
+      };
+    }
+
+    return undefined;
   }
 
   private resolveActionPath(notification: Notification): string | null {
