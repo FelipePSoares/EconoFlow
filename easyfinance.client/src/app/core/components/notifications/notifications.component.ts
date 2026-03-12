@@ -46,6 +46,10 @@ export class NotificationsComponent {
     return this.removingNotificationIds.has(notificationId);
   }
 
+  public getMessageTranslationParams(notification: Notification): Record<string, string> | undefined {
+    return this.notificationService.getMessageTranslationParams(notification);
+  }
+
   private closeDropdown(): void {
     const toggleButton = this.notificationsToggleButton?.nativeElement;
     if (!toggleButton || !toggleButton.classList.contains('show'))

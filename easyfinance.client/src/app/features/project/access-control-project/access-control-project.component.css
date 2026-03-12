@@ -179,10 +179,12 @@
 
 .users-table-wrap {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .users-table {
   width: 100%;
+  min-width: 720px;
   border-collapse: collapse;
 }
 
@@ -222,6 +224,11 @@
   gap: 0.75rem;
 }
 
+.user-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
 .user-avatar {
   width: 36px;
   height: 36px;
@@ -236,24 +243,36 @@
   flex-shrink: 0;
 }
 
+.avatar-accepted-indicator {
+  display: none;
+}
+
 .user-info {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .user-name {
   font-size: 0.88rem;
   font-weight: 500;
   color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .user-email {
   font-size: 0.78rem;
   color: var(--ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .role-field {
-  max-width: 130px;
+  max-width: 150px;
+  min-width: 140px;
   width: 100%;
 }
 
@@ -301,53 +320,6 @@
     background: rgba(220, 53, 69, 0.08) !important;
   }
 
-.users-mobile {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.user-mobile-card {
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--border);
-  transition: background 0.15s;
-}
-
-  .user-mobile-card:last-child {
-    border-bottom: none;
-  }
-
-  .user-mobile-card:active {
-    background: var(--app-surface-alt);
-  }
-
-.user-mobile-top {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  margin-bottom: 0.75rem;
-}
-
-  .user-mobile-top .user-info {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .user-mobile-top .user-name,
-  .user-mobile-top .user-email {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .user-mobile-top .accepted-badge {
-    padding: 0.2rem 0.4rem;
-  }
-
-    .user-mobile-top .accepted-badge span {
-      display: none;
-    }
-
 @media (max-width: 600px) {
   .invite-card {
     padding: 1.25rem;
@@ -358,16 +330,169 @@
     flex: 1 1 120px;
   }
 
-  .invite-btn span {
+  .invite-btn .invite-btn-text {
     display: none;
   }
 
   .invite-btn {
-    padding: 0 1rem !important;
+    padding: 0 !important;
+    width: 48px;
     min-width: 48px;
+    justify-content: center;
+    position: relative;
+  }
+
+  .invite-btn .invite-btn-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0 !important;
+  }
+
+  .invite-btn ::ng-deep .mdc-button__label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    gap: 0;
   }
 
   .users-card-header {
     padding: 1rem 1.25rem 0.75rem;
   }
+
+  .users-table thead th,
+  .user-row td {
+    padding-left: 0.85rem;
+    padding-right: 0.85rem;
+  }
 }
+
+@media (max-width: 768px) {
+  .users-table {
+    min-width: 100%;
+    table-layout: fixed;
+  }
+
+  .col-user {
+    width: 48%;
+  }
+
+  .col-role {
+    width: 38%;
+  }
+
+  .col-accepted {
+    display: none;
+  }
+
+  .col-actions {
+    width: 14%;
+    text-align: center;
+  }
+
+  .users-table thead th.col-actions,
+  .users-table tbody td.col-actions {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+
+  .users-table thead th:not(.col-actions) {
+    font-size: 0.68rem;
+    letter-spacing: 0.03em;
+  }
+
+  .users-table thead th.col-actions {
+    font-size: 0;
+    text-align: center;
+  }
+
+  .users-table thead th.col-actions::after {
+    content: '...';
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    line-height: 1;
+  }
+
+  .user-row td {
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+  }
+
+  .user-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    font-size: 0.72rem;
+  }
+
+  .user-avatar.avatar-accepted-yes {
+    box-shadow: 0 0 0 2px rgba(14, 159, 110, 0.5);
+  }
+
+  .user-avatar.avatar-accepted-no {
+    box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.55);
+  }
+
+  .avatar-accepted-indicator {
+    display: block;
+    position: absolute;
+    right: -3px;
+    bottom: -3px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    border: 2px solid var(--white);
+  }
+
+  .avatar-accepted-indicator.indicator-accepted-yes {
+    background: var(--green);
+  }
+
+  .avatar-accepted-indicator.indicator-accepted-no {
+    background: #d39e00;
+  }
+
+  .user-cell {
+    gap: 0.5rem;
+  }
+
+  .user-name {
+    font-size: 0.8rem;
+  }
+
+  .user-email {
+    display: none;
+  }
+
+  .role-field {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .role-field ::ng-deep .mat-mdc-select-value-text,
+  .role-field ::ng-deep .mat-mdc-select-placeholder {
+    font-size: 0.8rem;
+  }
+
+  .role-field ::ng-deep .mat-mdc-form-field-infix {
+    min-width: 0;
+    width: auto;
+  }
+
+  .delete-btn {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    padding: 4px;
+    margin: 0 auto;
+  }
+
+  .delete-btn mat-icon {
+    font-size: 1.1rem;
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+}
+

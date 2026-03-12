@@ -62,13 +62,11 @@ describe('EconoFlow - expense list Tests', () => {
     })
   
     it('should update date after success update', () => {
-      const today = new Date()
-      if (today.getDate() == 1)
-        today.setDate(2);
-      else
-        today.setDate(Math.floor(Math.random() * today.getDate()) + 1)
-
-      let formattedDate = ''
+      const firstDayCandidate = new Date();
+      firstDayCandidate.setDate(1);
+      const secondDayCandidate = new Date();
+      secondDayCandidate.setDate(2);
+      let targetDate = firstDayCandidate;
       let expectedDates: string[] = []
 
       cy.get('button[name=edit]').first().click()
@@ -79,9 +77,14 @@ describe('EconoFlow - expense list Tests', () => {
 
       cy.window().then((win) => {
         const locale = win.localStorage.getItem('language-key') || win.navigator.language || 'en-US'
-        formattedDate = today.toLocaleDateString(locale)
-        expectedDates = buildDateVariants(today, locale)
-        cy.get('input[formControlName=date]').clear().type(`${formattedDate}{enter}`)
+        const firstDayVariants = buildDateVariants(firstDayCandidate, locale)
+
+        cy.get('input[formControlName=date]').invoke('val').then((currentValue) => {
+          const currentDateValue = String(currentValue ?? '').trim()
+          targetDate = firstDayVariants.includes(currentDateValue) ? secondDayCandidate : firstDayCandidate
+          expectedDates = buildDateVariants(targetDate, locale)
+          cy.get('input[formControlName=date]').clear().type(`${targetDate.toLocaleDateString(locale)}{enter}`)
+        })
       })
 
       cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ response }) => {

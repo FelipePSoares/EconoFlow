@@ -33,7 +33,7 @@
   --mobile-copy-text: var(--ink-soft);
   --mobile-border: rgba(13, 33, 55, 0.1);
   display: block;
-  background: var(--surface);
+  background: transparent;
   font-family: 'DM Sans', sans-serif;
   color: var(--ink);
 }

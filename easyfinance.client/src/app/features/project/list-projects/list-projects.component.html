@@ -14,7 +14,9 @@
                   <i class="bi bi-three-dots"></i>
                 </button>
                 <ul class="dropdown-menu">
-                  <li><button type="button" class="edit dropdown-item" (click)="edit(userProject.project)">{{ 'ButtonEdit' | translate }}</button></li>
+                  @if (canEditProject(userProject)) {
+                    <li><button type="button" class="edit dropdown-item" (click)="edit(userProject)">{{ 'ButtonEdit' | translate }}</button></li>
+                  }
                   @if (userProject?.project?.id && (defaultProjectId$ | async) != userProject.project.id){
                   <li><button type="button" class="dropdown-item" (click)="setAsDefault(userProject.project)">{{ 'ButtonSetDefault' | translate }}</button></li>
                   }

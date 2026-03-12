@@ -9,6 +9,7 @@ using EasyFinance.Application.Mappers;
 using EasyFinance.Common.Tests.AccessControl;
 using EasyFinance.Common.Tests.FinancialProject;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Account;
 using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
@@ -27,6 +28,7 @@ namespace EasyFinance.Application.Tests
         private readonly Mock<IUnitOfWork> unitOfWork;
         private readonly Mock<IGenericRepository<UserProject>> userProjectRepository;
         private readonly Mock<IGenericRepository<Project>> ProjectRepository;
+        private readonly Mock<IGenericRepository<Notification>> notificationRepository;
         private readonly Mock<IAccessControlReadRepository> accessControlReadRepository;
         private readonly Mock<IEmailService> emailService;
         private readonly Mock<ICallbackService> callbackService;
@@ -39,6 +41,7 @@ namespace EasyFinance.Application.Tests
             this.unitOfWork = new Mock<IUnitOfWork>();
             this.userProjectRepository = new Mock<IGenericRepository<UserProject>>();
             this.ProjectRepository = new Mock<IGenericRepository<Project>>();
+            this.notificationRepository = new Mock<IGenericRepository<Notification>>();
             this.accessControlReadRepository = new Mock<IAccessControlReadRepository>();
             this.emailService = new Mock<IEmailService>();
             this.callbackService = new Mock<ICallbackService>();
@@ -61,11 +64,14 @@ namespace EasyFinance.Application.Tests
 
             unitOfWork.Setup(uw => uw.UserProjectRepository).Returns(this.userProjectRepository.Object);
             unitOfWork.Setup(uw => uw.ProjectRepository).Returns(this.ProjectRepository.Object);
+            unitOfWork.Setup(uw => uw.NotificationRepository).Returns(this.notificationRepository.Object);
 
             this.accessControlService = new AccessControlService(unitOfWork.Object, this.accessControlReadRepository.Object, this.userManagerMock.Object, this.emailService.Object, this.callbackService.Object, this.logger.Object);
 
             this.userProjectRepository.Setup(upr => upr.InsertOrUpdate(It.IsAny<UserProject>()))
                 .Returns((UserProject up) => AppResponse<UserProject>.Success(up));
+            this.notificationRepository.Setup(nr => nr.InsertOrUpdate(It.IsAny<Notification>()))
+                .Returns((Notification notification) => AppResponse<Notification>.Success(notification));
             this.unitOfWork.Setup(u => u.GetAffectedUsers(It.IsAny<EntityState[]>())).Returns([]);
         }
 
@@ -360,7 +366,7 @@ namespace EasyFinance.Application.Tests
         }
 
         [Fact]
-        public async Task SendEmailsAsync_UpdateExistingUserGrant_ShouldSendEmails()
+        public async Task SendEmailsAsync_UpdateExistingUserGrant_ShouldQueueNotificationForAllConfiguredChannels()
         {
             // Arrange
             var inviterUser = new UserBuilder()
@@ -412,11 +418,24 @@ namespace EasyFinance.Application.Tests
                 It.Is<string>(e => e == "existinguser@example.com"),
                 It.Is<EmailTemplates>(e => e == EmailTemplates.AccessLevelChanged),
                 It.IsAny<CultureInfo>(),
-                It.IsAny<(string, string)[]>()), Times.Once);
+                It.IsAny<(string, string)[]>()), Times.Never);
+
+            this.notificationRepository.Verify(nr => nr.InsertOrUpdate(It.Is<Notification>(n =>
+                n.User.Id == existingUser.Id
+                && n.CodeMessage == EmailTemplates.AccessLevelChanged.ToString()
+                && n.Type == NotificationType.Information
+                && n.Category == NotificationCategory.Collaboration
+                && n.ActionLabelCode == "Projects"
+                && !n.IsActionRequired
+                && n.LimitNotificationChannels == NotificationChannels.None
+                && n.Metadata.Contains($"\"actionPath\":\"/projects/{project.Id}\"")
+                && n.Metadata.Contains("\"ProjectName\":\"Project A\"")
+                && n.Metadata.Contains("\"Role\":\"Manager\"")
+                && n.Metadata.Contains("\"FullName\":\"Inviter User\""))), Times.Once);
         }
 
         [Fact]
-        public async Task SendEmailsAsync_AddExistingUser_ShouldSendEmails()
+        public async Task SendEmailsAsync_AddExistingUser_ShouldQueueNotificationForAllConfiguredChannels()
         {
             // Arrange
             var inviterUser = new UserBuilder()
@@ -466,6 +485,66 @@ namespace EasyFinance.Application.Tests
                 It.Is<Guid>(id => id == existingUser.Id),
                 It.Is<string>(e => e == "existinguser@example.com"),
                 It.Is<EmailTemplates>(e => e == EmailTemplates.GrantedAccess),
+                It.IsAny<CultureInfo>(),
+                It.IsAny<(string, string)[]>()), Times.Never);
+
+            this.notificationRepository.Verify(nr => nr.InsertOrUpdate(It.Is<Notification>(n =>
+                n.User.Id == existingUser.Id
+                && n.CodeMessage == EmailTemplates.GrantedAccess.ToString()
+                && n.Type == NotificationType.Information
+                && n.Category == NotificationCategory.Collaboration
+                && n.ActionLabelCode == "ButtonAccept"
+                && !n.IsActionRequired
+                && n.LimitNotificationChannels == NotificationChannels.None
+                && n.Metadata.Contains("\"actionPath\":\"/projects/")
+                && n.Metadata.Contains("\"CallbackUrl\":")
+                && n.Metadata.Contains("\"ProjectName\":\"Project A\"")
+                && !n.Metadata.Contains("\"token\":")
+                && !n.Metadata.Contains("\"projectId\":")
+                && !n.Metadata.Contains("\"projectName\":")
+                && !n.Metadata.Contains("\"inviterName\":"))), Times.Once);
+        }
+
+        [Fact]
+        public async Task SendEmailsAsync_AddNotExistentUser_ShouldStillSendReceivedInvitationEmail()
+        {
+            // Arrange
+            var inviterUser = new UserBuilder()
+                .AddId(Guid.NewGuid())
+                .AddEmail("inviter@example.com")
+                .AddFirstName("Inviter")
+                .AddLastName("User")
+                .Build();
+
+            var project = new ProjectBuilder()
+                .AddId(Guid.NewGuid())
+                .AddName("Project A")
+                .Build();
+
+            var userProjectAuthorization = new List<UserProject>
+            {
+                new UserProjectBuilder().AddUser(inviterUser).AddProject(project).AddRole(Role.Admin).AddAccepted().Build()
+            };
+
+            this.ProjectRepository.Setup(pr => pr.Trackable()).Returns(new List<Project> { project }.AsQueryable());
+            this.userProjectRepository.Setup(upr => upr.NoTrackable()).Returns(userProjectAuthorization.AsQueryable());
+            this.userProjectRepository.Setup(upr => upr.Trackable()).Returns(userProjectAuthorization.AsQueryable());
+            this.unitOfWork.Setup(u => u.GetAffectedUsers(It.IsAny<EntityState[]>())).Returns([]);
+
+            var userProjectDto = new JsonPatchDocument<IList<UserProjectRequestDTO>>()
+                .Add(up => up, new UserProjectRequestDTO()
+                {
+                    UserEmail = "newuser@example.com",
+                    Role = Role.Manager
+                });
+
+            // Act
+            var result = await this.accessControlService.UpdateAccessAsync(inviterUser, project.Id, userProjectDto);
+
+            // Assert
+            this.emailService.Verify(es => es.SendEmailAsync(
+                It.Is<string>(e => e == "newuser@example.com"),
+                It.Is<EmailTemplates>(e => e == EmailTemplates.ReceivedInvitation),
                 It.IsAny<CultureInfo>(),
                 It.IsAny<(string, string)[]>()), Times.Once);
         }

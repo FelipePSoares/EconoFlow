@@ -31,6 +31,10 @@ export class StickyNotificationsComponent {
     this.notificationService.action(notification);
   }
 
+  public getMessageTranslationParams(notification: Notification): Record<string, string> | undefined {
+    return this.notificationService.getMessageTranslationParams(notification);
+  }
+
   private urlIsUnderUser(url: string): boolean {
     const path = url.split('?')[0].split('#')[0];
     return path === '/user' || path.startsWith('/user/');
