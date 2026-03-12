@@ -1,0 +1,104 @@
+<div class="container py-3">
+  <div class="col text-center mt-3">
+    <h2 class="mb-0">{{ userProject.project.name }}</h2>
+  </div>
+
+  <app-current-date (dateUpdatedEvent)="updateDate($event)"></app-current-date>
+
+  <div class="row g-3 mt-1">
+    <div class="col-12 col-md-4">
+      <button
+        type="button"
+        class="summary-card summary-card-income"
+        data-testid="overview-income-card"
+        (click)="openIncomes()">
+        <span class="summary-label">{{ 'TotalIncome' | translate }}</span>
+        <span class="summary-value text-success privacy-sensitive-value">{{ totalIncome | currencyFormat: true }}</span>
+      </button>
+    </div>
+    <div class="col-12 col-md-4">
+      <button
+        type="button"
+        class="summary-card summary-card-plan"
+        data-testid="overview-saved-invested-card"
+        (click)="openIncomePlanMode()">
+        <span class="summary-label">{{ 'TotalSavedInvested' | translate }}</span>
+        <span class="summary-value text-primary privacy-sensitive-value">{{ totalSavedInvested | currencyFormat: true }}</span>
+      </button>
+    </div>
+    <div class="col-12 col-md-4">
+      <button
+        type="button"
+        class="summary-card summary-card-expense"
+        data-testid="overview-expense-card"
+        (click)="openExpenseOverview()">
+        <span class="summary-label">{{ 'TotalExpenses' | translate }}</span>
+        <span class="summary-value text-danger privacy-sensitive-value">{{ totalExpense | currencyFormat: true }}</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="row mt-3">
+    <div class="col-12">
+      <div class="wrap p-2 p-md-3">
+        <div class="col text-center mt-2 mb-3">
+          <h2>{{ 'LatestTransactions' | translate }}</h2>
+        </div>
+
+        <div class="table-responsive">
+          <table mat-table [dataSource]="(transactions$ | async) || []" class="w-100 latest-transactions-table">
+            <ng-container matColumnDef="date">
+              <th mat-header-cell *matHeaderCellDef class="ps-4">{{ 'Date' | translate }}</th>
+              <td mat-cell *matCellDef="let row" class="ps-4">
+                <div class="text-secondary">{{ row.date | date: 'shortDate' : undefined : currentLanguage }}</div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="description">
+              <th mat-header-cell *matHeaderCellDef>{{ 'Description' | translate }}</th>
+              <td mat-cell *matCellDef="let row">
+                <div class="d-flex align-items-center py-2 py-md-3">
+                  <div class="transaction-icon me-2 me-md-3 flex-shrink-0">
+                    <i class="bi" [class]="row.type === 'Income' ? 'bi-arrow-down-left money-in' : 'bi-arrow-up-right money-out'"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="fw-medium text-truncate">{{ row.name }}</div>
+                    <div class="badges-row">
+                      <span class="badge-type" [class]="row.type === 'Income' ? 'badge-income' : 'badge-expense'">
+                        {{ row.type | translate }}
+                      </span>
+                      @if (row.categoryName) {
+                        <span class="badge-category">
+                          <i class="bi bi-tag-fill"></i>
+                          <span class="badge-label">{{ row.categoryName }}</span>
+                        </span>
+                      }
+                      @if (row.parentExpenseName) {
+                        <span class="badge-category">
+                          <i class="bi bi-link-45deg"></i>
+                          <span class="badge-label">{{ row.parentExpenseName }}</span>
+                        </span>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="amount">
+              <th mat-header-cell *matHeaderCellDef class="pe-4 text-end">{{ 'Amount' | translate }}</th>
+              <td mat-cell *matCellDef="let row" class="pe-4 text-end">
+                <div [class]="row.type === 'Income' ? 'text-success fw-medium privacy-sensitive-value' : 'text-danger fw-medium privacy-sensitive-value'">
+                  {{ row.amount | currencyFormat }}
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="['date', 'description', 'amount']" class="bg-light"></tr>
+            <tr mat-row *matRowDef="let row; columns: ['date', 'description', 'amount'];" class="hover-row"></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

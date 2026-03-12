@@ -157,6 +157,12 @@ describe('AnnualOverviewComponent', () => {
     expect(routerMock.navigate).toHaveBeenCalledWith(['/projects', 'project-1', 'deductions']);
   });
 
+  it('should navigate back to expense overview', () => {
+    component.previous();
+
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/projects', 'project-1', 'expense-overview']);
+  });
+
   it('should flag deductible load failure and reset totals when category loading fails', () => {
     categoryServiceMock.get.and.returnValue(throwError(() => new Error('load failed')));
 

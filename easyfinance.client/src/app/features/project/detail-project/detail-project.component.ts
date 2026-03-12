@@ -4,13 +4,11 @@ import { MatDialog } from '@angular/material/dialog';
 import { NavigationEnd, Router, UrlSegment } from '@angular/router';
 import { BehaviorSubject, filter, map, Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { CdkTableDataSourceInput } from '@angular/cdk/table';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
 import { ChartData, ChartOptions, TooltipItem } from 'chart.js';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
+import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { CategoryService } from '../../../core/services/category.service';
 import { CategoryDto } from '../../category/models/category-dto';
 import { IncomeService } from '../../../core/services/income.service';
@@ -18,7 +16,6 @@ import { IncomeDto } from '../../income/models/income-dto';
 import { ExpenseDto } from '../../expense/models/expense-dto';
 import { ProjectService } from '../../../core/services/project.service';
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
-import { TransactionDto } from '../models/transaction-dto';
 import { UserProjectDto } from '../models/user-project-dto';
 import { Role } from '../../../core/enums/Role';
 import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
@@ -36,14 +33,13 @@ import { toLocalDate } from '../../../core/utils/date';
     selector: 'app-detail-project',
     imports: [
       CommonModule,
+      ReturnButtonComponent,
       CurrentDateComponent,
       BudgetBarComponent,
       MonthlyExpensesChartComponent,
       AnnualIncomeExpenseChartComponent,
       CurrencyFormatPipe,
       MatButtonModule,
-      MatIconModule,
-      MatTableModule,
       TranslateModule
     ],
     providers: [CurrencyFormatPipe],
@@ -53,6 +49,15 @@ import { toLocalDate } from '../../../core/utils/date';
 
 export class DetailProjectComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
+  private router = inject(Router);
+  private projectService = inject(ProjectService);
+  private categoryService = inject(CategoryService);
+  private incomeService = inject(IncomeService);
+  private dialog = inject(MatDialog);
+  private currentDateService = inject(CurrentDateService);
+  private globalService = inject(GlobalService);
+  private translateService = inject(TranslateService);
+  private currencyFormatPipe = inject(CurrencyFormatPipe);
   private hadModalOutlet = false;
   currentLanguage = this.globalService.currentLanguage;
 
@@ -113,31 +118,9 @@ export class DetailProjectComponent implements OnInit {
       }
     }
   };
-  private dataSource = new MatTableDataSource<TransactionDto>();
-  private transactions: BehaviorSubject<TransactionDto[]> = new BehaviorSubject<TransactionDto[]>([new TransactionDto()]);
-  transactions$: Observable<CdkTableDataSourceInput<TransactionDto>> = this.transactions.asObservable().pipe(
-    map((transaction) => {
-      const dataSource = this.dataSource;
-      dataSource.data = transaction
-      return dataSource;
-    })
-  );
 
   private categories: BehaviorSubject<CategoryDto[]> = new BehaviorSubject<CategoryDto[]>([new CategoryDto()]);
   categories$: Observable<CategoryDto[]> = this.categories.asObservable();
-
-  constructor(
-    private router: Router,
-    private projectService: ProjectService,
-    private categoryService: CategoryService,
-    private incomeService: IncomeService,
-    private dialog: MatDialog,
-    private currentDateService: CurrentDateService,
-    private globalService: GlobalService,
-    private translateService: TranslateService,
-    private currencyFormatPipe: CurrencyFormatPipe
-  ) {
-  }
 
   ngOnInit(): void {
     this.hadModalOutlet = this.hasModalOutlet(this.router.url);
@@ -221,13 +204,6 @@ export class DetailProjectComponent implements OnInit {
           this.month.earned = res.map(c => c.amount).reduce((acc, value) => acc + value, 0);
         }
       });
-
-    this.projectService.getLatest(this.projectId, 5)
-      .pipe(map(transactions => TransactionDto.fromTransactions(transactions)))
-      .subscribe(
-        {
-          next: res => { this.transactions.next(res); }
-        });
   }
 
   fillCategoriesData(date: Date, categoriesInRange: Category[]) {
@@ -318,6 +294,10 @@ export class DetailProjectComponent implements OnInit {
     this.fillData(newDate);
   }
 
+  previous(): void {
+    this.router.navigate(['/projects', this.projectId]);
+  }
+
   listCategories(): void {
     this.router.navigate([{ outlets: { modal: ['projects', this.projectId, 'categories'] } }]);
 
@@ -335,10 +315,6 @@ export class DetailProjectComponent implements OnInit {
 
   selectCategories(): void {
     this.router.navigate(['/projects', this.projectId, 'categories']);
-  }
-
-  selectIncomes(): void {
-    this.router.navigate(['/projects', this.projectId, 'incomes']);
   }
 
   openAnnualOverview(): void {
@@ -499,7 +475,8 @@ export class DetailProjectComponent implements OnInit {
 
     return this.getSegmentPath(primarySegments, 0) === 'projects'
       && projectIdSegment === this.projectId
-      && primarySegments.length === 2;
+      && this.getSegmentPath(primarySegments, 2) === 'expense-overview'
+      && primarySegments.length === 3;
   }
 
   private getSegmentPath(segments: UrlSegment[], index: number): string {
