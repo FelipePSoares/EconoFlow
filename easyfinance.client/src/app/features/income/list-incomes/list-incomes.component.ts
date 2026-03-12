@@ -1,41 +1,40 @@
+import { AsyncPipe, CommonModule } from '@angular/common';
 import { Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router, UrlSegment } from '@angular/router';
-import { BehaviorSubject, Observable, filter, map } from 'rxjs';
-import { IncomeService } from 'src/app/core/services/income.service';
-import { IncomeDto } from '../models/income-dto';
-import { AsyncPipe, CommonModule } from '@angular/common';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { DateAdapter } from '@angular/material/core';
 import { MatCardModule } from '@angular/material/card';
-import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
-import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
-import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
-import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
-import { GlobalService } from '../../../core/services/global.service';
 import { MatDialog } from '@angular/material/dialog';
-import { ProjectService } from '../../../core/services/project.service';
-import { UserProjectDto } from '../../project/models/user-project-dto';
+import { NavigationEnd, Router, UrlSegment } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { BehaviorSubject, Observable, filter, map } from 'rxjs';
 import { Role } from '../../../core/enums/Role';
 import { CurrentDateService } from '../../../core/services/current-date.service';
-import { DateAdapter } from '@angular/material/core';
+import { GlobalService } from '../../../core/services/global.service';
+import { IncomeService } from '../../../core/services/income.service';
+import { ProjectService } from '../../../core/services/project.service';
+import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
+import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
+import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
+import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
+import { UserProjectDto } from '../../project/models/user-project-dto';
 import { AddIncomeComponent } from '../add-income/add-income.component';
+import { IncomeDto } from '../models/income-dto';
 
 @Component({
-    selector: 'app-list-incomes',
-    imports: [
-        CommonModule,
-        AsyncPipe,
-        MatCardModule,
-        ReturnButtonComponent,
-        CurrentDateComponent,
-        CurrencyFormatPipe,
-        AddIncomeComponent,
-        TranslateModule
-    ],
-    templateUrl: './list-incomes.component.html',
-    styleUrl: './list-incomes.component.css'
+  selector: 'app-list-incomes',
+  imports: [
+    CommonModule,
+    AsyncPipe,
+    MatCardModule,
+    ReturnButtonComponent,
+    CurrentDateComponent,
+    CurrencyFormatPipe,
+    AddIncomeComponent,
+    TranslateModule
+  ],
+  templateUrl: './list-incomes.component.html',
+  styleUrl: './list-incomes.component.css'
 })
-
 export class ListIncomesComponent implements OnInit {
   private hadModalOutlet = false;
   private incomeService = inject(IncomeService);
@@ -48,8 +47,10 @@ export class ListIncomesComponent implements OnInit {
   private dateAdapter = inject(DateAdapter<Date>);
   private destroyRef = inject(DestroyRef);
 
-  private incomes: BehaviorSubject<IncomeDto[]> = new BehaviorSubject<IncomeDto[]>([]);
+  private incomes = new BehaviorSubject<IncomeDto[]>([]);
+
   incomes$: Observable<IncomeDto[]> = this.incomes.asObservable();
+
   isCreatingIncome = false;
   editingIncomeId: string | null = null;
   itemToDelete!: string;
@@ -107,7 +108,7 @@ export class ListIncomesComponent implements OnInit {
     this.incomeService.get(this.projectId, date)
       .pipe(map(incomes => IncomeDto.fromIncomes(incomes)))
       .subscribe({
-        next: res => this.incomes.next(res)
+        next: incomes => this.incomes.next(incomes)
       });
   }
 
@@ -159,7 +160,7 @@ export class ListIncomesComponent implements OnInit {
     const message = this.translateService.instant('AreYouSureYouWantDeleteIncome', { value: income.name });
 
     this.dialog.open(ConfirmDialogComponent, {
-      data: { title: 'DeleteIncome', message: message, action: 'ButtonDelete' },
+      data: { title: 'DeleteIncome', message, action: 'ButtonDelete' },
     }).afterClosed().subscribe((result) => {
       if (result) {
         this.remove(this.itemToDelete);
@@ -167,21 +168,17 @@ export class ListIncomesComponent implements OnInit {
     });
   }
 
-  updateDate(newDate: Date) {
-    this.resetEditionState();
+  updateDate(newDate: Date): void {
+    this.cancelIncomeForm();
     this.fillData(newDate);
   }
 
-  previous() {
+  previous(): void {
     this.router.navigate(['/projects', this.projectId]);
   }
 
   canAddOrEdit(): boolean {
     return !!this.userProject && (this.userProject.role === Role.Admin || this.userProject.role === Role.Manager);
-  }
-
-  private resetEditionState(): void {
-    this.cancelIncomeForm();
   }
 
   private hasModalOutlet(url: string): boolean {
