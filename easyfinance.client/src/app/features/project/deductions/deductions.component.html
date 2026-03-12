@@ -172,13 +172,13 @@
                           {{ 'ButtonOpenEditExpense' | translate }}
                         </button>
                         @if (entry.proofDownloadUrl) {
-                          <a
+                          <button
+                            type="button"
                             class="btn btn-sm btn-outline-secondary"
-                            [href]="entry.proofDownloadUrl"
-                            target="_blank"
-                            rel="noopener noreferrer">
-                            {{ 'ButtonViewProof' | translate }}
-                          </a>
+                            [disabled]="isProofDownloadInProgress(entry)"
+                            (click)="downloadProof(entry)">
+                            {{ 'ButtonDownload' | translate }}
+                          </button>
                         }
                       </div>
                     </div>
@@ -270,13 +270,13 @@
                             {{ 'ButtonOpenEditExpense' | translate }}
                           </button>
                           @if (entry.proofDownloadUrl) {
-                            <a
+                            <button
+                              type="button"
                               class="btn btn-sm btn-outline-secondary"
-                              [href]="entry.proofDownloadUrl"
-                              target="_blank"
-                              rel="noopener noreferrer">
-                              {{ 'ButtonViewProof' | translate }}
-                            </a>
+                              [disabled]="isProofDownloadInProgress(entry)"
+                              (click)="downloadProof(entry)">
+                              {{ 'ButtonDownload' | translate }}
+                            </button>
                           }
                         </div>
                       </div>
