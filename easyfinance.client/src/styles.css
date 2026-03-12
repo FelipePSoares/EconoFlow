@@ -501,6 +501,15 @@ html {
   box-shadow: 0 14px 28px rgba(0, 0, 0, 0.35);
 }
 
+:root[data-theme='dark'] .cdk-overlay-container .mat-mdc-select-panel,
+:root[data-theme='dark'] .cdk-overlay-container .mat-mdc-select-panel.mdc-menu-surface {
+  --mdc-menu-container-color: var(--app-surface);
+  --mat-select-panel-background-color: var(--app-surface);
+  background-color: var(--app-surface) !important;
+  color: var(--app-text-color) !important;
+  border: 1px solid var(--app-border-color);
+}
+
 :root[data-theme='dark'] .mat-mdc-select-arrow svg {
   fill: var(--app-text-color) !important;
 }
@@ -511,6 +520,41 @@ html {
 
 :root[data-theme='dark'] .mat-mdc-option .mdc-list-item__primary-text {
   color: inherit !important;
+}
+
+:root[data-theme='dark'] .cdk-overlay-container .mat-mdc-option,
+:root[data-theme='dark'] .cdk-overlay-container .mat-mdc-option .mdc-list-item__primary-text {
+  color: var(--app-text-color) !important;
+}
+
+:root[data-theme='dark'] .cdk-overlay-container .mat-mdc-autocomplete-panel,
+:root[data-theme='dark'] .cdk-overlay-container .mat-mdc-autocomplete-panel.mdc-menu-surface {
+  --mdc-menu-container-color: var(--app-surface);
+  --mat-autocomplete-background-color: var(--app-surface);
+  background-color: var(--app-surface) !important;
+  color: var(--app-text-color) !important;
+  border: 1px solid var(--app-border-color);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.35);
+}
+
+:root[data-theme='dark'] .cdk-overlay-container .mat-mdc-autocomplete-panel .mat-mdc-option {
+  color: var(--app-text-color) !important;
+  background-color: transparent !important;
+}
+
+:root[data-theme='dark'] .cdk-overlay-container .mat-mdc-autocomplete-panel .mat-mdc-option .mdc-list-item__primary-text {
+  color: inherit !important;
+}
+
+:root[data-theme='dark'] .cdk-overlay-container .mat-mdc-autocomplete-panel .mat-mdc-option:hover:not(.mdc-list-item--disabled),
+:root[data-theme='dark'] .cdk-overlay-container .mat-mdc-autocomplete-panel .mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled) {
+  background-color: rgba(148, 163, 184, 0.24) !important;
+}
+
+:root[data-theme='dark'] .cdk-overlay-container .mat-mdc-autocomplete-panel .mat-mdc-option.mdc-list-item--disabled,
+:root[data-theme='dark'] .cdk-overlay-container .mat-mdc-autocomplete-panel .mat-mdc-option.mdc-list-item--disabled .mdc-list-item__primary-text {
+  color: var(--app-muted-text) !important;
+  opacity: 0.8;
 }
 
 :root[data-theme='dark'] .mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled) {
