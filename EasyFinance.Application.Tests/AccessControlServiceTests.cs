@@ -428,7 +428,7 @@ namespace EasyFinance.Application.Tests
                 && n.ActionLabelCode == "Projects"
                 && !n.IsActionRequired
                 && n.LimitNotificationChannels == NotificationChannels.None
-                && n.Metadata.Contains($"\"actionPath\":\"/projects/{project.Id}/overview/annual\"")
+                && n.Metadata.Contains($"\"actionPath\":\"/projects/{project.Id}\"")
                 && n.Metadata.Contains("\"ProjectName\":\"Project A\"")
                 && n.Metadata.Contains("\"Role\":\"Manager\"")
                 && n.Metadata.Contains("\"FullName\":\"Inviter User\""))), Times.Once);
