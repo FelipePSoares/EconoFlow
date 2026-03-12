@@ -38,6 +38,9 @@ namespace EasyFinance.Domain.FinancialProject
                 if (Date == DateOnly.MinValue)
                     response.AddErrorMessage(nameof(Date), ValidationMessages.InvalidDate);
 
+                if (Date > DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddDays(1)))
+                    response.AddErrorMessage(nameof(Date), ValidationMessages.CantAddFuturePlanEntry);
+
                 if (AmountSigned == 0)
                     response.AddErrorMessage(nameof(AmountSigned), ValidationMessages.AmountSignedMustBeDifferentFromZero);
 

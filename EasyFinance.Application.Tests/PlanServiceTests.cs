@@ -267,6 +267,35 @@ namespace EasyFinance.Application.Tests
         }
 
         [Fact]
+        public async Task AddEntryAsync_WithFutureDate_ShouldFail()
+        {
+            using var scope = this.serviceProvider.CreateScope();
+            var scopedServices = scope.ServiceProvider;
+            var planService = scopedServices.GetRequiredService<IPlanService>();
+            var unitOfWork = scopedServices.GetRequiredService<IUnitOfWork>();
+
+            var createdPlan = await planService.CreatePlanAsync(this.project1.Id, new PlanRequestDTO
+            {
+                Type = PlanType.EmergencyReserve,
+                Name = "Emergency Reserve",
+                TargetAmount = 500m
+            });
+
+            var response = await planService.AddEntryAsync(this.project1.Id, createdPlan.Data.Id, new PlanEntryRequestDTO
+            {
+                Date = DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddDays(2)),
+                AmountSigned = 100m,
+                Note = "Invalid future date"
+            });
+
+            var plan = unitOfWork.PlanRepository.NoTrackable().First(savedPlan => savedPlan.Id == createdPlan.Data.Id);
+
+            response.Failed.Should().BeTrue();
+            response.Messages.Should().Contain(message => message.Code == "Date");
+            plan.CurrentBalance.Should().Be(0m);
+        }
+
+        [Fact]
         public async Task GetEntriesAsync_WithPlanFromAnotherProject_ShouldThrowNotFound()
         {
             using var scope = this.serviceProvider.CreateScope();

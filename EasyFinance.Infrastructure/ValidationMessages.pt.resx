@@ -141,6 +141,9 @@
   <data name="CantAddFutureIncome" xml:space="preserve">
     <value>Uma receita futura não pode ter um valor</value>
   </data>
+  <data name="CantAddFuturePlanEntry" xml:space="preserve">
+    <value>Um lançamento de plano não pode ter uma data futura.</value>
+  </data>
   <data name="CantAddExpenseOlderThanYears" xml:space="preserve">
     <value>Você não pode adicionar despesa mais antiga que {0} anos</value>
   </data>
