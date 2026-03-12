@@ -12,6 +12,7 @@ describe('EconoFlow - user account Tests', () => {
   it('Should edit basic user infos', () => {
     cy.intercept('GET', '**/AccessControl*').as('getAccount')
     cy.intercept('PATCH', '**/AccessControl*').as('patchAccount')
+    cy.waitForLoader();
 
     const firstNameInput = cy.get('input[formcontrolname=firstName]');
     const lastNameInput = cy.get('input[formcontrolname=lastName]');
@@ -21,11 +22,15 @@ describe('EconoFlow - user account Tests', () => {
     const lastNameValue = 'lastName' + Math.floor(Math.random() * 1000).toString();
     lastNameInput.clear().type(lastNameValue);
 
-    cy.wait<UserReq, UserRes>('@patchAccount').then(({ request, response }) => {
+    cy.wait<UserReq, UserRes>('@patchAccount').then(({ response }) => {
       expect(response?.statusCode).to.equal(200)
+    })
 
-      expect(response?.body.firstName).to.equal(firstNameValue);
-      expect(response?.body.lastName).to.equal(lastNameValue);
+    // valueChanges + debounce may emit more than one PATCH; assert persisted state instead of first response payload
+    cy.wait(1000)
+    cy.request<UserRes>('GET', '/api/AccessControl/').then(({ body }) => {
+      expect(body.firstName).to.equal(firstNameValue);
+      expect(body.lastName).to.equal(lastNameValue);
     })
   })
 
@@ -87,8 +92,14 @@ describe('EconoFlow - user account Tests', () => {
       cy.intercept('DELETE', '**/AccessControl*').as('deleteAccount')
       cy.visit('/logout')
       cy.register(uniqueUser.username, uniqueUser.password)
+      cy.intercept('GET', '/api/AccessControl/').as('getAccount')
       cy.visit('/user/account')
-      cy.get('button.danger-zone-delete').should('be.visible').click();
+      cy.url().should('include', '/user/account')
+      cy.wait<UserReq, UserRes>('@getAccount').then(({ response }) => {
+        expect(response?.statusCode).to.equal(200)
+      })
+      cy.waitForLoader();
+      cy.get('button.danger-zone-delete', { timeout: 10000 }).should('be.visible').click();
       cy.wait('@deleteAccount').then((interception) => {
         expect(interception?.response?.statusCode).to.equal(202)
         cy.get('app-confirm-dialog button[mat-raised-button]').click();
@@ -112,8 +123,14 @@ describe('EconoFlow - user account Tests', () => {
 
       cy.visit('/logout')
       cy.register(uniqueUser.username, uniqueUser.password)
+      cy.intercept('GET', '/api/AccessControl/').as('getAccount')
       cy.visit('/user/account')
-      cy.get('button.danger-zone-delete').should('be.visible').click();
+      cy.url().should('include', '/user/account')
+      cy.wait<UserReq, UserRes>('@getAccount').then(({ response }) => {
+        expect(response?.statusCode).to.equal(200)
+      })
+      cy.waitForLoader();
+      cy.get('button.danger-zone-delete', { timeout: 10000 }).should('be.visible').click();
       cy.wait('@deleteAccount').then((interception) => {
         expect(interception?.response?.statusCode).to.equal(202)
         cy.get('app-confirm-dialog button[mat-stroked-button]').click();
