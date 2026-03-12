@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -77,6 +78,7 @@ export class DeductionsComponent implements OnInit {
   private dialog = inject(MatDialog);
   private translateService = inject(TranslateService);
   private snackBar = inject(SnackbarComponent);
+  private http = inject(HttpClient);
   private destroyRef = inject(DestroyRef);
 
   @Input({ required: true })
@@ -93,6 +95,7 @@ export class DeductionsComponent implements OnInit {
   deductibleEntries: DeductibleEntry[] = [];
   expenseGroupMap: Record<string, string> = {};
   isUpdatingAssignmentByEntryKey: Record<string, boolean> = {};
+  isDownloadingProofByEntryId: Record<string, boolean> = {};
   selectedAssignableEntryIds = new Set<string>();
 
   newGroupName = '';
@@ -164,6 +167,10 @@ export class DeductionsComponent implements OnInit {
   }
 
   async openTaxYearConfigurationDialog(): Promise<void> {
+    if (!this.canManageGroups) {
+      return;
+    }
+
     let dialogRef: MatDialogRef<PageModalComponent, ProjectTaxYearSettings | null>;
     const componentInputs = {
       projectId: this.projectId,
@@ -328,6 +335,10 @@ export class DeductionsComponent implements OnInit {
   }
 
   openDeductibleEntry(entry: DeductibleEntry): void {
+    if (!this.canManageGroups) {
+      return;
+    }
+
     this.currentDateService.currentDate = new Date(entry.date.getFullYear(), entry.date.getMonth(), 1, 12);
 
     const isExpenseItem = !!entry.expenseItemId;
@@ -367,6 +378,45 @@ export class DeductionsComponent implements OnInit {
 
         void this.loadSelectedTaxYearData();
       });
+  }
+
+  isProofDownloadInProgress(entry: DeductibleEntry): boolean {
+    return !!this.isDownloadingProofByEntryId[entry.id];
+  }
+
+  downloadProof(entry: DeductibleEntry): void {
+    if (!entry.proofDownloadUrl || this.isProofDownloadInProgress(entry)) {
+      return;
+    }
+
+    this.isDownloadingProofByEntryId[entry.id] = true;
+
+    this.http.get(entry.proofDownloadUrl, {
+      observe: 'response',
+      responseType: 'blob'
+    }).subscribe({
+      next: (response: HttpResponse<Blob>) => {
+        if (!response.body) {
+          return;
+        }
+
+        const downloadUrl = URL.createObjectURL(response.body);
+        const anchor = document.createElement('a');
+        anchor.href = downloadUrl;
+        anchor.download = this.resolveProofFileName(entry, response);
+        anchor.style.display = 'none';
+
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+      },
+      error: (error: ApiErrorResponse) => {
+        this.handleError(error);
+      }
+    }).add(() => {
+      delete this.isDownloadingProofByEntryId[entry.id];
+    });
   }
 
   getSectionTotal(entries: DeductibleEntry[]): number {
@@ -624,5 +674,60 @@ export class DeductionsComponent implements OnInit {
       : fallbackMessage;
 
     this.snackBar.openErrorSnackbar(this.translateService.instant(firstError ?? fallbackMessage));
+  }
+
+  private resolveProofFileName(entry: DeductibleEntry, response: HttpResponse<Blob>): string {
+    const contentDisposition = response.headers.get('content-disposition');
+    const fileNameFromHeader = this.extractFileNameFromContentDisposition(contentDisposition);
+    if (fileNameFromHeader) {
+      return fileNameFromHeader;
+    }
+
+    const description = (entry.description ?? '')
+      .trim()
+      .replace(/[^a-zA-Z0-9._-]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    const datePart = entry.date.toISOString().split('T')[0];
+    const extension = this.resolveFileExtension(response.body?.type);
+
+    return `${description || 'deductible-proof'}-${datePart}${extension}`;
+  }
+
+  private extractFileNameFromContentDisposition(contentDisposition: string | null): string | null {
+    if (!contentDisposition) {
+      return null;
+    }
+
+    const utf8Match = /filename\*=UTF-8''([^;]+)/i.exec(contentDisposition);
+    if (utf8Match?.[1]) {
+      try {
+        return decodeURIComponent(utf8Match[1]);
+      } catch {
+        return utf8Match[1];
+      }
+    }
+
+    const simpleMatch = /filename="?([^\";]+)"?/i.exec(contentDisposition);
+    return simpleMatch?.[1] ?? null;
+  }
+
+  private resolveFileExtension(contentType?: string | null): string {
+    switch ((contentType ?? '').toLowerCase()) {
+      case 'application/pdf':
+        return '.pdf';
+      case 'image/jpeg':
+      case 'image/jpg':
+        return '.jpg';
+      case 'image/png':
+        return '.png';
+      case 'image/webp':
+        return '.webp';
+      case 'image/heic':
+        return '.heic';
+      case 'image/heif':
+        return '.heif';
+      default:
+        return '';
+    }
   }
 }

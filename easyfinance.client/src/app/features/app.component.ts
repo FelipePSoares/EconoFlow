@@ -27,6 +27,7 @@ import { PwaUpdateService } from '../core/services/pwa-update.service';
 import { UserService } from '../core/services/user.service';
 import { FeatureFlag } from '../core/enums/feature-flag';
 import { ThemeService } from '../core/services/theme.service';
+import { Role } from '../core/enums/Role';
 
 @Component({
   selector: 'app-root',
@@ -90,6 +91,7 @@ export class AppComponent {
   selectedLanguage = this.globalService.currentLanguage;
   selectedProjectId: string | null = null;
   selectedProjectName: string | null = null;
+  selectedProjectRole: Role | null = null;
   addButtons = ['income', 'expense', 'expense item'];
 
   constructor() {
@@ -110,6 +112,7 @@ export class AppComponent {
       this.projectService.selectedUserProject$.subscribe(userProject => {
         this.selectedProjectId = userProject?.project?.id ?? null;
         this.selectedProjectName = userProject?.project?.name ?? null;
+        this.selectedProjectRole = userProject?.role ?? null;
       });
 
       const initialRouteLanguage = this.getPublicRouteLanguageFromPath(this.document.location.pathname)
@@ -196,7 +199,7 @@ export class AppComponent {
   }
 
   addFromProject(action: string): void {
-    if (!this.selectedProjectId || action === 'default') {
+    if (!this.canShowGlobalAddButton() || !this.selectedProjectId || action === 'default') {
       return;
     }
 
@@ -323,6 +326,13 @@ export class AppComponent {
 
   private isPortugueseLanguage(languageCode: string): boolean {
     return languageCode.toLowerCase().startsWith('pt');
+  }
+
+  canShowGlobalAddButton(): boolean {
+    if (!this.selectedProjectId || !this.selectedProjectRole)
+      return false;
+
+    return this.selectedProjectRole === Role.Admin || this.selectedProjectRole === Role.Manager;
   }
 
   private setupStandaloneLaunchRedirect(): void {

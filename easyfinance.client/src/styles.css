@@ -505,20 +505,29 @@ html {
   fill: var(--app-text-color) !important;
 }
 
+:root[data-theme='dark'] .mat-mdc-option {
+  color: var(--app-text-color) !important;
+}
+
 :root[data-theme='dark'] .mat-mdc-option .mdc-list-item__primary-text {
-  color: var(--app-text-color);
+  color: inherit !important;
 }
 
 :root[data-theme='dark'] .mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled) {
-  background-color: rgba(43, 108, 176, 0.28);
+  background-color: rgba(43, 108, 176, 0.34);
 }
 
-:root[data-theme='dark'] .mat-mdc-option:hover:not(.mdc-list-item--disabled) {
-  background-color: rgba(148, 163, 184, 0.18);
+:root[data-theme='dark'] .mat-mdc-option:hover:not(.mdc-list-item--disabled),
+:root[data-theme='dark'] .mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled):hover {
+  background-color: rgba(148, 163, 184, 0.24);
 }
 
 :root[data-theme='dark'] .mat-mdc-option.mdc-list-item--selected .mdc-list-item__primary-text {
-  color: #9ec5ff;
+  color: #dceafe !important;
+}
+
+:root[data-theme='dark'] .mat-mdc-option.mdc-list-item--disabled .mdc-list-item__primary-text {
+  color: var(--app-muted-text) !important;
 }
 
 :root[data-theme='dark'] .mat-mdc-optgroup-label {

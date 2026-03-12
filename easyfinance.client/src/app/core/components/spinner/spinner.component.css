@@ -35,6 +35,18 @@
   margin-top: 5px;
 }
 
+:host-context([data-theme='dark']) .cssload-container {
+  background-color: rgba(8, 14, 24, 0.78);
+}
+
+:host-context([data-theme='dark']) .loader-text {
+  color: #d7e4f5;
+}
+
+:host-context([data-theme='dark']) .coin {
+  color: #55d88c;
+}
+
 @keyframes pulse {
   0%, 100% {
     transform: scale(1);
