@@ -58,8 +58,8 @@ describe('ProjectOverviewComponent', () => {
       {
         id: 'plan-2',
         projectId: 'project-1',
-        type: PlanType.Investment,
-        name: 'Investments',
+        type: PlanType.Saving,
+        name: 'Savings',
         targetAmount: 10000,
         currentBalance: 800,
         remaining: 9200,
@@ -192,7 +192,7 @@ describe('ProjectOverviewComponent', () => {
 
   it('should calculate totals for income and expense', () => {
     expect(component.totalIncome).toBe(1200);
-    expect(component.totalSavedInvested).toBe(500);
+    expect(component.totalSaved).toBe(500);
     expect(component.totalExpense).toBe(400);
   });
 

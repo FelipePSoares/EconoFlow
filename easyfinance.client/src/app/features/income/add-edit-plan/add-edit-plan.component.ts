@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { TranslateModule } from '@ngx-translate/core';
+import { take } from 'rxjs';
 import { PlanType } from '../../../core/enums/plan-type';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { PlanRequest } from '../../../core/models/plan';
@@ -48,7 +49,6 @@ export class AddEditPlanComponent implements OnInit, OnChanges {
 
   readonly planTypeOptions: { value: PlanType; label: string }[] = [
     { value: PlanType.EmergencyReserve, label: 'PlanTypeEmergencyReserve' },
-    { value: PlanType.Investment, label: 'PlanTypeInvestment' },
     { value: PlanType.Saving, label: 'PlanTypeSaving' }
   ];
 
@@ -61,6 +61,8 @@ export class AddEditPlanComponent implements OnInit, OnChanges {
   @Input()
   inlineMode = true;
 
+  showEmergencyReserveOption = true;
+
   @Output()
   saved = new EventEmitter<PlanDto>();
 
@@ -69,14 +71,14 @@ export class AddEditPlanComponent implements OnInit, OnChanges {
 
   ngOnInit(): void {
     this.syncFormWithPlan();
+    this.updateEmergencyReserveTypeVisibility();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (!changes['plan']) {
-      return;
+    if (changes['plan']) {
+      this.syncFormWithPlan();
+      this.updateEmergencyReserveTypeVisibility();
     }
-
-    this.syncFormWithPlan();
   }
 
   get isEditing(): boolean {
@@ -95,6 +97,14 @@ export class AddEditPlanComponent implements OnInit, OnChanges {
     return this.planForm.get('targetAmount') as FormControl | null;
   }
 
+  get availablePlanTypeOptions(): { value: PlanType; label: string }[] {
+    if (this.showEmergencyReserveOption) {
+      return this.planTypeOptions;
+    }
+
+    return this.planTypeOptions.filter(option => option.value !== PlanType.EmergencyReserve);
+  }
+
   savePlan(): void {
     if (!this.planForm.valid || this.isSaving) {
       return;
@@ -104,7 +114,7 @@ export class AddEditPlanComponent implements OnInit, OnChanges {
     this.errors = {};
     this.isSaving = true;
 
-    const planType = Number(this.typeControl?.value ?? PlanType.EmergencyReserve) as PlanType;
+    const planType = this.normalizePlanType(this.typeControl?.value, PlanType.EmergencyReserve);
     const name = String(this.nameControl?.value ?? '').trim();
     const targetAmount = Number(this.targetAmountControl?.value ?? 0);
 
@@ -194,9 +204,13 @@ export class AddEditPlanComponent implements OnInit, OnChanges {
 
   private syncFormWithPlan(): void {
     this.editingPlan = this.plan ? this.clonePlan(this.plan) : null;
+    const defaultCreateType = this.showEmergencyReserveOption ? PlanType.EmergencyReserve : PlanType.Saving;
+    const planType = this.editingPlan
+      ? this.normalizePlanType(this.editingPlan.type, PlanType.Saving)
+      : defaultCreateType;
 
     const formValue = {
-      type: this.editingPlan?.type ?? PlanType.EmergencyReserve,
+      type: planType,
       name: this.editingPlan?.name ?? '',
       targetAmount: this.editingPlan?.targetAmount ?? 0
     };
@@ -211,5 +225,46 @@ export class AddEditPlanComponent implements OnInit, OnChanges {
     }
 
     this.planForm.reset(formValue);
+    this.ensureSelectedTypeIsAllowed();
+  }
+
+  private updateEmergencyReserveTypeVisibility(): void {
+    if (this.isEditing || !this.projectId) {
+      this.showEmergencyReserveOption = true;
+      this.ensureSelectedTypeIsAllowed();
+      return;
+    }
+
+    this.planService.getPlans(this.projectId)
+      .pipe(take(1))
+      .subscribe({
+        next: plans => {
+          this.showEmergencyReserveOption = !plans.some(plan => plan.type === PlanType.EmergencyReserve);
+          this.ensureSelectedTypeIsAllowed();
+        },
+        error: () => {
+          this.showEmergencyReserveOption = true;
+          this.ensureSelectedTypeIsAllowed();
+        }
+      });
+  }
+
+  private normalizePlanType(type: unknown, fallback: PlanType): PlanType {
+    if (type === PlanType.EmergencyReserve || type === PlanType.Saving) {
+      return type;
+    }
+
+    return fallback;
+  }
+
+  private ensureSelectedTypeIsAllowed(): void {
+    if (this.showEmergencyReserveOption || this.isEditing) {
+      return;
+    }
+
+    const selectedType = this.normalizePlanType(this.typeControl?.value, PlanType.Saving);
+    if (selectedType === PlanType.EmergencyReserve) {
+      this.typeControl?.setValue(PlanType.Saving);
+    }
   }
 }

@@ -3,16 +3,16 @@
 This file is generated from public route definitions and source-file update history.
 
 ## Public Route Catalog
-- [Home](https://econoflow.pt/): Product overview, feature highlights, and account creation entry points. Canonical path: `/`. Last updated: `2026-03-12T21:08:34Z`.
-- [Privacy Policy](https://econoflow.pt/privacy-policy): Personal data handling, legal rights, and GDPR alignment. Canonical path: `/privacy-policy`. Last updated: `2026-03-12T21:08:34Z`.
-- [Terms of Use](https://econoflow.pt/use-terms): Service rules, account responsibilities, and platform limitations. Canonical path: `/use-terms`. Last updated: `2026-03-12T21:08:34Z`.
-- [Contact Us](https://econoflow.pt/contact-us): Public contact form for support questions and feedback. Canonical path: `/contact-us`. Last updated: `2026-03-12T21:08:34Z`.
-- [Offline Mode](https://econoflow.pt/offline): Offline fallback experience with retry guidance. Canonical path: `/offline`. Last updated: `2026-03-12T21:08:34Z`.
-- [Home (PT)](https://econoflow.pt/pt): Portuguese localized page for Product overview, feature highlights, and account creation entry points. Canonical path: `/pt`. Last updated: `2026-03-12T21:08:34Z`.
-- [Privacy Policy (PT)](https://econoflow.pt/pt/privacy-policy): Portuguese localized page for Personal data handling, legal rights, and GDPR alignment. Canonical path: `/pt/privacy-policy`. Last updated: `2026-03-12T21:08:34Z`.
-- [Terms of Use (PT)](https://econoflow.pt/pt/use-terms): Portuguese localized page for Service rules, account responsibilities, and platform limitations. Canonical path: `/pt/use-terms`. Last updated: `2026-03-12T21:08:34Z`.
-- [Contact Us (PT)](https://econoflow.pt/pt/contact-us): Portuguese localized page for Public contact form for support questions and feedback. Canonical path: `/pt/contact-us`. Last updated: `2026-03-12T21:08:34Z`.
-- [Offline Mode (PT)](https://econoflow.pt/pt/offline): Portuguese localized page for Offline fallback experience with retry guidance. Canonical path: `/pt/offline`. Last updated: `2026-03-12T21:08:34Z`.
+- [Home](https://econoflow.pt/): Product overview, feature highlights, and account creation entry points. Canonical path: `/`. Last updated: `2026-03-13T11:59:08Z`.
+- [Privacy Policy](https://econoflow.pt/privacy-policy): Personal data handling, legal rights, and GDPR alignment. Canonical path: `/privacy-policy`. Last updated: `2026-03-13T11:59:08Z`.
+- [Terms of Use](https://econoflow.pt/use-terms): Service rules, account responsibilities, and platform limitations. Canonical path: `/use-terms`. Last updated: `2026-03-13T11:59:08Z`.
+- [Contact Us](https://econoflow.pt/contact-us): Public contact form for support questions and feedback. Canonical path: `/contact-us`. Last updated: `2026-03-13T11:59:08Z`.
+- [Offline Mode](https://econoflow.pt/offline): Offline fallback experience with retry guidance. Canonical path: `/offline`. Last updated: `2026-03-13T11:59:08Z`.
+- [Home (PT)](https://econoflow.pt/pt): Portuguese localized page for Product overview, feature highlights, and account creation entry points. Canonical path: `/pt`. Last updated: `2026-03-13T11:59:08Z`.
+- [Privacy Policy (PT)](https://econoflow.pt/pt/privacy-policy): Portuguese localized page for Personal data handling, legal rights, and GDPR alignment. Canonical path: `/pt/privacy-policy`. Last updated: `2026-03-13T11:59:08Z`.
+- [Terms of Use (PT)](https://econoflow.pt/pt/use-terms): Portuguese localized page for Service rules, account responsibilities, and platform limitations. Canonical path: `/pt/use-terms`. Last updated: `2026-03-13T11:59:08Z`.
+- [Contact Us (PT)](https://econoflow.pt/pt/contact-us): Portuguese localized page for Public contact form for support questions and feedback. Canonical path: `/pt/contact-us`. Last updated: `2026-03-13T11:59:08Z`.
+- [Offline Mode (PT)](https://econoflow.pt/pt/offline): Portuguese localized page for Offline fallback experience with retry guidance. Canonical path: `/pt/offline`. Last updated: `2026-03-13T11:59:08Z`.
 
 ## Supporting Endpoints
 - [Sitemap](https://econoflow.pt/sitemap.xml): XML route index for search engines and crawlers.

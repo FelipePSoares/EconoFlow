@@ -198,15 +198,9 @@ export class IncomePlanModeComponent implements OnInit {
   }
 
   getPlanTypeLabel(planType: PlanType): string {
-    switch (planType) {
-      case PlanType.Investment:
-        return 'PlanTypeInvestment';
-      case PlanType.Saving:
-        return 'PlanTypeSaving';
-      case PlanType.EmergencyReserve:
-      default:
-        return 'PlanTypeEmergencyReserve';
-    }
+    return planType === PlanType.EmergencyReserve
+      ? 'PlanTypeEmergencyReserve'
+      : 'PlanTypeSaving';
   }
 
   private loadPlans(preferredPlanId?: string | null): void {

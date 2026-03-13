@@ -1,10 +1,10 @@
 <form [formGroup]="planForm" (ngSubmit)="savePlan()">
   <div class="row g-3">
     <div class="col-12 col-md-4">
-      <mat-form-field appearance="fill" class="w-100">
+        <mat-form-field appearance="fill" class="w-100">
         <mat-label>{{ 'PlanType' | translate }}</mat-label>
         <mat-select formControlName="type">
-          @for (option of planTypeOptions; track option.value) {
+          @for (option of availablePlanTypeOptions; track option.value) {
             <mat-option [value]="option.value">{{ option.label | translate }}</mat-option>
           }
         </mat-select>

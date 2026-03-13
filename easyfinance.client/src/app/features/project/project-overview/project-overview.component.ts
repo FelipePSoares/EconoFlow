@@ -55,7 +55,7 @@ export class ProjectOverviewComponent implements OnInit {
   userProject!: UserProjectDto;
   currentLanguage = this.globalService.currentLanguage;
   totalIncome = 0;
-  totalSavedInvested = 0;
+  totalSaved = 0;
   totalExpense = 0;
   month: { budget: number, spend: number, overspend: number, remaining: number; } = { budget: 0, spend: 0, overspend: 0, remaining: 0 };
   year: { budget: number, spend: number, overspend: number, remaining: number; } = { budget: 0, spend: 0, overspend: 0, remaining: 0 };
@@ -201,7 +201,7 @@ export class ProjectOverviewComponent implements OnInit {
         catchError(() => of(0))
       )
       .subscribe(total => {
-        this.totalSavedInvested = total;
+        this.totalSaved = total;
       });
 
     this.projectService.getYearlyInfo(this.projectId, date.getFullYear())

@@ -16,9 +16,11 @@ describe('AddEditPlanComponent', () => {
 
   beforeEach(async () => {
     planServiceMock = jasmine.createSpyObj<PlanService>('PlanService', [
+      'getPlans',
       'createPlan',
       'updatePlan'
     ]);
+    planServiceMock.getPlans.and.returnValue(of([]));
     planServiceMock.createPlan.and.returnValue(of({
       id: 'plan-1',
       projectId: 'project-1',
@@ -148,5 +150,29 @@ describe('AddEditPlanComponent', () => {
     expect(component.typeControl?.value).toBe(PlanType.EmergencyReserve);
     expect(component.nameControl?.value).toBe('Emergency Buffer');
     expect(component.targetAmountControl?.value).toBe(3000);
+  });
+
+  it('should hide emergency reserve option while creating when an emergency reserve already exists', () => {
+    planServiceMock.getPlans.and.returnValue(of([
+      {
+        id: 'plan-emergency',
+        projectId: 'project-1',
+        type: PlanType.EmergencyReserve,
+        name: 'Emergency Reserve',
+        targetAmount: 3000,
+        currentBalance: 200,
+        remaining: 2800,
+        progress: 0.06,
+        isArchived: false
+      }
+    ]));
+
+    fixture = TestBed.createComponent(AddEditPlanComponent);
+    component = fixture.componentInstance;
+    component.projectId = 'project-1';
+    fixture.detectChanges();
+
+    expect(component.availablePlanTypeOptions.some(option => option.value === PlanType.EmergencyReserve)).toBeFalse();
+    expect(component.typeControl?.value).toBe(PlanType.Saving);
   });
 });

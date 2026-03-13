@@ -23,13 +23,13 @@
       <button
         type="button"
         class="summary-card summary-card-plan"
-        data-testid="overview-saved-invested-card"
+        data-testid="overview-saved-card"
         (click)="openIncomePlanMode()">
         <span class="summary-label-row">
-          <span class="summary-label">{{ 'TotalSavedInvested' | translate }}</span>
+          <span class="summary-label">{{ 'TotalSaved' | translate }}</span>
           <i class="bi bi-box-arrow-up-right overview-icon summary-action-icon" aria-hidden="true"></i>
         </span>
-        <span class="summary-value text-primary privacy-sensitive-value">{{ totalSavedInvested | currencyFormat: true }}</span>
+        <span class="summary-value text-primary privacy-sensitive-value">{{ totalSaved | currencyFormat: true }}</span>
       </button>
     </div>
     <div class="col-12 col-md-4">

@@ -1,5 +1,4 @@
 export enum PlanType {
-  EmergencyReserve = 1,
-  Investment = 2,
-  Saving = 3
+  EmergencyReserve = 'EmergencyReserve',
+  Saving = 'Saving'
 }

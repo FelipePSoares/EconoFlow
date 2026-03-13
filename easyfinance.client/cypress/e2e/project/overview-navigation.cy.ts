@@ -36,11 +36,11 @@ describe('EconoFlow - project overview navigation', () => {
     });
   });
 
-  it('should open income plans from saved/invested card', () => {
+  it('should open income plans from saved card', () => {
     cy.fixture('projects').then((projects) => {
       cy.visit('/projects/' + projects.defaultProject.id);
 
-      cy.get('[data-testid=overview-saved-invested-card]').click();
+      cy.get('[data-testid=overview-saved-card]').click();
       cy.url().should('include', '/projects/' + projects.defaultProject.id + '/income-plans');
       cy.get('[data-testid=income-plan-mode]').should('exist');
     });
