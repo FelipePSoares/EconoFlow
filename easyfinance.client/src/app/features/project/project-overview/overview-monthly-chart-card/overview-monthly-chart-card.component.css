@@ -1,0 +1,51 @@
+.month {
+  text-transform: capitalize;
+}
+
+.overview-link {
+  display: inline-block;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.overview-heading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 0;
+  transition: opacity 0.2s ease;
+}
+
+.overview-icon {
+  font-size: 0.6em;
+  color: var(--bs-primary);
+  transform: translateY(-3px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.overview-link:hover .overview-heading {
+  opacity: 0.8;
+}
+
+.overview-link:hover .overview-icon {
+  transform: translateY(-5px);
+}
+
+.overview-link:active .overview-heading {
+  opacity: 0.6;
+  transform: scale(0.97);
+}
+
+@media (max-width: 991px) {
+  .overview-heading {
+    border-bottom: 2px dashed rgba(var(--bs-primary-rgb), 0.45);
+    padding-bottom: 2px;
+  }
+
+  .overview-icon {
+    opacity: 1;
+  }
+}

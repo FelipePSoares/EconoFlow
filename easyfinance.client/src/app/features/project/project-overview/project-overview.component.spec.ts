@@ -13,7 +13,6 @@ import { GlobalService } from '../../../core/services/global.service';
 import { CurrentDateService } from '../../../core/services/current-date.service';
 import { Project } from '../../../core/models/project';
 import { Plan } from '../../../core/models/plan';
-import { Transaction } from '../../../core/models/transaction';
 import { UserProject } from '../../../core/models/user-project';
 
 describe('ProjectOverviewComponent', () => {
@@ -26,7 +25,7 @@ describe('ProjectOverviewComponent', () => {
     routerMock = jasmine.createSpyObj<Router>('Router', ['navigate']);
     projectServiceMock = jasmine.createSpyObj<ProjectService>(
       'ProjectService',
-      ['getUserProject', 'selectUserProject', 'getLatest'],
+      ['getUserProject', 'selectUserProject', 'getYearlyInfo'],
       { selectedUserProject$: of(undefined) }
     );
 
@@ -36,13 +35,13 @@ describe('ProjectOverviewComponent', () => {
     userProject.project.name = 'Project One';
     projectServiceMock.getUserProject.and.returnValue(of(userProject));
 
-    const latestTransaction = new Transaction();
-    latestTransaction.id = 'tx-1';
-    latestTransaction.name = 'Salary';
-    latestTransaction.date = new Date('2026-03-01T00:00:00Z');
-    latestTransaction.amount = 1200;
-    latestTransaction.type = 'Income';
-    projectServiceMock.getLatest.and.returnValue(of([latestTransaction]));
+    projectServiceMock.getYearlyInfo.and.returnValue(of({
+      totalBudget: 2200,
+      totalSpend: 1200,
+      totalOverspend: 50,
+      totalRemaining: 950,
+      totalEarned: 3000
+    }));
 
     const plans: Plan[] = [
       {

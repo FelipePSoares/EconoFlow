@@ -181,9 +181,7 @@ export class MonthlyOverviewComponent implements OnInit, AfterViewInit {
   }
 
   previous(): void {
-    this.router.navigate(['/projects', this.projectId, 'expense-overview'], {
-      queryParams: { month: this.selectedMonth }
-    });
+    this.router.navigate(['/projects', this.projectId]);
   }
 
   private loadMonth(date: Date): void {

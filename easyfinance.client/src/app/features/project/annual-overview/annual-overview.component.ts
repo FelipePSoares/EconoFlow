@@ -188,7 +188,7 @@ export class AnnualOverviewComponent implements OnInit, AfterViewInit {
   }
 
   previous(): void {
-    this.router.navigate(['/projects', this.projectId, 'expense-overview']);
+    this.router.navigate(['/projects', this.projectId]);
   }
 
   openDeductions(): void {

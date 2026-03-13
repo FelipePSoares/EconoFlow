@@ -1,3 +1,7 @@
+.project-overview-page {
+  padding-bottom: 2.5rem;
+}
+
 .summary-card {
   width: 100%;
   border: 1px solid var(--app-border-color);
@@ -21,84 +25,27 @@
   color: var(--app-muted-text);
 }
 
+.summary-label-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.summary-action-icon {
+  font-size: 0.75rem;
+  opacity: 0.9;
+  color: var(--bs-primary);
+  transform: translateY(-3px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.summary-card:hover .summary-action-icon {
+  transform: translateY(-5px);
+}
+
 .summary-value {
   font-size: 1.35rem;
   font-weight: 600;
-}
-
-.min-w-0 {
-  min-width: 0;
-}
-
-.badges-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px;
-  margin-top: 4px;
-}
-
-.badge-type,
-.badge-category {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: 20px;
-  font-size: 0.7rem;
-  font-weight: 500;
-  white-space: nowrap;
-  max-width: 140px;
-}
-
-.badge-income {
-  background-color: rgba(25, 195, 125, 0.12);
-  color: #19c37d;
-}
-
-.badge-expense {
-  background-color: rgba(239, 68, 68, 0.12);
-  color: #ef4444;
-}
-
-.badge-category {
-  background-color: rgba(100, 116, 139, 0.1);
-  color: #64748b;
-}
-
-.badge-label {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.latest-transactions-table {
-  background-color: transparent;
-}
-
-.latest-transactions-table .mat-mdc-header-cell,
-.latest-transactions-table .mat-mdc-cell {
-  border-bottom-color: var(--app-border-color);
-}
-
-:host-context([data-theme='dark']) .latest-transactions-table {
-  background-color: var(--app-surface);
-  color: var(--app-text-color);
-}
-
-:host-context([data-theme='dark']) .latest-transactions-table .mat-mdc-header-cell,
-:host-context([data-theme='dark']) .latest-transactions-table .mat-mdc-cell,
-:host-context([data-theme='dark']) .latest-transactions-table .mdc-data-table__header-cell,
-:host-context([data-theme='dark']) .latest-transactions-table .mdc-data-table__cell {
-  color: var(--app-text-color);
-  border-bottom-color: var(--app-border-color);
-}
-
-:host-context([data-theme='dark']) .latest-transactions-table .mat-mdc-row:hover,
-:host-context([data-theme='dark']) .latest-transactions-table .hover-row:hover {
-  background-color: rgba(148, 163, 184, 0.12);
-}
-
-:host-context([data-theme='dark']) .latest-transactions-table .text-secondary {
-  color: var(--app-muted-text) !important;
 }
