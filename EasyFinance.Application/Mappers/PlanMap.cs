@@ -19,7 +19,7 @@ namespace EasyFinance.Application.Mappers
             {
                 Id = plan.Id,
                 ProjectId = plan.ProjectId,
-                Type = plan.Type,
+                Type = NormalizeType(plan.Type),
                 Name = plan.Name,
                 TargetAmount = plan.TargetAmount,
                 CurrentBalance = plan.CurrentBalance,
@@ -35,7 +35,7 @@ namespace EasyFinance.Application.Mappers
 
             return new PlanRequestDTO
             {
-                Type = plan.Type,
+                Type = NormalizeType(plan.Type),
                 Name = plan.Name,
                 TargetAmount = plan.TargetAmount
             };
@@ -75,5 +75,10 @@ namespace EasyFinance.Application.Mappers
                 Note = entry.Note
             };
         }
+
+        private static PlanType NormalizeType(PlanType type)
+            => type == PlanType.EmergencyReserve
+                ? PlanType.EmergencyReserve
+                : PlanType.Saving;
     }
 }

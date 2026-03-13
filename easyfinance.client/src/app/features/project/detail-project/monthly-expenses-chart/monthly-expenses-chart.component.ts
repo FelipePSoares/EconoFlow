@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { ChartConfiguration, ChartOptions } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 import { ExpenseDto } from '../../../expense/models/expense-dto';
+import { IncomeDto } from '../../../income/models/income-dto';
 import { CurrentDateService } from '../../../../core/services/current-date.service';
 import { TranslateService } from '@ngx-translate/core';
 import { toLocalDate } from '../../../../core/utils/date';
@@ -18,7 +19,9 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterVi
   private translateService = inject(TranslateService);
 
   @Input() expenses: ExpenseDto[] = [];
+  @Input() incomes: IncomeDto[] = [];
   @Input() budget: number = 0;
+  @Input() referenceDate?: Date;
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
   isBrowser = isPlatformBrowser(this.platformId);
   chartsReady = false;
@@ -26,6 +29,14 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterVi
   public lineChartData: ChartConfiguration<'line'>['data'] = {
     labels: [],
     datasets: [
+      {
+        data: [],
+        label: this.translateService.instant('Income'),
+        fill: true,
+        tension: 0.5,
+        borderColor: '#2ecc71',
+        backgroundColor: 'rgba(46, 204, 113, 0.15)'
+      },
       {
         data: [],
         label: this.translateService.instant('Expense'),
@@ -92,7 +103,7 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterVi
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['expenses'] || changes['budget']) {
+    if (changes['expenses'] || changes['incomes'] || changes['budget'] || changes['referenceDate']) {
       this.updateChartData();
       // Force chart update with change detection
       setTimeout(() => {
@@ -109,15 +120,18 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterVi
   }
 
   updateChartData() {
-    // Determine current month
-    const year = this.currentDateService.currentDate.getFullYear();
-    const month = this.currentDateService.currentDate.getMonth() + 1;
+    // Determine selected month and whether it is the actual current month
+    const selectedDate = this.referenceDate
+      ? new Date(this.referenceDate)
+      : this.currentDateService.currentDate;
+    const year = selectedDate.getFullYear();
+    const month = selectedDate.getMonth() + 1;
     const daysInMonth = new Date(year, month, 0).getDate();
     const today = new Date();
     const isCurrentMonth = today.getFullYear() == year && today.getMonth() + 1 == month;
 
     // Aggregate expenses by date
-    const dailySums: { [date: string]: number } = {};
+    const dailyExpenseSums: { [date: string]: number } = {};
 
     for (const record of this.expenses) {
       let amount = 0;
@@ -149,31 +163,54 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterVi
 
       if (amount > 0 && date) {
         const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-        dailySums[dateStr] = (dailySums[dateStr] || 0) + amount;
+        dailyExpenseSums[dateStr] = (dailyExpenseSums[dateStr] || 0) + amount;
       }
+    }
+
+    const dailyIncomeSums: { [date: string]: number } = {};
+    for (const income of this.incomes) {
+      const incomeDate = toLocalDate(income.date);
+      const dateStr = `${incomeDate.getFullYear()}-${String(incomeDate.getMonth() + 1).padStart(2, '0')}-${String(incomeDate.getDate()).padStart(2, '0')}`;
+      dailyIncomeSums[dateStr] = (dailyIncomeSums[dateStr] || 0) + Number(income.amount || 0);
     }
 
     // Filter to current month
     const monthPrefix = `${year}-${String(month).padStart(2, '0')}-`;
-    const currentMonthSums: { [day: number]: number } = {};
-    for (const [dateStr, sum] of Object.entries(dailySums)) {
+    const currentMonthExpenseSums: { [day: number]: number } = {};
+    for (const [dateStr, sum] of Object.entries(dailyExpenseSums)) {
       if (dateStr.startsWith(monthPrefix)) {
         const day = parseInt(dateStr.split('-')[2]);
-        currentMonthSums[day] = sum;
+        currentMonthExpenseSums[day] = sum;
+      }
+    }
+
+    const currentMonthIncomeSums: { [day: number]: number } = {};
+    for (const [dateStr, sum] of Object.entries(dailyIncomeSums)) {
+      if (dateStr.startsWith(monthPrefix)) {
+        const day = parseInt(dateStr.split('-')[2]);
+        currentMonthIncomeSums[day] = sum;
       }
     }
 
     // Build cumulative
-    const cumulative: number[] = [];
-    let runningTotal = 0;
+    const cumulativeIncome: Array<number | null> = [];
+    const cumulativeExpense: Array<number | null> = [];
+    let runningIncome = 0;
+    let runningExpense = 0;
 
     for (let day = 1; day <= daysInMonth; day++) {
-      const dayAmount = currentMonthSums[day] || 0;
-      runningTotal += dayAmount;
-      if (!isCurrentMonth || day <= today.getDate())
-        cumulative.push(runningTotal);
-      else
+      if (isCurrentMonth && day > today.getDate()) {
+        cumulativeIncome.push(null);
+        cumulativeExpense.push(null);
         continue;
+      }
+
+      const dayIncome = currentMonthIncomeSums[day] || 0;
+      const dayExpense = currentMonthExpenseSums[day] || 0;
+      runningIncome += dayIncome;
+      runningExpense += dayExpense;
+      cumulativeIncome.push(runningIncome);
+      cumulativeExpense.push(runningExpense);
     }
 
     // Budget line
@@ -189,10 +226,14 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterVi
       datasets: [
         {
           ...this.lineChartData.datasets[0],
-          data: cumulative
+          data: cumulativeIncome
         },
         {
           ...this.lineChartData.datasets[1],
+          data: cumulativeExpense
+        },
+        {
+          ...this.lineChartData.datasets[2],
           data: budgetLine
         }
       ]

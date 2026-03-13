@@ -17,6 +17,7 @@ import { RecoveryComponent } from './authentication/recovery/recovery.component'
 import { ListProjectsComponent } from './project/list-projects/list-projects.component';
 import { AddEditProjectComponent } from './project/add-edit-project/add-edit-project.component';
 import { DetailProjectComponent } from './project/detail-project/detail-project.component';
+import { ProjectOverviewComponent } from './project/project-overview/project-overview.component';
 import { AcceptInviteComponent } from '../core/components/accept-invite/accept-invite.component';
 import { AccessControlProjectComponent } from './project/access-control-project/access-control-project.component';
 import { SmartSetupComponent } from './project/smart-setup/smart-setup.component';
@@ -26,6 +27,7 @@ import { DeductionsComponent } from './project/deductions/deductions.component';
 
 import { ListIncomesComponent } from './income/list-incomes/list-incomes.component';
 import { AddIncomeComponent } from './income/add-income/add-income.component';
+import { IncomePlanModeComponent } from './income/income-plan-mode/income-plan-mode.component';
 
 import { ListCategoriesComponent } from './category/list-categories/list-categories.component';
 import { AddCategoryComponent } from './category/add-category/add-category.component';
@@ -64,7 +66,8 @@ export const routes: Routes = [
   { path: 'first-signin', component: FirstSignInComponent, canActivate: mapToCanActivate([AuthGuard]) },
   { path: 'add-edit-project', component: AddEditProjectComponent, canActivate: mapToCanActivate([AuthGuard]), outlet: 'modal', data: { title: 'CreateEditProject' } },
   { path: 'projects', component: ListProjectsComponent, canActivate: mapToCanActivate([AuthGuard]) },
-  { path: 'projects/:projectId', component: DetailProjectComponent, canActivate: mapToCanActivate([AuthGuard]) },
+  { path: 'projects/:projectId/expense-overview', component: DetailProjectComponent, canActivate: mapToCanActivate([AuthGuard]) },
+  { path: 'projects/:projectId', component: ProjectOverviewComponent, canActivate: mapToCanActivate([AuthGuard]) },
   { path: 'projects/:projectId/deductions', component: DeductionsComponent, canActivate: mapToCanActivate([AuthGuard]) },
   { path: 'projects/:projectId/overview/annual', component: AnnualOverviewComponent, canActivate: mapToCanActivate([AuthGuard]) },
   { path: 'projects/:projectId/overview/monthly', component: MonthlyOverviewComponent, canActivate: mapToCanActivate([AuthGuard]) },
@@ -72,6 +75,7 @@ export const routes: Routes = [
   { path: 'projects/:projectId/users', component: AccessControlProjectComponent, canActivate: mapToCanActivate([AuthGuard]), outlet: 'modal', data: { title: 'ManageAccess' } },
   { path: 'projects/:token/accept', component: AcceptInviteComponent, canActivate: mapToCanActivate([AuthGuard]) },
   { path: 'projects/:projectId/incomes', component: ListIncomesComponent, canActivate: mapToCanActivate([AuthGuard]) },
+  { path: 'projects/:projectId/income-plans', component: IncomePlanModeComponent, canActivate: mapToCanActivate([AuthGuard]) },
   { path: 'projects/:projectId/add-income', component: AddIncomeComponent, canActivate: mapToCanActivate([AuthGuard]), outlet: 'modal', data: { title: 'CreateIncome' } },
   { path: 'projects/:projectId/categories', component: ListCategoriesComponent, canActivate: mapToCanActivate([AuthGuard]), outlet: 'modal', data: { title: 'ListCategories' } },
   { path: 'projects/:projectId/add-category', component: AddCategoryComponent, canActivate: mapToCanActivate([AuthGuard]), outlet: 'modal', data: { title: 'CreateExpenseCategory' } },
