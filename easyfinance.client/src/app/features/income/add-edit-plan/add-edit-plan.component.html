@@ -1,0 +1,63 @@
+<form [formGroup]="planForm" (ngSubmit)="savePlan()">
+  <div class="row g-3">
+    <div class="col-12 col-md-4">
+        <mat-form-field appearance="fill" class="w-100">
+        <mat-label>{{ 'PlanType' | translate }}</mat-label>
+        <mat-select formControlName="type">
+          @for (option of availablePlanTypeOptions; track option.value) {
+            <mat-option [value]="option.value">{{ option.label | translate }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="col-12 col-md-4">
+      <mat-form-field appearance="fill" class="w-100">
+        <mat-label>{{ 'PlanName' | translate }}</mat-label>
+        <input matInput formControlName="name">
+        @if ((nameControl?.invalid && nameControl?.touched) || httpErrors) {
+          @for (error of getFormFieldErrors('name'); track error) {
+            <mat-error>{{ error | translate }}</mat-error>
+          }
+        }
+      </mat-form-field>
+    </div>
+
+    <div class="col-12 col-md-4">
+      <mat-form-field appearance="fill" class="w-100">
+        <mat-label>{{ 'PlanTargetAmount' | translate }}</mat-label>
+        <input
+          matInput
+          type="text"
+          inputmode="numeric"
+          currencyMask
+          [options]="{ prefix: currencySymbol, allowNegative: false, thousands: thousandSeparator, decimal: decimalSeparator, precision: 2 }"
+          formControlName="targetAmount">
+        @if ((targetAmountControl?.invalid && targetAmountControl?.touched) || httpErrors) {
+          @for (error of getFormFieldErrors('targetAmount'); track error) {
+            <mat-error>{{ error | translate }}</mat-error>
+          }
+        }
+      </mat-form-field>
+    </div>
+  </div>
+
+  @if (httpErrors && errors['general']) {
+    @for (error of errors['general']; track error) {
+      <p class="mb-2 text-danger">{{ error | translate }}</p>
+    }
+  }
+
+  <div class="d-flex justify-content-end gap-2">
+    <button type="button" class="btn btn-outline-secondary" (click)="cancel()">
+      {{ 'ButtonCancel' | translate }}
+    </button>
+    <button
+      type="submit"
+      class="btn btn-primary"
+      data-testid="save-plan-button"
+      [disabled]="planForm.invalid || isSaving">
+      {{ (isEditing ? 'ButtonSave' : 'ButtonCreate') | translate }}
+    </button>
+  </div>
+</form>

@@ -38,7 +38,8 @@ describe('EconoFlow - expense item add Tests', () => {
           cy.get('.btn-link').last().click()
 
           cy.get('button').contains('Add Item').click();
-          cy.wait('@getTaxYearSettings');
+          cy.waitForLoader();
+          cy.get('[data-testid="is-deductible-item-toggle"]').should('be.visible');
         })
       })
     })
@@ -47,8 +48,9 @@ describe('EconoFlow - expense item add Tests', () => {
   const selectDeductibleProofForExpenseItem = () => {
     const proofFileContent = Cypress.Buffer.from('%PDF-1.4 deductible proof item');
 
-    cy.get('[data-testid="is-deductible-item-toggle"]').click();
-    cy.wait('@getTaxYearSettings');
+    cy.get('[data-testid="is-deductible-item-toggle"] button').click();
+    cy.waitForLoader();
+    cy.get('[data-testid="is-deductible-item-toggle"] button').should('have.attr', 'aria-checked', 'true');
     cy.get('app-configure-tax-year-rule-dialog').should('not.exist');
     cy.get('.cdk-overlay-backdrop-showing').should('not.exist');
     cy.get('[data-testid="deductible-proof-item-input"]').should('be.enabled');

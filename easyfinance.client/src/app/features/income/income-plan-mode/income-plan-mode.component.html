@@ -1,0 +1,175 @@
+<div class="container py-4" data-testid="income-plan-mode">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-10 col-lg-9">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <app-return-button (returnButtonEvent)="previous()"></app-return-button>
+
+        <h2 class="text-center flex-grow-1 m-0">
+          {{ 'IncomePlanMode' | translate }}
+        </h2>
+      </div>
+
+      <mat-card class="mb-4">
+        <mat-card-content>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h3 class="mb-0">{{ 'PlanList' | translate }}</h3>
+            @if (canAddOrEdit() && !isCreatingPlan && !editingPlan) {
+              <button
+                class="btn btn-primary"
+                type="button"
+                data-testid="create-plan-button"
+                (click)="startCreatePlan()">
+                <i class="bi bi-plus me-1"></i>
+                {{ 'CreatePlan' | translate }}
+              </button>
+            }
+          </div>
+
+          @if ((plans$ | async)?.length === 0) {
+            <p class="text-muted mb-0">{{ 'NoPlansYet' | translate }}</p>
+          }
+
+          <div class="row g-3 mt-1">
+            @for (plan of (plans$ | async); track plan.id) {
+              <div class="col-12 col-lg-6">
+                <div
+                  class="plan-card"
+                  role="button"
+                  tabindex="0"
+                  [class.selected]="selectedPlanId === plan.id"
+                  [attr.data-testid]="'plan-card-' + plan.id"
+                  (click)="selectPlan(plan.id)">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="min-w-0">
+                      <h4 class="mb-0 text-truncate">{{ plan.name }}</h4>
+                      <small class="text-muted">{{ getPlanTypeLabel(plan.type) | translate }}</small>
+                    </div>
+                    <span class="plan-progress-badge" data-testid="plan-progress-value">{{ getPlanProgressValue(plan) }}%</span>
+                  </div>
+
+                  <div class="progress mb-3">
+                    <div
+                      class="progress-bar"
+                      [style.width.%]="getPlanProgressWidth(plan)">
+                    </div>
+                  </div>
+
+                  <div class="row g-2">
+                    <div class="col-6">
+                      <div class="plan-metric-label">{{ 'PlanTarget' | translate }}</div>
+                      <div class="plan-metric-value privacy-sensitive-value">{{ plan.targetAmount | currencyFormat: true }}</div>
+                    </div>
+                    <div class="col-6">
+                      <div class="plan-metric-label">{{ 'PlanCurrent' | translate }}</div>
+                      <div class="plan-metric-value privacy-sensitive-value">{{ plan.currentBalance | currencyFormat: true }}</div>
+                    </div>
+                    <div class="col-6">
+                      <div class="plan-metric-label">{{ 'PlanRemaining' | translate }}</div>
+                      <div class="plan-metric-value privacy-sensitive-value" [class.text-danger]="plan.remaining < 0">
+                        {{ plan.remaining | currencyFormat: true }}
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <div class="plan-metric-label">{{ 'PlanProgress' | translate }}</div>
+                      <div class="plan-metric-value">{{ getPlanProgressValue(plan) }}%</div>
+                    </div>
+                  </div>
+                </div>
+
+                @if (canAddOrEdit()) {
+                  <div class="d-flex gap-2 mt-2">
+                    <button
+                      type="button"
+                      class="btn btn-outline-secondary btn-sm w-100"
+                      (click)="startEditPlan(plan)">
+                      <i class="bi bi-pencil-square me-1"></i>
+                      {{ 'ButtonEditItem' | translate }}
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-outline-warning btn-sm w-100"
+                      (click)="triggerArchivePlan(plan)">
+                      <i class="bi bi-archive me-1"></i>
+                      {{ 'ButtonArchive' | translate }}
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      @if (canAddOrEdit() && (isCreatingPlan || editingPlan)) {
+        <mat-card class="mb-4">
+          <mat-card-content>
+            <h3 class="mb-3">{{ (editingPlan ? 'EditPlan' : 'CreatePlan') | translate }}</h3>
+            <app-add-edit-plan
+              [projectId]="projectId"
+              [plan]="editingPlan"
+              [inlineMode]="true"
+              (saved)="onPlanSaved($event)"
+              (canceled)="cancelPlanForm()">
+            </app-add-edit-plan>
+          </mat-card-content>
+        </mat-card>
+      }
+
+      @if (selectedPlan; as currentPlan) {
+        <mat-card class="mb-4" data-testid="selected-plan-summary">
+          <mat-card-content>
+            <h3 class="mb-3">{{ 'GoalProgress' | translate }}</h3>
+            <div class="progress mb-3">
+              <div class="progress-bar" [style.width.%]="getPlanProgressWidth(currentPlan)"></div>
+            </div>
+            <div class="d-flex flex-wrap gap-3">
+              <span><strong>{{ 'PlanTarget' | translate }}:</strong> <span class="privacy-sensitive-value">{{ currentPlan.targetAmount | currencyFormat: true }}</span></span>
+              <span><strong>{{ 'PlanCurrent' | translate }}:</strong> <span class="privacy-sensitive-value">{{ currentPlan.currentBalance | currencyFormat: true }}</span></span>
+              <span><strong>{{ 'PlanRemaining' | translate }}:</strong> <span class="privacy-sensitive-value">{{ currentPlan.remaining | currencyFormat: true }}</span></span>
+              <span><strong>{{ 'PlanProgress' | translate }}:</strong> {{ getPlanProgressValue(currentPlan) }}%</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        @if (canAddOrEdit()) {
+          <mat-card class="mb-4">
+            <mat-card-content>
+              <h3 class="mb-3">{{ 'PlanAdjustBalance' | translate }}</h3>
+              <app-add-plan-entry
+                [projectId]="projectId"
+                [planId]="currentPlan.id"
+                [selectedDate]="entrySelectedDate"
+                [inlineMode]="true"
+                (saved)="onPlanEntrySaved($event)">
+              </app-add-plan-entry>
+            </mat-card-content>
+          </mat-card>
+        }
+      }
+
+      <mat-card>
+        <mat-card-content>
+          <h3 class="mb-3">{{ 'PlanLedgerEntries' | translate }}</h3>
+
+          @if ((planEntries$ | async)?.length === 0) {
+            <p class="text-muted mb-0">{{ 'NoPlanEntriesYet' | translate }}</p>
+          } @else {
+            <div class="list-group">
+              @for (entry of (planEntries$ | async); track entry.id) {
+                <div class="list-group-item d-flex justify-content-between align-items-center" data-testid="plan-entry-item">
+                  <div class="min-w-0 me-3">
+                    <div class="fw-medium text-truncate">{{ entry.note || ('PlanEntryNoNote' | translate) }}</div>
+                    <div class="text-muted small">{{ entry.date | date: 'shortDate' : undefined : currentLanguage }}</div>
+                  </div>
+                  <div [class]="entry.amountSigned >= 0 ? 'text-success fw-medium privacy-sensitive-value' : 'text-danger fw-medium privacy-sensitive-value'">
+                    {{ entry.amountSigned | currencyFormat: true }}
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

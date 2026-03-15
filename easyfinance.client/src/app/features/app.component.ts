@@ -28,6 +28,7 @@ import { UserService } from '../core/services/user.service';
 import { FeatureFlag } from '../core/enums/feature-flag';
 import { ThemeService } from '../core/services/theme.service';
 import { Role } from '../core/enums/Role';
+import { ProjectOverviewRefreshService } from '../core/services/project-overview-refresh.service';
 
 @Component({
   selector: 'app-root',
@@ -69,6 +70,7 @@ export class AppComponent {
   private themeService = inject(ThemeService);
   private pwaInstallService = inject(PwaInstallService);
   private pwaUpdateService = inject(PwaUpdateService);
+  private projectOverviewRefreshService = inject(ProjectOverviewRefreshService);
   private document = inject(DOCUMENT);
   private appRef = inject(ApplicationRef);
   private platformId = inject(PLATFORM_ID);
@@ -203,16 +205,17 @@ export class AppComponent {
       return;
     }
 
+    const projectId = this.selectedProjectId;
     let modalRoute: string[] | null = null;
     switch (action) {
       case 'income':
-        modalRoute = ['projects', this.selectedProjectId, 'add-income'];
+        modalRoute = ['projects', projectId, 'add-income'];
         break;
       case 'expense':
-        modalRoute = ['projects', this.selectedProjectId, 'add-expense'];
+        modalRoute = ['projects', projectId, 'add-expense'];
         break;
       case 'expense item':
-        modalRoute = ['projects', this.selectedProjectId, 'add-expense-item'];
+        modalRoute = ['projects', projectId, 'add-expense-item'];
         break;
     }
 
@@ -230,6 +233,7 @@ export class AppComponent {
         titleSuffix: this.selectedProjectName
       }
     }).afterClosed().subscribe(() => {
+      this.projectOverviewRefreshService.requestRefresh(projectId);
       this.router.navigate([{ outlets: { modal: null } }]);
     });
   }

@@ -1,25 +1,14 @@
-<div class="container text-center">
-  <div class="col text-center mt-3">
-    <h2 class="mb-0">
+<div class="container text-center expense-overview-page">
+  <div class="d-flex align-items-center mt-3">
+    <app-return-button (returnButtonEvent)="previous()"></app-return-button>
+    <h2 class="mb-0 flex-grow-1 text-center">
       {{ userProject.project.name }}
     </h2>
   </div>
   <app-current-date (dateUpdatedEvent)="updateDate($event)"></app-current-date>
   <div class="row">
-    <div class="d-flex justify-content-start">
-      <div class="d-flex pe-3 mt-2 border-end">
-        <div class="card min-width" (click)="selectIncomes()">
-          <div class="card-body">
-            <h3 class="card-title">{{ 'TotalIncome' | translate }}</h3>
-            <div>
-              <span class="card-value success privacy-sensitive-value">
-                {{ month.earned | currencyFormat: true }}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="slider-container flex-fill ms-3">
+    <div class="d-flex justify-content-start mt-2">
+      <div class="slider-container flex-fill">
         <ul class="slider list-unstyled d-flex">
           @for (category of (categories$ | async); track category.id) {
             <li class="slide me-1">
@@ -68,22 +57,8 @@
   <div class="row justify-content-center">
     <div class="container text-center">
       <div class="row justify-content-center">
-        <div class="col-lg-6">
+        <div class="col-12">
           <div class="wrap p-3">
-            <div class="container position-relative">
-              <div class="row align-items-center">
-                <!-- Centered title -->
-                <div class="col text-center mt-3 mb-3 month">
-                  <a class="overview-link" (click)="openMonthlyOverview()" role="button" title="{{ 'MonthlyOverview' | translate }}">
-                    <h2 class="overview-heading">
-                      {{ getCurrentDate() | date: 'MMMM' : undefined : currentLanguage }}
-                      <i class="bi bi-box-arrow-up-right overview-icon"></i>
-                    </h2>
-                  </a>
-                </div>
-              </div>
-            </div>
-
             @if (showCopyPreviousButton) {
               <button class="btn btn-primary"
                 (click)="copyPreviousBudget()"
@@ -99,130 +74,70 @@
               [hideDecimals]="true"
               [typeMonthOrYear]="'month'">
             </app-budget-bar>
-            <hr class="solid" />
-            <div class="d-grid label-money">
-              <div class="mt-2">
-                <span class="float-start"><i class="bi bi-arrow-up-right money-out"></i> {{ 'MoneyOut' | translate }}</span>
-                <span class="float-end danger privacy-sensitive-value">{{ month.spend + month.overspend | currencyFormat: true }}</span>
-              </div>
-              <div class="mt-2">
-                <span class="float-start"><i class="bi bi-arrow-down-left money-in"></i> {{ 'MoneyIn' | translate }}</span>
-                <span class="float-end success privacy-sensitive-value">{{ month.earned | currencyFormat: true }}</span>
-              </div>
-            </div>
-            <hr class="solid" />
-            <div class="row g-3 mt-1">
-              <h3 class="mt-0 mb-3 text-start fw-semibold fs-6">{{ 'CumulativeExpense' | translate }}</h3>
-              <app-monthly-expenses-chart [expenses]="currentMonthExpenses" [budget]="month.budget"></app-monthly-expenses-chart>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-6">
-          <div class="wrap p-3">
-            <div class="container position-relative">
-              <div class="row align-items-center">
-                <div class="col text-center mt-3 mb-3 month">
-                  <a class="overview-link" (click)="openAnnualOverview()" role="button" title="{{ 'AnnualOverview' | translate }}">
-                    <h2 class="overview-heading">
-                      {{ getCurrentDate() | date: 'yyyy'}}
-                      <i class="bi bi-box-arrow-up-right overview-icon"></i>
-                    </h2>
-                  </a>
-                </div>
-              </div>
-            </div>
-            <app-budget-bar [spend]="year.spend"
-                            [budget]="year.budget"
-                            [overspend]="year.overspend"
-                            [remaining]="year.remaining"
-                            [hideDecimals]="true"
-                            [typeMonthOrYear]="'year'">
-            </app-budget-bar>
-            <hr class="solid" />
-            <div class="d-grid label-money">
-              <div class="mt-2">
-                <span class="float-start"><i class="bi bi-arrow-up-right money-out"></i> {{ 'MoneyOut' | translate }}</span>
-                <span class="float-end danger privacy-sensitive-value">{{ year.spend + year.overspend | currencyFormat: true }}</span>
-              </div>
-              <div class="mt-2">
-                <span class="float-start"><i class="bi bi-arrow-down-left money-in"></i> {{ 'MoneyIn' | translate }}</span>
-                <span class="float-end success privacy-sensitive-value">{{ year.earned | currencyFormat: true }}</span>
-              </div>
-            </div>
-            <hr class="solid" />
-            <div class="row g-3 mt-1">
-              <h3 class="mt-0 mb-3 text-start fw-semibold fs-6">{{ 'IncomeVsExpenseByMonth' | translate }}</h3>
-              <app-annual-income-expense-chart
-                [chartData]="yearIncomeExpenseChartData"
-                [chartOptions]="yearIncomeExpenseChartOptions">
-              </app-annual-income-expense-chart>
-            </div>
           </div>
         </div>
       </div>
-      <div class="row">
-        <div class="col-12">
-          <div class="wrap">
-            <div class="row align-items-center">
-              <div class="col text-center mt-3 mb-3 month">
-                <h2>{{ 'LatestTransactions' | translate }}</h2>
-              </div>
-            </div>
-            <div class="table-responsive">
-              <table mat-table [dataSource]="(transactions$ | async) || []" class="w-100 latest-transactions-table">
-                <ng-container matColumnDef="date">
-                  <th mat-header-cell *matHeaderCellDef class="ps-4"> {{ 'Date' | translate }} </th>
-                  <td mat-cell *matCellDef="let row" class="ps-4">
-                    <div class="text-secondary">{{ row.date | date: 'shortDate' : undefined : currentLanguage }}</div>
-                  </td>
-                </ng-container>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-12">
+      <div class="wrap p-2 p-md-3">
+        <div class="col text-center mt-2 mb-3">
+          <h2>{{ 'LatestTransactions' | translate }}</h2>
+        </div>
 
-                <ng-container matColumnDef="description">
-                  <th mat-header-cell *matHeaderCellDef> {{ 'Description' | translate }} </th>
-                  <td mat-cell *matCellDef="let row">
-                    <div class="d-flex align-items-center py-2 py-md-3">
-                      <div class="transaction-icon me-2 me-md-3 flex-shrink-0">
-                        <i class="bi" [class]="row.type === 'Income' ? 'bi-arrow-down-left money-in' : 'bi-arrow-up-right money-out'"></i>
-                      </div>
-                      <div class="min-w-0">
-                        <div class="fw-medium text-truncate">{{ row.name }}</div>
-                        <div class="badges-row">
-                          <span class="badge-type" [class]="row.type === 'Income' ? 'badge-income' : 'badge-expense'">
-                            {{ row.type | translate }}
-                          </span>
-                          @if (row.categoryName) {
-                          <span class="badge-category">
-                            <i class="bi bi-tag-fill"></i>
-                            <span class="badge-label">{{ row.categoryName }}</span>
-                          </span>
-                          }
-                          @if (row.parentExpenseName) {
-                          <span class="badge-category">
-                            <i class="bi bi-link-45deg"></i>
-                            <span class="badge-label">{{ row.parentExpenseName }}</span>
-                          </span>
-                          }
-                        </div>
-                      </div>
+        <div class="table-responsive">
+          <table mat-table [dataSource]="(latestTransactions$ | async) || []" class="w-100 latest-transactions-table">
+            <ng-container matColumnDef="date">
+              <th mat-header-cell *matHeaderCellDef class="ps-4">{{ 'Date' | translate }}</th>
+              <td mat-cell *matCellDef="let row" class="ps-4">
+                <div class="text-secondary">{{ row.date | date: 'shortDate' : undefined : currentLanguage }}</div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="description">
+              <th mat-header-cell *matHeaderCellDef>{{ 'Description' | translate }}</th>
+              <td mat-cell *matCellDef="let row">
+                <div class="d-flex align-items-center py-2 py-md-3">
+                  <div class="transaction-icon me-2 me-md-3 flex-shrink-0">
+                    <i class="bi" [class]="row.type === 'Income' ? 'bi-arrow-down-left money-in' : 'bi-arrow-up-right money-out'"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="fw-medium text-truncate">{{ row.name }}</div>
+                    <div class="badges-row">
+                      <span class="badge-type" [class]="row.type === 'Income' ? 'badge-income' : 'badge-expense'">
+                        {{ row.type | translate }}
+                      </span>
+                      @if (row.categoryName) {
+                        <span class="badge-category">
+                          <i class="bi bi-tag-fill"></i>
+                          <span class="badge-label">{{ row.categoryName }}</span>
+                        </span>
+                      }
+                      @if (row.parentExpenseName) {
+                        <span class="badge-category">
+                          <i class="bi bi-link-45deg"></i>
+                          <span class="badge-label">{{ row.parentExpenseName }}</span>
+                        </span>
+                      }
                     </div>
-                  </td>
-                </ng-container>
+                  </div>
+                </div>
+              </td>
+            </ng-container>
 
-                <ng-container matColumnDef="amount">
-                  <th mat-header-cell *matHeaderCellDef class="pe-4 text-end"> {{ 'Amount' | translate }} </th>
-                  <td mat-cell *matCellDef="let row" class="pe-4 text-end">
-                    <div [class]="row.type === 'Income' ? 'text-success fw-medium privacy-sensitive-value' : 'text-danger fw-medium privacy-sensitive-value'">
-                      {{ row.amount | currencyFormat }}
-                    </div>
-                  </td>
-                </ng-container>
+            <ng-container matColumnDef="amount">
+              <th mat-header-cell *matHeaderCellDef class="pe-4 text-end">{{ 'Amount' | translate }}</th>
+              <td mat-cell *matCellDef="let row" class="pe-4 text-end">
+                <div [class]="row.type === 'Income' ? 'text-success fw-medium privacy-sensitive-value' : 'text-danger fw-medium privacy-sensitive-value'">
+                  {{ row.amount | currencyFormat }}
+                </div>
+              </td>
+            </ng-container>
 
-                <tr mat-header-row *matHeaderRowDef="['date', 'description', 'amount']" class="bg-light"></tr>
-                <tr mat-row *matRowDef="let row; columns: ['date', 'description', 'amount'];"
-                    class="hover-row"></tr>
-              </table>
-            </div>
-          </div>
+            <tr mat-header-row *matHeaderRowDef="['date', 'description', 'amount']" class="bg-light"></tr>
+            <tr mat-row *matRowDef="let row; columns: ['date', 'description', 'amount'];" class="hover-row"></tr>
+          </table>
         </div>
       </div>
     </div>

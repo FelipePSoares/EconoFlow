@@ -7,7 +7,9 @@ import { GlobalService } from '../../services/global.service';
   standalone: true,
 })
 export class CurrencyFormatPipe implements PipeTransform {
-  private currencyPipe = inject(CurrencyPipe);
+  // Keep the pipe usable in isolated tests/components even when CurrencyPipe
+  // is not provided at injector level.
+  private currencyPipe = inject(CurrencyPipe, { optional: true }) ?? new CurrencyPipe('en-US');
   private globalService = inject(GlobalService);
 
   transform(amount: number, hideDecimals = false): string | null {

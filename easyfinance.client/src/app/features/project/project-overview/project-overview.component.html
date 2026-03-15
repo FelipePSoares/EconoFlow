@@ -1,0 +1,76 @@
+<div class="container project-overview-page">
+  <div class="col text-center mt-3">
+    <h2 class="mb-0">{{ userProject.project.name }}</h2>
+  </div>
+
+  <app-current-date (dateUpdatedEvent)="updateDate($event)"></app-current-date>
+
+  <div class="row g-3 mt-1">
+    <div class="col-12 col-md-4">
+      <button
+        type="button"
+        class="summary-card summary-card-income"
+        data-testid="overview-income-card"
+        (click)="openIncomes()">
+        <span class="summary-label-row">
+          <span class="summary-label">{{ 'TotalIncome' | translate }}</span>
+          <i class="bi bi-box-arrow-up-right overview-icon summary-action-icon" aria-hidden="true"></i>
+        </span>
+        <span class="summary-value text-success privacy-sensitive-value">{{ totalIncome | currencyFormat: true }}</span>
+      </button>
+    </div>
+    <div class="col-12 col-md-4">
+      <button
+        type="button"
+        class="summary-card summary-card-plan"
+        data-testid="overview-saved-card"
+        (click)="openIncomePlanMode()">
+        <span class="summary-label-row">
+          <span class="summary-label">{{ 'TotalSaved' | translate }}</span>
+          <i class="bi bi-box-arrow-up-right overview-icon summary-action-icon" aria-hidden="true"></i>
+        </span>
+        <span class="summary-value text-primary privacy-sensitive-value">{{ totalSaved | currencyFormat: true }}</span>
+      </button>
+    </div>
+    <div class="col-12 col-md-4">
+      <button
+        type="button"
+        class="summary-card summary-card-expense"
+        data-testid="overview-expense-card"
+        (click)="openExpenseOverview()">
+        <span class="summary-label-row">
+          <span class="summary-label">{{ 'TotalExpenses' | translate }}</span>
+          <i class="bi bi-box-arrow-up-right overview-icon summary-action-icon" aria-hidden="true"></i>
+        </span>
+        <span class="summary-value text-danger privacy-sensitive-value">{{ totalExpense | currencyFormat: true }}</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="row g-3 mt-2">
+    <app-overview-monthly-chart-card
+      class="col-12 col-lg-6"
+      [date]="getCurrentDate()"
+      [language]="currentLanguage"
+      [expenses]="currentMonthExpenses"
+      [incomes]="currentMonthIncomes"
+      [budget]="month.budget"
+      [spend]="month.spend"
+      [overspend]="month.overspend"
+      [remaining]="month.remaining"
+      (openRequested)="openMonthlyOverview()">
+    </app-overview-monthly-chart-card>
+
+    <app-overview-annual-chart-card
+      class="col-12 col-lg-6"
+      [date]="getCurrentDate()"
+      [chartData]="yearIncomeExpenseChartData"
+      [chartOptions]="yearIncomeExpenseChartOptions"
+      [yearBudget]="year.budget"
+      [yearSpend]="year.spend"
+      [yearOverspend]="year.overspend"
+      [yearRemaining]="year.remaining"
+      (openRequested)="openAnnualOverview()">
+    </app-overview-annual-chart-card>
+  </div>
+</div>
