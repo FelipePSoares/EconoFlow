@@ -50,13 +50,31 @@ namespace EasyFinance.Application.Tests
 
             var response = await planService.CreatePlanAsync(this.project1.Id, new PlanRequestDTO
             {
-                Type = PlanType.Investment,
-                Name = "Investments",
+                Type = PlanType.Saving,
+                Name = "Savings",
                 TargetAmount = -1m
             });
 
             response.Failed.Should().BeTrue();
             response.Messages.Should().Contain(message => message.Code == "TargetAmount");
+        }
+
+        [Fact]
+        public async Task CreatePlanAsync_WithInvalidType_ShouldFail()
+        {
+            using var scope = this.serviceProvider.CreateScope();
+            var scopedServices = scope.ServiceProvider;
+            var planService = scopedServices.GetRequiredService<IPlanService>();
+
+            var response = await planService.CreatePlanAsync(this.project1.Id, new PlanRequestDTO
+            {
+                Type = (PlanType)99,
+                Name = "Invalid",
+                TargetAmount = 100m
+            });
+
+            response.Failed.Should().BeTrue();
+            response.Messages.Should().Contain(message => message.Code == "Type");
         }
 
         [Fact]
@@ -70,6 +88,24 @@ namespace EasyFinance.Application.Tests
             {
                 Type = PlanType.Saving,
                 Name = "Saving Plan",
+                TargetAmount = 2500m
+            });
+
+            response.Succeeded.Should().BeTrue();
+            response.Data.Type.Should().Be(PlanType.Saving);
+        }
+
+        [Fact]
+        public async Task CreatePlanAsync_WithLegacyTypeValue_ShouldNormalizeToSaving()
+        {
+            using var scope = this.serviceProvider.CreateScope();
+            var scopedServices = scope.ServiceProvider;
+            var planService = scopedServices.GetRequiredService<IPlanService>();
+
+            var response = await planService.CreatePlanAsync(this.project1.Id, new PlanRequestDTO
+            {
+                Type = (PlanType)3,
+                Name = "Legacy savings",
                 TargetAmount = 2500m
             });
 
@@ -152,15 +188,15 @@ namespace EasyFinance.Application.Tests
             });
 
             var patchDocument = new JsonPatchDocument<PlanRequestDTO>();
-            patchDocument.Replace(plan => plan.Type, PlanType.Investment);
-            patchDocument.Replace(plan => plan.Name, "Long-term investment");
+            patchDocument.Replace(plan => plan.Type, PlanType.Saving);
+            patchDocument.Replace(plan => plan.Name, "Long-term savings");
             patchDocument.Replace(plan => plan.TargetAmount, 12000m);
 
             var updatedPlan = await planService.UpdatePlanAsync(this.project1.Id, createdPlan.Data.Id, patchDocument);
 
             updatedPlan.Succeeded.Should().BeTrue();
-            updatedPlan.Data.Type.Should().Be(PlanType.Investment);
-            updatedPlan.Data.Name.Should().Be("Long-term investment");
+            updatedPlan.Data.Type.Should().Be(PlanType.Saving);
+            updatedPlan.Data.Name.Should().Be("Long-term savings");
             updatedPlan.Data.TargetAmount.Should().Be(12000m);
             updatedPlan.Data.CurrentBalance.Should().Be(0m);
             updatedPlan.Data.Remaining.Should().Be(12000m);
@@ -328,8 +364,8 @@ namespace EasyFinance.Application.Tests
 
             var createdPlan = await planService.CreatePlanAsync(this.project1.Id, new PlanRequestDTO
             {
-                Type = PlanType.Investment,
-                Name = "Investments",
+                Type = PlanType.Saving,
+                Name = "Savings",
                 TargetAmount = 10000m
             });
 

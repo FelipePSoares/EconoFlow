@@ -29,6 +29,8 @@ describe('EconoFlow - Smart Setup Tests', () => {
 
       cy.wait<ProjectReq, ProjectRes>('@postProjects').then(({ response }) => {
         expect(response?.statusCode).to.equal(201)
+        expect(response?.body?.project?.id).to.not.equal(undefined);
+        cy.wrap(response?.body?.project?.id).as('projectId');
 
         cy.get("mat-snack-bar-container").should("be.visible").contains('Created Successfully!');
       })
@@ -36,10 +38,37 @@ describe('EconoFlow - Smart Setup Tests', () => {
   })
 
   it('should setup using smart setup and all expense should be created', () => {
+    cy.intercept('POST', '**/smart-setup/**').as('postSmartSetup');
+    cy.intercept('GET', '**/categories?*').as('getCategories');
+
     cy.waitForLoader();
+    cy.get('.categories mat-slider').its('length').should('be.greaterThan', 0).as('smartSetupCategoryCount');
     cy.get('#annualIncome').type('60000')
     cy.get('button').contains('Save').click()
 
-    cy.get('.slider-container .card-small-text').should('not.contain.text', 'set a budget')
+    cy.wait('@postSmartSetup').then(({ response }) => {
+      expect([200, 201, 204]).to.include(response?.statusCode ?? 0);
+    });
+
+    cy.get('@projectId').then((projectId) => {
+      cy.visit('/projects/' + projectId + '/expense-overview');
+    });
+
+    cy.waitForLoader();
+    cy.wait('@getCategories');
+
+    cy.get('@smartSetupCategoryCount').then((count) => {
+      cy.get('.slider-container .slide .card')
+        .not('.btn-add')
+        .should('have.length', Number(count));
+    });
+
+    cy.get('.slider-container .slide .card')
+      .not('.btn-add')
+      .find('.card-small-text')
+      .should(($labels) => {
+        const text = $labels.text().toLowerCase();
+        expect(text).not.to.contain('set a budget');
+      });
   })
 })

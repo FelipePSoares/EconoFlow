@@ -51,6 +51,10 @@ namespace EasyFinance.Application.Features.PlanService
             if (!projectExists)
                 throw new KeyNotFoundException(ValidationMessages.ProjectNotFound);
 
+            requestDto.Type = NormalizePlanType(requestDto.Type);
+            if (!IsSupportedPlanType(requestDto.Type))
+                return AppResponse<PlanResponseDTO>.Error(nameof(requestDto.Type), ValidationMessages.InvalidData);
+
             if (requestDto.Type == PlanType.EmergencyReserve && await this.HasActiveEmergencyReserveAsync(projectId))
                 return AppResponse<PlanResponseDTO>.Error(nameof(requestDto.Type), ValidationMessages.OnlyOneEmergencyReservePerProject);
 
@@ -92,6 +96,10 @@ namespace EasyFinance.Application.Features.PlanService
 
             var dto = plan.ToRequestDTO();
             requestDto.ApplyTo(dto);
+
+            dto.Type = NormalizePlanType(dto.Type);
+            if (!IsSupportedPlanType(dto.Type))
+                return AppResponse<PlanResponseDTO>.Error(nameof(PlanRequestDTO.Type), ValidationMessages.InvalidData);
 
             if (dto.Type == PlanType.EmergencyReserve && await this.HasActiveEmergencyReserveAsync(projectId, plan.Id))
                 return AppResponse<PlanResponseDTO>.Error(nameof(PlanRequestDTO.Type), ValidationMessages.OnlyOneEmergencyReservePerProject);
@@ -213,5 +221,11 @@ namespace EasyFinance.Application.Features.PlanService
 
             return await query.AnyAsync();
         }
+
+        private static bool IsSupportedPlanType(PlanType planType)
+            => planType == PlanType.EmergencyReserve || planType == PlanType.Saving;
+
+        private static PlanType NormalizePlanType(PlanType planType)
+            => (int)planType == 3 ? PlanType.Saving : planType;
     }
 }

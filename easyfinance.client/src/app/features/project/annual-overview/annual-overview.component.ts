@@ -1,10 +1,11 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { AfterViewInit, Component, inject, Input, OnInit, PLATFORM_ID } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, inject, Input, OnInit, PLATFORM_ID } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ChartData, ChartOptions, TooltipItem } from 'chart.js';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BaseChartDirective } from 'ng2-charts';
-import { finalize, forkJoin, map, Observable } from 'rxjs';
+import { filter, finalize, forkJoin, map, Observable } from 'rxjs';
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
 import { ProjectService } from '../../../core/services/project.service';
 import { AnnualCategorySummary } from '../models/annual-category-summary-dto';
@@ -13,6 +14,7 @@ import { UserProjectDto } from '../models/user-project-dto';
 import { ProjectDto } from '../models/project-dto';
 import { IncomeService } from '../../../core/services/income.service';
 import { CategoryService } from '../../../core/services/category.service';
+import { ProjectOverviewRefreshService } from '../../../core/services/project-overview-refresh.service';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { CurrentDateService } from '../../../core/services/current-date.service';
@@ -46,11 +48,13 @@ export class AnnualOverviewComponent implements OnInit, AfterViewInit {
   private globalService = inject(GlobalService);
   private incomeService = inject(IncomeService);
   private categoryService = inject(CategoryService);
+  private projectOverviewRefreshService = inject(ProjectOverviewRefreshService);
   private translateService = inject(TranslateService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private currentDateService = inject(CurrentDateService);
   private currencyFormatPipe = inject(CurrencyFormatPipe);
+  private destroyRef = inject(DestroyRef);
   private lastLoadedYear: number | null = null;
 
   @Input({ required: true })
@@ -142,6 +146,15 @@ export class AnnualOverviewComponent implements OnInit, AfterViewInit {
       this.userProject = userProject;
       this.projectService.selectUserProject(userProject);
     });
+
+    this.projectOverviewRefreshService.refresh$
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        filter(projectId => projectId === this.projectId)
+      )
+      .subscribe(() => {
+        this.loadYear(this.selectedYear);
+      });
 
     this.route.queryParamMap.subscribe(params => {
       const yearParam = params.get('year');

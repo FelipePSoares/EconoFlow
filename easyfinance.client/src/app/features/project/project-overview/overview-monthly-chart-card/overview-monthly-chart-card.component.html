@@ -1,0 +1,26 @@
+<div class="wrap p-3 h-100">
+  <div class="col text-center mt-2 mb-3 month">
+    <a class="overview-link" (click)="openRequested.emit()" role="button" title="{{ 'MonthlyOverview' | translate }}">
+      <h2 class="overview-heading">
+        {{ date | date: 'MMMM' : undefined : language }}
+        <i class="bi bi-box-arrow-up-right overview-icon"></i>
+      </h2>
+    </a>
+  </div>
+  <app-budget-bar
+    [spend]="spend"
+    [budget]="budget"
+    [overspend]="overspend"
+    [remaining]="remaining"
+    [hideDecimals]="true"
+    [typeMonthOrYear]="'month'">
+  </app-budget-bar>
+  <hr class="solid" />
+  <h3 class="mt-0 mb-3 text-start fw-semibold fs-6">{{ 'CumulativeIncomeVsExpense' | translate }}</h3>
+  <app-monthly-expenses-chart
+    [expenses]="expenses"
+    [incomes]="incomes"
+    [budget]="budget"
+    [referenceDate]="date">
+  </app-monthly-expenses-chart>
+</div>
