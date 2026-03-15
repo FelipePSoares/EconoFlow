@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { ChartConfiguration, ChartOptions } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 import { ExpenseDto } from '../../../expense/models/expense-dto';
+import { ExpenseItemDto } from '../../../expense/models/expense-item-dto';
 import { IncomeDto } from '../../../income/models/income-dto';
 import { CurrentDateService } from '../../../../core/services/current-date.service';
 import { TranslateService } from '@ngx-translate/core';
@@ -131,46 +132,18 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterVi
     const isCurrentMonth = today.getFullYear() == year && today.getMonth() + 1 == month;
 
     // Aggregate expenses by date
-    const dailyExpenseSums: { [date: string]: number } = {};
+    const expenseEntries = this.toExpenseEntries(this.expenses);
+    const dailyExpenseSums: Record<string, number> = {};
 
-    for (const record of this.expenses) {
-      let amount = 0;
-      let date: Date | null = null;
-
-      // Extract amount
-      if (typeof record.amount === 'number') {
-        amount = record.amount;
-      } else if (record.items && Array.isArray(record.items)) {
-        amount = record.items.reduce((sum: number, item: any) => {
-          if (typeof item.amount === 'number') return sum + item.amount;
-          if (typeof item.value === 'number') return sum + item.value;
-          if (typeof item.price === 'number') return sum + item.price;
-          if (item.items && Array.isArray(item.items)) {
-            return sum + item.items.reduce((subSum: number, subItem: any) => {
-              return subSum + (typeof subItem.amount === 'number' ? subItem.amount :
-                             typeof subItem.value === 'number' ? subItem.value :
-                             typeof subItem.price === 'number' ? subItem.price : 0);
-            }, 0);
-          }
-          return sum;
-        }, 0);
-      }
-
-      // Extract date
-      if (record.date) {
-        date = toLocalDate(record.date);
-      }
-
-      if (amount > 0 && date) {
-        const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-        dailyExpenseSums[dateStr] = (dailyExpenseSums[dateStr] || 0) + amount;
-      }
+    for (const entry of expenseEntries) {
+      const dateStr = this.toDateKey(entry.date);
+      dailyExpenseSums[dateStr] = (dailyExpenseSums[dateStr] || 0) + entry.amount;
     }
 
-    const dailyIncomeSums: { [date: string]: number } = {};
+    const dailyIncomeSums: Record<string, number> = {};
     for (const income of this.incomes) {
       const incomeDate = toLocalDate(income.date);
-      const dateStr = `${incomeDate.getFullYear()}-${String(incomeDate.getMonth() + 1).padStart(2, '0')}-${String(incomeDate.getDate()).padStart(2, '0')}`;
+      const dateStr = this.toDateKey(incomeDate);
       dailyIncomeSums[dateStr] = (dailyIncomeSums[dateStr] || 0) + Number(income.amount || 0);
     }
 
@@ -179,7 +152,7 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterVi
     const currentMonthExpenseSums: { [day: number]: number } = {};
     for (const [dateStr, sum] of Object.entries(dailyExpenseSums)) {
       if (dateStr.startsWith(monthPrefix)) {
-        const day = parseInt(dateStr.split('-')[2]);
+        const day = parseInt(dateStr.split('-')[2], 10);
         currentMonthExpenseSums[day] = sum;
       }
     }
@@ -187,7 +160,7 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterVi
     const currentMonthIncomeSums: { [day: number]: number } = {};
     for (const [dateStr, sum] of Object.entries(dailyIncomeSums)) {
       if (dateStr.startsWith(monthPrefix)) {
-        const day = parseInt(dateStr.split('-')[2]);
+        const day = parseInt(dateStr.split('-')[2], 10);
         currentMonthIncomeSums[day] = sum;
       }
     }
@@ -238,5 +211,41 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterVi
         }
       ]
     };
+  }
+
+  private toExpenseEntries(expenses: ExpenseDto[]): Array<{ date: Date; amount: number }> {
+    return expenses.flatMap(expense => {
+      if (expense.items?.length) {
+        return this.toExpenseItemEntries(expense.items);
+      }
+
+      const amount = Number(expense.amount || 0);
+      const date = toLocalDate(expense.date);
+      if (isNaN(date.getTime()) || amount <= 0) {
+        return [];
+      }
+
+      return [{ date, amount }];
+    });
+  }
+
+  private toExpenseItemEntries(items: ExpenseItemDto[]): Array<{ date: Date; amount: number }> {
+    return items.flatMap(item => {
+      if (item.items?.length) {
+        return this.toExpenseItemEntries(item.items);
+      }
+
+      const amount = Number(item.amount || 0);
+      const date = toLocalDate(item.date);
+      if (isNaN(date.getTime()) || amount <= 0) {
+        return [];
+      }
+
+      return [{ date, amount }];
+    });
+  }
+
+  private toDateKey(date: Date): string {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   }
 }
