@@ -27,7 +27,7 @@
     <span class="float-start date"><i class="bi bi-calendar me-1"></i>{{ date | date: 'shortDate' : undefined : currentLanguage }}</span>
   }
   @if (overspend > 0) {
-    <span class="float-end budget">{{ 'Of' | translate }} <s class="privacy-sensitive-value">{{ budget | currencyFormat: hideDecimals }}</s> <span class="privacy-sensitive-value">{{ budget + overspend | currencyFormat: hideDecimals }}</span></span>
+    <span class="float-end budget">{{ 'Of' | translate }} <s class="privacy-sensitive-value">{{ budget | currencyFormat: hideDecimals }}</s><span class="privacy-sensitive-value"> {{ budget + overspend | currencyFormat: hideDecimals }}</span></span>
   } @else {
     <span class="float-end budget">{{ 'Of' | translate }} <span class="privacy-sensitive-value">{{ budget | currencyFormat: hideDecimals }}</span></span>
   }

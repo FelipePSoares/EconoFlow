@@ -28,6 +28,22 @@
   width: 0%;
 }
 
+.progress-width-1 {
+  width: 1%;
+}
+
+.progress-width-2 {
+  width: 2%;
+}
+
+.progress-width-3 {
+  width: 3%;
+}
+
+.progress-width-4 {
+  width: 4%;
+}
+
 .progress-width-5 {
   width: 5%;
 }

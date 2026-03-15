@@ -4,7 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ChartData, ChartOptions, TooltipItem } from 'chart.js';
-import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
+import { catchError, filter, forkJoin, map, of, switchMap } from 'rxjs';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { Category } from '../../../core/models/category';
 import { CategoryService } from '../../../core/services/category.service';
@@ -13,6 +13,7 @@ import { GlobalService } from '../../../core/services/global.service';
 import { IncomeService } from '../../../core/services/income.service';
 import { PlanService } from '../../../core/services/plan.service';
 import { ProjectService } from '../../../core/services/project.service';
+import { ProjectOverviewRefreshService } from '../../../core/services/project-overview-refresh.service';
 import { toLocalDate } from '../../../core/utils/date';
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
 import { CategoryDto } from '../../category/models/category-dto';
@@ -42,6 +43,7 @@ export class ProjectOverviewComponent implements OnInit {
   private categoryService = inject(CategoryService);
   private incomeService = inject(IncomeService);
   private planService = inject(PlanService);
+  private projectOverviewRefreshService = inject(ProjectOverviewRefreshService);
   private currentDateService = inject(CurrentDateService);
   private globalService = inject(GlobalService);
   private translateService = inject(TranslateService);
@@ -112,6 +114,15 @@ export class ProjectOverviewComponent implements OnInit {
       this.userProject = userProject;
       this.projectService.selectUserProject(userProject);
     });
+
+    this.projectOverviewRefreshService.refresh$
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        filter(projectId => projectId === this.projectId)
+      )
+      .subscribe(() => {
+        this.fillData(this.currentDateService.currentDate);
+      });
 
     this.fillData(this.currentDateService.currentDate);
   }

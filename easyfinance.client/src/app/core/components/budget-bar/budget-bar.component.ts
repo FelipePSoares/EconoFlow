@@ -102,6 +102,10 @@ export class BudgetBarComponent {
     }
 
     const bounded = Math.max(0, Math.min(100, value));
+    if (bounded > 0 && bounded < 5) {
+      return Math.ceil(bounded);
+    }
+
     return Math.round(bounded / 5) * 5;
   }
 

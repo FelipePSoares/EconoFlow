@@ -1,16 +1,18 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { AfterViewInit, Component, inject, Input, OnInit, PLATFORM_ID } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, inject, Input, OnInit, PLATFORM_ID } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ChartData, ChartOptions, TooltipItem } from 'chart.js';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BaseChartDirective } from 'ng2-charts';
-import { forkJoin } from 'rxjs';
+import { filter, forkJoin } from 'rxjs';
 import { Category } from '../../../core/models/category';
 import { Income } from '../../../core/models/income';
 import { CategoryService } from '../../../core/services/category.service';
 import { GlobalService } from '../../../core/services/global.service';
 import { IncomeService } from '../../../core/services/income.service';
 import { ProjectService } from '../../../core/services/project.service';
+import { ProjectOverviewRefreshService } from '../../../core/services/project-overview-refresh.service';
 import { toLocalDate } from '../../../core/utils/date';
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
 import { ProjectDto } from '../models/project-dto';
@@ -130,10 +132,12 @@ export class MonthlyOverviewComponent implements OnInit, AfterViewInit {
     private projectService: ProjectService,
     private incomeService: IncomeService,
     private categoryService: CategoryService,
+    private projectOverviewRefreshService: ProjectOverviewRefreshService,
     private globalService: GlobalService,
     private translateService: TranslateService,
     private currentDateService: CurrentDateService,
-    private currencyFormatPipe: CurrencyFormatPipe
+    private currencyFormatPipe: CurrencyFormatPipe,
+    private destroyRef: DestroyRef
   ) { }
 
   ngOnInit(): void {
@@ -147,6 +151,15 @@ export class MonthlyOverviewComponent implements OnInit, AfterViewInit {
       this.userProject = userProject;
       this.projectService.selectUserProject(userProject);
     });
+
+    this.projectOverviewRefreshService.refresh$
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        filter(projectId => projectId === this.projectId)
+      )
+      .subscribe(() => {
+        this.loadMonth(this.selectedDate);
+      });
 
     this.route.queryParamMap.subscribe(params => {
       const monthParam = params.get('month');
