@@ -257,6 +257,7 @@
   "Description": "Descrição",
   "Amount": "Valor",
   "Incomes": "Rendas",
+  "Expenses": "Despesas",
   "IncomePlanMode": "Planos de Poupança e Reserva de Emergência",
   "PlanList": "Planos",
   "CreatePlan": "Criar plano",
