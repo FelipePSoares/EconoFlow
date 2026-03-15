@@ -149,7 +149,7 @@ export class ListExpensesComponent implements OnInit {
   }
 
   previous() {
-    this.router.navigate(['/projects', this.projectId]);
+    this.router.navigate(['/projects', this.projectId, 'expense-overview']);
   }
 
   updateDate(newDate: Date) {

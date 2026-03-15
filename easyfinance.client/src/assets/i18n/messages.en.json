@@ -257,6 +257,7 @@
   "Description": "Description",
   "Amount": "Amount",
   "Incomes": "Incomes",
+  "Expenses": "Expenses",
   "IncomePlanMode": "Savings & Emergency Plans",
   "PlanList": "Plans",
   "CreatePlan": "Create Plan",

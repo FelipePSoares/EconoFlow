@@ -1,6 +1,12 @@
 <div class="container py-4" data-testid="income-default-mode">
   <div class="row justify-content-center">
     <div class="col-12 col-md-10 col-lg-9">
+      @if (userProject && userProject.project && userProject.project.name) {
+        <div class="text-center mt-3 mb-4">
+          <h2 class="mb-0">{{ userProject.project.name }}</h2>
+        </div>
+      }
+
       <div class="d-flex justify-content-between align-items-center mb-4">
         <app-return-button (returnButtonEvent)="previous()"></app-return-button>
 
