@@ -48,7 +48,6 @@
       const isDarkTheme = resolvedTheme === 'dark';
       const root = document.documentElement;
       root.setAttribute('data-theme', resolvedTheme);
-      root.style.colorScheme = resolvedTheme;
 
       const themeColorMeta = document.querySelector('meta[name="theme-color"]');
       if (themeColorMeta) {
