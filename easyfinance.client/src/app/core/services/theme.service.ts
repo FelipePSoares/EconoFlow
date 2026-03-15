@@ -86,7 +86,6 @@ export class ThemeService {
     }
 
     root.setAttribute('data-theme', theme);
-    root.style.colorScheme = theme;
 
     const presentation = this.themePresentation[theme];
     this.setMetaContent('theme-color', presentation.themeColor);
