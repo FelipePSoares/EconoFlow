@@ -4,8 +4,6 @@ describe('EconoFlow - category add Tests', () => {
     cy.fixture('users').then((users) => {
       const user = users.testUser;
       cy.login(user.username, user.password)
-
-      cy.intercept('GET', '**/projects/*/year-summary/*').as('getProjects')
       cy.fixture('projects').then((projects) => {
         var project = projects.defaultProject;
 
@@ -49,7 +47,6 @@ describe('EconoFlow - category add Tests', () => {
   })
 
   it('should be possible view archived categories with expenses', () => {
-    cy.intercept('GET', '**/projects/*/year-summary/*').as('getProjects')
     cy.intercept('GET', '**/categories*').as('getCategories')
 
     cy.fixture('projects').then((projects) => {
@@ -71,12 +68,11 @@ describe('EconoFlow - category add Tests', () => {
             }).then((resp) => {
               expect(resp?.status).to.equal(201)
 
-              cy.request('PUT', 'api/Projects/' + projects.defaultProject.id + '/Categories/' + archivedCategory.id + '/Archive', {}).then((resp) => {
-                expect(resp?.status).to.equal(204)
+                cy.request('PUT', 'api/Projects/' + projects.defaultProject.id + '/Categories/' + archivedCategory.id + '/Archive', {}).then((resp) => {
+                  expect(resp?.status).to.equal(204)
                   
-                cy.visit('/projects/' + projects.defaultProject.id + '/expense-overview')
+                  cy.visit('/projects/' + projects.defaultProject.id + '/expense-overview')
 
-                cy.wait<ProjectReq, ProjectRes>('@getProjects').then(({ request, response }) => {
                   cy.wait<CategoryReq, CategoryRes[]>('@getCategories').then(({ request, response }) => {
                     cy.log(JSON.stringify(response?.body))
                     cy.contains('.slider-container .card-title', archivedCategoryName).should('not.exist');
@@ -97,7 +93,6 @@ describe('EconoFlow - category add Tests', () => {
                 })
               })
             })
-          })
         })
       })
     })
