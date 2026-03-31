@@ -2,11 +2,12 @@
 import { TranslateLoader } from '@ngx-translate/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import versionData from '../../../../assets/version.json';
 
 export class TranslateHttpLoader implements TranslateLoader {
   constructor(private http: HttpClient) { }
 
   getTranslation(lang: string): Observable<any> {
-    return this.http.get(`assets/i18n/messages.${lang}.json?v=1.1.54`);
+    return this.http.get(`assets/i18n/messages.${lang}.json?v=${versionData.versionNumber}`);
   }
 }
