@@ -2,7 +2,7 @@ import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import moment, { Moment } from 'moment';
 
 export function getMinAllowedDate(currentDate: Date): Date {
-  return new Date(currentDate.getFullYear() - 10, currentDate.getMonth(), currentDate.getDate());
+  return moment(currentDate).subtract(10, 'years').toDate();
 }
 
 export function minDateValidator(minDate: Date): ValidatorFn {
