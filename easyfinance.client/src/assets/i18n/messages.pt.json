@@ -106,6 +106,7 @@
   "RequiredField": "Este campo é obrigatório.",
   "InvalidEmailFormat": "E-mail com formato inválido.",
   "OnlyNumbersIsValid": "Apenas números são aceitos.",
+  "DateTooOld": "A data não pode ser anterior a 10 anos atrás.",
   "GenericError": "Ocorreu um erro!, Por favor, tente novamente...",
   "ValueShouldBeGreaterThan": "O valor deve ser maior que {{value}}.",
   "TextShouldBeGreaterThan": "O texto deve ter pelo menos {{value}} caracteres.",

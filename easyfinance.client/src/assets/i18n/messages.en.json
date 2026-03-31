@@ -106,6 +106,7 @@
   "RequiredField": "This field is required.",
   "InvalidEmailFormat": "Invalid email format.",
   "OnlyNumbersIsValid": "Only numbers is valid.",
+  "DateTooOld": "Date must not be older than 10 years.",
   "GenericError": "an error occours! Please, try again...",
   "ValueShouldBeGreaterThan": "The value should be greater than {{value}}.",
   "TextShouldBeGreaterThan": "The text should be at least {{value}} characters.",
