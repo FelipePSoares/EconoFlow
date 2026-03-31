@@ -41,7 +41,6 @@ jobs:
             - 'easyfinance.client/src/**'
           version_files:
             - 'easyfinance.client/src/assets/version.json'
-            - 'easyfinance.client/src/app/core/utils/loaders/translate-http-loader.ts'
 
     - name: Auto bump frontend version for PR changes
       if: >
@@ -52,7 +51,6 @@ jobs:
       shell: bash
       run: |
         VERSION_FILE="easyfinance.client/src/assets/version.json"
-        LOADER_FILE="easyfinance.client/src/app/core/utils/loaders/translate-http-loader.ts"
 
         CURRENT_VERSION=$(node -e "const fs=require('fs');const v=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(v.versionNumber);" "$VERSION_FILE")
         IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
@@ -61,19 +59,15 @@ jobs:
         node -e "
           const fs = require('fs');
           const versionFile = process.argv[1];
-          const loaderFile = process.argv[2];
-          const nextVersion = process.argv[3];
+          const nextVersion = process.argv[2];
           const json = JSON.parse(fs.readFileSync(versionFile, 'utf8'));
           json.versionNumber = nextVersion;
           fs.writeFileSync(versionFile, JSON.stringify(json, null, 2) + '\n');
-          let loader = fs.readFileSync(loaderFile, 'utf8');
-          loader = loader.replace(/messages\\.\\$\\{lang\\}\\.json\\?v=\\d+\\.\\d+\\.\\d+/, 'messages.\${lang}.json?v=' + nextVersion);
-          fs.writeFileSync(loaderFile, loader);
-        " "$VERSION_FILE" "$LOADER_FILE" "$NEXT_VERSION"
+        " "$VERSION_FILE" "$NEXT_VERSION"
 
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
-        git add "$VERSION_FILE" "$LOADER_FILE"
+        git add "$VERSION_FILE"
 
         if git diff --cached --quiet; then
           echo "Version files already up to date."
