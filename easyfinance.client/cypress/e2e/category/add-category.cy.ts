@@ -54,6 +54,12 @@ describe('EconoFlow - category add Tests', () => {
         cy.fixture('expenses').then((expenses) => {
           const archivedCategoryName = `${categories.testArchivedCategory.name}-${Date.now()}`;
 
+          // Build last-month date string safely: use the 1st of last month to avoid
+          // end-of-month overflow (e.g. setMonth on March 31 gives March 3 instead of Feb 1)
+          const now = new Date();
+          const firstDayLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+          const lastMonthDateStr = firstDayLastMonth.toISOString().split('T')[0];
+
           cy.request('POST', 'api/Projects/' + projects.defaultProject.id + '/Categories', {
             name: archivedCategoryName
           }).then((resp) => {
@@ -61,7 +67,7 @@ describe('EconoFlow - category add Tests', () => {
 
             const archivedCategory = resp.body as CategoryRes;
             cy.request('POST', 'api/Projects/' + projects.defaultProject.id + '/Categories/' + archivedCategory.id + '/Expenses', {
-              date: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split("T")[0],
+              date: lastMonthDateStr,
               name: expenses.testSomeExpense.name,
               budget: expenses.testSomeExpense.budget,
               amount: expenses.testSomeExpense.amount
