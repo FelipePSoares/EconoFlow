@@ -41,6 +41,7 @@ jobs:
             - 'easyfinance.client/src/**'
           version_files:
             - 'easyfinance.client/src/assets/version.json'
+            - 'easyfinance.client/src/app/core/utils/loaders/translate-http-loader.ts'
 
     - name: Auto bump frontend version for PR changes
       if: >
@@ -53,6 +54,13 @@ jobs:
         VERSION_FILE="easyfinance.client/src/assets/version.json"
 
         CURRENT_VERSION=$(node -e "const fs=require('fs');const v=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(v.versionNumber);" "$VERSION_FILE")
+
+        BASE_VERSION=$(git show origin/${{ github.base_ref }}:"${VERSION_FILE}" | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>process.stdout.write(JSON.parse(d).versionNumber));")
+        if [ "$CURRENT_VERSION" != "$BASE_VERSION" ]; then
+          echo "Version already bumped to $CURRENT_VERSION (base: $BASE_VERSION). Skipping."
+          exit 0
+        fi
+
         IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
         NEXT_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
 
