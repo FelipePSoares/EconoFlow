@@ -19,6 +19,7 @@ import { IncomePatchModel } from '../models/income-patch-model';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { formatDate, toLocalDate, toUtcMomentDate } from '../../../core/utils/date';
+import { minDateValidator, getMinAllowedDate } from '../../../core/utils/custom-validators/min-date-validator';
 import { GlobalService } from '../../../core/services/global.service';
 import { CurrentDateService } from '../../../core/services/current-date.service';
 
@@ -98,7 +99,7 @@ export class AddIncomeComponent implements OnInit, AfterViewInit {
 
     this.incomeForm = new FormGroup({
       name: new FormControl(this.editingIncome?.name ?? '', [Validators.required, Validators.maxLength(100)]),
-      date: new FormControl(initialDate, [Validators.required]),
+      date: new FormControl(initialDate, [Validators.required, minDateValidator(getMinAllowedDate(this.currentDateService.currentDate))]),
       amount: new FormControl(this.editingIncome?.amount ?? 0, [Validators.min(0)])
     });
   }

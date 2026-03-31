@@ -46,6 +46,9 @@ export class ErrorMessageService {
               })
             );
             break;
+          case 'minDate':
+            errors.push('DateTooOld');
+            break;
           default:
             if (Array.isArray(errorValue)) {
               errors = errors.concat(errorValue as string[]);
