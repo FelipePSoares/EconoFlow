@@ -25,6 +25,7 @@ import { ApiErrorResponse } from '../../../core/models/error';
 import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.component';
 import { DateAdapter } from '@angular/material/core';
 import { formatDate, toLocalDate, toUtcMomentDate } from '../../../core/utils/date';
+import { minDateValidator, getMinAllowedDate } from '../../../core/utils/custom-validators/min-date-validator';
 import { GlobalService } from '../../../core/services/global.service';
 import { CurrentDateService } from '../../../core/services/current-date.service';
 import { CategoryService } from '../../../core/services/category.service';
@@ -174,7 +175,7 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
       categoryId: new FormControl(this.categoryId ?? '', [Validators.required]),
       expenseId: new FormControl(initialExpenseId, [Validators.required]),
       name: new FormControl(this.editingExpenseItem?.name ?? '', [Validators.maxLength(100)]),
-      date: new FormControl(initialDate, [Validators.required]),
+      date: new FormControl(initialDate, [Validators.required, minDateValidator(getMinAllowedDate(this.currentDateService.currentDate))]),
       amount: new FormControl(this.editingExpenseItem?.amount ?? 0, [Validators.min(0)]),
       isDeductible: new FormControl(this.editingExpenseItem?.isDeductible ?? false)
     });
