@@ -25,6 +25,7 @@
       "dom",
       "dom.iterable"
     ],
+    "resolveJsonModule": true,
     "paths": {
       "chart.js/dist/types/utils": ["node_modules/chart.js/dist/types/utils.d.ts"]
     }

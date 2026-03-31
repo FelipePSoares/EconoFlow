@@ -22,6 +22,7 @@ import { ExpenseAttachmentDto } from '../models/expense-attachment-dto';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { formatDate, toUtcMomentDate } from '../../../core/utils/date';
+import { minDateValidator, getMinAllowedDate } from '../../../core/utils/custom-validators/min-date-validator';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
 import { GlobalService } from '../../../core/services/global.service';
 import { CurrentDateService } from '../../../core/services/current-date.service';
@@ -160,7 +161,7 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
     this.expenseForm = new FormGroup({
       categoryId: new FormControl(this.categoryId ?? '', [Validators.required]),
       name: new FormControl(this.editingExpense?.name ?? '', [Validators.required, Validators.maxLength(100)]),
-      date: new FormControl(initialDate, [Validators.required]),
+      date: new FormControl(initialDate, [Validators.required, minDateValidator(getMinAllowedDate(this.currentDateService.currentDate))]),
       amount: new FormControl(this.editingExpense?.amount ?? 0, [Validators.min(0)]),
       budget: new FormControl(this.editingExpense?.budget ?? 0, [Validators.pattern('[0-9]*')]),
       isDeductible: new FormControl(this.editingExpense?.isDeductible ?? false),

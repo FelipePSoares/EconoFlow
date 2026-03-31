@@ -208,9 +208,26 @@ namespace EasyFinance.Domain.Tests.Financial
         {
             // Arrange
             var today = DateTime.Today;
-            var expense = new ExpenseBuilder().SetBudget(20).AddDate(new DateOnly(today.Year, today.Month, today.Day + 2)).Build();
+            // Use AddDays to avoid day-overflow at end of month (e.g. March 31 + 2 = day 33)
+            var expenseDate = DateOnly.FromDateTime(today.AddDays(2));
+            var maxAllowedItemDate = DateOnly.FromDateTime(today.AddDays(1)); // max allowed by "no future item" rule
 
-            var item = new ExpenseItemBuilder().AddDate(new DateOnly(today.Year, today.Month, today.Day > 1 ? today.Day - 1 : today.Day)).AddAmount(10).Build();
+            // If today+2 crossed into the next month, use today+1 as expense and today as item
+            // so that both stay in the same month without violating the future-date rule.
+            DateOnly itemDate;
+            if (expenseDate.Year != maxAllowedItemDate.Year || expenseDate.Month != maxAllowedItemDate.Month)
+            {
+                expenseDate = maxAllowedItemDate;
+                itemDate = DateOnly.FromDateTime(today);
+            }
+            else
+            {
+                itemDate = maxAllowedItemDate;
+            }
+
+            var expense = new ExpenseBuilder().SetBudget(20).AddDate(expenseDate).Build();
+
+            var item = new ExpenseItemBuilder().AddDate(itemDate).AddAmount(10).Build();
 
             // Act
             expense.AddItem(item);
@@ -230,7 +247,8 @@ namespace EasyFinance.Domain.Tests.Financial
         {
             // Arrange
             var today = DateTime.Today;
-            var expense = new ExpenseBuilder().SetBudget(20).AddDate(new DateOnly(today.Year, today.Month, today.Day + 2)).Build();
+            // Use AddDays to avoid day-overflow at end of month (e.g. March 31 + 2 = day 33)
+            var expense = new ExpenseBuilder().SetBudget(20).AddDate(DateOnly.FromDateTime(today.AddDays(2))).Build();
 
             // Act
             var result = expense.Validate;
