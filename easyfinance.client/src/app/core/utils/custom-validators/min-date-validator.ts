@@ -19,6 +19,18 @@ export function minDateValidator(minDate: Date): ValidatorFn {
       return null;
     }
 
-    return value.isBefore(moment(minDate), 'day') ? { minDate: true } : null;
+    const normalizedValue = moment.utc({
+      year: value.year(),
+      month: value.month(),
+      date: value.date(),
+    });
+
+    const normalizedMinDate = moment.utc({
+      year: minDate.getFullYear(),
+      month: minDate.getMonth(),
+      date: minDate.getDate(),
+    });
+
+    return normalizedValue.isBefore(normalizedMinDate, 'day') ? { minDate: true } : null;
   };
 }
