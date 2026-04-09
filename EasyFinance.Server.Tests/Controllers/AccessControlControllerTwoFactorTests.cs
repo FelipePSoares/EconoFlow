@@ -305,6 +305,149 @@ namespace EasyFinance.Server.Tests.Controllers
             this.userManagerMock.Verify(x => x.SetTwoFactorEnabledAsync(this.user, false), Times.Once);
         }
 
+        [Fact]
+        public async Task SignInAsync_WhenTwoFactorRequiredAndCaptchaEnabled_ShouldIncludeRequiresCaptchaInResponse()
+        {
+            // Arrange
+            this.user.AccessFailedCount = 3;
+
+            var turnstileServiceMock = new Mock<ITurnstileService>();
+            turnstileServiceMock.Setup(x => x.IsEnabled()).Returns(true);
+            turnstileServiceMock.Setup(x => x.ValidateTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
+            var controllerWithCaptcha = this.CreateControllerWithTurnstile(turnstileServiceMock.Object);
+
+            this.signInManagerMock
+                .Setup(x => x.CheckPasswordSignInAsync(this.user, "Passw0rd!", true))
+                .ReturnsAsync(Microsoft.AspNetCore.Identity.SignInResult.TwoFactorRequired);
+
+            // Act
+            var result = await controllerWithCaptcha.SignInAsync(new SignInRequestDTO
+            {
+                Email = this.user.Email!,
+                Password = "Passw0rd!",
+                CaptchaToken = "valid-token"
+            });
+
+            // Assert
+            var unauthorizedResult = result.ShouldBeOfType<UnauthorizedObjectResult>();
+            var payload = unauthorizedResult.Value.ShouldBeOfType<LoginFailureResponseDTO>();
+            payload.Code.ShouldBe("TwoFactorRequired");
+            payload.RequiresTwoFactor.ShouldBeTrue();
+            payload.RequiresCaptcha.ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task SignInAsync_WhenTwoFactorRequiredAndCaptchaEnabledButBelowThreshold_ShouldNotRequireCaptcha()
+        {
+            // Arrange
+            this.user.AccessFailedCount = 2;
+
+            var turnstileServiceMock = new Mock<ITurnstileService>();
+            turnstileServiceMock.Setup(x => x.IsEnabled()).Returns(true);
+
+            var controllerWithCaptcha = this.CreateControllerWithTurnstile(turnstileServiceMock.Object);
+
+            this.signInManagerMock
+                .Setup(x => x.CheckPasswordSignInAsync(this.user, "Passw0rd!", true))
+                .ReturnsAsync(Microsoft.AspNetCore.Identity.SignInResult.TwoFactorRequired);
+
+            // Act
+            var result = await controllerWithCaptcha.SignInAsync(new SignInRequestDTO
+            {
+                Email = this.user.Email!,
+                Password = "Passw0rd!"
+            });
+
+            // Assert
+            var unauthorizedResult = result.ShouldBeOfType<UnauthorizedObjectResult>();
+            var payload = unauthorizedResult.Value.ShouldBeOfType<LoginFailureResponseDTO>();
+            payload.Code.ShouldBe("TwoFactorRequired");
+            payload.RequiresTwoFactor.ShouldBeTrue();
+            payload.RequiresCaptcha.ShouldBeFalse();
+        }
+
+        [Fact]
+        public async Task SignInAsync_WhenCaptchaRequiredButInvalidToken_ShouldReturnBadRequest()
+        {
+            // Arrange
+            this.user.AccessFailedCount = 3;
+
+            var turnstileServiceMock = new Mock<ITurnstileService>();
+            turnstileServiceMock.Setup(x => x.IsEnabled()).Returns(true);
+            turnstileServiceMock.Setup(x => x.ValidateTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(false);
+
+            var controllerWithCaptcha = this.CreateControllerWithTurnstile(turnstileServiceMock.Object);
+
+            // Act
+            var result = await controllerWithCaptcha.SignInAsync(new SignInRequestDTO
+            {
+                Email = this.user.Email!,
+                Password = "Passw0rd!",
+                CaptchaToken = "invalid-token"
+            });
+
+            // Assert
+            result.ShouldBeOfType<BadRequestObjectResult>();
+        }
+
+        [Fact]
+        public async Task SignInAsync_WhenBelowThreshold_ShouldNotValidateCaptcha()
+        {
+            // Arrange
+            this.user.AccessFailedCount = 2;
+
+            var turnstileServiceMock = new Mock<ITurnstileService>();
+            turnstileServiceMock.Setup(x => x.IsEnabled()).Returns(true);
+
+            var controllerWithCaptcha = this.CreateControllerWithTurnstile(turnstileServiceMock.Object);
+
+            this.signInManagerMock
+                .Setup(x => x.CheckPasswordSignInAsync(this.user, "Passw0rd!", true))
+                .ReturnsAsync(Microsoft.AspNetCore.Identity.SignInResult.Success);
+            this.userManagerMock.Setup(x => x.GetTwoFactorEnabledAsync(this.user)).ReturnsAsync(false);
+
+            // Act
+            var result = await controllerWithCaptcha.SignInAsync(new SignInRequestDTO
+            {
+                Email = this.user.Email!,
+                Password = "Passw0rd!"
+            });
+
+            // Assert
+            result.ShouldBeOfType<OkResult>();
+            turnstileServiceMock.Verify(x => x.ValidateTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        private AccessControlController CreateControllerWithTurnstile(ITurnstileService turnstileService)
+        {
+            var controllerWithCaptcha = new AccessControlController(
+                userManager: this.userManagerMock.Object,
+                signInManager: this.signInManagerMock.Object,
+                emailSender: Mock.Of<IEmailSender<User>>(),
+                userService: Mock.Of<IUserService>(),
+                linkGenerator: Mock.Of<LinkGenerator>(),
+                accessControlService: Mock.Of<IAccessControlService>(),
+                featureRolloutService: Mock.Of<IFeatureRolloutService>(),
+                tokenSettings: new TokenSettings { SecretKey = Guid.NewGuid().ToString() },
+                notificationService: Mock.Of<INotificationService>(),
+                turnstileService: turnstileService,
+                turnstileSettings: Options.Create(new TurnstileSettings()),
+                logger: Mock.Of<ILogger<AccessControlController>>());
+
+            var urlHelperMock = new Mock<IUrlHelper>();
+            urlHelperMock.Setup(x => x.Action(It.IsAny<UrlActionContext>())).Returns("/api/AccessControl/refresh-token");
+            controllerWithCaptcha.Url = urlHelperMock.Object;
+
+            controllerWithCaptcha.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext()
+            };
+            controllerWithCaptcha.ControllerContext.HttpContext.Items[correlationIdClaimType] = Guid.NewGuid().ToString();
+
+            return controllerWithCaptcha;
+        }
+
         private void SetAuthenticatedContext()
         {
             var identity = new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, this.user.Id.ToString())], "TestAuthType");

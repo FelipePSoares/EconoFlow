@@ -173,6 +173,13 @@ const createLoginErrorResponse = (loginError: unknown): ApiErrorResponse => {
   const apiErrorResponse: ApiErrorResponse = { errors: {} };
   const loginErrorCode = getLoginFailureCode(loginError);
 
+  if (typeof loginError === 'object' && loginError !== null) {
+    const loginErrorPayload = loginError as { requiresCaptcha?: boolean };
+    if (loginErrorPayload.requiresCaptcha) {
+      apiErrorResponse.requiresCaptcha = true;
+    }
+  }
+
   if (loginErrorCode === loginFailureCodeLockedOut) {
     apiErrorResponse.errors['general'] = ['UserBlocked'];
     return apiErrorResponse;
