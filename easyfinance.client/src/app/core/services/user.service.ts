@@ -65,12 +65,13 @@ export class UserService {
     }));
   }
 
-  public signIn(email: string, password: string, twoFactorCode?: string, twoFactorRecoveryCode?: string): Observable<User> {
+  public signIn(email: string, password: string, twoFactorCode?: string, twoFactorRecoveryCode?: string, captchaToken?: string): Observable<User> {
     return this.http.post('/api/AccessControl/login', {
       email: email,
       password: password,
       twoFactorCode: twoFactorCode,
-      twoFactorRecoveryCode: twoFactorRecoveryCode
+      twoFactorRecoveryCode: twoFactorRecoveryCode,
+      captchaToken: captchaToken
     }, {
       observe: 'body',
       responseType: 'json'
@@ -163,12 +164,13 @@ export class UserService {
     return this.refreshTokenRequest$;
   }
 
-  public register(email: string, password: string, token?: string): Observable<User> {
+  public register(email: string, password: string, token?: string, captchaToken?: string): Observable<User> {
     const query = token ? `?token=${token}` : '';
 
     return this.http.post('/api/AccessControl/register' + query, {
       email: email,
-      password: password
+      password: password,
+      captchaToken: captchaToken
     }, {
       observe: 'body',
       responseType: 'json'

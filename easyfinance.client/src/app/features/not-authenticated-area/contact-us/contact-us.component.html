@@ -42,6 +42,7 @@
     </div>
 
     <!-- Submit Button -->
+    <app-turnstile-widget (tokenReceived)="onCaptchaToken($event)" (tokenExpired)="onCaptchaToken('')"></app-turnstile-widget>
     <button mat-raised-button color="primary" type="submit" [disabled]="contactForm.invalid">
       {{ 'ButtonSendMessage' | translate }}
     </button>

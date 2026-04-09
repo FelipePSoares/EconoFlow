@@ -1,6 +1,7 @@
 using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Application.Features.FeatureRolloutService;
 using EasyFinance.Application.Features.NotificationService;
+using EasyFinance.Application.Features.TurnstileService;
 using EasyFinance.Application.Features.UserService;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure.Authentication;
@@ -12,6 +13,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using Shouldly;
 
@@ -60,6 +62,8 @@ namespace EasyFinance.Server.Tests.Controllers
                 featureRolloutService: Mock.Of<IFeatureRolloutService>(),
                 tokenSettings: new TokenSettings { SecretKey = Guid.NewGuid().ToString() },
                 notificationService: Mock.Of<INotificationService>(),
+                turnstileService: Mock.Of<ITurnstileService>(),
+                turnstileSettings: Options.Create(new TurnstileSettings()),
                 logger: Mock.Of<ILogger<AccessControlController>>());
         }
 

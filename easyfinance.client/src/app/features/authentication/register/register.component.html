@@ -69,6 +69,7 @@
           </p>
         </div>
         }
+        <app-turnstile-widget (tokenReceived)="onCaptchaToken($event)" (tokenExpired)="onCaptchaToken('')"></app-turnstile-widget>
         <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="registerForm.invalid">{{ 'ButtonSignUp' | translate }}</button>
       </form>
       <span class="register-footer">

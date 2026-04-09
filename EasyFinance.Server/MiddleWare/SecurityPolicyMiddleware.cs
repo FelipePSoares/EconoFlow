@@ -34,11 +34,12 @@ namespace EasyFinance.Server.MiddleWare
 
             context.Response.Headers.Append("Content-Security-Policy",
                 "default-src 'self'; " +
-                $"script-src 'self' 'nonce-{nonce}'; " +
+                $"script-src 'self' 'nonce-{nonce}' https://challenges.cloudflare.com; " +
                 $"style-src 'self' https://fonts.googleapis.com 'nonce-{nonce}'; " +
                 "font-src 'self' https://fonts.gstatic.com; " +
                 "img-src 'self' data:; " +
                 "connect-src 'self' https://econoflow.pt; " +
+                "frame-src https://challenges.cloudflare.com; " +
                 "frame-ancestors 'none'; " +
                 "object-src 'none'; " +
                 "base-uri 'self'; " +
