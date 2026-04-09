@@ -1,5 +1,5 @@
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
@@ -11,6 +11,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIcon } from '@angular/material/icon';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
+import { TurnstileWidgetComponent } from '../../../core/components/turnstile-widget/turnstile-widget.component';
 
 @Component({
     selector: 'app-recovery',
@@ -21,12 +22,15 @@ import { ReturnButtonComponent } from '../../../core/components/return-button/re
     MatFormFieldModule,
     MatInputModule,
     MatIcon,
-    ReturnButtonComponent
+    ReturnButtonComponent,
+    TurnstileWidgetComponent
 ],
     templateUrl: './recovery.component.html',
     styleUrl: './recovery.component.css'
 })
 export class RecoveryComponent implements OnInit {
+  @ViewChild(TurnstileWidgetComponent) turnstileWidget?: TurnstileWidgetComponent;
+
   recoveryForm!: FormGroup;
   resetPasswordForm!: FormGroup;
   sent: boolean = false;
@@ -36,6 +40,7 @@ export class RecoveryComponent implements OnInit {
   errors!: Record<string, string[]>;
   hidePassword = true;
   hideConfirmPassword = true;
+  captchaToken = '';
 
   hasLowerCase = false;
   hasUpperCase = false;
@@ -79,14 +84,15 @@ export class RecoveryComponent implements OnInit {
     if (this.recoveryForm.valid) {
       const email = this.email?.value;
 
-      this.authService.forgotPassword(email).subscribe({
+      this.authService.forgotPassword(email, this.captchaToken).subscribe({
         next: response => {
           this.sent = true;
         },
         error: (response: ApiErrorResponse) => {
           this.httpErrors = true;
           this.errors = response.errors;
-
+          this.turnstileWidget?.reset();
+          this.captchaToken = '';
           this.errorMessageService.setFormErrors(this.recoveryForm, this.errors);
         }
       });
@@ -137,6 +143,10 @@ export class RecoveryComponent implements OnInit {
       return this.errorMessageService.getFormFieldErrors(this.recoveryForm, fieldName);
     }
     return this.errorMessageService.getFormFieldErrors(this.resetPasswordForm, fieldName);
+  }
+
+  onCaptchaToken(token: string): void {
+    this.captchaToken = token;
   }
 
   previous() {

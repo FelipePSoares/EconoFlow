@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UserService } from 'src/app/core/services/user.service';
@@ -13,6 +13,7 @@ import { User } from 'src/app/core/models/user';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
+import { TurnstileWidgetComponent } from 'src/app/core/components/turnstile-widget/turnstile-widget.component';
 
 @Component({
   selector: 'app-contact-us',
@@ -21,12 +22,15 @@ import { MatInputModule } from '@angular/material/input';
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
-    MatButtonModule
+    MatButtonModule,
+    TurnstileWidgetComponent
 ],
   templateUrl: './contact-us.component.html',
   styleUrls: ['./contact-us.component.css']
 })
 export class ContactUsComponent {
+  @ViewChild(TurnstileWidgetComponent) turnstileWidget?: TurnstileWidgetComponent;
+
   contactForm: FormGroup;
   submitted = false;
   httpErrors = false;
@@ -34,6 +38,7 @@ export class ContactUsComponent {
   errors!: Record<string, string[]>;
   messages: ContactUs[] = [];
   _user = new User();
+  captchaToken = '';
 
   constructor(
     private fb: FormBuilder,
@@ -79,7 +84,8 @@ export class ContactUsComponent {
         email: email,
         subject: subject,
         message: message,
-        createdBy: this.isLoggedIn ? this._user : null
+        createdBy: this.isLoggedIn ? this._user : null,
+        captchaToken: this.captchaToken
       }) as ContactUsDto;
 
       this.contactUsService.add(contactData).subscribe({
@@ -89,6 +95,8 @@ export class ContactUsComponent {
         error: (response: ApiErrorResponse) => {
           this.httpErrors = true;
           this.errors = response.errors;
+          this.turnstileWidget?.reset();
+          this.captchaToken = '';
           this.errorMessageService.setFormErrors(this.contactForm, this.errors);
         }
       });
@@ -110,5 +118,9 @@ export class ContactUsComponent {
 
   getFormFieldErrors(fieldName: string): string[] {
     return this.errorMessageService.getFormFieldErrors(this.contactForm, fieldName);
+  }
+
+  onCaptchaToken(token: string): void {
+    this.captchaToken = token;
   }
 }

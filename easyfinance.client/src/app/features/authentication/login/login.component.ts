@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
@@ -12,6 +12,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { User } from '../../../core/models/user';
 import { ThemeService } from '../../../core/services/theme.service';
+import { TurnstileWidgetComponent } from '../../../core/components/turnstile-widget/turnstile-widget.component';
 
 type LoginStep = 'credentials' | 'twoFactor';
 interface SignInCredentials {
@@ -27,12 +28,15 @@ interface SignInCredentials {
       MatFormFieldModule,
       MatInputModule,
       MatIcon,
-      TranslateModule
+      TranslateModule,
+      TurnstileWidgetComponent
     ],
     templateUrl: './login.component.html',
     styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
+  @ViewChild(TurnstileWidgetComponent) turnstileWidget?: TurnstileWidgetComponent;
+
   private authService = inject(AuthService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -53,6 +57,7 @@ export class LoginComponent {
   hide = true;
   loginStep: LoginStep = 'credentials';
   useRecoveryCode = false;
+  captchaToken = '';
   private pendingCredentials: SignInCredentials | null = null;
 
   get logoSrc(): string {
@@ -100,9 +105,13 @@ export class LoginComponent {
     const password = this.credentialsForm.get('password')?.value ?? '';
     this.pendingCredentials = { email, password };
 
-    this.authService.signIn(email, password).subscribe({
+    this.authService.signIn(email, password, undefined, undefined, this.captchaToken).subscribe({
       next: response => this.handleSuccessfulSignIn(response),
-      error: (response: ApiErrorResponse) => this.handleSignInError(response, { email, password })
+      error: (response: ApiErrorResponse) => {
+        this.turnstileWidget?.reset();
+        this.captchaToken = '';
+        this.handleSignInError(response, { email, password });
+      }
     });
   }
 
@@ -126,10 +135,15 @@ export class LoginComponent {
       this.pendingCredentials.email,
       this.pendingCredentials.password,
       twoFactorCode,
-      twoFactorRecoveryCode
+      twoFactorRecoveryCode,
+      this.captchaToken
     ).subscribe({
       next: response => this.handleSuccessfulSignIn(response),
-      error: (response: ApiErrorResponse) => this.handleSignInError(response, this.pendingCredentials!)
+      error: (response: ApiErrorResponse) => {
+        this.turnstileWidget?.reset();
+        this.captchaToken = '';
+        this.handleSignInError(response, this.pendingCredentials!);
+      }
     });
   }
 
@@ -156,6 +170,10 @@ export class LoginComponent {
 
   getFormFieldErrors(form: FormGroup, fieldName: string): string[] {
     return this.errorMessageService.getFormFieldErrors(form, fieldName);
+  }
+
+  onCaptchaToken(token: string): void {
+    this.captchaToken = token;
   }
 
   private handleSuccessfulSignIn(response: User): void {

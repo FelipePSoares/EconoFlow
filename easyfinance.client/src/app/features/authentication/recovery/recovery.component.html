@@ -24,6 +24,7 @@
           }
         </mat-form-field>
 
+        <app-turnstile-widget (tokenReceived)="onCaptchaToken($event)" (tokenExpired)="onCaptchaToken('')"></app-turnstile-widget>
         <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="recoveryForm.invalid">{{ 'ButtonSendInstructions' | translate }}</button>
         @if (httpErrors && ['general']) {
         <div>

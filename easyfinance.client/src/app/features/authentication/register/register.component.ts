@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { take } from 'rxjs';
@@ -14,6 +14,7 @@ import { ApiErrorResponse } from '../../../core/models/error';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { GlobalService } from '../../../core/services/global.service';
 import { ThemeService } from '../../../core/services/theme.service';
+import { TurnstileWidgetComponent } from '../../../core/components/turnstile-widget/turnstile-widget.component';
 
 @Component({
     selector: 'app-register',
@@ -24,17 +25,21 @@ import { ThemeService } from '../../../core/services/theme.service';
     MatFormFieldModule,
     MatInputModule,
     MatIcon,
-    TranslateModule
+    TranslateModule,
+    TurnstileWidgetComponent
 ],
     templateUrl: './register.component.html',
     styleUrls: ['./register.component.css']
 })
 export class RegisterComponent implements OnInit {
+  @ViewChild(TurnstileWidgetComponent) turnstileWidget?: TurnstileWidgetComponent;
+
   registerForm!: FormGroup;
   httpErrors = false;
   errors!: Record<string, string[]>;
   hidePassword = true;
   hideConfirmPassword = true;
+  captchaToken = '';
 
   hasLowerCase = false;
   hasUpperCase = false;
@@ -100,7 +105,7 @@ export class RegisterComponent implements OnInit {
       const password = this.registerForm.get('password')?.value;
       const token = this.route.snapshot.queryParams['token'];
 
-      this.authService.register(email, password, token).subscribe({
+      this.authService.register(email, password, token, this.captchaToken).subscribe({
         next: response => {
           this.celebrate();
           this.router.navigate(['/first-signin']);
@@ -108,11 +113,16 @@ export class RegisterComponent implements OnInit {
         error: (response: ApiErrorResponse) => {
           this.httpErrors = true;
           this.errors = response.errors;
-
+          this.turnstileWidget?.reset();
+          this.captchaToken = '';
           this.errorMessageService.setFormErrors(this.registerForm, this.errors);
         }
       });
     }
+  }
+
+  onCaptchaToken(token: string): void {
+    this.captchaToken = token;
   }
 
   getFormFieldErrors(fieldName: string): string[] {

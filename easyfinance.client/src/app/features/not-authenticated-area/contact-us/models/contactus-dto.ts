@@ -8,4 +8,5 @@ export class ContactUsDto {
     subject!: string;
     createdAt!: Date;
     createdBy!: User | null;
+    captchaToken?: string;
 }
