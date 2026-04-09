@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using System.Threading;
 using EasyFinance.Application.DTOs.AccessControl;
 using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Application.Features.FeatureRolloutService;
