@@ -21,8 +21,8 @@ export class AuthService {
     private notificationService: NotificationService,
     private webPushService: WebPushService) { }
 
-  public signIn(email: string, password: string, twoFactorCode?: string, twoFactorRecoveryCode?: string): Observable<User> {
-    return this.userService.signIn(email, password, twoFactorCode, twoFactorRecoveryCode)
+  public signIn(email: string, password: string, twoFactorCode?: string, twoFactorRecoveryCode?: string, captchaToken?: string): Observable<User> {
+    return this.userService.signIn(email, password, twoFactorCode, twoFactorRecoveryCode, captchaToken)
       .pipe(map(user => {
         this.startUserPolling();
         this.notificationService.startPolling();
@@ -52,17 +52,18 @@ export class AuthService {
     });
   }
 
-  public register(email: string, password: string, token?: string): Observable<User> {
-    return this.userService.register(email, password, token).pipe(map(user => {
+  public register(email: string, password: string, token?: string, captchaToken?: string): Observable<User> {
+    return this.userService.register(email, password, token, captchaToken).pipe(map(user => {
       this.startUserPolling();
       this.notificationService.startPolling();
       return user;
     }));
   }
 
-  public forgotPassword(email: string): Observable<boolean> {
+  public forgotPassword(email: string, captchaToken?: string): Observable<boolean> {
     return this.http.post('/api/AccessControl/forgotPassword', {
-      email: email
+      email: email,
+      captchaToken: captchaToken
     }, {
       observe: 'response'
     }).pipe<boolean>(map(res => res.ok));

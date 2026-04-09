@@ -3,6 +3,7 @@ using EasyFinance.Application;
 using EasyFinance.Application.BackgroundServices.AttachmentCleanup;
 using EasyFinance.Application.BackgroundServices.NotifierBackgroundService;
 using EasyFinance.Application.Features.FeatureRolloutService;
+using EasyFinance.Application.Features.TurnstileService;
 using EasyFinance.Application.Features.WebPushService;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Persistence;
@@ -29,6 +30,16 @@ builder.Services.Configure<NotifierFallbackOptions>(builder.Configuration.GetSec
 builder.Services.Configure<WebPushOptions>(builder.Configuration.GetSection(WebPushOptions.SectionName));
 builder.Services.Configure<FeatureRolloutOptions>(builder.Configuration.GetSection(FeatureRolloutOptions.SectionName));
 builder.Services.Configure<TemporaryAttachmentCleanupOptions>(builder.Configuration.GetSection(TemporaryAttachmentCleanupOptions.SectionName));
+
+var turnstileSettings = builder.Configuration.GetSection(TurnstileSettings.SectionName).Get<TurnstileSettings>() ?? new TurnstileSettings();
+turnstileSettings.SecretKey = Environment.GetEnvironmentVariable("EconoFlow_TURNSTILE_SECRET_KEY") ?? turnstileSettings.SecretKey;
+turnstileSettings.SiteKey = Environment.GetEnvironmentVariable("EconoFlow_TURNSTILE_SITE_KEY") ?? turnstileSettings.SiteKey;
+builder.Services.Configure<TurnstileSettings>(options =>
+{
+    options.SecretKey = turnstileSettings.SecretKey;
+    options.SiteKey = turnstileSettings.SiteKey;
+});
+
 builder.Services.AddAuthenticationServices(builder.Configuration, builder.Environment);
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 

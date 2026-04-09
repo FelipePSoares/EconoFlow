@@ -34,6 +34,7 @@
           </mat-form-field>
 
           <a [routerLink]="['/recovery']" class="float-end mb-2" routerLinkActive="active">{{ 'ForgotPassword' | translate }}</a>
+          <app-turnstile-widget (tokenReceived)="onCaptchaToken($event)" (tokenExpired)="onCaptchaToken('')"></app-turnstile-widget>
           <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="credentialsForm.invalid">{{ 'ButtonSignIn' | translate }}</button>
 
           @if (httpErrors && errors['general']) {

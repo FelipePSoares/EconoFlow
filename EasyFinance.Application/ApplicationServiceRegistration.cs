@@ -22,6 +22,7 @@ using EasyFinance.Application.Features.SupportService;
 using EasyFinance.Application.Features.TaxYearService;
 using EasyFinance.Application.Features.UserKeyService;
 using EasyFinance.Application.Features.UserService;
+using EasyFinance.Application.Features.TurnstileService;
 using EasyFinance.Application.Features.WebPushService;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -52,6 +53,10 @@ namespace EasyFinance.Application
             services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IWebPushService, WebPushService>();
             services.AddScoped<IUserKeyService>(provider => new UserKeyService(userKeySalt));
+
+            // Turnstile CAPTCHA
+            services.AddHttpClient<ITurnstileService, TurnstileService>();
+            services.AddOptions<TurnstileSettings>();
 
             // Support Service
             services.AddTransient<EmailChannel>();
