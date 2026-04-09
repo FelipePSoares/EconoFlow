@@ -4,5 +4,6 @@ namespace EasyFinance.Application.DTOs.AccessControl
     {
         public string Code { get; set; } = string.Empty;
         public bool RequiresTwoFactor { get; set; }
+        public bool RequiresCaptcha { get; set; }
     }
 }
