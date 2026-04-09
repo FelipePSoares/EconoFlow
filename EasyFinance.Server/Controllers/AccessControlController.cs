@@ -63,6 +63,7 @@ namespace EasyFinance.Server.Controllers
         private const string loginFailureCodeTwoFactorRequired = "TwoFactorRequired";
         private const string loginFailureCodeInvalidTwoFactorCode = "InvalidTwoFactorCode";
         private const string loginFailureCodeInvalidTwoFactorRecoveryCode = "InvalidTwoFactorRecoveryCode";
+        private const int captchaRequiredAfterFailedAttempts = 3;
         private const string betaTesterAdminKeyEnvironmentVariable = "EconoFlow_BETA_TESTER_ADMIN_KEY";
         private const string betaTesterAdminKeyHeaderName = "X-Rollout-Key";
 
@@ -305,13 +306,15 @@ namespace EasyFinance.Server.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> SignInAsync([FromBody] SignInRequestDTO login)
         {
-            if (turnstileService.IsEnabled() && !await turnstileService.ValidateTokenAsync(login.CaptchaToken))
-                return BadRequest("CAPTCHA validation failed.");
-
             var user = await userManager.FindByEmailAsync(login.Email);
 
             if (user == null || !user.Enabled)
                 return Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidCredentials));
+
+            var requiresCaptcha = turnstileService.IsEnabled() && user.AccessFailedCount >= captchaRequiredAfterFailedAttempts;
+
+            if (requiresCaptcha && !await turnstileService.ValidateTokenAsync(login.CaptchaToken))
+                return BadRequest("CAPTCHA validation failed.");
 
             var result = await signInManager.CheckPasswordSignInAsync(user, login.Password, lockoutOnFailure: true);
 
@@ -319,13 +322,16 @@ namespace EasyFinance.Server.Controllers
                 return Unauthorized("LockedOut");
 
             if (!result.Succeeded && !result.RequiresTwoFactor)
-                return Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidCredentials));
+            {
+                var captchaNeededAfterThisFailure = turnstileService.IsEnabled() && user.AccessFailedCount >= captchaRequiredAfterFailedAttempts;
+                return Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidCredentials, requiresCaptcha: captchaNeededAfterThisFailure));
+            }
 
             var userHasTwoFactorEnabled = await this.userManager.GetTwoFactorEnabledAsync(user);
             var requiresTwoFactor = result.RequiresTwoFactor || (result.Succeeded && userHasTwoFactorEnabled);
 
             if (requiresTwoFactor && string.IsNullOrWhiteSpace(login.TwoFactorCode) && string.IsNullOrWhiteSpace(login.TwoFactorRecoveryCode))
-                return Unauthorized(CreateLoginFailureResponse(loginFailureCodeTwoFactorRequired, requiresTwoFactor: true));
+                return Unauthorized(CreateLoginFailureResponse(loginFailureCodeTwoFactorRequired, requiresTwoFactor: true, requiresCaptcha: requiresCaptcha));
 
             if (requiresTwoFactor)
             {
@@ -338,14 +344,14 @@ namespace EasyFinance.Server.Controllers
                         normalizedCode);
 
                     if (!isTwoFactorCodeValid)
-                        return Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidTwoFactorCode, requiresTwoFactor: true));
+                        return Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidTwoFactorCode, requiresTwoFactor: true, requiresCaptcha: requiresCaptcha));
                 }
                 else if (!string.IsNullOrWhiteSpace(login.TwoFactorRecoveryCode))
                 {
                     var recoveryCodeSignInResult = await this.userManager.RedeemTwoFactorRecoveryCodeAsync(user, NormalizeRecoveryCode(login.TwoFactorRecoveryCode));
 
                     if (!recoveryCodeSignInResult.Succeeded)
-                        return Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidTwoFactorRecoveryCode, requiresTwoFactor: true));
+                        return Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidTwoFactorRecoveryCode, requiresTwoFactor: true, requiresCaptcha: requiresCaptcha));
                 }
             }
 
@@ -962,11 +968,12 @@ namespace EasyFinance.Server.Controllers
             return CryptographicOperations.FixedTimeEquals(configuredBytes, providedBytes);
         }
 
-        private static LoginFailureResponseDTO CreateLoginFailureResponse(string code, bool requiresTwoFactor = false)
+        private static LoginFailureResponseDTO CreateLoginFailureResponse(string code, bool requiresTwoFactor = false, bool requiresCaptcha = false)
             => new()
             {
                 Code = code,
-                RequiresTwoFactor = requiresTwoFactor
+                RequiresTwoFactor = requiresTwoFactor,
+                RequiresCaptcha = requiresCaptcha
             };
 
         private static string NormalizeTwoFactorCode(string code)

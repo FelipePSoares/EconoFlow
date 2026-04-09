@@ -58,6 +58,7 @@ export class LoginComponent {
   loginStep: LoginStep = 'credentials';
   useRecoveryCode = false;
   captchaToken = '';
+  showCaptcha = false;
   private pendingCredentials: SignInCredentials | null = null;
 
   get logoSrc(): string {
@@ -188,6 +189,10 @@ export class LoginComponent {
   private handleSignInError(response: ApiErrorResponse, credentials: SignInCredentials): void {
     this.httpErrors = true;
     this.errors = response.errors ?? {};
+
+    if (response.requiresCaptcha) {
+      this.showCaptcha = true;
+    }
 
     if (this.isTwoFactorError(this.errors)) {
       this.pendingCredentials = credentials;

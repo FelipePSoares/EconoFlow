@@ -34,7 +34,9 @@
           </mat-form-field>
 
           <a [routerLink]="['/recovery']" class="float-end mb-2" routerLinkActive="active">{{ 'ForgotPassword' | translate }}</a>
-          <app-turnstile-widget (tokenReceived)="onCaptchaToken($event)" (tokenExpired)="onCaptchaToken('')"></app-turnstile-widget>
+          @if (showCaptcha) {
+            <app-turnstile-widget (tokenReceived)="onCaptchaToken($event)" (tokenExpired)="onCaptchaToken('')"></app-turnstile-widget>
+          }
           <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="credentialsForm.invalid">{{ 'ButtonSignIn' | translate }}</button>
 
           @if (httpErrors && errors['general']) {
@@ -94,6 +96,10 @@
             <button type="button" class="btn btn-outline-secondary w-50" (click)="backToCredentials()">{{ 'BackToCredentials' | translate }}</button>
             <button type="submit" class="btn btn-primary w-50" [disabled]="twoFactorForm.invalid">{{ 'ButtonVerify' | translate }}</button>
           </div>
+
+          @if (showCaptcha) {
+            <app-turnstile-widget (tokenReceived)="onCaptchaToken($event)" (tokenExpired)="onCaptchaToken('')"></app-turnstile-widget>
+          }
 
           @if (httpErrors && errors['general']) {
             <div>
