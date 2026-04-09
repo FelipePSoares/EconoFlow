@@ -12,6 +12,7 @@ using EasyFinance.Application.DTOs.Account;
 using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Application.Features.FeatureRolloutService;
 using EasyFinance.Application.Features.NotificationService;
+using EasyFinance.Application.Features.TurnstileService;
 using EasyFinance.Application.Features.UserService;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
@@ -27,6 +28,7 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Serilog;
 
 
@@ -45,6 +47,8 @@ namespace EasyFinance.Server.Controllers
         IFeatureRolloutService featureRolloutService,
         TokenSettings tokenSettings,
         INotificationService notificationService,
+        ITurnstileService turnstileService,
+        IOptions<TurnstileSettings> turnstileSettings,
         ILogger<AccessControlController> logger) : BaseController
     {
         private readonly string tokenProvider = "REFRESHTOKENPROVIDER";
@@ -74,6 +78,7 @@ namespace EasyFinance.Server.Controllers
         private readonly IFeatureRolloutService featureRolloutService = featureRolloutService;
         private readonly TokenSettings tokenSettings = tokenSettings;
         private readonly INotificationService notificationService = notificationService;
+        private readonly ITurnstileService turnstileService = turnstileService;
         private readonly ILogger<AccessControlController> logger = logger;
 
         [HttpGet]
@@ -95,6 +100,14 @@ namespace EasyFinance.Server.Controllers
                 return Ok(false);
 
             return Ok(true);
+        }
+
+        [HttpGet("captcha-config")]
+        [AllowAnonymous]
+        public IActionResult GetCaptchaConfig()
+        {
+            var settings = turnstileSettings.Value;
+            return Ok(new { siteKey = settings.SiteKey, enabled = !string.IsNullOrWhiteSpace(settings.SiteKey) });
         }
 
         [HttpPatch]
@@ -193,8 +206,11 @@ namespace EasyFinance.Server.Controllers
 
         [HttpPost("register")]
         [AllowAnonymous]
-        public async Task<IActionResult> Register([FromServices] IUserStore<User> userStore, [FromBody] RegisterRequest registration, [FromQuery] Guid? token = null)
+        public async Task<IActionResult> Register([FromServices] IUserStore<User> userStore, [FromBody] RegisterRequestDTO registration, [FromQuery] Guid? token = null)
         {
+            if (turnstileService.IsEnabled() && !await turnstileService.ValidateTokenAsync(registration.CaptchaToken))
+                return BadRequest("CAPTCHA validation failed.");
+
             if (!userManager.SupportsUserEmail)
                 throw new NotSupportedException($"{nameof(AccessControlController)} requires a user store with email support.");
 
@@ -289,6 +305,9 @@ namespace EasyFinance.Server.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> SignInAsync([FromBody] SignInRequestDTO login)
         {
+            if (turnstileService.IsEnabled() && !await turnstileService.ValidateTokenAsync(login.CaptchaToken))
+                return BadRequest("CAPTCHA validation failed.");
+
             var user = await userManager.FindByEmailAsync(login.Email);
 
             if (user == null || !user.Enabled)
@@ -591,8 +610,11 @@ namespace EasyFinance.Server.Controllers
 
         [HttpPost("forgotPassword")]
         [AllowAnonymous]
-        public async Task<IActionResult> ForgotPasswordAsync([FromBody] ForgotPasswordRequest resetRequest)
+        public async Task<IActionResult> ForgotPasswordAsync([FromBody] ForgotPasswordRequestDTO resetRequest)
         {
+            if (turnstileService.IsEnabled() && !await turnstileService.ValidateTokenAsync(resetRequest.CaptchaToken))
+                return BadRequest("CAPTCHA validation failed.");
+
             var user = await userManager.FindByEmailAsync(resetRequest.Email);
 
             if (user is not null && await userManager.IsEmailConfirmedAsync(user))
