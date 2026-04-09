@@ -84,7 +84,10 @@ export class RecoveryComponent implements OnInit {
     if (this.recoveryForm.valid) {
       const email = this.email?.value;
 
-      this.authService.forgotPassword(email, this.captchaToken).subscribe({
+      const captchaToken = this.captchaToken;
+      this.captchaToken = '';
+
+      this.authService.forgotPassword(email, captchaToken).subscribe({
         next: response => {
           this.sent = true;
         },
@@ -92,7 +95,6 @@ export class RecoveryComponent implements OnInit {
           this.httpErrors = true;
           this.errors = response.errors;
           this.turnstileWidget?.reset();
-          this.captchaToken = '';
           this.errorMessageService.setFormErrors(this.recoveryForm, this.errors);
         }
       });

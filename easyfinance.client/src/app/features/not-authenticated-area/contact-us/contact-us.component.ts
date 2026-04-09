@@ -79,13 +79,16 @@ export class ContactUsComponent {
       const subject = this.f?.['subject'].value;
       const message = this.f?.['message'].value;
 
+      const captchaToken = this.captchaToken;
+      this.captchaToken = '';
+
       const contactData = ({
         name: name,
         email: email,
         subject: subject,
         message: message,
         createdBy: this.isLoggedIn ? this._user : null,
-        captchaToken: this.captchaToken
+        captchaToken: captchaToken
       }) as ContactUsDto;
 
       this.contactUsService.add(contactData).subscribe({
@@ -96,7 +99,6 @@ export class ContactUsComponent {
           this.httpErrors = true;
           this.errors = response.errors;
           this.turnstileWidget?.reset();
-          this.captchaToken = '';
           this.errorMessageService.setFormErrors(this.contactForm, this.errors);
         }
       });

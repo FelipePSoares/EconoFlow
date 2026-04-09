@@ -105,11 +105,13 @@ export class LoginComponent {
     const password = this.credentialsForm.get('password')?.value ?? '';
     this.pendingCredentials = { email, password };
 
-    this.authService.signIn(email, password, undefined, undefined, this.captchaToken).subscribe({
+    const captchaToken = this.captchaToken;
+    this.captchaToken = '';
+
+    this.authService.signIn(email, password, undefined, undefined, captchaToken).subscribe({
       next: response => this.handleSuccessfulSignIn(response),
       error: (response: ApiErrorResponse) => {
         this.turnstileWidget?.reset();
-        this.captchaToken = '';
         this.handleSignInError(response, { email, password });
       }
     });
@@ -131,17 +133,19 @@ export class LoginComponent {
       ? (this.twoFactorForm.get('twoFactorRecoveryCode')?.value ?? '')
       : undefined;
 
+    const captchaToken = this.captchaToken;
+    this.captchaToken = '';
+
     this.authService.signIn(
       this.pendingCredentials.email,
       this.pendingCredentials.password,
       twoFactorCode,
       twoFactorRecoveryCode,
-      this.captchaToken
+      captchaToken
     ).subscribe({
       next: response => this.handleSuccessfulSignIn(response),
       error: (response: ApiErrorResponse) => {
         this.turnstileWidget?.reset();
-        this.captchaToken = '';
         this.handleSignInError(response, this.pendingCredentials!);
       }
     });

@@ -105,7 +105,10 @@ export class RegisterComponent implements OnInit {
       const password = this.registerForm.get('password')?.value;
       const token = this.route.snapshot.queryParams['token'];
 
-      this.authService.register(email, password, token, this.captchaToken).subscribe({
+      const captchaToken = this.captchaToken;
+      this.captchaToken = '';
+
+      this.authService.register(email, password, token, captchaToken).subscribe({
         next: response => {
           this.celebrate();
           this.router.navigate(['/first-signin']);
@@ -114,7 +117,6 @@ export class RegisterComponent implements OnInit {
           this.httpErrors = true;
           this.errors = response.errors;
           this.turnstileWidget?.reset();
-          this.captchaToken = '';
           this.errorMessageService.setFormErrors(this.registerForm, this.errors);
         }
       });

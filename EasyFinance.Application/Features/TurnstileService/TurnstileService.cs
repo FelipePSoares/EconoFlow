@@ -75,13 +75,13 @@ namespace EasyFinance.Application.Features.TurnstileService
             public bool Success { get; set; }
 
             [JsonPropertyName("error-codes")]
-            public List<string> ErrorCodes { get; set; }
+            public List<string> ErrorCodes { get; set; } = new List<string>();
 
             [JsonPropertyName("challenge_ts")]
-            public string ChallengeTs { get; set; }
+            public string ChallengeTs { get; set; } = string.Empty;
 
             [JsonPropertyName("hostname")]
-            public string Hostname { get; set; }
+            public string Hostname { get; set; } = string.Empty;
         }
     }
 }
