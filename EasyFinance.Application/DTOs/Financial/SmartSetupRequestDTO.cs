@@ -8,5 +8,6 @@ namespace EasyFinance.Application.DTOs.Financial
         public decimal AnnualIncome { get; set; }
         public DateOnly Date { get; set; }
         public ICollection<CategoryWithPercentageDTO> DefaultCategories { get; set; }
+        public decimal? EmergencyReserveTarget { get; set; }
     }
 }

@@ -357,6 +357,8 @@
   "RegisterAdvice": "By creating an account, you agree to the <a href='{{termslink}}' target='_blank'>Terms of Service</a>. For more information about EconoFlow's privacy practices, see the <a href='{{privacylink}}' target='_blank'>EconoFlow Privacy Statement</a>. We'll occasionally send you account-related emails.",
   "SmartSetup": "Smart Setup",
   "FullDistribution": "Full distribution!",
+  "EmergencyReserveTarget": "Emergency Reserve Target",
+  "EmergencyReserveDescription": "Suggested: 6 months of fixed expenses. You can adjust this value.",
   "Total": "Total",
   "MonthlyDistribution": "Monthly distribution",
   "PleaseInformUsAverageAnnualIncomeThisProject": "Please, inform for us the average annual income for this project.",

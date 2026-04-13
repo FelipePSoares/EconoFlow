@@ -48,6 +48,8 @@ export class SmartSetupComponent implements OnInit {
 
   annualIncome = 0;
   totalPercentage = 0;
+  emergencyReserveTarget = 0;
+  private emergencyReserveManuallyChanged = false;
   currencySymbol!: string;
   thousandSeparator!: string;
   decimalSeparator!: string;
@@ -99,7 +101,7 @@ export class SmartSetupComponent implements OnInit {
   }
 
   save(): void {
-    this.projectService.smartSetup(this.projectId, this.annualIncome, this.currentDateService.currentDate, this.categories.value)
+    this.projectService.smartSetup(this.projectId, this.annualIncome, this.currentDateService.currentDate, this.categories.value, this.emergencyReserveTarget)
     .subscribe(
       {
         next: () => {
@@ -122,6 +124,19 @@ export class SmartSetupComponent implements OnInit {
 
   calcularValores() {
     this.totalPercentage = this.categories.value.reduce((total, slider) => total + slider.percentage, 0);
+    this.updateEmergencyReserveTarget();
+  }
+
+  updateEmergencyReserveTarget() {
+    if (!this.emergencyReserveManuallyChanged) {
+      const fixedExpenses = this.categories.value[0];
+      const monthlyBudget = (this.annualIncome / 12) * (fixedExpenses?.percentage ?? 0) / 100;
+      this.emergencyReserveTarget = Math.round(monthlyBudget * 6);
+    }
+  }
+
+  onEmergencyReserveTargetChange() {
+    this.emergencyReserveManuallyChanged = true;
   }
 
   formatLabel(value: number): string {

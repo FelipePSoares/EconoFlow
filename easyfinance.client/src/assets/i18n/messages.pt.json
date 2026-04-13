@@ -356,6 +356,8 @@
   "RegisterAdvice": "Ao criar uma conta, você concorda com os <a href='{{termslink}}' target='_blank'>Termos de Serviço</a>. Para obter mais informações sobre as práticas de privacidade da EconoFlow, consulte a <a href='{{privacylink}}' target='_blank'>Declaração de Privacidade da EconoFlow</a>. Ocasionalmente, enviaremos e-mails relacionados à conta.",
   "SmartSetup": "Configuração inteligente",
   "FullDistribution": "Distribuição completa!",
+  "EmergencyReserveTarget": "Meta da Reserva de Emergência",
+  "EmergencyReserveDescription": "Sugerido: 6 meses de despesas fixas. Você pode ajustar este valor.",
   "Total": "Total",
   "MonthlyDistribution": "Distribuição mensal",
   "PleaseInformUsAverageAnnualIncomeThisProject": "Por favor, informe-nos a renda média anual deste projeto.",

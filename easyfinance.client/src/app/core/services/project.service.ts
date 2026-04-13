@@ -150,10 +150,11 @@ export class ProjectService {
     }).pipe(map(res => res.ok));
   }
 
-  smartSetup(id: string, annualIncome: number, date: Date, defaultCategories: DefaultCategory[]): Observable<HttpResponse<unknown>> {
+  smartSetup(id: string, annualIncome: number, date: Date, defaultCategories: DefaultCategory[], emergencyReserveTarget: number): Observable<HttpResponse<unknown>> {
     return this.http.post('/api/projects/' + id + '/smart-setup/', {
       annualIncome: annualIncome,
       defaultCategories: defaultCategories,
+      emergencyReserveTarget: emergencyReserveTarget,
       date: date.toISOString().split("T")[0]
     }, {
       observe: 'response'
