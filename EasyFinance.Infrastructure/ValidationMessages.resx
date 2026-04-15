@@ -407,4 +407,10 @@ You will be redirect in 5 seconds ...</value>
   <data name="AmountSignedMustBeDifferentFromZero" xml:space="preserve">
     <value>Amount signed must be different from zero.</value>
   </data>
+  <data name="EmergencyReserveTarget" xml:space="preserve">
+    <value>Emergency Reserve Target</value>
+  </data>
+  <data name="EmergencyReserveDescription" xml:space="preserve">
+    <value>Suggested: 6 months of fixed expenses. You can adjust this value.</value>
+  </data>
 </root>

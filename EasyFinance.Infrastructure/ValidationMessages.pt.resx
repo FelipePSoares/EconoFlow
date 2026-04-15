@@ -408,4 +408,10 @@ Você será redirecionado em 5 segundos...</value>
   <data name="AmountSignedMustBeDifferentFromZero" xml:space="preserve">
     <value>O valor informado deve ser diferente de zero.</value>
   </data>
+  <data name="EmergencyReserveTarget" xml:space="preserve">
+    <value>Meta da Reserva de Emergência</value>
+  </data>
+  <data name="EmergencyReserveDescription" xml:space="preserve">
+    <value>Sugerido: 6 meses de despesas fixas. Você pode ajustar este valor.</value>
+  </data>
 </root>
