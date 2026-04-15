@@ -353,7 +353,9 @@ namespace EasyFinance.Application.Features.ProjectService
             if (project.Categories.Count > 0)
                 return AppResponse.Error(ValidationMessages.SmartSetupNotAvailable);
                 
-            var categories = smartRequest.DefaultCategories.Select(c => Category.CreateDefaultCategoryWithExpense(user, c.Name, c.Percentage, smartRequest.AnnualIncome, smartRequest.Date));
+            var categories = smartRequest.DefaultCategories
+                .Select(c => Category.CreateDefaultCategoryWithExpense(user, c.Name, c.Percentage, smartRequest.AnnualIncome, smartRequest.Date))
+                .ToList();
 
             var result = AppResponse.Success();
 
@@ -372,6 +374,26 @@ namespace EasyFinance.Application.Features.ProjectService
 
                 project.Categories.Add(savedCategory.Data);
             }
+
+            var fixedExpensesCategory = categories.FirstOrDefault(c => c.Name == Category.FixedExpenses.Name);
+            var fixedExpensesBudget = fixedExpensesCategory?.TotalBudget ?? 0;
+            var defaultTarget = fixedExpensesBudget * 6;
+
+            var emergencyTarget = smartRequest.EmergencyReserveTarget > 0
+                ? smartRequest.EmergencyReserveTarget.Value
+                : defaultTarget;
+
+            var plan = new Plan(
+                projectId: projectId,
+                type: PlanType.EmergencyReserve,
+                name: ValidationMessages.EmergencyFund,
+                targetAmount: emergencyTarget,
+                currentBalance: 0m
+            );
+
+            var savedPlan = this.unitOfWork.PlanRepository.InsertOrUpdate(plan);
+            if (savedPlan.Failed)
+                result.AddErrorMessage(savedPlan.Messages);
 
             var savedProject = this.unitOfWork.ProjectRepository.InsertOrUpdate(project);
             if (savedProject.Failed)
