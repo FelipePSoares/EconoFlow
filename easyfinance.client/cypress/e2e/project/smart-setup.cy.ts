@@ -27,7 +27,7 @@ describe('EconoFlow - Smart Setup Tests', () => {
 
       cy.get('button').contains('Create').click();
 
-      cy.wait<ProjectReq, ProjectRes>('@postProjects').then(({ response }) => {
+      cy.wait<ProjectReq, UserProjectRes>('@postProjects').then(({ response }) => {
         expect(response?.statusCode).to.equal(201)
         expect(response?.body?.project?.id).to.not.equal(undefined);
         cy.wrap(response?.body?.project?.id).as('projectId');
@@ -45,8 +45,9 @@ describe('EconoFlow - Smart Setup Tests', () => {
     cy.get('.categories mat-slider').its('length').should('be.greaterThan', 0).as('smartSetupCategoryCount');
     cy.get('#annualIncome').type('60000')
 
-    // Verify Emergency Reserve target input appears and has a suggested value
-    cy.get('#emergencyReserveTarget').scrollIntoView().should('be.visible');
+    // Verify Emergency Reserve section is expanded and target has a suggested value
+    cy.get('.categories').should('have.class', 'expanded');
+    cy.get('#emergencyReserveTarget').invoke('val').should('not.be.empty');
 
     cy.get('button').contains('Save').click()
 
@@ -100,7 +101,7 @@ describe('EconoFlow - Smart Setup Tests', () => {
       expect(response?.statusCode).to.equal(200);
       expect(response?.body).to.be.an('array').that.has.length.greaterThan(0);
 
-      const emergencyPlan = response?.body.find((p: any) => p.type === 1);
+      const emergencyPlan = response?.body.find((p: any) => p.type === 'EmergencyReserve');
       expect(emergencyPlan).to.not.be.undefined;
       expect(emergencyPlan.currentBalance).to.equal(0);
       expect(emergencyPlan.targetAmount).to.be.greaterThan(0);
