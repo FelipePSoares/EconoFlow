@@ -21,6 +21,7 @@
         inputmode="numeric"
         currencyMask
         [(ngModel)]="annualIncome"
+        (ngModelChange)="calcularValores()"
         [options]="{ prefix: currencySymbol, allowNegative: false, thousands: thousandSeparator, decimal: decimalSeparator, precision: 0 }">
     </mat-form-field>
 
@@ -45,6 +46,23 @@
           </mat-slider>
         </div>
       }
+
+      <!-- Emergency Reserve Plan -->
+      <div class="mt-3">
+        <p class="fs-6"><strong>{{ 'EmergencyReserveTarget' | translate }}</strong></p>
+        <small class="text-muted mb-2 d-block">{{ 'EmergencyReserveDescription' | translate }}</small>
+        <mat-form-field appearance="fill" class="w-100">
+          <mat-label>{{ 'EmergencyReserveTarget' | translate }}</mat-label>
+          <input matInput
+            id="emergencyReserveTarget"
+            type="text"
+            inputmode="numeric"
+            currencyMask
+            [(ngModel)]="emergencyReserveTarget"
+            (ngModelChange)="onEmergencyReserveTargetChange()"
+            [options]="{ prefix: currencySymbol, allowNegative: false, thousands: thousandSeparator, decimal: decimalSeparator, precision: 0 }">
+        </mat-form-field>
+      </div>
 
       <div class="mt-3" [ngClass]="{'danger': totalPercentage > 100, 'success': totalPercentage === 100}">
         <strong>{{ 'Total' | translate }}: {{totalPercentage}}%</strong>

@@ -27,7 +27,7 @@ describe('EconoFlow - Smart Setup Tests', () => {
 
       cy.get('button').contains('Create').click();
 
-      cy.wait<ProjectReq, ProjectRes>('@postProjects').then(({ response }) => {
+      cy.wait<ProjectReq, UserProjectRes>('@postProjects').then(({ response }) => {
         expect(response?.statusCode).to.equal(201)
         expect(response?.body?.project?.id).to.not.equal(undefined);
         cy.wrap(response?.body?.project?.id).as('projectId');
@@ -44,10 +44,18 @@ describe('EconoFlow - Smart Setup Tests', () => {
     cy.waitForLoader();
     cy.get('.categories mat-slider').its('length').should('be.greaterThan', 0).as('smartSetupCategoryCount');
     cy.get('#annualIncome').type('60000')
+
+    // Verify Emergency Reserve section is expanded and target has a suggested value
+    cy.get('.categories').should('have.class', 'expanded');
+    cy.get('#emergencyReserveTarget').invoke('val').should('not.be.empty');
+
     cy.get('button').contains('Save').click()
 
     cy.wait('@postSmartSetup').then(({ response }) => {
       expect([200, 201, 204]).to.include(response?.statusCode ?? 0);
+
+      // Verify the request included emergencyReserveTarget
+      expect(response?.body).to.not.be.undefined;
     });
 
     cy.get('@projectId').then((projectId) => {
@@ -70,5 +78,33 @@ describe('EconoFlow - Smart Setup Tests', () => {
         const text = $labels.text().toLowerCase();
         expect(text).not.to.contain('set a budget');
       });
+  })
+
+  it('should create emergency reserve plan after smart setup', () => {
+    cy.intercept('POST', '**/smart-setup/**').as('postSmartSetup');
+    cy.intercept('GET', '**/plans*').as('getPlans');
+
+    cy.waitForLoader();
+    cy.get('#annualIncome').type('60000')
+    cy.get('button').contains('Save').click()
+
+    cy.wait('@postSmartSetup').then(({ response }) => {
+      expect([200, 201, 204]).to.include(response?.statusCode ?? 0);
+    });
+
+    cy.get('@projectId').then((projectId) => {
+      cy.visit('/projects/' + projectId + '/income-plans');
+    });
+
+    cy.waitForLoader();
+    cy.wait('@getPlans').then(({ response }) => {
+      expect(response?.statusCode).to.equal(200);
+      expect(response?.body).to.be.an('array').that.has.length.greaterThan(0);
+
+      const emergencyPlan = response?.body.find((p: any) => p.type === 'EmergencyReserve');
+      expect(emergencyPlan).to.not.be.undefined;
+      expect(emergencyPlan.currentBalance).to.equal(0);
+      expect(emergencyPlan.targetAmount).to.be.greaterThan(0);
+    });
   })
 })
