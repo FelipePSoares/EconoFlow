@@ -457,6 +457,16 @@
   "ButtonLater": "Depois",
   "OfflinePageTitle": "Modo offline",
   "OfflinePageDescription": "Você está offline agora. Páginas e recursos já carregados continuam disponíveis.",
-  "ButtonRetryConnection": "Tentar conexão"
+  "ButtonRetryConnection": "Tentar conexão",
+  "PlanAllocationDialogTitle": "Alocar para um Plano",
+  "PlanAllocationDescription": "Você acabou de registrar {{value}} como receita. Gostaria de alocar parte para um dos seus planos?",
+  "PlanAllocationSelectPlan": "Selecione um plano",
+  "PlanAllocationAllocated": "Alocado",
+  "PlanAllocationRemaining": "Restante",
+  "PlanAllocationSkip": "Pular",
+  "PlanAllocationAllocate": "Alocar",
+  "PlanAllocationSuccess": "Alocado com sucesso ao plano!",
+  "PlanAllocationError": "Falha ao alocar ao plano. Por favor, tente novamente.",
+  "PlanAllocationNote": "Alocação da receita: {{value}}"
 }
 
