@@ -46,7 +46,7 @@ describe('EconoFlow - Smart Setup Tests', () => {
     cy.get('#annualIncome').type('60000')
 
     // Verify Emergency Reserve target input appears and has a suggested value
-    cy.get('#emergencyReserveTarget').should('be.visible');
+    cy.get('#emergencyReserveTarget').scrollIntoView().should('be.visible');
 
     cy.get('button').contains('Save').click()
 
@@ -81,7 +81,7 @@ describe('EconoFlow - Smart Setup Tests', () => {
 
   it('should create emergency reserve plan after smart setup', () => {
     cy.intercept('POST', '**/smart-setup/**').as('postSmartSetup');
-    cy.intercept('GET', '**/Plans*').as('getPlans');
+    cy.intercept('GET', '**/plans*').as('getPlans');
 
     cy.waitForLoader();
     cy.get('#annualIncome').type('60000')
@@ -92,7 +92,7 @@ describe('EconoFlow - Smart Setup Tests', () => {
     });
 
     cy.get('@projectId').then((projectId) => {
-      cy.visit('/projects/' + projectId + '/plans');
+      cy.visit('/projects/' + projectId + '/income-plans');
     });
 
     cy.waitForLoader();

@@ -41,7 +41,11 @@ builder.Services.Configure<TurnstileSettings>(options =>
 });
 
 builder.Services.AddAuthenticationServices(builder.Configuration, builder.Environment);
-builder.Services.AddTransient<IEmailSender, EmailSender>();
+
+if (builder.Environment.IsDevelopment())
+    builder.Services.AddTransient<IEmailSender, DevEmailSender>();
+else
+    builder.Services.AddTransient<IEmailSender, EmailSender>();
 
 // Add services to the container.
 builder.Services.AddControllers(config =>
