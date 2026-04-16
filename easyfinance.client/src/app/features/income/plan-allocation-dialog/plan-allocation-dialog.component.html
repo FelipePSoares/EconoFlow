@@ -1,0 +1,53 @@
+<div class="plan-allocation-dialog">
+  <p>{{ 'PlanAllocationDescription' | translate: { value: income.name } }}</p>
+
+  @if (plans.length > 1) {
+    <mat-form-field appearance="fill" class="w-100">
+      <mat-label>{{ 'PlanAllocationSelectPlan' | translate }}</mat-label>
+      <mat-select [(ngModel)]="selectedPlanId" (selectionChange)="onPlanChange()">
+        @for (plan of plans; track plan.id) {
+          <mat-option [value]="plan.id">
+            {{ plan.name }} ({{ plan.remaining | currencyFormat: true }} {{ 'Remaining' | translate | lowercase }})
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  } @else if (selectedPlan) {
+    <p class="fw-bold mb-3">{{ selectedPlan.name }}</p>
+  }
+
+  @if (selectedPlanId) {
+    <div class="mt-2">
+      <mat-slider class="w-100"
+        [max]="income.amount"
+        [min]="0"
+        [step]="sliderStep"
+        [displayWith]="formatSliderLabel">
+        <input matSliderThumb
+          [(ngModel)]="allocationAmount">
+      </mat-slider>
+
+      <div class="d-flex justify-content-between mt-2">
+        <span>
+          <strong>{{ 'PlanAllocationAllocated' | translate }}:</strong>
+          {{ allocationAmount | currencyFormat }}
+        </span>
+        <span>
+          <strong>{{ 'PlanAllocationRemaining' | translate }}:</strong>
+          {{ remainingIncome | currencyFormat }}
+        </span>
+      </div>
+    </div>
+  }
+
+  <div class="dialog-footer d-flex justify-content-end mt-4">
+    <button mat-stroked-button type="button" class="me-2" (click)="skip()">
+      {{ 'PlanAllocationSkip' | translate }}
+    </button>
+    <button mat-raised-button color="primary"
+      [disabled]="allocationAmount <= 0 || isAllocating || !selectedPlanId"
+      (click)="allocate()">
+      {{ 'PlanAllocationAllocate' | translate }}
+    </button>
+  </div>
+</div>

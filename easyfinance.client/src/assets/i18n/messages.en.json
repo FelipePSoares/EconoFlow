@@ -458,5 +458,15 @@
   "ButtonLater": "Later",
   "OfflinePageTitle": "Offline mode",
   "OfflinePageDescription": "You are offline right now. Previously loaded pages and assets remain available.",
-  "ButtonRetryConnection": "Retry connection"
+  "ButtonRetryConnection": "Retry connection",
+  "PlanAllocationDialogTitle": "Allocate to a Plan",
+  "PlanAllocationDescription": "You just registered {{value}} as income. Would you like to allocate part of it to one of your plans?",
+  "PlanAllocationSelectPlan": "Select a plan",
+  "PlanAllocationAllocated": "Allocated",
+  "PlanAllocationRemaining": "Remaining",
+  "PlanAllocationSkip": "Skip",
+  "PlanAllocationAllocate": "Allocate",
+  "PlanAllocationSuccess": "Successfully allocated to plan!",
+  "PlanAllocationError": "Failed to allocate to plan. Please try again.",
+  "PlanAllocationNote": "Allocation from income: {{value}}"
 }
