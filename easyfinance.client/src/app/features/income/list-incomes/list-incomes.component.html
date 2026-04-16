@@ -76,7 +76,7 @@
                 <app-add-income
                   [projectId]="projectId"
                   [inlineMode]="true"
-                  (saved)="onIncomeSaved()"
+                  (saved)="onIncomeSaved($event)"
                   (canceled)="cancelIncomeForm()">
                 </app-add-income>
               </div>

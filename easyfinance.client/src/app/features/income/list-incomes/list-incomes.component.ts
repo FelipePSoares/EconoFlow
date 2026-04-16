@@ -3,21 +3,25 @@ import { Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DateAdapter } from '@angular/material/core';
 import { MatCardModule } from '@angular/material/card';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { NavigationEnd, Router, UrlSegment } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, Observable, filter, map } from 'rxjs';
 import { Role } from '../../../core/enums/Role';
+import { Plan } from '../../../core/models/plan';
 import { CurrentDateService } from '../../../core/services/current-date.service';
 import { GlobalService } from '../../../core/services/global.service';
 import { IncomeService } from '../../../core/services/income.service';
+import { PlanService } from '../../../core/services/plan.service';
 import { ProjectService } from '../../../core/services/project.service';
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
+import { PageModalComponent, PageModalDialogData } from '../../../core/components/page-modal/page-modal.component';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { UserProjectDto } from '../../project/models/user-project-dto';
 import { AddIncomeComponent } from '../add-income/add-income.component';
+import { PlanAllocationDialogComponent } from '../plan-allocation-dialog/plan-allocation-dialog.component';
 import { IncomeDto } from '../models/income-dto';
 
 @Component({
@@ -38,6 +42,7 @@ import { IncomeDto } from '../models/income-dto';
 export class ListIncomesComponent implements OnInit {
   private hadModalOutlet = false;
   private incomeService = inject(IncomeService);
+  private planService = inject(PlanService);
   private router = inject(Router);
   private globalService = inject(GlobalService);
   private dialog = inject(MatDialog);
@@ -135,9 +140,14 @@ export class ListIncomesComponent implements OnInit {
     this.editingIncomeId = null;
   }
 
-  onIncomeSaved(): void {
+  onIncomeSaved(income?: IncomeDto): void {
+    const wasCreating = this.isCreatingIncome;
     this.cancelIncomeForm();
     this.fillData(this.currentDateService.currentDate);
+
+    if (wasCreating && income) {
+      this.checkAndShowPlanAllocation(income);
+    }
   }
 
   isEditingIncome(income: IncomeDto): boolean {
@@ -179,6 +189,44 @@ export class ListIncomesComponent implements OnInit {
 
   canAddOrEdit(): boolean {
     return !!this.userProject && (this.userProject.role === Role.Admin || this.userProject.role === Role.Manager);
+  }
+
+  private checkAndShowPlanAllocation(income: IncomeDto): void {
+    this.planService.getPlans(this.projectId).subscribe({
+      next: (plans: Plan[]) => {
+        const activePlans = plans.filter(p => !p.isArchived && p.remaining > 0);
+        if (activePlans.length === 0) {
+          return;
+        }
+        this.openPlanAllocationDialog(income, activePlans);
+      }
+    });
+  }
+
+  private openPlanAllocationDialog(income: IncomeDto, plans: Plan[]): void {
+    // eslint-disable-next-line prefer-const
+    let dialogRef: MatDialogRef<PageModalComponent, boolean>;
+    const componentInputs = {
+      projectId: this.projectId,
+      income,
+      plans,
+      closeDialog: (allocated: boolean) => dialogRef.close(allocated)
+    };
+
+    dialogRef = this.dialog.open<PageModalComponent, PageModalDialogData, boolean>(
+      PageModalComponent,
+      {
+        autoFocus: false,
+        width: '500px',
+        maxWidth: '95vw',
+        data: {
+          title: 'PlanAllocationDialogTitle',
+          hasCloseButton: true,
+          component: PlanAllocationDialogComponent,
+          componentInputs
+        }
+      }
+    );
   }
 
   private hasModalOutlet(url: string): boolean {
