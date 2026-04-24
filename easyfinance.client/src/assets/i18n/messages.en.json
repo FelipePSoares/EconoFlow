@@ -468,5 +468,7 @@
   "PlanAllocationAllocate": "Allocate",
   "PlanAllocationSuccess": "Successfully allocated to plan!",
   "PlanAllocationError": "Failed to allocate to plan. Please try again.",
-  "PlanAllocationNote": "Allocation from income: {{value}}"
+  "PlanAllocationNote": "Allocation from income: {{value}}",
+  "BUDGET_OVERFLOW": "Budget has been exceeded!",
+  "BUDGET_WARNING": "Warning: Budget is nearly exhausted (80%)."
 }
