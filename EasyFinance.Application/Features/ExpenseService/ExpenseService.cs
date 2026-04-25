@@ -368,16 +368,11 @@ namespace EasyFinance.Application.Features.ExpenseService
 
             if (!isOverflow && !isWarning) return;
 
-            var userProjects = await unitOfWork.UserProjectRepository
+            var users = await unitOfWork.UserProjectRepository
                 .NoTrackable()
-                .Include(up => up.Project)
-                .Include(up => up.User)
-                .ToListAsync();
-
-            var users = userProjects
-                .Where(up => up.Project?.Id == projectId && up.Accepted)
+                .Where(up => up.Project != null && up.Project.Id == projectId && up.Accepted)
                 .Select(up => up.User)
-                .ToList();
+                .ToListAsync();
 
             string messageCode = isOverflow ? "BUDGET_OVERFLOW" : "BUDGET_WARNING";
 
@@ -388,7 +383,8 @@ namespace EasyFinance.Application.Features.ExpenseService
                     User = user,
                     Type = NotificationType.Information,
                     CodeMessage = messageCode,
-                    Category = NotificationCategory.Finance
+                    Category = NotificationCategory.Finance,
+                    LimitNotificationChannels = NotificationChannels.Push | NotificationChannels.InApp | NotificationChannels.WebPush
                 });
             }
         }
