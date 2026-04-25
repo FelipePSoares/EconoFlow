@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Channels;
+using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.DTOs.Account;
 using EasyFinance.Application.DTOs.BackgroundService.Notification;
 using EasyFinance.Application.Features.NotificationService;
@@ -9,6 +10,7 @@ using EasyFinance.Common.Tests;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Account;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EasyFinance.Application.Tests
@@ -111,6 +113,45 @@ namespace EasyFinance.Application.Tests
 
             firstClaim.Succeeded.Should().BeTrue();
             secondClaim.Failed.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task CreateNotificationAsync_WhenUserAlreadyTrackedByContext_ShouldNotThrow()
+        {
+            // Regression test for: The instance of entity type 'User' cannot be tracked
+            // because another instance with the same key value is already being tracked.
+            // Occurs when InsertOrUpdate used dbSet.Update() for new entities, causing EF Core
+            // to traverse the graph and conflict with the already-tracked User instance.
+            PrepareInMemoryDatabase();
+
+            using var scope = serviceProvider.CreateScope();
+            var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+
+            // Track a user through a Trackable query (simulates expense loaded with CreatedBy)
+            await unitOfWork.ExpenseRepository
+                .Trackable()
+                .Include(e => e.CreatedBy)
+                .FirstAsync(e => e.CreatedBy.Id == user2.Id);
+
+            // Fetch the same user as an untracked instance (simulates NoTrackable user query in CheckBudgetAlertsAsync)
+            var untrackedUser = await unitOfWork.UserProjectRepository
+                .NoTrackable()
+                .Where(up => up.User.Id == user2.Id)
+                .Select(up => up.User)
+                .FirstAsync();
+
+            var channel = Channel.CreateUnbounded<NotificationRequest>();
+            var service = new NotificationService(unitOfWork, channel);
+
+            var response = await service.CreateNotificationAsync(new NotificationRequestDTO
+            {
+                User = untrackedUser,
+                Type = NotificationType.Information,
+                Category = NotificationCategory.Finance,
+                CodeMessage = "BUDGET_WARNING"
+            });
+
+            response.Succeeded.Should().BeTrue();
         }
 
         [Fact]

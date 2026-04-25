@@ -38,7 +38,9 @@ namespace EasyFinance.Persistence.Repositories
             if (validationResult.Failed)
                 return AppResponse<T>.Error(validationResult.Messages);
 
-            var result = this.dbSet.Update(entity).Entity;
+            var result = entity.Id == default
+                ? this.dbSet.Add(entity).Entity
+                : this.dbSet.Update(entity).Entity;
 
             return AppResponse<T>.Success(result);
         }
