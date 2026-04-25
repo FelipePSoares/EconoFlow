@@ -358,34 +358,41 @@ namespace EasyFinance.Application.Features.ExpenseService
 
         private async Task CheckBudgetAlertsAsync(Guid projectId, Expense expense, decimal previousAmount = 0m)
         {
-            if (expense.Budget == 0) return;
-
-            decimal previousPercentage = previousAmount / (decimal)expense.Budget * 100m;
-            decimal currentPercentage = expense.Amount / (decimal)expense.Budget * 100m;
-
-            bool isOverflow = currentPercentage >= 100m && previousPercentage < 100m;
-            bool isWarning = currentPercentage >= 80m && currentPercentage < 100m && previousPercentage < 80m;
-
-            if (!isOverflow && !isWarning) return;
-
-            var users = await unitOfWork.UserProjectRepository
-                .NoTrackable()
-                .Where(up => up.Project != null && up.Project.Id == projectId && up.Accepted)
-                .Select(up => up.User)
-                .ToListAsync();
-
-            string messageCode = isOverflow ? "BUDGET_OVERFLOW" : "BUDGET_WARNING";
-
-            foreach (var user in users)
+            try
             {
-                await notificationService.CreateNotificationAsync(new NotificationRequestDTO
+                if (expense.Budget == 0) return;
+
+                decimal previousPercentage = previousAmount / (decimal)expense.Budget * 100m;
+                decimal currentPercentage = expense.Amount / (decimal)expense.Budget * 100m;
+
+                bool isOverflow = currentPercentage >= 100m && previousPercentage < 100m;
+                bool isWarning = currentPercentage >= 80m && currentPercentage < 100m && previousPercentage < 80m;
+
+                if (!isOverflow && !isWarning) return;
+
+                var users = await unitOfWork.UserProjectRepository
+                    .NoTrackable()
+                    .Where(up => up.Project != null && up.Project.Id == projectId && up.Accepted)
+                    .Select(up => up.User)
+                    .ToListAsync();
+
+                string messageCode = isOverflow ? "BUDGET_OVERFLOW" : "BUDGET_WARNING";
+
+                foreach (var user in users)
                 {
-                    User = user,
-                    Type = NotificationType.Information,
-                    CodeMessage = messageCode,
-                    Category = NotificationCategory.Finance,
-                    LimitNotificationChannels = NotificationChannels.Push | NotificationChannels.InApp | NotificationChannels.WebPush
-                });
+                    await notificationService.CreateNotificationAsync(new NotificationRequestDTO
+                    {
+                        User = user,
+                        Type = NotificationType.Information,
+                        CodeMessage = messageCode,
+                        Category = NotificationCategory.Finance,
+                        LimitNotificationChannels = NotificationChannels.Push | NotificationChannels.InApp | NotificationChannels.WebPush
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error while checking budget alerts for project {ProjectId}.", projectId);
             }
         }
     }
