@@ -1,12 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using EasyFinance.Application.Contracts.Persistence;
+using EasyFinance.Application.DTOs.Account;
 using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.Features.AttachmentService;
+using EasyFinance.Application.Features.NotificationService;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Account;
 using EasyFinance.Domain.Financial;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
@@ -21,12 +24,18 @@ namespace EasyFinance.Application.Features.ExpenseService
     {
         private readonly IUnitOfWork unitOfWork;
         private readonly IAttachmentService attachmentService;
+        private readonly INotificationService notificationService;
         private readonly ILogger<ExpenseService> logger;
 
-        public ExpenseService(IUnitOfWork unitOfWork, IAttachmentService attachmentService, ILogger<ExpenseService> logger)
+        public ExpenseService(
+            IUnitOfWork unitOfWork, 
+            IAttachmentService attachmentService, 
+            INotificationService notificationService,
+            ILogger<ExpenseService> logger)
         {
             this.unitOfWork = unitOfWork;
             this.attachmentService = attachmentService;
+            this.notificationService = notificationService;
             this.logger = logger;
         }
 
@@ -94,6 +103,8 @@ namespace EasyFinance.Application.Features.ExpenseService
 
             await unitOfWork.CommitAsync();
 
+            await CheckBudgetAlertsAsync(projectId, expense, 0m);
+
             if (expenseDto.TemporaryAttachmentIds.Count > 0)
             {
                 var attachTemporaryResponse = await this.attachmentService.AttachTemporaryToExpenseAsync(
@@ -148,6 +159,8 @@ namespace EasyFinance.Application.Features.ExpenseService
             if (existingExpense == null)
                 return AppResponse<ExpenseResponseDTO>.Error(code: nameof(expenseId), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(expenseId)));
 
+            var oldAmount = existingExpense.Amount;
+
             var dto = existingExpense.ToRequestDTO();
 
             if (dto.Items.Count == 0 && dto.Amount > 0 && expenseDto.Operations.Any(o => o.OperationType == OperationType.Add && o.path.Contains("items")))
@@ -173,6 +186,7 @@ namespace EasyFinance.Application.Features.ExpenseService
                 return AppResponse<ExpenseResponseDTO>.Error(savedExpense.Messages);
 
             await unitOfWork.CommitAsync();
+            await CheckBudgetAlertsAsync(projectId, existingExpense, oldAmount);
 
             if (dto.TemporaryAttachmentIds.Count > 0)
             {
@@ -340,6 +354,46 @@ namespace EasyFinance.Application.Features.ExpenseService
 
             await unitOfWork.CommitAsync();
             return response;
+        }
+
+        private async Task CheckBudgetAlertsAsync(Guid projectId, Expense expense, decimal previousAmount = 0m)
+        {
+            try
+            {
+                if (expense.Budget == 0) return;
+
+                decimal previousPercentage = previousAmount / (decimal)expense.Budget * 100m;
+                decimal currentPercentage = expense.Amount / (decimal)expense.Budget * 100m;
+
+                bool isOverflow = currentPercentage >= 100m && previousPercentage < 100m;
+                bool isWarning = currentPercentage >= 80m && currentPercentage < 100m && previousPercentage < 80m;
+
+                if (!isOverflow && !isWarning) return;
+
+                var users = await unitOfWork.UserProjectRepository
+                    .NoTrackable()
+                    .Where(up => up.Project != null && up.Project.Id == projectId && up.Accepted)
+                    .Select(up => up.User)
+                    .ToListAsync();
+
+                string messageCode = isOverflow ? "BUDGET_OVERFLOW" : "BUDGET_WARNING";
+
+                foreach (var user in users)
+                {
+                    await notificationService.CreateNotificationAsync(new NotificationRequestDTO
+                    {
+                        User = user,
+                        Type = NotificationType.Information,
+                        CodeMessage = messageCode,
+                        Category = NotificationCategory.Finance,
+                        LimitNotificationChannels = NotificationChannels.Push | NotificationChannels.InApp | NotificationChannels.WebPush
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error while checking budget alerts for project {ProjectId}.", projectId);
+            }
         }
     }
 }

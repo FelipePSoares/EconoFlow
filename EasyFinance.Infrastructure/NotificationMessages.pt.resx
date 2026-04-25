@@ -19,7 +19,7 @@
     <value>Você recebeu um convite para o projeto {0}.</value>
   </data>
   <data name="ProjectAccessLevelChangedPushBody" xml:space="preserve">
-    <value>{0} alterou seu nível de acesso para {1} no projeto {2}.</value>
+    <value>{0} alterou seu nível de acceso para {1} no projeto {2}.</value>
   </data>
   <data name="NotificationRoleViewer" xml:space="preserve">
     <value>Observador</value>
@@ -29,5 +29,11 @@
   </data>
   <data name="NotificationRoleAdmin" xml:space="preserve">
     <value>Administrador</value>
+  </data>
+  <data name="BUDGET_WARNING" xml:space="preserve">
+    <value>Aviso: O orçamento está quase esgotado (80%).</value>
+  </data>
+  <data name="BUDGET_OVERFLOW" xml:space="preserve">
+    <value>O orçamento foi excedido!</value>
   </data>
 </root>

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System;
 using System.Linq;
 using AutoFixture;
@@ -22,6 +22,8 @@ using EasyFinance.Application.Features.ExpenseService;
 using EasyFinance.Application.Features.ExpenseItemService;
 using EasyFinance.Application.Features.AttachmentService;
 using EasyFinance.Application.Features.TaxYearService;
+using EasyFinance.Application.Features.NotificationService;
+using Moq;
 
 namespace EasyFinance.Common.Tests
 {
@@ -38,6 +40,7 @@ namespace EasyFinance.Common.Tests
         protected Project project1 = null!;
         protected Project project2 = null!;
         protected Project project3 = null!;
+        protected Mock<INotificationService> notificationServiceMock = new();
 
         protected Fixture Fixture
         {
@@ -75,6 +78,7 @@ namespace EasyFinance.Common.Tests
             services.AddScoped<IAttachmentService, AttachmentService>();
             services.AddSingleton<IAttachmentStorageService, FileSystemAttachmentStorageService>();
             services.AddScoped<IIncomeService, IncomeService>();
+            services.AddSingleton(notificationServiceMock.Object);
             services.AddLogging();
 
             services.AddIdentityCore<User>()

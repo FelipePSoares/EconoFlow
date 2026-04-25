@@ -30,4 +30,10 @@
   <data name="NotificationRoleAdmin" xml:space="preserve">
     <value>Admin</value>
   </data>
+  <data name="BUDGET_WARNING" xml:space="preserve">
+    <value>Warning: Budget is nearly exhausted (80%).</value>
+  </data>
+  <data name="BUDGET_OVERFLOW" xml:space="preserve">
+    <value>Budget has been exceeded!</value>
+  </data>
 </root>

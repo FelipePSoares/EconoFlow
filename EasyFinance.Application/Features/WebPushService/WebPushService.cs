@@ -405,10 +405,11 @@ namespace EasyFinance.Application.Features.WebPushService
 
         private static string ResolveNotificationBody(Notification notification)
         {
+            var culture = ResolveNotificationCulture(notification.User?.Culture);
             var projectName = ResolveMetadataValue(notification.Metadata, "ProjectName");
+
             if (string.Equals(notification.CodeMessage, EmailTemplates.GrantedAccess.ToString(), StringComparison.Ordinal))
             {
-                var culture = ResolveNotificationCulture(notification.User?.Culture);
                 var messageTemplate = string.IsNullOrWhiteSpace(projectName)
                     ? NotificationMessages.ResourceManager.GetString(nameof(NotificationMessages.ProjectInvitationPushBodyNoProject), culture)
                     : NotificationMessages.ResourceManager.GetString(nameof(NotificationMessages.ProjectInvitationPushBodyWithProject), culture);
@@ -423,7 +424,6 @@ namespace EasyFinance.Application.Features.WebPushService
 
             if (string.Equals(notification.CodeMessage, EmailTemplates.AccessLevelChanged.ToString(), StringComparison.Ordinal))
             {
-                var culture = ResolveNotificationCulture(notification.User?.Culture);
                 var messageTemplate = NotificationMessages.ResourceManager.GetString(nameof(NotificationMessages.ProjectAccessLevelChangedPushBody), culture);
                 if (string.IsNullOrWhiteSpace(messageTemplate))
                     return notification.CodeMessage;
@@ -435,7 +435,7 @@ namespace EasyFinance.Application.Features.WebPushService
                 return string.Format(culture, messageTemplate, inviterName, roleLabel, projectName);
             }
 
-            return notification.CodeMessage;
+            return NotificationMessages.ResourceManager.GetString(notification.CodeMessage, culture) ?? notification.CodeMessage;
         }
 
         private static CultureInfo ResolveNotificationCulture(CultureInfo culture)
