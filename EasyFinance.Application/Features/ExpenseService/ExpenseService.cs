@@ -371,7 +371,7 @@ namespace EasyFinance.Application.Features.ExpenseService
                 if (!isOverflow && !isWarning) return;
 
                 var users = await unitOfWork.UserProjectRepository
-                    .NoTrackable()
+                    .Trackable()
                     .Where(up => up.Project != null && up.Project.Id == projectId && up.Accepted)
                     .Select(up => up.User)
                     .ToListAsync();

@@ -120,8 +120,8 @@ namespace EasyFinance.Application.Tests
         {
             // Regression test for: The instance of entity type 'User' cannot be tracked
             // because another instance with the same key value is already being tracked.
-            // Occurs when InsertOrUpdate used dbSet.Update() for new entities, causing EF Core
-            // to traverse the graph and conflict with the already-tracked User instance.
+            // Fix: CheckBudgetAlertsAsync uses Trackable() so EF Core's identity map returns
+            // the same tracked User instance, avoiding the multi-instance conflict.
             PrepareInMemoryDatabase();
 
             using var scope = serviceProvider.CreateScope();
@@ -133,9 +133,10 @@ namespace EasyFinance.Application.Tests
                 .Include(e => e.CreatedBy)
                 .FirstAsync(e => e.CreatedBy.Id == user2.Id);
 
-            // Fetch the same user as an untracked instance (simulates NoTrackable user query in CheckBudgetAlertsAsync)
-            var untrackedUser = await unitOfWork.UserProjectRepository
-                .NoTrackable()
+            // Fetch the same user via Trackable (as CheckBudgetAlertsAsync now does).
+            // EF Core's identity map returns the already-tracked instance — no conflict.
+            var trackedUser = await unitOfWork.UserProjectRepository
+                .Trackable()
                 .Where(up => up.User.Id == user2.Id)
                 .Select(up => up.User)
                 .FirstAsync();
@@ -145,7 +146,7 @@ namespace EasyFinance.Application.Tests
 
             var response = await service.CreateNotificationAsync(new NotificationRequestDTO
             {
-                User = untrackedUser,
+                User = trackedUser,
                 Type = NotificationType.Information,
                 Category = NotificationCategory.Finance,
                 CodeMessage = "BUDGET_WARNING"
