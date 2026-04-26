@@ -1,3 +1,4 @@
+using System.Text.Json;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.Features.ExpenseService;
 using EasyFinance.Common.Tests;
@@ -15,6 +16,7 @@ using EasyFinance.Common.Tests.FinancialProject;
 using EasyFinance.Common.Tests.Financial;
 using EasyFinance.Common.Tests.AccessControl;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.Operations;
 using Moq;
 
 namespace EasyFinance.Application.Tests
@@ -160,9 +162,11 @@ namespace EasyFinance.Application.Tests
 
             await expenseService.CreateAsync(this.user1, this.project1.Id, categoryId, expenseDto);
 
-            notificationServiceMock.Verify(n => n.CreateNotificationAsync(It.Is<NotificationRequestDTO>(r => 
-                r.CodeMessage == "BUDGET_OVERFLOW" && 
-                r.Category == NotificationCategory.Finance)), Times.AtLeastOnce());
+            var expectedMetadata = JsonSerializer.Serialize(new { expenseName = "Overbudget Expense" });
+            notificationServiceMock.Verify(n => n.CreateNotificationAsync(It.Is<NotificationRequestDTO>(r =>
+                r.CodeMessage == "BUDGET_OVERFLOW" &&
+                r.Category == NotificationCategory.Finance &&
+                r.Metadata == expectedMetadata)), Times.AtLeastOnce());
         }
 
         [Fact]
@@ -183,9 +187,11 @@ namespace EasyFinance.Application.Tests
 
             await expenseService.CreateAsync(this.user1, this.project1.Id, categoryId, expenseDto);
 
-            notificationServiceMock.Verify(n => n.CreateNotificationAsync(It.Is<NotificationRequestDTO>(r => 
-                r.CodeMessage == "BUDGET_WARNING" && 
-                r.Category == NotificationCategory.Finance)), Times.AtLeastOnce());
+            var expectedMetadata80 = JsonSerializer.Serialize(new { expenseName = "80% Budget Expense" });
+            notificationServiceMock.Verify(n => n.CreateNotificationAsync(It.Is<NotificationRequestDTO>(r =>
+                r.CodeMessage == "BUDGET_WARNING" &&
+                r.Category == NotificationCategory.Finance &&
+                r.Metadata == expectedMetadata80)), Times.AtLeastOnce());
         }
 
         [Fact]
@@ -222,7 +228,10 @@ namespace EasyFinance.Application.Tests
             var result = await expenseService.UpdateAsync(this.user1, project.Id, category.Id, expense.Id, patch);
             result.Succeeded.Should().BeTrue();
 
-            notificationServiceMock.Verify(n => n.CreateNotificationAsync(It.Is<NotificationRequestDTO>(r => r.CodeMessage == "BUDGET_WARNING")), Times.AtLeastOnce());
+            var expectedMetadataUpdate = JsonSerializer.Serialize(new { expenseName = "Update Expense" });
+            notificationServiceMock.Verify(n => n.CreateNotificationAsync(It.Is<NotificationRequestDTO>(r =>
+                r.CodeMessage == "BUDGET_WARNING" &&
+                r.Metadata == expectedMetadataUpdate)), Times.AtLeastOnce());
         }
 
         [Fact]
@@ -260,11 +269,54 @@ namespace EasyFinance.Application.Tests
 
             await expenseService.UpdateAsync(this.user1, project.Id, category.Id, expense.Id, patch);
 
-            notificationServiceMock.Verify(n => n.CreateNotificationAsync(It.Is<NotificationRequestDTO>(r => 
-                r.CodeMessage == "BUDGET_OVERFLOW")), Times.AtLeastOnce());
-            
-            notificationServiceMock.Verify(n => n.CreateNotificationAsync(It.Is<NotificationRequestDTO>(r => 
+            var expectedMetadataJump = JsonSerializer.Serialize(new { expenseName = "Jump Expense" });
+            notificationServiceMock.Verify(n => n.CreateNotificationAsync(It.Is<NotificationRequestDTO>(r =>
+                r.CodeMessage == "BUDGET_OVERFLOW" &&
+                r.Metadata == expectedMetadataJump)), Times.AtLeastOnce());
+
+            notificationServiceMock.Verify(n => n.CreateNotificationAsync(It.Is<NotificationRequestDTO>(r =>
                 r.CodeMessage == "BUDGET_WARNING")), Times.Never());
+        }
+
+        [Fact]
+        public async Task UpdateAsync_AddItem_Crosses80Percent_SendsNotification()
+        {
+            using var scope = this.serviceProvider.CreateScope();
+            var scopedServices = scope.ServiceProvider;
+            var expenseService = scopedServices.GetRequiredService<IExpenseService>();
+            var unitOfWork = scopedServices.GetRequiredService<IUnitOfWork>();
+
+            var expenseName = "Item Add Expense";
+            var project = new ProjectBuilder().AddName("Item Add Project").Build();
+            unitOfWork.ProjectRepository.InsertOrUpdate(project);
+
+            var category = new CategoryBuilder().AddName("Item Add Category").Build();
+            project.AddCategory(category);
+            unitOfWork.CategoryRepository.InsertOrUpdate(category);
+
+            var expense = new ExpenseBuilder().AddName(expenseName).AddCreatedBy(this.user1).AddAmount(0).Build();
+            expense.SetBudget(100);
+            category.AddExpense(expense);
+            unitOfWork.ExpenseRepository.InsertOrUpdate(expense);
+
+            unitOfWork.UserProjectRepository.InsertOrUpdate(
+                new UserProjectBuilder().AddProject(project).AddUser(this.user1).AddAccepted().Build());
+
+            await unitOfWork.CommitAsync();
+
+            var itemDate = DateOnly.FromDateTime(DateTime.Today);
+            var patch = new JsonPatchDocument<ExpenseRequestDTO>();
+            patch.Operations.Add(new Operation<ExpenseRequestDTO>(
+                "add", "/items/-", null,
+                new ExpenseItemRequestDTO { Name = "New Item", Amount = 85, Date = itemDate }));
+
+            var result = await expenseService.UpdateAsync(this.user1, project.Id, category.Id, expense.Id, patch);
+            result.Succeeded.Should().BeTrue();
+
+            var expectedMetadataItem = JsonSerializer.Serialize(new { expenseName });
+            notificationServiceMock.Verify(n => n.CreateNotificationAsync(It.Is<NotificationRequestDTO>(r =>
+                r.CodeMessage == "BUDGET_WARNING" &&
+                r.Metadata == expectedMetadataItem)), Times.AtLeastOnce());
         }
 
         [Fact]

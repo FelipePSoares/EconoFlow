@@ -435,6 +435,17 @@ namespace EasyFinance.Application.Features.WebPushService
                 return string.Format(culture, messageTemplate, inviterName, roleLabel, projectName);
             }
 
+            if (string.Equals(notification.CodeMessage, "BUDGET_WARNING", StringComparison.Ordinal) ||
+                string.Equals(notification.CodeMessage, "BUDGET_OVERFLOW", StringComparison.Ordinal))
+            {
+                var messageTemplate = NotificationMessages.ResourceManager.GetString(notification.CodeMessage, culture);
+                if (string.IsNullOrWhiteSpace(messageTemplate))
+                    return notification.CodeMessage;
+
+                var expenseName = ResolveMetadataValue(notification.Metadata, "expenseName");
+                return string.Format(culture, messageTemplate, expenseName);
+            }
+
             return NotificationMessages.ResourceManager.GetString(notification.CodeMessage, culture) ?? notification.CodeMessage;
         }
 

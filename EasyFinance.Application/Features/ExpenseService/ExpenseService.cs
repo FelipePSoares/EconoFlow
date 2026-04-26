@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.DTOs.Account;
@@ -386,7 +387,8 @@ namespace EasyFinance.Application.Features.ExpenseService
                         Type = NotificationType.Information,
                         CodeMessage = messageCode,
                         Category = NotificationCategory.Finance,
-                        LimitNotificationChannels = NotificationChannels.Push | NotificationChannels.InApp | NotificationChannels.WebPush
+                        LimitNotificationChannels = NotificationChannels.Push | NotificationChannels.InApp | NotificationChannels.WebPush,
+                        Metadata = JsonSerializer.Serialize(new { expenseName = expense.Name })
                     });
                 }
             }
