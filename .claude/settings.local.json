@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep *)",
+      "Bash(dotnet test *)",
+      "Bash(git stash *)"
+    ]
+  }
+}
