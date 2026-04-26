@@ -1,21 +1,33 @@
-﻿using System;
+using System;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using EasyFinance.Application.Contracts.Persistence;
+using EasyFinance.Application.DTOs.Account;
+using EasyFinance.Application.Features.NotificationService;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Account;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace EasyFinance.Application.Features.ExpenseItemService
 {
     public class ExpenseItemService : IExpenseItemService
     {
         private readonly IUnitOfWork unitOfWork;
+        private readonly INotificationService notificationService;
+        private readonly ILogger<ExpenseItemService> logger;
 
-        public ExpenseItemService(IUnitOfWork unitOfWork)
+        public ExpenseItemService(
+            IUnitOfWork unitOfWork,
+            INotificationService notificationService,
+            ILogger<ExpenseItemService> logger)
         {
             this.unitOfWork = unitOfWork;
+            this.notificationService = notificationService;
+            this.logger = logger;
         }
 
         public async Task<AppResponse> MoveAsync(
@@ -82,10 +94,14 @@ namespace EasyFinance.Application.Features.ExpenseItemService
             if (expenseItem.Date.Year != targetExpense.Date.Year || expenseItem.Date.Month != targetExpense.Date.Month)
                 return AppResponse.Error(code: nameof(expenseItemId), description: ValidationMessages.CantAddExpenseItemWithDifferentYearOrMonthFromExpense);
 
+            var itemAmount = expenseItem.Amount;
+
             sourceExpense.Items.Remove(expenseItem);
             targetExpense.AddItem(expenseItem);
 
             await this.unitOfWork.CommitAsync();
+
+            await CheckBudgetAlertsAsync(projectId, targetExpenseId, itemAmount);
 
             return AppResponse.Success();
         }
@@ -124,8 +140,57 @@ namespace EasyFinance.Application.Features.ExpenseItemService
             }
 
             await unitOfWork.CommitAsync();
-            
+
             return response;
+        }
+
+        private async Task CheckBudgetAlertsAsync(Guid projectId, Guid expenseId, decimal addedAmount)
+        {
+            try
+            {
+                var expense = await unitOfWork.ExpenseRepository
+                    .NoTrackable()
+                    .Include(e => e.Items)
+                    .FirstOrDefaultAsync(e => e.Id == expenseId);
+
+                if (expense == null || expense.Budget == 0) return;
+
+                decimal currentAmount = expense.Amount;
+                decimal previousAmount = currentAmount - addedAmount;
+
+                decimal previousPercentage = previousAmount / (decimal)expense.Budget * 100m;
+                decimal currentPercentage = currentAmount / (decimal)expense.Budget * 100m;
+
+                bool isOverflow = currentPercentage >= 100m && previousPercentage < 100m;
+                bool isWarning = currentPercentage >= 80m && currentPercentage < 100m && previousPercentage < 80m;
+
+                if (!isOverflow && !isWarning) return;
+
+                var users = await unitOfWork.UserProjectRepository
+                    .Trackable()
+                    .Where(up => up.Project != null && up.Project.Id == projectId && up.Accepted)
+                    .Select(up => up.User)
+                    .ToListAsync();
+
+                string messageCode = isOverflow ? "BUDGET_OVERFLOW" : "BUDGET_WARNING";
+
+                foreach (var user in users)
+                {
+                    await notificationService.CreateNotificationAsync(new NotificationRequestDTO
+                    {
+                        User = user,
+                        Type = NotificationType.Information,
+                        CodeMessage = messageCode,
+                        Category = NotificationCategory.Finance,
+                        LimitNotificationChannels = NotificationChannels.Push | NotificationChannels.InApp | NotificationChannels.WebPush,
+                        Metadata = JsonSerializer.Serialize(new { expenseName = expense.Name })
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error while checking budget alerts for project {ProjectId}.", projectId);
+            }
         }
     }
 }

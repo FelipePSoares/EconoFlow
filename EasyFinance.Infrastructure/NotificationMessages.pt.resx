@@ -31,9 +31,9 @@
     <value>Administrador</value>
   </data>
   <data name="BUDGET_WARNING" xml:space="preserve">
-    <value>Aviso: O orçamento está quase esgotado (80%).</value>
+    <value>Aviso: O orçamento de '{0}' está quase esgotado (80%).</value>
   </data>
   <data name="BUDGET_OVERFLOW" xml:space="preserve">
-    <value>O orçamento foi excedido!</value>
+    <value>O orçamento de '{0}' foi excedido!</value>
   </data>
 </root>

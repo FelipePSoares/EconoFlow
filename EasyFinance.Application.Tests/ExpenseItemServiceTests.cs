@@ -1,15 +1,22 @@
-﻿using EasyFinance.Application.Contracts.Persistence;
+﻿using System.Text.Json;
+using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.Features.ExpenseItemService;
+using EasyFinance.Application.DTOs.Account;
 using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.Features.ExpenseService;
 using EasyFinance.Common.Tests;
+using EasyFinance.Common.Tests.AccessControl;
+using EasyFinance.Common.Tests.Financial;
+using EasyFinance.Common.Tests.FinancialProject;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Account;
 using EasyFinance.Domain.Financial;
 using EasyFinance.Infrastructure;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 
 namespace EasyFinance.Application.Tests
 {
@@ -161,6 +168,86 @@ namespace EasyFinance.Application.Tests
 
             refreshedSourceExpense.Items.Should().Contain(i => i.Id == expenseItemToMove.Id);
             refreshedTargetExpense.Items.Should().NotContain(i => i.Id == expenseItemToMove.Id);
+        }
+
+        [Fact]
+        public async Task MoveAsync_MovedItemCausesTargetToExceedBudget_SendsNotification()
+        {
+            using var scope = this.serviceProvider.CreateScope();
+            var scopedServices = scope.ServiceProvider;
+            var expenseItemService = scopedServices.GetRequiredService<IExpenseItemService>();
+            var unitOfWork = scopedServices.GetRequiredService<IUnitOfWork>();
+
+            var project = new ProjectBuilder().AddName("Budget Move Project").Build();
+            unitOfWork.ProjectRepository.InsertOrUpdate(project);
+
+            var sourceCategory = new CategoryBuilder().AddName("Source Category").Build();
+            project.AddCategory(sourceCategory);
+            unitOfWork.CategoryRepository.InsertOrUpdate(sourceCategory);
+
+            var targetCategory = new CategoryBuilder().AddName("Target Category").Build();
+            project.AddCategory(targetCategory);
+            unitOfWork.CategoryRepository.InsertOrUpdate(targetCategory);
+
+            var itemDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1));
+
+            var itemToMove = new ExpenseItemBuilder()
+                .AddName("Move Item")
+                .AddAmount(85)
+                .AddDate(itemDate)
+                .AddCreatedBy(this.user1)
+                .Build();
+
+            var sourceExpense = new ExpenseBuilder()
+                .AddName("Source Expense")
+                .AddCreatedBy(this.user1)
+                .AddAmount(0)
+                .AddDate(itemDate)
+                .Build();
+            sourceExpense.AddItem(itemToMove);
+            sourceCategory.AddExpense(sourceExpense);
+            unitOfWork.ExpenseRepository.InsertOrUpdate(sourceExpense);
+
+            var existingTargetItem = new ExpenseItemBuilder()
+                .AddName("Existing Item")
+                .AddAmount(20)
+                .AddDate(itemDate)
+                .AddCreatedBy(this.user1)
+                .Build();
+
+            var targetExpenseName = "Target Budget Expense";
+            var targetExpense = new ExpenseBuilder()
+                .AddName(targetExpenseName)
+                .AddCreatedBy(this.user1)
+                .AddAmount(0)
+                .AddDate(itemDate)
+                .Build();
+            targetExpense.SetBudget(100);
+            targetExpense.AddItem(existingTargetItem);
+            targetCategory.AddExpense(targetExpense);
+            unitOfWork.ExpenseRepository.InsertOrUpdate(targetExpense);
+
+            unitOfWork.UserProjectRepository.InsertOrUpdate(
+                new UserProjectBuilder().AddProject(project).AddUser(this.user1).AddAccepted().Build());
+
+            await unitOfWork.CommitAsync();
+
+            notificationServiceMock.Invocations.Clear();
+
+            var moveResponse = await expenseItemService.MoveAsync(
+                projectId: project.Id,
+                sourceCategoryId: sourceCategory.Id,
+                sourceExpenseId: sourceExpense.Id,
+                expenseItemId: itemToMove.Id,
+                targetCategoryId: targetCategory.Id,
+                targetExpenseId: targetExpense.Id);
+
+            moveResponse.Succeeded.Should().BeTrue();
+
+            var expectedMetadata = JsonSerializer.Serialize(new { expenseName = targetExpenseName });
+            notificationServiceMock.Verify(n => n.CreateNotificationAsync(It.Is<NotificationRequestDTO>(r =>
+                r.CodeMessage == "BUDGET_OVERFLOW" &&
+                r.Metadata == expectedMetadata)), Times.AtLeastOnce());
         }
 
         [Fact]

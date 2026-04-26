@@ -122,6 +122,12 @@ export class NotificationService {
       };
     }
 
+    if (notification.codeMessage === 'BUDGET_WARNING' || notification.codeMessage === 'BUDGET_OVERFLOW') {
+      return {
+        expenseName: this.resolveMetadataValue(notification, 'expenseName') ?? ''
+      };
+    }
+
     return undefined;
   }
 
