@@ -469,6 +469,6 @@
   "PlanAllocationSuccess": "Successfully allocated to plan!",
   "PlanAllocationError": "Failed to allocate to plan. Please try again.",
   "PlanAllocationNote": "Allocation from income: {{value}}",
-  "BUDGET_OVERFLOW": "Budget has been exceeded!",
-  "BUDGET_WARNING": "Warning: Budget is nearly exhausted (80%)."
+  "BUDGET_OVERFLOW": "Budget for '{{ expenseName }}' has been exceeded!",
+  "BUDGET_WARNING": "Warning: Budget for '{{ expenseName }}' is nearly exhausted (80%)."
 }

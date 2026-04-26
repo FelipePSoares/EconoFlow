@@ -468,7 +468,7 @@
   "PlanAllocationSuccess": "Alocado com sucesso ao plano!",
   "PlanAllocationError": "Falha ao alocar ao plano. Por favor, tente novamente.",
   "PlanAllocationNote": "Alocação da receita: {{value}}",
-  "BUDGET_OVERFLOW": "O orçamento foi excedido!",
-  "BUDGET_WARNING": "Aviso: O orçamento está quase esgotado (80%)."
+  "BUDGET_OVERFLOW": "O orçamento de '{{ expenseName }}' foi excedido!",
+  "BUDGET_WARNING": "Aviso: O orçamento de '{{ expenseName }}' está quase esgotado (80%)."
 }
 
