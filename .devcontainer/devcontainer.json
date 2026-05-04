@@ -3,7 +3,7 @@
   "image": "mcr.microsoft.com/devcontainers/dotnet:1-8.0",
 
   "features": {
-    "ghcr.io/devcontainers/features/node:1": {
+    "ghcr.io/devcontainers/features/node:2": {
       "version": "lts",
       "pnpmVersion": "latest",
       "nodeGypDependencies": true
