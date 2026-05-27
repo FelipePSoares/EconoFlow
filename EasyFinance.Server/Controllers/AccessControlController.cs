@@ -663,15 +663,19 @@ namespace EasyFinance.Server.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> MobileRefreshTokenAsync([FromBody] MobileRefreshRequestDTO request)
         {
-            if (request == null || string.IsNullOrEmpty(request.AccessToken))
+            if (request == null)
                 return Unauthorized();
 
             ClaimsPrincipal principal;
             try
             {
-                principal = TokenUtil.GetPrincipalFromExpiredToken(this.tokenSettings, request.AccessToken);
+                principal = TokenUtil.GetPrincipalFromExpiredToken(this.tokenSettings, request.AccessToken ?? string.Empty);
             }
             catch (SecurityTokenException)
+            {
+                return Unauthorized();
+            }
+            catch (ArgumentNullException)
             {
                 return Unauthorized();
             }
