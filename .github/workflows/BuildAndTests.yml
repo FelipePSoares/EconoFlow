@@ -232,6 +232,11 @@ jobs:
       run: npm run lint
       working-directory: ./econoflow-mobile
 
+    - name: Run mobile unit tests
+      if: steps.mobile-changes.outputs.mobile == 'true'
+      run: npm test
+      working-directory: ./econoflow-mobile
+
   integration-tests:
     needs: [build]
     runs-on: ubuntu-latest
