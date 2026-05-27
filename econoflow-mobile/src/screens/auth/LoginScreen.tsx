@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import { Button, Text, TextInput, HelperText } from 'react-native-paper';
+import { Image, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, useColorScheme } from 'react-native';
+import { Button, TextInput, HelperText } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -24,6 +24,10 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
   const { setTokens, setUser } = useAuthStore();
   const [loginError, setLoginError] = useState<string | null>(null);
+  const colorScheme = useColorScheme();
+  const logoSource = colorScheme === 'dark'
+    ? require('../../../assets/logo-dark.png')
+    : require('../../../assets/logo-light.png');
 
   const { control, handleSubmit, formState: { errors } } = useForm<FormValues>({
     defaultValues: { email: '', password: '' },
@@ -44,7 +48,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
           });
           return;
         }
-        setLoginError(t('ErrorInvalidCredentials') ?? 'Invalid credentials');
+        setLoginError(t('ErrorInvalidCredentials'));
         return;
       }
 
@@ -66,7 +70,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
         navigation.navigate('TwoFactor', { email: '', password: '' });
         return;
       }
-      setLoginError(t('ErrorInvalidCredentials') ?? 'Invalid email or password');
+      setLoginError(t('ErrorInvalidCredentials'));
     },
   });
 
@@ -76,22 +80,21 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.container}>
-        <Text variant="headlineMedium" style={styles.title}>
-          EconoFlow
-        </Text>
+        <Image source={logoSource} style={styles.logo} resizeMode="contain" />
 
         <Controller
           control={control}
           name="email"
-          rules={{ required: t('RequiredField') ?? 'Required', pattern: { value: /\S+@\S+\.\S+/, message: t('InvalidEmail') ?? 'Invalid email' } }}
+          rules={{ required: t('RequiredField'), pattern: { value: /\S+@\S+\.\S+/, message: t('InvalidEmail') } }}
           render={({ field: { onChange, value } }) => (
             <TextInput
-              label={t('FieldEmailAddress') ?? 'Email'}
+              label={t('FieldEmailAddress')}
               value={value}
               onChangeText={onChange}
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
+              textContentType="username"
               style={styles.input}
               error={!!errors.email}
             />
@@ -102,13 +105,15 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
         <Controller
           control={control}
           name="password"
-          rules={{ required: t('RequiredField') ?? 'Required' }}
+          rules={{ required: t('RequiredField') }}
           render={({ field: { onChange, value } }) => (
             <TextInput
-              label={t('FieldPassword') ?? 'Password'}
+              label={t('FieldPassword')}
               value={value}
               onChangeText={onChange}
               secureTextEntry
+              autoComplete="current-password"
+              textContentType="password"
               style={styles.input}
               error={!!errors.password}
             />
@@ -125,15 +130,15 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
           disabled={loginMutation.isPending}
           style={styles.button}
         >
-          {t('ButtonSignIn') ?? 'Sign in'}
+          {t('ButtonSignIn')}
         </Button>
 
         <Button mode="text" onPress={() => navigation.navigate('ForgotPassword')} style={styles.link}>
-          {t('LinkForgotPassword') ?? 'Forgot password?'}
+          {t('LinkForgotPassword')}
         </Button>
 
         <Button mode="text" onPress={() => navigation.navigate('Register')} style={styles.link}>
-          {t('LinkCreateAccount') ?? 'Create account'}
+          {t('LinkCreateAccount')}
         </Button>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -143,7 +148,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   container: { flexGrow: 1, justifyContent: 'center', padding: 24, gap: 4 },
-  title: { textAlign: 'center', marginBottom: 24, fontWeight: 'bold' },
+  logo: { width: 200, height: 80, alignSelf: 'center', marginBottom: 24 },
   input: { marginBottom: 4 },
   button: { marginTop: 16 },
   link: { marginTop: 4 },

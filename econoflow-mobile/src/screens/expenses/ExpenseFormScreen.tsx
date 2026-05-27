@@ -5,13 +5,13 @@ import { useForm, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { ProjectStackParamList } from '../../navigation/ProjectStackNavigator';
+import type { OverviewStackParamList } from '../../navigation/OverviewStackNavigator';
 import { useProjectStore } from '../../store/projectStore';
 import { useCreateExpense, usePatchExpense } from '../../hooks/useExpenses';
 import { toDateOnly, fromDateOnly } from '../../utils/date';
 import { buildPatch } from '../../utils/patch';
 
-type Props = NativeStackScreenProps<ProjectStackParamList, 'ExpenseForm'>;
+type Props = NativeStackScreenProps<OverviewStackParamList, 'ExpenseForm'>;
 
 interface FormValues {
   name: string;

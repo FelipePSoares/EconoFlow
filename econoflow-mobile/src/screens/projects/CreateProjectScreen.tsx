@@ -4,7 +4,9 @@ import { Button, Text, TextInput, HelperText } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { ProjectStackParamList } from '../../navigation/ProjectStackNavigator';
+import type { MainTabParamList } from '../../navigation/MainNavigator';
 import { useCreateProject } from '../../hooks/useProjects';
 import { useProjectStore } from '../../store/projectStore';
 
@@ -16,8 +18,6 @@ interface FormValues {
   name: string;
   preferredCurrency: string;
 }
-
-const COMMON_CURRENCIES = ['EUR', 'USD', 'GBP', 'BRL', 'JPY', 'CAD', 'AUD', 'CHF'];
 
 export const CreateProjectScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
@@ -32,7 +32,7 @@ export const CreateProjectScreen: React.FC<Props> = ({ navigation }) => {
     createProject.mutate(values, {
       onSuccess: (project) => {
         setSelectedProject(project);
-        navigation.navigate('MonthlyOverview');
+        navigation.getParent<BottomTabNavigationProp<MainTabParamList>>()?.navigate('Overview');
       },
     });
   };
@@ -40,16 +40,16 @@ export const CreateProjectScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text variant="headlineSmall" style={styles.title}>
-        {t('LabelNewProject') ?? 'New project'}
+        {t('CreateEditProject')}
       </Text>
 
       <Controller
         control={control}
         name="name"
-        rules={{ required: t('RequiredField') ?? 'Required' }}
+        rules={{ required: t('RequiredField') }}
         render={({ field: { onChange, value } }) => (
           <TextInput
-            label={t('FieldProjectName') ?? 'Project name'}
+            label={t('FieldProjectName')}
             value={value}
             onChangeText={onChange}
             style={styles.input}
@@ -62,10 +62,10 @@ export const CreateProjectScreen: React.FC<Props> = ({ navigation }) => {
       <Controller
         control={control}
         name="preferredCurrency"
-        rules={{ required: t('RequiredField') ?? 'Required' }}
+        rules={{ required: t('RequiredField') }}
         render={({ field: { onChange, value } }) => (
           <TextInput
-            label={t('FieldCurrency') ?? 'Currency (ISO code)'}
+            label={t('FieldCurrency')}
             value={value}
             onChangeText={(text) => onChange(text.toUpperCase())}
             autoCapitalize="characters"
@@ -79,7 +79,7 @@ export const CreateProjectScreen: React.FC<Props> = ({ navigation }) => {
         <HelperText type="error">{errors.preferredCurrency.message}</HelperText>
       )}
       <HelperText type="info">
-        {t('LabelCommonCurrencies') ?? `Common: ${COMMON_CURRENCIES.join(', ')}`}
+        {t('LabelCommonCurrencies')}
       </HelperText>
 
       <Button
@@ -89,11 +89,11 @@ export const CreateProjectScreen: React.FC<Props> = ({ navigation }) => {
         disabled={createProject.isPending}
         style={styles.button}
       >
-        {t('ButtonCreate') ?? 'Create'}
+        {t('ButtonCreate')}
       </Button>
 
       <Button mode="text" onPress={() => navigation.goBack()} style={styles.link}>
-        {t('ButtonCancel') ?? 'Cancel'}
+        {t('ButtonCancel')}
       </Button>
     </ScrollView>
   );

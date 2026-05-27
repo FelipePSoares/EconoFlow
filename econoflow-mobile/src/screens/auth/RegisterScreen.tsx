@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { Image, View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, useColorScheme } from 'react-native';
 import { Button, Text, TextInput, HelperText } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
@@ -24,6 +24,10 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
   const [serverError, setServerError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const colorScheme = useColorScheme();
+  const logoSource = colorScheme === 'dark'
+    ? require('../../../assets/logo-dark.png')
+    : require('../../../assets/logo-light.png');
 
   const { control, handleSubmit, watch, formState: { errors } } = useForm<FormValues>({
     defaultValues: { email: '', password: '', confirmPassword: '' },
@@ -35,20 +39,21 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   const registerMutation = useMutation({
     mutationFn: (values: FormValues) => register(values.email, values.password),
     onSuccess: () => setSuccess(true),
-    onError: () => setServerError(t('ErrorRegistrationFailed') ?? 'Registration failed. Please try again.'),
+    onError: () => setServerError(t('ErrorRegistrationFailed')),
   });
 
   if (success) {
     return (
       <View style={styles.container}>
+        <Image source={logoSource} style={styles.logo} resizeMode="contain" />
         <Text variant="headlineSmall" style={styles.title}>
-          {t('LabelCheckYourEmail') ?? 'Check your email'}
+          {t('LabelCheckYourEmail')}
         </Text>
         <Text style={styles.subtitle}>
-          {t('LabelConfirmEmailSent') ?? 'We sent a confirmation link to your email address.'}
+          {t('LabelConfirmEmailSent')}
         </Text>
         <Button mode="contained" onPress={() => navigation.navigate('Login')} style={styles.button}>
-          {t('ButtonSignIn') ?? 'Sign in'}
+          {t('ButtonSignIn')}
         </Button>
       </View>
     );
@@ -60,24 +65,24 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.container}>
-        <Text variant="headlineMedium" style={styles.title}>
-          {t('LabelCreateAccount') ?? 'Create account'}
-        </Text>
+        <Image source={logoSource} style={styles.logo} resizeMode="contain" />
 
         <Controller
           control={control}
           name="email"
           rules={{
-            required: t('RequiredField') ?? 'Required',
-            pattern: { value: /\S+@\S+\.\S+/, message: t('InvalidEmail') ?? 'Invalid email' },
+            required: t('RequiredField'),
+            pattern: { value: /\S+@\S+\.\S+/, message: t('InvalidEmail') },
           }}
           render={({ field: { onChange, value } }) => (
             <TextInput
-              label={t('FieldEmailAddress') ?? 'Email'}
+              label={t('FieldEmailAddress')}
               value={value}
               onChangeText={onChange}
               keyboardType="email-address"
               autoCapitalize="none"
+              autoComplete="email"
+              textContentType="emailAddress"
               style={styles.input}
               error={!!errors.email}
             />
@@ -89,18 +94,20 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
           control={control}
           name="password"
           rules={{
-            required: t('RequiredField') ?? 'Required',
+            required: t('RequiredField'),
             pattern: {
               value: PASSWORD_REGEX,
-              message: t('PasswordRequirements') ?? 'Min 8 chars with uppercase, lowercase, digit, and symbol',
+              message: t('PasswordRequirements'),
             },
           }}
           render={({ field: { onChange, value } }) => (
             <TextInput
-              label={t('FieldPassword') ?? 'Password'}
+              label={t('FieldPassword')}
               value={value}
               onChangeText={onChange}
               secureTextEntry
+              autoComplete="new-password"
+              textContentType="newPassword"
               style={styles.input}
               error={!!errors.password}
             />
@@ -112,15 +119,17 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
           control={control}
           name="confirmPassword"
           rules={{
-            required: t('RequiredField') ?? 'Required',
-            validate: (v) => v === passwordValue || (t('PasswordsMustMatch') ?? 'Passwords must match'),
+            required: t('RequiredField'),
+            validate: (v) => v === passwordValue || t('PasswordsMustMatch'),
           }}
           render={({ field: { onChange, value } }) => (
             <TextInput
-              label={t('FieldConfirmPassword') ?? 'Confirm password'}
+              label={t('FieldConfirmPassword')}
               value={value}
               onChangeText={onChange}
               secureTextEntry
+              autoComplete="new-password"
+              textContentType="newPassword"
               style={styles.input}
               error={!!errors.confirmPassword}
             />
@@ -137,11 +146,11 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
           disabled={registerMutation.isPending}
           style={styles.button}
         >
-          {t('ButtonRegister') ?? 'Register'}
+          {t('ButtonRegister')}
         </Button>
 
         <Button mode="text" onPress={() => navigation.navigate('Login')} style={styles.link}>
-          {t('LinkSignIn') ?? 'Already have an account? Sign in'}
+          {t('LinkSignIn')}
         </Button>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -151,6 +160,7 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   container: { flexGrow: 1, justifyContent: 'center', padding: 24, gap: 4 },
+  logo: { width: 200, height: 80, alignSelf: 'center', marginBottom: 24 },
   title: { textAlign: 'center', marginBottom: 16, fontWeight: 'bold' },
   subtitle: { textAlign: 'center', marginBottom: 24 },
   input: { marginBottom: 4 },

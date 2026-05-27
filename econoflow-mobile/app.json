@@ -9,14 +9,14 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#5dade2"
+      "backgroundColor": "#0f76a8"
     },
     "android": {
       "package": "pt.econoflow.mobile",
       "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#5dade2"
+        "backgroundColor": "#0f76a8"
       }
     },
     "ios": {
