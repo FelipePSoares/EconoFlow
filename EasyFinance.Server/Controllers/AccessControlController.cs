@@ -22,6 +22,7 @@ using EasyFinance.Infrastructure.Authentication;
 using EasyFinance.Infrastructure.DTOs;
 using EasyFinance.Server.Config;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.JsonPatch;
