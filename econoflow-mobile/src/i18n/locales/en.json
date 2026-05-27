@@ -510,5 +510,18 @@
   "TabProjects": "Projects",
   "TabOverview": "Overview",
   "TabProfile": "Profile",
-  "LabelCommonCurrencies": "Common: EUR, USD, GBP, BRL, JPY, CAD, AUD, CHF"
+  "LabelCommonCurrencies": "Common: EUR, USD, GBP, BRL, JPY, CAD, AUD, CHF",
+
+  "LabelOver": "over",
+  "LabelRemaining": "remaining",
+  "LabelForgotPassword": "Forgot password?",
+  "LabelForgotPasswordDescription": "Enter your email and we'll send you a reset link.",
+  "LabelPasswordResetSent": "If that email is registered, we sent reset instructions.",
+  "LabelEditExpense": "Edit expense",
+  "LabelAddExpense": "Add expense",
+  "ButtonBackToLogin": "Back to login",
+  "ButtonSendResetLink": "Send reset link",
+  "ButtonDismiss": "Dismiss",
+  "ErrorGeneric": "Something went wrong. Please try again.",
+  "ValueShouldBeGreaterThanOrEqual": "Value must be ≥ {{value}}."
 }
