@@ -46,11 +46,6 @@ jobs:
       run: npm ci
       working-directory: ./econoflow-mobile
 
-    - name: Sync translations from web app
-      run: |
-        cp easyfinance.client/src/assets/i18n/messages.en.json econoflow-mobile/src/i18n/locales/en.json
-        cp easyfinance.client/src/assets/i18n/messages.pt.json econoflow-mobile/src/i18n/locales/pt.json
-
     - name: Generate Android native project
       run: npx expo prebuild --platform android --no-install --clean
       working-directory: ./econoflow-mobile
@@ -125,11 +120,6 @@ jobs:
     - name: Install mobile dependencies
       run: npm ci
       working-directory: ./econoflow-mobile
-
-    - name: Sync translations from web app
-      run: |
-        cp easyfinance.client/src/assets/i18n/messages.en.json econoflow-mobile/src/i18n/locales/en.json
-        cp easyfinance.client/src/assets/i18n/messages.pt.json econoflow-mobile/src/i18n/locales/pt.json
 
     - name: Install EAS CLI
       run: npm install -g eas-cli
