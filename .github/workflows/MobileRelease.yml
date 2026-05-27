@@ -14,9 +14,10 @@ permissions:
   contents: read
 
 jobs:
-  # ── Android debug APK ─────────────────────────────────────────────────────
-  # Builds a debug APK using expo prebuild + Gradle.
-  # Requires no secrets; produces a side-loadable APK for QA testing.
+  # ── Android standalone APK ────────────────────────────────────────────────
+  # Builds a self-contained release APK using expo prebuild + Gradle.
+  # The JS bundle is embedded so no Metro server is needed on the device.
+  # Signed with a generated debug keystore — suitable for sideloading / QA.
   android-build:
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -58,15 +59,36 @@ jobs:
         key: gradle-${{ runner.os }}-${{ hashFiles('econoflow-mobile/android/**/*.gradle*', 'econoflow-mobile/android/gradle/wrapper/gradle-wrapper.properties') }}
         restore-keys: gradle-${{ runner.os }}-
 
-    - name: Build debug APK
-      run: ./gradlew assembleDebug --no-daemon
-      working-directory: ./econoflow-mobile/android
+    - name: Generate signing keystore
+      run: |
+        mkdir -p "$HOME/.android"
+        keytool -genkey -v \
+          -keystore "$HOME/.android/release.keystore" \
+          -storepass android \
+          -alias econoflow \
+          -keypass android \
+          -keyalg RSA \
+          -keysize 2048 \
+          -validity 10000 \
+          -dname "CN=EconoFlow,O=EconoFlow,C=PT"
 
-    - name: Upload debug APK
+    - name: Build standalone release APK
+      run: |
+        ./gradlew assembleRelease \
+          -Pandroid.injected.signing.store.file="$HOME/.android/release.keystore" \
+          -Pandroid.injected.signing.store.password=android \
+          -Pandroid.injected.signing.key.alias=econoflow \
+          -Pandroid.injected.signing.key.password=android \
+          --no-daemon
+      working-directory: ./econoflow-mobile/android
+      env:
+        EXPO_PUBLIC_API_URL: https://econoflow.pt
+
+    - name: Upload release APK
       uses: actions/upload-artifact@v4
       with:
-        name: android-debug-apk
-        path: ./econoflow-mobile/android/app/build/outputs/apk/debug/app-debug.apk
+        name: android-release-apk
+        path: ./econoflow-mobile/android/app/build/outputs/apk/release/app-release.apk
         retention-days: 30
 
   # ── EAS production build (iOS + Android) ──────────────────────────────────

@@ -1,6 +1,6 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ProjectStackNavigator } from './ProjectStackNavigator';
 import { IncomeStackNavigator } from './IncomeStackNavigator';
 import { ProfileScreen } from '../screens/profile/ProfileScreen';
