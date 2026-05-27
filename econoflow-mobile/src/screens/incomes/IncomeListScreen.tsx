@@ -10,7 +10,7 @@ import { CurrencyDisplay } from '../../components/common/CurrencyDisplay';
 import { MonthNavigator } from '../../components/common/MonthNavigator';
 import { currentMonth, fromDateOnly } from '../../utils/date';
 
-export const IncomeListScreen: React.FC<Props> = () => {
+export const IncomeListScreen: React.FC = () => {
   const { t } = useTranslation();
   const [month, setMonth] = useState(currentMonth());
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
@@ -41,7 +41,7 @@ export const IncomeListScreen: React.FC<Props> = () => {
               right={() => (
                 <CurrencyDisplay amount={item.amount} currency={currency} style={styles.amount} />
               )}
-              onPress={canEdit ? () => setEditingIncome(item) : undefined}
+              onPress={undefined}
               onLongPress={canEdit ? () => setPendingDeleteId(item.id) : undefined}
             />
           );
