@@ -7,7 +7,7 @@
       "@/*": ["src/*"]
     },
     "ignoreDeprecations": "6.0",
-    "types": ["node"]
+    "types": ["node", "jest"]
   },
   "include": [
     "**/*.ts",
