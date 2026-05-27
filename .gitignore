@@ -41,3 +41,11 @@ logs/
 EasyFinance.Infrastructure/ValidationMessages.Designer.cs
 
 easyfinance.client/cypress/screenshots
+
+# Mobile
+econoflow-mobile/node_modules/
+econoflow-mobile/.expo/
+econoflow-mobile/android/
+econoflow-mobile/ios/
+econoflow-mobile/dist/
+econoflow-mobile/.env

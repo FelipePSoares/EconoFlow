@@ -1,0 +1,46 @@
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import * as SecureStore from 'expo-secure-store';
+import type { User } from '../api/types';
+
+interface SecureStorage {
+  getItem(name: string): Promise<string | null>;
+  setItem(name: string, value: string): Promise<void>;
+  removeItem(name: string): Promise<void>;
+}
+
+const secureStorage: SecureStorage = {
+  getItem: (name) => SecureStore.getItemAsync(name),
+  setItem: (name, value) => SecureStore.setItemAsync(name, value),
+  removeItem: (name) => SecureStore.deleteItemAsync(name),
+};
+
+interface AuthState {
+  accessToken: string | null;
+  refreshToken: string | null;
+  user: User | null;
+  isAuthenticated: boolean;
+  setTokens: (accessToken: string, refreshToken: string) => void;
+  setUser: (user: User) => void;
+  clearAuth: () => void;
+}
+
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      accessToken: null,
+      refreshToken: null,
+      user: null,
+      isAuthenticated: false,
+      setTokens: (accessToken, refreshToken) =>
+        set({ accessToken, refreshToken, isAuthenticated: true }),
+      setUser: (user) => set({ user }),
+      clearAuth: () =>
+        set({ accessToken: null, refreshToken: null, user: null, isAuthenticated: false }),
+    }),
+    {
+      name: 'econoflow-auth',
+      storage: createJSONStorage(() => secureStorage),
+    }
+  )
+);
