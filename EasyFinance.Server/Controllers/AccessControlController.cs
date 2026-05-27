@@ -662,7 +662,7 @@ namespace EasyFinance.Server.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> MobileRefreshTokenAsync([FromBody] MobileRefreshRequestDTO request)
         {
-            if (request == null || string.IsNullOrEmpty(request.AccessToken) || string.IsNullOrEmpty(request.RefreshToken))
+            if (request == null || string.IsNullOrEmpty(request.AccessToken))
                 return Unauthorized();
 
             ClaimsPrincipal principal;
@@ -670,7 +670,7 @@ namespace EasyFinance.Server.Controllers
             {
                 principal = TokenUtil.GetPrincipalFromExpiredToken(this.tokenSettings, request.AccessToken);
             }
-            catch
+            catch (SecurityTokenException)
             {
                 return Unauthorized();
             }
@@ -685,7 +685,7 @@ namespace EasyFinance.Server.Controllers
             if (refreshContext == null || !refreshContext.User.Enabled)
                 return Unauthorized();
 
-            if (!await this.userManager.VerifyUserTokenAsync(refreshContext.User, this.tokenProvider, this.tokenPurpose, request.RefreshToken))
+            if (!await this.userManager.VerifyUserTokenAsync(refreshContext.User, this.tokenProvider, this.tokenPurpose, request.RefreshToken ?? string.Empty))
                 return Unauthorized();
 
             var correlationId = principal.Claims

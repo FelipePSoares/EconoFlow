@@ -10,6 +10,9 @@ concurrency:
   group: mobile-release-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   # ── Android debug APK ─────────────────────────────────────────────────────
   # Builds a debug APK using expo prebuild + Gradle.
