@@ -307,59 +307,10 @@ namespace EasyFinance.Server.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> SignInAsync([FromBody] SignInRequestDTO login)
         {
-            var user = await userManager.FindByEmailAsync(login.Email);
+            var (error, user, correlationId) = await ValidateSignInAsync(login);
+            if (error != null) return error;
 
-            if (user == null || !user.Enabled)
-                return Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidCredentials));
-
-            var requiresCaptcha = turnstileService.IsEnabled() && user.AccessFailedCount >= captchaRequiredAfterFailedAttempts;
-
-            if (requiresCaptcha && !await turnstileService.ValidateTokenAsync(login.CaptchaToken))
-                return BadRequest("CAPTCHA validation failed.");
-
-            var result = await signInManager.CheckPasswordSignInAsync(user, login.Password, lockoutOnFailure: true);
-
-            if (result.IsLockedOut)
-                return Unauthorized("LockedOut");
-
-            if (!result.Succeeded && !result.RequiresTwoFactor)
-            {
-                var captchaNeededAfterThisFailure = turnstileService.IsEnabled() && user.AccessFailedCount >= captchaRequiredAfterFailedAttempts;
-                return Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidCredentials, requiresCaptcha: captchaNeededAfterThisFailure));
-            }
-
-            var userHasTwoFactorEnabled = await this.userManager.GetTwoFactorEnabledAsync(user);
-            var requiresTwoFactor = result.RequiresTwoFactor || (result.Succeeded && userHasTwoFactorEnabled);
-
-            if (requiresTwoFactor && string.IsNullOrWhiteSpace(login.TwoFactorCode) && string.IsNullOrWhiteSpace(login.TwoFactorRecoveryCode))
-                return Unauthorized(CreateLoginFailureResponse(loginFailureCodeTwoFactorRequired, requiresTwoFactor: true, requiresCaptcha: requiresCaptcha));
-
-            if (requiresTwoFactor)
-            {
-                if (!string.IsNullOrWhiteSpace(login.TwoFactorCode))
-                {
-                    var normalizedCode = NormalizeTwoFactorCode(login.TwoFactorCode);
-                    var isTwoFactorCodeValid = await this.userManager.VerifyTwoFactorTokenAsync(
-                        user,
-                        this.userManager.Options.Tokens.AuthenticatorTokenProvider,
-                        normalizedCode);
-
-                    if (!isTwoFactorCodeValid)
-                        return Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidTwoFactorCode, requiresTwoFactor: true, requiresCaptcha: requiresCaptcha));
-                }
-                else if (!string.IsNullOrWhiteSpace(login.TwoFactorRecoveryCode))
-                {
-                    var recoveryCodeSignInResult = await this.userManager.RedeemTwoFactorRecoveryCodeAsync(user, NormalizeRecoveryCode(login.TwoFactorRecoveryCode));
-
-                    if (!recoveryCodeSignInResult.Succeeded)
-                        return Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidTwoFactorRecoveryCode, requiresTwoFactor: true, requiresCaptcha: requiresCaptcha));
-                }
-            }
-
-            var correlationId = HttpContext.Items[correlationIdClaimType].ToString();
-
-            await GenerateUserToken(user, correlationId);
-
+            await GenerateUserToken(user!, correlationId);
             return Ok();
         }
 
@@ -491,9 +442,7 @@ namespace EasyFinance.Server.Controllers
             var stageStopwatch = Stopwatch.StartNew();
             var result = "success";
             var reason = "none";
-            var parseAccessTokenMs = 0d;
-            var loadRefreshContextMs = 0d;
-            var verifyRefreshTokenMs = 0d;
+            var validateMs = 0d;
             var issueTokensMs = 0d;
 
             try
@@ -507,42 +456,6 @@ namespace EasyFinance.Server.Controllers
                     return Unauthorized();
                 }
 
-                ClaimsPrincipal principal;
-                try
-                {
-                    principal = TokenUtil.GetPrincipalFromExpiredToken(this.tokenSettings, accessToken);
-                }
-                catch (Exception ex)
-                {
-                    this.logger.LogDebug(ex, "Invalid access token during refresh token flow.");
-                    result = "unauthorized";
-                    reason = "invalid_access_token";
-                    return Unauthorized();
-                }
-
-                var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-                if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var parsedUserId))
-                {
-                    result = "unauthorized";
-                    reason = "missing_user_id_claim";
-                    return Unauthorized();
-                }
-
-                parseAccessTokenMs = stageStopwatch.Elapsed.TotalMilliseconds;
-                stageStopwatch.Restart();
-
-                var refreshContext = await this.accessControlService.GetRefreshTokenContextAsync(parsedUserId);
-                loadRefreshContextMs = stageStopwatch.Elapsed.TotalMilliseconds;
-                stageStopwatch.Restart();
-
-                if (refreshContext == null || !refreshContext.User.Enabled)
-                {
-                    result = "unauthorized";
-                    reason = "invalid_user";
-                    return Unauthorized();
-                }
-
                 var refreshToken = this.GetRefreshTokenFromCookie();
 
                 if (string.IsNullOrEmpty(refreshToken))
@@ -552,20 +465,18 @@ namespace EasyFinance.Server.Controllers
                     return Unauthorized();
                 }
 
-                if (!await this.userManager.VerifyUserTokenAsync(refreshContext.User, this.tokenProvider, this.tokenPurpose, refreshToken))
-                {
-                    result = "unauthorized";
-                    reason = "invalid_refresh_token";
-                    return Unauthorized();
-                }
-
-                verifyRefreshTokenMs = stageStopwatch.Elapsed.TotalMilliseconds;
+                var (error, user, roles, correlationId) = await ValidateRefreshAsync(accessToken, refreshToken);
+                validateMs = stageStopwatch.Elapsed.TotalMilliseconds;
                 stageStopwatch.Restart();
 
-                var correlationId = principal.Claims.Where(c => c.Type == correlationIdClaimType)
-                                   .Select(c => c.Value).SingleOrDefault();
+                if (error != null)
+                {
+                    result = "unauthorized";
+                    reason = "invalid_credentials";
+                    return error;
+                }
 
-                await GenerateUserToken(refreshContext.User, correlationId, refreshContext.Roles);
+                await GenerateUserToken(user!, correlationId, roles);
                 issueTokensMs = stageStopwatch.Elapsed.TotalMilliseconds;
 
                 return Ok();
@@ -577,24 +488,20 @@ namespace EasyFinance.Server.Controllers
                 if (elapsedMs >= refreshTokenSlowThresholdMs)
                 {
                     this.logger.LogWarning(
-                        "Slow refresh token request detected: {ElapsedMs}ms. Result: {Result}. Reason: {Reason}. ParseAccessTokenMs: {ParseAccessTokenMs}. LoadRefreshContextMs: {LoadRefreshContextMs}. VerifyRefreshTokenMs: {VerifyRefreshTokenMs}. IssueTokensMs: {IssueTokensMs}.",
+                        "Slow refresh token request detected: {ElapsedMs}ms. Result: {Result}. Reason: {Reason}. ValidateMs: {ValidateMs}. IssueTokensMs: {IssueTokensMs}.",
                         elapsedMs,
                         result,
                         reason,
-                        parseAccessTokenMs,
-                        loadRefreshContextMs,
-                        verifyRefreshTokenMs,
+                        validateMs,
                         issueTokensMs);
                 }
                 else
                 {
                     this.logger.LogInformation(
-                        "Refresh token request completed in {ElapsedMs}ms. Result: {Result}. ParseAccessTokenMs: {ParseAccessTokenMs}. LoadRefreshContextMs: {LoadRefreshContextMs}. VerifyRefreshTokenMs: {VerifyRefreshTokenMs}. IssueTokensMs: {IssueTokensMs}.",
+                        "Refresh token request completed in {ElapsedMs}ms. Result: {Result}. ValidateMs: {ValidateMs}. IssueTokensMs: {IssueTokensMs}.",
                         elapsedMs,
                         result,
-                        parseAccessTokenMs,
-                        loadRefreshContextMs,
-                        verifyRefreshTokenMs,
+                        validateMs,
                         issueTokensMs);
                 }
             }
@@ -604,58 +511,10 @@ namespace EasyFinance.Server.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> MobileSignInAsync([FromBody] SignInRequestDTO login)
         {
-            var user = await userManager.FindByEmailAsync(login.Email);
+            var (error, user, correlationId) = await ValidateSignInAsync(login);
+            if (error != null) return error;
 
-            if (user == null || !user.Enabled)
-                return Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidCredentials));
-
-            var requiresCaptcha = turnstileService.IsEnabled() && user.AccessFailedCount >= captchaRequiredAfterFailedAttempts;
-
-            if (requiresCaptcha && !await turnstileService.ValidateTokenAsync(login.CaptchaToken))
-                return BadRequest("CAPTCHA validation failed.");
-
-            var result = await signInManager.CheckPasswordSignInAsync(user, login.Password, lockoutOnFailure: true);
-
-            if (result.IsLockedOut)
-                return Unauthorized("LockedOut");
-
-            if (!result.Succeeded && !result.RequiresTwoFactor)
-            {
-                var captchaNeededAfterThisFailure = turnstileService.IsEnabled() && user.AccessFailedCount >= captchaRequiredAfterFailedAttempts;
-                return Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidCredentials, requiresCaptcha: captchaNeededAfterThisFailure));
-            }
-
-            var userHasTwoFactorEnabled = await this.userManager.GetTwoFactorEnabledAsync(user);
-            var requiresTwoFactor = result.RequiresTwoFactor || (result.Succeeded && userHasTwoFactorEnabled);
-
-            if (requiresTwoFactor && string.IsNullOrWhiteSpace(login.TwoFactorCode) && string.IsNullOrWhiteSpace(login.TwoFactorRecoveryCode))
-                return Unauthorized(CreateLoginFailureResponse(loginFailureCodeTwoFactorRequired, requiresTwoFactor: true, requiresCaptcha: requiresCaptcha));
-
-            if (requiresTwoFactor)
-            {
-                if (!string.IsNullOrWhiteSpace(login.TwoFactorCode))
-                {
-                    var normalizedCode = NormalizeTwoFactorCode(login.TwoFactorCode);
-                    var isTwoFactorCodeValid = await this.userManager.VerifyTwoFactorTokenAsync(
-                        user,
-                        this.userManager.Options.Tokens.AuthenticatorTokenProvider,
-                        normalizedCode);
-
-                    if (!isTwoFactorCodeValid)
-                        return Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidTwoFactorCode, requiresTwoFactor: true, requiresCaptcha: requiresCaptcha));
-                }
-                else if (!string.IsNullOrWhiteSpace(login.TwoFactorRecoveryCode))
-                {
-                    var recoveryCodeSignInResult = await this.userManager.RedeemTwoFactorRecoveryCodeAsync(user, NormalizeRecoveryCode(login.TwoFactorRecoveryCode));
-
-                    if (!recoveryCodeSignInResult.Succeeded)
-                        return Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidTwoFactorRecoveryCode, requiresTwoFactor: true, requiresCaptcha: requiresCaptcha));
-                }
-            }
-
-            var correlationId = HttpContext.Items[correlationIdClaimType].ToString();
-            var (accessToken, refreshToken) = await this.GenerateTokenAsync(user, correlationId);
-
+            var (accessToken, refreshToken) = await GenerateTokenAsync(user!, correlationId);
             return Ok(new MobileLoginResponseDTO { AccessToken = accessToken, RefreshToken = refreshToken });
         }
 
@@ -666,40 +525,10 @@ namespace EasyFinance.Server.Controllers
             if (request == null)
                 return Unauthorized();
 
-            ClaimsPrincipal principal;
-            try
-            {
-                principal = TokenUtil.GetPrincipalFromExpiredToken(this.tokenSettings, request.AccessToken ?? string.Empty);
-            }
-            catch (SecurityTokenException)
-            {
-                return Unauthorized();
-            }
-            catch (ArgumentNullException)
-            {
-                return Unauthorized();
-            }
+            var (error, user, roles, correlationId) = await ValidateRefreshAsync(request.AccessToken ?? string.Empty, request.RefreshToken ?? string.Empty);
+            if (error != null) return error;
 
-            var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var parsedUserId))
-                return Unauthorized();
-
-            var refreshContext = await this.accessControlService.GetRefreshTokenContextAsync(parsedUserId);
-
-            if (refreshContext == null || !refreshContext.User.Enabled)
-                return Unauthorized();
-
-            if (!await this.userManager.VerifyUserTokenAsync(refreshContext.User, this.tokenProvider, this.tokenPurpose, request.RefreshToken ?? string.Empty))
-                return Unauthorized();
-
-            var correlationId = principal.Claims
-                .Where(c => c.Type == correlationIdClaimType)
-                .Select(c => c.Value)
-                .SingleOrDefault();
-
-            var (accessToken, refreshToken) = await this.GenerateTokenAsync(refreshContext.User, correlationId, refreshContext.Roles);
-
+            var (accessToken, refreshToken) = await GenerateTokenAsync(user!, correlationId, roles);
             return Ok(new MobileLoginResponseDTO { AccessToken = accessToken, RefreshToken = refreshToken });
         }
 
@@ -1170,6 +999,99 @@ namespace EasyFinance.Server.Controllers
                 Email = await userManager.GetEmailAsync(user) ?? throw new NotSupportedException("Users must have an email."),
                 IsEmailConfirmed = await userManager.IsEmailConfirmedAsync(user),
             };
+        }
+
+        private async Task<(IActionResult? Error, User? User, string? CorrelationId)> ValidateSignInAsync(SignInRequestDTO login)
+        {
+            var user = await userManager.FindByEmailAsync(login.Email);
+
+            if (user == null || !user.Enabled)
+                return (Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidCredentials)), null, null);
+
+            var requiresCaptcha = turnstileService.IsEnabled() && user.AccessFailedCount >= captchaRequiredAfterFailedAttempts;
+
+            if (requiresCaptcha && !await turnstileService.ValidateTokenAsync(login.CaptchaToken))
+                return (BadRequest("CAPTCHA validation failed."), null, null);
+
+            var result = await signInManager.CheckPasswordSignInAsync(user, login.Password, lockoutOnFailure: true);
+
+            if (result.IsLockedOut)
+                return (Unauthorized("LockedOut"), null, null);
+
+            if (!result.Succeeded && !result.RequiresTwoFactor)
+            {
+                var captchaNeededAfterThisFailure = turnstileService.IsEnabled() && user.AccessFailedCount >= captchaRequiredAfterFailedAttempts;
+                return (Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidCredentials, requiresCaptcha: captchaNeededAfterThisFailure)), null, null);
+            }
+
+            var userHasTwoFactorEnabled = await this.userManager.GetTwoFactorEnabledAsync(user);
+            var requiresTwoFactor = result.RequiresTwoFactor || (result.Succeeded && userHasTwoFactorEnabled);
+
+            if (requiresTwoFactor && string.IsNullOrWhiteSpace(login.TwoFactorCode) && string.IsNullOrWhiteSpace(login.TwoFactorRecoveryCode))
+                return (Unauthorized(CreateLoginFailureResponse(loginFailureCodeTwoFactorRequired, requiresTwoFactor: true, requiresCaptcha: requiresCaptcha)), null, null);
+
+            if (requiresTwoFactor)
+            {
+                if (!string.IsNullOrWhiteSpace(login.TwoFactorCode))
+                {
+                    var normalizedCode = NormalizeTwoFactorCode(login.TwoFactorCode);
+                    var isTwoFactorCodeValid = await this.userManager.VerifyTwoFactorTokenAsync(
+                        user,
+                        this.userManager.Options.Tokens.AuthenticatorTokenProvider,
+                        normalizedCode);
+
+                    if (!isTwoFactorCodeValid)
+                        return (Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidTwoFactorCode, requiresTwoFactor: true, requiresCaptcha: requiresCaptcha)), null, null);
+                }
+                else if (!string.IsNullOrWhiteSpace(login.TwoFactorRecoveryCode))
+                {
+                    var recoveryCodeSignInResult = await this.userManager.RedeemTwoFactorRecoveryCodeAsync(user, NormalizeRecoveryCode(login.TwoFactorRecoveryCode));
+
+                    if (!recoveryCodeSignInResult.Succeeded)
+                        return (Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidTwoFactorRecoveryCode, requiresTwoFactor: true, requiresCaptcha: requiresCaptcha)), null, null);
+                }
+            }
+
+            var correlationId = HttpContext.Items[correlationIdClaimType].ToString();
+            return (null, user, correlationId);
+        }
+
+        private async Task<(IActionResult? Error, User? User, IList<string>? Roles, string? CorrelationId)> ValidateRefreshAsync(string accessToken, string refreshToken)
+        {
+            ClaimsPrincipal principal;
+            try
+            {
+                principal = TokenUtil.GetPrincipalFromExpiredToken(this.tokenSettings, accessToken);
+            }
+            catch (SecurityTokenException ex)
+            {
+                this.logger.LogDebug(ex, "Invalid access token during refresh token flow.");
+                return (Unauthorized(), null, null, null);
+            }
+            catch (ArgumentNullException)
+            {
+                return (Unauthorized(), null, null, null);
+            }
+
+            var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var parsedUserId))
+                return (Unauthorized(), null, null, null);
+
+            var refreshContext = await this.accessControlService.GetRefreshTokenContextAsync(parsedUserId);
+
+            if (refreshContext == null || !refreshContext.User.Enabled)
+                return (Unauthorized(), null, null, null);
+
+            if (!await this.userManager.VerifyUserTokenAsync(refreshContext.User, this.tokenProvider, this.tokenPurpose, refreshToken))
+                return (Unauthorized(), null, null, null);
+
+            var correlationId = principal.Claims
+                .Where(c => c.Type == correlationIdClaimType)
+                .Select(c => c.Value)
+                .SingleOrDefault();
+
+            return (null, refreshContext.User, refreshContext.Roles, correlationId);
         }
 
         private async Task GenerateUserToken(User user, string correlationId = null, IList<string> roleNames = null)
