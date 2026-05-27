@@ -599,6 +599,105 @@ namespace EasyFinance.Server.Controllers
             }
         }
 
+        [HttpPost("mobile/login")]
+        [AllowAnonymous]
+        public async Task<IActionResult> MobileSignInAsync([FromBody] SignInRequestDTO login)
+        {
+            var user = await userManager.FindByEmailAsync(login.Email);
+
+            if (user == null || !user.Enabled)
+                return Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidCredentials));
+
+            var requiresCaptcha = turnstileService.IsEnabled() && user.AccessFailedCount >= captchaRequiredAfterFailedAttempts;
+
+            if (requiresCaptcha && !await turnstileService.ValidateTokenAsync(login.CaptchaToken))
+                return BadRequest("CAPTCHA validation failed.");
+
+            var result = await signInManager.CheckPasswordSignInAsync(user, login.Password, lockoutOnFailure: true);
+
+            if (result.IsLockedOut)
+                return Unauthorized("LockedOut");
+
+            if (!result.Succeeded && !result.RequiresTwoFactor)
+            {
+                var captchaNeededAfterThisFailure = turnstileService.IsEnabled() && user.AccessFailedCount >= captchaRequiredAfterFailedAttempts;
+                return Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidCredentials, requiresCaptcha: captchaNeededAfterThisFailure));
+            }
+
+            var userHasTwoFactorEnabled = await this.userManager.GetTwoFactorEnabledAsync(user);
+            var requiresTwoFactor = result.RequiresTwoFactor || (result.Succeeded && userHasTwoFactorEnabled);
+
+            if (requiresTwoFactor && string.IsNullOrWhiteSpace(login.TwoFactorCode) && string.IsNullOrWhiteSpace(login.TwoFactorRecoveryCode))
+                return Unauthorized(CreateLoginFailureResponse(loginFailureCodeTwoFactorRequired, requiresTwoFactor: true, requiresCaptcha: requiresCaptcha));
+
+            if (requiresTwoFactor)
+            {
+                if (!string.IsNullOrWhiteSpace(login.TwoFactorCode))
+                {
+                    var normalizedCode = NormalizeTwoFactorCode(login.TwoFactorCode);
+                    var isTwoFactorCodeValid = await this.userManager.VerifyTwoFactorTokenAsync(
+                        user,
+                        this.userManager.Options.Tokens.AuthenticatorTokenProvider,
+                        normalizedCode);
+
+                    if (!isTwoFactorCodeValid)
+                        return Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidTwoFactorCode, requiresTwoFactor: true, requiresCaptcha: requiresCaptcha));
+                }
+                else if (!string.IsNullOrWhiteSpace(login.TwoFactorRecoveryCode))
+                {
+                    var recoveryCodeSignInResult = await this.userManager.RedeemTwoFactorRecoveryCodeAsync(user, NormalizeRecoveryCode(login.TwoFactorRecoveryCode));
+
+                    if (!recoveryCodeSignInResult.Succeeded)
+                        return Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidTwoFactorRecoveryCode, requiresTwoFactor: true, requiresCaptcha: requiresCaptcha));
+                }
+            }
+
+            var correlationId = HttpContext.Items[correlationIdClaimType].ToString();
+            var (accessToken, refreshToken) = await this.GenerateTokenAsync(user, correlationId);
+
+            return Ok(new MobileLoginResponseDTO { AccessToken = accessToken, RefreshToken = refreshToken });
+        }
+
+        [HttpPost("mobile/refresh-token")]
+        [AllowAnonymous]
+        public async Task<IActionResult> MobileRefreshTokenAsync([FromBody] MobileRefreshRequestDTO request)
+        {
+            if (request == null || string.IsNullOrEmpty(request.AccessToken) || string.IsNullOrEmpty(request.RefreshToken))
+                return Unauthorized();
+
+            ClaimsPrincipal principal;
+            try
+            {
+                principal = TokenUtil.GetPrincipalFromExpiredToken(this.tokenSettings, request.AccessToken);
+            }
+            catch
+            {
+                return Unauthorized();
+            }
+
+            var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var parsedUserId))
+                return Unauthorized();
+
+            var refreshContext = await this.accessControlService.GetRefreshTokenContextAsync(parsedUserId);
+
+            if (refreshContext == null || !refreshContext.User.Enabled)
+                return Unauthorized();
+
+            if (!await this.userManager.VerifyUserTokenAsync(refreshContext.User, this.tokenProvider, this.tokenPurpose, request.RefreshToken))
+                return Unauthorized();
+
+            var correlationId = principal.Claims
+                .Where(c => c.Type == correlationIdClaimType)
+                .Select(c => c.Value)
+                .SingleOrDefault();
+
+            var (accessToken, refreshToken) = await this.GenerateTokenAsync(refreshContext.User, correlationId, refreshContext.Roles);
+
+            return Ok(new MobileLoginResponseDTO { AccessToken = accessToken, RefreshToken = refreshToken });
+        }
+
         [HttpPost("logout")]
         [AllowAnonymous]
         public async Task<IActionResult> SignOutAsync()
