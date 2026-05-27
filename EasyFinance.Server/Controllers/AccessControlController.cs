@@ -1068,7 +1068,7 @@ namespace EasyFinance.Server.Controllers
                 this.logger.LogDebug(ex, "Invalid access token during refresh token flow.");
                 return (Unauthorized(), null, null, null);
             }
-            catch (ArgumentNullException)
+            catch (ArgumentException)
             {
                 return (Unauthorized(), null, null, null);
             }
