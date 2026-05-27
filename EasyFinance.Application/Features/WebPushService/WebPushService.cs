@@ -443,7 +443,6 @@ namespace EasyFinance.Application.Features.WebPushService
                     return notification.CodeMessage;
 
                 var expenseName = ResolveMetadataValue(notification.Metadata, "expenseName");
-                var projectName = ResolveMetadataValue(notification.Metadata, "projectName");
                 return string.Format(culture, messageTemplate, expenseName, projectName);
             }
 
