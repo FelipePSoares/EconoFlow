@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { FAB, List, Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { ProjectStackParamList } from '../../navigation/ProjectStackNavigator';
 import { useProjectStore } from '../../store/projectStore';
@@ -17,7 +16,7 @@ type Props = NativeStackScreenProps<ProjectStackParamList, 'ExpenseList'>;
 
 export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
   const { t } = useTranslation();
-  const { categoryId, categoryName, month } = route.params;
+  const { categoryId, month } = route.params;
   const { selectedProject, currency } = useProjectStore();
   const projectId = selectedProject?.project.id ?? '';
   const canEdit = selectedProject?.role !== 'Viewer';

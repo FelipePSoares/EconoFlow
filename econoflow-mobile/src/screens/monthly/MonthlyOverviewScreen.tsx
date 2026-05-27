@@ -12,7 +12,6 @@ import { CategoryCard } from '../../components/budget/CategoryCard';
 import { LoadingIndicator } from '../../components/common/LoadingIndicator';
 import { CurrencyDisplay } from '../../components/common/CurrencyDisplay';
 import { currentMonth } from '../../utils/date';
-import type { Category } from '../../api/types';
 
 type Props = {
   navigation: NativeStackNavigationProp<ProjectStackParamList, 'MonthlyOverview'>;

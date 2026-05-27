@@ -1,0 +1,106 @@
+name: Mobile Release Build
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - 'econoflow-mobile/**'
+
+concurrency:
+  group: mobile-release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Android debug APK ─────────────────────────────────────────────────────
+  # Builds a debug APK using expo prebuild + Gradle.
+  # Requires no secrets; produces a side-loadable APK for QA testing.
+  android-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+
+    - name: Setup Java 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Cache mobile node_modules
+      uses: actions/cache@v4
+      with:
+        path: ./econoflow-mobile/node_modules
+        key: mobile-node-modules-${{ runner.os }}-${{ hashFiles('./econoflow-mobile/package-lock.json') }}
+
+    - name: Install mobile dependencies
+      run: npm ci
+      working-directory: ./econoflow-mobile
+
+    - name: Generate Android native project
+      run: npx expo prebuild --platform android --no-install --clean
+      working-directory: ./econoflow-mobile
+
+    - name: Cache Gradle
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: gradle-${{ runner.os }}-${{ hashFiles('econoflow-mobile/android/**/*.gradle*', 'econoflow-mobile/android/gradle/wrapper/gradle-wrapper.properties') }}
+        restore-keys: gradle-${{ runner.os }}-
+
+    - name: Build debug APK
+      run: ./gradlew assembleDebug --no-daemon
+      working-directory: ./econoflow-mobile/android
+
+    - name: Upload debug APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: android-debug-apk
+        path: ./econoflow-mobile/android/app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 30
+
+  # ── EAS production build (iOS + Android) ──────────────────────────────────
+  # Uses Expo Application Services to build signed production binaries.
+  # Prerequisites:
+  #   1. Create an account at https://expo.dev and run `eas build:configure`
+  #      in econoflow-mobile/ to add your EAS project ID to app.json.
+  #   2. Add an EXPO_TOKEN GitHub secret (from https://expo.dev/accounts/[account]/settings/access-tokens).
+  #   3. For store submission, configure credentials in the EAS dashboard.
+  eas-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    if: ${{ vars.EAS_PROJECT_ID != '' }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+
+    - name: Cache mobile node_modules
+      uses: actions/cache@v4
+      with:
+        path: ./econoflow-mobile/node_modules
+        key: mobile-node-modules-${{ runner.os }}-${{ hashFiles('./econoflow-mobile/package-lock.json') }}
+
+    - name: Install mobile dependencies
+      run: npm ci
+      working-directory: ./econoflow-mobile
+
+    - name: Install EAS CLI
+      run: npm install -g eas-cli
+
+    - name: Build production (Android + iOS)
+      run: eas build --platform all --profile production --non-interactive
+      working-directory: ./econoflow-mobile
+      env:
+        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}

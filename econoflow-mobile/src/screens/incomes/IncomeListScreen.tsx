@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { FAB, List, Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import type { MainTabParamList } from '../../navigation/MainNavigator';
 import { useProjectStore } from '../../store/projectStore';
 import { useIncomesForMonth, useDeleteIncome } from '../../hooks/useIncomes';
 import { LoadingIndicator } from '../../components/common/LoadingIndicator';
@@ -11,17 +9,10 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { CurrencyDisplay } from '../../components/common/CurrencyDisplay';
 import { MonthNavigator } from '../../components/common/MonthNavigator';
 import { currentMonth, fromDateOnly } from '../../utils/date';
-import type { Income } from '../../api/types';
 
-type Props = {
-  navigation: BottomTabNavigationProp<MainTabParamList, 'Incomes'>;
-};
-
-export const IncomeListScreen: React.FC<Props> = ({ navigation }) => {
+export const IncomeListScreen: React.FC<Props> = () => {
   const { t } = useTranslation();
   const [month, setMonth] = useState(currentMonth());
-  const [showForm, setShowForm] = useState(false);
-  const [editingIncome, setEditingIncome] = useState<Income | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const { selectedProject, currency } = useProjectStore();
@@ -65,10 +56,7 @@ export const IncomeListScreen: React.FC<Props> = ({ navigation }) => {
         <FAB
           icon="plus"
           style={styles.fab}
-          onPress={() => {
-            setEditingIncome(null);
-            setShowForm(true);
-          }}
+          onPress={() => { /* TODO: navigate to IncomeForm */ }}
         />
       )}
 

@@ -185,6 +185,53 @@ jobs:
       run: npm test -- --watch=false --browsers=ChromeHeadless
       working-directory: ./easyfinance.client
 
+  mobile-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Detect mobile changes in PR
+      id: mobile-changes
+      uses: dorny/paths-filter@v3
+      with:
+        filters: |
+          mobile:
+            - 'econoflow-mobile/src/**'
+            - 'econoflow-mobile/App.tsx'
+            - 'econoflow-mobile/package.json'
+            - 'econoflow-mobile/tsconfig.json'
+            - 'econoflow-mobile/.eslintrc.js'
+
+    - name: Install Node.js
+      if: steps.mobile-changes.outputs.mobile == 'true'
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+
+    - name: Cache mobile node_modules
+      if: steps.mobile-changes.outputs.mobile == 'true'
+      uses: actions/cache@v4
+      with:
+        path: ./econoflow-mobile/node_modules
+        key: mobile-node-modules-${{ runner.os }}-${{ hashFiles('./econoflow-mobile/package-lock.json') }}
+
+    - name: Install mobile dependencies
+      if: steps.mobile-changes.outputs.mobile == 'true'
+      run: npm ci
+      working-directory: ./econoflow-mobile
+
+    - name: TypeScript check
+      if: steps.mobile-changes.outputs.mobile == 'true'
+      run: npm run typecheck
+      working-directory: ./econoflow-mobile
+
+    - name: Lint
+      if: steps.mobile-changes.outputs.mobile == 'true'
+      run: npm run lint
+      working-directory: ./econoflow-mobile
+
   integration-tests:
     needs: [build]
     runs-on: ubuntu-latest

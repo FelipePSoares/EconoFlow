@@ -29,6 +29,7 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
     defaultValues: { email: '', password: '', confirmPassword: '' },
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const passwordValue = watch('password');
 
   const registerMutation = useMutation({

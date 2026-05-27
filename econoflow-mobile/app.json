@@ -1,7 +1,23 @@
 {
   "expo": {
-    "name": "econoflow-mobile",
+    "name": "EconoFlow",
     "slug": "econoflow-mobile",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "android": {
+      "package": "pt.econoflow.mobile",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#2ecc71"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "pt.econoflow.mobile",
+      "buildNumber": "1"
+    },
+    "plugins": [
+      "expo-secure-store"
+    ]
   }
 }

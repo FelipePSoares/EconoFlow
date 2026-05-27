@@ -22,6 +22,7 @@ export const ProjectListScreen: React.FC<Props> = ({ navigation }) => {
     if (selectedProject) {
       navigation.navigate('MonthlyOverview');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSelect = (userProject: UserProject) => {
