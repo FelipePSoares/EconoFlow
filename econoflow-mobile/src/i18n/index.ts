@@ -16,10 +16,6 @@ i18n.use(initReactI18next).init({
   lng: initialLang,
   fallbackLng: 'en',
   interpolation: { escapeValue: false },
-  // Resources are loaded inline (imported JSON), so init can be synchronous.
-  // Without this, components may render before i18next finishes its async
-  // init cycle and briefly display raw key names instead of translations.
-  initImmediate: false,
 });
 
 export default i18n;
