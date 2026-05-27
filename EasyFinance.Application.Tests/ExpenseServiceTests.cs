@@ -162,7 +162,7 @@ namespace EasyFinance.Application.Tests
 
             await expenseService.CreateAsync(this.user1, this.project1.Id, categoryId, expenseDto);
 
-            var expectedMetadata = JsonSerializer.Serialize(new { expenseName = "Overbudget Expense" });
+            var expectedMetadata = JsonSerializer.Serialize(new { expenseName = "Overbudget Expense", projectName = this.project1.Name });
             notificationServiceMock.Verify(n => n.CreateNotificationAsync(It.Is<NotificationRequestDTO>(r =>
                 r.CodeMessage == "BUDGET_OVERFLOW" &&
                 r.Category == NotificationCategory.Finance &&
@@ -187,7 +187,7 @@ namespace EasyFinance.Application.Tests
 
             await expenseService.CreateAsync(this.user1, this.project1.Id, categoryId, expenseDto);
 
-            var expectedMetadata80 = JsonSerializer.Serialize(new { expenseName = "80% Budget Expense" });
+            var expectedMetadata80 = JsonSerializer.Serialize(new { expenseName = "80% Budget Expense", projectName = this.project1.Name });
             notificationServiceMock.Verify(n => n.CreateNotificationAsync(It.Is<NotificationRequestDTO>(r =>
                 r.CodeMessage == "BUDGET_WARNING" &&
                 r.Category == NotificationCategory.Finance &&
@@ -228,7 +228,7 @@ namespace EasyFinance.Application.Tests
             var result = await expenseService.UpdateAsync(this.user1, project.Id, category.Id, expense.Id, patch);
             result.Succeeded.Should().BeTrue();
 
-            var expectedMetadataUpdate = JsonSerializer.Serialize(new { expenseName = "Update Expense" });
+            var expectedMetadataUpdate = JsonSerializer.Serialize(new { expenseName = "Update Expense", projectName = "Update Project" });
             notificationServiceMock.Verify(n => n.CreateNotificationAsync(It.Is<NotificationRequestDTO>(r =>
                 r.CodeMessage == "BUDGET_WARNING" &&
                 r.Metadata == expectedMetadataUpdate)), Times.AtLeastOnce());
@@ -269,7 +269,7 @@ namespace EasyFinance.Application.Tests
 
             await expenseService.UpdateAsync(this.user1, project.Id, category.Id, expense.Id, patch);
 
-            var expectedMetadataJump = JsonSerializer.Serialize(new { expenseName = "Jump Expense" });
+            var expectedMetadataJump = JsonSerializer.Serialize(new { expenseName = "Jump Expense", projectName = "Jump Project" });
             notificationServiceMock.Verify(n => n.CreateNotificationAsync(It.Is<NotificationRequestDTO>(r =>
                 r.CodeMessage == "BUDGET_OVERFLOW" &&
                 r.Metadata == expectedMetadataJump)), Times.AtLeastOnce());
@@ -313,7 +313,7 @@ namespace EasyFinance.Application.Tests
             var result = await expenseService.UpdateAsync(this.user1, project.Id, category.Id, expense.Id, patch);
             result.Succeeded.Should().BeTrue();
 
-            var expectedMetadataItem = JsonSerializer.Serialize(new { expenseName });
+            var expectedMetadataItem = JsonSerializer.Serialize(new { expenseName, projectName = "Item Add Project" });
             notificationServiceMock.Verify(n => n.CreateNotificationAsync(It.Is<NotificationRequestDTO>(r =>
                 r.CodeMessage == "BUDGET_WARNING" &&
                 r.Metadata == expectedMetadataItem)), Times.AtLeastOnce());
