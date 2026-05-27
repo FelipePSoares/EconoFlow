@@ -85,6 +85,12 @@ export class NotificationService {
     ).subscribe();
   }
 
+  public refresh(): void {
+    this.getNotifications().pipe(
+      tap(notifications => this.notifications.next(notifications))
+    ).subscribe();
+  }
+
   public startPolling() {
     if (this.pollingSubscription) return;
 
@@ -124,7 +130,8 @@ export class NotificationService {
 
     if (notification.codeMessage === 'BUDGET_WARNING' || notification.codeMessage === 'BUDGET_OVERFLOW') {
       return {
-        expenseName: this.resolveMetadataValue(notification, 'expenseName') ?? ''
+        expenseName: this.resolveMetadataValue(notification, 'expenseName') ?? '',
+        projectName: this.resolveMetadataValue(notification, 'projectName') ?? ''
       };
     }
 

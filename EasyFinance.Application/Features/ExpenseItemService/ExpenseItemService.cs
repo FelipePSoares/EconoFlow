@@ -172,6 +172,12 @@ namespace EasyFinance.Application.Features.ExpenseItemService
                     .Select(up => up.User)
                     .ToListAsync();
 
+                var projectName = await unitOfWork.ProjectRepository
+                    .NoTrackable()
+                    .Where(p => p.Id == projectId)
+                    .Select(p => p.Name)
+                    .FirstOrDefaultAsync();
+
                 string messageCode = isOverflow ? "BUDGET_OVERFLOW" : "BUDGET_WARNING";
 
                 foreach (var user in users)
@@ -183,7 +189,7 @@ namespace EasyFinance.Application.Features.ExpenseItemService
                         CodeMessage = messageCode,
                         Category = NotificationCategory.Finance,
                         LimitNotificationChannels = NotificationChannels.Push | NotificationChannels.InApp | NotificationChannels.WebPush,
-                        Metadata = JsonSerializer.Serialize(new { expenseName = expense.Name })
+                        Metadata = JsonSerializer.Serialize(new { expenseName = expense.Name, projectName = projectName })
                     });
                 }
             }

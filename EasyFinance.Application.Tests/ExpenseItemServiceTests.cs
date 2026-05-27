@@ -244,7 +244,7 @@ namespace EasyFinance.Application.Tests
 
             moveResponse.Succeeded.Should().BeTrue();
 
-            var expectedMetadata = JsonSerializer.Serialize(new { expenseName = targetExpenseName });
+            var expectedMetadata = JsonSerializer.Serialize(new { expenseName = targetExpenseName, projectName = "Budget Move Project" });
             notificationServiceMock.Verify(n => n.CreateNotificationAsync(It.Is<NotificationRequestDTO>(r =>
                 r.CodeMessage == "BUDGET_OVERFLOW" &&
                 r.Metadata == expectedMetadata)), Times.AtLeastOnce());
