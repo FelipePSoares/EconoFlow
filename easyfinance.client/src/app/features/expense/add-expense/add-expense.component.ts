@@ -33,6 +33,7 @@ import { AttachmentType } from '../../../core/enums/attachment-type';
 import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.component';
 import { Expense } from '../../../core/models/expense';
 import { ProjectService } from '../../../core/services/project.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import { ProjectTaxYearSettings } from '../../../core/models/project-tax-year-settings';
 import { computeTaxYearPeriod, hasTaxYearRuleConfigured } from '../../../core/utils/tax-year';
 import { ConfigureTaxYearRuleDialogComponent } from '../../../core/components/configure-tax-year-rule-dialog/configure-tax-year-rule-dialog.component';
@@ -82,6 +83,7 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
   private cdr = inject(ChangeDetectorRef);
   private dialog = inject(MatDialog);
   private projectService = inject(ProjectService);
+  private notificationService = inject(NotificationService);
   private proofUploadSubscription?: Subscription;
 
   private currentDate!: Moment;
@@ -490,6 +492,8 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
   }
 
   private handleSaved(expense: ExpenseDto): void {
+    this.notificationService.refresh();
+
     if (this.inlineMode) {
       this.saved.emit(expense);
       return;

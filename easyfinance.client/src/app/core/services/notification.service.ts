@@ -85,6 +85,12 @@ export class NotificationService {
     ).subscribe();
   }
 
+  public refresh(): void {
+    this.getNotifications().pipe(
+      tap(notifications => this.notifications.next(notifications))
+    ).subscribe();
+  }
+
   public startPolling() {
     if (this.pollingSubscription) return;
 
