@@ -124,7 +124,8 @@ export class NotificationService {
 
     if (notification.codeMessage === 'BUDGET_WARNING' || notification.codeMessage === 'BUDGET_OVERFLOW') {
       return {
-        expenseName: this.resolveMetadataValue(notification, 'expenseName') ?? ''
+        expenseName: this.resolveMetadataValue(notification, 'expenseName') ?? '',
+        projectName: this.resolveMetadataValue(notification, 'projectName') ?? ''
       };
     }
 
