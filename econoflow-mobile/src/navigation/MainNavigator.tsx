@@ -1,9 +1,12 @@
 import React from 'react';
+import type { ComponentProps } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ProjectStackNavigator } from './ProjectStackNavigator';
 import { IncomeStackNavigator } from './IncomeStackNavigator';
 import { ProfileScreen } from '../screens/profile/ProfileScreen';
+
+type IconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
 
 export type MainTabParamList = {
   Overview: undefined;
@@ -18,7 +21,7 @@ export const MainNavigator: React.FC = () => (
     screenOptions={({ route }) => ({
       headerShown: false,
       tabBarIcon: ({ color, size }) => {
-        const icons: Record<string, string> = {
+        const icons: Record<string, IconName> = {
           Overview: 'view-dashboard',
           Incomes: 'cash-plus',
           Profile: 'account-circle',
