@@ -48,13 +48,16 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const loginMutation = useMutation({
     mutationFn: (values: FormValues) =>
       mobileLogin({ email: values.email, password: values.password }),
-    onSuccess: async (response) => {
+    onSuccess: async (response, variables) => {
       const { accessToken, refreshToken } = response.data;
 
       if (typeof accessToken !== 'string' || !accessToken) {
         const body = response.data as unknown as { requiresTwoFactor?: boolean };
         if (body?.requiresTwoFactor) {
-          navigation.navigate('TwoFactor', { email: '', password: '' });
+          navigation.navigate('TwoFactor', {
+            email: variables.email,
+            password: variables.password,
+          });
           return;
         }
         setLoginError(t('ErrorInvalidCredentials'));
@@ -73,9 +76,12 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
         // proceed without user profile
       }
     },
-    onError: (err: { response?: { data?: { requiresTwoFactor?: boolean } } }) => {
+    onError: (err: { response?: { data?: { requiresTwoFactor?: boolean } } }, variables) => {
       if (err?.response?.data?.requiresTwoFactor) {
-        navigation.navigate('TwoFactor', { email: '', password: '' });
+        navigation.navigate('TwoFactor', {
+          email: variables.email,
+          password: variables.password,
+        });
         return;
       }
       setLoginError(t('ErrorInvalidCredentials'));
