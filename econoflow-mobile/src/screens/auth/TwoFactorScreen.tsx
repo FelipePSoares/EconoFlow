@@ -66,10 +66,12 @@ export const TwoFactorScreen: React.FC<Props> = ({ route }) => {
           rules={{ required: t('RequiredField') ?? 'Required' }}
           render={({ field: { onChange, value } }) => (
             <TextInput
-              label={t('FieldTwoFactorCode') ?? 'Authentication code'}
+              label={t('FieldTwoFactorCode')}
               value={value}
               onChangeText={onChange}
               keyboardType="number-pad"
+              autoComplete="one-time-code"
+              textContentType="oneTimeCode"
               style={styles.input}
               error={!!errors.code}
             />

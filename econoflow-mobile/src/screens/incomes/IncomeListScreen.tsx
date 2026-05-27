@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { FAB, List, Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { OverviewStackParamList } from '../../navigation/OverviewStackNavigator';
 import { useProjectStore } from '../../store/projectStore';
 import { useIncomesForMonth, useDeleteIncome } from '../../hooks/useIncomes';
 import { LoadingIndicator } from '../../components/common/LoadingIndicator';
@@ -10,9 +12,11 @@ import { CurrencyDisplay } from '../../components/common/CurrencyDisplay';
 import { MonthNavigator } from '../../components/common/MonthNavigator';
 import { currentMonth, fromDateOnly } from '../../utils/date';
 
-export const IncomeListScreen: React.FC = () => {
+type Props = NativeStackScreenProps<OverviewStackParamList, 'IncomeList'>;
+
+export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
   const { t } = useTranslation();
-  const [month, setMonth] = useState(currentMonth());
+  const [month, setMonth] = useState(route.params?.month ?? currentMonth());
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const { selectedProject, currency } = useProjectStore();
@@ -41,13 +45,17 @@ export const IncomeListScreen: React.FC = () => {
               right={() => (
                 <CurrencyDisplay amount={item.amount} currency={currency} style={styles.amount} />
               )}
-              onPress={undefined}
+              onPress={canEdit ? () => navigation.navigate('IncomeForm', {
+                incomeId: item.id,
+                month,
+                initialValues: { name: item.name, amount: item.amount, date: item.date },
+              }) : undefined}
               onLongPress={canEdit ? () => setPendingDeleteId(item.id) : undefined}
             />
           );
         }}
         ListEmptyComponent={
-          <Text style={styles.empty}>{t('LabelNoIncomes') ?? 'No income this month'}</Text>
+          <Text style={styles.empty}>{t('LabelNoIncomes')}</Text>
         }
         contentContainerStyle={styles.list}
       />
@@ -56,14 +64,14 @@ export const IncomeListScreen: React.FC = () => {
         <FAB
           icon="plus"
           style={styles.fab}
-          onPress={() => { /* TODO: navigate to IncomeForm */ }}
+          onPress={() => navigation.navigate('IncomeForm', { month })}
         />
       )}
 
       <ConfirmDialog
         visible={!!pendingDeleteId}
-        title={t('LabelDeleteIncome') ?? 'Delete income'}
-        message={t('LabelConfirmDeleteIncome') ?? 'Are you sure?'}
+        title={t('LabelDeleteIncome')}
+        message={t('LabelConfirmDeleteIncome')}
         onConfirm={() => {
           if (pendingDeleteId) deleteIncome.mutate(pendingDeleteId);
           setPendingDeleteId(null);
@@ -79,5 +87,5 @@ const styles = StyleSheet.create({
   list: { paddingBottom: 80 },
   empty: { textAlign: 'center', marginTop: 40, opacity: 0.5 },
   fab: { position: 'absolute', right: 16, bottom: 16 },
-  amount: { alignSelf: 'center', fontWeight: '600', color: '#2ecc71' },
+  amount: { alignSelf: 'center', fontWeight: '600' },
 });

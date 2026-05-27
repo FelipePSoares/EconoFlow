@@ -1,9 +1,11 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { Card, FAB, Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { ProjectStackParamList } from '../../navigation/ProjectStackNavigator';
+import type { MainTabParamList } from '../../navigation/MainNavigator';
 import { useProjects } from '../../hooks/useProjects';
 import { useProjectStore } from '../../store/projectStore';
 import { LoadingIndicator } from '../../components/common/LoadingIndicator';
@@ -16,18 +18,11 @@ type Props = {
 export const ProjectListScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
   const { data: projects, isLoading } = useProjects();
-  const { selectedProject, setSelectedProject } = useProjectStore();
-
-  useEffect(() => {
-    if (selectedProject) {
-      navigation.navigate('MonthlyOverview');
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const { setSelectedProject } = useProjectStore();
 
   const handleSelect = (userProject: UserProject) => {
     setSelectedProject(userProject);
-    navigation.navigate('MonthlyOverview');
+    navigation.getParent<BottomTabNavigationProp<MainTabParamList>>()?.navigate('Overview');
   };
 
   if (isLoading) return <LoadingIndicator />;
@@ -48,7 +43,7 @@ export const ProjectListScreen: React.FC<Props> = ({ navigation }) => {
           </Card>
         )}
         ListEmptyComponent={
-          <Text style={styles.empty}>{t('LabelNoProjects') ?? 'No projects yet. Create one!'}</Text>
+          <Text style={styles.empty}>{t('LabelNoProjects')}</Text>
         }
         contentContainerStyle={styles.list}
       />

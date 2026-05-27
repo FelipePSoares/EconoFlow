@@ -3,7 +3,7 @@ import { FlatList, StyleSheet, View } from 'react-native';
 import { FAB, List, Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { ProjectStackParamList } from '../../navigation/ProjectStackNavigator';
+import type { OverviewStackParamList } from '../../navigation/OverviewStackNavigator';
 import { useProjectStore } from '../../store/projectStore';
 import { useExpensesForMonth, useDeleteExpense } from '../../hooks/useExpenses';
 import { LoadingIndicator } from '../../components/common/LoadingIndicator';
@@ -12,7 +12,7 @@ import { CurrencyDisplay } from '../../components/common/CurrencyDisplay';
 import { fromDateOnly } from '../../utils/date';
 import type { Expense } from '../../api/types';
 
-type Props = NativeStackScreenProps<ProjectStackParamList, 'ExpenseList'>;
+type Props = NativeStackScreenProps<OverviewStackParamList, 'ExpenseList'>;
 
 export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
   const { t } = useTranslation();
