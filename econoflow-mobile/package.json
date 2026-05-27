@@ -16,6 +16,7 @@
     "dayjs": "^1.11.21",
     "expo": "~56.0.5",
     "expo-secure-store": "^56.0.4",
+    "expo-splash-screen": "^56.0.10",
     "expo-status-bar": "~56.0.4",
     "i18next": "^26.3.0",
     "jwt-decode": "^4.0.0",
