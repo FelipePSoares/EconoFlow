@@ -14,6 +14,7 @@ import { BudgetProgressBar } from '../../components/budget/BudgetProgressBar';
 import { LoadingIndicator } from '../../components/common/LoadingIndicator';
 import { CurrencyDisplay } from '../../components/common/CurrencyDisplay';
 import { currentMonth } from '../../utils/date';
+import { calculateTotalBudget, calculateTotalExpenses, calculateTotalIncome } from '../../utils/budget';
 
 type Props = {
   navigation: NativeStackNavigationProp<OverviewStackParamList, 'MonthlyOverview'>;
@@ -61,17 +62,9 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
 
   if (loadingCategories || loadingIncomes) return <LoadingIndicator />;
 
-  const totalIncome = incomes?.reduce((sum, i) => sum + i.amount, 0) ?? 0;
-  const totalExpenses =
-    categories?.reduce(
-      (sum, cat) => sum + cat.expenses.reduce((s, e) => s + e.amount, 0),
-      0
-    ) ?? 0;
-  const totalBudget =
-    categories?.reduce(
-      (sum, cat) => sum + cat.expenses.reduce((s, e) => s + e.budget, 0),
-      0
-    ) ?? 0;
+  const totalIncome = calculateTotalIncome(incomes ?? []);
+  const totalExpenses = calculateTotalExpenses(categories ?? []);
+  const totalBudget = calculateTotalBudget(categories ?? []);
 
   const cardBg = theme.colors.surface;
   const cardBorder = theme.colors.outline;

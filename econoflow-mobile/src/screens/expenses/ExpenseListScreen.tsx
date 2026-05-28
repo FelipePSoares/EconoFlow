@@ -12,6 +12,7 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { CurrencyDisplay } from '../../components/common/CurrencyDisplay';
 import { BudgetProgressBar } from '../../components/budget/BudgetProgressBar';
 import { fromDateOnly } from '../../utils/date';
+import { toggleSetItem } from '../../utils/budget';
 import type { Expense, ExpenseItem } from '../../api/types';
 
 type Props = NativeStackScreenProps<OverviewStackParamList, 'ExpenseList'>;
@@ -30,11 +31,7 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   const toggleExpand = (id: string) => {
-    setExpandedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) { next.delete(id); } else { next.add(id); }
-      return next;
-    });
+    setExpandedIds((prev) => toggleSetItem(prev, id));
   };
 
   const confirmDelete = () => {
