@@ -125,3 +125,29 @@ export interface CreateIncomeRequest {
   date: string;
   amount: number;
 }
+
+export interface Plan {
+  id: string;
+  projectId: string;
+  type: string;
+  name: string;
+  targetAmount: number;
+  currentBalance: number;
+  remaining: number;
+  progress: number;
+  isArchived: boolean;
+}
+
+export interface PlanEntry {
+  id: string;
+  planId: string;
+  date: string;
+  amountSigned: number;
+  note: string;
+}
+
+export interface CreateExpenseItemRequest {
+  name: string;
+  date: string;
+  amount: number;
+}

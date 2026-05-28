@@ -24,10 +24,10 @@ export const BudgetProgressBar: React.FC<Props> = ({ spent, budget, currency }) 
     <View style={styles.container}>
       <ProgressBar progress={progress} color={barColor} style={styles.bar} />
       <View style={styles.row}>
-        <Text variant="bodySmall">
+        <Text variant="bodySmall" style={{ color: theme.colors.onSurface }}>
           {formatCurrency(spent, currency)} / {formatCurrency(budget, currency)}
         </Text>
-        <Text variant="bodySmall" style={{ color: isOver ? theme.colors.error : undefined }}>
+        <Text variant="bodySmall" style={{ color: isOver ? theme.colors.error : theme.colors.onSurface }}>
           {isOver
             ? `${formatCurrency(Math.abs(remaining), currency)} ${t('LabelOver') ?? 'over'}`
             : `${formatCurrency(remaining, currency)} ${t('LabelRemaining') ?? 'remaining'}`}
