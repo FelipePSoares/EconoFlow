@@ -9,6 +9,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useProjects } from '../../hooks/useProjects';
 import { useCategoriesForMonth } from '../../hooks/useCategories';
 import { useIncomesForMonth } from '../../hooks/useIncomes';
+import { useTotalSavedForMonth } from '../../hooks/usePlans';
 import { MonthNavigator } from '../../components/common/MonthNavigator';
 import { BudgetProgressBar } from '../../components/budget/BudgetProgressBar';
 import { LoadingIndicator } from '../../components/common/LoadingIndicator';
@@ -32,6 +33,7 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
 
   const { data: categories, isLoading: loadingCategories } = useCategoriesForMonth(projectId, month);
   const { data: incomes, isLoading: loadingIncomes } = useIncomesForMonth(projectId, month);
+  const { totalSaved, isLoading: loadingSaved } = useTotalSavedForMonth(projectId, month);
 
   // Auto-select default project when none is selected
   useEffect(() => {
@@ -65,7 +67,6 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
   const totalIncome = calculateTotalIncome(incomes ?? []);
   const totalExpenses = calculateTotalExpenses(categories ?? []);
   const totalBudget = calculateTotalBudget(categories ?? []);
-  const totalSaved = totalIncome - totalExpenses;
 
   const cardBg = theme.colors.surface;
   const cardBorder = theme.colors.outline;
@@ -94,11 +95,15 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
           <Text variant="labelSmall" style={styles.summaryLabel}>
             {t('LabelSaved')}
           </Text>
-          <CurrencyDisplay
-            amount={totalSaved}
-            currency={currency}
-            style={[styles.summaryAmount, { color: totalSaved >= 0 ? theme.colors.primary : theme.colors.error }]}
-          />
+          {loadingSaved ? (
+            <Text style={[styles.summaryAmount, { color: theme.colors.primary }]}>—</Text>
+          ) : (
+            <CurrencyDisplay
+              amount={totalSaved}
+              currency={currency}
+              style={[styles.summaryAmount, { color: totalSaved >= 0 ? theme.colors.primary : theme.colors.error }]}
+            />
+          )}
         </View>
 
         <TouchableOpacity
@@ -144,9 +149,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 10,
     gap: 4,
-  },
-  summaryCardDisabled: {
-    opacity: 0.7,
   },
   summaryLabel: { opacity: 0.7 },
   summaryAmount: { fontWeight: '700', fontSize: 14, marginTop: 2 },
