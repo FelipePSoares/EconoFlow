@@ -1,12 +1,12 @@
 import React from 'react';
-import { Text, TextStyle } from 'react-native';
+import { StyleProp, Text, TextStyle } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import { formatCurrency } from '../../utils/currency';
 
 interface Props {
   amount: number;
   currency: string;
-  style?: TextStyle;
+  style?: StyleProp<TextStyle>;
 }
 
 export const CurrencyDisplay: React.FC<Props> = ({ amount, currency, style }) => {

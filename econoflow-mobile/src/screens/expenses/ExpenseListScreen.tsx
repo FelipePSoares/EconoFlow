@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Divider, FAB, Text, useTheme } from 'react-native-paper';
+import { Divider, FAB, MD3Theme, Text, useTheme } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -120,7 +120,7 @@ const ExpenseRow: React.FC<ExpenseRowProps> = ({
   onDelete,
 }) => {
   const { t } = useTranslation();
-  const theme = useTheme();
+  const theme = useTheme<MD3Theme>();
   const date = fromDateOnly(expense.date);
   const dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   const hasItems = expense.expenseItems?.length > 0;
@@ -187,7 +187,7 @@ const ExpenseRow: React.FC<ExpenseRowProps> = ({
 interface ExpenseItemRowProps {
   item: ExpenseItem;
   currency: string;
-  theme: ReturnType<typeof useTheme>;
+  theme: MD3Theme;
 }
 
 const ExpenseItemRow: React.FC<ExpenseItemRowProps> = ({ item, currency, theme }) => {
