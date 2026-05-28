@@ -2,6 +2,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 import { MonthlyOverviewScreen } from '../screens/monthly/MonthlyOverviewScreen';
+import { CategoryListScreen } from '../screens/expenses/CategoryListScreen';
 import { ExpenseListScreen } from '../screens/expenses/ExpenseListScreen';
 import { ExpenseFormScreen } from '../screens/expenses/ExpenseFormScreen';
 import { IncomeListScreen } from '../screens/incomes/IncomeListScreen';
@@ -9,6 +10,7 @@ import { IncomeFormScreen } from '../screens/incomes/IncomeFormScreen';
 
 export type OverviewStackParamList = {
   MonthlyOverview: undefined;
+  CategoryList: { month: string };
   ExpenseList: {
     categoryId: string;
     categoryName: string;
@@ -49,6 +51,11 @@ export const OverviewStackNavigator: React.FC = () => {
         name="MonthlyOverview"
         component={MonthlyOverviewScreen}
         options={{ title: t('TabOverview') }}
+      />
+      <Stack.Screen
+        name="CategoryList"
+        component={CategoryListScreen}
+        options={{ title: t('Expenses') }}
       />
       <Stack.Screen
         name="ExpenseList"
