@@ -22,6 +22,7 @@ export const MainNavigator: React.FC = () => {
 
   return (
     <Tab.Navigator
+      initialRouteName="Overview"
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarIcon: ({ color, size }) => {
