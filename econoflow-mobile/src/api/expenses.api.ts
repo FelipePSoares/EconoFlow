@@ -29,3 +29,13 @@ export const patchExpense = (
 
 export const deleteExpense = (projectId: string, categoryId: string, id: string) =>
   apiClient.delete(`/api/Projects/${projectId}/Categories/${categoryId}/Expenses/${id}`);
+
+export const deleteExpenseItem = (
+  projectId: string,
+  categoryId: string,
+  expenseId: string,
+  expenseItemId: string
+) =>
+  apiClient.delete(
+    `/api/Projects/${projectId}/Categories/${categoryId}/Expenses/${expenseId}/ExpenseItems/${expenseItemId}`
+  );

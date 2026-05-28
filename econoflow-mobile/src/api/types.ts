@@ -125,3 +125,9 @@ export interface CreateIncomeRequest {
   date: string;
   amount: number;
 }
+
+export interface CreateExpenseItemRequest {
+  name: string;
+  date: string;
+  amount: number;
+}

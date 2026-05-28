@@ -65,6 +65,7 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
   const totalIncome = calculateTotalIncome(incomes ?? []);
   const totalExpenses = calculateTotalExpenses(categories ?? []);
   const totalBudget = calculateTotalBudget(categories ?? []);
+  const totalSaved = totalIncome - totalExpenses;
 
   const cardBg = theme.colors.surface;
   const cardBorder = theme.colors.outline;
@@ -89,11 +90,15 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
           />
         </TouchableOpacity>
 
-        <View style={[styles.summaryCard, styles.summaryCardDisabled, { backgroundColor: cardBg, borderColor: cardBorder }]}>
+        <View style={[styles.summaryCard, { backgroundColor: cardBg, borderColor: cardBorder }]}>
           <Text variant="labelSmall" style={styles.summaryLabel}>
             {t('LabelSaved')}
           </Text>
-          <Text style={[styles.summaryAmount, { color: theme.colors.primary }]}>—</Text>
+          <CurrencyDisplay
+            amount={totalSaved}
+            currency={currency}
+            style={[styles.summaryAmount, { color: totalSaved >= 0 ? theme.colors.primary : theme.colors.error }]}
+          />
         </View>
 
         <TouchableOpacity

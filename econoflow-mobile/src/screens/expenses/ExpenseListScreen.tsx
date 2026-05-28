@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
-import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { FlatList, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { Divider, FAB, MD3Theme, Text, useTheme } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { OverviewStackParamList } from '../../navigation/OverviewStackNavigator';
 import { useProjectStore } from '../../store/projectStore';
-import { useExpensesForMonth, useDeleteExpense } from '../../hooks/useExpenses';
+import { useExpensesForMonth, useDeleteExpense, useAddExpenseItem, useDeleteExpenseItem } from '../../hooks/useExpenses';
 import { LoadingIndicator } from '../../components/common/LoadingIndicator';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { CurrencyDisplay } from '../../components/common/CurrencyDisplay';
 import { BudgetProgressBar } from '../../components/budget/BudgetProgressBar';
-import { fromDateOnly } from '../../utils/date';
+import { fromDateOnly, toDateOnly } from '../../utils/date';
 import { toggleSetItem } from '../../utils/budget';
-import type { Expense, ExpenseItem } from '../../api/types';
+import type { CreateExpenseItemRequest, Expense, ExpenseItem } from '../../api/types';
 
 type Props = NativeStackScreenProps<OverviewStackParamList, 'ExpenseList'>;
 
@@ -26,6 +26,8 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const { data: expenses, isLoading } = useExpensesForMonth(projectId, categoryId, month);
   const deleteExpense = useDeleteExpense(projectId, categoryId, month);
+  const addExpenseItem = useAddExpenseItem(projectId, categoryId, month);
+  const deleteExpenseItem = useDeleteExpenseItem(projectId, categoryId, month);
 
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -70,6 +72,8 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
               })
             }
             onDelete={() => setPendingDeleteId(item.id)}
+            onAddItem={(newItem) => addExpenseItem.mutate({ expenseId: item.id, item: newItem })}
+            onDeleteItem={(expenseItemId) => deleteExpenseItem.mutate({ expenseId: item.id, expenseItemId })}
           />
         )}
         ListEmptyComponent={
@@ -105,6 +109,8 @@ interface ExpenseRowProps {
   onToggleExpand: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onAddItem: (item: CreateExpenseItemRequest) => void;
+  onDeleteItem: (expenseItemId: string) => void;
 }
 
 const ExpenseRow: React.FC<ExpenseRowProps> = ({
@@ -115,26 +121,42 @@ const ExpenseRow: React.FC<ExpenseRowProps> = ({
   onToggleExpand,
   onEdit,
   onDelete,
+  onAddItem,
+  onDeleteItem,
 }) => {
   const { t } = useTranslation();
   const theme = useTheme<MD3Theme>();
   const date = fromDateOnly(expense.date);
   const dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-  const hasItems = expense.expenseItems?.length > 0;
-  const showExpand = canEdit || hasItems;
+
+  const [isAddingItem, setIsAddingItem] = useState(false);
+  const [newItemName, setNewItemName] = useState('');
+  const [newItemAmount, setNewItemAmount] = useState('');
+
+  const handleSaveItem = () => {
+    const amount = parseFloat(newItemAmount) || 0;
+    onAddItem({ name: newItemName.trim(), date: toDateOnly(new Date()), amount });
+    setIsAddingItem(false);
+    setNewItemName('');
+    setNewItemAmount('');
+  };
+
+  const handleCancelItem = () => {
+    setIsAddingItem(false);
+    setNewItemName('');
+    setNewItemAmount('');
+  };
 
   return (
     <View style={[styles.expenseCard, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline }]}>
       <View style={styles.expenseHeader}>
-        {showExpand && (
-          <TouchableOpacity onPress={onToggleExpand} style={styles.chevron} hitSlop={8}>
-            <MaterialCommunityIcons
-              name={isExpanded ? 'chevron-down' : 'chevron-right'}
-              size={20}
-              color={theme.colors.onSurfaceVariant}
-            />
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity onPress={onToggleExpand} style={styles.chevron} hitSlop={8}>
+          <MaterialCommunityIcons
+            name={isExpanded ? 'chevron-down' : 'chevron-right'}
+            size={20}
+            color={theme.colors.onSurfaceVariant}
+          />
+        </TouchableOpacity>
         <View style={styles.expenseMain}>
           <View style={styles.expenseTitleRow}>
             <Text variant="titleSmall" style={styles.expenseName}>
@@ -166,15 +188,65 @@ const ExpenseRow: React.FC<ExpenseRowProps> = ({
         </View>
       </View>
 
-      {isExpanded && hasItems && (
+      {isExpanded && (
         <View style={styles.itemsSection}>
           <Divider />
           <Text variant="labelSmall" style={[styles.itemsHeader, { color: theme.colors.onSurfaceVariant }]}>
             {t('LabelExpenseItems')}
           </Text>
-          {expense.expenseItems.map((item) => (
-            <ExpenseItemRow key={item.id} item={item} currency={currency} theme={theme} />
+          {expense.expenseItems?.map((item) => (
+            <ExpenseItemRow
+              key={item.id}
+              item={item}
+              currency={currency}
+              theme={theme}
+              canEdit={canEdit}
+              onDelete={() => onDeleteItem(item.id)}
+            />
           ))}
+          {canEdit && !isAddingItem && (
+            <TouchableOpacity
+              onPress={() => setIsAddingItem(true)}
+              style={styles.addItemBtn}
+              hitSlop={4}
+            >
+              <MaterialCommunityIcons name="plus" size={14} color={theme.colors.primary} />
+              <Text variant="labelSmall" style={{ color: theme.colors.primary }}>
+                {t('ButtonAddItem') ?? 'Add Item'}
+              </Text>
+            </TouchableOpacity>
+          )}
+          {isAddingItem && (
+            <View style={[styles.addItemForm, { borderColor: theme.colors.outline }]}>
+              <TextInput
+                placeholder={t('FieldExpenseName') ?? 'Name (optional)'}
+                value={newItemName}
+                onChangeText={setNewItemName}
+                style={[styles.addItemInput, { color: theme.colors.onSurface, borderColor: theme.colors.outline, backgroundColor: theme.colors.background }]}
+                placeholderTextColor={theme.colors.onSurfaceVariant}
+              />
+              <TextInput
+                placeholder={t('FieldAmount') ?? 'Amount'}
+                value={newItemAmount}
+                onChangeText={setNewItemAmount}
+                keyboardType="decimal-pad"
+                style={[styles.addItemInput, { color: theme.colors.onSurface, borderColor: theme.colors.outline, backgroundColor: theme.colors.background }]}
+                placeholderTextColor={theme.colors.onSurfaceVariant}
+              />
+              <View style={styles.addItemActions}>
+                <TouchableOpacity onPress={handleCancelItem} hitSlop={8}>
+                  <Text variant="labelMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+                    {t('ButtonCancel') ?? 'Cancel'}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleSaveItem} hitSlop={8}>
+                  <Text variant="labelMedium" style={{ color: theme.colors.primary }}>
+                    {t('ButtonSave') ?? 'Save'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
         </View>
       )}
     </View>
@@ -185,9 +257,11 @@ interface ExpenseItemRowProps {
   item: ExpenseItem;
   currency: string;
   theme: MD3Theme;
+  canEdit: boolean;
+  onDelete: () => void;
 }
 
-const ExpenseItemRow: React.FC<ExpenseItemRowProps> = ({ item, currency, theme }) => {
+const ExpenseItemRow: React.FC<ExpenseItemRowProps> = ({ item, currency, theme, canEdit, onDelete }) => {
   const { t } = useTranslation();
   const date = fromDateOnly(item.date);
   const dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -208,11 +282,18 @@ const ExpenseItemRow: React.FC<ExpenseItemRowProps> = ({ item, currency, theme }
           {dateStr}
         </Text>
       </View>
-      <CurrencyDisplay
-        amount={item.amount}
-        currency={currency}
-        style={styles.itemAmount}
-      />
+      <View style={styles.itemRight}>
+        <CurrencyDisplay
+          amount={item.amount}
+          currency={currency}
+          style={styles.itemAmount}
+        />
+        {canEdit && (
+          <TouchableOpacity onPress={onDelete} hitSlop={8} style={styles.itemDeleteBtn}>
+            <MaterialCommunityIcons name="delete-outline" size={16} color={theme.colors.error} />
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 };
@@ -283,8 +364,44 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 2,
   },
+  itemRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   itemAmount: {
     fontWeight: '600',
     fontSize: 13,
+  },
+  itemDeleteBtn: {
+    padding: 2,
+  },
+
+  addItemBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 6,
+    paddingLeft: 8,
+    marginTop: 2,
+  },
+  addItemForm: {
+    marginTop: 8,
+    gap: 8,
+    borderTopWidth: 1,
+    paddingTop: 8,
+  },
+  addItemInput: {
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    fontSize: 13,
+  },
+  addItemActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 16,
+    paddingBottom: 2,
   },
 });
