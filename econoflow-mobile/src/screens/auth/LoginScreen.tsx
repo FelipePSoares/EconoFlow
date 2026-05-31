@@ -5,8 +5,9 @@ import {
   Platform,
   ScrollView,
   View,
+  useColorScheme,
 } from 'react-native';
-import { Button, TextInput, HelperText, useTheme } from 'react-native-paper';
+import { Text, HelperText } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +17,8 @@ import { mobileLogin, getCurrentUser } from '../../api/auth.api';
 import { useAuthStore } from '../../store/authStore';
 import i18n from '../../i18n';
 import { AuthHero } from '../../components/auth/AuthHero';
+import { AuroraField } from '../../components/auth/AuroraField';
+import { AuroraPrimaryButton } from '../../components/auth/AuroraPrimaryButton';
 
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'Login'>;
@@ -28,7 +31,7 @@ interface FormValues {
 
 export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
-  const theme = useTheme();
+  const dark = useColorScheme() === 'dark';
   const { setTokens, setUser } = useAuthStore();
   const [loginError, setLoginError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -42,20 +45,15 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
       mobileLogin({ email: values.email, password: values.password }),
     onSuccess: async (response, variables) => {
       const { accessToken, refreshToken } = response.data;
-
       if (typeof accessToken !== 'string' || !accessToken) {
         const body = response.data as unknown as { requiresTwoFactor?: boolean };
         if (body?.requiresTwoFactor) {
-          navigation.navigate('TwoFactor', {
-            email: variables.email,
-            password: variables.password,
-          });
+          navigation.navigate('TwoFactor', { email: variables.email, password: variables.password });
           return;
         }
         setLoginError(t('ErrorInvalidCredentials'));
         return;
       }
-
       setTokens(accessToken, refreshToken);
       try {
         const userResponse = await getCurrentUser();
@@ -64,34 +62,35 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
           const lang = userResponse.data.languageCode.startsWith('pt') ? 'pt' : 'en';
           i18n.changeLanguage(lang);
         }
-      } catch {
-        // proceed without user profile
-      }
+      } catch { /* proceed without user profile */ }
     },
     onError: (err: { response?: { data?: { requiresTwoFactor?: boolean } } }, variables) => {
       if (err?.response?.data?.requiresTwoFactor) {
-        navigation.navigate('TwoFactor', {
-          email: variables.email,
-          password: variables.password,
-        });
+        navigation.navigate('TwoFactor', { email: variables.email, password: variables.password });
         return;
       }
       setLoginError(t('ErrorInvalidCredentials'));
     },
   });
 
+  const ink  = dark ? '#e6edf3' : '#0d2137';
+  const ink2 = dark ? '#8aa0b6' : '#5b6b7c';
+  const bg   = dark ? '#061e33' : '#e6eff6';
+  const cardBg = dark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.72)';
+  const cardBorder = dark ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.85)';
+
   return (
     <KeyboardAvoidingView
-      style={[styles.flex, { backgroundColor: theme.colors.background }]}
+      style={[styles.flex, { backgroundColor: bg }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        keyboardShouldPersistTaps="handled"
-      >
-        <AuthHero subtitle={t('PleaseSignIn')} />
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        <AuthHero dark={dark} subtitle={t('PleaseSignIn')} />
 
-        <View style={[styles.card, { backgroundColor: theme.colors.surface, shadowColor: theme.colors.shadow }]}>
+        <View style={[styles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
+          <Text style={[styles.cardTitle, { color: ink }]}>{t('ButtonSignIn')}</Text>
+          <Text style={[styles.cardSubtitle, { color: ink2 }]}>{t('PleaseSignIn')}</Text>
+
           <Controller
             control={control}
             name="email"
@@ -100,17 +99,16 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
               pattern: { value: /\S+@\S+\.\S+/, message: t('InvalidEmail') },
             }}
             render={({ field: { onChange, value } }) => (
-              <TextInput
-                label={t('FieldEmailAddress')}
+              <AuroraField
+                dark={dark}
+                icon="email-outline"
+                placeholder={t('FieldEmailAddress')}
                 value={value}
                 onChangeText={onChange}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
-                autoComplete="username"
-                textContentType="username"
-                style={styles.input}
-                error={!!errors.email}
+                hasError={!!errors.email}
               />
             )}
           />
@@ -121,61 +119,49 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
             name="password"
             rules={{ required: t('RequiredField') }}
             render={({ field: { onChange, value } }) => (
-              <TextInput
-                label={t('FieldPassword')}
+              <AuroraField
+                dark={dark}
+                icon="lock-outline"
+                placeholder={t('FieldPassword')}
                 value={value}
                 onChangeText={onChange}
                 secureTextEntry={!showPassword}
-                autoComplete="current-password"
-                textContentType="password"
-                right={
-                  <TextInput.Icon
-                    icon={showPassword ? 'eye-off' : 'eye'}
-                    onPress={() => setShowPassword((v) => !v)}
-                  />
-                }
-                style={styles.input}
-                error={!!errors.password}
+                onToggleSecure={() => setShowPassword(v => !v)}
+                showSecure={showPassword}
+                hasError={!!errors.password}
               />
             )}
           />
           {errors.password && <HelperText type="error">{errors.password.message}</HelperText>}
 
-          {loginError && (
-            <HelperText type="error" style={styles.errorText}>{loginError}</HelperText>
-          )}
+          {loginError && <HelperText type="error">{loginError}</HelperText>}
 
-          <Button
-            mode="contained"
-            onPress={handleSubmit((values) => {
-              setLoginError(null);
-              loginMutation.mutate(values);
-            })}
-            loading={loginMutation.isPending}
-            disabled={loginMutation.isPending}
-            style={styles.signInButton}
-            contentStyle={styles.signInButtonContent}
-            color={theme.colors.primary}
-          >
-            {t('ButtonSignIn')}
-          </Button>
-
-          <View style={styles.links}>
-            <Button
-              mode="text"
-              compact
+          <View style={styles.forgotRow}>
+            <Text
+              style={[styles.link, { color: '#0f76a8' }]}
               onPress={() => navigation.navigate('ForgotPassword')}
             >
               {t('LinkForgotPassword')}
-            </Button>
-            <Button
-              mode="text"
-              compact
-              onPress={() => navigation.navigate('Register')}
-            >
-              {t('LinkCreateAccount')}
-            </Button>
+            </Text>
           </View>
+
+          <AuroraPrimaryButton
+            label={t('ButtonSignIn')}
+            onPress={handleSubmit(values => { setLoginError(null); loginMutation.mutate(values); })}
+            loading={loginMutation.isPending}
+          />
+        </View>
+
+        <View style={styles.bottomRow}>
+          <Text style={[styles.bottomText, { color: ink2 }]}>
+            {t('LabelNoAccount') ?? "Don't have an account?"}
+          </Text>
+          <Text
+            style={[styles.link, { color: '#0f76a8' }]}
+            onPress={() => navigation.navigate('Register')}
+          >
+            {' '}{t('LinkCreateAccount')}
+          </Text>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -184,24 +170,23 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  scroll: { flexGrow: 1 },
+  scroll: { flexGrow: 1, paddingBottom: 40 },
   card: {
     marginHorizontal: 20,
-    marginTop: -16,
-    borderRadius: 16,
-    padding: 24,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 4,
+    marginTop: -20,
+    borderRadius: 26,
+    padding: 22,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.18,
+    shadowRadius: 40,
+    elevation: 12,
   },
-  input: { marginBottom: 2 },
-  errorText: { marginBottom: 4 },
-  signInButton: { marginTop: 20, borderRadius: 8 },
-  signInButtonContent: { paddingVertical: 6 },
-  links: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 8,
-  },
+  cardTitle:    { fontSize: 19, fontWeight: '800', marginBottom: 2 },
+  cardSubtitle: { fontSize: 13, fontWeight: '600', marginBottom: 6 },
+  forgotRow:    { alignItems: 'flex-end', marginTop: 6, marginBottom: 4 },
+  bottomRow:    { flexDirection: 'row', justifyContent: 'center', marginTop: 22 },
+  bottomText:   { fontSize: 13.5 },
+  link:         { fontSize: 13.5, fontWeight: '800' },
 });

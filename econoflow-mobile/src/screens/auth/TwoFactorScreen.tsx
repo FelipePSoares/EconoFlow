@@ -5,8 +5,9 @@ import {
   Platform,
   ScrollView,
   View,
+  useColorScheme,
 } from 'react-native';
-import { Button, Text, TextInput, HelperText, useTheme } from 'react-native-paper';
+import { Text, HelperText } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +17,8 @@ import { mobileLogin, getCurrentUser } from '../../api/auth.api';
 import { useAuthStore } from '../../store/authStore';
 import i18n from '../../i18n';
 import { AuthHero } from '../../components/auth/AuthHero';
+import { AuroraField } from '../../components/auth/AuroraField';
+import { AuroraPrimaryButton } from '../../components/auth/AuroraPrimaryButton';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'TwoFactor'>;
 
@@ -25,7 +28,7 @@ interface FormValues {
 
 export const TwoFactorScreen: React.FC<Props> = ({ route }) => {
   const { t } = useTranslation();
-  const theme = useTheme();
+  const dark = useColorScheme() === 'dark';
   const { setTokens, setUser } = useAuthStore();
   const [authError, setAuthError] = useState<string | null>(null);
   const { email, password } = route.params;
@@ -47,26 +50,26 @@ export const TwoFactorScreen: React.FC<Props> = ({ route }) => {
           const lang = userResponse.data.languageCode.startsWith('pt') ? 'pt' : 'en';
           i18n.changeLanguage(lang);
         }
-      } catch {
-        // proceed
-      }
+      } catch { /* proceed */ }
     },
     onError: () => setAuthError(t('ErrorInvalidTwoFactorCode')),
   });
 
+  const ink2 = dark ? '#8aa0b6' : '#5b6b7c';
+  const bg   = dark ? '#061e33' : '#e6eff6';
+  const cardBg = dark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.72)';
+  const cardBorder = dark ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.85)';
+
   return (
     <KeyboardAvoidingView
-      style={[styles.flex, { backgroundColor: theme.colors.background }]}
+      style={[styles.flex, { backgroundColor: bg }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        keyboardShouldPersistTaps="handled"
-      >
-        <AuthHero subtitle={t('TwoFactorSignInTitle')} />
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        <AuthHero dark={dark} subtitle={t('TwoFactorSignInTitle')} />
 
-        <View style={[styles.card, { backgroundColor: theme.colors.surface, shadowColor: theme.colors.shadow }]}>
-          <Text variant="bodyMedium" style={[styles.description, { color: theme.colors.onSurfaceVariant }]}>
+        <View style={[styles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
+          <Text style={[styles.description, { color: ink2 }]}>
             {t('LabelEnterTwoFactorCode')}
           </Text>
 
@@ -75,31 +78,25 @@ export const TwoFactorScreen: React.FC<Props> = ({ route }) => {
             name="code"
             rules={{ required: t('RequiredField') }}
             render={({ field: { onChange, value } }) => (
-              <TextInput
-                label={t('FieldTwoFactorCode')}
+              <AuroraField
+                dark={dark}
+                icon="shield-key-outline"
+                placeholder={t('FieldTwoFactorCode')}
                 value={value}
                 onChangeText={onChange}
                 keyboardType="number-pad"
-                autoComplete="one-time-code"
-                textContentType="oneTimeCode"
-                style={styles.input}
-                error={!!errors.code}
+                hasError={!!errors.code}
               />
             )}
           />
           {errors.code && <HelperText type="error">{errors.code.message}</HelperText>}
-          {authError && <HelperText type="error">{authError}</HelperText>}
+          {authError  && <HelperText type="error">{authError}</HelperText>}
 
-          <Button
-            mode="contained"
-            onPress={handleSubmit((v) => { setAuthError(null); mutation.mutate(v); })}
+          <AuroraPrimaryButton
+            label={t('ButtonVerify')}
+            onPress={handleSubmit(v => { setAuthError(null); mutation.mutate(v); })}
             loading={mutation.isPending}
-            disabled={mutation.isPending}
-            style={styles.button}
-            contentStyle={styles.buttonContent}
-          >
-            {t('ButtonVerify')}
-          </Button>
+          />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -107,21 +104,19 @@ export const TwoFactorScreen: React.FC<Props> = ({ route }) => {
 };
 
 const styles = StyleSheet.create({
-  flex: { flex: 1 },
-  scroll: { flexGrow: 1 },
+  flex:  { flex: 1 },
+  scroll:{ flexGrow: 1, paddingBottom: 40 },
   card: {
     marginHorizontal: 20,
-    marginTop: -16,
-    borderRadius: 16,
-    padding: 24,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 4,
+    marginTop: -20,
+    borderRadius: 26,
+    padding: 22,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.18,
+    shadowRadius: 40,
+    elevation: 12,
   },
-  title: { textAlign: 'center', marginBottom: 8, fontWeight: 'bold' },
-  description: { textAlign: 'center', marginBottom: 20, lineHeight: 20 },
-  input: { marginBottom: 4 },
-  button: { marginTop: 20, borderRadius: 8 },
-  buttonContent: { paddingVertical: 6 },
+  description: { textAlign: 'center', fontSize: 13.5, lineHeight: 20, marginBottom: 4 },
 });
