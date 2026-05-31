@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 
 interface Blob {
   color: string;
@@ -32,10 +32,11 @@ interface Props {
 export const AuroraMesh: React.FC<Props> = ({ dark }) => {
   const blobs = dark ? DARK_BLOBS : LIGHT_BLOBS;
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+    <>
       {blobs.map((b, i) => (
         <View
           key={i}
+          pointerEvents="none"
           style={{
             position: 'absolute',
             width: b.size,
@@ -50,6 +51,6 @@ export const AuroraMesh: React.FC<Props> = ({ dark }) => {
           }}
         />
       ))}
-    </View>
+    </>
   );
 };

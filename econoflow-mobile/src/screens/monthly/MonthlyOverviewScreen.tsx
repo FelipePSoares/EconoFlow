@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
-  StyleSheet, TouchableOpacity, View,
-  ScrollView, RefreshControl, useColorScheme,
+  Alert, StyleSheet, TouchableOpacity, View,
+  ScrollView, RefreshControl,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -26,18 +26,19 @@ import {
   calculateTotalIncome,
 } from '../../utils/budget';
 import { getCategoryColor } from '../../utils/categoryTheme';
+import { useAuroraSkin } from '../../theme/useAuroraSkin';
 
 type Props = {
   navigation: NativeStackNavigationProp<OverviewStackParamList, 'MonthlyOverview'>;
 };
 
 function fmtCompact(n: number): string {
-  return Math.round(Math.abs(n)).toLocaleString('pt-BR');
+  return Math.round(Math.abs(n)).toLocaleString();
 }
 
 export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
-  const dark = useColorScheme() === 'dark';
+  const { dark, ink, ink2, bg, hair } = useAuroraSkin();
   const insets = useSafeAreaInsets();
   const [month, setMonth] = useState(currentMonth());
   const [refreshing, setRefreshing] = useState(false);
@@ -75,10 +76,6 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
     setRefreshing(false);
   };
 
-  const ink  = dark ? '#e6edf3' : '#0d2137';
-  const ink2 = dark ? '#8aa0b6' : '#5b6b7c';
-  const bg   = dark ? '#061e33' : '#e6eff6';
-  const hair = dark ? 'rgba(255,255,255,0.08)' : 'rgba(13,33,55,0.08)';
 
   if (!selectedProject) {
     return (
@@ -138,9 +135,14 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
               </Text>
             </View>
           </View>
-          <GlassCard dark={dark} radius={14} intensity={40} style={styles.notifCard}>
-            <MaterialCommunityIcons name="bell-outline" size={22} color="#0f76a8" />
-          </GlassCard>
+          <TouchableOpacity
+            onPress={() => Alert.alert(t('Notifications'), t('NoNotifications'))}
+            activeOpacity={0.7}
+          >
+            <GlassCard dark={dark} radius={14} intensity={40} style={styles.notifCard}>
+              <MaterialCommunityIcons name="bell-outline" size={22} color="#0f76a8" />
+            </GlassCard>
+          </TouchableOpacity>
         </View>
 
         {/* ── Month navigator ──────────────────────────────────────────────── */}
@@ -291,7 +293,7 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
                         <View style={styles.catInfo}>
                           <Text style={[styles.catName, { color: ink }]}>{cat.name}</Text>
                           <Text style={[styles.catSub, { color: ink2 }]}>
-                            {cat.expenses.length} items · {Math.round(pct * 100)}%
+                            {cat.expenses.length} {t('LabelExpenseItems')} · {Math.round(pct * 100)}%
                           </Text>
                           <View style={[styles.catTrack, { backgroundColor: color + '22' }]}>
                             <View style={[
@@ -335,9 +337,9 @@ const styles = StyleSheet.create({
   },
   headerLeft:  { flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatar:      { width: 42, height: 42, borderRadius: 14, backgroundColor: '#0f76a8', alignItems: 'center', justifyContent: 'center' },
-  avatarText:  { color: '#fff', fontWeight: '800', fontSize: 18 },
+  avatarText:  { color: '#fff', fontWeight: 'bold', fontSize: 18 },
   greeting:    { fontSize: 12.5, fontWeight: '600' },
-  projectName: { fontSize: 16, fontWeight: '800' },
+  projectName: { fontSize: 16, fontWeight: 'bold' },
   notifCard:   { width: 42, height: 42, alignItems: 'center', justifyContent: 'center' },
 
   errorBanner: {
@@ -350,7 +352,7 @@ const styles = StyleSheet.create({
   heroCard:    { marginHorizontal: 18, marginBottom: 12 },
   heroPad:     { padding: 22 },
   heroLabel:   { fontSize: 13, fontWeight: '600', opacity: 0.85, marginBottom: 4 },
-  heroBalance: { fontSize: 40, fontWeight: '800', letterSpacing: -1 },
+  heroBalance: { fontSize: 40, fontWeight: 'bold', letterSpacing: -1 },
   heroRow:     { flexDirection: 'row', marginTop: 16, paddingTop: 14, borderTopWidth: StyleSheet.hairlineWidth },
   heroStat:    { flex: 1, gap: 4 },
   heroStatHead:  { flexDirection: 'row', alignItems: 'center', gap: 4, opacity: 0.85 },
@@ -365,10 +367,10 @@ const styles = StyleSheet.create({
   ringOuter:        { width: 56, height: 56, borderRadius: 28, borderWidth: 7, alignItems: 'center', justifyContent: 'center', flexShrink: 0, position: 'relative' },
   ringProgress:     { position: 'absolute', width: 56, height: 56, borderRadius: 28, borderWidth: 7 },
   ringCenter:       { width: 30, height: 30, alignItems: 'center', justifyContent: 'center' },
-  ringPct:          { fontSize: 11.5, fontWeight: '800' },
+  ringPct:          { fontSize: 11.5, fontWeight: 'bold' },
   budgetMeta:       { flex: 1, gap: 1 },
   budgetMetaLabel:  { fontSize: 12, fontWeight: '600' },
-  budgetMetaAmt:    { fontSize: 15, fontWeight: '800' },
+  budgetMetaAmt:    { fontSize: 15, fontWeight: 'bold' },
   budgetMetaSub:    { fontSize: 11 },
   budgetBar:        { height: 4, borderRadius: 2, marginTop: 5, overflow: 'hidden' },
   budgetBarFill:    { height: 4, borderRadius: 2, backgroundColor: '#0f76a8' },
@@ -376,10 +378,10 @@ const styles = StyleSheet.create({
   savedCard:  { width: 112 },
   savedInner: { gap: 5, padding: 14, flex: 1, borderRadius: 22 },
   savedLabel: { fontSize: 11.5, fontWeight: '600', marginTop: 4 },
-  savedAmt:   { fontSize: 17, fontWeight: '800' },
+  savedAmt:   { fontSize: 17, fontWeight: 'bold' },
 
   sectionHead:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingHorizontal: 22, marginBottom: 10 },
-  sectionTitle: { fontSize: 16, fontWeight: '800' },
+  sectionTitle: { fontSize: 16, fontWeight: 'bold' },
   viewAll:      { fontSize: 12.5, fontWeight: '700', color: '#0f76a8' },
 
   catList: { paddingHorizontal: 18, gap: 10 },
@@ -391,7 +393,7 @@ const styles = StyleSheet.create({
   catSub:  { fontSize: 12 },
   catTrack:{ height: 4, borderRadius: 2, marginTop: 3, overflow: 'hidden' },
   catFill: { height: 4, borderRadius: 2 },
-  catAmt:  { fontSize: 14, fontWeight: '800' },
+  catAmt:  { fontSize: 14, fontWeight: 'bold' },
 
   emptyCats: { alignItems: 'center', paddingVertical: 48, gap: 12 },
 });
