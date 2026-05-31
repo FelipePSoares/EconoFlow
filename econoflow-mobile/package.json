@@ -15,6 +15,7 @@
     "axios": "^1.16.1",
     "dayjs": "^1.11.21",
     "expo": "~56.0.5",
+    "expo-blur": "~56.0.3",
     "expo-linear-gradient": "^56.0.4",
     "expo-secure-store": "^56.0.4",
     "expo-splash-screen": "^56.0.10",

@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { formatMonthLabel, prevMonth, nextMonth } from '../../utils/date';
 
 const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -28,6 +29,7 @@ interface Props {
 }
 
 export const MonthNavigator: React.FC<Props> = ({ month, onChange, dark }) => {
+  const { t } = useTranslation();
   const [pickerOpen, setPickerOpen] = useState(false);
   const { year: selYear, m: selM } = parseMonth(month);
   const [pickerYear, setPickerYear] = useState(selYear);
@@ -136,7 +138,7 @@ export const MonthNavigator: React.FC<Props> = ({ month, onChange, dark }) => {
                 onPress={() => { onChange(buildMonth(new Date().getFullYear(), new Date().getMonth())); setPickerOpen(false); }}
                 style={styles.todayBtn}
               >
-                <Text style={styles.todayLabel}>Go to today</Text>
+                <Text style={styles.todayLabel}>{t('LabelGoToToday')}</Text>
               </TouchableOpacity>
             </View>
           </Pressable>

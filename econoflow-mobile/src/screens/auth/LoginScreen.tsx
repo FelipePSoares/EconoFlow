@@ -19,6 +19,7 @@ import i18n from '../../i18n';
 import { AuthHero } from '../../components/auth/AuthHero';
 import { AuroraField } from '../../components/auth/AuroraField';
 import { AuroraPrimaryButton } from '../../components/auth/AuroraPrimaryButton';
+import { GlassCard } from '../../components/common/GlassCard';
 
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'Login'>;
@@ -76,9 +77,6 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const ink  = dark ? '#e6edf3' : '#0d2137';
   const ink2 = dark ? '#8aa0b6' : '#5b6b7c';
   const bg   = dark ? '#061e33' : '#e6eff6';
-  const cardBg = dark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.72)';
-  const cardBorder = dark ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.85)';
-
   return (
     <KeyboardAvoidingView
       style={[styles.flex, { backgroundColor: bg }]}
@@ -87,7 +85,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <AuthHero dark={dark} subtitle={t('PleaseSignIn')} />
 
-        <View style={[styles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
+        <GlassCard dark={dark} radius={26} intensity={55} style={styles.card}>
           <Text style={[styles.cardTitle, { color: ink }]}>{t('ButtonSignIn')}</Text>
           <Text style={[styles.cardSubtitle, { color: ink2 }]}>{t('PleaseSignIn')}</Text>
 
@@ -150,7 +148,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
             onPress={handleSubmit(values => { setLoginError(null); loginMutation.mutate(values); })}
             loading={loginMutation.isPending}
           />
-        </View>
+        </GlassCard>
 
         <View style={styles.bottomRow}>
           <Text style={[styles.bottomText, { color: ink2 }]}>
@@ -174,9 +172,7 @@ const styles = StyleSheet.create({
   card: {
     marginHorizontal: 20,
     marginTop: -20,
-    borderRadius: 26,
     padding: 22,
-    borderWidth: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 16 },
     shadowOpacity: 0.18,

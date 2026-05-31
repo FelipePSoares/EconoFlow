@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FlatList, StyleSheet, View, RefreshControl, useColorScheme } from 'react-native';
 import { Text } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { OverviewStackParamList } from '../../navigation/OverviewStackNavigator';
@@ -17,15 +18,17 @@ type Props = NativeStackScreenProps<OverviewStackParamList, 'CategoryList'>;
 export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
   const { t } = useTranslation();
   const dark = useColorScheme() === 'dark';
+  const insets = useSafeAreaInsets();
   const [month, setMonth] = useState(route.params.month);
   const [dismissedError, setDismissedError] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const { selectedProject, currency } = useProjectStore();
   const projectId = selectedProject?.project.id ?? '';
 
-  const { data: categories, isLoading, isError, refetch } = useCategoriesForMonth(projectId, month);
+  const { data: categories, isLoading, isError, refetch } =
+    useCategoriesForMonth(projectId, month);
 
-  const bg = dark ? '#061e33' : '#e6eff6';
+  const bg   = dark ? '#061e33' : '#e6eff6';
   const ink2 = dark ? '#8aa0b6' : '#5b6b7c';
 
   const onRefresh = async () => {
@@ -42,10 +45,16 @@ export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
     <View style={[styles.container, { backgroundColor: bg }]}>
       <AuroraMesh dark={dark} />
 
-      <MonthNavigator month={month} onChange={setMonth} dark={dark} />
+      <View style={{ paddingTop: insets.top }}>
+        <MonthNavigator month={month} onChange={setMonth} dark={dark} />
+      </View>
 
       {isError && !dismissedError && (
-        <ErrorBanner visible message={t('ErrorGeneric')} onDismiss={() => setDismissedError(true)} />
+        <ErrorBanner
+          visible
+          message={t('ErrorGeneric')}
+          onDismiss={() => setDismissedError(true)}
+        />
       )}
 
       <FlatList
@@ -69,7 +78,7 @@ export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
         ListEmptyComponent={
           <Text style={[styles.empty, { color: ink2 }]}>{t('LabelNoCategories')}</Text>
         }
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 16 }]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={ink2} />
         }
@@ -80,6 +89,6 @@ export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  list:  { paddingBottom: 24, paddingTop: 8 },
+  list:  { paddingTop: 8, paddingBottom: 24 },
   empty: { textAlign: 'center', marginTop: 48, fontSize: 14, opacity: 0.6 },
 });
