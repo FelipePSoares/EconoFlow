@@ -15,6 +15,7 @@ import type { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { mobileLogin, getCurrentUser } from '../../api/auth.api';
 import { useAuthStore } from '../../store/authStore';
 import i18n from '../../i18n';
+import { AuthHero } from '../../components/auth/AuthHero';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'TwoFactor'>;
 
@@ -62,11 +63,10 @@ export const TwoFactorScreen: React.FC<Props> = ({ route }) => {
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-          <Text variant="headlineMedium" style={styles.title}>
-            {t('LabelTwoFactorAuthentication')}
-          </Text>
-          <Text style={[styles.subtitle, { color: theme.colors.onSurface }]}>
+        <AuthHero subtitle={t('TwoFactorSignInTitle')} />
+
+        <View style={[styles.card, { backgroundColor: theme.colors.surface, shadowColor: theme.colors.shadow }]}>
+          <Text variant="bodyMedium" style={[styles.description, { color: theme.colors.onSurfaceVariant }]}>
             {t('LabelEnterTwoFactorCode')}
           </Text>
 
@@ -108,18 +108,19 @@ export const TwoFactorScreen: React.FC<Props> = ({ route }) => {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  scroll: { flexGrow: 1, justifyContent: 'center', padding: 20 },
+  scroll: { flexGrow: 1 },
   card: {
+    marginHorizontal: 20,
+    marginTop: -16,
     borderRadius: 16,
-    padding: 28,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    padding: 24,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
   },
   title: { textAlign: 'center', marginBottom: 8, fontWeight: 'bold' },
-  subtitle: { textAlign: 'center', marginBottom: 28, opacity: 0.7 },
+  description: { textAlign: 'center', marginBottom: 20, lineHeight: 20 },
   input: { marginBottom: 4 },
   button: { marginTop: 20, borderRadius: 8 },
   buttonContent: { paddingVertical: 6 },

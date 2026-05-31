@@ -17,6 +17,15 @@ const queryClient = new QueryClient({
   },
 });
 
+// ── Common semantic colour tokens ────────────────────────────────────────────
+const commonCustom = {
+  success: '#2ecc71',
+  warning: '#f39c12',
+  income: '#2ecc71',
+  expense: '#e74c3c',
+  accentGreen: '#0e9f6e',
+};
+
 // ── Paper themes (component colours) ──────────────────────────────────────────
 const paperLightTheme = {
   ...MD3LightTheme,
@@ -24,11 +33,22 @@ const paperLightTheme = {
     ...MD3LightTheme.colors,
     primary: '#0f76a8',
     secondary: '#0c628c',
+    tertiary: '#2ecc71',
+    error: '#e74c3c',
     background: '#f5f8fc',
     surface: '#ffffff',
     surfaceVariant: '#f5f8fc',
     onSurface: '#0d2137',
     onBackground: '#0d2137',
+    elevation: {
+      ...MD3LightTheme.colors.elevation,
+      level0: 'transparent',
+      level1: '#ffffff',
+      level2: '#f8f9fa',
+    },
+  },
+  customColors: {
+    ...commonCustom,
   },
 };
 
@@ -38,11 +58,22 @@ const paperDarkTheme = {
     ...MD3DarkTheme.colors,
     primary: '#4da7d6',
     secondary: '#6db8df',
+    tertiary: '#2ecc71',
+    error: '#e74c3c',
     background: '#0f1724',
     surface: '#172233',
     surfaceVariant: '#1d2b3e',
     onSurface: '#e6edf3',
     onBackground: '#e6edf3',
+    elevation: {
+      ...MD3DarkTheme.colors.elevation,
+      level0: 'transparent',
+      level1: '#172233',
+      level2: '#1d2b3e',
+    },
+  },
+  customColors: {
+    ...commonCustom,
   },
 };
 

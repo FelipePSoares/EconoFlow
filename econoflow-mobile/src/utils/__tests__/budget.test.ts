@@ -15,7 +15,7 @@ const makeCategory = (expenses: { amount: number; budget: number }[]): Category 
       budget: e.budget,
       date: '2024-01-01',
       isDeductible: false,
-      expenseItems: [],
+      items: [],
     })),
   } as unknown as Category);
 

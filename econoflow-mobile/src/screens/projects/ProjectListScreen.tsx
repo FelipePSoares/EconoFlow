@@ -1,5 +1,5 @@
-import React from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import React, { useState } from 'react';
+import { FlatList, StyleSheet, View, RefreshControl } from 'react-native';
 import { Card, FAB, Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -17,12 +17,19 @@ type Props = {
 
 export const ProjectListScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
-  const { data: projects, isLoading } = useProjects();
+  const { data: projects, isLoading, refetch } = useProjects();
   const { setSelectedProject } = useProjectStore();
+  const [refreshing, setRefreshing] = useState(false);
 
   const handleSelect = (userProject: UserProject) => {
     setSelectedProject(userProject);
     navigation.getParent<BottomTabNavigationProp<MainTabParamList>>()?.navigate('Overview');
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
   };
 
   if (isLoading) return <LoadingIndicator />;
@@ -46,6 +53,7 @@ export const ProjectListScreen: React.FC<Props> = ({ navigation }) => {
           <Text style={styles.empty}>{t('LabelNoProjects')}</Text>
         }
         contentContainerStyle={styles.list}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       />
       <FAB icon="plus" style={styles.fab} onPress={() => navigation.navigate('CreateProject')} />
     </View>

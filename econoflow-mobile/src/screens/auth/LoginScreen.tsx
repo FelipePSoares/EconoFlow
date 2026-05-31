@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
 import {
-  Image,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   View,
-  useColorScheme,
-  Dimensions,
 } from 'react-native';
 import { Button, TextInput, HelperText, useTheme } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
@@ -18,6 +15,7 @@ import type { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { mobileLogin, getCurrentUser } from '../../api/auth.api';
 import { useAuthStore } from '../../store/authStore';
 import i18n from '../../i18n';
+import { AuthHero } from '../../components/auth/AuthHero';
 
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'Login'>;
@@ -28,18 +26,12 @@ interface FormValues {
   password: string;
 }
 
-const { width } = Dimensions.get('window');
-
 export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
   const theme = useTheme();
   const { setTokens, setUser } = useAuthStore();
   const [loginError, setLoginError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
-  const colorScheme = useColorScheme();
-  const logoSource = colorScheme === 'dark'
-    ? require('../../../assets/logo-dark.png')
-    : require('../../../assets/logo-light.png');
 
   const { control, handleSubmit, formState: { errors } } = useForm<FormValues>({
     defaultValues: { email: '', password: '' },
@@ -97,13 +89,9 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-          <Image
-            source={logoSource}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+        <AuthHero subtitle={t('PleaseSignIn')} />
 
+        <View style={[styles.card, { backgroundColor: theme.colors.surface, shadowColor: theme.colors.shadow }]}>
           <Controller
             control={control}
             name="email"
@@ -167,6 +155,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
             disabled={loginMutation.isPending}
             style={styles.signInButton}
             contentStyle={styles.signInButtonContent}
+            color={theme.colors.primary}
           >
             {t('ButtonSignIn')}
           </Button>
@@ -195,21 +184,16 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  scroll: { flexGrow: 1, justifyContent: 'center', padding: 20 },
+  scroll: { flexGrow: 1 },
   card: {
+    marginHorizontal: 20,
+    marginTop: -16,
     borderRadius: 16,
-    padding: 28,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  logo: {
-    width: width * 0.55,
-    height: 90,
-    alignSelf: 'center',
-    marginBottom: 32,
+    padding: 24,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
   },
   input: { marginBottom: 2 },
   errorText: { marginBottom: 4 },

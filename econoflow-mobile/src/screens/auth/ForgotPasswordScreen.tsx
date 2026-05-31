@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { forgotPassword } from '../../api/auth.api';
+import { AuthHero } from '../../components/auth/AuthHero';
 
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'ForgotPassword'>;
@@ -34,23 +35,26 @@ export const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
 
   if (sent) {
     return (
-      <View style={[styles.flex, styles.center, { backgroundColor: theme.colors.background }]}>
-        <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-          <Text variant="headlineSmall" style={styles.title}>
-            {t('LabelCheckYourEmail')}
-          </Text>
-          <Text style={[styles.subtitle, { color: theme.colors.onSurface }]}>
-            {t('LabelPasswordResetSent')}
-          </Text>
-          <Button
-            mode="contained"
-            onPress={() => navigation.navigate('Login')}
-            style={styles.button}
-            contentStyle={styles.buttonContent}
-          >
-            {t('ButtonBackToLogin')}
-          </Button>
-        </View>
+      <View style={[styles.flex, { backgroundColor: theme.colors.background }]}>
+        <ScrollView contentContainerStyle={styles.scroll}>
+          <AuthHero subtitle={t('LabelCheckYourEmail')} />
+          <View style={[styles.card, { backgroundColor: theme.colors.surface, shadowColor: theme.colors.shadow }]}>
+            <Text variant="headlineSmall" style={styles.title}>
+              {t('LabelCheckYourEmail')}
+            </Text>
+            <Text style={[styles.subtitle, { color: theme.colors.onSurface }]}>
+              {t('LabelPasswordResetSent')}
+            </Text>
+            <Button
+              mode="contained"
+              onPress={() => navigation.navigate('Login')}
+              style={styles.button}
+              contentStyle={styles.buttonContent}
+            >
+              {t('ButtonBackToLogin')}
+            </Button>
+          </View>
+        </ScrollView>
       </View>
     );
   }
@@ -64,11 +68,10 @@ export const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-          <Text variant="headlineMedium" style={styles.title}>
-            {t('LabelForgotPassword')}
-          </Text>
-          <Text style={[styles.subtitle, { color: theme.colors.onSurface }]}>
+        <AuthHero subtitle={t('LabelForgotPassword')} />
+
+        <View style={[styles.card, { backgroundColor: theme.colors.surface, shadowColor: theme.colors.shadow }]}>
+          <Text variant="bodyMedium" style={[styles.description, { color: theme.colors.onSurfaceVariant }]}>
             {t('LabelForgotPasswordDescription')}
           </Text>
 
@@ -122,19 +125,20 @@ export const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  center: { justifyContent: 'center', padding: 20 },
-  scroll: { flexGrow: 1, justifyContent: 'center', padding: 20 },
+  scroll: { flexGrow: 1 },
   card: {
+    marginHorizontal: 20,
+    marginTop: -16,
     borderRadius: 16,
-    padding: 28,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    padding: 24,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
   },
   title: { textAlign: 'center', marginBottom: 8, fontWeight: 'bold' },
   subtitle: { textAlign: 'center', marginBottom: 28, opacity: 0.7 },
+  description: { textAlign: 'center', marginBottom: 20, lineHeight: 20 },
   input: { marginBottom: 4 },
   button: { marginTop: 20, borderRadius: 8 },
   buttonContent: { paddingVertical: 6 },

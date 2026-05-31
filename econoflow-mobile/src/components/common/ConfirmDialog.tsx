@@ -27,7 +27,7 @@ export const ConfirmDialog: React.FC<Props> = ({
         </Dialog.Content>
         <Dialog.Actions>
           <Button onPress={onCancel}>{t('ButtonCancel')}</Button>
-          <Button onPress={onConfirm}>{t('ButtonConfirm')}</Button>
+          <Button onPress={onConfirm}>{t('ButtonConfirm', { defaultValue: 'Confirm' })}</Button>
         </Dialog.Actions>
       </Dialog>
     </Portal>

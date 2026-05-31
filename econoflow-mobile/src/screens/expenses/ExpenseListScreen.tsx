@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { FlatList, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
-import { Divider, FAB, MD3Theme, Text, useTheme } from 'react-native-paper';
+import { FlatList, StyleSheet, TextInput, TouchableOpacity, View, RefreshControl } from 'react-native';
+import { Divider, FAB, Text } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -11,26 +11,32 @@ import { LoadingIndicator } from '../../components/common/LoadingIndicator';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { CurrencyDisplay } from '../../components/common/CurrencyDisplay';
 import { BudgetProgressBar } from '../../components/budget/BudgetProgressBar';
+import { ErrorBanner } from '../../components/common/ErrorBanner';
 import { fromDateOnly, toDateOnly } from '../../utils/date';
 import { toggleSetItem } from '../../utils/budget';
+import { useAppTheme } from '../../theme/useAppTheme';
+import type { AppTheme } from '../../theme/types';
 import type { CreateExpenseItemRequest, Expense, ExpenseItem } from '../../api/types';
 
 type Props = NativeStackScreenProps<OverviewStackParamList, 'ExpenseList'>;
 
 export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
   const { t } = useTranslation();
+  const theme = useAppTheme();
   const { categoryId, month } = route.params;
   const { selectedProject, currency } = useProjectStore();
   const projectId = selectedProject?.project.id ?? '';
   const canEdit = selectedProject?.role !== 'Viewer';
 
-  const { data: expenses, isLoading } = useExpensesForMonth(projectId, categoryId, month);
+  const { data: expenses, isLoading, isError, refetch } = useExpensesForMonth(projectId, categoryId, month);
   const deleteExpense = useDeleteExpense(projectId, categoryId, month);
   const addExpenseItem = useAddExpenseItem(projectId, categoryId, month);
   const deleteExpenseItem = useDeleteExpenseItem(projectId, categoryId, month);
 
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [dismissedError, setDismissedError] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const toggleExpand = (id: string) => {
     setExpandedIds((prev) => toggleSetItem(prev, id));
@@ -43,12 +49,26 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
     });
   };
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  };
+
   if (isLoading) return <LoadingIndicator />;
 
   return (
     <View style={styles.container}>
+      {isError && !dismissedError && (
+        <ErrorBanner
+          visible
+          message={t('ErrorGeneric')}
+          onDismiss={() => setDismissedError(true)}
+        />
+      )}
       <FlatList
         data={expenses}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <ExpenseRow
@@ -125,7 +145,7 @@ const ExpenseRow: React.FC<ExpenseRowProps> = ({
   onDeleteItem,
 }) => {
   const { t } = useTranslation();
-  const theme = useTheme<MD3Theme>();
+  const theme = useAppTheme();
   const date = fromDateOnly(expense.date);
   const dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 
@@ -194,7 +214,7 @@ const ExpenseRow: React.FC<ExpenseRowProps> = ({
           <Text variant="labelSmall" style={[styles.itemsHeader, { color: theme.colors.onSurfaceVariant }]}>
             {t('LabelExpenseItems')}
           </Text>
-          {expense.expenseItems?.map((item) => (
+          {expense.items?.map((item) => (
             <ExpenseItemRow
               key={item.id}
               item={item}
@@ -256,12 +276,12 @@ const ExpenseRow: React.FC<ExpenseRowProps> = ({
 interface ExpenseItemRowProps {
   item: ExpenseItem;
   currency: string;
-  theme: MD3Theme;
+  theme: AppTheme;
   canEdit: boolean;
   onDelete: () => void;
 }
 
-const ExpenseItemRow: React.FC<ExpenseItemRowProps> = ({ item, currency, theme, canEdit, onDelete }) => {
+const ExpenseItemRow: React.FC<ExpenseItemRowProps> = ({ item, currency, canEdit, onDelete, theme }) => {
   const { t } = useTranslation();
   const date = fromDateOnly(item.date);
   const dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });

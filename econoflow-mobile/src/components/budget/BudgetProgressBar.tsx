@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { ProgressBar, Text, useTheme } from 'react-native-paper';
+import { ProgressBar, Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
+import { useAppTheme } from '../../theme/useAppTheme';
 import { formatCurrency } from '../../utils/currency';
 
 interface Props {
@@ -11,14 +12,14 @@ interface Props {
 }
 
 export const BudgetProgressBar: React.FC<Props> = ({ spent, budget, currency }) => {
-  const theme = useTheme();
+  const theme = useAppTheme();
   const { t } = useTranslation();
   const progress = budget > 0 ? Math.min(spent / budget, 1) : 0;
   const remaining = budget - spent;
   const isOver = remaining < 0;
 
   const barColor =
-    progress >= 1 ? theme.colors.error : progress >= 0.7 ? '#f39c12' : theme.colors.primary;
+    progress >= 1 ? theme.colors.error : progress >= 0.7 ? theme.customColors.warning : theme.colors.primary;
 
   return (
     <View style={styles.container}>

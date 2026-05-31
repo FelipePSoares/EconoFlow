@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
 import {
-  Image,
   View,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  useColorScheme,
-  Dimensions,
 } from 'react-native';
 import { Button, Text, TextInput, HelperText, useTheme } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
@@ -16,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { register } from '../../api/auth.api';
+import { AuthHero } from '../../components/auth/AuthHero';
 
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'Register'>;
@@ -28,7 +26,6 @@ interface FormValues {
 }
 
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;
-const { width } = Dimensions.get('window');
 
 export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
@@ -36,10 +33,6 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   const [serverError, setServerError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const colorScheme = useColorScheme();
-  const logoSource = colorScheme === 'dark'
-    ? require('../../../assets/logo-dark.png')
-    : require('../../../assets/logo-light.png');
 
   const { control, handleSubmit, watch, formState: { errors } } = useForm<FormValues>({
     defaultValues: { email: '', password: '', confirmPassword: '' },
@@ -56,24 +49,26 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
 
   if (success) {
     return (
-      <View style={[styles.flex, styles.successContainer, { backgroundColor: theme.colors.background }]}>
-        <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-          <Image source={logoSource} style={styles.logo} resizeMode="contain" />
-          <Text variant="headlineSmall" style={styles.successTitle}>
-            {t('LabelCheckYourEmail')}
-          </Text>
-          <Text style={[styles.successSubtitle, { color: theme.colors.onSurface }]}>
-            {t('LabelConfirmEmailSent')}
-          </Text>
-          <Button
-            mode="contained"
-            onPress={() => navigation.navigate('Login')}
-            style={styles.signInButton}
-            contentStyle={styles.signInButtonContent}
-          >
-            {t('ButtonSignIn')}
-          </Button>
-        </View>
+      <View style={[styles.flex, { backgroundColor: theme.colors.background }]}>
+        <ScrollView contentContainerStyle={styles.scroll}>
+          <AuthHero subtitle={t('LabelCheckYourEmail')} />
+          <View style={[styles.card, { backgroundColor: theme.colors.surface, shadowColor: theme.colors.shadow }]}>
+            <Text variant="headlineSmall" style={styles.successTitle}>
+              {t('LabelCheckYourEmail')}
+            </Text>
+            <Text style={[styles.successSubtitle, { color: theme.colors.onSurface }]}>
+              {t('LabelConfirmEmailSent')}
+            </Text>
+            <Button
+              mode="contained"
+              onPress={() => navigation.navigate('Login')}
+              style={styles.button}
+              contentStyle={styles.buttonContent}
+            >
+              {t('ButtonSignIn')}
+            </Button>
+          </View>
+        </ScrollView>
       </View>
     );
   }
@@ -87,9 +82,9 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-          <Image source={logoSource} style={styles.logo} resizeMode="contain" />
+        <AuthHero subtitle={t('PleaseSignUp')} />
 
+        <View style={[styles.card, { backgroundColor: theme.colors.surface, shadowColor: theme.colors.shadow }]}>
           <Controller
             control={control}
             name="email"
@@ -173,8 +168,8 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
             onPress={handleSubmit((v) => { setServerError(null); registerMutation.mutate(v); })}
             loading={registerMutation.isPending}
             disabled={registerMutation.isPending}
-            style={styles.signInButton}
-            contentStyle={styles.signInButtonContent}
+            style={styles.button}
+            contentStyle={styles.buttonContent}
           >
             {t('ButtonRegister')}
           </Button>
@@ -194,27 +189,21 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  scroll: { flexGrow: 1, justifyContent: 'center', padding: 20 },
-  successContainer: { justifyContent: 'center', padding: 20 },
+  scroll: { flexGrow: 1 },
   card: {
+    marginHorizontal: 20,
+    marginTop: -16,
     borderRadius: 16,
-    padding: 28,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  logo: {
-    width: width * 0.55,
-    height: 90,
-    alignSelf: 'center',
-    marginBottom: 32,
+    padding: 24,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
   },
   successTitle: { textAlign: 'center', marginBottom: 12, fontWeight: 'bold' },
   successSubtitle: { textAlign: 'center', marginBottom: 24, opacity: 0.7 },
   input: { marginBottom: 2 },
-  signInButton: { marginTop: 20, borderRadius: 8 },
-  signInButtonContent: { paddingVertical: 6 },
+  button: { marginTop: 20, borderRadius: 8 },
+  buttonContent: { paddingVertical: 6 },
   link: { marginTop: 8, alignSelf: 'center' },
 });

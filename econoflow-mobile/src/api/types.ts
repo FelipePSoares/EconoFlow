@@ -73,7 +73,7 @@ export interface Expense {
   budget: number;
   isDeductible: boolean;
   attachments: ExpenseAttachment[];
-  expenseItems: ExpenseItem[];
+  items: ExpenseItem[];
 }
 
 export interface ExpenseItem {
