@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
-  View, TouchableOpacity, StyleSheet, Modal,
-  Pressable, ScrollView,
+  View, TouchableOpacity, StyleSheet, Modal, Pressable,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';

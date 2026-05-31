@@ -44,7 +44,17 @@
     "web": "expo start --web",
     "test": "jest --watchAll=false",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src/ App.tsx --ext .ts,.tsx --max-warnings 0"
+    "lint": "eslint src/ App.tsx --ext .ts,.tsx --max-warnings 0",
+    "prepare": "cd .. && git config core.hooksPath .husky || true"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": [
+      "eslint --max-warnings 0",
+      "bash -c 'cd .. && cd econoflow-mobile && tsc --noEmit'"
+    ],
+    "App.tsx": [
+      "eslint --max-warnings 0"
+    ]
   },
   "jest": {
     "preset": "jest-expo",
@@ -63,6 +73,8 @@
     "eslint-config-expo": "^56.0.4",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
-    "jest-expo": "~56.0.0"
+    "husky": "^9.1.7",
+    "jest-expo": "~56.0.0",
+    "lint-staged": "^17.0.7"
   }
 }

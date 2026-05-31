@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+# Pre-commit hook — runs lint + typecheck for any staged mobile-app files.
+# Installed via:  git config core.hooksPath .husky   (see scripts/install-hooks.sh)
+
+# Collect staged .ts / .tsx files inside econoflow-mobile/
+MOBILE_STAGED=$(git diff --cached --name-only --diff-filter=ACMR | grep '^econoflow-mobile/.*\.\(ts\|tsx\)$')
+
+if [ -n "$MOBILE_STAGED" ]; then
+  echo "🔍  Running mobile lint + typecheck on staged files…"
+  cd econoflow-mobile || exit 1
+
+  # Lint the whole src tree (fast; catches cross-file unused-var issues)
+  npm run lint || {
+    echo ""
+    echo "❌  ESLint failed. Fix the errors above before committing."
+    exit 1
+  }
+
+  # TypeScript strict check
+  npm run typecheck || {
+    echo ""
+    echo "❌  TypeScript check failed. Fix the errors above before committing."
+    exit 1
+  }
+
+  echo "✅  Mobile lint + typecheck passed."
+fi

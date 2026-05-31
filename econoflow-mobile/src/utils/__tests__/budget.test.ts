@@ -2,7 +2,7 @@ import { calculateTotalIncome, calculateTotalExpenses, calculateTotalBudget, tog
 import type { Category, Income } from '../../api/types';
 
 const makeIncome = (amount: number): Income =>
-  ({ id: '1', name: 'i', amount, date: '2024-01-01', isDeductible: false } as Income);
+  ({ id: '1', name: 'i', amount, date: '2024-01-01' } as Income);
 
 const makeCategory = (expenses: { amount: number; budget: number }[]): Category =>
   ({
@@ -16,6 +16,7 @@ const makeCategory = (expenses: { amount: number; budget: number }[]): Category 
       date: '2024-01-01',
       isDeductible: false,
       items: [],
+      attachments: [],
     })),
   } as unknown as Category);
 
@@ -27,11 +28,22 @@ describe('calculateTotalIncome', () => {
   it('returns 0 for an empty array', () => {
     expect(calculateTotalIncome([])).toBe(0);
   });
+
+  it('handles a single entry', () => {
+    expect(calculateTotalIncome([makeIncome(42)])).toBe(42);
+  });
+
+  it('handles fractional amounts', () => {
+    expect(calculateTotalIncome([makeIncome(10.5), makeIncome(0.5)])).toBeCloseTo(11);
+  });
 });
 
 describe('calculateTotalExpenses', () => {
   it('sums expense amounts across all categories', () => {
-    const cats = [makeCategory([{ amount: 50, budget: 100 }, { amount: 30, budget: 80 }]), makeCategory([{ amount: 20, budget: 40 }])];
+    const cats = [
+      makeCategory([{ amount: 50, budget: 100 }, { amount: 30, budget: 80 }]),
+      makeCategory([{ amount: 20, budget: 40 }]),
+    ];
     expect(calculateTotalExpenses(cats)).toBe(100);
   });
 
@@ -42,16 +54,27 @@ describe('calculateTotalExpenses', () => {
   it('returns 0 for categories with no expenses', () => {
     expect(calculateTotalExpenses([makeCategory([])])).toBe(0);
   });
+
+  it('handles a single category with a single expense', () => {
+    expect(calculateTotalExpenses([makeCategory([{ amount: 99, budget: 100 }])])).toBe(99);
+  });
 });
 
 describe('calculateTotalBudget', () => {
   it('sums budget amounts across all categories', () => {
-    const cats = [makeCategory([{ amount: 50, budget: 100 }, { amount: 30, budget: 80 }]), makeCategory([{ amount: 20, budget: 40 }])];
+    const cats = [
+      makeCategory([{ amount: 50, budget: 100 }, { amount: 30, budget: 80 }]),
+      makeCategory([{ amount: 20, budget: 40 }]),
+    ];
     expect(calculateTotalBudget(cats)).toBe(220);
   });
 
   it('returns 0 for an empty array', () => {
     expect(calculateTotalBudget([])).toBe(0);
+  });
+
+  it('handles zero-budget expenses', () => {
+    expect(calculateTotalBudget([makeCategory([{ amount: 50, budget: 0 }])])).toBe(0);
   });
 });
 
@@ -72,5 +95,16 @@ describe('toggleSetItem', () => {
     const original = new Set(['a']);
     toggleSetItem(original, 'b');
     expect(original.size).toBe(1);
+  });
+
+  it('handles toggling on an empty set', () => {
+    const result = toggleSetItem(new Set(), 'x');
+    expect(result.has('x')).toBe(true);
+    expect(result.size).toBe(1);
+  });
+
+  it('results in an empty set when the only element is removed', () => {
+    const result = toggleSetItem(new Set(['only']), 'only');
+    expect(result.size).toBe(0);
   });
 });

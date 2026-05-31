@@ -22,7 +22,6 @@ type Props = NativeStackScreenProps<OverviewStackParamList, 'ExpenseList'>;
 
 export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
   const { t } = useTranslation();
-  const theme = useAppTheme();
   const { categoryId, month } = route.params;
   const { selectedProject, currency } = useProjectStore();
   const projectId = selectedProject?.project.id ?? '';
