@@ -11,7 +11,7 @@ import { CategoryCard } from '../../components/budget/CategoryCard';
 import { LoadingIndicator } from '../../components/common/LoadingIndicator';
 import { ErrorBanner } from '../../components/common/ErrorBanner';
 import { MonthNavigator } from '../../components/common/MonthNavigator';
-import { AuroraMesh } from '../../components/common/AuroraMesh';
+import { GlassScreen } from '../../components/common/GlassScreen';
 
 type Props = NativeStackScreenProps<OverviewStackParamList, 'CategoryList'>;
 
@@ -28,7 +28,6 @@ export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
   const { data: categories, isLoading, isError, refetch } =
     useCategoriesForMonth(projectId, month);
 
-  const bg   = dark ? '#061e33' : '#e6eff6';
   const ink2 = dark ? '#8aa0b6' : '#5b6b7c';
 
   const onRefresh = async () => {
@@ -42,9 +41,7 @@ export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
   const activeCategories = categories?.filter(c => !c.isArchived) ?? [];
 
   return (
-    <View style={[styles.container, { backgroundColor: bg }]}>
-      <AuroraMesh dark={dark} />
-
+    <GlassScreen dark={dark}>
       <View style={{ paddingTop: insets.top }}>
         <MonthNavigator month={month} onChange={setMonth} dark={dark} />
       </View>
@@ -71,6 +68,7 @@ export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
                 categoryId: item.id,
                 categoryName: item.name,
                 month,
+                categoryIndex: index,
               })
             }
           />
@@ -83,7 +81,7 @@ export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={ink2} />
         }
       />
-    </View>
+    </GlassScreen>
   );
 };
 

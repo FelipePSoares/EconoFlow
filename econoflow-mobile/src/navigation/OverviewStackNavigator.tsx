@@ -16,6 +16,8 @@ export type OverviewStackParamList = {
     categoryId: string;
     categoryName: string;
     month: string;
+    /** Index of this category in the list — used to pick the Aurora accent colour. */
+    categoryIndex?: number;
   };
   ExpenseForm: {
     categoryId: string;
@@ -43,17 +45,15 @@ export type OverviewStackParamList = {
 
 const Stack = createNativeStackNavigator<OverviewStackParamList>();
 
-// Screens that own their own header and must suppress the navigation bar
-const HEADERLESS = ['MonthlyOverview', 'CategoryList'] as const;
+// Aurora screens that own their own full-screen header — suppress the nav bar
+const HEADERLESS = ['MonthlyOverview', 'CategoryList', 'ExpenseList'] as const;
 
 export const OverviewStackNavigator: React.FC = () => {
   const { t } = useTranslation();
   const dark = useColorScheme() === 'dark';
 
-  const secondaryHeaderStyle = {
-    backgroundColor: dark ? '#0c1a2b' : '#e6eff6',
-  };
-  const secondaryTintColor = dark ? '#e6edf3' : '#0d2137';
+  const secondaryHeaderStyle = { backgroundColor: dark ? '#0c1a2b' : '#e6eff6' };
+  const secondaryTintColor   = dark ? '#e6edf3' : '#0d2137';
 
   return (
     <Stack.Navigator

@@ -1,52 +1,57 @@
 import React, { useState } from 'react';
-import { FlatList, StyleSheet, TextInput, TouchableOpacity, View, RefreshControl } from 'react-native';
-import { Divider, FAB, Text } from 'react-native-paper';
+import {
+  StyleSheet, TouchableOpacity, View,
+  ScrollView, RefreshControl, TextInput,
+} from 'react-native';
+import { Text } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { OverviewStackParamList } from '../../navigation/OverviewStackNavigator';
 import { useProjectStore } from '../../store/projectStore';
-import { useExpensesForMonth, useDeleteExpense, useAddExpenseItem, useDeleteExpenseItem } from '../../hooks/useExpenses';
+import {
+  useExpensesForMonth, useDeleteExpense,
+  useAddExpenseItem, useDeleteExpenseItem,
+} from '../../hooks/useExpenses';
 import { LoadingIndicator } from '../../components/common/LoadingIndicator';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
-import { CurrencyDisplay } from '../../components/common/CurrencyDisplay';
-import { BudgetProgressBar } from '../../components/budget/BudgetProgressBar';
-import { ErrorBanner } from '../../components/common/ErrorBanner';
-import { fromDateOnly, toDateOnly } from '../../utils/date';
+import { GlassScreen } from '../../components/common/GlassScreen';
+import { GlassCard } from '../../components/common/GlassCard';
+import { fromDateOnly, toDateOnly, formatMonthLabel } from '../../utils/date';
 import { toggleSetItem } from '../../utils/budget';
-import { useAppTheme } from '../../theme/useAppTheme';
-import type { AppTheme } from '../../theme/types';
+import { getCategoryColor } from '../../utils/categoryTheme';
+import { useAuroraSkin } from '../../theme/useAuroraSkin';
+import type { TFunction } from 'i18next';
 import type { CreateExpenseItemRequest, Expense, ExpenseItem } from '../../api/types';
 
 type Props = NativeStackScreenProps<OverviewStackParamList, 'ExpenseList'>;
 
+function fmt(n: number): string {
+  return Math.round(Math.abs(n)).toLocaleString('pt-BR');
+}
+
 export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
   const { t } = useTranslation();
-  const { categoryId, month } = route.params;
+  const { dark, ink, ink2, hair } = useAuroraSkin();
+  const insets = useSafeAreaInsets();
+
+  const { categoryId, categoryName, month, categoryIndex = 0 } = route.params;
+  const color = getCategoryColor(categoryIndex);
+
   const { selectedProject, currency } = useProjectStore();
   const projectId = selectedProject?.project.id ?? '';
   const canEdit = selectedProject?.role !== 'Viewer';
 
-  const { data: expenses, isLoading, isError, refetch } = useExpensesForMonth(projectId, categoryId, month);
-  const deleteExpense = useDeleteExpense(projectId, categoryId, month);
-  const addExpenseItem = useAddExpenseItem(projectId, categoryId, month);
+  const { data: expenses, isLoading, refetch } =
+    useExpensesForMonth(projectId, categoryId, month);
+  const deleteExpense    = useDeleteExpense(projectId, categoryId, month);
+  const addExpenseItem   = useAddExpenseItem(projectId, categoryId, month);
   const deleteExpenseItem = useDeleteExpenseItem(projectId, categoryId, month);
 
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-  const [dismissedError, setDismissedError] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-
-  const toggleExpand = (id: string) => {
-    setExpandedIds((prev) => toggleSetItem(prev, id));
-  };
-
-  const confirmDelete = () => {
-    if (!pendingDeleteId) return;
-    deleteExpense.mutate(pendingDeleteId, {
-      onSuccess: () => setPendingDeleteId(null),
-    });
-  };
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -56,371 +61,443 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
 
   if (isLoading) return <LoadingIndicator />;
 
-  return (
-    <View style={styles.container}>
-      {isError && !dismissedError && (
-        <ErrorBanner
-          visible
-          message={t('ErrorGeneric')}
-          onDismiss={() => setDismissedError(true)}
-        />
-      )}
-      <FlatList
-        data={expenses}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <ExpenseRow
-            expense={item}
-            currency={currency}
-            canEdit={canEdit}
-            isExpanded={expandedIds.has(item.id)}
-            onToggleExpand={() => toggleExpand(item.id)}
-            onEdit={() =>
-              navigation.navigate('ExpenseForm', {
-                categoryId,
-                month,
-                expenseId: item.id,
-                initialValues: {
-                  name: item.name,
-                  amount: item.amount,
-                  budget: item.budget,
-                  date: item.date,
-                  isDeductible: item.isDeductible,
-                },
-              })
-            }
-            onDelete={() => setPendingDeleteId(item.id)}
-            onAddItem={(newItem) => addExpenseItem.mutate({ expenseId: item.id, item: newItem })}
-            onDeleteItem={(expenseItemId) => deleteExpenseItem.mutate({ expenseId: item.id, expenseItemId })}
-          />
-        )}
-        ListEmptyComponent={
-          <Text style={styles.empty}>{t('LabelNoExpenses') ?? 'No expenses this month'}</Text>
-        }
-        contentContainerStyle={styles.list}
-      />
+  const list = expenses ?? [];
+  const totalSpent  = list.reduce((s, e) => s + e.amount, 0);
+  const totalBudget = list.reduce((s, e) => s + e.budget, 0);
+  const pct = totalBudget > 0 ? Math.min(Math.round((totalSpent / totalBudget) * 100), 100) : 0;
 
-      {canEdit && (
-        <FAB
-          icon="plus"
-          style={styles.fab}
-          onPress={() => navigation.navigate('ExpenseForm', { categoryId, month })}
-        />
-      )}
+  return (
+    <GlassScreen dark={dark}>
+      {/* ── Custom header ─────────────────────────────────────────────── */}
+      <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={[styles.headerBtn, { borderColor: dark ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.8)' }]}
+          activeOpacity={0.7}
+        >
+          <MaterialCommunityIcons name="arrow-left" size={22} color={ink} />
+        </TouchableOpacity>
+
+        <View style={styles.headerTitle}>
+          <Text style={[styles.headerName, { color: ink }]}>{categoryName}</Text>
+          <Text style={[styles.headerMonth, { color: ink2 }]}>{formatMonthLabel(month)}</Text>
+        </View>
+
+        {canEdit && (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('ExpenseForm', { categoryId, month })}
+            style={[styles.headerBtn, { borderColor: dark ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.8)', backgroundColor: color }]}
+            activeOpacity={0.7}
+          >
+            <MaterialCommunityIcons name="plus" size={22} color="#fff" />
+          </TouchableOpacity>
+        )}
+      </View>
+
+      <ScrollView
+        style={styles.fill}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={ink2} />
+        }
+      >
+        {/* ── Summary card ─────────────────────────────────────────────── */}
+        <GlassCard dark={dark} radius={26} style={styles.summaryCard}>
+          <View style={styles.summaryInner}>
+            {/* Ring indicator */}
+            <View style={styles.ringWrap}>
+              <View style={[styles.ringOuter, { borderColor: color + '44' }]}>
+                <View style={[
+                  styles.ringProgress,
+                  {
+                    borderTopColor: color,
+                    borderLeftColor: color,
+                    borderRightColor: 'transparent',
+                    borderBottomColor: pct > 50 ? color : 'transparent',
+                    transform: [{ rotate: '-45deg' }],
+                  },
+                ]} />
+                <View style={styles.ringCenter}>
+                  <MaterialCommunityIcons name="shape-outline" size={24} color={color} />
+                </View>
+              </View>
+            </View>
+
+            {/* Text info */}
+            <View style={styles.summaryMeta}>
+              <Text style={[styles.summaryMonthLabel, { color: ink2 }]}>
+                {t('LabelExpenses') ?? 'Expenses'} · {formatMonthLabel(month)}
+              </Text>
+              <Text style={[styles.summaryAmt, { color: ink }]}>
+                {currency} {fmt(totalSpent)}
+              </Text>
+              {totalBudget > 0 && (
+                <Text style={[styles.summaryBudget, { color: ink2 }]}>
+                  {t('Budget') ?? 'of'} {currency} {fmt(totalBudget)} · {pct}%
+                </Text>
+              )}
+              {/* Progress bar */}
+              <View style={[styles.summaryBar, { backgroundColor: color + '22' }]}>
+                <View style={[
+                  styles.summaryBarFill,
+                  { width: `${pct}%` as `${number}%`, backgroundColor: color },
+                ]} />
+              </View>
+            </View>
+          </View>
+        </GlassCard>
+
+        {/* ── Section header ────────────────────────────────────────────── */}
+        <View style={styles.sectionHead}>
+          <Text style={[styles.sectionTitle, { color: ink }]}>
+            {t('ListExpenses') ?? 'Expense groups'}
+          </Text>
+          <Text style={[styles.sectionCount, { color: ink2 }]}>
+            {list.length} {t('LabelExpenseItems') ?? 'items'}
+          </Text>
+        </View>
+
+        {/* ── Expense group accordion ───────────────────────────────────── */}
+        {list.length === 0 ? (
+          <View style={styles.emptyWrap}>
+            <MaterialCommunityIcons name="script-text-outline" size={44} color={ink2} />
+            <Text style={[styles.emptyText, { color: ink2 }]}>
+              {t('LabelNoExpenses') ?? 'No expenses this month'}
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.groupList}>
+            {list.map((expense) => {
+              const isOpen = expandedIds.has(expense.id);
+              return (
+                <GlassCard key={expense.id} dark={dark} radius={18} style={styles.groupCard}>
+                  {/* ── Group header ──────────────────────────────────── */}
+                  <TouchableOpacity
+                    onPress={() => setExpandedIds(prev => toggleSetItem(prev, expense.id))}
+                    activeOpacity={0.75}
+                    style={styles.groupHeader}
+                  >
+                    <View style={[styles.groupIcon, { backgroundColor: color + (dark ? '33' : '22') }]}>
+                      <MaterialCommunityIcons name="wallet-outline" size={20} color={color} />
+                    </View>
+
+                    <View style={styles.groupInfo}>
+                      <Text style={[styles.groupName, { color: ink }]}>{expense.name}</Text>
+                      <Text style={[styles.groupSub, { color: ink2 }]}>
+                        {expense.items?.length > 0
+                          ? `${expense.items.length} ${t('LabelExpenseItems') ?? 'items'}`
+                          : fromDateOnly(expense.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                      </Text>
+                    </View>
+
+                    <Text style={[styles.groupAmt, { color: '#e74c3c' }]}>
+                      −{currency} {fmt(expense.amount)}
+                    </Text>
+
+                    {canEdit && (
+                      <>
+                        <TouchableOpacity
+                          onPress={() => navigation.navigate('ExpenseForm', {
+                            categoryId, month, expenseId: expense.id,
+                            initialValues: {
+                              name: expense.name, amount: expense.amount,
+                              budget: expense.budget, date: expense.date,
+                              isDeductible: expense.isDeductible,
+                            },
+                          })}
+                          hitSlop={6}
+                          style={styles.groupAction}
+                        >
+                          <MaterialCommunityIcons name="pencil-outline" size={16} color={ink2} />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          onPress={() => setPendingDeleteId(expense.id)}
+                          hitSlop={6}
+                          style={styles.groupAction}
+                        >
+                          <MaterialCommunityIcons name="trash-can-outline" size={16} color="#e74c3c" />
+                        </TouchableOpacity>
+                      </>
+                    )}
+
+                    <MaterialCommunityIcons
+                      name="chevron-down"
+                      size={20}
+                      color={ink2}
+                      style={{ transform: [{ rotate: isOpen ? '180deg' : '0deg' }] }}
+                    />
+                  </TouchableOpacity>
+
+                  {/* ── Expanded items ────────────────────────────────── */}
+                  {isOpen && (
+                    <ExpenseItemsSection
+                      expense={expense}
+                      currency={currency}
+                      color={color}
+                      dark={dark}
+                      ink={ink}
+                      ink2={ink2}
+                      hair={hair}
+                      canEdit={canEdit}
+                      t={t}
+                      onAddItem={(item) =>
+                        addExpenseItem.mutate({ expenseId: expense.id, item })
+                      }
+                      onDeleteItem={(expenseItemId) =>
+                        deleteExpenseItem.mutate({ expenseId: expense.id, expenseItemId })
+                      }
+                    />
+                  )}
+                </GlassCard>
+              );
+            })}
+          </View>
+        )}
+      </ScrollView>
 
       <ConfirmDialog
         visible={!!pendingDeleteId}
         title={t('LabelDeleteExpense') ?? 'Delete expense'}
-        message={t('LabelConfirmDeleteExpense') ?? 'Are you sure you want to delete this expense?'}
-        onConfirm={confirmDelete}
+        message={t('LabelConfirmDeleteExpense') ?? 'Are you sure?'}
+        onConfirm={() => {
+          if (!pendingDeleteId) return;
+          deleteExpense.mutate(pendingDeleteId, {
+            onSuccess: () => setPendingDeleteId(null),
+          });
+        }}
         onCancel={() => setPendingDeleteId(null)}
       />
-    </View>
+    </GlassScreen>
   );
 };
 
-interface ExpenseRowProps {
+// ── Expanded items section ──────────────────────────────────────────────────
+interface ItemsSectionProps {
   expense: Expense;
   currency: string;
+  color: string;
+  dark: boolean;
+  ink: string; ink2: string; hair: string;
   canEdit: boolean;
-  isExpanded: boolean;
-  onToggleExpand: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
+  t: TFunction;
   onAddItem: (item: CreateExpenseItemRequest) => void;
-  onDeleteItem: (expenseItemId: string) => void;
+  onDeleteItem: (id: string) => void;
 }
 
-const ExpenseRow: React.FC<ExpenseRowProps> = ({
-  expense,
-  currency,
-  canEdit,
-  isExpanded,
-  onToggleExpand,
-  onEdit,
-  onDelete,
-  onAddItem,
-  onDeleteItem,
+const ExpenseItemsSection: React.FC<ItemsSectionProps> = ({
+  expense, currency, color, dark, ink, ink2, hair, canEdit, t, onAddItem, onDeleteItem,
 }) => {
-  const { t } = useTranslation();
-  const theme = useAppTheme();
-  const date = fromDateOnly(expense.date);
-  const dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  const [isAdding, setIsAdding] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newAmount, setNewAmount] = useState('');
 
-  const [isAddingItem, setIsAddingItem] = useState(false);
-  const [newItemName, setNewItemName] = useState('');
-  const [newItemAmount, setNewItemAmount] = useState('');
-
-  const handleSaveItem = () => {
-    const amount = parseFloat(newItemAmount) || 0;
-    onAddItem({ name: newItemName.trim(), date: toDateOnly(new Date()), amount });
-    setIsAddingItem(false);
-    setNewItemName('');
-    setNewItemAmount('');
+  const save = () => {
+    onAddItem({ name: newName.trim(), date: toDateOnly(new Date()), amount: parseFloat(newAmount) || 0 });
+    setIsAdding(false); setNewName(''); setNewAmount('');
   };
 
-  const handleCancelItem = () => {
-    setIsAddingItem(false);
-    setNewItemName('');
-    setNewItemAmount('');
-  };
+  const tintBg     = dark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.3)';
+  const inputBg    = dark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.6)';
+  const inputBorderColor = dark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.7)';
 
   return (
-    <View style={[styles.expenseCard, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline }]}>
-      <View style={styles.expenseHeader}>
-        <TouchableOpacity onPress={onToggleExpand} style={styles.chevron} hitSlop={8}>
-          <MaterialCommunityIcons
-            name={isExpanded ? 'chevron-down' : 'chevron-right'}
-            size={20}
-            color={theme.colors.onSurfaceVariant}
-          />
-        </TouchableOpacity>
-        <View style={styles.expenseMain}>
-          <View style={styles.expenseTitleRow}>
-            <Text variant="titleSmall" style={styles.expenseName}>
-              {expense.name}
-            </Text>
-            <View style={styles.expenseActions}>
-              {canEdit && (
-                <>
-                  <TouchableOpacity onPress={onEdit} hitSlop={8} style={styles.actionBtn}>
-                    <MaterialCommunityIcons name="pencil" size={18} color={theme.colors.onSurfaceVariant} />
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={onDelete} hitSlop={8} style={styles.actionBtn}>
-                    <MaterialCommunityIcons name="delete" size={18} color={theme.colors.error} />
-                  </TouchableOpacity>
-                </>
-              )}
-            </View>
-          </View>
-          <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
-            {dateStr}
-          </Text>
-          <View style={styles.budgetWrap}>
-            <BudgetProgressBar
-              spent={expense.amount}
-              budget={expense.budget}
-              currency={currency}
-            />
-          </View>
-        </View>
-      </View>
+    <View style={[styles.itemsSection, { borderTopColor: hair, backgroundColor: tintBg }]}>
+      {expense.items?.map((item, i) => (
+        <ExpenseItemRow
+          key={item.id}
+          item={item}
+          currency={currency}
+          color={color}
+          ink={ink}
+          ink2={ink2}
+          hair={hair}
+          isLast={i === (expense.items?.length ?? 0) - 1 && !canEdit}
+          canEdit={canEdit}
+          onDelete={() => onDeleteItem(item.id)}
+        />
+      ))}
 
-      {isExpanded && (
-        <View style={styles.itemsSection}>
-          <Divider />
-          <Text variant="labelSmall" style={[styles.itemsHeader, { color: theme.colors.onSurfaceVariant }]}>
-            {t('LabelExpenseItems')}
+      {canEdit && !isAdding && (
+        <TouchableOpacity
+          onPress={() => setIsAdding(true)}
+          style={styles.addItemBtn}
+          hitSlop={6}
+        >
+          <MaterialCommunityIcons name="plus-circle-outline" size={15} color={color} />
+          <Text style={[styles.addItemLabel, { color }]}>
+            {t('ButtonAddItem') ?? 'Add item'}
           </Text>
-          {expense.items?.map((item) => (
-            <ExpenseItemRow
-              key={item.id}
-              item={item}
-              currency={currency}
-              theme={theme}
-              canEdit={canEdit}
-              onDelete={() => onDeleteItem(item.id)}
-            />
-          ))}
-          {canEdit && !isAddingItem && (
-            <TouchableOpacity
-              onPress={() => setIsAddingItem(true)}
-              style={styles.addItemBtn}
-              hitSlop={4}
-            >
-              <MaterialCommunityIcons name="plus" size={14} color={theme.colors.primary} />
-              <Text variant="labelSmall" style={{ color: theme.colors.primary }}>
-                {t('ButtonAddItem') ?? 'Add Item'}
-              </Text>
+        </TouchableOpacity>
+      )}
+
+      {isAdding && (
+        <View style={styles.addItemForm}>
+          <TextInput
+            placeholder={t('FieldExpenseName') ?? 'Name (optional)'}
+            value={newName}
+            onChangeText={setNewName}
+            placeholderTextColor={ink2}
+            style={[styles.addItemInput, { color: ink, backgroundColor: inputBg, borderColor: inputBorderColor }]}
+          />
+          <TextInput
+            placeholder={t('FieldAmount') ?? 'Amount'}
+            value={newAmount}
+            onChangeText={setNewAmount}
+            keyboardType="decimal-pad"
+            placeholderTextColor={ink2}
+            style={[styles.addItemInput, { color: ink, backgroundColor: inputBg, borderColor: inputBorderColor }]}
+          />
+          <View style={styles.addItemActions}>
+            <TouchableOpacity onPress={() => { setIsAdding(false); setNewName(''); setNewAmount(''); }} hitSlop={8}>
+              <Text style={[styles.addItemAction, { color: ink2 }]}>{t('ButtonCancel') ?? 'Cancel'}</Text>
             </TouchableOpacity>
-          )}
-          {isAddingItem && (
-            <View style={[styles.addItemForm, { borderColor: theme.colors.outline }]}>
-              <TextInput
-                placeholder={t('FieldExpenseName') ?? 'Name (optional)'}
-                value={newItemName}
-                onChangeText={setNewItemName}
-                style={[styles.addItemInput, { color: theme.colors.onSurface, borderColor: theme.colors.outline, backgroundColor: theme.colors.background }]}
-                placeholderTextColor={theme.colors.onSurfaceVariant}
-              />
-              <TextInput
-                placeholder={t('FieldAmount') ?? 'Amount'}
-                value={newItemAmount}
-                onChangeText={setNewItemAmount}
-                keyboardType="decimal-pad"
-                style={[styles.addItemInput, { color: theme.colors.onSurface, borderColor: theme.colors.outline, backgroundColor: theme.colors.background }]}
-                placeholderTextColor={theme.colors.onSurfaceVariant}
-              />
-              <View style={styles.addItemActions}>
-                <TouchableOpacity onPress={handleCancelItem} hitSlop={8}>
-                  <Text variant="labelMedium" style={{ color: theme.colors.onSurfaceVariant }}>
-                    {t('ButtonCancel') ?? 'Cancel'}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleSaveItem} hitSlop={8}>
-                  <Text variant="labelMedium" style={{ color: theme.colors.primary }}>
-                    {t('ButtonSave') ?? 'Save'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
+            <TouchableOpacity onPress={save} hitSlop={8}>
+              <Text style={[styles.addItemAction, { color }]}>{t('ButtonSave') ?? 'Save'}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
     </View>
   );
 };
 
-interface ExpenseItemRowProps {
+// ── Single item row ─────────────────────────────────────────────────────────
+interface ItemRowProps {
   item: ExpenseItem;
   currency: string;
-  theme: AppTheme;
+  color: string;
+  ink: string; ink2: string; hair: string;
+  isLast: boolean;
   canEdit: boolean;
   onDelete: () => void;
 }
 
-const ExpenseItemRow: React.FC<ExpenseItemRowProps> = ({ item, currency, canEdit, onDelete, theme }) => {
-  const { t } = useTranslation();
+const ExpenseItemRow: React.FC<ItemRowProps> = ({
+  item, currency, color, ink, ink2, hair, isLast, canEdit, onDelete,
+}) => {
   const date = fromDateOnly(item.date);
   const dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 
   return (
-    <View style={styles.itemRow}>
+    <View style={[styles.itemRow, { borderBottomColor: isLast ? 'transparent' : hair }]}>
+      {/* Colored bullet */}
+      <View style={[styles.itemBullet, { backgroundColor: color }]} />
+
       <View style={styles.itemLeft}>
-        {item.name?.trim() ? (
-          <Text variant="bodySmall" style={{ color: theme.colors.onSurface }}>
-            {item.name}
-          </Text>
-        ) : (
-          <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, fontStyle: 'italic' }}>
-            {t('PlaceholderItemWithoutName') ?? '(no name)'}
-          </Text>
-        )}
-        <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
-          {dateStr}
+        <Text style={[styles.itemName, { color: ink }]} numberOfLines={1}>
+          {item.name?.trim() || '—'}
         </Text>
+        <Text style={[styles.itemDate, { color: ink2 }]}>{dateStr}</Text>
       </View>
-      <View style={styles.itemRight}>
-        <CurrencyDisplay
-          amount={item.amount}
-          currency={currency}
-          style={styles.itemAmount}
-        />
-        {canEdit && (
-          <TouchableOpacity onPress={onDelete} hitSlop={8} style={styles.itemDeleteBtn}>
-            <MaterialCommunityIcons name="delete-outline" size={16} color={theme.colors.error} />
-          </TouchableOpacity>
-        )}
-      </View>
+
+      <Text style={[styles.itemAmt, { color: ink }]}>
+        {currency} {fmt(item.amount)}
+      </Text>
+
+      {canEdit && (
+        <TouchableOpacity onPress={onDelete} hitSlop={8} style={styles.itemDelete}>
+          <MaterialCommunityIcons name="trash-can-outline" size={15} color="#e74c3c" />
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  list: { padding: 12, paddingBottom: 80 },
-  empty: { textAlign: 'center', marginTop: 40, opacity: 0.5 },
-  fab: { position: 'absolute', right: 16, bottom: 16 },
+  fill: { flex: 1 },
 
-  expenseCard: {
-    borderRadius: 8,
-    borderWidth: 1,
-    marginBottom: 8,
-    overflow: 'hidden',
-  },
-  expenseHeader: {
+  // Custom header
+  header: {
     flexDirection: 'row',
-    padding: 12,
-    gap: 4,
-  },
-  chevron: {
-    paddingTop: 2,
-    paddingRight: 4,
-  },
-  expenseMain: {
-    flex: 1,
-    gap: 4,
-  },
-  expenseTitleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 18,
+    paddingBottom: 10,
+    gap: 12,
   },
-  expenseName: {
-    fontWeight: '600',
-    flex: 1,
+  headerBtn: {
+    width: 42, height: 42, borderRadius: 14, borderWidth: 1,
+    alignItems: 'center', justifyContent: 'center',
   },
-  expenseActions: {
-    flexDirection: 'row',
-    gap: 4,
-  },
-  actionBtn: {
-    padding: 4,
-  },
-  budgetWrap: {
-    marginTop: 4,
-  },
+  headerTitle: { flex: 1, alignItems: 'center' },
+  headerName:  { fontSize: 16, fontWeight: '800' },
+  headerMonth: { fontSize: 11.5, fontWeight: '600' },
 
-  itemsSection: {
-    paddingHorizontal: 12,
-    paddingBottom: 8,
+  // Summary card
+  summaryCard:  { marginHorizontal: 18, marginBottom: 16 },
+  summaryInner: { flexDirection: 'row', alignItems: 'center', gap: 16, padding: 18 },
+  ringWrap:     { flexShrink: 0 },
+  ringOuter: {
+    width: 72, height: 72, borderRadius: 36,
+    borderWidth: 8,
+    alignItems: 'center', justifyContent: 'center',
+    position: 'relative',
   },
-  itemsHeader: {
-    marginTop: 8,
-    marginBottom: 4,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+  ringProgress: {
+    position: 'absolute', width: 72, height: 72, borderRadius: 36, borderWidth: 8,
+  },
+  ringCenter: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  summaryMeta:       { flex: 1 },
+  summaryMonthLabel: { fontSize: 12, fontWeight: '600', marginBottom: 4 },
+  summaryAmt:        { fontSize: 26, fontWeight: '800', letterSpacing: -0.5 },
+  summaryBudget:     { fontSize: 12, marginTop: 2 },
+  summaryBar:        { height: 4, borderRadius: 2, marginTop: 8, overflow: 'hidden' },
+  summaryBarFill:    { height: 4, borderRadius: 2 },
+
+  // Section header
+  sectionHead:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingHorizontal: 22, marginBottom: 10 },
+  sectionTitle: { fontSize: 15, fontWeight: '800' },
+  sectionCount: { fontSize: 12.5, fontWeight: '600' },
+
+  // Empty
+  emptyWrap: { alignItems: 'center', paddingVertical: 48, gap: 12 },
+  emptyText: { fontSize: 14, opacity: 0.6 },
+
+  // Group list
+  groupList: { paddingHorizontal: 18, gap: 10 },
+  groupCard: {},
+  groupHeader: {
+    flexDirection: 'row', alignItems: 'center', gap: 10, padding: 13,
+  },
+  groupIcon: {
+    width: 42, height: 42, borderRadius: 13,
+    alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+  },
+  groupInfo:   { flex: 1, gap: 2 },
+  groupName:   { fontSize: 14, fontWeight: '700' },
+  groupSub:    { fontSize: 11.5 },
+  groupAmt:    { fontSize: 13.5, fontWeight: '800' },
+  groupAction: { padding: 4 },
+
+  // Expanded items section
+  itemsSection: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
   },
   itemRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 4,
-    paddingLeft: 8,
+    gap: 10,
+    paddingVertical: 9,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  itemLeft: {
-    flex: 1,
-    gap: 2,
-  },
-  itemRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  itemAmount: {
-    fontWeight: '600',
-    fontSize: 13,
-  },
-  itemDeleteBtn: {
-    padding: 2,
-  },
+  itemBullet: { width: 7, height: 7, borderRadius: 4, flexShrink: 0 },
+  itemLeft:   { flex: 1, gap: 2 },
+  itemName:   { fontSize: 13.5, fontWeight: '600' },
+  itemDate:   { fontSize: 11 },
+  itemAmt:    { fontSize: 13.5, fontWeight: '700' },
+  itemDelete: { padding: 3 },
 
-  addItemBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingVertical: 6,
-    paddingLeft: 8,
-    marginTop: 2,
-  },
-  addItemForm: {
-    marginTop: 8,
-    gap: 8,
-    borderTopWidth: 1,
-    paddingTop: 8,
-  },
+  // Add item
+  addItemBtn:     { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 10, paddingLeft: 4 },
+  addItemLabel:   { fontSize: 13, fontWeight: '700' },
+  addItemForm:    { paddingVertical: 8, gap: 8 },
   addItemInput: {
-    borderWidth: 1,
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    fontSize: 13,
+    borderWidth: 1, borderRadius: 10,
+    paddingHorizontal: 12, paddingVertical: 9,
+    fontSize: 13.5,
   },
-  addItemActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 16,
-    paddingBottom: 2,
-  },
+  addItemActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 18 },
+  addItemAction:  { fontSize: 13.5, fontWeight: '700' },
 });

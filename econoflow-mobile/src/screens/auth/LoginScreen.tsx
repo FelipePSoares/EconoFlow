@@ -5,7 +5,6 @@ import {
   Platform,
   ScrollView,
   View,
-  useColorScheme,
 } from 'react-native';
 import { Text, HelperText } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
@@ -20,6 +19,8 @@ import { AuthHero } from '../../components/auth/AuthHero';
 import { AuroraField } from '../../components/auth/AuroraField';
 import { AuroraPrimaryButton } from '../../components/auth/AuroraPrimaryButton';
 import { GlassCard } from '../../components/common/GlassCard';
+import { GlassScreen } from '../../components/common/GlassScreen';
+import { useAuroraSkin } from '../../theme/useAuroraSkin';
 
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'Login'>;
@@ -32,7 +33,7 @@ interface FormValues {
 
 export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
-  const dark = useColorScheme() === 'dark';
+  const { dark, ink, ink2 } = useAuroraSkin();
   const { setTokens, setUser } = useAuthStore();
   const [loginError, setLoginError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -74,108 +75,87 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
     },
   });
 
-  const ink  = dark ? '#e6edf3' : '#0d2137';
-  const ink2 = dark ? '#8aa0b6' : '#5b6b7c';
-  const bg   = dark ? '#061e33' : '#e6eff6';
   return (
-    <KeyboardAvoidingView
-      style={[styles.flex, { backgroundColor: bg }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <AuthHero dark={dark} subtitle={t('PleaseSignIn')} />
+    <GlassScreen dark={dark}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+          <AuthHero dark={dark} subtitle={t('PleaseSignIn')} />
 
-        <GlassCard dark={dark} radius={26} intensity={55} style={styles.card}>
-          <Text style={[styles.cardTitle, { color: ink }]}>{t('ButtonSignIn')}</Text>
-          <Text style={[styles.cardSubtitle, { color: ink2 }]}>{t('PleaseSignIn')}</Text>
+          <GlassCard dark={dark} radius={26} style={styles.card}>
+            <Text style={[styles.cardTitle, { color: ink }]}>{t('ButtonSignIn')}</Text>
+            <Text style={[styles.cardSubtitle, { color: ink2 }]}>{t('PleaseSignIn')}</Text>
 
-          <Controller
-            control={control}
-            name="email"
-            rules={{
-              required: t('RequiredField'),
-              pattern: { value: /\S+@\S+\.\S+/, message: t('InvalidEmail') },
-            }}
-            render={({ field: { onChange, value } }) => (
-              <AuroraField
-                dark={dark}
-                icon="email-outline"
-                placeholder={t('FieldEmailAddress')}
-                value={value}
-                onChangeText={onChange}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                hasError={!!errors.email}
-              />
-            )}
-          />
-          {errors.email && <HelperText type="error">{errors.email.message}</HelperText>}
+            <Controller
+              control={control}
+              name="email"
+              rules={{
+                required: t('RequiredField'),
+                pattern: { value: /\S+@\S+\.\S+/, message: t('InvalidEmail') },
+              }}
+              render={({ field: { onChange, value } }) => (
+                <AuroraField dark={dark} icon="email-outline" placeholder={t('FieldEmailAddress')}
+                  value={value} onChangeText={onChange} keyboardType="email-address"
+                  autoCapitalize="none" autoCorrect={false} hasError={!!errors.email} />
+              )}
+            />
+            {errors.email && <HelperText type="error">{errors.email.message}</HelperText>}
 
-          <Controller
-            control={control}
-            name="password"
-            rules={{ required: t('RequiredField') }}
-            render={({ field: { onChange, value } }) => (
-              <AuroraField
-                dark={dark}
-                icon="lock-outline"
-                placeholder={t('FieldPassword')}
-                value={value}
-                onChangeText={onChange}
-                secureTextEntry={!showPassword}
-                onToggleSecure={() => setShowPassword(v => !v)}
-                showSecure={showPassword}
-                hasError={!!errors.password}
-              />
-            )}
-          />
-          {errors.password && <HelperText type="error">{errors.password.message}</HelperText>}
+            <Controller
+              control={control}
+              name="password"
+              rules={{ required: t('RequiredField') }}
+              render={({ field: { onChange, value } }) => (
+                <AuroraField dark={dark} icon="lock-outline" placeholder={t('FieldPassword')}
+                  value={value} onChangeText={onChange} secureTextEntry={!showPassword}
+                  onToggleSecure={() => setShowPassword(v => !v)} showSecure={showPassword}
+                  hasError={!!errors.password} />
+              )}
+            />
+            {errors.password && <HelperText type="error">{errors.password.message}</HelperText>}
+            {loginError && <HelperText type="error">{loginError}</HelperText>}
 
-          {loginError && <HelperText type="error">{loginError}</HelperText>}
+            <View style={styles.forgotRow}>
+              <Text style={[styles.link, { color: '#0f76a8' }]}
+                onPress={() => navigation.navigate('ForgotPassword')}>
+                {t('LinkForgotPassword')}
+              </Text>
+            </View>
 
-          <View style={styles.forgotRow}>
-            <Text
-              style={[styles.link, { color: '#0f76a8' }]}
-              onPress={() => navigation.navigate('ForgotPassword')}
-            >
-              {t('LinkForgotPassword')}
+            <AuroraPrimaryButton
+              label={t('ButtonSignIn')}
+              onPress={handleSubmit(v => { setLoginError(null); loginMutation.mutate(v); })}
+              loading={loginMutation.isPending}
+            />
+          </GlassCard>
+
+          <View style={styles.bottomRow}>
+            <Text style={[styles.bottomText, { color: ink2 }]}>
+              {t('LabelNoAccount') ?? "Don't have an account?"}
+            </Text>
+            <Text style={[styles.link, { color: '#0f76a8' }]}
+              onPress={() => navigation.navigate('Register')}>
+              {' '}{t('LinkCreateAccount')}
             </Text>
           </View>
-
-          <AuroraPrimaryButton
-            label={t('ButtonSignIn')}
-            onPress={handleSubmit(values => { setLoginError(null); loginMutation.mutate(values); })}
-            loading={loginMutation.isPending}
-          />
-        </GlassCard>
-
-        <View style={styles.bottomRow}>
-          <Text style={[styles.bottomText, { color: ink2 }]}>
-            {t('LabelNoAccount') ?? "Don't have an account?"}
-          </Text>
-          <Text
-            style={[styles.link, { color: '#0f76a8' }]}
-            onPress={() => navigation.navigate('Register')}
-          >
-            {' '}{t('LinkCreateAccount')}
-          </Text>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </GlassScreen>
   );
 };
 
 const styles = StyleSheet.create({
-  flex: { flex: 1 },
-  scroll: { flexGrow: 1, paddingBottom: 40 },
+  flex:  { flex: 1 },
+  scroll:{ flexGrow: 1, paddingBottom: 40 },
   card: {
     marginHorizontal: 20,
-    marginTop: -20,
+    marginTop: -16,
     padding: 22,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.18,
+    shadowOpacity: 0.2,
     shadowRadius: 40,
     elevation: 12,
   },

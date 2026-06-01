@@ -1,35 +1,58 @@
 import React from 'react';
 import type { ComponentProps } from 'react';
+import {
+  TouchableOpacity, StyleSheet, useColorScheme,
+} from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { ProjectStackNavigator } from './ProjectStackNavigator';
 import { OverviewStackNavigator } from './OverviewStackNavigator';
 import { ProfileScreen } from '../screens/profile/ProfileScreen';
+import { currentMonth } from '../utils/date';
 
 type IconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
 
 export type MainTabParamList = {
-  Projects: undefined;
-  Overview: undefined;
-  Profile: undefined;
+  Projects:  undefined;
+  Overview:  undefined;
+  AddAction: undefined;   // phantom tab — never rendered, press intercepted
+  Profile:   undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
+// Invisible placeholder so the tab slot is occupied
+function EmptyScreen() { return null; }
+
 export const MainNavigator: React.FC = () => {
-  const { t } = useTranslation();
+  const { t }  = useTranslation();
+  const dark   = useColorScheme() === 'dark';
+  const barBg  = dark ? 'rgba(6,30,51,0.92)' : 'rgba(230,239,246,0.92)';
+  const barBorder = dark ? 'rgba(255,255,255,0.08)' : 'rgba(13,33,55,0.08)';
 
   return (
     <Tab.Navigator
       initialRouteName="Overview"
       screenOptions={({ route }) => ({
         headerShown: false,
+        tabBarStyle: {
+          backgroundColor: barBg,
+          borderTopColor: barBorder,
+          borderTopWidth: StyleSheet.hairlineWidth,
+          height: 64,
+          paddingBottom: 8,
+          paddingTop: 6,
+        },
+        tabBarActiveTintColor:   '#0f76a8',
+        tabBarInactiveTintColor: dark ? '#8aa0b6' : '#9aa9b8',
         tabBarIcon: ({ color, size }) => {
           const icons: Record<string, IconName> = {
-            Projects: 'folder-multiple',
-            Overview: 'view-dashboard',
-            Profile: 'account-circle',
+            Projects:  'folder-multiple-outline',
+            Overview:  'view-dashboard-outline',
+            Profile:   'account-circle-outline',
+            AddAction: 'plus',
           };
           return <MaterialCommunityIcons name={icons[route.name] ?? 'circle'} size={size} color={color} />;
         },
@@ -45,6 +68,42 @@ export const MainNavigator: React.FC = () => {
         component={OverviewStackNavigator}
         options={{ tabBarLabel: t('TabOverview') }}
       />
+
+      {/* ── Centre FAB ─────────────────────────────────────────────────── */}
+      <Tab.Screen
+        name="AddAction"
+        component={EmptyScreen}
+        options={{
+          tabBarLabel: '',
+          tabBarButton: ({ onPress }) => (
+            <TouchableOpacity
+              onPress={onPress}
+              activeOpacity={0.85}
+              style={styles.fabWrap}
+            >
+              <LinearGradient
+                colors={['#0f76a8', '#14c08a']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.fab}
+              >
+                <MaterialCommunityIcons name="plus" size={28} color="#fff" />
+              </LinearGradient>
+            </TouchableOpacity>
+          ),
+        }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            // Navigate to the CategoryList so the user picks a category to add to
+            navigation.navigate('Overview', {
+              screen: 'CategoryList',
+              params: { month: currentMonth() },
+            } as never);
+          },
+        })}
+      />
+
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
@@ -53,3 +112,23 @@ export const MainNavigator: React.FC = () => {
     </Tab.Navigator>
   );
 };
+
+const styles = StyleSheet.create({
+  fabWrap: {
+    top: -16,            // lifts the FAB above the tab bar
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fab: {
+    width: 56,
+    height: 56,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: 'rgba(15,118,168,0.5)',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 1,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+});

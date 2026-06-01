@@ -17,8 +17,8 @@ import { useIncomesForMonth } from '../../hooks/useIncomes';
 import { useTotalSavedForMonth } from '../../hooks/usePlans';
 import { MonthNavigator } from '../../components/common/MonthNavigator';
 import { LoadingIndicator } from '../../components/common/LoadingIndicator';
-import { AuroraMesh } from '../../components/common/AuroraMesh';
 import { GlassCard } from '../../components/common/GlassCard';
+import { GlassScreen } from '../../components/common/GlassScreen';
 import { currentMonth } from '../../utils/date';
 import {
   calculateTotalBudget,
@@ -27,6 +27,7 @@ import {
 } from '../../utils/budget';
 import { getCategoryColor } from '../../utils/categoryTheme';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
+import { DonutRing } from '../../components/common/DonutRing';
 
 type Props = {
   navigation: NativeStackNavigationProp<OverviewStackParamList, 'MonthlyOverview'>;
@@ -38,7 +39,7 @@ function fmtCompact(n: number): string {
 
 export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
-  const { dark, ink, ink2, bg, hair } = useAuroraSkin();
+  const { dark, ink, ink2, hair } = useAuroraSkin();
   const insets = useSafeAreaInsets();
   const [month, setMonth] = useState(currentMonth());
   const [refreshing, setRefreshing] = useState(false);
@@ -79,13 +80,12 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
 
   if (!selectedProject) {
     return (
-      <View style={[styles.fill, { backgroundColor: bg, paddingTop: insets.top }]}>
-        <AuroraMesh dark={dark} />
-        <View style={styles.emptyCenter}>
+      <GlassScreen dark={dark}>
+        <View style={[styles.emptyCenter, { paddingTop: insets.top }]}>
           <MaterialCommunityIcons name="folder-open-outline" size={52} color={ink2} />
           <Text style={[styles.emptyText, { color: ink2 }]}>{t('LabelNoProjects')}</Text>
         </View>
-      </View>
+      </GlassScreen>
     );
   }
 
@@ -102,9 +102,7 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
   const activeCategories = (categories ?? []).filter(c => !c.isArchived);
 
   return (
-    <View style={[styles.fill, { backgroundColor: bg }]}>
-      <AuroraMesh dark={dark} />
-
+    <GlassScreen dark={dark}>
       <ScrollView
         style={styles.fill}
         contentContainerStyle={{ paddingTop: insets.top, paddingBottom: insets.bottom + 16 }}
@@ -128,7 +126,7 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
             </View>
             <View>
               <Text style={[styles.greeting, { color: ink2 }]}>
-                {t('LabelHello') ?? 'Hello'} 👋
+                {t('LabelHello') ?? 'Olá'}, {user?.firstName ?? user?.email?.split('@')[0] ?? ''} 👋
               </Text>
               <Text style={[styles.projectName, { color: ink }]}>
                 {selectedProject.project.name}
@@ -204,21 +202,15 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
         <View style={styles.summaryRow}>
           <GlassCard dark={dark} radius={22} intensity={40} style={styles.budgetCard}>
             <View style={styles.budgetInner}>
-              <View style={[styles.ringOuter, { borderColor: '#0f76a8' + '44' }]}>
-                <View style={[
-                  styles.ringProgress,
-                  {
-                    borderTopColor: '#0f76a8',
-                    borderLeftColor: '#0f76a8',
-                    borderRightColor: 'transparent',
-                    borderBottomColor: budgetPct > 50 ? '#0f76a8' : 'transparent',
-                    transform: [{ rotate: '-45deg' }],
-                  },
-                ]} />
-                <View style={styles.ringCenter}>
-                  <Text style={[styles.ringPct, { color: ink }]}>{budgetPct}%</Text>
-                </View>
-              </View>
+              <DonutRing
+                size={58}
+                strokeWidth={8}
+                progress={budgetPct / 100}
+                color="#0f76a8"
+                trackColor={dark ? 'rgba(255,255,255,0.14)' : 'rgba(15,74,106,0.14)'}
+              >
+                <Text style={[styles.ringPct, { color: ink }]}>{budgetPct}%</Text>
+              </DonutRing>
 
               <View style={styles.budgetMeta}>
                 <Text style={[styles.budgetMetaLabel, { color: ink2 }]}>{t('Budget')}</Text>
@@ -228,9 +220,6 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
                 <Text style={[styles.budgetMetaSub, { color: ink2 }]}>
                   {t('Remaining') ?? 'remaining'}
                 </Text>
-                <View style={[styles.budgetBar, { backgroundColor: '#0f76a8' + '22' }]}>
-                  <View style={[styles.budgetBarFill, { width: `${budgetPct}%` as `${number}%` }]} />
-                </View>
               </View>
             </View>
           </GlassCard>
@@ -281,26 +270,26 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
                   <TouchableOpacity
                     key={cat.id}
                     onPress={() => navigation.navigate('ExpenseList', {
-                      categoryId: cat.id, categoryName: cat.name, month,
+                      categoryId: cat.id, categoryName: cat.name, month, categoryIndex: idx,
                     })}
                     activeOpacity={0.78}
                   >
                     <GlassCard dark={dark} radius={18} intensity={30} style={styles.catCard}>
                       <View style={styles.catRow}>
-                        <View style={[styles.catIcon, { backgroundColor: color + (dark ? '30' : '22') }]}>
-                          <MaterialCommunityIcons name="shape-outline" size={20} color={color} />
-                        </View>
+                        <DonutRing
+                          size={46}
+                          strokeWidth={6}
+                          progress={pct}
+                          color={color}
+                          trackColor={dark ? color + '33' : color + '28'}
+                        >
+                          <MaterialCommunityIcons name="shape-outline" size={17} color={color} />
+                        </DonutRing>
                         <View style={styles.catInfo}>
                           <Text style={[styles.catName, { color: ink }]}>{cat.name}</Text>
                           <Text style={[styles.catSub, { color: ink2 }]}>
                             {cat.expenses.length} {t('LabelExpenseItems')} · {Math.round(pct * 100)}%
                           </Text>
-                          <View style={[styles.catTrack, { backgroundColor: color + '22' }]}>
-                            <View style={[
-                              styles.catFill,
-                              { width: `${Math.round(pct * 100)}%` as `${number}%`, backgroundColor: color },
-                            ]} />
-                          </View>
                         </View>
                         <Text style={[styles.catAmt, { color: '#e74c3c' }]}>
                           {currency} {fmtCompact(spent)}
@@ -322,7 +311,7 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         )}
       </ScrollView>
-    </View>
+    </GlassScreen>
   );
 };
 

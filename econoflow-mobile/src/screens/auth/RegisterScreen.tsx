@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
-  View, StyleSheet, KeyboardAvoidingView, Platform,
-  ScrollView, useColorScheme,
+  View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView,
 } from 'react-native';
 import { Text, HelperText } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
@@ -13,6 +12,9 @@ import { register } from '../../api/auth.api';
 import { AuthHero } from '../../components/auth/AuthHero';
 import { AuroraField } from '../../components/auth/AuroraField';
 import { AuroraPrimaryButton } from '../../components/auth/AuroraPrimaryButton';
+import { GlassCard } from '../../components/common/GlassCard';
+import { GlassScreen } from '../../components/common/GlassScreen';
+import { useAuroraSkin } from '../../theme/useAuroraSkin';
 
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'Register'>;
@@ -28,7 +30,7 @@ const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/
 
 export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
-  const dark = useColorScheme() === 'dark';
+  const { dark, ink, ink2 } = useAuroraSkin();
   const [serverError, setServerError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -45,35 +47,27 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
     onError: () => setServerError(t('ErrorRegistrationFailed')),
   });
 
-  const ink  = dark ? '#e6edf3' : '#0d2137';
-  const ink2 = dark ? '#8aa0b6' : '#5b6b7c';
-  const bg   = dark ? '#061e33' : '#e6eff6';
-  const cardBg = dark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.72)';
-  const cardBorder = dark ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.85)';
-
   if (success) {
     return (
-      <View style={[styles.flex, { backgroundColor: bg }]}>
+      <GlassScreen dark={dark}>
         <AuthHero dark={dark} subtitle={t('LabelCheckYourEmail')} />
-        <View style={[styles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
+        <GlassCard dark={dark} radius={26} style={styles.card}>
           <Text style={[styles.successTitle, { color: ink }]}>{t('LabelCheckYourEmail')}</Text>
           <Text style={[styles.successSub, { color: ink2 }]}>{t('LabelConfirmEmailSent')}</Text>
           <AuroraPrimaryButton label={t('ButtonSignIn')} onPress={() => navigation.navigate('Login')} />
-        </View>
-      </View>
+        </GlassCard>
+      </GlassScreen>
     );
   }
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.flex, { backgroundColor: bg }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <AuthHero dark={dark} subtitle={t('PleaseSignUp')} />
+    <GlassScreen dark={dark}>
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+          <AuthHero dark={dark} subtitle={t('PleaseSignUp')} />
 
-        <View style={[styles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
-          <Text style={[styles.cardTitle, { color: ink }]}>{t('ButtonRegister')}</Text>
+          <GlassCard dark={dark} radius={26} style={styles.card}>
+            <Text style={[styles.cardTitle, { color: ink }]}>{t('ButtonRegister')}</Text>
           <Text style={[styles.cardSubtitle, { color: ink2 }]}>
             {t('LabelStartOrganizing') ?? 'Start organising your money today'}
           </Text>
@@ -120,9 +114,9 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
             onPress={handleSubmit(v => { setServerError(null); registerMutation.mutate(v); })}
             loading={registerMutation.isPending}
           />
-        </View>
+          </GlassCard>
 
-        <View style={styles.bottomRow}>
+          <View style={styles.bottomRow}>
           <Text style={[styles.bottomText, { color: ink2 }]}>
             {t('LabelAlreadyHaveAccount') ?? 'Already have an account?'}
           </Text>
@@ -130,8 +124,9 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
             {' '}{t('ButtonSignIn')}
           </Text>
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </GlassScreen>
   );
 };
 
@@ -140,13 +135,11 @@ const styles = StyleSheet.create({
   scroll:   { flexGrow: 1, paddingBottom: 40 },
   card: {
     marginHorizontal: 20,
-    marginTop: -20,
-    borderRadius: 26,
+    marginTop: -16,
     padding: 22,
-    borderWidth: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.18,
+    shadowOpacity: 0.2,
     shadowRadius: 40,
     elevation: 12,
   },

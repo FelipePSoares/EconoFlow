@@ -1,12 +1,17 @@
 import './src/i18n';
-import React from 'react';
-import { useColorScheme } from 'react-native';
+import React, { useCallback } from 'react';
+import { View, useColorScheme } from 'react-native';
 import { NavigationContainer, DarkTheme as NavDarkTheme, DefaultTheme as NavDefaultTheme } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Provider as PaperProvider, MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import * as SplashScreen from 'expo-splash-screen';
 import { AppNavigator } from './src/navigation/AppNavigator';
+
+// Keep the splash screen visible while the JS bundle and stores hydrate.
+// hideAsync() is called in onLayout once the root View is measured.
+void SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -17,7 +22,7 @@ const queryClient = new QueryClient({
   },
 });
 
-// ── Common semantic colour tokens ────────────────────────────────────────────
+// ── Common semantic colour tokens ─────────────────────────────────────────────
 const commonCustom = {
   success: '#2ecc71',
   warning: '#f39c12',
@@ -26,7 +31,7 @@ const commonCustom = {
   accentGreen: '#0e9f6e',
 };
 
-// ── Paper themes (component colours) ──────────────────────────────────────────
+// ── Paper themes ──────────────────────────────────────────────────────────────
 const paperLightTheme = {
   ...MD3LightTheme,
   colors: {
@@ -47,9 +52,7 @@ const paperLightTheme = {
       level2: '#f8f9fa',
     },
   },
-  customColors: {
-    ...commonCustom,
-  },
+  customColors: { ...commonCustom },
 };
 
 const paperDarkTheme = {
@@ -72,12 +75,10 @@ const paperDarkTheme = {
       level2: '#1d2b3e',
     },
   },
-  customColors: {
-    ...commonCustom,
-  },
+  customColors: { ...commonCustom },
 };
 
-// ── Navigation themes (header / tab-bar colours) ───────────────────────────────
+// ── Navigation themes ─────────────────────────────────────────────────────────
 const navLightTheme = {
   ...NavDefaultTheme,
   colors: {
@@ -108,16 +109,25 @@ export default function App() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
+  // Hide the splash screen on first layout.
+  // Add any async startup awaits inside this callback before hideAsync()
+  // if you need to load fonts / prefetch data before the UI appears.
+  const onLayout = useCallback(async () => {
+    await SplashScreen.hideAsync();
+  }, []);
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <PaperProvider theme={isDark ? paperDarkTheme : paperLightTheme}>
-        <SafeAreaProvider>
-          <NavigationContainer theme={isDark ? navDarkTheme : navLightTheme}>
-            <StatusBar style={isDark ? 'light' : 'dark'} />
-            <AppNavigator />
-          </NavigationContainer>
-        </SafeAreaProvider>
-      </PaperProvider>
-    </QueryClientProvider>
+    <View style={{ flex: 1 }} onLayout={onLayout}>
+      <QueryClientProvider client={queryClient}>
+        <PaperProvider theme={isDark ? paperDarkTheme : paperLightTheme}>
+          <SafeAreaProvider>
+            <NavigationContainer theme={isDark ? navDarkTheme : navLightTheme}>
+              <StatusBar style={isDark ? 'light' : 'dark'} />
+              <AppNavigator />
+            </NavigationContainer>
+          </SafeAreaProvider>
+        </PaperProvider>
+      </QueryClientProvider>
+    </View>
   );
 }
