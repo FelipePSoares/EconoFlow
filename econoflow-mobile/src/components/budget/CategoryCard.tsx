@@ -1,41 +1,73 @@
 import React from 'react';
-import { TouchableOpacity, StyleSheet } from 'react-native';
-import { Card, Text } from 'react-native-paper';
+import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import { Text } from 'react-native-paper';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import type { Category } from '../../api/types';
-import { BudgetProgressBar } from './BudgetProgressBar';
+import { getCategoryColor } from '../../utils/categoryTheme';
+import { GlassCard } from '../common/GlassCard';
+import { DonutRing } from '../common/DonutRing';
+import { auroraTokens } from '../../theme/useAuroraSkin';
 
 interface Props {
   category: Category;
   currency: string;
   onPress: () => void;
+  index?: number;
+  dark?: boolean;
 }
 
-const getTotalSpend = (category: Category): number =>
-  category.expenses.reduce((sum, e) => sum + Math.min(e.amount, e.budget > 0 ? e.budget : e.amount), 0);
+const getTotalSpend  = (cat: Category): number =>
+  cat.expenses.reduce((s, e) => s + e.amount, 0);
+const getTotalBudget = (cat: Category): number =>
+  cat.expenses.reduce((s, e) => s + e.budget, 0);
 
-const getTotalBudget = (category: Category): number =>
-  category.expenses.reduce((sum, e) => sum + e.budget, 0);
-
-export const CategoryCard: React.FC<Props> = ({ category, currency, onPress }) => {
-  const spent = getTotalSpend(category);
+export const CategoryCard: React.FC<Props> = ({
+  category, currency, onPress, index = 0, dark,
+}) => {
+  const { t }  = useTranslation();
+  const { ink, ink2 } = auroraTokens(!!dark);
+  const spent  = getTotalSpend(category);
   const budget = getTotalBudget(category);
+  const pct    = budget > 0 ? Math.min(spent / budget, 1) : 0;
+  const color  = getCategoryColor(index);
 
   return (
-    <TouchableOpacity onPress={onPress}>
-      <Card style={styles.card}>
-        <Card.Content style={styles.content}>
-          <Text variant="titleSmall" style={styles.name}>
-            {category.name}
+    <TouchableOpacity onPress={onPress} activeOpacity={0.78} style={styles.wrapper}>
+      <GlassCard dark={!!dark} radius={18} intensity={30}>
+        <View style={styles.row}>
+          <DonutRing
+            size={46}
+            strokeWidth={6}
+            progress={pct}
+            color={color}
+            trackColor={dark ? color + '33' : color + '28'}
+          >
+            <MaterialCommunityIcons name="shape-outline" size={17} color={color} />
+          </DonutRing>
+
+          <View style={styles.info}>
+            <Text style={[styles.name, { color: ink }]}>{category.name}</Text>
+            <Text style={[styles.sub, { color: ink2 }]}>
+              {category.expenses.length} {t('LabelExpenseItems')} · {Math.round(pct * 100)}%
+            </Text>
+          </View>
+
+          <Text style={[styles.amount, { color: '#e74c3c' }]}>
+            {currency} {Math.round(spent).toLocaleString()}
           </Text>
-          <BudgetProgressBar spent={spent} budget={budget} currency={currency} />
-        </Card.Content>
-      </Card>
+          <MaterialCommunityIcons name="chevron-right" size={18} color={ink2} />
+        </View>
+      </GlassCard>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  card: { marginVertical: 4, marginHorizontal: 16 },
-  content: { gap: 8 },
-  name: { fontWeight: '600' },
+  wrapper: { marginHorizontal: 16, marginVertical: 5 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12 },
+  info:   { flex: 1, gap: 3 },
+  name:   { fontSize: 14.5, fontWeight: '700' },
+  sub:    { fontSize: 11.5 },
+  amount: { fontSize: 14, fontWeight: 'bold' },
 });

@@ -1,12 +1,8 @@
 import React, { useState } from 'react';
 import {
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  View,
+  StyleSheet, KeyboardAvoidingView, Platform, ScrollView,
 } from 'react-native';
-import { Button, Text, TextInput, HelperText, useTheme } from 'react-native-paper';
+import { Text, HelperText } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -15,16 +11,20 @@ import type { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { mobileLogin, getCurrentUser } from '../../api/auth.api';
 import { useAuthStore } from '../../store/authStore';
 import i18n from '../../i18n';
+import { AuthHero } from '../../components/auth/AuthHero';
+import { AuroraField } from '../../components/auth/AuroraField';
+import { AuroraPrimaryButton } from '../../components/auth/AuroraPrimaryButton';
+import { GlassCard } from '../../components/common/GlassCard';
+import { GlassScreen } from '../../components/common/GlassScreen';
+import { useAuroraSkin } from '../../theme/useAuroraSkin';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'TwoFactor'>;
 
-interface FormValues {
-  code: string;
-}
+interface FormValues { code: string; }
 
 export const TwoFactorScreen: React.FC<Props> = ({ route }) => {
   const { t } = useTranslation();
-  const theme = useTheme();
+  const { dark, ink2 } = useAuroraSkin();
   const { setTokens, setUser } = useAuthStore();
   const [authError, setAuthError] = useState<string | null>(null);
   const { email, password } = route.params;
@@ -46,81 +46,65 @@ export const TwoFactorScreen: React.FC<Props> = ({ route }) => {
           const lang = userResponse.data.languageCode.startsWith('pt') ? 'pt' : 'en';
           i18n.changeLanguage(lang);
         }
-      } catch {
-        // proceed
-      }
+      } catch { /* proceed */ }
     },
     onError: () => setAuthError(t('ErrorInvalidTwoFactorCode')),
   });
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.flex, { backgroundColor: theme.colors.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-          <Text variant="headlineMedium" style={styles.title}>
-            {t('LabelTwoFactorAuthentication')}
-          </Text>
-          <Text style={[styles.subtitle, { color: theme.colors.onSurface }]}>
-            {t('LabelEnterTwoFactorCode')}
-          </Text>
+    <GlassScreen dark={dark}>
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+          <AuthHero dark={dark} subtitle={t('TwoFactorSignInTitle')} />
 
-          <Controller
-            control={control}
-            name="code"
-            rules={{ required: t('RequiredField') }}
-            render={({ field: { onChange, value } }) => (
-              <TextInput
-                label={t('FieldTwoFactorCode')}
-                value={value}
-                onChangeText={onChange}
-                keyboardType="number-pad"
-                autoComplete="one-time-code"
-                textContentType="oneTimeCode"
-                style={styles.input}
-                error={!!errors.code}
-              />
-            )}
-          />
-          {errors.code && <HelperText type="error">{errors.code.message}</HelperText>}
-          {authError && <HelperText type="error">{authError}</HelperText>}
+          <GlassCard dark={dark} radius={26} style={styles.card}>
+            <Text style={[styles.description, { color: ink2 }]}>
+              {t('LabelEnterTwoFactorCode')}
+            </Text>
 
-          <Button
-            mode="contained"
-            onPress={handleSubmit((v) => { setAuthError(null); mutation.mutate(v); })}
-            loading={mutation.isPending}
-            disabled={mutation.isPending}
-            style={styles.button}
-            contentStyle={styles.buttonContent}
-          >
-            {t('ButtonVerify')}
-          </Button>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+            <Controller
+              control={control}
+              name="code"
+              rules={{ required: t('RequiredField') }}
+              render={({ field: { onChange, value } }) => (
+                <AuroraField
+                  dark={dark}
+                  icon="shield-key-outline"
+                  placeholder={t('FieldTwoFactorCode')}
+                  value={value}
+                  onChangeText={onChange}
+                  keyboardType="number-pad"
+                  hasError={!!errors.code}
+                />
+              )}
+            />
+            {errors.code && <HelperText type="error">{errors.code.message}</HelperText>}
+            {authError  && <HelperText type="error">{authError}</HelperText>}
+
+            <AuroraPrimaryButton
+              label={t('ButtonVerify')}
+              onPress={handleSubmit(v => { setAuthError(null); mutation.mutate(v); })}
+              loading={mutation.isPending}
+            />
+          </GlassCard>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </GlassScreen>
   );
 };
 
 const styles = StyleSheet.create({
-  flex: { flex: 1 },
-  scroll: { flexGrow: 1, justifyContent: 'center', padding: 20 },
+  flex:  { flex: 1 },
+  scroll:{ flexGrow: 1, paddingBottom: 40 },
   card: {
-    borderRadius: 16,
-    padding: 28,
+    marginHorizontal: 20,
+    marginTop: -16,
+    padding: 22,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.2,
+    shadowRadius: 40,
+    elevation: 12,
   },
-  title: { textAlign: 'center', marginBottom: 8, fontWeight: 'bold' },
-  subtitle: { textAlign: 'center', marginBottom: 28, opacity: 0.7 },
-  input: { marginBottom: 4 },
-  button: { marginTop: 20, borderRadius: 8 },
-  buttonContent: { paddingVertical: 6 },
+  description: { textAlign: 'center', fontSize: 13.5, lineHeight: 20, marginBottom: 4 },
 });

@@ -524,6 +524,13 @@
   "ButtonSendResetLink": "Enviar link de redefinição",
   "ButtonDismiss": "Dispensar",
   "ErrorGeneric": "Algo deu errado. Por favor, tente novamente.",
-  "ValueShouldBeGreaterThanOrEqual": "O valor deve ser ≥ {{value}}."
+  "ValueShouldBeGreaterThanOrEqual": "O valor deve ser ≥ {{value}}.",
+
+  "LabelHello": "Olá",
+  "LabelNoAccount": "Não tem conta?",
+  "LabelStartOrganizing": "Comece a organizar suas finanças",
+  "LabelRememberedPassword": "Lembrou a senha?",
+  "ButtonViewAll": "Ver tudo",
+  "LabelGoToToday": "Ir para hoje"
 }
 

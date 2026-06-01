@@ -1,15 +1,12 @@
 import React, { useState } from 'react';
 import {
-  Image,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   View,
-  useColorScheme,
-  Dimensions,
 } from 'react-native';
-import { Button, TextInput, HelperText, useTheme } from 'react-native-paper';
+import { Text, HelperText } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -18,6 +15,12 @@ import type { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { mobileLogin, getCurrentUser } from '../../api/auth.api';
 import { useAuthStore } from '../../store/authStore';
 import i18n from '../../i18n';
+import { AuthHero } from '../../components/auth/AuthHero';
+import { AuroraField } from '../../components/auth/AuroraField';
+import { AuroraPrimaryButton } from '../../components/auth/AuroraPrimaryButton';
+import { GlassCard } from '../../components/common/GlassCard';
+import { GlassScreen } from '../../components/common/GlassScreen';
+import { useAuroraSkin } from '../../theme/useAuroraSkin';
 
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'Login'>;
@@ -28,18 +31,12 @@ interface FormValues {
   password: string;
 }
 
-const { width } = Dimensions.get('window');
-
 export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
-  const theme = useTheme();
+  const { dark, ink, ink2 } = useAuroraSkin();
   const { setTokens, setUser } = useAuthStore();
   const [loginError, setLoginError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
-  const colorScheme = useColorScheme();
-  const logoSource = colorScheme === 'dark'
-    ? require('../../../assets/logo-dark.png')
-    : require('../../../assets/logo-light.png');
 
   const { control, handleSubmit, formState: { errors } } = useForm<FormValues>({
     defaultValues: { email: '', password: '' },
@@ -50,20 +47,15 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
       mobileLogin({ email: values.email, password: values.password }),
     onSuccess: async (response, variables) => {
       const { accessToken, refreshToken } = response.data;
-
       if (typeof accessToken !== 'string' || !accessToken) {
         const body = response.data as unknown as { requiresTwoFactor?: boolean };
         if (body?.requiresTwoFactor) {
-          navigation.navigate('TwoFactor', {
-            email: variables.email,
-            password: variables.password,
-          });
+          navigation.navigate('TwoFactor', { email: variables.email, password: variables.password });
           return;
         }
         setLoginError(t('ErrorInvalidCredentials'));
         return;
       }
-
       setTokens(accessToken, refreshToken);
       try {
         const userResponse = await getCurrentUser();
@@ -72,16 +64,11 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
           const lang = userResponse.data.languageCode.startsWith('pt') ? 'pt' : 'en';
           i18n.changeLanguage(lang);
         }
-      } catch {
-        // proceed without user profile
-      }
+      } catch { /* proceed without user profile */ }
     },
     onError: (err: { response?: { data?: { requiresTwoFactor?: boolean } } }, variables) => {
       if (err?.response?.data?.requiresTwoFactor) {
-        navigation.navigate('TwoFactor', {
-          email: variables.email,
-          password: variables.password,
-        });
+        navigation.navigate('TwoFactor', { email: variables.email, password: variables.password });
         return;
       }
       setLoginError(t('ErrorInvalidCredentials'));
@@ -89,135 +76,93 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   });
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.flex, { backgroundColor: theme.colors.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        keyboardShouldPersistTaps="handled"
+    <GlassScreen dark={dark}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-          <Image
-            source={logoSource}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+          <AuthHero dark={dark} subtitle={t('PleaseSignIn')} />
 
-          <Controller
-            control={control}
-            name="email"
-            rules={{
-              required: t('RequiredField'),
-              pattern: { value: /\S+@\S+\.\S+/, message: t('InvalidEmail') },
-            }}
-            render={({ field: { onChange, value } }) => (
-              <TextInput
-                label={t('FieldEmailAddress')}
-                value={value}
-                onChangeText={onChange}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="username"
-                textContentType="username"
-                style={styles.input}
-                error={!!errors.email}
-              />
-            )}
-          />
-          {errors.email && <HelperText type="error">{errors.email.message}</HelperText>}
+          <GlassCard dark={dark} radius={26} style={styles.card}>
+            <Text style={[styles.cardTitle, { color: ink }]}>{t('ButtonSignIn')}</Text>
+            <Text style={[styles.cardSubtitle, { color: ink2 }]}>{t('PleaseSignIn')}</Text>
 
-          <Controller
-            control={control}
-            name="password"
-            rules={{ required: t('RequiredField') }}
-            render={({ field: { onChange, value } }) => (
-              <TextInput
-                label={t('FieldPassword')}
-                value={value}
-                onChangeText={onChange}
-                secureTextEntry={!showPassword}
-                autoComplete="current-password"
-                textContentType="password"
-                right={
-                  <TextInput.Icon
-                    icon={showPassword ? 'eye-off' : 'eye'}
-                    onPress={() => setShowPassword((v) => !v)}
-                  />
-                }
-                style={styles.input}
-                error={!!errors.password}
-              />
-            )}
-          />
-          {errors.password && <HelperText type="error">{errors.password.message}</HelperText>}
+            <Controller
+              control={control}
+              name="email"
+              rules={{
+                required: t('RequiredField'),
+                pattern: { value: /\S+@\S+\.\S+/, message: t('InvalidEmail') },
+              }}
+              render={({ field: { onChange, value } }) => (
+                <AuroraField dark={dark} icon="email-outline" placeholder={t('FieldEmailAddress')}
+                  value={value} onChangeText={onChange} keyboardType="email-address"
+                  autoCapitalize="none" autoCorrect={false} hasError={!!errors.email} />
+              )}
+            />
+            {errors.email && <HelperText type="error">{errors.email.message}</HelperText>}
 
-          {loginError && (
-            <HelperText type="error" style={styles.errorText}>{loginError}</HelperText>
-          )}
+            <Controller
+              control={control}
+              name="password"
+              rules={{ required: t('RequiredField') }}
+              render={({ field: { onChange, value } }) => (
+                <AuroraField dark={dark} icon="lock-outline" placeholder={t('FieldPassword')}
+                  value={value} onChangeText={onChange} secureTextEntry={!showPassword}
+                  onToggleSecure={() => setShowPassword(v => !v)} showSecure={showPassword}
+                  hasError={!!errors.password} />
+              )}
+            />
+            {errors.password && <HelperText type="error">{errors.password.message}</HelperText>}
+            {loginError && <HelperText type="error">{loginError}</HelperText>}
 
-          <Button
-            mode="contained"
-            onPress={handleSubmit((values) => {
-              setLoginError(null);
-              loginMutation.mutate(values);
-            })}
-            loading={loginMutation.isPending}
-            disabled={loginMutation.isPending}
-            style={styles.signInButton}
-            contentStyle={styles.signInButtonContent}
-          >
-            {t('ButtonSignIn')}
-          </Button>
+            <View style={styles.forgotRow}>
+              <Text style={[styles.link, { color: '#0f76a8' }]}
+                onPress={() => navigation.navigate('ForgotPassword')}>
+                {t('LinkForgotPassword')}
+              </Text>
+            </View>
 
-          <View style={styles.links}>
-            <Button
-              mode="text"
-              compact
-              onPress={() => navigation.navigate('ForgotPassword')}
-            >
-              {t('LinkForgotPassword')}
-            </Button>
-            <Button
-              mode="text"
-              compact
-              onPress={() => navigation.navigate('Register')}
-            >
-              {t('LinkCreateAccount')}
-            </Button>
+            <AuroraPrimaryButton
+              label={t('ButtonSignIn')}
+              onPress={handleSubmit(v => { setLoginError(null); loginMutation.mutate(v); })}
+              loading={loginMutation.isPending}
+            />
+          </GlassCard>
+
+          <View style={styles.bottomRow}>
+            <Text style={[styles.bottomText, { color: ink2 }]}>
+              {t('LabelNoAccount') ?? "Don't have an account?"}
+            </Text>
+            <Text style={[styles.link, { color: '#0f76a8' }]}
+              onPress={() => navigation.navigate('Register')}>
+              {' '}{t('LinkCreateAccount')}
+            </Text>
           </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </GlassScreen>
   );
 };
 
 const styles = StyleSheet.create({
-  flex: { flex: 1 },
-  scroll: { flexGrow: 1, justifyContent: 'center', padding: 20 },
+  flex:  { flex: 1 },
+  scroll:{ flexGrow: 1, paddingBottom: 40 },
   card: {
-    borderRadius: 16,
-    padding: 28,
+    marginHorizontal: 20,
+    marginTop: -16,
+    padding: 22,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.2,
+    shadowRadius: 40,
+    elevation: 12,
   },
-  logo: {
-    width: width * 0.55,
-    height: 90,
-    alignSelf: 'center',
-    marginBottom: 32,
-  },
-  input: { marginBottom: 2 },
-  errorText: { marginBottom: 4 },
-  signInButton: { marginTop: 20, borderRadius: 8 },
-  signInButtonContent: { paddingVertical: 6 },
-  links: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 8,
-  },
+  cardTitle:    { fontSize: 19, fontWeight: '800', marginBottom: 2 },
+  cardSubtitle: { fontSize: 13, fontWeight: '600', marginBottom: 6 },
+  forgotRow:    { alignItems: 'flex-end', marginTop: 6, marginBottom: 4 },
+  bottomRow:    { flexDirection: 'row', justifyContent: 'center', marginTop: 22 },
+  bottomText:   { fontSize: 13.5 },
+  link:         { fontSize: 13.5, fontWeight: '800' },
 });

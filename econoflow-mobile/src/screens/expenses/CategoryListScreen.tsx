@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet, View, RefreshControl, useColorScheme } from 'react-native';
 import { Text } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { OverviewStackParamList } from '../../navigation/OverviewStackNavigator';
@@ -8,52 +9,84 @@ import { useProjectStore } from '../../store/projectStore';
 import { useCategoriesForMonth } from '../../hooks/useCategories';
 import { CategoryCard } from '../../components/budget/CategoryCard';
 import { LoadingIndicator } from '../../components/common/LoadingIndicator';
+import { ErrorBanner } from '../../components/common/ErrorBanner';
 import { MonthNavigator } from '../../components/common/MonthNavigator';
+import { GlassScreen } from '../../components/common/GlassScreen';
 
 type Props = NativeStackScreenProps<OverviewStackParamList, 'CategoryList'>;
 
 export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
   const { t } = useTranslation();
+  const dark = useColorScheme() === 'dark';
+  const insets = useSafeAreaInsets();
   const [month, setMonth] = useState(route.params.month);
+  const [dismissedError, setDismissedError] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const { selectedProject, currency } = useProjectStore();
   const projectId = selectedProject?.project.id ?? '';
 
-  const { data: categories, isLoading } = useCategoriesForMonth(projectId, month);
+  const { data: categories, isLoading, isError, refetch } =
+    useCategoriesForMonth(projectId, month);
+
+  const ink2 = dark ? '#8aa0b6' : '#5b6b7c';
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  };
 
   if (isLoading) return <LoadingIndicator />;
 
-  const activeCategories = categories?.filter((c) => !c.isArchived) ?? [];
+  const activeCategories = categories?.filter(c => !c.isArchived) ?? [];
 
   return (
-    <View style={styles.container}>
-      <MonthNavigator month={month} onChange={setMonth} />
+    <GlassScreen dark={dark}>
+      <View style={{ paddingTop: insets.top }}>
+        <MonthNavigator month={month} onChange={setMonth} dark={dark} />
+      </View>
+
+      {isError && !dismissedError && (
+        <ErrorBanner
+          visible
+          message={t('ErrorGeneric')}
+          onDismiss={() => setDismissedError(true)}
+        />
+      )}
+
       <FlatList
         data={activeCategories}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
+        keyExtractor={item => item.id}
+        renderItem={({ item, index }) => (
           <CategoryCard
             category={item}
             currency={currency}
+            index={index}
+            dark={dark}
             onPress={() =>
               navigation.navigate('ExpenseList', {
                 categoryId: item.id,
                 categoryName: item.name,
                 month,
+                categoryIndex: index,
               })
             }
           />
         )}
         ListEmptyComponent={
-          <Text style={styles.empty}>{t('LabelNoCategories')}</Text>
+          <Text style={[styles.empty, { color: ink2 }]}>{t('LabelNoCategories')}</Text>
         }
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 16 }]}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={ink2} />
+        }
       />
-    </View>
+    </GlassScreen>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  list: { paddingBottom: 16 },
-  empty: { textAlign: 'center', marginTop: 40, opacity: 0.5 },
+  list:  { paddingTop: 8, paddingBottom: 24 },
+  empty: { textAlign: 'center', marginTop: 48, fontSize: 14, opacity: 0.6 },
 });

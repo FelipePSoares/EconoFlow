@@ -2,16 +2,28 @@
   "expo": {
     "name": "EconoFlow",
     "slug": "econoflow-mobile",
+    "scheme": "econoflow",
+    "newArchEnabled": false,
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#061e33"
+    },
     "android": {
       "package": "pt.econoflow.mobile",
       "versionCode": 2,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0f76a8"
+      },
+      "splash": {
+        "image": "./assets/splash.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#061e33"
       }
     },
     "ios": {
@@ -23,19 +35,7 @@
     },
     "plugins": [
       "expo-secure-store",
-      [
-        "expo-splash-screen",
-        {
-          "backgroundColor": "#f5f8fc",
-          "image": "./assets/icon-512x512.png",
-          "imageWidth": 160,
-          "resizeMode": "contain",
-          "dark": {
-            "backgroundColor": "#0f1724",
-            "image": "./assets/icon-512x512.png"
-          }
-        }
-      ]
+      "expo-blur"
     ]
   }
 }

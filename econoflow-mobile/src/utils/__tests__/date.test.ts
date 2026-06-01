@@ -6,6 +6,7 @@ import {
   prevMonth,
   nextMonth,
   currentMonth,
+  formatMonthLabel,
 } from '../date';
 
 describe('toDateOnly', () => {
@@ -79,5 +80,22 @@ describe('nextMonth', () => {
 describe('currentMonth', () => {
   it('returns a string in YYYY-MM format', () => {
     expect(currentMonth()).toMatch(/^\d{4}-\d{2}$/);
+  });
+});
+
+describe('formatMonthLabel', () => {
+  it('formats a month string as "Month YYYY"', () => {
+    // Dayjs uses the locale — test structural shape, not locale-specific text
+    const label = formatMonthLabel('2024-01');
+    expect(label).toMatch(/\d{4}/); // contains a 4-digit year
+    expect(label.length).toBeGreaterThan(4);
+  });
+
+  it('contains the correct year', () => {
+    expect(formatMonthLabel('2025-06')).toContain('2025');
+  });
+
+  it('differs between consecutive months', () => {
+    expect(formatMonthLabel('2024-01')).not.toBe(formatMonthLabel('2024-02'));
   });
 });

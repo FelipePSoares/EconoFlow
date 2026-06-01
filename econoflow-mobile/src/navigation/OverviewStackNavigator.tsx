@@ -1,4 +1,5 @@
 import React from 'react';
+import { useColorScheme } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 import { MonthlyOverviewScreen } from '../screens/monthly/MonthlyOverviewScreen';
@@ -15,6 +16,8 @@ export type OverviewStackParamList = {
     categoryId: string;
     categoryName: string;
     month: string;
+    /** Index of this category in the list — used to pick the Aurora accent colour. */
+    categoryIndex?: number;
   };
   ExpenseForm: {
     categoryId: string;
@@ -42,16 +45,26 @@ export type OverviewStackParamList = {
 
 const Stack = createNativeStackNavigator<OverviewStackParamList>();
 
+// Aurora screens that own their own full-screen header — suppress the nav bar
+const HEADERLESS = ['MonthlyOverview', 'CategoryList', 'ExpenseList'] as const;
+
 export const OverviewStackNavigator: React.FC = () => {
   const { t } = useTranslation();
+  const dark = useColorScheme() === 'dark';
+
+  const secondaryHeaderStyle = { backgroundColor: dark ? '#0c1a2b' : '#e6eff6' };
+  const secondaryTintColor   = dark ? '#e6edf3' : '#0d2137';
 
   return (
-    <Stack.Navigator>
-      <Stack.Screen
-        name="MonthlyOverview"
-        component={MonthlyOverviewScreen}
-        options={{ title: t('TabOverview') }}
-      />
+    <Stack.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: !(HEADERLESS as readonly string[]).includes(route.name),
+        headerStyle: secondaryHeaderStyle,
+        headerTintColor: secondaryTintColor,
+        headerShadowVisible: false,
+      })}
+    >
+      <Stack.Screen name="MonthlyOverview" component={MonthlyOverviewScreen} />
       <Stack.Screen
         name="CategoryList"
         component={CategoryListScreen}

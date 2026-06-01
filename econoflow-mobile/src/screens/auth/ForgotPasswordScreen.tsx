@@ -1,18 +1,22 @@
 import React, { useState } from 'react';
 import {
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  View,
+  StyleSheet, KeyboardAvoidingView, Platform,
+  ScrollView, View,
 } from 'react-native';
-import { Button, Text, TextInput, HelperText, useTheme } from 'react-native-paper';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Text, HelperText } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { forgotPassword } from '../../api/auth.api';
+import { AuthHero } from '../../components/auth/AuthHero';
+import { AuroraField } from '../../components/auth/AuroraField';
+import { AuroraPrimaryButton } from '../../components/auth/AuroraPrimaryButton';
+import { GlassCard } from '../../components/common/GlassCard';
+import { GlassScreen } from '../../components/common/GlassScreen';
+import { useAuroraSkin } from '../../theme/useAuroraSkin';
 
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'ForgotPassword'>;
@@ -20,7 +24,7 @@ type Props = {
 
 export const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
-  const theme = useTheme();
+  const { dark, ink, ink2 } = useAuroraSkin();
   const [sent, setSent] = useState(false);
 
   const { control, handleSubmit, formState: { errors } } = useForm<{ email: string }>({
@@ -34,109 +38,98 @@ export const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
 
   if (sent) {
     return (
-      <View style={[styles.flex, styles.center, { backgroundColor: theme.colors.background }]}>
-        <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-          <Text variant="headlineSmall" style={styles.title}>
-            {t('LabelCheckYourEmail')}
-          </Text>
-          <Text style={[styles.subtitle, { color: theme.colors.onSurface }]}>
-            {t('LabelPasswordResetSent')}
-          </Text>
-          <Button
-            mode="contained"
+      <GlassScreen dark={dark}>
+        <AuthHero dark={dark} subtitle={t('LabelCheckYourEmail')} />
+        <GlassCard dark={dark} radius={26} style={styles.card}>
+          <View style={styles.successIconWrap}>
+            <View style={styles.successIconCircle}>
+              <MaterialCommunityIcons name="email-check-outline" size={40} color="#fff" />
+            </View>
+          </View>
+          <Text style={[styles.successTitle, { color: ink }]}>{t('LabelCheckYourEmail')}</Text>
+          <Text style={[styles.successSub, { color: ink2 }]}>{t('LabelPasswordResetSent')}</Text>
+          <AuroraPrimaryButton
+            label={t('ButtonBackToLogin')}
             onPress={() => navigation.navigate('Login')}
-            style={styles.button}
-            contentStyle={styles.buttonContent}
-          >
-            {t('ButtonBackToLogin')}
-          </Button>
-        </View>
-      </View>
+          />
+        </GlassCard>
+      </GlassScreen>
     );
   }
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.flex, { backgroundColor: theme.colors.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-          <Text variant="headlineMedium" style={styles.title}>
-            {t('LabelForgotPassword')}
-          </Text>
-          <Text style={[styles.subtitle, { color: theme.colors.onSurface }]}>
-            {t('LabelForgotPasswordDescription')}
-          </Text>
+    <GlassScreen dark={dark}>
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+          <AuthHero dark={dark} subtitle={t('LabelForgotPassword')} />
 
-          <Controller
-            control={control}
-            name="email"
-            rules={{
-              required: t('RequiredField'),
-              pattern: { value: /\S+@\S+\.\S+/, message: t('InvalidEmail') },
-            }}
-            render={({ field: { onChange, value } }) => (
-              <TextInput
-                label={t('FieldEmailAddress')}
-                value={value}
-                onChangeText={onChange}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="email"
-                textContentType="emailAddress"
-                style={styles.input}
-                error={!!errors.email}
-              />
-            )}
-          />
-          {errors.email && <HelperText type="error">{errors.email.message}</HelperText>}
+          <GlassCard dark={dark} radius={26} style={styles.card}>
+            <Text style={[styles.cardTitle, { color: ink }]}>{t('ForgotPassword')}</Text>
+            <Text style={[styles.description, { color: ink2 }]}>
+              {t('LabelForgotPasswordDescription')}
+            </Text>
 
-          <Button
-            mode="contained"
-            onPress={handleSubmit((v) => mutation.mutate(v))}
-            loading={mutation.isPending}
-            disabled={mutation.isPending}
-            style={styles.button}
-            contentStyle={styles.buttonContent}
-          >
-            {t('ButtonSendResetLink')}
-          </Button>
+            <Controller
+              control={control}
+              name="email"
+              rules={{ required: t('RequiredField'), pattern: { value: /\S+@\S+\.\S+/, message: t('InvalidEmail') } }}
+              render={({ field: { onChange, value } }) => (
+                <AuroraField dark={dark} icon="email-outline" placeholder={t('FieldEmailAddress')}
+                  value={value} onChangeText={onChange} keyboardType="email-address"
+                  autoCapitalize="none" autoCorrect={false} hasError={!!errors.email} />
+              )}
+            />
+            {errors.email && <HelperText type="error">{errors.email.message}</HelperText>}
 
-          <Button
-            mode="text"
-            onPress={() => navigation.navigate('Login')}
-            style={styles.link}
-          >
-            {t('ButtonBackToLogin')}
-          </Button>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+            <AuroraPrimaryButton
+              label={t('ButtonSendResetLink')}
+              onPress={handleSubmit(v => mutation.mutate(v))}
+              loading={mutation.isPending}
+            />
+          </GlassCard>
+
+          <View style={styles.bottomRow}>
+            <Text style={[styles.bottomText, { color: ink2 }]}>
+              {t('LabelRememberedPassword') ?? 'Remembered it?'}
+            </Text>
+            <Text style={[styles.link, { color: '#0f76a8' }]}
+              onPress={() => navigation.navigate('Login')}>
+              {' '}{t('ButtonBackToLogin')}
+            </Text>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </GlassScreen>
   );
 };
 
 const styles = StyleSheet.create({
-  flex: { flex: 1 },
-  center: { justifyContent: 'center', padding: 20 },
-  scroll: { flexGrow: 1, justifyContent: 'center', padding: 20 },
+  flex:   { flex: 1 },
+  scroll: { flexGrow: 1, paddingBottom: 40 },
   card: {
-    borderRadius: 16,
-    padding: 28,
+    marginHorizontal: 20,
+    marginTop: -16,
+    padding: 22,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.2,
+    shadowRadius: 40,
+    elevation: 12,
   },
-  title: { textAlign: 'center', marginBottom: 8, fontWeight: 'bold' },
-  subtitle: { textAlign: 'center', marginBottom: 28, opacity: 0.7 },
-  input: { marginBottom: 4 },
-  button: { marginTop: 20, borderRadius: 8 },
-  buttonContent: { paddingVertical: 6 },
-  link: { marginTop: 8, alignSelf: 'center' },
+  cardTitle:   { fontSize: 19, fontWeight: '800', marginBottom: 4 },
+  description: { fontSize: 13, lineHeight: 19, marginBottom: 6 },
+  successIconWrap:   { alignItems: 'center', marginBottom: 16 },
+  successIconCircle: {
+    width: 84, height: 84, borderRadius: 28,
+    backgroundColor: '#0e9f6e',
+    alignItems: 'center', justifyContent: 'center',
+    shadowColor: 'rgba(14,159,110,0.45)',
+    shadowOffset: { width: 0, height: 14 },
+    shadowOpacity: 1, shadowRadius: 30, elevation: 10,
+  },
+  successTitle: { fontSize: 22, fontWeight: '800', textAlign: 'center', marginBottom: 8 },
+  successSub:   { fontSize: 13.5, textAlign: 'center', lineHeight: 20, marginBottom: 6 },
+  bottomRow:  { flexDirection: 'row', justifyContent: 'center', marginTop: 22 },
+  bottomText: { fontSize: 13.5 },
+  link:       { fontSize: 13.5, fontWeight: '800' },
 });

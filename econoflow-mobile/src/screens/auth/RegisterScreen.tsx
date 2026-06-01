@@ -1,21 +1,20 @@
 import React, { useState } from 'react';
 import {
-  Image,
-  View,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  useColorScheme,
-  Dimensions,
+  View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView,
 } from 'react-native';
-import { Button, Text, TextInput, HelperText, useTheme } from 'react-native-paper';
+import { Text, HelperText } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { register } from '../../api/auth.api';
+import { AuthHero } from '../../components/auth/AuthHero';
+import { AuroraField } from '../../components/auth/AuroraField';
+import { AuroraPrimaryButton } from '../../components/auth/AuroraPrimaryButton';
+import { GlassCard } from '../../components/common/GlassCard';
+import { GlassScreen } from '../../components/common/GlassScreen';
+import { useAuroraSkin } from '../../theme/useAuroraSkin';
 
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'Register'>;
@@ -28,23 +27,17 @@ interface FormValues {
 }
 
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;
-const { width } = Dimensions.get('window');
 
 export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
-  const theme = useTheme();
+  const { dark, ink, ink2 } = useAuroraSkin();
   const [serverError, setServerError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const colorScheme = useColorScheme();
-  const logoSource = colorScheme === 'dark'
-    ? require('../../../assets/logo-dark.png')
-    : require('../../../assets/logo-light.png');
 
   const { control, handleSubmit, watch, formState: { errors } } = useForm<FormValues>({
     defaultValues: { email: '', password: '', confirmPassword: '' },
   });
-
   // eslint-disable-next-line react-hooks/incompatible-library
   const passwordValue = watch('password');
 
@@ -56,60 +49,37 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
 
   if (success) {
     return (
-      <View style={[styles.flex, styles.successContainer, { backgroundColor: theme.colors.background }]}>
-        <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-          <Image source={logoSource} style={styles.logo} resizeMode="contain" />
-          <Text variant="headlineSmall" style={styles.successTitle}>
-            {t('LabelCheckYourEmail')}
-          </Text>
-          <Text style={[styles.successSubtitle, { color: theme.colors.onSurface }]}>
-            {t('LabelConfirmEmailSent')}
-          </Text>
-          <Button
-            mode="contained"
-            onPress={() => navigation.navigate('Login')}
-            style={styles.signInButton}
-            contentStyle={styles.signInButtonContent}
-          >
-            {t('ButtonSignIn')}
-          </Button>
-        </View>
-      </View>
+      <GlassScreen dark={dark}>
+        <AuthHero dark={dark} subtitle={t('LabelCheckYourEmail')} />
+        <GlassCard dark={dark} radius={26} style={styles.card}>
+          <Text style={[styles.successTitle, { color: ink }]}>{t('LabelCheckYourEmail')}</Text>
+          <Text style={[styles.successSub, { color: ink2 }]}>{t('LabelConfirmEmailSent')}</Text>
+          <AuroraPrimaryButton label={t('ButtonSignIn')} onPress={() => navigation.navigate('Login')} />
+        </GlassCard>
+      </GlassScreen>
     );
   }
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.flex, { backgroundColor: theme.colors.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-          <Image source={logoSource} style={styles.logo} resizeMode="contain" />
+    <GlassScreen dark={dark}>
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+          <AuthHero dark={dark} subtitle={t('PleaseSignUp')} />
+
+          <GlassCard dark={dark} radius={26} style={styles.card}>
+            <Text style={[styles.cardTitle, { color: ink }]}>{t('ButtonRegister')}</Text>
+          <Text style={[styles.cardSubtitle, { color: ink2 }]}>
+            {t('LabelStartOrganizing') ?? 'Start organising your money today'}
+          </Text>
 
           <Controller
             control={control}
             name="email"
-            rules={{
-              required: t('RequiredField'),
-              pattern: { value: /\S+@\S+\.\S+/, message: t('InvalidEmail') },
-            }}
+            rules={{ required: t('RequiredField'), pattern: { value: /\S+@\S+\.\S+/, message: t('InvalidEmail') } }}
             render={({ field: { onChange, value } }) => (
-              <TextInput
-                label={t('FieldEmailAddress')}
-                value={value}
-                onChangeText={onChange}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="email"
-                textContentType="emailAddress"
-                style={styles.input}
-                error={!!errors.email}
-              />
+              <AuroraField dark={dark} icon="email-outline" placeholder={t('FieldEmailAddress')}
+                value={value} onChangeText={onChange} keyboardType="email-address"
+                autoCapitalize="none" autoCorrect={false} hasError={!!errors.email} />
             )}
           />
           {errors.email && <HelperText type="error">{errors.email.message}</HelperText>}
@@ -117,27 +87,12 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
           <Controller
             control={control}
             name="password"
-            rules={{
-              required: t('RequiredField'),
-              pattern: { value: PASSWORD_REGEX, message: t('PasswordRequirements') },
-            }}
+            rules={{ required: t('RequiredField'), pattern: { value: PASSWORD_REGEX, message: t('PasswordRequirements') } }}
             render={({ field: { onChange, value } }) => (
-              <TextInput
-                label={t('FieldPassword')}
-                value={value}
-                onChangeText={onChange}
-                secureTextEntry={!showPassword}
-                autoComplete="new-password"
-                textContentType="newPassword"
-                right={
-                  <TextInput.Icon
-                    icon={showPassword ? 'eye-off' : 'eye'}
-                    onPress={() => setShowPassword((v) => !v)}
-                  />
-                }
-                style={styles.input}
-                error={!!errors.password}
-              />
+              <AuroraField dark={dark} icon="lock-outline" placeholder={t('FieldPassword')}
+                value={value} onChangeText={onChange} secureTextEntry={!showPassword}
+                onToggleSecure={() => setShowPassword(v => !v)} showSecure={showPassword}
+                hasError={!!errors.password} />
             )}
           />
           {errors.password && <HelperText type="error">{errors.password.message}</HelperText>}
@@ -145,76 +100,54 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
           <Controller
             control={control}
             name="confirmPassword"
-            rules={{
-              required: t('RequiredField'),
-              validate: (v) => v === passwordValue || t('PasswordsMustMatch'),
-            }}
+            rules={{ required: t('RequiredField'), validate: v => v === passwordValue || t('PasswordsMustMatch') }}
             render={({ field: { onChange, value } }) => (
-              <TextInput
-                label={t('FieldConfirmPassword')}
-                value={value}
-                onChangeText={onChange}
-                secureTextEntry
-                autoComplete="new-password"
-                textContentType="newPassword"
-                style={styles.input}
-                error={!!errors.confirmPassword}
-              />
+              <AuroraField dark={dark} icon="lock-reset" placeholder={t('FieldConfirmPassword')}
+                value={value} onChangeText={onChange} secureTextEntry hasError={!!errors.confirmPassword} />
             )}
           />
-          {errors.confirmPassword && (
-            <HelperText type="error">{errors.confirmPassword.message}</HelperText>
-          )}
-
+          {errors.confirmPassword && <HelperText type="error">{errors.confirmPassword.message}</HelperText>}
           {serverError && <HelperText type="error">{serverError}</HelperText>}
 
-          <Button
-            mode="contained"
-            onPress={handleSubmit((v) => { setServerError(null); registerMutation.mutate(v); })}
+          <AuroraPrimaryButton
+            label={t('ButtonRegister')}
+            onPress={handleSubmit(v => { setServerError(null); registerMutation.mutate(v); })}
             loading={registerMutation.isPending}
-            disabled={registerMutation.isPending}
-            style={styles.signInButton}
-            contentStyle={styles.signInButtonContent}
-          >
-            {t('ButtonRegister')}
-          </Button>
+          />
+          </GlassCard>
 
-          <Button
-            mode="text"
-            onPress={() => navigation.navigate('Login')}
-            style={styles.link}
-          >
-            {t('LinkSignIn')}
-          </Button>
+          <View style={styles.bottomRow}>
+          <Text style={[styles.bottomText, { color: ink2 }]}>
+            {t('LabelAlreadyHaveAccount') ?? 'Already have an account?'}
+          </Text>
+          <Text style={[styles.link, { color: '#0f76a8' }]} onPress={() => navigation.navigate('Login')}>
+            {' '}{t('ButtonSignIn')}
+          </Text>
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </GlassScreen>
   );
 };
 
 const styles = StyleSheet.create({
-  flex: { flex: 1 },
-  scroll: { flexGrow: 1, justifyContent: 'center', padding: 20 },
-  successContainer: { justifyContent: 'center', padding: 20 },
+  flex:     { flex: 1 },
+  scroll:   { flexGrow: 1, paddingBottom: 40 },
   card: {
-    borderRadius: 16,
-    padding: 28,
+    marginHorizontal: 20,
+    marginTop: -16,
+    padding: 22,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.2,
+    shadowRadius: 40,
+    elevation: 12,
   },
-  logo: {
-    width: width * 0.55,
-    height: 90,
-    alignSelf: 'center',
-    marginBottom: 32,
-  },
-  successTitle: { textAlign: 'center', marginBottom: 12, fontWeight: 'bold' },
-  successSubtitle: { textAlign: 'center', marginBottom: 24, opacity: 0.7 },
-  input: { marginBottom: 2 },
-  signInButton: { marginTop: 20, borderRadius: 8 },
-  signInButtonContent: { paddingVertical: 6 },
-  link: { marginTop: 8, alignSelf: 'center' },
+  cardTitle:    { fontSize: 19, fontWeight: '800', marginBottom: 2 },
+  cardSubtitle: { fontSize: 13, fontWeight: '600', marginBottom: 4 },
+  successTitle: { fontSize: 22, fontWeight: '800', textAlign: 'center', marginBottom: 10 },
+  successSub:   { fontSize: 13.5, textAlign: 'center', lineHeight: 20, marginBottom: 6 },
+  bottomRow:    { flexDirection: 'row', justifyContent: 'center', marginTop: 22 },
+  bottomText:   { fontSize: 13.5 },
+  link:         { fontSize: 13.5, fontWeight: '800' },
 });

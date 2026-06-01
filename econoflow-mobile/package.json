@@ -15,6 +15,8 @@
     "axios": "^1.16.1",
     "dayjs": "^1.11.21",
     "expo": "~56.0.5",
+    "expo-blur": "~56.0.3",
+    "expo-linear-gradient": "^56.0.4",
     "expo-secure-store": "^56.0.4",
     "expo-splash-screen": "^56.0.10",
     "expo-status-bar": "~56.0.4",
@@ -27,6 +29,7 @@
     "react-native-paper": "^5.15.3",
     "react-native-safe-area-context": "^5.8.0",
     "react-native-screens": "^4.25.2",
+    "react-native-svg": "15.15.4",
     "react-native-vector-icons": "^10.3.0",
     "typescript": "^6.0.3",
     "zustand": "^5.0.13"
@@ -43,7 +46,17 @@
     "web": "expo start --web",
     "test": "jest --watchAll=false",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src/ App.tsx --ext .ts,.tsx --max-warnings 0"
+    "lint": "eslint src/ App.tsx --ext .ts,.tsx --max-warnings 0",
+    "prepare": "cd .. && git config core.hooksPath .husky || true"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": [
+      "eslint --max-warnings 0",
+      "bash -c 'cd .. && cd econoflow-mobile && tsc --noEmit'"
+    ],
+    "App.tsx": [
+      "eslint --max-warnings 0"
+    ]
   },
   "jest": {
     "preset": "jest-expo",
@@ -62,6 +75,8 @@
     "eslint-config-expo": "^56.0.4",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
-    "jest-expo": "~56.0.0"
+    "husky": "^9.1.7",
+    "jest-expo": "~56.0.0",
+    "lint-staged": "^17.0.7"
   }
 }

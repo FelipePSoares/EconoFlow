@@ -525,5 +525,12 @@
   "ButtonSendResetLink": "Send reset link",
   "ButtonDismiss": "Dismiss",
   "ErrorGeneric": "Something went wrong. Please try again.",
-  "ValueShouldBeGreaterThanOrEqual": "Value must be ≥ {{value}}."
+  "ValueShouldBeGreaterThanOrEqual": "Value must be ≥ {{value}}.",
+
+  "LabelHello": "Hello",
+  "LabelNoAccount": "Don't have an account?",
+  "LabelStartOrganizing": "Start organizing your finances",
+  "LabelRememberedPassword": "Remembered your password?",
+  "ButtonViewAll": "View all",
+  "LabelGoToToday": "Go to today"
 }
