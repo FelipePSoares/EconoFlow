@@ -16,6 +16,7 @@
     "android": {
       "package": "pt.econoflow.mobile",
       "versionCode": 2,
+      "abiFilters": ["x86_64"],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0f76a8"
@@ -34,7 +35,16 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#061e33",
+          "image": "./assets/splash.png",
+          "resizeMode": "contain",
+          "imageWidth": 150
+        }
+      ]
     ]
   }
 }

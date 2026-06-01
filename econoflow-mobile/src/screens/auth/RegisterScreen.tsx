@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView,
+  View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Linking,
 } from 'react-native';
 import { Text, HelperText } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
@@ -50,12 +50,14 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   if (success) {
     return (
       <GlassScreen dark={dark}>
-        <AuthHero dark={dark} subtitle={t('LabelCheckYourEmail')} />
-        <GlassCard dark={dark} radius={26} style={styles.card}>
-          <Text style={[styles.successTitle, { color: ink }]}>{t('LabelCheckYourEmail')}</Text>
-          <Text style={[styles.successSub, { color: ink2 }]}>{t('LabelConfirmEmailSent')}</Text>
-          <AuroraPrimaryButton label={t('ButtonSignIn')} onPress={() => navigation.navigate('Login')} />
-        </GlassCard>
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+          <AuthHero dark={dark} subtitle={t('LabelCheckYourEmail')} />
+          <GlassCard dark={dark} radius={28} style={styles.card}>
+            <Text style={[styles.successTitle, { color: ink }]}>{t('LabelCheckYourEmail')}</Text>
+            <Text style={[styles.successSub, { color: ink2 }]}>{t('LabelConfirmEmailSent')}</Text>
+            <AuroraPrimaryButton label={t('ButtonSignIn')} onPress={() => navigation.navigate('Login')} icon="arrow-right" />
+          </GlassCard>
+        </ScrollView>
       </GlassScreen>
     );
   }
@@ -66,7 +68,7 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <AuthHero dark={dark} subtitle={t('PleaseSignUp')} />
 
-          <GlassCard dark={dark} radius={26} style={styles.card}>
+          <GlassCard dark={dark} radius={28} style={styles.card}>
             <Text style={[styles.cardTitle, { color: ink }]}>{t('ButtonRegister')}</Text>
           <Text style={[styles.cardSubtitle, { color: ink2 }]}>
             {t('LabelStartOrganizing') ?? 'Start organising your money today'}
@@ -113,7 +115,26 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
             label={t('ButtonRegister')}
             onPress={handleSubmit(v => { setServerError(null); registerMutation.mutate(v); })}
             loading={registerMutation.isPending}
+            icon="arrow-right"
           />
+
+          <Text style={[styles.terms, { color: ink2 }]}>
+            {t('LabelTermsPrefix')}{' '}
+            <Text
+              style={styles.termsLink}
+              onPress={() => Linking.openURL('https://econoflow.pt/use-terms')}
+            >
+              {t('UseTerms')}
+            </Text>
+            {t('LabelTermsMid')}{' '}
+            <Text
+              style={styles.termsLink}
+              onPress={() => Linking.openURL('https://econoflow.pt/privacy-policy')}
+            >
+              {t('PrivacyPolicy')}
+            </Text>
+            {t('LabelTermsSuffix')}
+          </Text>
           </GlassCard>
 
           <View style={styles.bottomRow}>
@@ -132,16 +153,10 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   flex:     { flex: 1 },
-  scroll:   { flexGrow: 1, paddingBottom: 40 },
+  scroll:   { flexGrow: 1, justifyContent: 'center', paddingVertical: 40 },
   card: {
     marginHorizontal: 20,
-    marginTop: -16,
     padding: 22,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.2,
-    shadowRadius: 40,
-    elevation: 12,
   },
   cardTitle:    { fontSize: 19, fontWeight: '800', marginBottom: 2 },
   cardSubtitle: { fontSize: 13, fontWeight: '600', marginBottom: 4 },
@@ -150,4 +165,6 @@ const styles = StyleSheet.create({
   bottomRow:    { flexDirection: 'row', justifyContent: 'center', marginTop: 22 },
   bottomText:   { fontSize: 13.5 },
   link:         { fontSize: 13.5, fontWeight: '800' },
+  terms:        { fontSize: 11.5, lineHeight: 17, textAlign: 'center', marginTop: 16, opacity: 0.82 },
+  termsLink:    { color: '#0f76a8', fontWeight: '700' },
 });

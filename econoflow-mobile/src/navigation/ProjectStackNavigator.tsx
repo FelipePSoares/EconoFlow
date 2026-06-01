@@ -19,7 +19,7 @@ export const ProjectStackNavigator: React.FC = () => {
       <Stack.Screen
         name="ProjectList"
         component={ProjectListScreen}
-        options={{ title: t('TabProjects') }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="CreateProject"

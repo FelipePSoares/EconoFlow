@@ -33,26 +33,33 @@ export const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
 
   const mutation = useMutation({
     mutationFn: (values: { email: string }) => forgotPassword(values.email),
+    // Always show the "check your email" screen whether the API succeeds or fails.
+    // This prevents leaking whether an email address is registered (security best
+    // practice) and fixes the silent no-op when the server returns an error.
     onSuccess: () => setSent(true),
+    onError:   () => setSent(true),
   });
 
   if (sent) {
     return (
       <GlassScreen dark={dark}>
-        <AuthHero dark={dark} subtitle={t('LabelCheckYourEmail')} />
-        <GlassCard dark={dark} radius={26} style={styles.card}>
-          <View style={styles.successIconWrap}>
-            <View style={styles.successIconCircle}>
-              <MaterialCommunityIcons name="email-check-outline" size={40} color="#fff" />
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+          <AuthHero dark={dark} subtitle={t('LabelCheckYourEmail')} />
+          <GlassCard dark={dark} radius={28} style={styles.card}>
+            <View style={styles.successIconWrap}>
+              <View style={styles.successIconCircle}>
+                <MaterialCommunityIcons name="email-check-outline" size={40} color="#fff" />
+              </View>
             </View>
-          </View>
-          <Text style={[styles.successTitle, { color: ink }]}>{t('LabelCheckYourEmail')}</Text>
-          <Text style={[styles.successSub, { color: ink2 }]}>{t('LabelPasswordResetSent')}</Text>
-          <AuroraPrimaryButton
-            label={t('ButtonBackToLogin')}
-            onPress={() => navigation.navigate('Login')}
-          />
-        </GlassCard>
+            <Text style={[styles.successTitle, { color: ink }]}>{t('LabelCheckYourEmail')}</Text>
+            <Text style={[styles.successSub, { color: ink2 }]}>{t('LabelPasswordResetSent')}</Text>
+            <AuroraPrimaryButton
+              label={t('ButtonBackToLogin')}
+              onPress={() => navigation.navigate('Login')}
+              icon="arrow-right"
+            />
+          </GlassCard>
+        </ScrollView>
       </GlassScreen>
     );
   }
@@ -63,7 +70,7 @@ export const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <AuthHero dark={dark} subtitle={t('LabelForgotPassword')} />
 
-          <GlassCard dark={dark} radius={26} style={styles.card}>
+          <GlassCard dark={dark} radius={28} style={styles.card}>
             <Text style={[styles.cardTitle, { color: ink }]}>{t('ForgotPassword')}</Text>
             <Text style={[styles.description, { color: ink2 }]}>
               {t('LabelForgotPasswordDescription')}
@@ -85,6 +92,7 @@ export const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
               label={t('ButtonSendResetLink')}
               onPress={handleSubmit(v => mutation.mutate(v))}
               loading={mutation.isPending}
+              icon="arrow-right"
             />
           </GlassCard>
 
@@ -105,16 +113,10 @@ export const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   flex:   { flex: 1 },
-  scroll: { flexGrow: 1, paddingBottom: 40 },
+  scroll: { flexGrow: 1, justifyContent: 'center', paddingVertical: 40 },
   card: {
     marginHorizontal: 20,
-    marginTop: -16,
     padding: 22,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.2,
-    shadowRadius: 40,
-    elevation: 12,
   },
   cardTitle:   { fontSize: 19, fontWeight: '800', marginBottom: 4 },
   description: { fontSize: 13, lineHeight: 19, marginBottom: 6 },

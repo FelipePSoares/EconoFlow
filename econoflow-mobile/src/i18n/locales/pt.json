@@ -338,6 +338,9 @@
   "UsefulLinks": "Links Úteis",
   "PrivacyPolicy": "Política de Privacidade",
   "UseTerms": "Termos de Uso",
+  "LabelTermsPrefix": "Ao criar uma conta, você concorda com os",
+  "LabelTermsMid": ". Para mais informações sobre as práticas de privacidade da EconoFlow, consulte a",
+  "LabelTermsSuffix": ". Ocasionalmente, enviaremos e-mails relacionados à conta.",
   "ContactUs": "Contate-nos",
   "ContactUsTitle": "Envie-nos uma Mensagem",
   "ContactUsNameLabel": "Nome",
@@ -510,7 +513,11 @@
   "LinkSignIn": "Já tem uma conta? Entrar",
   "TabProjects": "Projetos",
   "TabOverview": "Visão Geral",
+  "TabPlans": "Planos",
   "TabProfile": "Perfil",
+  "LabelQuickAdd": "Nova entrada",
+  "LabelSelectCategory": "Categoria",
+  "LabelSelectExpense": "Adicionar a despesa (opcional)",
   "LabelCommonCurrencies": "Comuns: EUR, USD, GBP, BRL, JPY, CAD, AUD, CHF",
 
   "LabelOver": "acima",
@@ -531,6 +538,14 @@
   "LabelStartOrganizing": "Comece a organizar suas finanças",
   "LabelRememberedPassword": "Lembrou a senha?",
   "ButtonViewAll": "Ver tudo",
-  "LabelGoToToday": "Ir para hoje"
+  "LabelGoToToday": "Ir para hoje",
+  "LabelAlreadyHaveAccount": "Já tem uma conta?",
+  "ListExpenses": "Despesas",
+  "LabelDeductible": "Dedutível",
+  "LabelProofAttached": "Comprovante",
+  "LabelDeductibleHint": "para IR / declaração",
+  "LabelSelectProject": "Selecionar projeto",
+  "LabelMyAccount": "Minha Conta",
+  "Optional": "opcional"
 }
 

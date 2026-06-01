@@ -1,32 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { FlatList, StyleSheet, View, RefreshControl } from 'react-native';
-import { FAB, Text, useTheme, TouchableRipple } from 'react-native-paper';
+import { Text, useTheme, TouchableRipple } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { OverviewStackParamList } from '../../navigation/OverviewStackNavigator';
 import { useProjectStore } from '../../store/projectStore';
+import { useQuickAddStore } from '../../store/quickAddStore';
 import { useIncomesForMonth, useDeleteIncome } from '../../hooks/useIncomes';
 import { LoadingIndicator } from '../../components/common/LoadingIndicator';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { CurrencyDisplay } from '../../components/common/CurrencyDisplay';
 import { ErrorBanner } from '../../components/common/ErrorBanner';
 import { MonthNavigator } from '../../components/common/MonthNavigator';
+import { QuickAddModal } from '../quick-add/QuickAddModal';
+import type { QuickAddEditMode } from '../quick-add/QuickAddModal';
 import { currentMonth, fromDateOnly } from '../../utils/date';
 
 type Props = NativeStackScreenProps<OverviewStackParamList, 'IncomeList'>;
 
-export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
+interface EditState {
+  visible: boolean;
+  editMode?: QuickAddEditMode;
+}
+
+export const IncomeListScreen: React.FC<Props> = ({ route }) => {
   const { t } = useTranslation();
   const theme = useTheme();
   const [month, setMonth] = useState(route.params?.month ?? currentMonth());
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [dismissedError, setDismissedError] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [editState, setEditState] = useState<EditState>({ visible: false });
 
   const { selectedProject, currency } = useProjectStore();
   const projectId = selectedProject?.project.id ?? '';
   const canEdit = selectedProject?.role !== 'Viewer';
+
+  // Tell the global FAB to open with income pre-selected while this screen is focused
+  const setDefaultType = useQuickAddStore(s => s.setDefaultType);
+  useFocusEffect(
+    useCallback(() => {
+      setDefaultType('income');
+      return () => setDefaultType(null);
+    }, [setDefaultType])
+  );
 
   const { data: incomes, isLoading, isError, refetch } = useIncomesForMonth(projectId, month);
   const deleteIncome = useDeleteIncome(projectId, month);
@@ -59,10 +78,13 @@ export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
           const dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
           return (
             <TouchableRipple
-              onPress={canEdit ? () => navigation.navigate('IncomeForm', {
-                incomeId: item.id,
-                month,
-                initialValues: { name: item.name, amount: item.amount, date: item.date },
+              onPress={canEdit ? () => setEditState({
+                visible: true,
+                editMode: {
+                  type: 'income',
+                  id: item.id,
+                  initialValues: { name: item.name, amount: item.amount, date: item.date },
+                },
               }) : undefined}
               onLongPress={canEdit ? () => setPendingDeleteId(item.id) : undefined}
             >
@@ -94,14 +116,6 @@ export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       />
 
-      {canEdit && (
-        <FAB
-          icon="plus"
-          style={styles.fab}
-          onPress={() => navigation.navigate('IncomeForm', { month })}
-        />
-      )}
-
       <ConfirmDialog
         visible={!!pendingDeleteId}
         title={t('LabelDeleteIncome')}
@@ -112,15 +126,22 @@ export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
         }}
         onCancel={() => setPendingDeleteId(null)}
       />
+
+      {/* Edit-only local modal — tap an income row to edit it */}
+      <QuickAddModal
+        visible={editState.visible}
+        onClose={() => setEditState({ visible: false })}
+        month={month}
+        editMode={editState.editMode}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  list: { padding: 12, paddingBottom: 80 },
+  list: { padding: 12, paddingBottom: 24 },
   empty: { textAlign: 'center', marginTop: 40, opacity: 0.5 },
-  fab: { position: 'absolute', right: 16, bottom: 16 },
   incomeCard: {
     flexDirection: 'row',
     alignItems: 'center',

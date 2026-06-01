@@ -57,7 +57,7 @@ export const TwoFactorScreen: React.FC<Props> = ({ route }) => {
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <AuthHero dark={dark} subtitle={t('TwoFactorSignInTitle')} />
 
-          <GlassCard dark={dark} radius={26} style={styles.card}>
+          <GlassCard dark={dark} radius={28} style={styles.card}>
             <Text style={[styles.description, { color: ink2 }]}>
               {t('LabelEnterTwoFactorCode')}
             </Text>
@@ -85,6 +85,7 @@ export const TwoFactorScreen: React.FC<Props> = ({ route }) => {
               label={t('ButtonVerify')}
               onPress={handleSubmit(v => { setAuthError(null); mutation.mutate(v); })}
               loading={mutation.isPending}
+              icon="arrow-right"
             />
           </GlassCard>
         </ScrollView>
@@ -95,16 +96,10 @@ export const TwoFactorScreen: React.FC<Props> = ({ route }) => {
 
 const styles = StyleSheet.create({
   flex:  { flex: 1 },
-  scroll:{ flexGrow: 1, paddingBottom: 40 },
+  scroll:{ flexGrow: 1, justifyContent: 'center', paddingVertical: 40 },
   card: {
     marginHorizontal: 20,
-    marginTop: -16,
     padding: 22,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.2,
-    shadowRadius: 40,
-    elevation: 12,
   },
   description: { textAlign: 'center', fontSize: 13.5, lineHeight: 20, marginBottom: 4 },
 });
