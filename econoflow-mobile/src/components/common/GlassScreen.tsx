@@ -12,9 +12,13 @@ interface Props {
 }
 
 export const GlassScreen: React.FC<Props> = ({ dark, children, intensity }) => {
-  const blur = intensity ?? (dark ? 85 : 90);
+  const blur = intensity ?? 100;
   const blurTargetRef = useRef<View>(null);
   const bg = dark ? '#061e33' : '#e6eff6';
+
+  // Semi-transparent tint layered over the blur — deepens the frosted-glass effect
+  // beyond what intensity alone can achieve (already at 100).
+  const frostTint = dark ? 'rgba(6,30,51,0.42)' : 'rgba(224,238,250,0.42)';
 
   if (Platform.OS === 'android') {
     return (
@@ -36,6 +40,9 @@ export const GlassScreen: React.FC<Props> = ({ dark, children, intensity }) => {
           pointerEvents="none"
         />
 
+        {/* Frost tint */}
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: frostTint }]} pointerEvents="none" />
+
         <View style={styles.fill}>{children}</View>
       </View>
     );
@@ -50,6 +57,10 @@ export const GlassScreen: React.FC<Props> = ({ dark, children, intensity }) => {
         style={StyleSheet.absoluteFill}
         pointerEvents="none"
       />
+
+      {/* Frost tint */}
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: frostTint }]} pointerEvents="none" />
+
       <View style={styles.fill}>{children}</View>
     </View>
   );

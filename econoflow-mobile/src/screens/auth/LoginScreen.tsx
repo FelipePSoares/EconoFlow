@@ -84,7 +84,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <AuthHero dark={dark} subtitle={t('PleaseSignIn')} />
 
-          <GlassCard dark={dark} radius={26} style={styles.card}>
+          <GlassCard dark={dark} radius={28} style={styles.card}>
             <Text style={[styles.cardTitle, { color: ink }]}>{t('ButtonSignIn')}</Text>
             <Text style={[styles.cardSubtitle, { color: ink2 }]}>{t('PleaseSignIn')}</Text>
 
@@ -128,6 +128,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
               label={t('ButtonSignIn')}
               onPress={handleSubmit(v => { setLoginError(null); loginMutation.mutate(v); })}
               loading={loginMutation.isPending}
+              icon="arrow-right"
             />
           </GlassCard>
 
@@ -148,16 +149,10 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   flex:  { flex: 1 },
-  scroll:{ flexGrow: 1, paddingBottom: 40 },
+  scroll:{ flexGrow: 1, justifyContent: 'center', paddingVertical: 40 },
   card: {
     marginHorizontal: 20,
-    marginTop: -16,
     padding: 22,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.2,
-    shadowRadius: 40,
-    elevation: 12,
   },
   cardTitle:    { fontSize: 19, fontWeight: '800', marginBottom: 2 },
   cardSubtitle: { fontSize: 13, fontWeight: '600', marginBottom: 6 },

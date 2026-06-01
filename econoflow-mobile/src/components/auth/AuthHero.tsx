@@ -44,8 +44,8 @@ const styles = StyleSheet.create({
   wrap: {
     alignItems: 'center',
     gap: 8,
-    paddingTop: 56,
-    paddingBottom: 36,
+    paddingTop: 32,
+    paddingBottom: 20,
   },
   iconWrap: {
     width: 80,

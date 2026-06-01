@@ -339,6 +339,9 @@
   "UsefulLinks": "Useful Links",
   "PrivacyPolicy": "Privacy Policy",
   "UseTerms": "Terms of Use",
+  "LabelTermsPrefix": "By creating an account, you agree to the",
+  "LabelTermsMid": ". For more information about EconoFlow's privacy practices, see the EconoFlow",
+  "LabelTermsSuffix": ". We'll occasionally send you account-related emails.",
   "ContactUs": "Contact Us",
   "ContactUsTitle": "Send Us a Message",
   "ContactUsNameLabel": "Name",
@@ -511,7 +514,11 @@
   "LinkSignIn": "Already have an account? Sign in",
   "TabProjects": "Projects",
   "TabOverview": "Overview",
+  "TabPlans": "Plans",
   "TabProfile": "Profile",
+  "LabelQuickAdd": "New entry",
+  "LabelSelectCategory": "Category",
+  "LabelSelectExpense": "Add to expense (optional)",
   "LabelCommonCurrencies": "Common: EUR, USD, GBP, BRL, JPY, CAD, AUD, CHF",
 
   "LabelOver": "over",
@@ -532,5 +539,13 @@
   "LabelStartOrganizing": "Start organizing your finances",
   "LabelRememberedPassword": "Remembered your password?",
   "ButtonViewAll": "View all",
-  "LabelGoToToday": "Go to today"
+  "LabelGoToToday": "Go to today",
+  "LabelAlreadyHaveAccount": "Already have an account?",
+  "ListExpenses": "Expenses",
+  "LabelDeductible": "Deductible",
+  "LabelProofAttached": "Proof",
+  "LabelDeductibleHint": "for tax declaration",
+  "LabelSelectProject": "Select a project",
+  "LabelMyAccount": "My Account",
+  "Optional": "optional"
 }

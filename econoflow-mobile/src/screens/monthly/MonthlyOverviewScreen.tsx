@@ -8,7 +8,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { OverviewStackParamList } from '../../navigation/OverviewStackNavigator';
+import type { MainTabParamList } from '../../navigation/MainNavigator';
 import { useProjectStore } from '../../store/projectStore';
 import { useAuthStore } from '../../store/authStore';
 import { useProjects } from '../../hooks/useProjects';
@@ -26,6 +28,8 @@ import {
   calculateTotalIncome,
 } from '../../utils/budget';
 import { getCategoryColor } from '../../utils/categoryTheme';
+import { getCategoryIcon } from '../../utils/categoryIcon';
+import { getCurrencySymbol } from '../../utils/currency';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
 import { DonutRing } from '../../components/common/DonutRing';
 
@@ -100,6 +104,7 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
     : 0;
   const remaining     = Math.max(totalBudget - totalExpenses, 0);
   const activeCategories = (categories ?? []).filter(c => !c.isArchived);
+  const sym = getCurrencySymbol(currency);
 
   return (
     <GlassScreen dark={dark}>
@@ -118,10 +123,18 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
       >
         {/* ── Header ──────────────────────────────────────────────────────── */}
         <View style={styles.header}>
-          <View style={styles.headerLeft}>
+          <TouchableOpacity
+            style={styles.headerLeft}
+            onPress={() =>
+              navigation
+                .getParent<BottomTabNavigationProp<MainTabParamList>>()
+                ?.navigate('Profile')
+            }
+            activeOpacity={0.75}
+          >
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>
-                {selectedProject.project.name[0]?.toUpperCase() ?? '?'}
+                {(user?.firstName?.[0] ?? user?.email?.[0] ?? '?').toUpperCase()}
               </Text>
             </View>
             <View>
@@ -132,7 +145,7 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
                 {selectedProject.project.name}
               </Text>
             </View>
-          </View>
+          </TouchableOpacity>
           <TouchableOpacity
             onPress={() => Alert.alert(t('Notifications'), t('NoNotifications'))}
             activeOpacity={0.7}
@@ -158,10 +171,10 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
         <GlassCard dark={dark} radius={28} intensity={55} style={styles.heroCard}>
           <View style={styles.heroPad}>
             <Text style={[styles.heroLabel, { color: ink2 }]}>
-              {t('LabelBalance')} · {currency}
+              {t('LabelBalance')} · {sym}
             </Text>
             <Text style={[styles.heroBalance, { color: ink }]} adjustsFontSizeToFit numberOfLines={1}>
-              {balance < 0 ? '−' : ''}{currency} {fmtCompact(balance)}
+              {balance < 0 ? '−' : ''}{sym} {fmtCompact(balance)}
             </Text>
 
             <View style={[styles.heroRow, { borderTopColor: hair }]}>
@@ -175,7 +188,7 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
                   <Text style={[styles.heroStatTitle, { color: ink2 }]}>{t('LabelIncome')}</Text>
                 </View>
                 <Text style={[styles.heroStatAmt, { color: ink }]}>
-                  {currency} {fmtCompact(totalIncome)}
+                  {sym} {fmtCompact(totalIncome)}
                 </Text>
               </TouchableOpacity>
 
@@ -191,7 +204,7 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
                   <Text style={[styles.heroStatTitle, { color: ink2 }]}>{t('LabelExpenses')}</Text>
                 </View>
                 <Text style={[styles.heroStatAmt, { color: ink }]}>
-                  {currency} {fmtCompact(totalExpenses)}
+                  {sym} {fmtCompact(totalExpenses)}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -215,7 +228,7 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
               <View style={styles.budgetMeta}>
                 <Text style={[styles.budgetMetaLabel, { color: ink2 }]}>{t('Budget')}</Text>
                 <Text style={[styles.budgetMetaAmt, { color: ink }]}>
-                  {currency} {fmtCompact(remaining)}
+                  {sym} {fmtCompact(remaining)}
                 </Text>
                 <Text style={[styles.budgetMetaSub, { color: ink2 }]}>
                   {t('Remaining') ?? 'remaining'}
@@ -243,7 +256,7 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
                 {t('LabelSaved')}
               </Text>
               <Text style={[styles.savedAmt, { color: dark ? '#e6edf3' : '#fff' }]}>
-                {loadingSaved ? '—' : `${currency} ${fmtCompact(totalSaved)}`}
+                {loadingSaved ? '—' : `${sym} ${fmtCompact(totalSaved)}`}
               </Text>
             </View>
           </GlassCard>
@@ -283,7 +296,7 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
                           color={color}
                           trackColor={dark ? color + '33' : color + '28'}
                         >
-                          <MaterialCommunityIcons name="shape-outline" size={17} color={color} />
+                          <MaterialCommunityIcons name={getCategoryIcon(cat.name) as never} size={17} color={color} />
                         </DonutRing>
                         <View style={styles.catInfo}>
                           <Text style={[styles.catName, { color: ink }]}>{cat.name}</Text>
@@ -291,8 +304,8 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
                             {cat.expenses.length} {t('LabelExpenseItems')} · {Math.round(pct * 100)}%
                           </Text>
                         </View>
-                        <Text style={[styles.catAmt, { color: '#e74c3c' }]}>
-                          {currency} {fmtCompact(spent)}
+                        <Text style={[styles.catAmt, { color: ink }]}>
+                          {sym} {fmtCompact(spent)}
                         </Text>
                         <MaterialCommunityIcons name="chevron-right" size={18} color={ink2} />
                       </View>

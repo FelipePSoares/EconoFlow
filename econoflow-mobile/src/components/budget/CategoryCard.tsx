@@ -5,6 +5,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import type { Category } from '../../api/types';
 import { getCategoryColor } from '../../utils/categoryTheme';
+import { getCategoryIcon } from '../../utils/categoryIcon';
+import { getCurrencySymbol } from '../../utils/currency';
 import { GlassCard } from '../common/GlassCard';
 import { DonutRing } from '../common/DonutRing';
 import { auroraTokens } from '../../theme/useAuroraSkin';
@@ -31,6 +33,8 @@ export const CategoryCard: React.FC<Props> = ({
   const budget = getTotalBudget(category);
   const pct    = budget > 0 ? Math.min(spent / budget, 1) : 0;
   const color  = getCategoryColor(index);
+  const sym    = getCurrencySymbol(currency);
+  const icon   = getCategoryIcon(category.name);
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.78} style={styles.wrapper}>
@@ -43,7 +47,7 @@ export const CategoryCard: React.FC<Props> = ({
             color={color}
             trackColor={dark ? color + '33' : color + '28'}
           >
-            <MaterialCommunityIcons name="shape-outline" size={17} color={color} />
+            <MaterialCommunityIcons name={icon as never} size={17} color={color} />
           </DonutRing>
 
           <View style={styles.info}>
@@ -53,8 +57,8 @@ export const CategoryCard: React.FC<Props> = ({
             </Text>
           </View>
 
-          <Text style={[styles.amount, { color: '#e74c3c' }]}>
-            {currency} {Math.round(spent).toLocaleString()}
+          <Text style={[styles.amount, { color: ink }]}>
+            {sym} {Math.round(spent).toLocaleString()}
           </Text>
           <MaterialCommunityIcons name="chevron-right" size={18} color={ink2} />
         </View>

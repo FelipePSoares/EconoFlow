@@ -1,10 +1,12 @@
 import React from 'react';
-import { View, TextInput, StyleSheet, TouchableOpacity, TextInputProps } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, TextInputProps } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 interface Props extends TextInputProps {
   dark: boolean;
   icon: string;
+  /** When set, renders a currency/text symbol instead of the icon. */
+  textPrefix?: string;
   placeholder: string;
   onToggleSecure?: () => void;
   showSecure?: boolean;
@@ -12,7 +14,7 @@ interface Props extends TextInputProps {
 }
 
 export const AuroraField: React.FC<Props> = ({
-  dark, icon, placeholder, onToggleSecure, showSecure, hasError, style: _style, ...rest
+  dark, icon, textPrefix, placeholder, onToggleSecure, showSecure, hasError, style: _style, ...rest
 }) => {
   const ink  = dark ? '#e6edf3' : '#0d2137';
   const ink2 = dark ? '#8aa0b6' : '#5b6b7c';
@@ -25,7 +27,11 @@ export const AuroraField: React.FC<Props> = ({
       styles.row,
       { backgroundColor: bg, borderColor: hasError ? errorBorder : border },
     ]}>
-      <MaterialCommunityIcons name={icon as never} size={20} color={ink2} style={styles.icon} />
+      {textPrefix ? (
+        <Text style={[styles.textPrefix, { color: ink2 }]}>{textPrefix}</Text>
+      ) : (
+        <MaterialCommunityIcons name={icon as never} size={20} color={ink2} style={styles.icon} />
+      )}
       <TextInput
         placeholder={placeholder}
         placeholderTextColor={ink2}
@@ -55,7 +61,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginTop: 11,
   },
-  icon:   { marginRight: 10 },
-  input:  { flex: 1, fontSize: 14.5, fontWeight: '500' },
-  eyeBtn: { padding: 2 },
+  icon:       { marginRight: 10 },
+  textPrefix: { fontSize: 16, fontWeight: '700', marginRight: 10, minWidth: 22, textAlign: 'center' },
+  input:      { flex: 1, fontSize: 14.5, fontWeight: '500' },
+  eyeBtn:     { padding: 2 },
 });

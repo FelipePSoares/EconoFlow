@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { ComponentProps } from 'react';
 import {
   TouchableOpacity, StyleSheet, useColorScheme,
@@ -10,6 +10,8 @@ import { useTranslation } from 'react-i18next';
 import { ProjectStackNavigator } from './ProjectStackNavigator';
 import { OverviewStackNavigator } from './OverviewStackNavigator';
 import { ProfileScreen } from '../screens/profile/ProfileScreen';
+import { QuickAddModal } from '../screens/quick-add/QuickAddModal';
+import { useQuickAddStore } from '../store/quickAddStore';
 import { currentMonth } from '../utils/date';
 
 type IconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
@@ -18,6 +20,7 @@ export type MainTabParamList = {
   Projects:  undefined;
   Overview:  undefined;
   AddAction: undefined;   // phantom tab — never rendered, press intercepted
+  Plans:     undefined;
   Profile:   undefined;
 };
 
@@ -31,8 +34,12 @@ export const MainNavigator: React.FC = () => {
   const dark   = useColorScheme() === 'dark';
   const barBg  = dark ? 'rgba(6,30,51,0.92)' : 'rgba(230,239,246,0.92)';
   const barBorder = dark ? 'rgba(255,255,255,0.08)' : 'rgba(13,33,55,0.08)';
+  const [quickAddVisible, setQuickAddVisible] = useState(false);
+  const quickAddCategoryId = useQuickAddStore(s => s.categoryId);
+  const quickAddDefaultType = useQuickAddStore(s => s.defaultType);
 
   return (
+    <>
     <Tab.Navigator
       initialRouteName="Overview"
       screenOptions={({ route }) => ({
@@ -51,6 +58,7 @@ export const MainNavigator: React.FC = () => {
           const icons: Record<string, IconName> = {
             Projects:  'folder-multiple-outline',
             Overview:  'view-dashboard-outline',
+            Plans:     'bullseye-arrow',
             Profile:   'account-circle-outline',
             AddAction: 'plus',
           };
@@ -92,24 +100,38 @@ export const MainNavigator: React.FC = () => {
             </TouchableOpacity>
           ),
         }}
-        listeners={({ navigation }) => ({
+        listeners={{
           tabPress: (e) => {
             e.preventDefault();
-            // Navigate to the CategoryList so the user picks a category to add to
-            navigation.navigate('Overview', {
-              screen: 'CategoryList',
-              params: { month: currentMonth() },
-            } as never);
+            setQuickAddVisible(true);
           },
-        })}
+        }}
+      />
+
+      <Tab.Screen
+        name="Plans"
+        component={EmptyScreen}
+        options={{ tabBarLabel: t('TabPlans') }}
+        listeners={{
+          tabPress: (e) => e.preventDefault(),
+        }}
       />
 
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
-        options={{ headerShown: true, tabBarLabel: t('TabProfile') }}
+        options={{ headerShown: false, tabBarLabel: t('TabProfile') }}
       />
     </Tab.Navigator>
+
+    <QuickAddModal
+      visible={quickAddVisible}
+      onClose={() => setQuickAddVisible(false)}
+      month={currentMonth()}
+      defaultCategoryId={quickAddCategoryId ?? undefined}
+      defaultType={quickAddDefaultType ?? undefined}
+    />
+    </>
   );
 };
 
