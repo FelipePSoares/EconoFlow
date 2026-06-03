@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   StyleSheet, TouchableOpacity, View,
   ScrollView, RefreshControl,
@@ -6,7 +6,7 @@ import {
 import { Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import i18n from 'i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -59,13 +59,13 @@ export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
   useFocusEffect(
     useCallback(() => {
       setDefaultType('income');
-      setViewedMonth(month);
-      return () => {
-        setDefaultType(null);
-        setViewedMonth(null);
-      };
-    }, [setDefaultType, setViewedMonth, month])
+      return () => setDefaultType(null);
+    }, [setDefaultType])
   );
+  const isFocused = useIsFocused();
+  useEffect(() => {
+    setViewedMonth(isFocused ? month : null);
+  }, [month, isFocused, setViewedMonth]);
 
   const { data: incomes, isLoading, isFetching, isError, refetch } = useIncomesForMonth(projectId, month);
   const deleteIncome = useDeleteIncome(projectId, month);

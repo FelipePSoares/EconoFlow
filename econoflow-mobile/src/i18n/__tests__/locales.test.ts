@@ -4,11 +4,11 @@ import pt from '../locales/pt.json';
 type LocaleMap = Record<string, string>;
 
 describe('i18n locale completeness', () => {
-  it('en.json contains LabelCategories', () => {
-    expect((en as LocaleMap)['LabelCategories']).toBeDefined();
+  it('en.json contains LabelCategories with a non-empty value', () => {
+    expect((en as LocaleMap)['LabelCategories']).toBeTruthy();
   });
 
-  it('pt.json contains LabelCategories', () => {
-    expect((pt as LocaleMap)['LabelCategories']).toBeDefined();
+  it('pt.json contains LabelCategories with a non-empty value', () => {
+    expect((pt as LocaleMap)['LabelCategories']).toBeTruthy();
   });
 });

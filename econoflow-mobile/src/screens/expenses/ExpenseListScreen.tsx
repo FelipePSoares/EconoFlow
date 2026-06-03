@@ -1,9 +1,9 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   StyleSheet, TouchableOpacity, View,
   ScrollView, RefreshControl,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -65,13 +65,13 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
   useFocusEffect(
     useCallback(() => {
       setQuickAddCategoryId(categoryId);
-      setViewedMonth(month);
-      return () => {
-        setQuickAddCategoryId(null);
-        setViewedMonth(null);
-      };
-    }, [categoryId, setQuickAddCategoryId, setViewedMonth, month])
+      return () => setQuickAddCategoryId(null);
+    }, [categoryId, setQuickAddCategoryId])
   );
+  const isFocused = useIsFocused();
+  useEffect(() => {
+    setViewedMonth(isFocused ? month : null);
+  }, [month, isFocused, setViewedMonth]);
 
   const { data: expenses, isLoading, isFetching, refetch } =
     useExpensesForMonth(projectId, categoryId, month);
