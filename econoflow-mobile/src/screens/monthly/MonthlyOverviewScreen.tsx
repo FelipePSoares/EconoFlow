@@ -111,8 +111,8 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <GlassScreen dark={dark}>
       <View style={{ flex: 1, opacity: isFetchingData ? 0.55 : 1 }}>
-      <ScrollView
-        style={styles.fill}
+        <ScrollView
+          style={styles.fill}
         contentContainerStyle={{ paddingTop: insets.top, paddingBottom: insets.bottom + 16 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -326,7 +326,7 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
             <Text style={[styles.emptyText, { color: ink2 }]}>{t('LabelNoCategories')}</Text>
           </View>
         )}
-      </ScrollView>
+        </ScrollView>
       </View>
     </GlassScreen>
   );

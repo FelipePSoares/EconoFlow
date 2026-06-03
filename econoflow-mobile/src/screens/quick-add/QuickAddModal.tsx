@@ -18,7 +18,7 @@ import { AuroraField } from '../../components/auth/AuroraField';
 import { getCategoryColor } from '../../utils/categoryTheme';
 import { getCategoryIcon } from '../../utils/categoryIcon';
 import { getCurrencySymbol } from '../../utils/currency';
-import { currentMonth, toDateOnly, fromDateOnly, dateToMonth, monthStart } from '../../utils/date';
+import { currentMonth, toDateOnly, fromDateOnly, dateToMonth, defaultDateForMonth } from '../../utils/date';
 import { buildPatch } from '../../utils/patch';
 import { auroraTokens } from '../../theme/useAuroraSkin';
 
@@ -139,15 +139,6 @@ function modalReducer(state: ModalState, action: ModalAction): ModalState {
     default:
       return state;
   }
-}
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-function defaultDateForMonth(month: string): Date {
-  const now = new Date();
-  const nowMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  if (month === nowMonth) return now;
-  return fromDateOnly(monthStart(month));
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -462,6 +453,8 @@ export const QuickAddModal: React.FC<Props> = ({
                 onChangeText={handleAmountChange}
                 keyboardType="number-pad"
                 caretHidden
+                accessible={false}
+                importantForAccessibility="no"
                 style={styles.hiddenAmountInput}
               />
               {modal.amountError && (
