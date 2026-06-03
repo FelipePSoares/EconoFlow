@@ -162,7 +162,7 @@ export class AddIncomeComponent implements OnInit, AfterViewInit {
     const newIncome = ({
       id: '',
       name: name,
-      date: toLocalDate(date),
+      date: date as unknown as Date,
       amount: parsedAmount
     }) as IncomeDto;
 

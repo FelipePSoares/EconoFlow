@@ -290,6 +290,8 @@ jobs:
     - name: Start application
       id: dotnet
       run: dotnet run --project ./EasyFinance.Server --configuration Debug --no-build --no-restore --urls https://localhost:7003/ &
+      env:
+        EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN: ci-integration-test-placeholder-secret-key-32chars
 
     - name: Wait for servers to be ready
       run: |
