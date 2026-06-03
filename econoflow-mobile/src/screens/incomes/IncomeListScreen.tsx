@@ -59,12 +59,8 @@ export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
   useFocusEffect(
     useCallback(() => {
       setDefaultType('income');
-      setViewedMonth(month);
-      return () => {
-        setDefaultType(null);
-        setViewedMonth(null);
-      };
-    }, [setDefaultType, setViewedMonth, month])
+      return () => setDefaultType(null);
+    }, [setDefaultType])
   );
   const isFocused = useIsFocused();
   useEffect(() => {

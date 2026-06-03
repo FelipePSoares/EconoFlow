@@ -65,12 +65,8 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
   useFocusEffect(
     useCallback(() => {
       setQuickAddCategoryId(categoryId);
-      setViewedMonth(month);
-      return () => {
-        setQuickAddCategoryId(null);
-        setViewedMonth(null);
-      };
-    }, [categoryId, setQuickAddCategoryId, setViewedMonth, month])
+      return () => setQuickAddCategoryId(null);
+    }, [categoryId, setQuickAddCategoryId])
   );
   const isFocused = useIsFocused();
   useEffect(() => {
