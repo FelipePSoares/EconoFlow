@@ -2,28 +2,39 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
+## MANDATORY Development Workflow
 
-EconoFlow (codebase name: EasyFinance) is a personal/company budget tracking application. It uses an ASP.NET Core 8 backend serving an Angular 21 SPA frontend, backed by SQL Server via EF Core.
+> **Every code change — no matter how small — must complete all four steps in order. There are no exceptions. A task is not done when the code compiles or looks correct. A task is done only when all four steps below are fully satisfied.**
 
-## Development Workflow
+**Definition of "done":**
+- [ ] Failing tests were written and confirmed red before any implementation code was touched
+- [ ] Implementation is complete
+- [ ] All tests pass and lint is clean
+- [ ] The `codereview` subagent returns a report with no Action Items
 
-**Every code change — no matter how small — must follow these steps in order.**
+Marking a task complete without a clean `codereview` report is not allowed.
 
-### 1. Before writing implementation code
+---
+
+### Step 1 — Write failing tests FIRST
+
+**STOP. Do not open any implementation file yet.**
 
 - Identify all existing tests that cover the area you are about to change:
   - Backend: `*.Tests/` projects (xUnit, files ending in `Tests.cs`)
   - Frontend: `*.spec.ts` files alongside the changed component/service
   - Mobile: `*.test.ts` / `*.test.tsx` files in `econoflow-mobile/`
-- Write or update the tests that cover the new or modified behaviour **before** writing implementation code. Run them once to confirm they fail — this proves the tests actually exercise the code path you are about to build.
+- Write or update the tests that cover the new or modified behaviour.
+- Run them and confirm they **fail**. Tests that were never red prove nothing — a green test written after the implementation does not count.
 
-### 2. Implement the change
+Only after you have a failing test may you move to Step 2.
+
+### Step 2 — Implement the change
 
 - Follow all architecture patterns described in this file.
 - Keep changes focused: do not refactor unrelated code in the same commit.
 
-### 3. Run tests and lint
+### Step 3 — Run tests and lint
 
 Run the full suite for every sub-project that has changed files:
 
@@ -33,18 +44,24 @@ Run the full suite for every sub-project that has changed files:
 | Frontend | `cd easyfinance.client && npm test -- --watch=false --browsers=ChromeHeadless` | `cd easyfinance.client && npm run lint` |
 | Mobile | `cd econoflow-mobile && npm test && npm run typecheck` | `cd econoflow-mobile && npm run lint` |
 
-Fix every test failure and lint error before moving on.
+**STOP. Do not proceed to Step 4 if any test fails or any lint error exists.** Fix every failure first.
 
-### 4. Code review gate
+### Step 4 — Code review gate
 
 Once all tests are green and lint is clean, spawn the `codereview` subagent (defined in `.claude/agents/codereview.md`). This agent runs in a **fresh, isolated context** — it has no knowledge of your implementation, which makes the review objective.
 
 - Read the report the subagent returns.
-- Fix **every item listed under "Action Items"** (these are blocking).
+- Fix **every item listed under "Action Items"** — these are blocking.
 - Re-run the relevant tests after each fix to confirm nothing regressed.
 - Spawn `codereview` again — repeat until the report shows **no Action Items**.
 
-Only when the `codereview` subagent report is clean is the task complete.
+**The task is not complete until the codereview report has no Action Items.** Do not respond as if the work is done before reaching this state.
+
+---
+
+## Project Overview
+
+EconoFlow (codebase name: EasyFinance) is a personal/company budget tracking application. It uses an ASP.NET Core 8 backend serving an Angular 21 SPA frontend, backed by SQL Server via EF Core.
 
 ---
 
