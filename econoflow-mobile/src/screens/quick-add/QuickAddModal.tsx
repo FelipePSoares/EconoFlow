@@ -18,7 +18,7 @@ import { AuroraField } from '../../components/auth/AuroraField';
 import { getCategoryColor } from '../../utils/categoryTheme';
 import { getCategoryIcon } from '../../utils/categoryIcon';
 import { getCurrencySymbol } from '../../utils/currency';
-import { currentMonth, toDateOnly, fromDateOnly } from '../../utils/date';
+import { currentMonth, toDateOnly, fromDateOnly, dateToMonth } from '../../utils/date';
 import { buildPatch } from '../../utils/patch';
 import { auroraTokens } from '../../theme/useAuroraSkin';
 
@@ -104,7 +104,7 @@ function modalReducer(state: ModalState, action: ModalAction): ModalState {
         date: fromDateOnly(action.editMode.initialValues.date),
         isDeductible: action.editMode.initialValues.isDeductible ?? false,
         showDatePicker: false,
-        amountText: action.editMode.initialValues.amount > 0 ? String(action.editMode.initialValues.amount) : '',
+        amountText: action.editMode.initialValues.amount > 0 ? String(Math.round(action.editMode.initialValues.amount * 100)) : '',
         amountError: false,
       };
     case 'open_add':
@@ -146,7 +146,7 @@ function modalReducer(state: ModalState, action: ModalAction): ModalState {
 export const QuickAddModal: React.FC<Props> = ({
   visible,
   onClose,
-  month = currentMonth(),
+  month: _month = currentMonth(),
   defaultCategoryId,
   defaultExpenseId,
   editMode,
@@ -162,6 +162,7 @@ export const QuickAddModal: React.FC<Props> = ({
   const sym = getCurrencySymbol(currency);
 
   const [modal, dispatch] = useReducer(modalReducer, initState);
+  const selectedMonth = dateToMonth(modal.date);
 
   // ── Drag-to-dismiss ───────────────────────────────────────────────────────
   // useState initializer avoids the react-hooks/refs lint error that fires when
@@ -232,13 +233,13 @@ export const QuickAddModal: React.FC<Props> = ({
   }, [visible]);
 
   // ── Data ──────────────────────────────────────────────────────────────────
-  const { data: categories } = useCategoriesForMonth(projectId, month);
+  const { data: categories } = useCategoriesForMonth(projectId, selectedMonth);
   const activeCategories = (categories ?? []).filter(c => !c.isArchived);
 
   const { data: expenses } = useExpensesForMonth(
     projectId,
     modal.selectedCategoryId ?? '',
-    month,
+    selectedMonth,
   );
 
   const selectedCatIdx = activeCategories.findIndex(c => c.id === modal.selectedCategoryId);
@@ -248,20 +249,20 @@ export const QuickAddModal: React.FC<Props> = ({
     : null;
 
   // ── Mutations ─────────────────────────────────────────────────────────────
-  const createIncome   = useCreateIncome(projectId, month);
-  const createExpense  = useCreateExpense(projectId, modal.selectedCategoryId ?? '', month);
-  const addExpenseItem = useAddExpenseItem(projectId, modal.selectedCategoryId ?? '', month);
+  const createIncome   = useCreateIncome(projectId, selectedMonth);
+  const createExpense  = useCreateExpense(projectId, modal.selectedCategoryId ?? '', selectedMonth);
+  const addExpenseItem = useAddExpenseItem(projectId, modal.selectedCategoryId ?? '', selectedMonth);
 
   const patchExpense = usePatchExpense(
     projectId,
     editMode?.type === 'expense' ? (editMode.categoryId ?? '') : (modal.selectedCategoryId ?? ''),
     editMode?.type === 'expense' ? editMode.id : '',
-    month,
+    selectedMonth,
   );
   const patchIncome = usePatchIncome(
     projectId,
     editMode?.type === 'income' ? editMode.id : '',
-    month,
+    selectedMonth,
   );
 
   const isPending =
@@ -270,7 +271,7 @@ export const QuickAddModal: React.FC<Props> = ({
 
   // ── Submit ────────────────────────────────────────────────────────────────
   const onSubmit = (values: FormValues) => {
-    const amount  = parseFloat(modal.amountText) || 0;
+    const amount  = (parseInt(modal.amountText || '0', 10) / 100);
     const budget  = parseFloat(values.budget) || 0;
     const dateStr = toDateOnly(modal.date);
     const name    = values.name.trim();
@@ -313,15 +314,12 @@ export const QuickAddModal: React.FC<Props> = ({
   };
 
   const handleAmountChange = (text: string) => {
-    const cleaned = text.replace(/[^0-9.]/g, '');
-    const parts = cleaned.split('.');
-    // at most one decimal point, at most 2 decimal places
-    const safe = parts.length > 1
-      ? `${parts[0]}.${parts.slice(1).join('').slice(0, 2)}`
-      : cleaned;
-    dispatch({ kind: 'set_amount_text', text: safe });
+    const digits = text.replace(/[^0-9]/g, '').slice(0, 9);
+    dispatch({ kind: 'set_amount_text', text: digits });
     if (modal.amountError) dispatch({ kind: 'set_amount_error', error: false });
   };
+
+  const displayAmount = (parseInt(modal.amountText || '0', 10) / 100).toFixed(2);
 
   // ── Design tokens ─────────────────────────────────────────────────────────
   const panelBg     = dark ? '#061e33' : '#e8f4fe';
@@ -442,10 +440,9 @@ export const QuickAddModal: React.FC<Props> = ({
                 </Text>
                 <TextInput
                   ref={amountInputRef}
-                  value={modal.amountText}
+                  value={displayAmount}
                   onChangeText={handleAmountChange}
-                  keyboardType="decimal-pad"
-                  placeholder="0.00"
+                  keyboardType="number-pad"
                   placeholderTextColor={`${amountColor}66`}
                   underlineColorAndroid="transparent"
                   style={[styles.amountHeroInput, { color: amountColor }]}
