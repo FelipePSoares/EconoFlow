@@ -37,14 +37,14 @@ Fix every test failure and lint error before moving on.
 
 ### 4. Code review gate
 
-Once all tests are green and lint is clean, run the `/codereview` slash command.
+Once all tests are green and lint is clean, spawn the `codereview` subagent (defined in `.claude/agents/codereview.md`). This agent runs in a **fresh, isolated context** — it has no knowledge of your implementation, which makes the review objective.
 
-- Read the output report carefully.
+- Read the report the subagent returns.
 - Fix **every item listed under "Action Items"** (these are blocking).
 - Re-run the relevant tests after each fix to confirm nothing regressed.
-- Repeat: run `/codereview` again, fix, re-test — until the report shows **no Action Items**.
+- Spawn `codereview` again — repeat until the report shows **no Action Items**.
 
-Only when the `/codereview` report is clean is the task complete.
+Only when the `codereview` subagent report is clean is the task complete.
 
 ---
 
