@@ -59,13 +59,18 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
   const projectId = selectedProject?.project.id ?? '';
   const canEdit = selectedProject?.role !== 'Viewer';
 
-  // Publish current category to the global FAB so it can pre-select it
+  // Publish current category and month to the global FAB so it can pre-select them
   const setQuickAddCategoryId = useQuickAddStore(s => s.setCategoryId);
+  const setViewedMonth = useQuickAddStore(s => s.setViewedMonth);
   useFocusEffect(
     useCallback(() => {
       setQuickAddCategoryId(categoryId);
-      return () => setQuickAddCategoryId(null);
-    }, [categoryId, setQuickAddCategoryId])
+      setViewedMonth(month);
+      return () => {
+        setQuickAddCategoryId(null);
+        setViewedMonth(null);
+      };
+    }, [categoryId, setQuickAddCategoryId, setViewedMonth, month])
   );
 
   const { data: expenses, isLoading, isFetching, refetch } =

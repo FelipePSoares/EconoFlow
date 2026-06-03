@@ -37,6 +37,7 @@ export const MainNavigator: React.FC = () => {
   const [quickAddVisible, setQuickAddVisible] = useState(false);
   const quickAddCategoryId = useQuickAddStore(s => s.categoryId);
   const quickAddDefaultType = useQuickAddStore(s => s.defaultType);
+  const quickAddViewedMonth = useQuickAddStore(s => s.viewedMonth);
 
   return (
     <>
@@ -127,7 +128,7 @@ export const MainNavigator: React.FC = () => {
     <QuickAddModal
       visible={quickAddVisible}
       onClose={() => setQuickAddVisible(false)}
-      month={currentMonth()}
+      month={quickAddViewedMonth ?? currentMonth()}
       defaultCategoryId={quickAddCategoryId ?? undefined}
       defaultType={quickAddDefaultType ?? undefined}
     />

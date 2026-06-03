@@ -55,11 +55,16 @@ export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
   const canEdit = selectedProject?.role !== 'Viewer';
 
   const setDefaultType = useQuickAddStore(s => s.setDefaultType);
+  const setViewedMonth = useQuickAddStore(s => s.setViewedMonth);
   useFocusEffect(
     useCallback(() => {
       setDefaultType('income');
-      return () => setDefaultType(null);
-    }, [setDefaultType])
+      setViewedMonth(month);
+      return () => {
+        setDefaultType(null);
+        setViewedMonth(null);
+      };
+    }, [setDefaultType, setViewedMonth, month])
   );
 
   const { data: incomes, isLoading, isFetching, isError, refetch } = useIncomesForMonth(projectId, month);
