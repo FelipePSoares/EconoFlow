@@ -1,6 +1,7 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { BehaviorSubject, map } from 'rxjs';
+import { ThemeColors } from '../constants/chart-colors';
 
 export type ThemeMode = 'light' | 'dark';
 type AppleStatusBarStyle = 'default' | 'black-translucent';
@@ -20,12 +21,12 @@ export class ThemeService {
   private readonly storageKey = 'theme-mode';
   private readonly themePresentation: Record<ThemeMode, ThemePresentation> = {
     light: {
-      themeColor: '#0f76a8',
+      themeColor: ThemeColors.lightThemeColor,
       manifestHref: '/manifest.webmanifest',
       appleStatusBarStyle: 'default'
     },
     dark: {
-      themeColor: '#0f1724',
+      themeColor: ThemeColors.darkThemeColor,
       manifestHref: '/manifest.dark.webmanifest',
       appleStatusBarStyle: 'black-translucent'
     }

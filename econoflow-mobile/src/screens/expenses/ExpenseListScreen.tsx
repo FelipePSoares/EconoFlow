@@ -1,13 +1,14 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   StyleSheet, TouchableOpacity, View,
   ScrollView, RefreshControl,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import i18n from 'i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { OverviewStackParamList } from '../../navigation/OverviewStackNavigator';
 import { useProjectStore } from '../../store/projectStore';
@@ -28,15 +29,13 @@ import { getCategoryColor } from '../../utils/categoryTheme';
 import { getCategoryIcon } from '../../utils/categoryIcon';
 import { getCurrencySymbol } from '../../utils/currency';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
+import { useAppTheme } from '../../theme/useAppTheme';
 import { useQuickAddStore } from '../../store/quickAddStore';
+import { formatAmount } from '../../utils/format';
 import type { TFunction } from 'i18next';
 import type { Expense, ExpenseItem } from '../../api/types';
 
 type Props = NativeStackScreenProps<OverviewStackParamList, 'ExpenseList'>;
-
-function fmt(n: number): string {
-  return Math.abs(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
 
 interface QuickAddState {
   visible: boolean;
@@ -47,7 +46,9 @@ interface QuickAddState {
 export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
   const { t } = useTranslation();
   const { dark, ink, ink2, hair } = useAuroraSkin();
+  const { colors, customColors } = useAppTheme();
   const insets = useSafeAreaInsets();
+  const fmt = (n: number) => formatAmount(n, i18n.language);
 
   const { categoryId, categoryName, month: initialMonth, categoryIndex = 0 } = route.params;
   const [month, setMonth] = useState(initialMonth);
@@ -58,14 +59,19 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
   const projectId = selectedProject?.project.id ?? '';
   const canEdit = selectedProject?.role !== 'Viewer';
 
-  // Publish current category to the global FAB so it can pre-select it
+  // Publish current category and month to the global FAB so it can pre-select them
   const setQuickAddCategoryId = useQuickAddStore(s => s.setCategoryId);
+  const setViewedMonth = useQuickAddStore(s => s.setViewedMonth);
   useFocusEffect(
     useCallback(() => {
       setQuickAddCategoryId(categoryId);
       return () => setQuickAddCategoryId(null);
     }, [categoryId, setQuickAddCategoryId])
   );
+  const isFocused = useIsFocused();
+  useEffect(() => {
+    setViewedMonth(isFocused ? month : null);
+  }, [month, isFocused, setViewedMonth]);
 
   const { data: expenses, isLoading, isFetching, refetch } =
     useExpensesForMonth(projectId, categoryId, month);
@@ -201,8 +207,8 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
                             : fromDateOnly(expense.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                         </Text>
                         {expense.isDeductible && (
-                          <View style={styles.deductBadge}>
-                            <Text style={styles.deductBadgeText}>
+                          <View style={[styles.deductBadge, { backgroundColor: colors.primary + '26' }]}>
+                            <Text style={[styles.deductBadgeText, { color: colors.primary }]}>
                               {t('LabelDeductible') ?? 'Deductible'}
                             </Text>
                           </View>
@@ -219,7 +225,7 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
                     </View>
 
                     <View style={styles.groupAmtCol}>
-                      <Text style={[styles.groupAmt, { color: '#e74c3c' }]}>
+                      <Text style={[styles.groupAmt, { color: customColors.expense }]}>
                         −{sym} {fmt(expense.amount)}
                       </Text>
                       {expense.budget > 0 && (
@@ -257,7 +263,7 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
                           hitSlop={6}
                           style={styles.groupAction}
                         >
-                          <MaterialCommunityIcons name="trash-can-outline" size={16} color="#e74c3c" />
+                          <MaterialCommunityIcons name="trash-can-outline" size={16} color={customColors.expense} />
                         </TouchableOpacity>
                       </>
                     )}
@@ -402,8 +408,10 @@ interface ItemRowProps {
 const ExpenseItemRow: React.FC<ItemRowProps> = ({
   item, currency, color, ink, ink2, hair, isLast, canEdit, onDelete,
 }) => {
+  const { customColors } = useAppTheme();
   const date = fromDateOnly(item.date);
   const dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  const fmt = (n: number) => formatAmount(n, i18n.language);
 
   return (
     <View style={[styles.itemRow, { borderBottomColor: isLast ? 'transparent' : hair }]}>
@@ -416,13 +424,13 @@ const ExpenseItemRow: React.FC<ItemRowProps> = ({
         <Text style={[styles.itemDate, { color: ink2 }]}>{dateStr}</Text>
       </View>
 
-      <Text style={[styles.itemAmt, { color: '#e74c3c' }]}>
+      <Text style={[styles.itemAmt, { color: customColors.expense }]}>
         −{currency} {fmt(item.amount)}
       </Text>
 
       {canEdit && (
         <TouchableOpacity onPress={onDelete} hitSlop={8} style={styles.itemDelete}>
-          <MaterialCommunityIcons name="trash-can-outline" size={15} color="#e74c3c" />
+          <MaterialCommunityIcons name="trash-can-outline" size={15} color={customColors.expense} />
         </TouchableOpacity>
       )}
     </View>
@@ -483,10 +491,10 @@ const styles = StyleSheet.create({
   groupAction:  { padding: 4 },
 
   deductBadge: {
-    backgroundColor: '#0f76a826', borderRadius: 999,
+    borderRadius: 999,
     paddingHorizontal: 6, paddingVertical: 1,
   },
-  deductBadgeText: { fontSize: 10, fontWeight: '700', color: '#0f76a8' },
+  deductBadgeText: { fontSize: 10, fontWeight: '700' },
   proofBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 3,
     borderRadius: 999, paddingHorizontal: 6, paddingVertical: 1,

@@ -674,15 +674,15 @@ const styles = StyleSheet.create({
     fontSize: 11, fontWeight: '700', letterSpacing: 0.8,
     textTransform: 'uppercase', marginBottom: 6,
   },
-  amountHeroRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 5 },
-  amountHeroSym: { fontSize: 24, fontWeight: '600', paddingBottom: 10, includeFontPadding: false } as never,
+  amountHeroRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 2 },
+  amountHeroSym: { fontSize: 24, fontWeight: '600', paddingBottom: 6, includeFontPadding: false } as never,
   amountHeroInt: {
     fontSize: 52, fontWeight: '800', letterSpacing: -1,
     padding: 0, includeFontPadding: false, minWidth: 30,
   } as never,
   amountHeroDec: {
     fontSize: 26, fontWeight: '700', letterSpacing: -0.5,
-    paddingBottom: 10, includeFontPadding: false,
+    paddingBottom: 0, includeFontPadding: false,
   } as never,
   hiddenAmountInput: {
     position: 'absolute', width: 1, height: 1, opacity: 0,

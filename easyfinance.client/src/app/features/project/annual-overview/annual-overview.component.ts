@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ChartData, ChartOptions, TooltipItem } from 'chart.js';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BaseChartDirective } from 'ng2-charts';
+import { ChartColors } from '../../../core/constants/chart-colors';
 import { filter, finalize, forkJoin, map, Observable } from 'rxjs';
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
 import { ProjectService } from '../../../core/services/project.service';
@@ -74,18 +75,7 @@ export class AnnualOverviewComponent implements OnInit, AfterViewInit {
 
   expenseInsights: CategoryInsight[] = [];
 
-  private expenseColors = [
-    '#ff6b6b',
-    '#4ecdc4',
-    '#ffe66d',
-    '#5dade2',
-    '#f39c12',
-    '#9b59b6',
-    '#2ecc71',
-    '#e74c3c',
-    '#1abc9c',
-    '#f1c40f'
-  ];
+  private expenseColors = ChartColors.categoryPalette;
 
   expenseChartData: ChartData<'doughnut'> = this.createEmptyChartData();
   monthlyIncomeExpenseChartData: ChartData<'bar'> = this.createEmptyBarChartData();
@@ -310,7 +300,7 @@ export class AnnualOverviewComponent implements OnInit, AfterViewInit {
         {
           data: data.map(item => this.roundAmount(item.amount)),
           backgroundColor: data.map((_, index) => colors[index % colors.length]),
-          borderColor: '#ffffff',
+          borderColor: ChartColors.white,
           borderWidth: 1
         }
       ]
@@ -349,14 +339,14 @@ export class AnnualOverviewComponent implements OnInit, AfterViewInit {
         {
           label: this.translateService.instant('Income'),
           data: incomes.map(value => this.roundAmount(value)),
-          backgroundColor: '#2ecc71',
+          backgroundColor: ChartColors.income,
           borderRadius: 4,
           maxBarThickness: 26
         },
         {
           label: this.translateService.instant('Expense'),
           data: expenses.map(value => this.roundAmount(value)),
-          backgroundColor: '#ff6b6b',
+          backgroundColor: ChartColors.expense,
           borderRadius: 4,
           maxBarThickness: 26
         }
