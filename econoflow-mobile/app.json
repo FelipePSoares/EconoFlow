@@ -16,7 +16,7 @@
     "android": {
       "package": "pt.econoflow.mobile",
       "versionCode": 2,
-      "abiFilters": ["x86_64"],
+
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0f76a8"

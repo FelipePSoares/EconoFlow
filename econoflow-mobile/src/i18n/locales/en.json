@@ -499,6 +499,8 @@
   "LabelNoExpenses": "No expenses this month",
   "LabelDeleteExpense": "Delete expense",
   "LabelConfirmDeleteExpense": "Are you sure you want to delete this expense?",
+  "LabelDeleteExpenseItem": "Delete item",
+  "LabelConfirmDeleteExpenseItem": "Are you sure you want to delete this item?",
   "ErrorInvalidCredentials": "Incorrect login information!",
   "ErrorInvalidTwoFactorCode": "Invalid or expired authenticator code.",
   "ErrorRegistrationFailed": "Registration failed. Please try again.",

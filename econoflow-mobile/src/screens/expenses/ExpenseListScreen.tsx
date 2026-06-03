@@ -71,6 +71,7 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
   const deleteExpenseItem = useDeleteExpenseItem(projectId, categoryId, month);
 
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [pendingDeleteItem, setPendingDeleteItem] = useState<{ expenseId: string; expenseItemId: string } | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [refreshing, setRefreshing] = useState(false);
   const [quickAdd, setQuickAdd] = useState<QuickAddState>({ visible: false });
@@ -214,7 +215,7 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
                     </View>
 
                     <View style={styles.groupAmtCol}>
-                      <Text style={[styles.groupAmt, { color: ink }]}>
+                      <Text style={[styles.groupAmt, { color: '#e74c3c' }]}>
                         −{sym} {fmt(expense.amount)}
                       </Text>
                       {expense.budget > 0 && (
@@ -282,7 +283,7 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
                         defaultExpenseId: expense.id,
                       })}
                       onDeleteItem={(expenseItemId) =>
-                        deleteExpenseItem.mutate({ expenseId: expense.id, expenseItemId })
+                        setPendingDeleteItem({ expenseId: expense.id, expenseItemId })
                       }
                     />
                   )}
@@ -304,6 +305,19 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
           });
         }}
         onCancel={() => setPendingDeleteId(null)}
+      />
+
+      <ConfirmDialog
+        visible={!!pendingDeleteItem}
+        title={t('LabelDeleteExpenseItem') ?? 'Delete item'}
+        message={t('LabelConfirmDeleteExpenseItem') ?? 'Are you sure you want to delete this item?'}
+        onConfirm={() => {
+          if (!pendingDeleteItem) return;
+          deleteExpenseItem.mutate(pendingDeleteItem, {
+            onSuccess: () => setPendingDeleteItem(null),
+          });
+        }}
+        onCancel={() => setPendingDeleteItem(null)}
       />
 
       {/* ── Local QuickAddModal — category pre-selected ─────────────── */}
@@ -398,8 +412,8 @@ const ExpenseItemRow: React.FC<ItemRowProps> = ({
         <Text style={[styles.itemDate, { color: ink2 }]}>{dateStr}</Text>
       </View>
 
-      <Text style={[styles.itemAmt, { color: ink }]}>
-        {currency} {Math.round(Math.abs(item.amount)).toLocaleString('pt-BR')}
+      <Text style={[styles.itemAmt, { color: '#e74c3c' }]}>
+        −{currency} {Math.round(Math.abs(item.amount)).toLocaleString('pt-BR')}
       </Text>
 
       {canEdit && (

@@ -46,7 +46,7 @@ export type OverviewStackParamList = {
 const Stack = createNativeStackNavigator<OverviewStackParamList>();
 
 // Aurora screens that own their own full-screen header — suppress the nav bar
-const HEADERLESS = ['MonthlyOverview', 'CategoryList', 'ExpenseList'] as const;
+const HEADERLESS = ['MonthlyOverview', 'CategoryList', 'ExpenseList', 'IncomeList'] as const;
 
 export const OverviewStackNavigator: React.FC = () => {
   const { t } = useTranslation();

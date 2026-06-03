@@ -1,6 +1,23 @@
 export function getCategoryIcon(name: string): string {
   const n = name.toLowerCase();
 
+  // ── Income-specific ──────────────────────────────────────────────────────
+  if (/salary|salário|ordenado|vencimento|remuner|wage|payroll|pagamento/.test(n)) return 'cash-check';
+  if (/freelanc|honorár|contrato.serv|consulting|consultoria/.test(n))             return 'laptop';
+  if (/dividend|dividendo/.test(n))                                                 return 'chart-line';
+  if (/pension|pensão|aposentad|previdência|reforma\b|annuity/.test(n))             return 'human-cane';
+  if (/\bbonus\b|\bbônus\b|gratific|prize\b|prêmio|prémio|award/.test(n))          return 'star-circle-outline';
+  if (/commission|comissão/.test(n))                                                return 'percent';
+  if (/refund|reembolso|estorno|devolução|cashback/.test(n))                        return 'cash-refund';
+  if (/subsídio|auxílio|bolsa\b|allowance|welfare|benefit\b|grant\b/.test(n))      return 'bank-outline';
+  if (/\binterest\b|juros\b|yield\b/.test(n))                                       return 'bank';
+  if (/side.?job|bico\b|part.?time|gig\b|extra\b/.test(n))                         return 'briefcase-outline';
+  if (/transfer|transferência/.test(n))                                             return 'bank-transfer';
+  if (/royalt/.test(n))                                                              return 'music-note-outline';
+  if (/inherit|herança|legado/.test(n))                                             return 'account-arrow-right-outline';
+  if (/rent.*(receiv|income|receb)|aluguel.*(receiv|receb)|arrendamento/.test(n))  return 'home-account';
+
+  // ── Expense / category patterns ──────────────────────────────────────────
   if (/restaur|dining|eat out|café|cafe|bar|cantina|jantar|almoço/.test(n)) return 'silverware-fork-knife';
   if (/food|grocer|supermarket|market|alimenta|supermercado|comida|mercearia/.test(n)) return 'food-fork-drink';
   if (/coffee|café da manhã|breakfast|snack|lanche/.test(n)) return 'coffee';
@@ -26,7 +43,7 @@ export function getCategoryIcon(name: string): string {
   if (/baby|bebé|criança|child|kid|infantil/.test(n)) return 'baby-face-outline';
   if (/gift|presente|donation|donativo|charity/.test(n)) return 'gift-outline';
   if (/tax|imposto|multa|fine/.test(n)) return 'file-document-outline';
-  if (/electronic|gadget|tech|tech|laptop|phone|computador/.test(n)) return 'devices';
+  if (/electronic|gadget|tech|laptop|phone|computador/.test(n)) return 'devices';
 
   // Default categories (EN + PT)
   if (/fixed.cost|custos?.fix|recurring|recorr|essential|essencial/.test(n)) return 'repeat-variant';
