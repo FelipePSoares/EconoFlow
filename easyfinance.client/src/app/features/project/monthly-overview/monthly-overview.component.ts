@@ -319,7 +319,7 @@ export class MonthlyOverviewComponent implements OnInit, AfterViewInit {
         {
           data: data.map(item => this.roundAmount(item.amount)),
           backgroundColor: data.map((_, index) => colors[index % colors.length]),
-          borderColor: '#ffffff',
+          borderColor: ChartColors.white,
           borderWidth: 1
         }
       ]
