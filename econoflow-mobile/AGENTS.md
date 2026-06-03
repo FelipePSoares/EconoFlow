@@ -1,5 +1,66 @@
 # econoflow-mobile
 
+## MANDATORY Development Workflow
+
+> **Every code change — no matter how small — must complete all four steps in order. There are no exceptions. A task is not done when the code compiles or looks correct. A task is done only when all four steps below are fully satisfied.**
+
+**Definition of "done":**
+- [ ] Failing tests were written and confirmed red before any implementation code was touched
+- [ ] Implementation is complete
+- [ ] All tests pass, typecheck is clean, and lint is clean
+- [ ] Architecture compliance self-review passed with no violations
+
+Skipping any step means the task is incomplete, regardless of whether the code appears to work.
+
+---
+
+### Step 1 — Write failing tests FIRST
+
+**STOP. Do not open any implementation file yet.**
+
+- Find the existing test file alongside the file you are about to change (`*.test.ts` / `*.test.tsx`).
+- Write or update the tests that cover the new or modified behaviour.
+- Run them and confirm they **fail**:
+  ```bash
+  cd econoflow-mobile && npm test
+  ```
+  Tests that were never red prove nothing — a green test written after the implementation does not count.
+
+Only after you have a failing test may you move to Step 2.
+
+### Step 2 — Implement the change
+
+- Follow all architecture patterns documented in this file.
+- Keep changes focused: do not refactor unrelated code in the same commit.
+
+### Step 3 — Run tests, typecheck, and lint
+
+```bash
+cd econoflow-mobile && npm test && npm run typecheck && npm run lint
+```
+
+**STOP. Do not proceed to Step 4 if any test fails, any type error exists, or any lint warning exists** (`--max-warnings 0` is enforced). Fix every failure first.
+
+### Step 4 — Architecture compliance self-review
+
+Verify every item below before marking the task done — quote the offending line when a violation is found:
+
+- [ ] No hard-coded user-visible strings — use `react-i18next` (`useTranslation` / `i18next.t()`); translation keys added to `src/i18n/locales/`
+- [ ] No hard-coded colour values — all colours come from `useAppTheme()` (`theme.colors.*` / `theme.customColors.*`)
+- [ ] Global auth/project state lives in Zustand stores under `src/store/`; remote state uses React Query
+- [ ] All HTTP goes through the Axios instance in `src/api/client.ts`
+- [ ] API URL read from `EXPO_PUBLIC_API_URL` — never hard-coded
+- [ ] New screens registered in `src/navigation/` — no ad-hoc navigation
+- [ ] User-facing errors use `ErrorBanner` (`src/components/common/ErrorBanner.tsx`)
+- [ ] Sensitive data stored via `expo-secure-store`, not `AsyncStorage`
+- [ ] No API keys, tokens, or secrets in source files, `app.json`, or `EXPO_PUBLIC_*` variables
+- [ ] Every new exported function or component has a corresponding Jest test
+- [ ] `econoflow-mobile/AGENTS.md` or repo-root `AGENTS.md` updated if the change introduces new patterns or configuration
+
+**The task is not complete until tests are green, typecheck and lint are clean, and every checklist item above is confirmed.**
+
+---
+
 React Native 0.85 + Expo SDK 56 app. Read the exact versioned docs at https://docs.expo.dev/versions/v56.0.0/ before writing any code.
 
 ## Build (release APK)

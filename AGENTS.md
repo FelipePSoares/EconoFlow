@@ -1,31 +1,38 @@
 # EconoFlow / EasyFinance
 
-Public name **EconoFlow**, internal codebase name **EasyFinance** — appears in namespaces, project names, and file paths. Three sub-projects in one repo:
+## MANDATORY Development Workflow
 
-| Directory | Stack |
-|-----------|-------|
-| `EasyFinance.*` (6 csproj) | ASP.NET Core 8 Clean Architecture |
-| `easyfinance.client/` | Angular 21 SPA |
-| `econoflow-mobile/` | React Native 0.85 + Expo SDK 56 |
+> **Every code change — no matter how small — must complete all four steps in order. There are no exceptions. A task is not done when the code compiles or looks correct. A task is done only when all four steps below are fully satisfied.**
 
-## Development Workflow
+**Definition of "done":**
+- [ ] Failing tests were written and confirmed red before any implementation code was touched
+- [ ] Implementation is complete
+- [ ] All tests pass and lint is clean
+- [ ] Architecture compliance self-review passed with no violations
 
-**Every code change — no matter how small — must follow these steps in order.**
+Skipping any step means the task is incomplete, regardless of whether the code appears to work.
 
-### 1. Before writing implementation code
+---
+
+### Step 1 — Write failing tests FIRST
+
+**STOP. Do not open any implementation file yet.**
 
 - Identify all existing tests that cover the area you are about to change:
   - Backend: `*.Tests/` projects (xUnit, files ending in `Tests.cs`)
   - Frontend: `*.spec.ts` files alongside the changed component/service
   - Mobile: `*.test.ts` / `*.test.tsx` files in `econoflow-mobile/`
-- Write or update the tests that cover the new or modified behaviour **before** writing implementation code. Run them once to confirm they fail — this proves the tests actually exercise the code path you are about to build.
+- Write or update the tests that cover the new or modified behaviour.
+- Run them and confirm they **fail**. Tests that were never red prove nothing — a green test written after the implementation does not count.
 
-### 2. Implement the change
+Only after you have a failing test may you move to Step 2.
+
+### Step 2 — Implement the change
 
 - Follow all architecture patterns documented in this file.
 - Keep changes focused: do not refactor unrelated code in the same commit.
 
-### 3. Run tests and lint
+### Step 3 — Run tests and lint
 
 Run the full suite for every sub-project that has changed files:
 
@@ -35,23 +42,36 @@ Run the full suite for every sub-project that has changed files:
 | Frontend | `cd easyfinance.client && npm test -- --watch=false --browsers=ChromeHeadless` | `cd easyfinance.client && npm run lint` |
 | Mobile | `cd econoflow-mobile && npm test && npm run typecheck` | `cd econoflow-mobile && npm run lint` |
 
-Fix every test failure and lint error before moving on.
+**STOP. Do not proceed to Step 4 if any test fails or any lint error exists.** Fix every failure first.
 
-### 4. Code review gate
+### Step 4 — Architecture compliance self-review
 
-Once all tests are green and lint is clean, perform an architecture compliance review against the rules in this file before considering the task done. Specifically verify:
+Once all tests are green and lint is clean, perform a self-review against the rules in this file before considering the task done. Verify every item below — quote the offending line when a violation is found:
 
-- No Clean Architecture layer dependency violations
-- Domain entity patterns respected (private setters, `SetXxx()`, `Validate` property)
-- `AppResponse<T>` used for all service return types; no exceptions for business failures
-- `NoTrackable()` used for read queries; single `CommitAsync()` per write path
-- API routes follow the `api/Projects/{projectId}/Categories/{categoryId}/[controller]` pattern
-- No hard-coded user-visible strings (use `.resx` / `react-i18next`)
-- No hard-coded colours in mobile (use `useAppTheme()`)
-- Sensitive data stored via `expo-secure-store`, not `AsyncStorage`
-- `requirements.md`, `architecture.md`, or `AGENTS.md` updated if the change introduces new features, patterns, or configuration
+- [ ] No Clean Architecture layer dependency violations
+- [ ] Domain entity patterns respected (private setters, `SetXxx()`, `Validate` property)
+- [ ] `AppResponse<T>` used for all service return types; no exceptions for business failures
+- [ ] `NoTrackable()` used for read queries; single `CommitAsync()` per write path
+- [ ] API routes follow the `api/Projects/{projectId}/Categories/{categoryId}/[controller]` pattern
+- [ ] No hard-coded user-visible strings (use `.resx` / `react-i18next`)
+- [ ] No hard-coded colours in mobile (use `useAppTheme()`)
+- [ ] Sensitive data stored via `expo-secure-store`, not `AsyncStorage`
+- [ ] `requirements.md`, `architecture.md`, or `AGENTS.md` updated if the change introduces new features, patterns, or configuration
+- [ ] Every new public method or component has a corresponding test
 
-Fix every violation found. Re-run tests after fixes. Only when tests are green and the review is clean is the task complete.
+Fix every violation found. Re-run tests after fixes. **The task is not complete until tests are green, lint is clean, and every checklist item above is confirmed.**
+
+---
+
+## Project Overview
+
+Public name **EconoFlow**, internal codebase name **EasyFinance** — appears in namespaces, project names, and file paths. Three sub-projects in one repo:
+
+| Directory | Stack |
+|-----------|-------|
+| `EasyFinance.*` (6 csproj) | ASP.NET Core 8 Clean Architecture |
+| `easyfinance.client/` | Angular 21 SPA |
+| `econoflow-mobile/` | React Native 0.85 + Expo SDK 56 |
 
 ---
 
