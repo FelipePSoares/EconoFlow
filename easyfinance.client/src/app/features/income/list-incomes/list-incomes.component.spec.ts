@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NavigationEnd, Router } from '@angular/router';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { MatDialog } from '@angular/material/dialog';
 import { TranslateModule } from '@ngx-translate/core';
-import { BehaviorSubject, of, EMPTY } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 import { PlanType } from '../../../core/enums/plan-type';
 import { Plan } from '../../../core/models/plan';
 import { CurrentDateService } from '../../../core/services/current-date.service';

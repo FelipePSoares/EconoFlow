@@ -166,7 +166,7 @@ namespace EasyFinance.Application.Features.CategoryService
         {
             var result =
                 await unitOfWork.CategoryRepository
-                .Trackable()
+                .NoTrackable()
                 .Include(c => c.Expenses)
                 .IgnoreQueryFilters() // disables the global filter IsArchived
                 .FirstOrDefaultAsync(p => p.Id == categoryId);

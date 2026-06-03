@@ -1,4 +1,4 @@
-export type SupportedLanguage = {
+export interface SupportedLanguage {
   code: string;
   nativeName: string;
-};
+}

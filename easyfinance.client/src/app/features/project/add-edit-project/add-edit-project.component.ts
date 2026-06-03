@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -38,6 +38,12 @@ import { ProjectTaxYearSettings, ProjectTaxYearSettingsRequest } from '../../../
   styleUrl: './add-edit-project.component.css'
 })
 export class AddEditProjectComponent implements OnInit {
+  private dialogRef = inject<MatDialogRef<PageModalComponent>>(MatDialogRef);
+  private projectService = inject(ProjectService);
+  private currencyService = inject(CurrencyService);
+  private router = inject(Router);
+  private errorMessageService = inject(ErrorMessageService);
+
   projectForm!: FormGroup;
   httpErrors = false;
   errors!: Record<string, string[]>;
@@ -54,14 +60,6 @@ export class AddEditProjectComponent implements OnInit {
     value: index + 1,
     label: new Date(2001, index, 1).toLocaleString(undefined, { month: 'long' })
   }));
-
-  constructor(
-    private dialogRef: MatDialogRef<PageModalComponent>,
-    private projectService: ProjectService,
-    private currencyService: CurrencyService,
-    private router: Router,
-    private errorMessageService: ErrorMessageService
-  ) { }
 
   ngOnInit(): void {
     this.editingProject = this.projectService.getEditingProject();

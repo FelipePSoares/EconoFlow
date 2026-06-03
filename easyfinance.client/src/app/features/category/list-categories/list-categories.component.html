@@ -8,7 +8,7 @@
       (cdkDropListDropped)="drop($event)">
       @for (category of (categories$ | async); track category.id) {
         <div class="list-group-item" cdkDrag [cdkDragDisabled]="!canAddOrEdit() || category.id === editingCategory.id || isSavingOrder">
-          @if (category.id != this.editingCategory.id) {
+          @if (category.id !== this.editingCategory.id) {
             <div class="d-flex justify-content-between">
               <div class="d-flex align-items-center">
                 @if (canAddOrEdit()) {

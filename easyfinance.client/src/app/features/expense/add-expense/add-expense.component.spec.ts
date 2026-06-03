@@ -1,4 +1,5 @@
-﻿import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { HttpEventType } from '@angular/common/http';

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BehaviorSubject, map, Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
@@ -12,7 +12,6 @@ import { compare, Operation } from 'fast-json-patch';
 import { TranslateModule } from '@ngx-translate/core';
 import { ProjectService } from '../../../core/services/project.service';
 import { UserProjectDto } from '../models/user-project-dto';
-import { UserProject } from '../../../core/models/user-project';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { Role, Role2LabelMapping } from '../../../core/enums/Role';
 import { UserService } from '../../../core/services/user.service';
@@ -38,6 +37,10 @@ import { conditionalEmailValidator } from '../../../core/utils/custom-validators
   styleUrl: './access-control-project.component.css'
 })
 export class AccessControlProjectComponent implements OnInit {
+  private projectService = inject(ProjectService);
+  private userService = inject(UserService);
+  private errorMessageService = inject(ErrorMessageService);
+
   public role2LabelMapping = Role2LabelMapping;
   public roles = Object.values(Role) as Role[];
   accessForm!: FormGroup;
@@ -52,8 +55,6 @@ export class AccessControlProjectComponent implements OnInit {
 
   private filteredUsers: BehaviorSubject<User[]> = new BehaviorSubject<User[]>([]);
   filteredUsers$: Observable<User[]> = this.filteredUsers.asObservable();
-
-  constructor(private projectService: ProjectService, private userService: UserService, private errorMessageService: ErrorMessageService) { }
 
   ngOnInit(): void {
     this.accessForm = new FormGroup({
@@ -118,13 +119,13 @@ export class AccessControlProjectComponent implements OnInit {
       const user = this.user?.value as string | User | null;
       const role = this.role?.value as Role | null;
 
-      const newUserProject = <UserProjectDto>({
+      const newUserProject = {
         userId: typeof user === 'string' ? '' : user?.id ?? '',
         userEmail: typeof user === 'string' ? user : '',
         role: role
-      });
+      } as UserProjectDto;
 
-      const patch = <Operation[]>[{ op: "add", path: "/-", value: newUserProject }];
+      const patch = [{ op: "add", path: "/-", value: newUserProject }] as Operation[];
 
       this.updateUsers(patch).subscribe({
         next: users => {
@@ -168,7 +169,7 @@ export class AccessControlProjectComponent implements OnInit {
 
   removeUser(userProjectId: string): void {
     this.projectService.removeUser(this.projectId, userProjectId).subscribe({
-      next: response => {
+      next: () => {
         this.updateCurrentUsers();
       }
     })

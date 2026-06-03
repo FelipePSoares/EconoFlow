@@ -37,7 +37,9 @@
     <div class="col-12 col-md-6 col-lg-3" id="deductible-overview" data-testid="deductible-overview-section">
       <a
         class="summary-card summary-card-link wrap p-3"
+        tabindex="0"
         (click)="openDeductions()"
+        (keydown.enter)="openDeductions()"
         role="button"
         title="{{ 'OpenDeductionsPage' | translate }}">
         <h3 class="mb-0">

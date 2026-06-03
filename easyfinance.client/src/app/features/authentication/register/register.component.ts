@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { take } from 'rxjs';
@@ -32,6 +32,13 @@ import { TurnstileWidgetComponent } from '../../../core/components/turnstile-wid
     styleUrls: ['./register.component.css']
 })
 export class RegisterComponent implements OnInit {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private errorMessageService = inject(ErrorMessageService);
+  private globalService = inject(GlobalService);
+  private themeService = inject(ThemeService);
+
   @ViewChild(TurnstileWidgetComponent) turnstileWidget?: TurnstileWidgetComponent;
 
   registerForm!: FormGroup;
@@ -46,16 +53,6 @@ export class RegisterComponent implements OnInit {
   hasOneNumber = false;
   hasOneSpecial = false;
   hasMinCharacteres = false;
-
-  constructor(
-    private authService: AuthService,
-    private router: Router,
-    private route: ActivatedRoute,
-    private errorMessageService: ErrorMessageService,
-    private globalService: GlobalService,
-    private themeService: ThemeService
-  ) {
-  }
 
   get logoSrc(): string {
     return this.themeService.currentTheme === 'dark'
@@ -109,7 +106,7 @@ export class RegisterComponent implements OnInit {
       this.captchaToken = '';
 
       this.authService.register(email, password, token, captchaToken).subscribe({
-        next: response => {
+        next: () => {
           this.celebrate();
           this.router.navigate(['/first-signin']);
         },

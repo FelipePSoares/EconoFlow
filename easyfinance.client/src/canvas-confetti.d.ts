@@ -1,4 +1,5 @@
 declare module 'canvas-confetti' {
-  const confetti: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const confetti: (...args: any[]) => void;
   export default confetti;
 }

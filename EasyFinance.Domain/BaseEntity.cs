@@ -21,8 +21,11 @@ namespace EasyFinance.Domain
         }
 
         public Guid Id { get; private set; } = default;
-        public DateTime CreatedDate { get; set; } = DateTime.Now;
-        public DateTime ModifiedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedDate { get; private set; } = DateTime.Now;
+        public DateTime ModifiedAt { get; private set; } = DateTime.Now;
+
+        public void SetCreatedDate(DateTime createdDate) => CreatedDate = createdDate;
+        public void SetModifiedAt(DateTime modifiedAt) => ModifiedAt = modifiedAt;
         
         public abstract AppResponse Validate { get; }
     }

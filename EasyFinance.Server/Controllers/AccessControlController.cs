@@ -179,11 +179,7 @@ namespace EasyFinance.Server.Controllers
             if (user == null)
                 return BadRequest("User not found!");
 
-#if DEBUG
-            var secretKey = "DevSecret_SCXbtFO7XfcVWdBg4FsCwDz8u&D$Hp%$7Eo";
-#else
-                var secretKey = Environment.GetEnvironmentVariable("EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN") ?? throw new Exception("Secret key for delete token can't be loaded.");
-#endif
+            var secretKey = Environment.GetEnvironmentVariable("EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN") ?? throw new Exception("Secret key for delete token can't be loaded.");
 
             if (string.IsNullOrEmpty(request?.ConfirmationToken))
             {
@@ -685,7 +681,7 @@ namespace EasyFinance.Server.Controllers
             if (user == null)
                 return BadRequest("User not found!");
 
-            user.Enabled = false;
+            user.SetEnabled(false);
 
             await this.userManager.UpdateAsync(user);
             await this.signInManager.SignOutAsync();
@@ -701,7 +697,7 @@ namespace EasyFinance.Server.Controllers
             if (user == null)
                 return BadRequest("User not found!");
 
-            user.Enabled = true;
+            user.SetEnabled(true);
 
             await this.userManager.UpdateAsync(user);
 

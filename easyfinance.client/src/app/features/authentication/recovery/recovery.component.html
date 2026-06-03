@@ -93,7 +93,7 @@
       </div>
       <div class="footer text-center">
         <p>{{ 'DidNotReceiveEmailOr' | translate }}</p>
-        <a (click)="reset()">{{ 'TryAnotherEmail' | translate }}</a>
+        <a tabindex="0" (click)="reset()" (keydown.enter)="reset()">{{ 'TryAnotherEmail' | translate }}</a>
       </div>
       }
     </div>

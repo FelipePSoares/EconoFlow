@@ -1,5 +1,5 @@
 import { NgComponentOutlet } from '@angular/common';
-import { Component, Inject, OnDestroy, Optional, Type } from '@angular/core';
+import { Component, OnDestroy, Type, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogContent, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -29,6 +29,11 @@ export interface PageModalDialogData {
   styleUrl: './page-modal.component.css'
 })
 export class PageModalComponent implements OnDestroy {
+  private dialogRef = inject<MatDialogRef<PageModalComponent>>(MatDialogRef);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private dialogData = inject<PageModalDialogData>(MAT_DIALOG_DATA, { optional: true });
+
   private routeSub?: Subscription;
   private routeSub2?: Subscription;
 
@@ -38,11 +43,7 @@ export class PageModalComponent implements OnDestroy {
   component: Type<unknown> | null = null;
   componentInputs: Record<string, unknown> = {};
 
-  constructor(
-    private dialogRef: MatDialogRef<PageModalComponent>,
-    private router: Router,
-    private route: ActivatedRoute,
-    @Optional() @Inject(MAT_DIALOG_DATA) private dialogData?: PageModalDialogData) {
+  constructor() {
     this.component = this.dialogData?.component ?? null;
     this.componentInputs = this.dialogData?.componentInputs ?? {};
     this.titleSuffix = this.dialogData?.titleSuffix?.trim() ?? '';

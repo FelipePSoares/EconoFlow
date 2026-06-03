@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { ProjectService } from '../../services/project.service';
 import { Router } from '@angular/router';
 
@@ -8,11 +8,12 @@ import { Router } from '@angular/router';
   imports: []
 })
 export class AcceptInviteComponent implements OnInit {
+  private projectService = inject(ProjectService);
+  private router = inject(Router);
+
 
   @Input({ required: true })
   token!: string;
-
-  constructor(private projectService: ProjectService, private router: Router) { }
 
   ngOnInit(): void {
     this.projectService.acceptInvite(this.token).subscribe({

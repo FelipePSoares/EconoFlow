@@ -1,5 +1,5 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { Operation } from 'fast-json-patch';
 import { Category } from '../models/category';
@@ -15,8 +15,8 @@ export interface CategoryOrderRequest {
   providedIn: 'root'
 })
 export class CategoryService {
+  private http = inject(HttpClient);
 
-  constructor(private http: HttpClient) { }
 
   get(projectId: string, startOrCurrentDate?: Date, endDate?: Date) {
     let queryParams = new HttpParams();

@@ -1,16 +1,16 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Income } from '../models/income';
 import { Observable, map } from 'rxjs';
 import { Operation } from 'fast-json-patch';
-import { formatDate, formatDateTime } from '../utils/date';
+import { formatDate } from '../utils/date';
 
 @Injectable({
   providedIn: 'root'
 })
 export class IncomeService {
+  private http = inject(HttpClient);
 
-  constructor(private http: HttpClient) { }
   
   get(projectId: string, startOrCurrentDate: Date, endDate?: Date) {
     let queryParams = new HttpParams();

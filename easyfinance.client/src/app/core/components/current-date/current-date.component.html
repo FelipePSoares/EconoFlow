@@ -1,9 +1,9 @@
 <div class="current-date">
   <input matInput [matDatepicker]="picker">
-  <i class="bi bi-arrow-left btn btn-default" id="previous" (click)="previousMonth()"></i>
+  <i class="bi bi-arrow-left btn btn-default" id="previous" tabindex="0" role="button" (click)="previousMonth()" (keydown.enter)="previousMonth()" (keydown.space)="previousMonth()"></i>
   <h3>{{ getCurrentDate() | date: displayFormat : undefined : currentLanguage }}</h3>
   <mat-datepicker-toggle matIconSuffix (click)="picker.open()" [for]="picker"></mat-datepicker-toggle>
-  <i class="bi bi-arrow-right btn btn-default" id="next" (click)="nextMonth()"></i>
+  <i class="bi bi-arrow-right btn btn-default" id="next" tabindex="0" role="button" (click)="nextMonth()" (keydown.enter)="nextMonth()" (keydown.space)="nextMonth()"></i>
 </div>
 <mat-datepicker
   #picker

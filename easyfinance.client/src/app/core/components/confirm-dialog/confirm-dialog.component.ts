@@ -1,5 +1,5 @@
 
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogContent, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -18,18 +18,17 @@ import { TranslateModule } from '@ngx-translate/core';
     styleUrl: './confirm-dialog.component.css'
 })
 export class ConfirmDialogComponent {
+  private dialogRef = inject<MatDialogRef<ConfirmDialogComponent>>(MatDialogRef);
+  data = inject<{
+    title: string;
+    message: string;
+    action: string;
+}>(MAT_DIALOG_DATA);
+
   title!: string;
   message!: SafeHtml;
   action!: string;
-  modalInstance: any;
-
-  constructor(
-    private dialogRef: MatDialogRef<ConfirmDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { title: string, message: string, action: string}) {
-    //this.title = title;
-    //this.message = this.sanitizer.bypassSecurityTrustHtml(customMessage);
-    //this.action = actionText;
-  }
+  modalInstance: unknown;
 
   close(isSuccess: boolean): void {
     this.dialogRef.close(isSuccess);

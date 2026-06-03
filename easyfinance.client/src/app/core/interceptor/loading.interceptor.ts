@@ -1,9 +1,9 @@
 import { inject } from '@angular/core';
-import { HttpInterceptorFn } from '@angular/common/http';
+import { HttpInterceptorFn, HttpRequest } from '@angular/common/http';
 import { finalize } from 'rxjs';
 import { LoaderService } from '../services/loader.service';
 
-const exceptions: any = [
+const exceptions: { method: string; url: string }[] = [
   { method: 'GET', url: '/api/AccessControl/' },
   { method: 'PATCH', url: '/api/AccessControl/' },
   { method: 'GET', url: '/api/AccessControl/search' },
@@ -36,8 +36,8 @@ export const LoadingInterceptor: HttpInterceptorFn = (req, next) => {
   );
 }
 
-const isException = (req: any) => {
-  return exceptions.some((exception: any) => {
+const isException = (req: HttpRequest<unknown>) => {
+  return exceptions.some((exception) => {
     return exception.method === req.method && req.url.indexOf(exception.url) >= 0;
   });
 }

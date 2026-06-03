@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, Subscription, interval, map, switchMap } from 'rxjs';
 import { UserService } from '../services/user.service';
 import { User } from '../models/user';
@@ -10,16 +10,15 @@ import { WebPushService } from './web-push.service';
   providedIn: 'root',
 })
 export class AuthService {
+  private http = inject(HttpClient);
+  private userService = inject(UserService);
+  private notificationService = inject(NotificationService);
+  private webPushService = inject(WebPushService);
+
   private pollingSubscription: Subscription | null = null;
 
   isSignedIn$: Observable<boolean> = this.userService.loggedUser$.pipe(map(user => user.enabled));
   isSignedOut$: Observable<boolean> = this.isSignedIn$.pipe(map(isLoggedIn => !isLoggedIn));
-
-  constructor(
-    private http: HttpClient,
-    private userService: UserService,
-    private notificationService: NotificationService,
-    private webPushService: WebPushService) { }
 
   public signIn(email: string, password: string, twoFactorCode?: string, twoFactorRecoveryCode?: string, captchaToken?: string): Observable<User> {
     return this.userService.signIn(email, password, twoFactorCode, twoFactorRecoveryCode, captchaToken)

@@ -40,7 +40,7 @@ namespace EasyFinance.Common.Tests.AccessControl
 
         public UserBuilder AddEnabled(bool enabled)
         {
-            this.user.Enabled = enabled;
+            this.user.SetEnabled(enabled);
             return this;
         }
 

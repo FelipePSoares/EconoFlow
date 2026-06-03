@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Operation } from 'fast-json-patch';
 import { map, Observable } from 'rxjs';
 import { PlanEntry, PlanEntryRequest } from '../models/plan-entry';
@@ -9,7 +9,8 @@ import { Plan, PlanRequest } from '../models/plan';
   providedIn: 'root'
 })
 export class PlanService {
-  constructor(private http: HttpClient) { }
+  private http = inject(HttpClient);
+
 
   getPlans(projectId: string): Observable<Plan[]> {
     return this.http.get<Plan[]>('/api/projects/' + projectId + '/plans', {

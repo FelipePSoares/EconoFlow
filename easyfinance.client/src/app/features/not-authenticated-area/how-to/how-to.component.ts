@@ -1,5 +1,5 @@
-import { Component, OnDestroy } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, OnDestroy, inject } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 
@@ -10,11 +10,16 @@ import { Subscription } from 'rxjs';
   styleUrl: './how-to.component.css'
 })
 export class HowToComponent implements OnDestroy {
+  private route = inject(ActivatedRoute);
+  private translate = inject(TranslateService);
+
   private routeSub: Subscription;
 
   public content = '';
 
-  constructor(private route: ActivatedRoute, private translate: TranslateService) {
+  constructor() {
+    const translate = this.translate;
+
     this.routeSub = this.route.data.subscribe(data => {
       const contentKey = data['content'] || '';
       translate.get('how-to-' + contentKey).subscribe((translation: string) => {

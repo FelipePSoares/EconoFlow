@@ -171,6 +171,8 @@ export class DeductionsComponent implements OnInit {
       return;
     }
 
+    // dialogRef must be declared before componentInputs to allow the closeDialog closure to capture it
+    // eslint-disable-next-line prefer-const
     let dialogRef: MatDialogRef<PageModalComponent, ProjectTaxYearSettings | null>;
     const componentInputs = {
       projectId: this.projectId,
@@ -707,7 +709,7 @@ export class DeductionsComponent implements OnInit {
       }
     }
 
-    const simpleMatch = /filename="?([^\";]+)"?/i.exec(contentDisposition);
+    const simpleMatch = /filename="?([^";]+)"?/i.exec(contentDisposition);
     return simpleMatch?.[1] ?? null;
   }
 

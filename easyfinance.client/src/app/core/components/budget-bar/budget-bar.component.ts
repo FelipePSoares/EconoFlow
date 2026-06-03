@@ -16,7 +16,9 @@ import { GlobalService } from '../../services/global.service';
   templateUrl: './budget-bar.component.html',
   styleUrl: './budget-bar.component.css'
 })
-export class BudgetBarComponent {
+export class BudgetBarComponent implements OnInit {
+  private currentDateService = inject(CurrentDateService);
+
   private globalService = inject(GlobalService);
   private translateService = inject(TranslateService);
   private destroyRef = inject(DestroyRef);
@@ -37,8 +39,6 @@ export class BudgetBarComponent {
   typeMonthOrYear = 'month';
 
   currentLanguage = this.globalService.currentLanguage;
-
-  constructor(private currentDateService: CurrentDateService) { }
 
   ngOnInit(): void {
     this.translateService.onLangChange

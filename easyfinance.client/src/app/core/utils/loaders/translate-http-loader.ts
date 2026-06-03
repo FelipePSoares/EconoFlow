@@ -7,7 +7,7 @@ import versionData from '../../../../assets/version.json';
 export class TranslateHttpLoader implements TranslateLoader {
   constructor(private http: HttpClient) { }
 
-  getTranslation(lang: string): Observable<any> {
+  getTranslation(lang: string): Observable<Record<string, unknown>> {
     return this.http.get(`assets/i18n/messages.${lang}.json?v=${versionData.versionNumber}`);
   }
 }

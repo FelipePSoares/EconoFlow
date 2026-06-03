@@ -390,7 +390,7 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
     this.errors = {};
 
     const name = this.name?.value;
-    const date: any = formatDate(this.date?.value);
+    const date: string = formatDate(this.date?.value);
     const amount = this.amount?.value;
     const isDeductible = !!this.isDeductibleControl?.value;
     const parsedAmount = amount === "" || amount === null ? 0 : amount;
@@ -771,6 +771,7 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
         return;
       }
 
+      // eslint-disable-next-line prefer-const
       let dialogRef: MatDialogRef<PageModalComponent, ProjectTaxYearSettings | null>;
       const componentInputs = {
         projectId: this.projectId,

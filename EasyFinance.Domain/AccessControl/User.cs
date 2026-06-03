@@ -34,7 +34,7 @@ namespace EasyFinance.Domain.AccessControl
         public string FirstName { get; private set; } = string.Empty;
         public string LastName { get; private set; } = string.Empty;
         public string FullName => $"{FirstName} {LastName}";
-        public bool Enabled { get; set; } = true;
+        public bool Enabled { get; private set; } = true;
         public bool HasIncompletedInformation => string.IsNullOrEmpty(FirstName) || string.IsNullOrEmpty(LastName);
         public Guid? DefaultProjectId { get; private set; } = default;
         public NotificationChannels NotificationChannels { get; private set; } = NotificationChannels.None;
@@ -115,6 +115,11 @@ namespace EasyFinance.Domain.AccessControl
         public void SetLanguageCode(string culture)
         {
             LanguageCode = culture;
+        }
+
+        public void SetEnabled(bool enabled)
+        {
+            Enabled = enabled;
         }
     }
 }

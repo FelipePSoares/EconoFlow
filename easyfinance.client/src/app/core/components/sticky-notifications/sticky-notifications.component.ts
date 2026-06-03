@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Observable, filter, map, startWith } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
@@ -16,10 +16,13 @@ import { NavigationEnd, Router } from '@angular/router';
   styleUrl: './sticky-notifications.component.css'
 })
 export class StickyNotificationsComponent {
+  private notificationService = inject(NotificationService);
+  private router = inject(Router);
+
   stickyNotifications$: Observable<Notification[]> = this.notificationService.notifications$.pipe(map(n => n.filter(n2 => n2.isSticky)));
   isUserUrl$: Observable<boolean>;
 
-  constructor(private notificationService: NotificationService, private router: Router) {
+  constructor() {
     this.isUserUrl$ = this.router.events.pipe(
       filter(ev => ev instanceof NavigationEnd),
       startWith(null),

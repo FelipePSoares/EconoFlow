@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, finalize, map, Observable, of, switchMap, tap, shareReplay } from 'rxjs';
 import { UserKey } from '../models/user-key';
 
@@ -7,11 +7,11 @@ import { UserKey } from '../models/user-key';
   providedIn: 'root'
 })
 export class EncryptionService {
+  private http = inject(HttpClient);
+
   private key: BehaviorSubject<string | undefined> = new BehaviorSubject<string | undefined>(undefined);
   private key$: Observable<string | undefined> = this.key.asObservable();
   private keyRequest$: Observable<string | undefined> | null = null;
-
-  constructor(private http: HttpClient) { }
 
   getKey(): Observable<string | undefined> {
     return this.key$.pipe(

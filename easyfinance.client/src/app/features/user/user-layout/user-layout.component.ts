@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { UserService } from '../../../core/services/user.service';
@@ -15,7 +15,8 @@ import { UserService } from '../../../core/services/user.service';
   styleUrl: './user-layout.component.css'
 })
 export class UserLayoutComponent implements OnInit {
-  constructor(private userService: UserService) { }
+  private userService = inject(UserService);
+
 
   ngOnInit(): void {
     this.userService.refreshUserInfo().subscribe();

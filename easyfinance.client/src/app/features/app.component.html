@@ -40,7 +40,7 @@
                   (click)="toggleTheme()">
             <i class="bi me-1"
                [class.bi-moon-stars-fill]="isDarkTheme$ | async"
-               [class.bi-sun-fill]="!(isDarkTheme$ | async)"></i>
+               [class.bi-sun-fill]="(isDarkTheme$ | async) === false"></i>
             {{ (isDarkTheme$ | async) ? ('ThemeDark' | translate) : ('ThemeLight' | translate) }}
           </button>
           @if (canInstall$ | async) {
@@ -70,7 +70,7 @@
         <div class="col-md-4">
           <h4 class="mb-3">EconoFlow</h4>
           <p class="text-secondary">{{ 'EconoFlowShortDescription' | translate }}</p>
-          @if (!(isSignedIn$ | async)) {
+          @if ((isSignedIn$ | async) === false) {
           <div class="language-selector col-md-5">
             <select class="form-select bg-dark text-white border-secondary"
                     [(ngModel)]="selectedLanguage"
