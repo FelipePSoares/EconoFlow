@@ -66,8 +66,8 @@ builder.Services.AddControllers(config =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwagger();
 
-builder.Services.AddSingleton<IApiService, Smtp2GoApiService>(x 
-    => new Smtp2GoApiService(Environment.GetEnvironmentVariable("SMTP2GO_API_KEY") ?? "api-ADEE6A33004F4B178E20CEB4096CA4EA"));
+builder.Services.AddSingleton<IApiService, Smtp2GoApiService>(x
+    => new Smtp2GoApiService(Environment.GetEnvironmentVariable("SMTP2GO_API_KEY") ?? throw new InvalidOperationException("SMTP2GO_API_KEY environment variable is required")));
 
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));

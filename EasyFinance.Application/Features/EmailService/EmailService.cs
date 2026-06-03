@@ -53,14 +53,25 @@ namespace EasyFinance.Application.Features.EmailService
             return AppResponse.Success();
         }
 
-        private Task<AppResponse> CreateConfirmationEmail(Guid? userId, string toEmail, EmailTemplates template, (string token, string replaceWith)[] tokens)
+        private async Task<AppResponse> CreateConfirmationEmail(Guid? userId, string toEmail, EmailTemplates template, (string token, string replaceWith)[] tokens)
         {
-            throw new NotImplementedException();
+            var culture = await GetUserCultureAsync(userId, toEmail);
+            return await CreateEmail(userId, toEmail, template, culture, tokens);
         }
 
-        private Task<AppResponse> CreateResetPasswordEmail(Guid? userId, string toEmail, EmailTemplates template, (string token, string replaceWith)[] tokens)
+        private async Task<AppResponse> CreateResetPasswordEmail(Guid? userId, string toEmail, EmailTemplates template, (string token, string replaceWith)[] tokens)
         {
-            throw new NotImplementedException();
+            var culture = await GetUserCultureAsync(userId, toEmail);
+            return await CreateEmail(userId, toEmail, template, culture, tokens);
+        }
+
+        private async Task<CultureInfo> GetUserCultureAsync(Guid? userId, string toEmail)
+        {
+            User? user = null;
+            if (userId.HasValue && userId.Value != Guid.Empty)
+                user = await userManager.FindByIdAsync(userId.Value.ToString());
+            user ??= await userManager.FindByEmailAsync(toEmail);
+            return user?.Culture ?? CultureInfo.InvariantCulture;
         }
 
         private static string LoadHtmlTemplate(EmailTemplates templateName, CultureInfo cultureInfo, (string token, string replaceWith)[] tokens)

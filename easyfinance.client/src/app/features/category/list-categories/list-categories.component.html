@@ -55,7 +55,7 @@
                 </mat-form-field>
 
                 <div class="d-flex justify-content-end">
-                  <button mat-stroked-button class="me-2" type="button" (click)="cancelEdit()">Cancel</button>
+                  <button mat-stroked-button class="me-2" type="button" (click)="cancelEdit()">{{ 'ButtonCancel' | translate }}</button>
                   <button mat-raised-button color="primary" type="submit" [disabled]="categoryForm.invalid">
                     {{ 'ButtonSave' | translate }}
                   </button>
