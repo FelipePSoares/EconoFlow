@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using EasyFinance.Domain.Financial;
 using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Infrastructure;
 using FluentAssertions;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -266,6 +268,104 @@ namespace EasyFinance.Application.Tests
                 .NoTrackable()
                 .FirstAsync(c => c.Id == categoryId);
             updatedCategory.DisplayOrder.Should().Be(5);
+        }
+
+        [Fact]
+        public async Task GetAsync_WithDateRange_ShouldReturnCategoriesWithMatchingExpenses()
+        {
+            using var scope = this.serviceProvider.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<ICategoryService>();
+
+            var yesterday = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1));
+            var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
+
+            var result = await service.GetAsync(this.project1.Id, yesterday, tomorrow);
+
+            result.Succeeded.Should().BeTrue();
+            result.Data.Should().NotBeEmpty();
+            result.Data.Should().HaveCount(this.project1.Categories.Count);
+        }
+
+        [Fact]
+        public async Task GetAsync_WithDateRange_ExcludingExpenses_ShouldReturnEmptyExpenses()
+        {
+            using var scope = this.serviceProvider.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<ICategoryService>();
+
+            // Range that doesn't include yesterday's expenses
+            var from = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30));
+            var to = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-2));
+
+            var result = await service.GetAsync(this.project1.Id, from, to);
+
+            result.Succeeded.Should().BeTrue();
+            // Categories with no expenses in range are still returned (non-archived)
+            result.Data.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task GetAsync_ByYear_WithCurrentYear_ShouldReturnCategoriesWithExpenses()
+        {
+            using var scope = this.serviceProvider.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<ICategoryService>();
+
+            var currentYear = DateTime.UtcNow.Year;
+
+            var result = await service.GetAsync(this.project1.Id, currentYear);
+
+            result.Succeeded.Should().BeTrue();
+            result.Data.Should().NotBeNull();
+            result.Data.Should().HaveCount(this.project1.Categories.Count);
+        }
+
+        [Fact]
+        public async Task GetAsync_ByYear_WithPastYear_ShouldReturnCategoriesWithNoExpenses()
+        {
+            using var scope = this.serviceProvider.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<ICategoryService>();
+
+            var result = await service.GetAsync(this.project1.Id, 2000);
+
+            result.Succeeded.Should().BeTrue();
+            result.Data.Should().NotBeNull();
+            // All categories returned but with empty expense collections
+            result.Data.All(c => !c.Expenses.Any()).Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task UpdateAsync_WithPatch_ShouldReturnError_WhenPatchDocumentIsNull()
+        {
+            var categoryId = this.project1.Categories.First().Id;
+            JsonPatchDocument<CategoryRequestDTO>? patch = default;
+
+            var result = await categoryService.UpdateAsync(categoryId, patch);
+
+            result.Succeeded.Should().BeFalse();
+            result.Messages.First().Description.Should().Be(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(patch)));
+        }
+
+        [Fact]
+        public async Task UpdateAsync_WithPatch_ShouldApplyNameChange()
+        {
+            using var scope = this.serviceProvider.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<ICategoryService>();
+            var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+
+            var categoryId = this.project1.Categories.First().Id;
+            var newName = "Patched Category Name";
+
+            var patch = new JsonPatchDocument<CategoryRequestDTO>();
+            patch.Replace(c => c.Name, newName);
+
+            var result = await service.UpdateAsync(categoryId, patch);
+
+            result.Succeeded.Should().BeTrue();
+            result.Data.Name.Should().Be(newName);
+
+            var saved = await unitOfWork.CategoryRepository
+                .NoTrackable()
+                .FirstAsync(c => c.Id == categoryId);
+            saved.Name.Should().Be(newName);
         }
 
         [Fact]

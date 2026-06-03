@@ -89,7 +89,7 @@ namespace EasyFinance.Server.Controllers
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
             if (user == null)
-                return BadRequest("User not found!");
+                return BadRequest(ValidationMessages.UserNotFound);
 
             return Ok(await this.CreateUserResponseAsync(user));
         }
@@ -120,7 +120,7 @@ namespace EasyFinance.Server.Controllers
             var existentUser = await this.userManager.GetUserAsync(this.HttpContext.User);
 
             if (existentUser == null)
-                return BadRequest("User not found!");
+                return BadRequest(ValidationMessages.UserNotFound);
 
             var dto = existentUser.ToRequestDTO();
             userRequestDto.ApplyTo(dto);
@@ -164,7 +164,7 @@ namespace EasyFinance.Server.Controllers
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
             if (user == null)
-                return BadRequest("User not found!");
+                return BadRequest(ValidationMessages.UserNotFound);
 
             var result = await this.userService.SetDefaultProjectAsync(user, defaultProjectId);
 
@@ -177,7 +177,7 @@ namespace EasyFinance.Server.Controllers
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
             if (user == null)
-                return BadRequest("User not found!");
+                return BadRequest(ValidationMessages.UserNotFound);
 
             var secretKey = Environment.GetEnvironmentVariable("EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN") ?? throw new Exception("Secret key for delete token can't be loaded.");
 
@@ -207,7 +207,7 @@ namespace EasyFinance.Server.Controllers
         public async Task<IActionResult> Register([FromServices] IUserStore<User> userStore, [FromBody] RegisterRequestDTO registration, [FromQuery] Guid? token = null)
         {
             if (turnstileService.IsEnabled() && !await turnstileService.ValidateTokenAsync(registration.CaptchaToken))
-                return BadRequest("CAPTCHA validation failed.");
+                return BadRequest(ValidationMessages.CaptchaValidationFailed);
 
             if (!userManager.SupportsUserEmail)
                 throw new NotSupportedException($"{nameof(AccessControlController)} requires a user store with email support.");
@@ -316,7 +316,7 @@ namespace EasyFinance.Server.Controllers
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
             if (user == null)
-                return BadRequest("User not found!");
+                return BadRequest(ValidationMessages.UserNotFound);
 
             var unformattedKey = await this.userManager.GetAuthenticatorKeyAsync(user);
 
@@ -355,7 +355,7 @@ namespace EasyFinance.Server.Controllers
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
             if (user == null)
-                return BadRequest("User not found!");
+                return BadRequest(ValidationMessages.UserNotFound);
 
             var isTwoFactorCodeValid = await this.userManager.VerifyTwoFactorTokenAsync(
                 user,
@@ -385,7 +385,7 @@ namespace EasyFinance.Server.Controllers
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
             if (user == null)
-                return BadRequest("User not found!");
+                return BadRequest(ValidationMessages.UserNotFound);
 
             if (!await this.userManager.GetTwoFactorEnabledAsync(user))
                 return this.ValidateResponse(AppResponse.Error("general", ValidationMessages.TwoFactorNotEnabled), HttpStatusCode.OK);
@@ -412,7 +412,7 @@ namespace EasyFinance.Server.Controllers
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
             if (user == null)
-                return BadRequest("User not found!");
+                return BadRequest(ValidationMessages.UserNotFound);
 
             if (!await this.userManager.GetTwoFactorEnabledAsync(user))
                 return this.ValidateResponse(AppResponse.Error("general", ValidationMessages.TwoFactorNotEnabled), HttpStatusCode.OK);
@@ -548,7 +548,7 @@ namespace EasyFinance.Server.Controllers
         public async Task<IActionResult> ForgotPasswordAsync([FromBody] ForgotPasswordRequestDTO resetRequest)
         {
             if (turnstileService.IsEnabled() && !await turnstileService.ValidateTokenAsync(resetRequest.CaptchaToken))
-                return BadRequest("CAPTCHA validation failed.");
+                return BadRequest(ValidationMessages.CaptchaValidationFailed);
 
             var user = await userManager.FindByEmailAsync(resetRequest.Email);
 
@@ -645,7 +645,7 @@ namespace EasyFinance.Server.Controllers
 
             var user = await this.userManager.FindByIdAsync(userId.ToString());
             if (user == null)
-                return NotFound("User not found!");
+                return NotFound(ValidationMessages.UserNotFound);
 
             var isBetaTester = await this.userManager.IsInRoleAsync(user, SystemRoles.BetaTester);
 
@@ -679,7 +679,7 @@ namespace EasyFinance.Server.Controllers
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
             if (user == null)
-                return BadRequest("User not found!");
+                return BadRequest(ValidationMessages.UserNotFound);
 
             user.SetEnabled(false);
 
@@ -695,7 +695,7 @@ namespace EasyFinance.Server.Controllers
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
             if (user == null)
-                return BadRequest("User not found!");
+                return BadRequest(ValidationMessages.UserNotFound);
 
             user.SetEnabled(true);
 
@@ -792,7 +792,7 @@ namespace EasyFinance.Server.Controllers
 
             // Check if already confirmed
             if (await userManager.IsEmailConfirmedAsync(user))
-                return BadRequest("This email is already confirmed.");
+                return BadRequest(ValidationMessages.EmailAlreadyConfirmed);
 
             await SendConfirmationEmailAsync(user, HttpContext, user.Email);
 
@@ -809,13 +809,13 @@ namespace EasyFinance.Server.Controllers
             if (userId == Guid.Empty || string.IsNullOrWhiteSpace(signature))
             {
                 this.logger.LogWarning("Email unsubscribe request rejected due to missing userId/signature for user {UserId}.", userId);
-                return BadRequest("Invalid unsubscribe request.");
+                return BadRequest(ValidationMessages.InvalidUnsubscribeRequest);
             }
 
             if (!this.userService.ValidateUnsubscribeSignature(userId, signature))
             {
                 this.logger.LogWarning("Email unsubscribe request rejected due to invalid signature for user {UserId}.", userId);
-                return BadRequest("Invalid unsubscribe request.");
+                return BadRequest(ValidationMessages.InvalidUnsubscribeRequest);
             }
 
             var response = await this.userService.UnsubscribeFromEmailNotificationsAsync(userId);
@@ -1007,7 +1007,7 @@ namespace EasyFinance.Server.Controllers
             var requiresCaptcha = turnstileService.IsEnabled() && user.AccessFailedCount >= captchaRequiredAfterFailedAttempts;
 
             if (requiresCaptcha && !await turnstileService.ValidateTokenAsync(login.CaptchaToken))
-                return (BadRequest("CAPTCHA validation failed."), null, null);
+                return (BadRequest(ValidationMessages.CaptchaValidationFailed), null, null);
 
             var result = await signInManager.CheckPasswordSignInAsync(user, login.Password, lockoutOnFailure: true);
 

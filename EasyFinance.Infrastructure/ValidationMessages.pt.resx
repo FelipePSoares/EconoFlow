@@ -414,4 +414,16 @@ Você será redirecionado em 5 segundos...</value>
   <data name="EmergencyReserveDescription" xml:space="preserve">
     <value>Sugerido: 6 meses de despesas fixas. Você pode ajustar este valor.</value>
   </data>
+  <data name="UserNotFound" xml:space="preserve">
+    <value>Usuário não encontrado.</value>
+  </data>
+  <data name="CaptchaValidationFailed" xml:space="preserve">
+    <value>Validação do CAPTCHA falhou.</value>
+  </data>
+  <data name="EmailAlreadyConfirmed" xml:space="preserve">
+    <value>Este e-mail já foi confirmado.</value>
+  </data>
+  <data name="InvalidUnsubscribeRequest" xml:space="preserve">
+    <value>Solicitação de cancelamento de inscrição inválida.</value>
+  </data>
 </root>
