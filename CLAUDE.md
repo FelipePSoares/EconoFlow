@@ -6,6 +6,48 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 EconoFlow (codebase name: EasyFinance) is a personal/company budget tracking application. It uses an ASP.NET Core 8 backend serving an Angular 21 SPA frontend, backed by SQL Server via EF Core.
 
+## Development Workflow
+
+**Every code change — no matter how small — must follow these steps in order.**
+
+### 1. Before writing implementation code
+
+- Identify all existing tests that cover the area you are about to change:
+  - Backend: `*.Tests/` projects (xUnit, files ending in `Tests.cs`)
+  - Frontend: `*.spec.ts` files alongside the changed component/service
+  - Mobile: `*.test.ts` / `*.test.tsx` files in `econoflow-mobile/`
+- Write or update the tests that cover the new or modified behaviour **before** writing implementation code. Run them once to confirm they fail — this proves the tests actually exercise the code path you are about to build.
+
+### 2. Implement the change
+
+- Follow all architecture patterns described in this file.
+- Keep changes focused: do not refactor unrelated code in the same commit.
+
+### 3. Run tests and lint
+
+Run the full suite for every sub-project that has changed files:
+
+| Sub-project | Test command | Lint command |
+|-------------|-------------|-------------|
+| Backend | `dotnet test` | — |
+| Frontend | `cd easyfinance.client && npm test -- --watch=false --browsers=ChromeHeadless` | `cd easyfinance.client && npm run lint` |
+| Mobile | `cd econoflow-mobile && npm test && npm run typecheck` | `cd econoflow-mobile && npm run lint` |
+
+Fix every test failure and lint error before moving on.
+
+### 4. Code review gate
+
+Once all tests are green and lint is clean, run the `/codereview` slash command.
+
+- Read the output report carefully.
+- Fix **every item listed under "Action Items"** (these are blocking).
+- Re-run the relevant tests after each fix to confirm nothing regressed.
+- Repeat: run `/codereview` again, fix, re-test — until the report shows **no Action Items**.
+
+Only when the `/codereview` report is clean is the task complete.
+
+---
+
 ## Commands
 
 ### Backend

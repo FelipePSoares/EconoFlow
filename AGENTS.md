@@ -8,6 +8,53 @@ Public name **EconoFlow**, internal codebase name **EasyFinance** — appears in
 | `easyfinance.client/` | Angular 21 SPA |
 | `econoflow-mobile/` | React Native 0.85 + Expo SDK 56 |
 
+## Development Workflow
+
+**Every code change — no matter how small — must follow these steps in order.**
+
+### 1. Before writing implementation code
+
+- Identify all existing tests that cover the area you are about to change:
+  - Backend: `*.Tests/` projects (xUnit, files ending in `Tests.cs`)
+  - Frontend: `*.spec.ts` files alongside the changed component/service
+  - Mobile: `*.test.ts` / `*.test.tsx` files in `econoflow-mobile/`
+- Write or update the tests that cover the new or modified behaviour **before** writing implementation code. Run them once to confirm they fail — this proves the tests actually exercise the code path you are about to build.
+
+### 2. Implement the change
+
+- Follow all architecture patterns documented in this file.
+- Keep changes focused: do not refactor unrelated code in the same commit.
+
+### 3. Run tests and lint
+
+Run the full suite for every sub-project that has changed files:
+
+| Sub-project | Test command | Lint command |
+|-------------|-------------|-------------|
+| Backend | `dotnet test` | — |
+| Frontend | `cd easyfinance.client && npm test -- --watch=false --browsers=ChromeHeadless` | `cd easyfinance.client && npm run lint` |
+| Mobile | `cd econoflow-mobile && npm test && npm run typecheck` | `cd econoflow-mobile && npm run lint` |
+
+Fix every test failure and lint error before moving on.
+
+### 4. Code review gate
+
+Once all tests are green and lint is clean, perform an architecture compliance review against the rules in this file before considering the task done. Specifically verify:
+
+- No Clean Architecture layer dependency violations
+- Domain entity patterns respected (private setters, `SetXxx()`, `Validate` property)
+- `AppResponse<T>` used for all service return types; no exceptions for business failures
+- `NoTrackable()` used for read queries; single `CommitAsync()` per write path
+- API routes follow the `api/Projects/{projectId}/Categories/{categoryId}/[controller]` pattern
+- No hard-coded user-visible strings (use `.resx` / `react-i18next`)
+- No hard-coded colours in mobile (use `useAppTheme()`)
+- Sensitive data stored via `expo-secure-store`, not `AsyncStorage`
+- `requirements.md`, `architecture.md`, or `AGENTS.md` updated if the change introduces new features, patterns, or configuration
+
+Fix every violation found. Re-run tests after fixes. Only when tests are green and the review is clean is the task complete.
+
+---
+
 ## Backend
 
 ### Commands
