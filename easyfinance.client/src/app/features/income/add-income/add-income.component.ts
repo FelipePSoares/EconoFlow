@@ -160,8 +160,9 @@ export class AddIncomeComponent implements OnInit, AfterViewInit {
     }
 
     const newIncome = ({
+      id: '',
       name: name,
-      date: date,
+      date: toLocalDate(date),
       amount: parsedAmount
     }) as IncomeDto;
 

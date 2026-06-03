@@ -21,7 +21,7 @@ import { ExpensePatchModel } from '../models/expense-patch-model';
 import { ExpenseAttachmentDto } from '../models/expense-attachment-dto';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { ApiErrorResponse } from '../../../core/models/error';
-import { formatDate, toUtcMomentDate } from '../../../core/utils/date';
+import { formatDate, toLocalDate, toUtcMomentDate } from '../../../core/utils/date';
 import { minDateValidator, getMinAllowedDate } from '../../../core/utils/custom-validators/min-date-validator';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
 import { GlobalService } from '../../../core/services/global.service';
@@ -362,7 +362,7 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
       const newExpense: Expense = {
         id,
         name,
-        date,
+        date: toLocalDate(date),
         amount: parsedAmount,
         budget: parsedBudget,
         isDeductible,

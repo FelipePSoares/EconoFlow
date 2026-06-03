@@ -407,7 +407,7 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
 
       previousDeductibleProofAttachment = this.getDeductibleProofAttachment(newExpense.items[index]);
       newExpense.items[index].name = name;
-      newExpense.items[index].date = date;
+      newExpense.items[index].date = toLocalDate(date);
       newExpense.items[index].amount = parsedAmount;
       newExpense.items[index].isDeductible = isDeductible;
       newExpense.items[index].temporaryAttachmentIds = isDeductible && this.pendingDeductibleProofAttachment
@@ -416,7 +416,7 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
     } else {
       const newExpenseItem = new ExpenseItemDto();
       newExpenseItem.name = name;
-      newExpenseItem.date = date;
+      newExpenseItem.date = toLocalDate(date);
       newExpenseItem.amount = parsedAmount;
       newExpenseItem.isDeductible = isDeductible;
       newExpenseItem.attachments = [];
