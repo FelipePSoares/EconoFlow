@@ -17,6 +17,7 @@ import { toLocalDate } from '../../../core/utils/date';
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
 import { ProjectDto } from '../models/project-dto';
 import { UserProjectDto } from '../models/user-project-dto';
+import { ChartColors } from '../../../core/constants/chart-colors';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { CurrentDateService } from '../../../core/services/current-date.service';
@@ -77,18 +78,7 @@ export class MonthlyOverviewComponent implements OnInit, AfterViewInit {
 
   expenseInsights: CategoryInsight[] = [];
 
-  private expenseColors = [
-    '#ff6b6b',
-    '#4ecdc4',
-    '#ffe66d',
-    '#5dade2',
-    '#f39c12',
-    '#9b59b6',
-    '#2ecc71',
-    '#e74c3c',
-    '#1abc9c',
-    '#f1c40f'
-  ];
+  private expenseColors = ChartColors.categoryPalette;
 
   dailyIncomeExpenseChartData: ChartData<'line'> = this.createEmptyLineChartData();
   expenseChartData: ChartData<'doughnut'> = this.createEmptyDoughnutChartData();
@@ -269,8 +259,8 @@ export class MonthlyOverviewComponent implements OnInit, AfterViewInit {
         {
           label: this.translateService.instant('Income'),
           data: cumulativeIncome.map(value => this.roundAmount(value)),
-          borderColor: '#2ecc71',
-          backgroundColor: 'rgba(46, 204, 113, 0.15)',
+          borderColor: ChartColors.income,
+          backgroundColor: ChartColors.incomeAlpha15,
           pointRadius: 2,
           tension: 0.3,
           fill: true
@@ -278,8 +268,8 @@ export class MonthlyOverviewComponent implements OnInit, AfterViewInit {
         {
           label: this.translateService.instant('Expense'),
           data: cumulativeExpense.map(value => this.roundAmount(value)),
-          borderColor: '#ff6b6b',
-          backgroundColor: 'rgba(255, 107, 107, 0.12)',
+          borderColor: ChartColors.expense,
+          backgroundColor: ChartColors.expenseAlpha12,
           pointRadius: 2,
           tension: 0.3,
           fill: true
@@ -287,8 +277,8 @@ export class MonthlyOverviewComponent implements OnInit, AfterViewInit {
         {
           label: this.translateService.instant('Budget'),
           data: budgetLine,
-          borderColor: '#5dade2',
-          backgroundColor: 'rgba(93, 173, 226, 0.15)',
+          borderColor: ChartColors.budget,
+          backgroundColor: ChartColors.budgetAlpha15,
           borderDash: [5, 5],
           pointRadius: 0,
           tension: 0,
@@ -329,7 +319,7 @@ export class MonthlyOverviewComponent implements OnInit, AfterViewInit {
         {
           data: data.map(item => this.roundAmount(item.amount)),
           backgroundColor: data.map((_, index) => colors[index % colors.length]),
-          borderColor: '#ffffff',
+          borderColor: ChartColors.white,
           borderWidth: 1
         }
       ]

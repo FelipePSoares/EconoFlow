@@ -8,6 +8,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 import { ProjectService } from '../../services/project.service';
 import { ErrorMessageService } from '../../services/error-message.service';
+import { GlobalService } from '../../services/global.service';
 import { TaxYearType } from '../../enums/tax-year-type';
 import { TaxYearLabeling } from '../../enums/tax-year-labeling';
 import { ProjectTaxYearSettings, ProjectTaxYearSettingsRequest } from '../../models/project-tax-year-settings';
@@ -29,6 +30,7 @@ import { ApiErrorResponse } from '../../models/error';
 export class ConfigureTaxYearRuleDialogComponent implements OnInit {
   private projectService = inject(ProjectService);
   private errorMessageService = inject(ErrorMessageService);
+  private globalService = inject(GlobalService);
 
   @Input({ required: true })
   projectId!: string;
@@ -54,7 +56,7 @@ export class ConfigureTaxYearRuleDialogComponent implements OnInit {
   ];
   months = Array.from({ length: 12 }, (_, index) => ({
     value: index + 1,
-    label: new Date(2001, index, 1).toLocaleString(undefined, { month: 'long' })
+    label: new Date(2001, index, 1).toLocaleString(this.globalService.currentLanguage, { month: 'long' })
   }));
 
   constructor() {
