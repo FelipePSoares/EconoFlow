@@ -21,6 +21,7 @@ import { PageModalComponent } from '../../../core/components/page-modal/page-mod
 import { TaxYearType } from '../../../core/enums/tax-year-type';
 import { TaxYearLabeling } from '../../../core/enums/tax-year-labeling';
 import { ProjectTaxYearSettings, ProjectTaxYearSettingsRequest } from '../../../core/models/project-tax-year-settings';
+import { GlobalService } from '../../../core/services/global.service';
 
 @Component({
   selector: 'app-add-edit-project',
@@ -43,6 +44,7 @@ export class AddEditProjectComponent implements OnInit {
   private currencyService = inject(CurrencyService);
   private router = inject(Router);
   private errorMessageService = inject(ErrorMessageService);
+  private globalService = inject(GlobalService);
 
   projectForm!: FormGroup;
   httpErrors = false;
@@ -58,7 +60,7 @@ export class AddEditProjectComponent implements OnInit {
   ];
   months = Array.from({ length: 12 }, (_, index) => ({
     value: index + 1,
-    label: new Date(2001, index, 1).toLocaleString(undefined, { month: 'long' })
+    label: new Date(2001, index, 1).toLocaleString(this.globalService.currentLanguage, { month: 'long' })
   }));
 
   ngOnInit(): void {

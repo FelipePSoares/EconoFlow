@@ -8,6 +8,7 @@ import { IncomeDto } from '../../../income/models/income-dto';
 import { CurrentDateService } from '../../../../core/services/current-date.service';
 import { TranslateService } from '@ngx-translate/core';
 import { toLocalDate } from '../../../../core/utils/date';
+import { ChartColors } from '../../../../core/constants/chart-colors';
 
 @Component({
   selector: 'app-monthly-expenses-chart',
@@ -38,34 +39,34 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterVi
         label: this.translateService.instant('Income'),
         fill: true,
         tension: 0.5,
-        borderColor: '#2ecc71',
-        backgroundColor: 'rgba(46, 204, 113, 0.15)'
+        borderColor: ChartColors.income,
+        backgroundColor: ChartColors.incomeAlpha15
       },
       {
         data: [],
         label: this.translateService.instant('Expense'),
         fill: true,
         tension: 0.5,
-        borderColor: 'rgb(255, 99, 132)',
-        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        borderColor: ChartColors.chartRed,
+        backgroundColor: ChartColors.chartRedAlpha20,
         pointBackgroundColor: (context: { parsed?: { y?: number | null } }) => {
           const raw = context?.parsed?.y;
           const value = typeof raw === 'number' ? raw : 0;
           const budget = typeof this.budget === 'number' ? this.budget : 0;
-          return value > budget ? 'rgb(255, 0, 0)' : 'rgb(255, 99, 132)';
+          return value > budget ? ChartColors.budgetExceeded : ChartColors.chartRed;
         },
         pointBorderColor: (context: { parsed?: { y?: number | null } }) => {
           const raw = context?.parsed?.y;
           const value = typeof raw === 'number' ? raw : 0;
           const budget = typeof this.budget === 'number' ? this.budget : 0;
-          return value > budget ? 'rgb(255, 0, 0)' : 'rgb(255, 99, 132)';
+          return value > budget ? ChartColors.budgetExceeded : ChartColors.chartRed;
         }
       },
       {
         data: [],
         label: this.translateService.instant('Budget'),
-        borderColor: 'rgb(54, 162, 235)',
-        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+        borderColor: ChartColors.chartBlue,
+        backgroundColor: ChartColors.chartBlueAlpha20,
         borderDash: [5, 5],
         fill: false,
         pointRadius: 0

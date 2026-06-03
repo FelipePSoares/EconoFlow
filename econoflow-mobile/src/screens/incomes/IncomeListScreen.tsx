@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
+import i18n from 'i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { OverviewStackParamList } from '../../navigation/OverviewStackNavigator';
 import { useProjectStore } from '../../store/projectStore';
@@ -21,16 +22,14 @@ import { GlassCard } from '../../components/common/GlassCard';
 import { QuickAddModal } from '../quick-add/QuickAddModal';
 import type { QuickAddEditMode } from '../quick-add/QuickAddModal';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
+import { useAppTheme } from '../../theme/useAppTheme';
 import { getCurrencySymbol } from '../../utils/currency';
 import { getCategoryIcon } from '../../utils/categoryIcon';
 import { fromDateOnly, formatMonthLabel } from '../../utils/date';
+import { formatAmount } from '../../utils/format';
 import { MonthNavigator } from '../../components/common/MonthNavigator';
 
 type Props = NativeStackScreenProps<OverviewStackParamList, 'IncomeList'>;
-
-function fmt(n: number): string {
-  return Math.abs(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
 
 interface EditState {
   visible: boolean;
@@ -40,6 +39,7 @@ interface EditState {
 export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
   const { t } = useTranslation();
   const { dark, ink, ink2 } = useAuroraSkin();
+  const { customColors } = useAppTheme();
   const insets = useSafeAreaInsets();
 
   const [month, setMonth] = useState(route.params.month);
@@ -70,6 +70,8 @@ export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
     await refetch();
     setRefreshing(false);
   };
+
+  const fmt = (n: number) => formatAmount(n, i18n.language);
 
   if (isLoading && !incomes) return <LoadingIndicator />;
 
@@ -118,8 +120,8 @@ export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
         {/* ── Summary card ──────────────────────────────────────────── */}
         <GlassCard dark={dark} radius={26} style={styles.summaryCard}>
           <View style={styles.summaryInner}>
-            <View style={styles.summaryIconWrap}>
-              <MaterialCommunityIcons name="arrow-up-circle" size={32} color="#2ecc71" />
+            <View style={[styles.summaryIconWrap, { backgroundColor: customColors.income + '26' }]}>
+              <MaterialCommunityIcons name="arrow-up-circle" size={32} color={customColors.income} />
             </View>
             <View style={styles.summaryMeta}>
               <Text style={[styles.summaryMonthLabel, { color: ink2 }]}>
@@ -159,8 +161,8 @@ export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
               return (
                 <GlassCard key={item.id} dark={dark} radius={18} style={styles.groupCard}>
                   <View style={styles.groupHeader}>
-                    <View style={[styles.groupIcon, { backgroundColor: '#2ecc7122' }]}>
-                      <MaterialCommunityIcons name={icon as never} size={20} color="#2ecc71" />
+                    <View style={[styles.groupIcon, { backgroundColor: customColors.income + '22' }]}>
+                      <MaterialCommunityIcons name={icon as never} size={20} color={customColors.income} />
                     </View>
 
                     <View style={styles.groupInfo}>
@@ -168,7 +170,7 @@ export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
                       <Text style={[styles.groupSub, { color: ink2 }]}>{dateStr}</Text>
                     </View>
 
-                    <Text style={[styles.groupAmt, { color: '#2ecc71' }]}>
+                    <Text style={[styles.groupAmt, { color: customColors.income }]}>
                       +{sym} {fmt(item.amount)}
                     </Text>
 
@@ -197,7 +199,7 @@ export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
                           hitSlop={6}
                           style={styles.groupAction}
                         >
-                          <MaterialCommunityIcons name="trash-can-outline" size={16} color="#e74c3c" />
+                          <MaterialCommunityIcons name="trash-can-outline" size={16} color={customColors.expense} />
                         </TouchableOpacity>
                       </>
                     )}
@@ -255,7 +257,6 @@ const styles = StyleSheet.create({
   summaryInner: { flexDirection: 'row', alignItems: 'center', gap: 16, padding: 18 },
   summaryIconWrap: {
     width: 56, height: 56, borderRadius: 18,
-    backgroundColor: '#2ecc7126',
     alignItems: 'center', justifyContent: 'center', flexShrink: 0,
   },
   summaryMeta:       { flex: 1 },

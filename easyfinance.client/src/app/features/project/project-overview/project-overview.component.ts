@@ -4,6 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ChartData, ChartOptions, TooltipItem } from 'chart.js';
+import { ChartColors } from '../../../core/constants/chart-colors';
 import { catchError, filter, forkJoin, map, of, switchMap } from 'rxjs';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { Category } from '../../../core/models/category';
@@ -336,14 +337,14 @@ export class ProjectOverviewComponent implements OnInit {
         {
           label: this.translateService.instant('Income'),
           data: incomes.map(value => this.roundAmount(value)),
-          backgroundColor: '#2ecc71',
+          backgroundColor: ChartColors.income,
           borderRadius: 4,
           maxBarThickness: 26
         },
         {
           label: this.translateService.instant('Expense'),
           data: expenses.map(value => this.roundAmount(value)),
-          backgroundColor: '#ff6b6b',
+          backgroundColor: ChartColors.expense,
           borderRadius: 4,
           maxBarThickness: 26
         }
