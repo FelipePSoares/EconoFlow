@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, ViewChild, inject } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { map, Observable } from 'rxjs';
 import { TranslateModule } from '@ngx-translate/core';
@@ -15,13 +15,13 @@ import { Notification } from '../../models/notification';
   styleUrl: './notifications.component.css'
 })
 export class NotificationsComponent {
+  private notificationService = inject(NotificationService);
+
   @ViewChild('notificationsToggleButton') notificationsToggleButton?: ElementRef<HTMLButtonElement>;
   notifications$: Observable<Notification[]> = this.notificationService.notifications$;
   unreadCount$: Observable<number> = this.notifications$.pipe(map(notifications => notifications?.length ?? 0));
   private readonly removeAnimationMs = 180;
   removingNotificationIds = new Set<string>();
-
-  constructor(private notificationService: NotificationService) { }
 
   public onActionButtonClick(notification: Notification, event: Event): void {
     event.stopPropagation();

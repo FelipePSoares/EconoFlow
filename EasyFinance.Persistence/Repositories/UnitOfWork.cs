@@ -75,7 +75,7 @@ namespace EasyFinance.Persistence.Repositories
 
             updatedEntries.ForEach(e =>
             {
-                ((BaseEntity)e.Entity).ModifiedAt = currentDateTime;
+                ((BaseEntity)e.Entity).SetModifiedAt(currentDateTime);
             });
 
             // get a list of all Added entries which implement the BaseEntity
@@ -85,8 +85,8 @@ namespace EasyFinance.Persistence.Repositories
 
             addedEntries.ForEach(e =>
             {
-                ((BaseEntity)e.Entity).CreatedDate = currentDateTime;
-                ((BaseEntity)e.Entity).ModifiedAt = currentDateTime;
+                ((BaseEntity)e.Entity).SetCreatedDate(currentDateTime);
+                ((BaseEntity)e.Entity).SetModifiedAt(currentDateTime);
             });
 
             await this.context.SaveChangesAsync();

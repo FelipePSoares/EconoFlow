@@ -87,21 +87,21 @@
             </li>
             @if (canInstall$ | async) {
               <li>
-                <a class="dropdown-item py-2" data-testid="install-app-navbar-toggle-desktop" (click)="installApp()">
+                <a class="dropdown-item py-2" tabindex="0" data-testid="install-app-navbar-toggle-desktop" (click)="installApp()" (keydown.enter)="installApp()">
                   <i class="bi bi-download me-2"></i>
                   {{ 'ButtonInstallApp' | translate }}
                 </a>
               </li>
             }
             <li>
-              <a class="dropdown-item py-2" data-testid="theme-toggle-navbar-desktop" (click)="toggleTheme()">
+              <a class="dropdown-item py-2" tabindex="0" data-testid="theme-toggle-navbar-desktop" (click)="toggleTheme()" (keydown.enter)="toggleTheme()">
                 <span>
                   <i class="bi bi-circle-half me-2"></i>
                   {{ 'Theme' | translate }}
                 </span>
                 <span class="badge rounded-pill"
                       [class.text-bg-dark]="isDarkTheme$ | async"
-                      [class.text-bg-secondary]="!(isDarkTheme$ | async)">
+                      [class.text-bg-secondary]="(isDarkTheme$ | async) === false">
                   {{ (isDarkTheme$ | async) ? ('ThemeDark' | translate) : ('ThemeLight' | translate) }}
                 </span>
               </a>
@@ -121,7 +121,7 @@
                 </span>
                 <span class="badge rounded-pill"
                       [class.text-bg-dark]="privacyModeEnabled$ | async"
-                      [class.text-bg-secondary]="!(privacyModeEnabled$ | async)">
+                      [class.text-bg-secondary]="(privacyModeEnabled$ | async) === false">
                   {{ (privacyModeEnabled$ | async) ? ('PrivacyModeEnabled' | translate) : ('PrivacyModeDisabled' | translate) }}
                 </span>
               </button>
@@ -182,7 +182,7 @@
               </span>
               <span class="badge rounded-pill"
                     [class.text-bg-dark]="isDarkTheme$ | async"
-                    [class.text-bg-secondary]="!(isDarkTheme$ | async)">
+                    [class.text-bg-secondary]="(isDarkTheme$ | async) === false">
                 {{ (isDarkTheme$ | async) ? ('ThemeDark' | translate) : ('ThemeLight' | translate) }}
               </span>
             </button>
@@ -199,7 +199,7 @@
               </span>
               <span class="badge rounded-pill"
                     [class.text-bg-dark]="privacyModeEnabled$ | async"
-                    [class.text-bg-secondary]="!(privacyModeEnabled$ | async)">
+                    [class.text-bg-secondary]="(privacyModeEnabled$ | async) === false">
                 {{ (privacyModeEnabled$ | async) ? ('PrivacyModeEnabled' | translate) : ('PrivacyModeDisabled' | translate) }}
               </span>
             </button>

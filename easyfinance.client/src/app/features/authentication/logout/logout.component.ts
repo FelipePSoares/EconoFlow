@@ -9,9 +9,10 @@ import { AuthService } from '../../../core/services/auth.service';
   template: ''
 })
 export class LogoutComponent implements OnInit {
-  private platformId = inject(PLATFORM_ID);
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
-  constructor(private authService: AuthService, private router: Router) {}
+  private platformId = inject(PLATFORM_ID);
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId))

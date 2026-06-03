@@ -63,7 +63,7 @@ namespace EasyFinance.Application.Features.ExpenseService
 
         public async Task<AppResponse<ExpenseResponseDTO>> GetByIdAsync(Guid expenseId)
         {
-            var expense = await unitOfWork.ExpenseRepository.Trackable()
+            var expense = await unitOfWork.ExpenseRepository.NoTrackable()
                 .Include(e => e.Items.OrderBy(item => item.Date))
                 .ThenInclude(e => e.CreatedBy)
                 .Include(e => e.Items)
@@ -279,7 +279,7 @@ namespace EasyFinance.Application.Features.ExpenseService
         public async Task<AppResponse> DeleteAsync(Guid expenseId)
         {
             if (expenseId == Guid.Empty)
-                AppResponse<ExpenseResponseDTO>.Error(code: nameof(expenseId), description: ValidationMessages.InvalidExpenseId);
+                return AppResponse.Error(nameof(expenseId), ValidationMessages.InvalidExpenseId);
 
             var expense = unitOfWork.ExpenseRepository.Trackable().FirstOrDefault(e => e.Id == expenseId);
 

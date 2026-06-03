@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { BehaviorSubject, Observable, map } from 'rxjs';
 import { Router } from '@angular/router';
 import { AsyncPipe, CommonModule } from '@angular/common';
@@ -25,16 +25,19 @@ import { Role } from '../../../core/enums/Role';
   styleUrl: './list-projects.component.css'
 })
 export class ListProjectsComponent implements OnInit {
+  private projectService = inject(ProjectService);
+  private userService = inject(UserService);
+  private dialog = inject(MatDialog);
+  private router = inject(Router);
+
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
   private userProjects: BehaviorSubject<UserProjectDto[]> = new BehaviorSubject<UserProjectDto[]>([new UserProjectDto()]);
   userProjects$: Observable<UserProjectDto[]> = this.userProjects.asObservable();
   defaultProjectId$: Observable<string>;
 
-  constructor(
-    private projectService: ProjectService,
-    private userService: UserService,
-    private dialog: MatDialog,
-    private router: Router) {
+  constructor() {
+    const userService = this.userService;
+
     this.defaultProjectId$ = userService.loggedUser$.pipe(map(user => user.defaultProjectId));
   }
 
@@ -60,7 +63,7 @@ export class ListProjectsComponent implements OnInit {
       autoFocus: 'input',
       width: '560px',
       maxWidth: '95vw'
-    }).afterClosed().subscribe((result) => {
+    }).afterClosed().subscribe(() => {
       this.router.navigate([{ outlets: { modal: null } }]);
     });
   }

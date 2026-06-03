@@ -5,6 +5,7 @@ using EasyFinance.Application.DTOs.Account;
 using EasyFinance.Application.Features.FeatureRolloutService;
 using EasyFinance.Application.Features.WebPushService;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -25,7 +26,7 @@ namespace EasyFinance.Server.Controllers
         {
             var user = await userManager.GetUserAsync(HttpContext.User);
             if (user == null)
-                return BadRequest("User not found!");
+                return BadRequest(ValidationMessages.UserNotFound);
 
             var roles = await userManager.GetRolesAsync(user);
             if (!featureRolloutService.IsEnabled(roles, FeatureFlags.WebPush))
@@ -40,7 +41,7 @@ namespace EasyFinance.Server.Controllers
         {
             var user = await userManager.GetUserAsync(HttpContext.User);
             if (user == null)
-                return BadRequest("User not found!");
+                return BadRequest(ValidationMessages.UserNotFound);
 
             var roles = await userManager.GetRolesAsync(user);
             if (!featureRolloutService.IsEnabled(roles, FeatureFlags.WebPush))
@@ -58,7 +59,7 @@ namespace EasyFinance.Server.Controllers
         {
             var user = await userManager.GetUserAsync(HttpContext.User);
             if (user == null)
-                return BadRequest("User not found!");
+                return BadRequest(ValidationMessages.UserNotFound);
 
             var response = await webPushService.UnsubscribeAsync(user.Id, request?.Endpoint ?? string.Empty, cancellationToken);
             if (HasForbiddenError(response))

@@ -49,3 +49,6 @@ econoflow-mobile/android/
 econoflow-mobile/ios/
 econoflow-mobile/dist/
 econoflow-mobile/.env
+
+# Developer-specific backend settings (contain local cert paths and passwords)
+EasyFinance.Server/appsettings.Development.json

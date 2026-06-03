@@ -32,8 +32,10 @@
       } @else {
       @for (notification of (notifications$ | async); track notification.id) {
       <div class="dropdown-item notification-item"
+           tabindex="0"
            [class.removing]="isRemoving(notification.id)"
-           (click)="$event.stopPropagation()">
+           (click)="$event.stopPropagation()"
+           (keydown)="$event.stopPropagation()">
         <div class="d-flex">
           <div class="notification-icon me-3">
             @switch (notification.category) {

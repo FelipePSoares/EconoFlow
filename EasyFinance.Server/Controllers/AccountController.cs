@@ -8,6 +8,7 @@ using EasyFinance.Application.Features.NotificationService;
 using EasyFinance.Application.Features.WebPushService;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Account;
+using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -71,7 +72,7 @@ namespace EasyFinance.Server.Controllers
         {
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
             if (user == null)
-                return BadRequest("User not found!");
+                return BadRequest(ValidationMessages.UserNotFound);
 
             var roles = await this.userManager.GetRolesAsync(user);
             if (!this.featureRolloutService.IsEnabled(roles, FeatureFlags.WebPush))
@@ -86,7 +87,7 @@ namespace EasyFinance.Server.Controllers
         {
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
             if (user == null)
-                return BadRequest("User not found!");
+                return BadRequest(ValidationMessages.UserNotFound);
 
             var roles = await this.userManager.GetRolesAsync(user);
             if (!this.featureRolloutService.IsEnabled(roles, FeatureFlags.WebPush))
@@ -104,7 +105,7 @@ namespace EasyFinance.Server.Controllers
         {
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
             if (user == null)
-                return BadRequest("User not found!");
+                return BadRequest(ValidationMessages.UserNotFound);
 
             var response = await this.webPushService.UnsubscribeAsync(user.Id, request?.Endpoint ?? string.Empty, cancellationToken);
             if (HasForbiddenError(response))
@@ -118,7 +119,7 @@ namespace EasyFinance.Server.Controllers
         {
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
             if (user == null)
-                return BadRequest("User not found!");
+                return BadRequest(ValidationMessages.UserNotFound);
 
             var roles = await this.userManager.GetRolesAsync(user);
             if (!this.featureRolloutService.IsEnabled(roles, FeatureFlags.WebPush))

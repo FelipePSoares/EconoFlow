@@ -1,9 +1,9 @@
-import { HttpInterceptorFn } from '@angular/common/http';
+import { HttpInterceptorFn, HttpRequest } from '@angular/common/http';
 import { inject, PLATFORM_ID } from '@angular/core';
 import { GlobalService } from '../services/global.service';
 import { isPlatformBrowser } from '@angular/common';
 
-const exceptions: any = [
+const exceptions: { method: string; url: string }[] = [
   { method: 'GET', url: 'assets/' }
 ];
 
@@ -25,8 +25,8 @@ export const LanguageInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req);
 }
 
-const isException = (req: any) => {
-  return exceptions.some((exception: any) => {
+const isException = (req: HttpRequest<unknown>) => {
+  return exceptions.some((exception) => {
     return exception.method === req.method && req.url.indexOf(exception.url) >= 0;
   });
 }

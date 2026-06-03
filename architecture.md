@@ -483,7 +483,7 @@ axios.create({ baseURL: EXPO_PUBLIC_API_URL })
                          refresh fail: clearAuth(), navigate to Auth stack
 ```
 
-`EXPO_PUBLIC_API_URL` defaults to `https://econoflow.pt` — no trailing `/api/`.
+`EXPO_PUBLIC_API_URL` defaults to `https://localhost:7003` — no trailing `/api/`.
 
 ### Navigation structure
 
@@ -508,12 +508,26 @@ AppNavigator
 
 ### Environment Variables (server)
 
-| Variable | Purpose |
-|----------|---------|
-| `EasyFinanceDB` | SQL Server connection string |
-| `EconoFlow_TOKEN_SECRET_KEY` | JWT signing key (HS256) |
-| `EconoFlow_ISSUER` | JWT `iss` claim |
-| `EconoFlow_AUDIENCE` | JWT `aud` claim |
+Variables marked **required** will throw at startup (or on first use) if absent.
+
+| Variable | Required | Purpose | Default if absent |
+|----------|----------|---------|-------------------|
+| `EasyFinanceDB` | **required** | SQL Server connection string | — |
+| `EconoFlow_TOKEN_SECRET_KEY` | **required** | JWT signing key (HS256) | — |
+| `EconoFlow_ISSUER` | **required** | JWT `iss` claim | — |
+| `EconoFlow_AUDIENCE` | **required** | JWT `aud` claim | — |
+| `SMTP2GO_API_KEY` | **required** | SMTP2Go email service API key — process throws `InvalidOperationException` on startup if missing | — |
+| `EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN` | **required** | Signs account-deletion confirmation tokens — throws on every DELETE `/api/AccessControl` call if missing | — |
+| `EconoFlow_TURNSTILE_SECRET_KEY` | optional | Cloudflare Turnstile server-side secret | `""` (captcha always passes) |
+| `EconoFlow_TURNSTILE_SITE_KEY` | optional | Cloudflare Turnstile site key returned to clients | `""` |
+| `EconoFlow_KEY_ENCRYPT_ACTIVE` | optional | Enable AES key encryption for ASP.NET Data Protection | encryption disabled |
+| `EconoFlow_BETA_TESTER_ADMIN_KEY` | optional | Auth key to grant the BetaTester role via `/api/AccessControl/beta` | endpoint returns 403 for all callers |
+| `EconoFlow_PUBLIC_BASE_URL` | optional | Public base URL used in email unsubscribe links | `https://www.econoflow.pt` |
+| `EconoFlow_ATTACHMENTS_ROOT_PATH` | optional | Root directory for file attachment storage | `AppContext.BaseDirectory/Attachments` |
+| `EconoFlow_WEB_PUSH_PUBLIC_KEY` | optional | VAPID public key override (overrides `appsettings.json`) | value from `appsettings.json` |
+| `EconoFlow_WEB_PUSH_PRIVATE_KEY` | optional | VAPID private key override (overrides `appsettings.json`) | value from `appsettings.json` |
+| `EconoFlow_UNSUBSCRIBE_HMAC_SECRET` | **required** (prod) | HMAC-SHA256 key for email unsubscribe link signatures — DEBUG builds fall back to a hardcoded dev value | — (throws `InvalidOperationException` in non-DEBUG builds) |
+| `EXPO_PUBLIC_API_URL` | optional | Mobile app API base URL | `https://localhost:7003` |
 
 ### Key `appsettings.json` Settings
 

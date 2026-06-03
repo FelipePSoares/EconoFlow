@@ -1,12 +1,14 @@
 import { DecimalPipe } from '@angular/common';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { GlobalService } from './global.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CurrencyService {
-  constructor(private globalService: GlobalService, private decimalPipe: DecimalPipe) { }
+  private globalService = inject(GlobalService);
+  private decimalPipe = inject(DecimalPipe);
+
 
   getAvailableCurrencies(): string[] {
     return [

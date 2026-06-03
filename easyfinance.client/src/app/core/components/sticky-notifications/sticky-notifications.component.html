@@ -1,9 +1,11 @@
-@if(!(isUserUrl$ | async)){
+@if((isUserUrl$ | async) === false){
 <div class="sticky-notifications-container">
   @for (notification of (stickyNotifications$ | async); track notification.id) {
   <div class="sticky-notification-card"
+       tabindex="0"
        [class]="'category-' + notification.category.toLowerCase()"
-       (click)="$event.stopPropagation()">
+       (click)="$event.stopPropagation()"
+       (keydown)="$event.stopPropagation()">
     <div class="notification-wrapper">
       <div class="notification-icon-large">
         @switch (notification.category) {

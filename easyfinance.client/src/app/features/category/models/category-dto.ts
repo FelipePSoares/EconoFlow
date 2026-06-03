@@ -28,7 +28,7 @@ export class CategoryDto {
   hasRisk(): boolean { return this.getStatus() == CategoryStatus.Risk; }
 
   public getStatus(): CategoryStatus {
-    let percentage = this.getPercentageSpend();
+    const percentage = this.getPercentageSpend();
 
     if (percentage == undefined) {
       return CategoryStatus.NotDefined;
@@ -60,7 +60,7 @@ export class CategoryDto {
     return this.getTotalBudget() == 0 ? undefined : (this.getTotalSpend() + this.getTotalOverspend()) * 100 / this.getTotalBudget();
   }
   public getCurrPercentageOfMonth():number{
-    var today = new Date();
+    const today = new Date();
     return today ? (today.getDate() / new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()) * 100 : 0;
   }
 }

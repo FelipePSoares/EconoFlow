@@ -13,7 +13,7 @@ export class LocalService {
 
   public USER_DATA = "user_data";
 
-  public saveData(key: string, value: any): Observable<void> {
+  public saveData(key: string, value: unknown): Observable<void> {
     if (isPlatformBrowser(this.platformId)) {
       try {
         return this.encrypt(JSON.stringify(value)).pipe(map(encryptedValue => localStorage.setItem(key, encryptedValue)))

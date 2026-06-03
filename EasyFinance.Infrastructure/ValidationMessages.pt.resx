@@ -163,8 +163,7 @@
     <value>&lt;p&gt;Esta ação é permanente e não pode ser desfeita. Tem certeza de que deseja excluir sua conta?&lt;/p&gt;&lt;p&gt;&lt;span class="danger" &gt;Você está associado como administrador único dos projetos abaixo:&lt;/span&gt;&lt;/p&gt;&lt;ul&gt;{0}&lt;/ul&gt;&lt;p&gt;Por favor, transfira a administração para outro usuário antes de excluir sua conta. Caso contrário, o(s) projeto(s) também será(ão) excluído(s).&lt;/p&gt;</value>
   </data>
   <data name="InvalidDeleteToken" xml:space="preserve">
-    <value>Token de exclusão expirado, por favor inicie o processo de exclusão novamente.
-Categoria não encontrada.</value>
+    <value>Token de exclusão expirado, por favor inicie o processo de exclusão novamente.</value>
   </data>
   <data name="EitherUserOrEmailMustBeProvided" xml:space="preserve">
     <value>Um Usuário ou um E-mail deve ser fornecido.</value>
@@ -413,5 +412,20 @@ Você será redirecionado em 5 segundos...</value>
   </data>
   <data name="EmergencyReserveDescription" xml:space="preserve">
     <value>Sugerido: 6 meses de despesas fixas. Você pode ajustar este valor.</value>
+  </data>
+  <data name="UserNotFound" xml:space="preserve">
+    <value>Usuário não encontrado.</value>
+  </data>
+  <data name="CaptchaValidationFailed" xml:space="preserve">
+    <value>Validação do CAPTCHA falhou.</value>
+  </data>
+  <data name="EmailAlreadyConfirmed" xml:space="preserve">
+    <value>Este e-mail já foi confirmado.</value>
+  </data>
+  <data name="InvalidUnsubscribeRequest" xml:space="preserve">
+    <value>Solicitação de cancelamento de inscrição inválida.</value>
+  </data>
+  <data name="UnsubscribeSuccess" xml:space="preserve">
+    <value>Você foi removido das notificações por e-mail.</value>
   </data>
 </root>

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -27,6 +27,9 @@ import { ApiErrorResponse } from '../../models/error';
   styleUrl: './configure-tax-year-rule-dialog.component.css'
 })
 export class ConfigureTaxYearRuleDialogComponent implements OnInit {
+  private projectService = inject(ProjectService);
+  private errorMessageService = inject(ErrorMessageService);
+
   @Input({ required: true })
   projectId!: string;
 
@@ -54,10 +57,7 @@ export class ConfigureTaxYearRuleDialogComponent implements OnInit {
     label: new Date(2001, index, 1).toLocaleString(undefined, { month: 'long' })
   }));
 
-  constructor(
-    private projectService: ProjectService,
-    private errorMessageService: ErrorMessageService
-  ) {
+  constructor() {
     this.taxYearForm = new FormGroup({
       taxYearType: new FormControl(TaxYearType.CalendarYear, [Validators.required]),
       taxYearStartMonth: new FormControl(1),

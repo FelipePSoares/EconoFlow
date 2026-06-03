@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -43,6 +43,13 @@ import { CurrentDateService } from '../../../core/services/current-date.service'
   styleUrl: './smart-setup.component.css'
 })
 export class SmartSetupComponent implements OnInit {
+  private dialogRef = inject<MatDialogRef<PageModalComponent>>(MatDialogRef);
+  private categoryService = inject(CategoryService);
+  private projectService = inject(ProjectService);
+  private router = inject(Router);
+  private globalService = inject(GlobalService);
+  private currentDateService = inject(CurrentDateService);
+
   httpErrors = false;
   errors!: Record<string, string[]>;
 
@@ -61,15 +68,6 @@ export class SmartSetupComponent implements OnInit {
 
   @Input({ required: true })
   projectId!: string;
-
-  constructor(
-    private dialogRef: MatDialogRef<PageModalComponent>,
-    private categoryService: CategoryService,
-    private projectService: ProjectService,
-    private router: Router,
-    private globalService: GlobalService,
-    private currentDateService: CurrentDateService
-  ) { }
 
   ngOnInit() {
     this.thousandSeparator = this.globalService.groupSeparator;

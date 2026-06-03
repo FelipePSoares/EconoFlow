@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild, inject } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -31,6 +31,11 @@ import { DefaultCategory } from '../../../core/models/default-category';
     styleUrl: './add-category.component.css'
 })
 export class AddCategoryComponent implements OnInit, AfterViewInit {
+  private categoryService = inject(CategoryService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private errorMessageService = inject(ErrorMessageService);
+
   categoryForm!: FormGroup;
   httpErrors = false;
   errors!: Record<string, string[]>;
@@ -43,13 +48,6 @@ export class AddCategoryComponent implements OnInit, AfterViewInit {
   filteredCategories$: Observable<string[]> = new Observable<string[]>();
 
   @ViewChild('nameInput') nameInput!: ElementRef;
-
-  constructor(
-    private categoryService: CategoryService,
-    private router: Router,
-    private route: ActivatedRoute,
-    private errorMessageService: ErrorMessageService
-  ) {}
 
   ngOnInit(): void {
     this.categoryForm = new FormGroup({
@@ -89,10 +87,10 @@ export class AddCategoryComponent implements OnInit, AfterViewInit {
     if (this.categoryForm.valid) {
       const name = this.name?.value;
 
-      var newCategory = <CategoryDto>{ name: name };
+      const newCategory = { name: name } as CategoryDto;
 
       this.categoryService.add(this.projectId, newCategory).subscribe({
-        next: response => {
+        next: () => {
           this.router.navigate([{ outlets: { modal: ['projects', this.projectId, 'categories'] } }]);
         },
         error: (response: ApiErrorResponse) => {
@@ -112,7 +110,7 @@ export class AddCategoryComponent implements OnInit, AfterViewInit {
     return this.categoryForm.get('name');
   }
 
-  trackByFn(index: number, item: string): number {
+  trackByFn(index: number): number {
     return index;
   }
 }

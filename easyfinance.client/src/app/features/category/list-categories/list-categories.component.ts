@@ -1,5 +1,5 @@
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, ViewChild, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
@@ -41,6 +41,14 @@ import { DefaultCategory } from '../../../core/models/default-category';
     styleUrl: './list-categories.component.css'
 })
 export class ListCategoriesComponent implements OnInit {
+  categoryService = inject(CategoryService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private errorMessageService = inject(ErrorMessageService);
+  private dialog = inject(MatDialog);
+  private projectService = inject(ProjectService);
+  private translateService = inject(TranslateService);
+
   @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
 
   private categories: BehaviorSubject<CategoryDto[]> = new BehaviorSubject<CategoryDto[]>([new CategoryDto()]);
@@ -61,17 +69,6 @@ export class ListCategoriesComponent implements OnInit {
 
   @Input({ required: true })
   projectId!: string;
-
-  constructor(
-    public categoryService: CategoryService,
-    private route: ActivatedRoute,
-    private router: Router,
-    private errorMessageService: ErrorMessageService,
-    private dialog: MatDialog,
-    private projectService: ProjectService,
-    private translateService: TranslateService
-  ) {
-  }
 
   ngOnInit(): void {
     this.projectService.selectedUserProject$.subscribe(userProject => {

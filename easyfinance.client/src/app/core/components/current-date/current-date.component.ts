@@ -21,6 +21,8 @@ import { CurrentDateService } from '../../services/current-date.service';
   providers: []
 })
 export class CurrentDateComponent implements OnInit {
+  private currentDateService = inject(CurrentDateService);
+
   private dateAdapter = inject(DateAdapter<Date>);
   private globalService = inject(GlobalService);
   private translateService = inject(TranslateService);
@@ -29,8 +31,6 @@ export class CurrentDateComponent implements OnInit {
 
   @Input() mode: 'month' | 'year' = 'month';
   @Output() dateUpdatedEvent = new EventEmitter<Date>();
-
-  constructor(private currentDateService: CurrentDateService) { }
 
   ngOnInit(): void {
     this.dateAdapter.setLocale(this.globalService.currentLanguage);

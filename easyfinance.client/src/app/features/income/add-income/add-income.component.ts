@@ -121,7 +121,7 @@ export class AddIncomeComponent implements OnInit, AfterViewInit {
     this.errors = {};
 
     const name = this.name?.value;
-    const date: any = formatDate(this.date?.value);
+    const date: string = formatDate(this.date?.value);
     const amount = this.amount?.value;
     const parsedAmount = amount === '' || amount === null ? 0 : amount;
 
@@ -160,8 +160,9 @@ export class AddIncomeComponent implements OnInit, AfterViewInit {
     }
 
     const newIncome = ({
+      id: '',
       name: name,
-      date: date,
+      date: date as unknown as Date,
       amount: parsedAmount
     }) as IncomeDto;
 

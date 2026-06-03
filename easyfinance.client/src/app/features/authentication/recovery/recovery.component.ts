@@ -1,5 +1,5 @@
 
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
@@ -29,11 +29,16 @@ import { TurnstileWidgetComponent } from '../../../core/components/turnstile-wid
     styleUrl: './recovery.component.css'
 })
 export class RecoveryComponent implements OnInit {
+  private authService = inject(AuthService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private errorMessageService = inject(ErrorMessageService);
+
   @ViewChild(TurnstileWidgetComponent) turnstileWidget?: TurnstileWidgetComponent;
 
   recoveryForm!: FormGroup;
   resetPasswordForm!: FormGroup;
-  sent: boolean = false;
+  sent = false;
   token!: string;
   serverEmail!: string;
   httpErrors = false;
@@ -47,8 +52,6 @@ export class RecoveryComponent implements OnInit {
   hasOneNumber = false;
   hasOneSpecial = false;
   hasMinCharacteres = false;
-
-  constructor(private authService: AuthService, private route: ActivatedRoute, private router: Router, private errorMessageService: ErrorMessageService) { }
 
   ngOnInit(): void {
     const queryParams = this.route.snapshot.queryParams;
@@ -88,7 +91,7 @@ export class RecoveryComponent implements OnInit {
       this.captchaToken = '';
 
       this.authService.forgotPassword(email, captchaToken).subscribe({
-        next: response => {
+        next: () => {
           this.sent = true;
         },
         error: (response: ApiErrorResponse) => {
@@ -106,7 +109,7 @@ export class RecoveryComponent implements OnInit {
       const newPassword = this.password?.value;
 
       this.authService.resetPassword(this.serverEmail, this.token, newPassword).subscribe({
-        next: response => {
+        next: () => {
           this.router.navigate(['login']);
         },
         error: (response: ApiErrorResponse) => {
@@ -121,7 +124,7 @@ export class RecoveryComponent implements OnInit {
 
 
   reset() {
-    var emailField = this.recoveryForm.get('email');
+    const emailField = this.recoveryForm.get('email');
     emailField?.setValue('');
 
     this.sent = false;
@@ -140,7 +143,7 @@ export class RecoveryComponent implements OnInit {
   }
 
   getFormFieldErrors(fieldName: string): string[] {
-    let control = this.recoveryForm.get(fieldName);
+    const control = this.recoveryForm.get(fieldName);
     if (control) {
       return this.errorMessageService.getFormFieldErrors(this.recoveryForm, fieldName);
     }

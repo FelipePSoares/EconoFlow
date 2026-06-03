@@ -240,7 +240,7 @@ jobs:
   integration-tests:
     needs: [build]
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
 
     steps:
     - uses: actions/checkout@v4
@@ -284,12 +284,18 @@ jobs:
       run: |
         find ./EasyFinance.Server/bin/Debug -type f -name EasyFinance.Server -exec chmod +x {} \;
 
+    - name: Generate dev certificate
+      run: dotnet dev-certs https
+
     - name: Start application
       id: dotnet
       run: dotnet run --project ./EasyFinance.Server --configuration Debug --no-build --no-restore --urls https://localhost:7003/ &
+      env:
+        EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN: ci-integration-test-placeholder-secret-key-32chars
 
-    - name: wait application startup
-      run: sleep 10s
+    - name: Wait for servers to be ready
+      run: |
+        timeout 300 bash -c 'until curl -sf http://localhost:4200 > /dev/null 2>&1; do sleep 3; done'
       shell: bash
 
     - name: Run Cypress tests

@@ -16,12 +16,15 @@ import { toLocalDate } from '../../../../core/utils/date';
   styleUrl: './monthly-expenses-chart.component.css'
 })
 export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterViewInit {
+  private cdr = inject(ChangeDetectorRef);
+  private currentDateService = inject(CurrentDateService);
+
   private platformId = inject(PLATFORM_ID);
   private translateService = inject(TranslateService);
 
   @Input() expenses: ExpenseDto[] = [];
   @Input() incomes: IncomeDto[] = [];
-  @Input() budget: number = 0;
+  @Input() budget = 0;
   @Input() referenceDate?: Date;
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
   isBrowser = isPlatformBrowser(this.platformId);
@@ -45,13 +48,13 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterVi
         tension: 0.5,
         borderColor: 'rgb(255, 99, 132)',
         backgroundColor: 'rgba(255, 99, 132, 0.2)',
-        pointBackgroundColor: (context: any) => {
+        pointBackgroundColor: (context: { parsed?: { y?: number | null } }) => {
           const raw = context?.parsed?.y;
           const value = typeof raw === 'number' ? raw : 0;
           const budget = typeof this.budget === 'number' ? this.budget : 0;
           return value > budget ? 'rgb(255, 0, 0)' : 'rgb(255, 99, 132)';
         },
-        pointBorderColor: (context: any) => {
+        pointBorderColor: (context: { parsed?: { y?: number | null } }) => {
           const raw = context?.parsed?.y;
           const value = typeof raw === 'number' ? raw : 0;
           const budget = typeof this.budget === 'number' ? this.budget : 0;
@@ -86,11 +89,6 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterVi
     }
   };
 
-  constructor(
-    private cdr: ChangeDetectorRef,
-    private currentDateService: CurrentDateService)
-  { }
-
   ngOnInit() {
     this.updateChartData();
   }
@@ -111,7 +109,7 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterVi
         try {
           // Update the chart
           this.chart?.update();
-        } catch (error) {
+        } catch {
           // Fallback for older ng2-charts versions
           this.chart?.chart?.update?.();
         }
@@ -149,7 +147,7 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterVi
 
     // Filter to current month
     const monthPrefix = `${year}-${String(month).padStart(2, '0')}-`;
-    const currentMonthExpenseSums: { [day: number]: number } = {};
+    const currentMonthExpenseSums: Record<number, number> = {};
     for (const [dateStr, sum] of Object.entries(dailyExpenseSums)) {
       if (dateStr.startsWith(monthPrefix)) {
         const day = parseInt(dateStr.split('-')[2], 10);
@@ -157,7 +155,7 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterVi
       }
     }
 
-    const currentMonthIncomeSums: { [day: number]: number } = {};
+    const currentMonthIncomeSums: Record<number, number> = {};
     for (const [dateStr, sum] of Object.entries(dailyIncomeSums)) {
       if (dateStr.startsWith(monthPrefix)) {
         const day = parseInt(dateStr.split('-')[2], 10);
@@ -166,8 +164,8 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterVi
     }
 
     // Build cumulative
-    const cumulativeIncome: Array<number | null> = [];
-    const cumulativeExpense: Array<number | null> = [];
+    const cumulativeIncome: (number | null)[] = [];
+    const cumulativeExpense: (number | null)[] = [];
     let runningIncome = 0;
     let runningExpense = 0;
 
@@ -213,7 +211,7 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterVi
     };
   }
 
-  private toExpenseEntries(expenses: ExpenseDto[]): Array<{ date: Date; amount: number }> {
+  private toExpenseEntries(expenses: ExpenseDto[]): { date: Date; amount: number }[] {
     return expenses.flatMap(expense => {
       if (expense.items?.length) {
         return this.toExpenseItemEntries(expense.items);
@@ -229,7 +227,7 @@ export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterVi
     });
   }
 
-  private toExpenseItemEntries(items: ExpenseItemDto[]): Array<{ date: Date; amount: number }> {
+  private toExpenseItemEntries(items: ExpenseItemDto[]): { date: Date; amount: number }[] {
     return items.flatMap(item => {
       if (item.items?.length) {
         return this.toExpenseItemEntries(item.items);

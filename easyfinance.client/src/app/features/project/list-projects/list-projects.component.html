@@ -5,7 +5,7 @@
         @for (userProject of (userProjects$ | async); track userProject.id) {
         <mat-grid-tile>
           <div class="card" [class]="userProject?.project?.id && (defaultProjectId$ | async) === userProject.project.id ? 'text-bg-primary' : 'text-bg-secondary'">
-            <div (click)="select(userProject)" class="card-body">
+            <div (click)="select(userProject)" (keydown.enter)="select(userProject)" tabindex="0" role="button" class="card-body">
               <h1>{{ userProject?.project?.name }}</h1>
             </div>
             <div class="card-footer">
@@ -17,7 +17,7 @@
                   @if (canEditProject(userProject)) {
                     <li><button type="button" class="edit dropdown-item" (click)="edit(userProject)">{{ 'ButtonEdit' | translate }}</button></li>
                   }
-                  @if (userProject?.project?.id && (defaultProjectId$ | async) != userProject.project.id){
+                  @if (userProject?.project?.id && (defaultProjectId$ | async) !== userProject.project.id){
                   <li><button type="button" class="dropdown-item" (click)="setAsDefault(userProject.project)">{{ 'ButtonSetDefault' | translate }}</button></li>
                   }
                   @if (isAdmin(userProject)){
@@ -31,7 +31,7 @@
         }
 
         <mat-grid-tile>
-          <div (click)="add()" id="add-item" class="card text-bg-secondary">
+          <div (click)="add()" (keydown.enter)="add()" tabindex="0" role="button" id="add-item" class="card text-bg-secondary">
             <div class="card-body">
               <i class="bi bi-plus-circle fs-1"></i>
             </div>

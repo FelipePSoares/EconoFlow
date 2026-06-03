@@ -390,7 +390,7 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
     this.errors = {};
 
     const name = this.name?.value;
-    const date: any = formatDate(this.date?.value);
+    const date: string = formatDate(this.date?.value);
     const amount = this.amount?.value;
     const isDeductible = !!this.isDeductibleControl?.value;
     const parsedAmount = amount === "" || amount === null ? 0 : amount;
@@ -407,7 +407,7 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
 
       previousDeductibleProofAttachment = this.getDeductibleProofAttachment(newExpense.items[index]);
       newExpense.items[index].name = name;
-      newExpense.items[index].date = date;
+      newExpense.items[index].date = toLocalDate(date);
       newExpense.items[index].amount = parsedAmount;
       newExpense.items[index].isDeductible = isDeductible;
       newExpense.items[index].temporaryAttachmentIds = isDeductible && this.pendingDeductibleProofAttachment
@@ -416,7 +416,7 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
     } else {
       const newExpenseItem = new ExpenseItemDto();
       newExpenseItem.name = name;
-      newExpenseItem.date = date;
+      newExpenseItem.date = toLocalDate(date);
       newExpenseItem.amount = parsedAmount;
       newExpenseItem.isDeductible = isDeductible;
       newExpenseItem.attachments = [];
@@ -771,6 +771,7 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
         return;
       }
 
+      // eslint-disable-next-line prefer-const
       let dialogRef: MatDialogRef<PageModalComponent, ProjectTaxYearSettings | null>;
       const componentInputs = {
         projectId: this.projectId,

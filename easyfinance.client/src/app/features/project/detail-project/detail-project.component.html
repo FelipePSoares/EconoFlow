@@ -17,7 +17,7 @@
         <ul class="slider list-unstyled d-flex">
           @for (category of (categories$ | async); track category.id) {
             <li class="slide me-1">
-              <div class="card" [class.archived]="category.isArchived" (click)="selectCategory(category.id)">
+              <div class="card" [class.archived]="category.isArchived" tabindex="0" role="button" (click)="selectCategory(category.id)" (keydown.enter)="selectCategory(category.id)">
                 <div
                   class="card-fill"
                   [ngClass]="[getBgClassBasedOnCategory(category), getCategoryFillHeightClass(category)]">
@@ -47,7 +47,7 @@
           }
           @if (canAddOrEdit()){
           <li class="slide">
-            <div class="card btn-add min-width" (click)="listCategories()">
+            <div class="card btn-add min-width" tabindex="0" role="button" (click)="listCategories()" (keydown.enter)="listCategories()">
               <div class="card-body">
                 <i class="bi bi-plus fs-4 btn btn-primary btn-circle"></i>
                 <span class="mt-2">{{ 'AddAndEdit' | translate }}</span>

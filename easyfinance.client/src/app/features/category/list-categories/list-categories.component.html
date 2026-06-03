@@ -8,7 +8,7 @@
       (cdkDropListDropped)="drop($event)">
       @for (category of (categories$ | async); track category.id) {
         <div class="list-group-item" cdkDrag [cdkDragDisabled]="!canAddOrEdit() || category.id === editingCategory.id || isSavingOrder">
-          @if (category.id != this.editingCategory.id) {
+          @if (category.id !== this.editingCategory.id) {
             <div class="d-flex justify-content-between">
               <div class="d-flex align-items-center">
                 @if (canAddOrEdit()) {
@@ -55,7 +55,7 @@
                 </mat-form-field>
 
                 <div class="d-flex justify-content-end">
-                  <button mat-stroked-button class="me-2" type="button" (click)="cancelEdit()">Cancel</button>
+                  <button mat-stroked-button class="me-2" type="button" (click)="cancelEdit()">{{ 'ButtonCancel' | translate }}</button>
                   <button mat-raised-button color="primary" type="submit" [disabled]="categoryForm.invalid">
                     {{ 'ButtonSave' | translate }}
                   </button>

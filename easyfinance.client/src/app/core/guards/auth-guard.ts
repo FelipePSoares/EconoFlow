@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
 import { catchError, map, of } from 'rxjs';
 import { UserService } from '../services/user.service';
+import { User } from '../models/user';
 
 @Injectable({
   providedIn: 'root'
@@ -34,7 +35,7 @@ export class AuthGuard implements CanActivate {
     );
   }
 
-  private handleUserRedirect(user: any, currentUrl: string): boolean {
+  private handleUserRedirect(user: User, currentUrl: string): boolean {
     if (user.isFirstLogin) {
       if (!this.bypassUrls.includes(currentUrl)) {
         this.router.navigate(['first-signin']);

@@ -24,9 +24,9 @@ namespace EasyFinance.Domain.Support
         [Required, EmailAddress]
         public string Email { get; private set; }
 
-        public string Subject { get; set; }
+        public string Subject { get; private set; }
         [Required]
-        public string Message { get; set; }
+        public string Message { get; private set; }
 
         public User CreatedBy { get; private set; } = new User();
 

@@ -47,6 +47,18 @@ interface ExpenseEntry {
   styleUrl: './monthly-overview.component.scss'
 })
 export class MonthlyOverviewComponent implements OnInit, AfterViewInit {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private projectService = inject(ProjectService);
+  private incomeService = inject(IncomeService);
+  private categoryService = inject(CategoryService);
+  private projectOverviewRefreshService = inject(ProjectOverviewRefreshService);
+  private globalService = inject(GlobalService);
+  private translateService = inject(TranslateService);
+  private currentDateService = inject(CurrentDateService);
+  private currencyFormatPipe = inject(CurrencyFormatPipe);
+  private destroyRef = inject(DestroyRef);
+
   readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   chartsReady = false;
 
@@ -125,20 +137,6 @@ export class MonthlyOverviewComponent implements OnInit, AfterViewInit {
       }
     }
   };
-
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private projectService: ProjectService,
-    private incomeService: IncomeService,
-    private categoryService: CategoryService,
-    private projectOverviewRefreshService: ProjectOverviewRefreshService,
-    private globalService: GlobalService,
-    private translateService: TranslateService,
-    private currentDateService: CurrentDateService,
-    private currencyFormatPipe: CurrencyFormatPipe,
-    private destroyRef: DestroyRef
-  ) { }
 
   ngOnInit(): void {
     this.projectService.selectedUserProject$.subscribe(userProject => {

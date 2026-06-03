@@ -1,6 +1,6 @@
 <div class="wrap p-3 h-100">
   <div class="col text-center mt-2 mb-3 month">
-    <a class="overview-link" (click)="openRequested.emit()" role="button" title="{{ 'MonthlyOverview' | translate }}">
+    <a class="overview-link" tabindex="0" (click)="openRequested.emit()" (keydown.enter)="openRequested.emit()" role="button" title="{{ 'MonthlyOverview' | translate }}">
       <h2 class="overview-heading">
         {{ date | date: 'MMMM' : undefined : language }}
         <i class="bi bi-box-arrow-up-right overview-icon"></i>

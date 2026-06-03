@@ -4,6 +4,7 @@ using EasyFinance.Application.Features.SupportService;
 using EasyFinance.Application.Features.TurnstileService;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Infrastructure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -33,7 +34,7 @@ namespace EasyFinance.Server.Controllers
             if (contactUsDto == null) return BadRequest();
 
             if (turnstileService.IsEnabled() && !await turnstileService.ValidateTokenAsync(contactUsDto.CaptchaToken))
-                return BadRequest("CAPTCHA validation failed.");
+                return BadRequest(ValidationMessages.CaptchaValidationFailed);
 
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
             var createdMessage = await contactUsService.CreateAsync(user, contactUsDto.FromDTO());

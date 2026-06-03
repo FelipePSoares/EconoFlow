@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, inject, OnInit } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UserService } from 'src/app/core/services/user.service';
@@ -28,7 +28,13 @@ import { TurnstileWidgetComponent } from 'src/app/core/components/turnstile-widg
   templateUrl: './contact-us.component.html',
   styleUrls: ['./contact-us.component.css']
 })
-export class ContactUsComponent {
+export class ContactUsComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  userService = inject(UserService);
+  private contactUsService = inject(ContactUsService);
+  private router = inject(Router);
+  private errorMessageService = inject(ErrorMessageService);
+
   @ViewChild(TurnstileWidgetComponent) turnstileWidget?: TurnstileWidgetComponent;
 
   contactForm: FormGroup;
@@ -40,13 +46,7 @@ export class ContactUsComponent {
   _user = new User();
   captchaToken = '';
 
-  constructor(
-    private fb: FormBuilder,
-    public userService: UserService,
-    private contactUsService: ContactUsService,
-    private router: Router,
-    private errorMessageService: ErrorMessageService,
-  ) {
+  constructor() {
     this.contactForm = this.fb.group({
       name: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
@@ -92,7 +92,7 @@ export class ContactUsComponent {
       }) as ContactUsDto;
 
       this.contactUsService.add(contactData).subscribe({
-        next: response => {
+        next: () => {
           this.router.navigate([{ outlets: { modal: null } }]);
         },
         error: (response: ApiErrorResponse) => {

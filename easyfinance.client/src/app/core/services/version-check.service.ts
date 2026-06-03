@@ -1,15 +1,15 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { interval } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class VersionCheckService {
+  private http = inject(HttpClient);
+
   private checkInterval = 60000; // 1 minute
   private currentVersion = '';
-
-  constructor(private http: HttpClient) { }
 
   public init() {
     this.http.get<{ versionNumber: string }>('/assets/version.json').subscribe(res => {

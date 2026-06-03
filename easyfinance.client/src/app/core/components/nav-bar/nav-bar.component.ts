@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Observable, combineLatest, map } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
@@ -27,6 +27,13 @@ import { ThemeService } from '../../services/theme.service';
   styleUrls: ['./nav-bar.component.css']
 })
 export class NavBarComponent {
+  userService = inject(UserService);
+  private projectService = inject(ProjectService);
+  private router = inject(Router);
+  private privacyModeService = inject(PrivacyModeService);
+  private pwaInstallService = inject(PwaInstallService);
+  private themeService = inject(ThemeService);
+
   fullName$: Observable<string>;
   selectedProject$: Observable<Project | undefined>;
   readonly logoLink$: Observable<string[]>;
@@ -34,14 +41,10 @@ export class NavBarComponent {
   isDarkTheme$ = this.themeService.isDarkTheme$;
   canInstall$: Observable<boolean>;
 
-  constructor(
-    public userService: UserService,
-    private projectService: ProjectService,
-    private router: Router,
-    private privacyModeService: PrivacyModeService,
-    private pwaInstallService: PwaInstallService,
-    private themeService: ThemeService
-  ) {
+  constructor() {
+    const userService = this.userService;
+    const projectService = this.projectService;
+
     this.fullName$ = userService.loggedUser$.pipe(map(user => user.fullName));
     this.selectedProject$ = projectService.selectedUserProject$.pipe(map(up => up?.project));
     this.logoLink$ = this.selectedProject$.pipe(
