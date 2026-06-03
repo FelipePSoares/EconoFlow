@@ -95,7 +95,7 @@ export const MainNavigator: React.FC = () => {
                 end={{ x: 1, y: 1 }}
                 style={styles.fab}
               >
-                <MaterialCommunityIcons name="plus" size={28} color="#fff" />
+                <MaterialCommunityIcons name="plus" size={24} color="#fff" />
               </LinearGradient>
             </TouchableOpacity>
           ),
