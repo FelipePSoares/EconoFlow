@@ -252,7 +252,7 @@ Custom tokens (`theme.customColors` from `useAppTheme()` hook):
 ## Key patterns
 
 - **API client**: `src/api/client.ts` — Axios instance with token refresh interceptor
-- **Env var for API URL**: `EXPO_PUBLIC_API_URL` (default: `https://econoflow.pt`, no `/api` suffix)
+- **Env var for API URL**: `EXPO_PUBLIC_API_URL` (default: `https://localhost:7003`, no `/api` suffix)
 - **State**: Zustand stores in `src/store/` for auth & project; React Query for server state
 - **Navigation**: `@react-navigation/native-stack` + `bottom-tabs` in `src/navigation/`
 - **i18n**: `react-i18next` with JSON files in `src/i18n/locales/`

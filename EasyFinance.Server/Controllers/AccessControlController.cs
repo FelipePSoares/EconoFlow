@@ -827,7 +827,7 @@ namespace EasyFinance.Server.Controllers
             }
 
             this.logger.LogInformation("Email notifications unsubscribed for user {UserId}.", userId);
-            return Content("You have been unsubscribed from email notifications.");
+            return Content(ValidationMessages.UnsubscribeSuccess);
         }
 
         private async Task<AppResponse> ValidateSecureTwoFactorActionAsync(User user, TwoFactorSecureActionRequestDTO request)

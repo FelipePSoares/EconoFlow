@@ -483,7 +483,7 @@ axios.create({ baseURL: EXPO_PUBLIC_API_URL })
                          refresh fail: clearAuth(), navigate to Auth stack
 ```
 
-`EXPO_PUBLIC_API_URL` defaults to `https://econoflow.pt` — no trailing `/api/`.
+`EXPO_PUBLIC_API_URL` defaults to `https://localhost:7003` — no trailing `/api/`.
 
 ### Navigation structure
 
@@ -526,6 +526,7 @@ Variables marked **required** will throw at startup (or on first use) if absent.
 | `EconoFlow_ATTACHMENTS_ROOT_PATH` | optional | Root directory for file attachment storage | `AppContext.BaseDirectory/Attachments` |
 | `EconoFlow_WEB_PUSH_PUBLIC_KEY` | optional | VAPID public key override (overrides `appsettings.json`) | value from `appsettings.json` |
 | `EconoFlow_WEB_PUSH_PRIVATE_KEY` | optional | VAPID private key override (overrides `appsettings.json`) | value from `appsettings.json` |
+| `EconoFlow_UNSUBSCRIBE_HMAC_SECRET` | **required** (prod) | HMAC-SHA256 key for email unsubscribe link signatures — DEBUG builds fall back to a hardcoded dev value | — (throws `InvalidOperationException` in non-DEBUG builds) |
 | `EXPO_PUBLIC_API_URL` | optional | Mobile app API base URL | `https://localhost:7003` |
 
 ### Key `appsettings.json` Settings

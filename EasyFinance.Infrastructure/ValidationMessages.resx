@@ -425,4 +425,7 @@ You will be redirect in 5 seconds ...</value>
   <data name="InvalidUnsubscribeRequest" xml:space="preserve">
     <value>Invalid unsubscribe request.</value>
   </data>
+  <data name="UnsubscribeSuccess" xml:space="preserve">
+    <value>You have been unsubscribed from email notifications.</value>
+  </data>
 </root>
