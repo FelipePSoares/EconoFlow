@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import * as CategoriesApi from '../api/categories.api';
 import { monthStart, monthEnd } from '../utils/date';
 
@@ -11,5 +11,6 @@ export const useCategoriesForMonth = (projectId: string, month: string) => {
     queryFn: () => CategoriesApi.getCategories(projectId, from, to).then((r) => r.data),
     enabled: !!projectId,
     staleTime: 30_000,
+    placeholderData: keepPreviousData,
   });
 };

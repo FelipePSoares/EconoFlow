@@ -18,7 +18,7 @@ import { AuroraField } from '../../components/auth/AuroraField';
 import { getCategoryColor } from '../../utils/categoryTheme';
 import { getCategoryIcon } from '../../utils/categoryIcon';
 import { getCurrencySymbol } from '../../utils/currency';
-import { currentMonth, toDateOnly, fromDateOnly, dateToMonth } from '../../utils/date';
+import { currentMonth, toDateOnly, fromDateOnly, dateToMonth, monthStart } from '../../utils/date';
 import { buildPatch } from '../../utils/patch';
 import { auroraTokens } from '../../theme/useAuroraSkin';
 
@@ -72,7 +72,7 @@ type ModalState = {
 
 type ModalAction =
   | { kind: 'open_edit'; editMode: QuickAddEditMode }
-  | { kind: 'open_add'; defaultType?: EntryType; defaultCategoryId?: string; defaultExpenseId?: string }
+  | { kind: 'open_add'; defaultType?: EntryType; defaultCategoryId?: string; defaultExpenseId?: string; initialDate?: Date }
   | { kind: 'set_type'; entryType: EntryType }
   | { kind: 'select_category'; id: string | null }
   | { kind: 'select_expense'; id: string | null }
@@ -112,7 +112,7 @@ function modalReducer(state: ModalState, action: ModalAction): ModalState {
         entryType: action.defaultType ?? 'expense',
         selectedCategoryId: action.defaultCategoryId ?? null,
         selectedExpenseId: action.defaultExpenseId ?? null,
-        date: new Date(),
+        date: action.initialDate ?? new Date(),
         isDeductible: false,
         showDatePicker: false,
         amountText: '',
@@ -141,12 +141,21 @@ function modalReducer(state: ModalState, action: ModalAction): ModalState {
   }
 }
 
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function defaultDateForMonth(month: string): Date {
+  const now = new Date();
+  const nowMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  if (month === nowMonth) return now;
+  return fromDateOnly(monthStart(month));
+}
+
 // ── Component ────────────────────────────────────────────────────────────────
 
 export const QuickAddModal: React.FC<Props> = ({
   visible,
   onClose,
-  month: _month = currentMonth(),
+  month = currentMonth(),
   defaultCategoryId,
   defaultExpenseId,
   editMode,
@@ -227,7 +236,7 @@ export const QuickAddModal: React.FC<Props> = ({
       dispatch({ kind: 'open_edit', editMode });
     } else {
       reset({ name: '', budget: '' });
-      dispatch({ kind: 'open_add', defaultType, defaultCategoryId, defaultExpenseId });
+      dispatch({ kind: 'open_add', defaultType, defaultCategoryId, defaultExpenseId, initialDate: defaultDateForMonth(month) });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
@@ -319,7 +328,9 @@ export const QuickAddModal: React.FC<Props> = ({
     if (modal.amountError) dispatch({ kind: 'set_amount_error', error: false });
   };
 
-  const displayAmount = (parseInt(modal.amountText || '0', 10) / 100).toFixed(2);
+  const amountCents = parseInt(modal.amountText || '0', 10);
+  const amountIntPart = Math.floor(amountCents / 100).toString();
+  const amountDecPart = String(amountCents % 100).padStart(2, '0');
 
   // ── Design tokens ─────────────────────────────────────────────────────────
   const panelBg     = dark ? '#061e33' : '#e8f4fe';
@@ -426,7 +437,7 @@ export const QuickAddModal: React.FC<Props> = ({
               </View>
             )}
 
-            {/* Amount hero — large display + decimal input */}
+            {/* Amount hero — integer + smaller decimal, hidden input */}
             <Pressable
               style={styles.amountHero}
               onPress={() => amountInputRef.current?.focus()}
@@ -438,16 +449,21 @@ export const QuickAddModal: React.FC<Props> = ({
                 <Text style={[styles.amountHeroSym, { color: amountColor }]}>
                   {sym}
                 </Text>
-                <TextInput
-                  ref={amountInputRef}
-                  value={displayAmount}
-                  onChangeText={handleAmountChange}
-                  keyboardType="number-pad"
-                  placeholderTextColor={`${amountColor}66`}
-                  underlineColorAndroid="transparent"
-                  style={[styles.amountHeroInput, { color: amountColor }]}
-                />
+                <Text style={[styles.amountHeroInt, { color: amountColor }]}>
+                  {amountIntPart}
+                </Text>
+                <Text style={[styles.amountHeroDec, { color: amountColor }]}>
+                  {amountDecPart}
+                </Text>
               </View>
+              <TextInput
+                ref={amountInputRef}
+                value={modal.amountText}
+                onChangeText={handleAmountChange}
+                keyboardType="number-pad"
+                caretHidden
+                style={styles.hiddenAmountInput}
+              />
               {modal.amountError && (
                 <HelperText type="error" style={styles.amountHeroError}>
                   {t('RequiredField') ?? 'Required'}
@@ -667,11 +683,17 @@ const styles = StyleSheet.create({
   },
   amountHeroRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 5 },
   amountHeroSym: { fontSize: 24, fontWeight: '600', paddingBottom: 10, includeFontPadding: false } as never,
-  amountHeroInput: {
-    fontSize: 52, fontWeight: '800', textAlign: 'center',
-    letterSpacing: -1, minWidth: 120,
-    padding: 0, includeFontPadding: false,
+  amountHeroInt: {
+    fontSize: 52, fontWeight: '800', letterSpacing: -1,
+    padding: 0, includeFontPadding: false, minWidth: 30,
   } as never,
+  amountHeroDec: {
+    fontSize: 26, fontWeight: '700', letterSpacing: -0.5,
+    paddingBottom: 10, includeFontPadding: false,
+  } as never,
+  hiddenAmountInput: {
+    position: 'absolute', width: 1, height: 1, opacity: 0,
+  },
   amountHeroError: { marginTop: 2, textAlign: 'center' },
 
   typeToggle: { flexDirection: 'row', borderRadius: 16, borderWidth: 1, padding: 4, marginBottom: 14, gap: 4 },

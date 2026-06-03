@@ -54,11 +54,11 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
   const projectId = selectedProject?.project.id ?? '';
 
   const {
-    data: categories, isLoading: loadingCats,
+    data: categories, isLoading: loadingCats, isFetching: fetchingCats,
     isError: catsError, refetch: refetchCats,
   } = useCategoriesForMonth(projectId, month);
   const {
-    data: incomes, isLoading: loadingInc,
+    data: incomes, isLoading: loadingInc, isFetching: fetchingIncs,
     isError: incError, refetch: refetchIncs,
   } = useIncomesForMonth(projectId, month);
   const { totalSaved, isLoading: loadingSaved } = useTotalSavedForMonth(projectId, month);
@@ -93,7 +93,9 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
     );
   }
 
-  if (loadingCats || loadingInc) return <LoadingIndicator />;
+  if ((loadingCats && !categories) || (loadingInc && !incomes)) return <LoadingIndicator />;
+
+  const isFetchingData = fetchingCats || fetchingIncs;
 
   const totalIncome   = calculateTotalIncome(incomes ?? []);
   const totalExpenses = calculateTotalExpenses(categories ?? []);
@@ -108,6 +110,7 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <GlassScreen dark={dark}>
+      <View style={{ flex: 1, opacity: isFetchingData ? 0.55 : 1 }}>
       <ScrollView
         style={styles.fill}
         contentContainerStyle={{ paddingTop: insets.top, paddingBottom: insets.bottom + 16 }}
@@ -324,6 +327,7 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         )}
       </ScrollView>
+      </View>
     </GlassScreen>
   );
 };

@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import * as ExpensesApi from '../api/expenses.api';
 import type { CreateExpenseItemRequest, CreateExpenseRequest, PatchOperation } from '../api/types';
 import { monthStart, monthEnd } from '../utils/date';
@@ -17,6 +17,7 @@ export const useExpensesForMonth = (
       ExpensesApi.getExpenses(projectId, categoryId, from, to).then((r) => r.data),
     enabled: !!projectId && !!categoryId,
     staleTime: 30_000,
+    placeholderData: keepPreviousData,
   });
 };
 

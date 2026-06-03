@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import * as IncomesApi from '../api/incomes.api';
 import type { CreateIncomeRequest, PatchOperation } from '../api/types';
 import { monthStart, monthEnd } from '../utils/date';
@@ -12,6 +12,7 @@ export const useIncomesForMonth = (projectId: string, month: string) => {
     queryFn: () => IncomesApi.getIncomes(projectId, from, to).then((r) => r.data),
     enabled: !!projectId,
     staleTime: 30_000,
+    placeholderData: keepPreviousData,
   });
 };
 
