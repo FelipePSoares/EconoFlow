@@ -293,7 +293,7 @@ jobs:
 
     - name: Wait for servers to be ready
       run: |
-        timeout 300 bash -c 'until curl -sf http://localhost:4200 > /dev/null 2>&1; do sleep 3; done'
+        timeout 300 bash -c 'until curl -sfk https://localhost:4200 > /dev/null 2>&1; do sleep 3; done'
       shell: bash
 
     - name: Run Cypress tests
