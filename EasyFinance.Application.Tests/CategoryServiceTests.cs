@@ -341,7 +341,7 @@ namespace EasyFinance.Application.Tests
             var result = await categoryService.UpdateAsync(categoryId, patch);
 
             result.Succeeded.Should().BeFalse();
-            result.Messages.First().Description.Should().Be(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(patch)));
+            result.Messages.First().Description.Should().Be(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, "categoryDto"));
         }
 
         [Fact]
