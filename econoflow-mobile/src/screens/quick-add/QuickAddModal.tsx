@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useReducer } from 'react';
+import React, { useState, useEffect, useReducer, useRef } from 'react';
 import {
-  Modal, View, StyleSheet, TouchableOpacity,
-  ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator,
-  useColorScheme, PanResponder, Animated,
+  Modal, View, StyleSheet, TouchableOpacity, TextInput, Pressable,
+  ScrollView, KeyboardAvoidingView, ActivityIndicator,
+  useColorScheme, useWindowDimensions, PanResponder, Animated,
 } from 'react-native';
 import { Text, HelperText } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -18,7 +18,7 @@ import { AuroraField } from '../../components/auth/AuroraField';
 import { getCategoryColor } from '../../utils/categoryTheme';
 import { getCategoryIcon } from '../../utils/categoryIcon';
 import { getCurrencySymbol } from '../../utils/currency';
-import { currentMonth, toDateOnly, fromDateOnly } from '../../utils/date';
+import { currentMonth, toDateOnly, fromDateOnly, dateToMonth } from '../../utils/date';
 import { buildPatch } from '../../utils/patch';
 import { auroraTokens } from '../../theme/useAuroraSkin';
 
@@ -51,7 +51,6 @@ interface Props {
 
 interface FormValues {
   name: string;
-  amount: string;
   budget: string;
 }
 
@@ -67,6 +66,8 @@ type ModalState = {
   date: Date;
   showDatePicker: boolean;
   isDeductible: boolean;
+  amountText: string;
+  amountError: boolean;
 };
 
 type ModalAction =
@@ -78,7 +79,9 @@ type ModalAction =
   | { kind: 'set_date'; date: Date }
   | { kind: 'open_date_picker' }
   | { kind: 'close_date_picker' }
-  | { kind: 'toggle_deductible' };
+  | { kind: 'toggle_deductible' }
+  | { kind: 'set_amount_text'; text: string }
+  | { kind: 'set_amount_error'; error: boolean };
 
 const initState: ModalState = {
   entryType: 'expense',
@@ -87,6 +90,8 @@ const initState: ModalState = {
   date: new Date(),
   showDatePicker: false,
   isDeductible: false,
+  amountText: '',
+  amountError: false,
 };
 
 function modalReducer(state: ModalState, action: ModalAction): ModalState {
@@ -99,6 +104,8 @@ function modalReducer(state: ModalState, action: ModalAction): ModalState {
         date: fromDateOnly(action.editMode.initialValues.date),
         isDeductible: action.editMode.initialValues.isDeductible ?? false,
         showDatePicker: false,
+        amountText: action.editMode.initialValues.amount > 0 ? String(Math.round(action.editMode.initialValues.amount * 100)) : '',
+        amountError: false,
       };
     case 'open_add':
       return {
@@ -108,6 +115,8 @@ function modalReducer(state: ModalState, action: ModalAction): ModalState {
         date: new Date(),
         isDeductible: false,
         showDatePicker: false,
+        amountText: '',
+        amountError: false,
       };
     case 'set_type':
       return { ...state, entryType: action.entryType, selectedCategoryId: null, selectedExpenseId: null };
@@ -123,6 +132,10 @@ function modalReducer(state: ModalState, action: ModalAction): ModalState {
       return { ...state, showDatePicker: false };
     case 'toggle_deductible':
       return { ...state, isDeductible: !state.isDeductible };
+    case 'set_amount_text':
+      return { ...state, amountText: action.text };
+    case 'set_amount_error':
+      return { ...state, amountError: action.error };
     default:
       return state;
   }
@@ -133,7 +146,7 @@ function modalReducer(state: ModalState, action: ModalAction): ModalState {
 export const QuickAddModal: React.FC<Props> = ({
   visible,
   onClose,
-  month = currentMonth(),
+  month: _month = currentMonth(),
   defaultCategoryId,
   defaultExpenseId,
   editMode,
@@ -141,12 +154,15 @@ export const QuickAddModal: React.FC<Props> = ({
 }) => {
   const { t } = useTranslation();
   const dark = useColorScheme() === 'dark';
+  const { height: screenH } = useWindowDimensions();
+  const panelH = Math.round(screenH * 0.88);
   const { ink, ink2, hair } = auroraTokens(dark);
   const { selectedProject, currency } = useProjectStore();
   const projectId = selectedProject?.project.id ?? '';
   const sym = getCurrencySymbol(currency);
 
   const [modal, dispatch] = useReducer(modalReducer, initState);
+  const selectedMonth = dateToMonth(modal.date);
 
   // ── Drag-to-dismiss ───────────────────────────────────────────────────────
   // useState initializer avoids the react-hooks/refs lint error that fires when
@@ -158,6 +174,8 @@ export const QuickAddModal: React.FC<Props> = ({
   // panResponder initializer (which react-hooks/refs flags as render-time
   // ref access).
   const [dismissCount, setDismissCount] = useState(0);
+
+  const amountInputRef = useRef<TextInput>(null);
 
   useEffect(() => {
     if (dismissCount === 0) return;
@@ -192,7 +210,7 @@ export const QuickAddModal: React.FC<Props> = ({
   // dispatch (useReducer) is NOT a useState setter — the react-hooks/set-state-
   // in-effect rule only flags useState setters, so using dispatch here is safe.
   const { control, handleSubmit, reset, setValue, formState: { errors } } = useForm<FormValues>({
-    defaultValues: { name: '', amount: '', budget: '' },
+    defaultValues: { name: '', budget: '' },
   });
 
   useEffect(() => {
@@ -205,41 +223,46 @@ export const QuickAddModal: React.FC<Props> = ({
 
     if (editMode) {
       setValue('name',   editMode.initialValues.name);
-      setValue('amount', String(editMode.initialValues.amount));
       setValue('budget', editMode.initialValues.budget ? String(editMode.initialValues.budget) : '');
       dispatch({ kind: 'open_edit', editMode });
     } else {
-      reset({ name: '', amount: '', budget: '' });
+      reset({ name: '', budget: '' });
       dispatch({ kind: 'open_add', defaultType, defaultCategoryId, defaultExpenseId });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
 
   // ── Data ──────────────────────────────────────────────────────────────────
-  const { data: categories } = useCategoriesForMonth(projectId, month);
+  const { data: categories } = useCategoriesForMonth(projectId, selectedMonth);
   const activeCategories = (categories ?? []).filter(c => !c.isArchived);
 
   const { data: expenses } = useExpensesForMonth(
     projectId,
     modal.selectedCategoryId ?? '',
-    month,
+    selectedMonth,
   );
 
+  const selectedCatIdx = activeCategories.findIndex(c => c.id === modal.selectedCategoryId);
+  const selectedCat    = selectedCatIdx >= 0 ? activeCategories[selectedCatIdx] : null;
+  const selectedExp    = modal.selectedExpenseId
+    ? ((expenses ?? []).find(e => e.id === modal.selectedExpenseId) ?? null)
+    : null;
+
   // ── Mutations ─────────────────────────────────────────────────────────────
-  const createIncome   = useCreateIncome(projectId, month);
-  const createExpense  = useCreateExpense(projectId, modal.selectedCategoryId ?? '', month);
-  const addExpenseItem = useAddExpenseItem(projectId, modal.selectedCategoryId ?? '', month);
+  const createIncome   = useCreateIncome(projectId, selectedMonth);
+  const createExpense  = useCreateExpense(projectId, modal.selectedCategoryId ?? '', selectedMonth);
+  const addExpenseItem = useAddExpenseItem(projectId, modal.selectedCategoryId ?? '', selectedMonth);
 
   const patchExpense = usePatchExpense(
     projectId,
     editMode?.type === 'expense' ? (editMode.categoryId ?? '') : (modal.selectedCategoryId ?? ''),
     editMode?.type === 'expense' ? editMode.id : '',
-    month,
+    selectedMonth,
   );
   const patchIncome = usePatchIncome(
     projectId,
     editMode?.type === 'income' ? editMode.id : '',
-    month,
+    selectedMonth,
   );
 
   const isPending =
@@ -248,10 +271,16 @@ export const QuickAddModal: React.FC<Props> = ({
 
   // ── Submit ────────────────────────────────────────────────────────────────
   const onSubmit = (values: FormValues) => {
-    const amount  = parseFloat(values.amount) || 0;
+    const amount  = (parseInt(modal.amountText || '0', 10) / 100);
     const budget  = parseFloat(values.budget) || 0;
     const dateStr = toDateOnly(modal.date);
     const name    = values.name.trim();
+
+    if (amount <= 0) {
+      dispatch({ kind: 'set_amount_error', error: true });
+      return;
+    }
+    dispatch({ kind: 'set_amount_error', error: false });
 
     if (editMode) {
       const patch = buildPatch({ name, amount, date: dateStr, isDeductible: modal.isDeductible, budget } as Record<string, unknown>);
@@ -267,7 +296,7 @@ export const QuickAddModal: React.FC<Props> = ({
       createIncome.mutate({ name, amount, date: dateStr }, { onSuccess: onClose });
     } else if (modal.selectedExpenseId) {
       addExpenseItem.mutate(
-        { expenseId: modal.selectedExpenseId, item: { name, amount, date: dateStr } },
+        { expenseId: modal.selectedExpenseId, item: { name, amount, date: dateStr, isDeductible: modal.isDeductible } as never },
         { onSuccess: onClose },
       );
     } else {
@@ -284,6 +313,14 @@ export const QuickAddModal: React.FC<Props> = ({
     dispatch({ kind: 'select_category', id: modal.selectedCategoryId === id ? null : id });
   };
 
+  const handleAmountChange = (text: string) => {
+    const digits = text.replace(/[^0-9]/g, '').slice(0, 9);
+    dispatch({ kind: 'set_amount_text', text: digits });
+    if (modal.amountError) dispatch({ kind: 'set_amount_error', error: false });
+  };
+
+  const displayAmount = (parseInt(modal.amountText || '0', 10) / 100).toFixed(2);
+
   // ── Design tokens ─────────────────────────────────────────────────────────
   const panelBg     = dark ? '#061e33' : '#e8f4fe';
   const panelBorder = dark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.92)';
@@ -294,6 +331,8 @@ export const QuickAddModal: React.FC<Props> = ({
   const isEditMode = !!editMode;
   const isLocked   = isEditMode || !!defaultCategoryId || !!defaultExpenseId;
   const canSubmit  = isEditMode || modal.entryType === 'income' || !!modal.selectedCategoryId;
+
+  const amountColor = modal.entryType === 'income' ? '#14c08a' : '#e74c3c';
 
   const title = isEditMode
     ? (editMode.type === 'income' ? (t('LabelEditIncome') ?? 'Edit income') : (t('LabelEditExpense') ?? 'Edit expense'))
@@ -317,14 +356,13 @@ export const QuickAddModal: React.FC<Props> = ({
 
       {/* Bottom sheet */}
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.kavWrap}
         pointerEvents="box-none"
       >
         <Animated.View
           style={[
             styles.panel,
-            { backgroundColor: panelBg, borderColor: panelBorder },
+            { backgroundColor: panelBg, borderColor: panelBorder, height: panelH },
             { transform: [{ translateY: dragY }] },
           ]}
           onStartShouldSetResponder={() => true}
@@ -337,12 +375,23 @@ export const QuickAddModal: React.FC<Props> = ({
           <ScrollView
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
+            automaticallyAdjustKeyboardInsets
             contentContainerStyle={styles.scrollContent}
           >
             {/* Header */}
             <Text style={[styles.title, { color: ink }]}>{title}</Text>
 
-            {/* Type toggle */}
+            {/* Project name tag */}
+            {selectedProject && (
+              <View style={styles.projectTag}>
+                <MaterialCommunityIcons name="folder-outline" size={12} color={ink2} />
+                <Text style={[styles.projectTagLabel, { color: ink2 }]}>
+                  {selectedProject.project.name}
+                </Text>
+              </View>
+            )}
+
+            {/* Type toggle — above the amount */}
             {!isLocked && (
               <View style={[styles.typeToggle, { backgroundColor: toggleBg, borderColor: chipBorder }]}>
                 {(['income', 'expense'] as EntryType[]).map(opt => {
@@ -358,7 +407,7 @@ export const QuickAddModal: React.FC<Props> = ({
                     >
                       {active ? (
                         <LinearGradient
-                          colors={opt === 'income' ? ['#0e9f6e', '#14c08a'] : ['#0f76a8', '#2f6df0']}
+                          colors={opt === 'income' ? ['#0e9f6e', '#14c08a'] : ['#e74c3c', '#c0392b']}
                           start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                           style={styles.typePill}
                         >
@@ -376,6 +425,35 @@ export const QuickAddModal: React.FC<Props> = ({
                 })}
               </View>
             )}
+
+            {/* Amount hero — large display + decimal input */}
+            <Pressable
+              style={styles.amountHero}
+              onPress={() => amountInputRef.current?.focus()}
+            >
+              <Text style={[styles.amountHeroLabel, { color: ink2 }]}>
+                {t('FieldAmount') ?? 'Amount'}
+              </Text>
+              <View style={styles.amountHeroRow}>
+                <Text style={[styles.amountHeroSym, { color: amountColor }]}>
+                  {sym}
+                </Text>
+                <TextInput
+                  ref={amountInputRef}
+                  value={displayAmount}
+                  onChangeText={handleAmountChange}
+                  keyboardType="number-pad"
+                  placeholderTextColor={`${amountColor}66`}
+                  underlineColorAndroid="transparent"
+                  style={[styles.amountHeroInput, { color: amountColor }]}
+                />
+              </View>
+              {modal.amountError && (
+                <HelperText type="error" style={styles.amountHeroError}>
+                  {t('RequiredField') ?? 'Required'}
+                </HelperText>
+              )}
+            </Pressable>
 
             {/* Category chips */}
             {!isEditMode && modal.entryType === 'expense' && (
@@ -425,6 +503,47 @@ export const QuickAddModal: React.FC<Props> = ({
               </>
             )}
 
+            {/* Budget info card — appears once a category or expense is selected */}
+            {!isEditMode && modal.entryType === 'expense' && (selectedCat || selectedExp) && (() => {
+              const isCat    = !selectedExp;
+              const label    = selectedExp ? selectedExp.name : selectedCat!.name;
+              const icon     = getCategoryIcon(label) as never;
+              const spent    = selectedExp ? selectedExp.amount : selectedCat!.expenses?.reduce((sum, e) => sum + e.amount, 0);
+              const budget   = selectedExp ? selectedExp.budget : selectedCat!.expenses?.reduce((sum, e) => sum + e.budget, 0);
+              const color    = isCat ? getCategoryColor(selectedCatIdx) : '#0f76a8';
+              const hasBudget = budget > 0;
+              const pct       = hasBudget ? Math.min(spent / budget, 1) : 0;
+              const over      = hasBudget && spent > budget;
+              const barColor  = over ? '#e74c3c' : color;
+              const remaining = Math.abs(budget - spent);
+              return (
+                <View style={[styles.budgetCard, { backgroundColor: chipBg, borderColor: chipBorder }]}>
+                  <View style={styles.budgetCardRow}>
+                    <MaterialCommunityIcons name={icon} size={14} color={color} />
+                    <Text style={[styles.budgetCardName, { color: ink }]} numberOfLines={1}>{label}</Text>
+                    <Text style={[styles.budgetCardSpent, { color: over ? '#e74c3c' : ink }]}>
+                      {sym}{spent?.toFixed(2)}
+                    </Text>
+                  </View>
+                  {hasBudget && (
+                    <>
+                      <View style={[styles.budgetTrack, { backgroundColor: dark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)' }]}>
+                        <View style={[styles.budgetFill, { backgroundColor: barColor, width: `${Math.round(pct * 100)}%` as never }]} />
+                      </View>
+                      <View style={styles.budgetCardFooter}>
+                        <Text style={[styles.budgetPct, { color: over ? '#e74c3c' : ink2 }]}>
+                          {Math.round(pct * 100)}% {t('LabelOfBudget') ?? 'of budget'}
+                        </Text>
+                        <Text style={[styles.budgetRemaining, { color: over ? '#e74c3c' : ink2 }]}>
+                          {sym}{remaining?.toFixed(2)} {over ? (t('LabelOver') ?? 'over') : (t('LabelLeft') ?? 'left')}
+                        </Text>
+                      </View>
+                    </>
+                  )}
+                </View>
+              );
+            })()}
+
             {/* Fields */}
             <View style={[styles.fieldsDivider, { borderTopColor: hair }]} />
 
@@ -436,16 +555,6 @@ export const QuickAddModal: React.FC<Props> = ({
               )}
             />
             {errors.name && <HelperText type="error" style={styles.helperText}>{errors.name.message}</HelperText>}
-
-            <Controller control={control} name="amount"
-              rules={{ required: t('RequiredField') ?? 'Required' }}
-              render={({ field: { onChange, value } }) => (
-                <AuroraField dark={dark} icon="cash-outline" textPrefix={sym || undefined}
-                  placeholder={t('FieldAmount') ?? 'Amount'} value={value} onChangeText={onChange}
-                  keyboardType="decimal-pad" hasError={!!errors.amount} />
-              )}
-            />
-            {errors.amount && <HelperText type="error" style={styles.helperText}>{errors.amount.message}</HelperText>}
 
             {/* Budget — expense only, not when adding an item */}
             {(modal.entryType === 'expense' || isEditMode) && editMode?.type !== 'income' && !modal.selectedExpenseId && (
@@ -486,7 +595,7 @@ export const QuickAddModal: React.FC<Props> = ({
             )}
 
             {/* Deductible toggle */}
-            {(modal.entryType === 'expense' || isEditMode) && editMode?.type !== 'income' && !modal.selectedExpenseId && (
+            {(modal.entryType === 'expense' || isEditMode) && editMode?.type !== 'income' && (
               <TouchableOpacity
                 onPress={() => dispatch({ kind: 'toggle_deductible' })}
                 activeOpacity={0.8}
@@ -541,15 +650,31 @@ const styles = StyleSheet.create({
   panel: {
     borderTopLeftRadius: 30, borderTopRightRadius: 30,
     borderWidth: 1, borderBottomWidth: 0,
-    paddingBottom: 36, maxHeight: '92%',
   },
   handleWrap: { paddingTop: 14, paddingBottom: 10, alignItems: 'center' },
   handle: { width: 40, height: 4, borderRadius: 2 },
-  scrollContent: { paddingHorizontal: 22, paddingBottom: 8 },
+  scrollContent: { paddingHorizontal: 22, paddingBottom: 44 },
 
-  title: { fontSize: 19, fontWeight: '800', marginBottom: 20 },
+  title: { fontSize: 19, fontWeight: '800', marginBottom: 6 },
 
-  typeToggle: { flexDirection: 'row', borderRadius: 16, borderWidth: 1, padding: 4, marginBottom: 22, gap: 4 },
+  projectTag: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 18 },
+  projectTagLabel: { fontSize: 12, fontWeight: '600' },
+
+  amountHero: { alignItems: 'center', paddingVertical: 12, marginBottom: 10 },
+  amountHeroLabel: {
+    fontSize: 11, fontWeight: '700', letterSpacing: 0.8,
+    textTransform: 'uppercase', marginBottom: 6,
+  },
+  amountHeroRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 5 },
+  amountHeroSym: { fontSize: 24, fontWeight: '600', paddingBottom: 10, includeFontPadding: false } as never,
+  amountHeroInput: {
+    fontSize: 52, fontWeight: '800', textAlign: 'center',
+    letterSpacing: -1, minWidth: 120,
+    padding: 0, includeFontPadding: false,
+  } as never,
+  amountHeroError: { marginTop: 2, textAlign: 'center' },
+
+  typeToggle: { flexDirection: 'row', borderRadius: 16, borderWidth: 1, padding: 4, marginBottom: 14, gap: 4 },
   typeBtn:  { flex: 1 },
   typePill: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 12, paddingVertical: 10 },
   typeLabelActive: { color: '#fff', fontWeight: '800', fontSize: 14 },
@@ -560,6 +685,16 @@ const styles = StyleSheet.create({
   chipsRow:    { flexDirection: 'row', gap: 8, paddingVertical: 2 },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 7, paddingHorizontal: 12, borderRadius: 22, borderWidth: 1, maxWidth: 160 },
   chipLabel: { fontSize: 12.5, fontWeight: '600' },
+
+  budgetCard:       { borderRadius: 14, borderWidth: 1, padding: 12, marginBottom: 14 },
+  budgetCardRow:    { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  budgetCardName:   { flex: 1, fontSize: 13, fontWeight: '700' },
+  budgetCardSpent:  { fontSize: 13.5, fontWeight: '800' },
+  budgetTrack:      { height: 4, borderRadius: 2, marginTop: 9, overflow: 'hidden' },
+  budgetFill:       { height: 4, borderRadius: 2 },
+  budgetCardFooter: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 5 },
+  budgetPct:        { fontSize: 11, fontWeight: '600' },
+  budgetRemaining:  { fontSize: 11, fontWeight: '600' },
 
   fieldsDivider: { borderTopWidth: StyleSheet.hairlineWidth, marginBottom: 4, marginTop: 2 },
   helperText: { marginTop: -2 },

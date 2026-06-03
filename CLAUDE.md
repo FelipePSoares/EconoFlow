@@ -39,6 +39,11 @@ npx cypress open   # E2E tests (requires backend running)
 ng generate component component-name  # Scaffold new component
 ```
 
+## Reference Documents
+
+- [requirements.md](requirements.md) — full functional and non-functional requirements for the system.
+- [architecture.md](architecture.md) — detailed architecture: layers, patterns, middleware pipeline, auth flow, background services, frontend structure, and configuration reference.
+
 ## Architecture
 
 The solution follows Clean Architecture with a strict dependency direction:

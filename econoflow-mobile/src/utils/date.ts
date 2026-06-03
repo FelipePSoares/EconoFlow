@@ -25,3 +25,6 @@ export const prevMonth = (month: string): string =>
 
 export const nextMonth = (month: string): string =>
   dayjs(month).add(1, 'month').format('YYYY-MM');
+
+export const dateToMonth = (date: Date): string =>
+  dayjs(date).format('YYYY-MM');

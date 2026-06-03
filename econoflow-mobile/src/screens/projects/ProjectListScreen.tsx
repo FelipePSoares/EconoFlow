@@ -63,13 +63,6 @@ export const ProjectListScreen: React.FC<Props> = ({ navigation }) => {
             {projects?.length ?? 0} {(projects?.length ?? 0) === 1 ? 'project' : 'projects'}
           </Text>
         </View>
-        <TouchableOpacity
-          onPress={() => navigation.navigate('CreateProject')}
-          style={[styles.addBtn, { backgroundColor: '#0f76a8' }]}
-          activeOpacity={0.85}
-        >
-          <MaterialCommunityIcons name="plus" size={22} color="#fff" />
-        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -161,12 +154,6 @@ const styles = StyleSheet.create({
   },
   headerLabel: { fontSize: 12.5, fontWeight: '600' },
   headerCount: { fontSize: 22, fontWeight: '800', marginTop: 2 },
-  addBtn: {
-    width: 44, height: 44, borderRadius: 14,
-    alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#0f76a8', shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35, shadowRadius: 12, elevation: 6,
-  },
 
   list: { paddingHorizontal: 18, gap: 10 },
 

@@ -498,6 +498,8 @@
   "LabelNoExpenses": "Sem despesas neste mês",
   "LabelDeleteExpense": "Excluir despesa",
   "LabelConfirmDeleteExpense": "Tem certeza que deseja excluir esta despesa?",
+  "LabelDeleteExpenseItem": "Excluir item",
+  "LabelConfirmDeleteExpenseItem": "Tem certeza que deseja excluir este item?",
   "ErrorInvalidCredentials": "Credenciais incorretas!",
   "ErrorInvalidTwoFactorCode": "Código de autenticador inválido ou expirado.",
   "ErrorRegistrationFailed": "Falha no cadastro. Por favor, tente novamente.",
