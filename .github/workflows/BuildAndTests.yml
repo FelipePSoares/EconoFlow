@@ -284,6 +284,9 @@ jobs:
       run: |
         find ./EasyFinance.Server/bin/Debug -type f -name EasyFinance.Server -exec chmod +x {} \;
 
+    - name: Generate dev certificate
+      run: dotnet dev-certs https
+
     - name: Start application
       id: dotnet
       run: dotnet run --project ./EasyFinance.Server --configuration Debug --no-build --no-restore --urls https://localhost:7003/ &
