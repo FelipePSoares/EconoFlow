@@ -7,6 +7,7 @@ import {
   nextMonth,
   currentMonth,
   formatMonthLabel,
+  defaultDateForMonth,
 } from '../date';
 
 describe('toDateOnly', () => {
@@ -80,6 +81,32 @@ describe('nextMonth', () => {
 describe('currentMonth', () => {
   it('returns a string in YYYY-MM format', () => {
     expect(currentMonth()).toMatch(/^\d{4}-\d{2}$/);
+  });
+});
+
+describe('defaultDateForMonth', () => {
+  it('returns a date within the current second for the current month', () => {
+    const before = Date.now();
+    const result = defaultDateForMonth(currentMonth());
+    const after = Date.now();
+    expect(result.getTime()).toBeGreaterThanOrEqual(before);
+    expect(result.getTime()).toBeLessThanOrEqual(after);
+  });
+
+  it('returns the 1st of a past month', () => {
+    const result = defaultDateForMonth('2024-01');
+    expect(result.getFullYear()).toBe(2024);
+    expect(result.getMonth()).toBe(0);
+    expect(result.getDate()).toBe(1);
+  });
+
+  it('clamps a future month to today (never exceeds new Date())', () => {
+    const future = nextMonth(nextMonth(currentMonth()));
+    const before = Date.now();
+    const result = defaultDateForMonth(future);
+    const after = Date.now();
+    expect(result.getTime()).toBeGreaterThanOrEqual(before);
+    expect(result.getTime()).toBeLessThanOrEqual(after);
   });
 });
 

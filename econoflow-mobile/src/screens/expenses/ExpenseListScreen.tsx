@@ -22,6 +22,7 @@ import { DonutRing } from '../../components/common/DonutRing';
 import { QuickAddModal } from '../quick-add/QuickAddModal';
 import type { QuickAddEditMode } from '../quick-add/QuickAddModal';
 import { fromDateOnly, formatMonthLabel } from '../../utils/date';
+import { MonthNavigator } from '../../components/common/MonthNavigator';
 import { toggleSetItem } from '../../utils/budget';
 import { getCategoryColor } from '../../utils/categoryTheme';
 import { getCategoryIcon } from '../../utils/categoryIcon';
@@ -34,7 +35,7 @@ import type { Expense, ExpenseItem } from '../../api/types';
 type Props = NativeStackScreenProps<OverviewStackParamList, 'ExpenseList'>;
 
 function fmt(n: number): string {
-  return Math.round(Math.abs(n)).toLocaleString('pt-BR');
+  return Math.abs(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 interface QuickAddState {
@@ -48,7 +49,8 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
   const { dark, ink, ink2, hair } = useAuroraSkin();
   const insets = useSafeAreaInsets();
 
-  const { categoryId, categoryName, month, categoryIndex = 0 } = route.params;
+  const { categoryId, categoryName, month: initialMonth, categoryIndex = 0 } = route.params;
+  const [month, setMonth] = useState(initialMonth);
   const color = getCategoryColor(categoryIndex);
 
   const { selectedProject, currency } = useProjectStore();
@@ -65,7 +67,7 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
     }, [categoryId, setQuickAddCategoryId])
   );
 
-  const { data: expenses, isLoading, refetch } =
+  const { data: expenses, isLoading, isFetching, refetch } =
     useExpensesForMonth(projectId, categoryId, month);
   const deleteExpense     = useDeleteExpense(projectId, categoryId, month);
   const deleteExpenseItem = useDeleteExpenseItem(projectId, categoryId, month);
@@ -82,7 +84,7 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
     setRefreshing(false);
   };
 
-  if (isLoading) return <LoadingIndicator />;
+  if (isLoading && !expenses) return <LoadingIndicator />;
 
   const list = expenses ?? [];
   const totalSpent  = list.reduce((s, e) => s + e.amount, 0);
@@ -110,8 +112,10 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
         <View style={styles.headerBtn} />
       </View>
 
+      <MonthNavigator month={month} onChange={setMonth} dark={dark} />
+
       <ScrollView
-        style={styles.fill}
+        style={[styles.fill, { opacity: isFetching && !!expenses ? 0.55 : 1 }]}
         contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -413,7 +417,7 @@ const ExpenseItemRow: React.FC<ItemRowProps> = ({
       </View>
 
       <Text style={[styles.itemAmt, { color: '#e74c3c' }]}>
-        −{currency} {Math.round(Math.abs(item.amount)).toLocaleString('pt-BR')}
+        −{currency} {fmt(item.amount)}
       </Text>
 
       {canEdit && (

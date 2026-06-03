@@ -28,3 +28,11 @@ export const nextMonth = (month: string): string =>
 
 export const dateToMonth = (date: Date): string =>
   dayjs(date).format('YYYY-MM');
+
+export function defaultDateForMonth(month: string): Date {
+  const now = new Date();
+  const nowMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  if (month === nowMonth) return now;
+  const candidate = fromDateOnly(monthStart(month));
+  return candidate > now ? now : candidate;
+}

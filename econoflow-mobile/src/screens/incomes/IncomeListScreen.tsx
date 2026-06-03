@@ -24,11 +24,12 @@ import { useAuroraSkin } from '../../theme/useAuroraSkin';
 import { getCurrencySymbol } from '../../utils/currency';
 import { getCategoryIcon } from '../../utils/categoryIcon';
 import { fromDateOnly, formatMonthLabel } from '../../utils/date';
+import { MonthNavigator } from '../../components/common/MonthNavigator';
 
 type Props = NativeStackScreenProps<OverviewStackParamList, 'IncomeList'>;
 
 function fmt(n: number): string {
-  return Math.round(Math.abs(n)).toLocaleString('pt-BR');
+  return Math.abs(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 interface EditState {
@@ -41,7 +42,7 @@ export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
   const { dark, ink, ink2 } = useAuroraSkin();
   const insets = useSafeAreaInsets();
 
-  const month = route.params.month;
+  const [month, setMonth] = useState(route.params.month);
 
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [dismissedError, setDismissedError] = useState(false);
@@ -61,7 +62,7 @@ export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
     }, [setDefaultType])
   );
 
-  const { data: incomes, isLoading, isError, refetch } = useIncomesForMonth(projectId, month);
+  const { data: incomes, isLoading, isFetching, isError, refetch } = useIncomesForMonth(projectId, month);
   const deleteIncome = useDeleteIncome(projectId, month);
 
   const onRefresh = async () => {
@@ -70,7 +71,7 @@ export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
     setRefreshing(false);
   };
 
-  if (isLoading) return <LoadingIndicator />;
+  if (isLoading && !incomes) return <LoadingIndicator />;
 
   const list = incomes ?? [];
   const totalIncome = list.reduce((s, i) => s + i.amount, 0);
@@ -96,6 +97,8 @@ export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
         <View style={styles.headerBtn} />
       </View>
 
+      <MonthNavigator month={month} onChange={setMonth} dark={dark} />
+
       {isError && !dismissedError && (
         <ErrorBanner
           visible
@@ -105,7 +108,7 @@ export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
       )}
 
       <ScrollView
-        style={styles.fill}
+        style={[styles.fill, { opacity: isFetching && !!incomes ? 0.55 : 1 }]}
         contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
