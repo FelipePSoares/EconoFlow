@@ -35,7 +35,7 @@ export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
   }, [month, isFocused, setViewedMonth]);
   const projectId = selectedProject?.project.id ?? '';
 
-  const { data: categories, isLoading, isError, refetch } =
+  const { data: categories, isLoading, isFetching, isError, refetch } =
     useCategoriesForMonth(projectId, month);
 
   const onRefresh = async () => {
@@ -75,6 +75,7 @@ export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
       )}
 
       <FlatList
+        style={{ opacity: isFetching && !!categories ? 0.55 : 1 }}
         data={activeCategories}
         keyExtractor={item => item.id}
         renderItem={({ item, index }) => (
