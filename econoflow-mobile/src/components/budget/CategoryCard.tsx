@@ -10,6 +10,7 @@ import { getCurrencySymbol } from '../../utils/currency';
 import { GlassCard } from '../common/GlassCard';
 import { DonutRing } from '../common/DonutRing';
 import { auroraTokens } from '../../theme/useAuroraSkin';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 interface Props {
   category: Category;
@@ -29,9 +30,11 @@ export const CategoryCard: React.FC<Props> = ({
 }) => {
   const { t }  = useTranslation();
   const { ink, ink2 } = auroraTokens(!!dark);
+  const { colors } = useAppTheme();
   const spent  = getTotalSpend(category);
   const budget = getTotalBudget(category);
-  const pct    = budget > 0 ? Math.min(spent / budget, 1) : 0;
+  const pct    = budget > 0 ? spent / budget : 0;
+  const isOver = pct > 1;
   const color  = getCategoryColor(index);
   const sym    = getCurrencySymbol(currency);
   const icon   = getCategoryIcon(category.name);
@@ -44,15 +47,15 @@ export const CategoryCard: React.FC<Props> = ({
             size={46}
             strokeWidth={6}
             progress={pct}
-            color={color}
+            color={isOver ? colors.error : color}
             trackColor={dark ? color + '33' : color + '28'}
           >
-            <MaterialCommunityIcons name={icon as never} size={17} color={color} />
+            <MaterialCommunityIcons name={icon as never} size={17} color={isOver ? colors.error : color} />
           </DonutRing>
 
           <View style={styles.info}>
             <Text style={[styles.name, { color: ink }]}>{category.name}</Text>
-            <Text style={[styles.sub, { color: ink2 }]}>
+            <Text style={[styles.sub, { color: isOver ? colors.error : ink2 }]}>
               {category.expenses.length} {t('LabelExpenseItems')} · {Math.round(pct * 100)}%
             </Text>
           </View>

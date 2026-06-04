@@ -28,11 +28,13 @@ import {
   calculateTotalBudget,
   calculateTotalExpenses,
   calculateTotalIncome,
+  calculateTotalOverspend,
 } from '../../utils/budget';
 import { getCategoryColor } from '../../utils/categoryTheme';
 import { getCategoryIcon } from '../../utils/categoryIcon';
 import { getCurrencySymbol } from '../../utils/currency';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
+import { useAppTheme } from '../../theme/useAppTheme';
 import { DonutRing } from '../../components/common/DonutRing';
 
 type Props = {
@@ -46,6 +48,7 @@ function fmtCompact(n: number): string {
 export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
   const { dark, ink, ink2, hair } = useAuroraSkin();
+  const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const [month, setMonth] = useState(currentMonth());
   const [refreshing, setRefreshing] = useState(false);
@@ -105,14 +108,15 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
 
   const isFetchingData = fetchingCats || fetchingIncs;
 
-  const totalIncome   = calculateTotalIncome(incomes ?? []);
-  const totalExpenses = calculateTotalExpenses(categories ?? []);
-  const totalBudget   = calculateTotalBudget(categories ?? []);
-  const balance       = totalIncome - totalExpenses;
-  const budgetPct     = totalBudget > 0
-    ? Math.min(Math.round((totalExpenses / totalBudget) * 100), 100)
+  const totalIncome    = calculateTotalIncome(incomes ?? []);
+  const totalExpenses  = calculateTotalExpenses(categories ?? []);
+  const totalBudget    = calculateTotalBudget(categories ?? []);
+  const totalOverspend = calculateTotalOverspend(categories ?? []);
+  const balance        = totalIncome - totalExpenses;
+  const budgetPct      = totalBudget > 0
+    ? Math.round((totalExpenses / totalBudget) * 100)
     : 0;
-  const remaining     = Math.max(totalBudget - totalExpenses, 0);
+  const remaining      = Math.max(totalBudget - (totalExpenses - totalOverspend), 0);
   const activeCategories = (categories ?? []).filter(c => !c.isArchived);
   const sym = getCurrencySymbol(currency);
 
@@ -230,19 +234,19 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
                 size={58}
                 strokeWidth={8}
                 progress={budgetPct / 100}
-                color="#0f76a8"
-                trackColor={dark ? 'rgba(255,255,255,0.14)' : 'rgba(15,74,106,0.14)'}
+                color={totalOverspend > 0 ? colors.error : colors.primary}
+                trackColor={totalOverspend > 0 ? colors.error + '24' : colors.primary + '24'}
               >
-                <Text style={[styles.ringPct, { color: ink }]}>{budgetPct}%</Text>
+                <Text style={[styles.ringPct, { color: totalOverspend > 0 ? colors.error : ink }]}>{budgetPct}%</Text>
               </DonutRing>
 
               <View style={styles.budgetMeta}>
                 <Text style={[styles.budgetMetaLabel, { color: ink2 }]}>{t('Budget')}</Text>
-                <Text style={[styles.budgetMetaAmt, { color: ink }]}>
-                  {sym} {fmtCompact(remaining)}
+                <Text style={[styles.budgetMetaAmt, { color: totalOverspend > 0 ? colors.error : ink }]}>
+                  {sym} {fmtCompact(totalOverspend > 0 ? totalOverspend : remaining)}
                 </Text>
-                <Text style={[styles.budgetMetaSub, { color: ink2 }]}>
-                  {t('Remaining') ?? 'remaining'}
+                <Text style={[styles.budgetMetaSub, { color: totalOverspend > 0 ? colors.error : ink2 }]}>
+                  {totalOverspend > 0 ? (t('LabelOver') ?? 'over') : (t('Remaining') ?? 'remaining')}
                 </Text>
               </View>
             </View>
@@ -287,7 +291,7 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
               {activeCategories.map((cat, idx) => {
                 const spent  = cat.expenses.reduce((s, e) => s + e.amount, 0);
                 const budget = cat.expenses.reduce((s, e) => s + e.budget, 0);
-                const pct    = budget > 0 ? Math.min(spent / budget, 1) : 0;
+                const pct    = budget > 0 ? spent / budget : 0;
                 const color  = getCategoryColor(idx);
 
                 return (
