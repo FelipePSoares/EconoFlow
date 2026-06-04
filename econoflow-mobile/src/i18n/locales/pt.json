@@ -528,6 +528,7 @@
   "LabelForgotPasswordDescription": "Informe seu e-mail e enviaremos um link de redefinição.",
   "LabelPasswordResetSent": "Se esse e-mail estiver cadastrado, enviamos as instruções.",
   "LabelEditExpense": "Editar despesa",
+  "LabelEditExpenseItem": "Editar item",
   "LabelAddExpense": "Adicionar despesa",
   "ButtonBackToLogin": "Voltar para login",
   "ButtonSendResetLink": "Enviar link de redefinição",

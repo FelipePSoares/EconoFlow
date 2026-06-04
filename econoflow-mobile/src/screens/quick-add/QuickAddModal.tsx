@@ -19,15 +19,19 @@ import { getCategoryColor } from '../../utils/categoryTheme';
 import { getCategoryIcon } from '../../utils/categoryIcon';
 import { getCurrencySymbol } from '../../utils/currency';
 import { currentMonth, toDateOnly, fromDateOnly, dateToMonth, defaultDateForMonth } from '../../utils/date';
-import { buildPatch } from '../../utils/patch';
+import { buildPatch, buildExpenseItemPatch } from '../../utils/patch';
 import { auroraTokens } from '../../theme/useAuroraSkin';
 
 // ── Public types ─────────────────────────────────────────────────────────────
 
 export interface QuickAddEditMode {
-  type: 'expense' | 'income';
+  type: 'expense' | 'income' | 'expenseItem';
   id: string;
+  /** For expenseItem: 0-based index of the item in the parent expense's items array */
+  itemIndex?: number;
   categoryId?: string;
+  /** True when the expense has child items — amount is derived and read-only */
+  hasItems?: boolean;
   initialValues: {
     name: string;
     amount: number;
@@ -255,8 +259,8 @@ export const QuickAddModal: React.FC<Props> = ({
 
   const patchExpense = usePatchExpense(
     projectId,
-    editMode?.type === 'expense' ? (editMode.categoryId ?? '') : (modal.selectedCategoryId ?? ''),
-    editMode?.type === 'expense' ? editMode.id : '',
+    (editMode?.type === 'expense' || editMode?.type === 'expenseItem') ? (editMode.categoryId ?? '') : (modal.selectedCategoryId ?? ''),
+    (editMode?.type === 'expense' || editMode?.type === 'expenseItem') ? editMode.id : '',
     selectedMonth,
   );
   const patchIncome = usePatchIncome(
@@ -276,18 +280,29 @@ export const QuickAddModal: React.FC<Props> = ({
     const dateStr = toDateOnly(modal.date);
     const name    = values.name.trim();
 
-    if (amount <= 0) {
+    // Skip amount validation when editing an expense whose amount is derived from items
+    if (!editMode?.hasItems && amount <= 0) {
       dispatch({ kind: 'set_amount_error', error: true });
       return;
     }
     dispatch({ kind: 'set_amount_error', error: false });
 
     if (editMode) {
-      const patch = buildPatch({ name, amount, date: dateStr, isDeductible: modal.isDeductible, budget } as Record<string, unknown>);
+      if (editMode.type === 'expenseItem') {
+        const idx = editMode.itemIndex ?? 0;
+        patchExpense.mutate(
+          buildExpenseItemPatch(idx, { name, amount, date: dateStr, isDeductible: modal.isDeductible }),
+          { onSuccess: onClose },
+        );
+        return;
+      }
       if (editMode.type === 'expense') {
-        patchExpense.mutate(patch, { onSuccess: onClose });
+        const fields: Record<string, unknown> = { name, date: dateStr, isDeductible: modal.isDeductible, budget };
+        if (!editMode.hasItems) fields.amount = amount;
+        patchExpense.mutate(buildPatch(fields), { onSuccess: onClose });
       } else {
-        patchIncome.mutate(patch, { onSuccess: onClose });
+        // income: only patch name, amount, date — no isDeductible or budget
+        patchIncome.mutate(buildPatch({ name, amount, date: dateStr } as Record<string, unknown>), { onSuccess: onClose });
       }
       return;
     }
@@ -333,11 +348,16 @@ export const QuickAddModal: React.FC<Props> = ({
   const isEditMode = !!editMode;
   const isLocked   = isEditMode || !!defaultCategoryId || !!defaultExpenseId;
   const canSubmit  = isEditMode || modal.entryType === 'income' || !!modal.selectedCategoryId;
+  const amountIsReadonly = isEditMode && editMode.hasItems;
 
   const amountColor = modal.entryType === 'income' ? '#14c08a' : '#e74c3c';
 
   const title = isEditMode
-    ? (editMode.type === 'income' ? (t('LabelEditIncome') ?? 'Edit income') : (t('LabelEditExpense') ?? 'Edit expense'))
+    ? (() => {
+        if (editMode.type === 'income') return t('LabelEditIncome') ?? 'Edit income';
+        if (editMode.type === 'expenseItem') return t('LabelEditExpenseItem') ?? 'Edit item';
+        return t('LabelEditExpense') ?? 'Edit expense';
+      })()
     : (t('LabelQuickAdd') ?? 'New entry');
 
   return (
@@ -430,8 +450,8 @@ export const QuickAddModal: React.FC<Props> = ({
 
             {/* Amount hero — integer + smaller decimal, hidden input */}
             <Pressable
-              style={styles.amountHero}
-              onPress={() => amountInputRef.current?.focus()}
+              style={[styles.amountHero, amountIsReadonly && { opacity: 0.6 }]}
+              onPress={() => !amountIsReadonly && amountInputRef.current?.focus()}
             >
               <Text style={[styles.amountHeroLabel, { color: ink2 }]}>
                 {t('FieldAmount') ?? 'Amount'}
@@ -447,16 +467,18 @@ export const QuickAddModal: React.FC<Props> = ({
                   {amountDecPart}
                 </Text>
               </View>
-              <TextInput
-                ref={amountInputRef}
-                value={modal.amountText}
-                onChangeText={handleAmountChange}
-                keyboardType="number-pad"
-                caretHidden
-                accessible={false}
-                importantForAccessibility="no"
-                style={styles.hiddenAmountInput}
-              />
+              {!amountIsReadonly && (
+                <TextInput
+                  ref={amountInputRef}
+                  value={modal.amountText}
+                  onChangeText={handleAmountChange}
+                  keyboardType="number-pad"
+                  caretHidden
+                  accessible={false}
+                  importantForAccessibility="no"
+                  style={styles.hiddenAmountInput}
+                />
+              )}
               {modal.amountError && (
                 <HelperText type="error" style={styles.amountHeroError}>
                   {t('RequiredField') ?? 'Required'}
@@ -565,8 +587,8 @@ export const QuickAddModal: React.FC<Props> = ({
             />
             {errors.name && <HelperText type="error" style={styles.helperText}>{errors.name.message}</HelperText>}
 
-            {/* Budget — expense only, not when adding an item */}
-            {(modal.entryType === 'expense' || isEditMode) && editMode?.type !== 'income' && !modal.selectedExpenseId && (
+            {/* Budget — expense only, not when adding an item or editing an expense item */}
+            {(modal.entryType === 'expense' || isEditMode) && editMode?.type !== 'income' && editMode?.type !== 'expenseItem' && !modal.selectedExpenseId && (
               <Controller control={control} name="budget"
                 render={({ field: { onChange, value } }) => (
                   <AuroraField dark={dark} icon="bullseye-arrow" textPrefix={sym || undefined}
@@ -674,7 +696,7 @@ const styles = StyleSheet.create({
     fontSize: 11, fontWeight: '700', letterSpacing: 0.8,
     textTransform: 'uppercase', marginBottom: 6,
   },
-  amountHeroRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 2 },
+  amountHeroRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 1 },
   amountHeroSym: { fontSize: 24, fontWeight: '600', paddingBottom: 6, includeFontPadding: false } as never,
   amountHeroInt: {
     fontSize: 52, fontWeight: '800', letterSpacing: -1,

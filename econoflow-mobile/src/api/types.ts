@@ -81,6 +81,7 @@ export interface ExpenseItem {
   name: string;
   date: string;
   amount: number;
+  isDeductible: boolean;
 }
 
 export interface ExpenseAttachment {
