@@ -437,7 +437,7 @@ const ExpenseItemRow: React.FC<ItemRowProps> = ({
   const date = fromDateOnly(item.date);
   const dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   const fmt = (n: number) => formatAmount(n, i18n.language);
-  const hasProof = (item.attachments?.length ?? 0) > 0;
+  const hasProof = item.attachments.length > 0;
 
   return (
     <TouchableOpacity

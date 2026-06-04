@@ -19,4 +19,20 @@ describe('i18n locale completeness', () => {
   it('pt.json contains LabelEditExpenseItem', () => {
     expect((pt as LocaleMap)['LabelEditExpenseItem']).toBeTruthy();
   });
+
+  it('en.json contains LabelDeductible', () => {
+    expect((en as LocaleMap)['LabelDeductible']).toBeTruthy();
+  });
+
+  it('pt.json contains LabelDeductible', () => {
+    expect((pt as LocaleMap)['LabelDeductible']).toBeTruthy();
+  });
+
+  it('en.json contains LabelProofAttached', () => {
+    expect((en as LocaleMap)['LabelProofAttached']).toBeTruthy();
+  });
+
+  it('pt.json contains LabelProofAttached', () => {
+    expect((pt as LocaleMap)['LabelProofAttached']).toBeTruthy();
+  });
 });
