@@ -65,6 +65,7 @@ export class ListCategoriesComponent implements OnInit {
   httpErrors = false;
   errors!: Record<string, string[]>;
   userProject!: UserProjectDto;
+  isSaving = false;
   isSavingOrder = false;
 
   @Input({ required: true })
@@ -117,32 +118,38 @@ export class ListCategoriesComponent implements OnInit {
   }
 
   save(): void {
-    if (this.categoryForm.valid) {
-      const id = this.id?.value;
-      const name = this.name?.value;
-
-      const newCategory = ({
-        id: id,
-        name: name,
-        expenses: this.editingCategory.expenses,
-        isArchived: this.editingCategory.isArchived,
-        displayOrder: this.editingCategory.displayOrder
-      }) as CategoryDto;
-      const patch = compare(this.editingCategory, newCategory);
-
-      this.categoryService.update(this.projectId, id, patch).subscribe({
-        next: response => {
-          this.editingCategory.name = response.name;
-          this.editingCategory = new CategoryDto();
-        },
-        error: (response: ApiErrorResponse) => {
-          this.httpErrors = true;
-          this.errors = response.errors;
-
-          this.errorMessageService.setFormErrors(this.categoryForm, this.errors);
-        }
-      });
+    if (!this.categoryForm.valid || this.isSaving) {
+      return;
     }
+
+    const id = this.id?.value;
+    const name = this.name?.value;
+
+    const newCategory = ({
+      id: id,
+      name: name,
+      expenses: this.editingCategory.expenses,
+      isArchived: this.editingCategory.isArchived,
+      displayOrder: this.editingCategory.displayOrder
+    }) as CategoryDto;
+    const patch = compare(this.editingCategory, newCategory);
+
+    this.httpErrors = false;
+    this.errors = {};
+    this.isSaving = true;
+    this.categoryService.update(this.projectId, id, patch).subscribe({
+      next: response => {
+        this.isSaving = false;
+        this.editingCategory.name = response.name;
+        this.editingCategory = new CategoryDto();
+      },
+      error: (response: ApiErrorResponse) => {
+        this.isSaving = false;
+        this.httpErrors = true;
+        this.errors = response.errors;
+        this.errorMessageService.setFormErrors(this.categoryForm, this.errors);
+      }
+    });
   }
 
   add() {
@@ -157,6 +164,7 @@ export class ListCategoriesComponent implements OnInit {
   }
 
   edit(category: CategoryDto): void {
+    this.isSaving = false;
     this.editingCategory = category;
     this.categoryForm = new FormGroup({
       id: new FormControl(category.id),
@@ -172,6 +180,7 @@ export class ListCategoriesComponent implements OnInit {
   }
 
   cancelEdit(): void {
+    this.isSaving = false;
     this.editingCategory = new CategoryDto();
   }
 
