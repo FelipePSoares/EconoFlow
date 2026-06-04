@@ -11,9 +11,10 @@ export const buildPatch = (fields: Record<string, unknown>): PatchOperation[] =>
 
 export const buildExpenseItemPatch = (
   itemIndex: number,
-  fields: { name: string; amount: number; date: string },
+  fields: { name: string; amount: number; date: string; isDeductible: boolean },
 ): PatchOperation[] => [
   buildReplace(`items/${itemIndex}/name`, fields.name),
   buildReplace(`items/${itemIndex}/amount`, fields.amount),
   buildReplace(`items/${itemIndex}/date`, fields.date),
+  buildReplace(`items/${itemIndex}/isDeductible`, fields.isDeductible),
 ];

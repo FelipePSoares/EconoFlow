@@ -290,7 +290,10 @@ export const QuickAddModal: React.FC<Props> = ({
     if (editMode) {
       if (editMode.type === 'expenseItem') {
         const idx = editMode.itemIndex ?? 0;
-        patchExpense.mutate(buildExpenseItemPatch(idx, { name, amount, date: dateStr }), { onSuccess: onClose });
+        patchExpense.mutate(
+          buildExpenseItemPatch(idx, { name, amount, date: dateStr, isDeductible: modal.isDeductible }),
+          { onSuccess: onClose },
+        );
         return;
       }
       if (editMode.type === 'expense') {
@@ -623,7 +626,7 @@ export const QuickAddModal: React.FC<Props> = ({
             )}
 
             {/* Deductible toggle */}
-            {(modal.entryType === 'expense' || isEditMode) && editMode?.type !== 'income' && editMode?.type !== 'expenseItem' && (
+            {(modal.entryType === 'expense' || isEditMode) && editMode?.type !== 'income' && (
               <TouchableOpacity
                 onPress={() => dispatch({ kind: 'toggle_deductible' })}
                 activeOpacity={0.8}

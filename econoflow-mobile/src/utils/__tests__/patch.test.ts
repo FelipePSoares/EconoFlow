@@ -47,22 +47,29 @@ describe('buildPatch', () => {
 
 describe('buildExpenseItemPatch', () => {
   it('creates replace operations targeting the correct item index', () => {
-    const ops = buildExpenseItemPatch(2, { name: 'Coffee', amount: 3.5, date: '2024-01-15' });
-    expect(ops).toHaveLength(3);
+    const ops = buildExpenseItemPatch(2, { name: 'Coffee', amount: 3.5, date: '2024-01-15', isDeductible: false });
+    expect(ops).toHaveLength(4);
     expect(ops).toContainEqual({ op: 'replace', path: '/items/2/name', value: 'Coffee' });
     expect(ops).toContainEqual({ op: 'replace', path: '/items/2/amount', value: 3.5 });
     expect(ops).toContainEqual({ op: 'replace', path: '/items/2/date', value: '2024-01-15' });
+    expect(ops).toContainEqual({ op: 'replace', path: '/items/2/isDeductible', value: false });
+  });
+
+  it('includes isDeductible: true when flagged', () => {
+    const ops = buildExpenseItemPatch(0, { name: 'Receipt', amount: 50, date: '2024-06-01', isDeductible: true });
+    expect(ops).toContainEqual({ op: 'replace', path: '/items/0/isDeductible', value: true });
   });
 
   it('uses index 0 correctly', () => {
-    const ops = buildExpenseItemPatch(0, { name: 'Tea', amount: 2.0, date: '2024-01-10' });
+    const ops = buildExpenseItemPatch(0, { name: 'Tea', amount: 2.0, date: '2024-01-10', isDeductible: false });
     expect(ops[0].path).toBe('/items/0/name');
     expect(ops[1].path).toBe('/items/0/amount');
     expect(ops[2].path).toBe('/items/0/date');
+    expect(ops[3].path).toBe('/items/0/isDeductible');
   });
 
-  it('returns exactly 3 operations (name, amount, date)', () => {
-    const ops = buildExpenseItemPatch(1, { name: 'Milk', amount: 1.2, date: '2024-03-05' });
-    expect(ops).toHaveLength(3);
+  it('returns exactly 4 operations (name, amount, date, isDeductible)', () => {
+    const ops = buildExpenseItemPatch(1, { name: 'Milk', amount: 1.2, date: '2024-03-05', isDeductible: false });
+    expect(ops).toHaveLength(4);
   });
 });

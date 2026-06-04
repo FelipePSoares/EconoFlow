@@ -307,6 +307,7 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
                             name: item.name,
                             amount: item.amount,
                             date: item.date,
+                            isDeductible: item.isDeductible,
                           },
                         },
                       })}
