@@ -292,6 +292,7 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
                 const spent  = cat.expenses.reduce((s, e) => s + e.amount, 0);
                 const budget = cat.expenses.reduce((s, e) => s + e.budget, 0);
                 const pct    = budget > 0 ? spent / budget : 0;
+                const isOver = pct > 1;
                 const color  = getCategoryColor(idx);
 
                 return (
@@ -308,14 +309,14 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
                           size={46}
                           strokeWidth={6}
                           progress={pct}
-                          color={color}
+                          color={isOver ? colors.error : color}
                           trackColor={dark ? color + '33' : color + '28'}
                         >
-                          <MaterialCommunityIcons name={getCategoryIcon(cat.name) as never} size={17} color={color} />
+                          <MaterialCommunityIcons name={getCategoryIcon(cat.name) as never} size={17} color={isOver ? colors.error : color} />
                         </DonutRing>
                         <View style={styles.catInfo}>
                           <Text style={[styles.catName, { color: ink }]}>{cat.name}</Text>
-                          <Text style={[styles.catSub, { color: ink2 }]}>
+                          <Text style={[styles.catSub, { color: isOver ? colors.error : ink2 }]}>
                             {cat.expenses.length} {t('LabelExpenseItems')} · {Math.round(pct * 100)}%
                           </Text>
                         </View>
