@@ -11,4 +11,12 @@ describe('i18n locale completeness', () => {
   it('pt.json contains LabelCategories with a non-empty value', () => {
     expect((pt as LocaleMap)['LabelCategories']).toBeTruthy();
   });
+
+  it('en.json contains LabelEditExpenseItem', () => {
+    expect((en as LocaleMap)['LabelEditExpenseItem']).toBeTruthy();
+  });
+
+  it('pt.json contains LabelEditExpenseItem', () => {
+    expect((pt as LocaleMap)['LabelEditExpenseItem']).toBeTruthy();
+  });
 });

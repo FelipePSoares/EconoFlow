@@ -529,6 +529,7 @@
   "LabelForgotPasswordDescription": "Enter your email and we'll send you a reset link.",
   "LabelPasswordResetSent": "If that email is registered, we sent reset instructions.",
   "LabelEditExpense": "Edit expense",
+  "LabelEditExpenseItem": "Edit item",
   "LabelAddExpense": "Add expense",
   "ButtonBackToLogin": "Back to login",
   "ButtonSendResetLink": "Send reset link",

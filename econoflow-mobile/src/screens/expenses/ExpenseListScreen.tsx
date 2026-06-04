@@ -244,6 +244,7 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
                               type: 'expense',
                               id: expense.id,
                               categoryId,
+                              hasItems: (expense.items?.length ?? 0) > 0,
                               initialValues: {
                                 name: expense.name,
                                 amount: expense.amount,
@@ -295,6 +296,20 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
                       onDeleteItem={(expenseItemId) =>
                         setPendingDeleteItem({ expenseId: expense.id, expenseItemId })
                       }
+                      onEditItem={(item, itemIndex) => setQuickAdd({
+                        visible: true,
+                        editMode: {
+                          type: 'expenseItem',
+                          id: expense.id,
+                          categoryId,
+                          itemIndex,
+                          initialValues: {
+                            name: item.name,
+                            amount: item.amount,
+                            date: item.date,
+                          },
+                        },
+                      })}
                     />
                   )}
                 </GlassCard>
@@ -354,12 +369,14 @@ interface ItemsSectionProps {
   t: TFunction;
   onAddItemPressed: () => void;
   onDeleteItem: (id: string) => void;
+  onEditItem: (item: ExpenseItem, itemIndex: number) => void;
 }
 
 const ExpenseItemsSection: React.FC<ItemsSectionProps> = ({
-  expense, currency, color, dark, ink, ink2, hair, canEdit, t, onAddItemPressed, onDeleteItem,
+  expense, currency, color, dark, ink, ink2, hair, canEdit, t, onAddItemPressed, onDeleteItem, onEditItem,
 }) => {
   const tintBg = dark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.3)';
+  const itemCount = expense.items?.length ?? 0;
 
   return (
     <View style={[styles.itemsSection, { borderTopColor: hair, backgroundColor: tintBg }]}>
@@ -372,9 +389,12 @@ const ExpenseItemsSection: React.FC<ItemsSectionProps> = ({
           ink={ink}
           ink2={ink2}
           hair={hair}
-          isLast={i === (expense.items?.length ?? 0) - 1 && !canEdit}
+          isFirst={i === 0}
+          isLast={i === itemCount - 1}
+          showBottomBorder={!(i === itemCount - 1 && !canEdit)}
           canEdit={canEdit}
           onDelete={() => onDeleteItem(item.id)}
+          onEdit={() => onEditItem(item, i)}
         />
       ))}
 
@@ -400,13 +420,16 @@ interface ItemRowProps {
   currency: string;
   color: string;
   ink: string; ink2: string; hair: string;
+  isFirst: boolean;
   isLast: boolean;
+  showBottomBorder: boolean;
   canEdit: boolean;
   onDelete: () => void;
+  onEdit: () => void;
 }
 
 const ExpenseItemRow: React.FC<ItemRowProps> = ({
-  item, currency, color, ink, ink2, hair, isLast, canEdit, onDelete,
+  item, currency, color, ink, ink2, hair, isFirst, isLast, showBottomBorder, canEdit, onDelete, onEdit,
 }) => {
   const { customColors } = useAppTheme();
   const date = fromDateOnly(item.date);
@@ -414,8 +437,17 @@ const ExpenseItemRow: React.FC<ItemRowProps> = ({
   const fmt = (n: number) => formatAmount(n, i18n.language);
 
   return (
-    <View style={[styles.itemRow, { borderBottomColor: isLast ? 'transparent' : hair }]}>
-      <View style={[styles.itemBullet, { backgroundColor: color }]} />
+    <TouchableOpacity
+      onPress={onEdit}
+      activeOpacity={0.72}
+      style={[styles.itemRow, { borderBottomColor: showBottomBorder ? hair : 'transparent' }]}
+    >
+      {/* Timeline column: vertical line + dot */}
+      <View style={styles.timelineCol}>
+        <View style={[styles.timelineLineTop, { backgroundColor: isFirst ? 'transparent' : color + '55' }]} />
+        <View style={[styles.timelineDot, { backgroundColor: color }]} />
+        <View style={[styles.timelineLineBottom, { backgroundColor: isLast ? 'transparent' : color + '55' }]} />
+      </View>
 
       <View style={styles.itemLeft}>
         <Text style={[styles.itemName, { color: ink }]} numberOfLines={1}>
@@ -433,7 +465,7 @@ const ExpenseItemRow: React.FC<ItemRowProps> = ({
           <MaterialCommunityIcons name="trash-can-outline" size={15} color={customColors.expense} />
         </TouchableOpacity>
       )}
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -513,7 +545,10 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  itemBullet: { width: 7, height: 7, borderRadius: 4, flexShrink: 0 },
+  timelineCol:        { width: 16, alignItems: 'center', alignSelf: 'stretch', flexShrink: 0 },
+  timelineLineTop:    { flex: 1, width: 2, borderRadius: 1 },
+  timelineDot:        { width: 8, height: 8, borderRadius: 4 },
+  timelineLineBottom: { flex: 1, width: 2, borderRadius: 1 },
   itemLeft:   { flex: 1, gap: 2 },
   itemName:   { fontSize: 13.5, fontWeight: '600' },
   itemDate:   { fontSize: 11 },
