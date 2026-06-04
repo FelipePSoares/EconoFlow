@@ -234,10 +234,10 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
                 size={58}
                 strokeWidth={8}
                 progress={budgetPct / 100}
-                color="#0f76a8"
-                trackColor={dark ? 'rgba(255,255,255,0.14)' : 'rgba(15,74,106,0.14)'}
+                color={totalOverspend > 0 ? colors.error : colors.primary}
+                trackColor={totalOverspend > 0 ? colors.error + '24' : colors.primary + '24'}
               >
-                <Text style={[styles.ringPct, { color: ink }]}>{budgetPct}%</Text>
+                <Text style={[styles.ringPct, { color: totalOverspend > 0 ? colors.error : ink }]}>{budgetPct}%</Text>
               </DonutRing>
 
               <View style={styles.budgetMeta}>
