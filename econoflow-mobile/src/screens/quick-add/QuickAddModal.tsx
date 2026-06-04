@@ -281,7 +281,7 @@ export const QuickAddModal: React.FC<Props> = ({
     const dateStr = toDateOnly(modal.date);
     const name    = values.name.trim();
 
-    if (shouldShowAmountError(editMode?.hasItems, editMode, amount)) {
+    if (shouldShowAmountError(editMode, amount)) {
       dispatch({ kind: 'set_amount_error', error: true });
       return;
     }
