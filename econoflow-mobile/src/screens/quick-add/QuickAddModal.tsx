@@ -20,6 +20,7 @@ import { getCategoryIcon } from '../../utils/categoryIcon';
 import { getCurrencySymbol } from '../../utils/currency';
 import { currentMonth, toDateOnly, fromDateOnly, dateToMonth, defaultDateForMonth } from '../../utils/date';
 import { buildPatch, buildExpenseItemPatch } from '../../utils/patch';
+import { shouldShowAmountError } from '../../utils/amountValidation';
 import { auroraTokens } from '../../theme/useAuroraSkin';
 
 // ── Public types ─────────────────────────────────────────────────────────────
@@ -280,8 +281,7 @@ export const QuickAddModal: React.FC<Props> = ({
     const dateStr = toDateOnly(modal.date);
     const name    = values.name.trim();
 
-    // Skip amount validation when editing an expense whose amount is derived from items
-    if (!editMode?.hasItems && amount <= 0) {
+    if (shouldShowAmountError(editMode, amount)) {
       dispatch({ kind: 'set_amount_error', error: true });
       return;
     }
