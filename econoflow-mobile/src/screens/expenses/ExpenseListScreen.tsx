@@ -432,10 +432,12 @@ interface ItemRowProps {
 const ExpenseItemRow: React.FC<ItemRowProps> = ({
   item, currency, color, ink, ink2, hair, isFirst, isLast, showBottomBorder, canEdit, onDelete, onEdit,
 }) => {
-  const { customColors } = useAppTheme();
+  const { customColors, colors } = useAppTheme();
+  const { t } = useTranslation();
   const date = fromDateOnly(item.date);
   const dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   const fmt = (n: number) => formatAmount(n, i18n.language);
+  const hasProof = (item.attachments?.length ?? 0) > 0;
 
   return (
     <TouchableOpacity
@@ -443,29 +445,49 @@ const ExpenseItemRow: React.FC<ItemRowProps> = ({
       activeOpacity={0.72}
       style={[styles.itemRow, { borderBottomColor: showBottomBorder ? hair : 'transparent' }]}
     >
-      {/* Timeline column: vertical line + dot */}
+      {/* Timeline column — no padding so it fills the full row height, making lines connect between rows */}
       <View style={styles.timelineCol}>
         <View style={[styles.timelineLineTop, { backgroundColor: isFirst ? 'transparent' : color + '55' }]} />
         <View style={[styles.timelineDot, { backgroundColor: color }]} />
         <View style={[styles.timelineLineBottom, { backgroundColor: isLast ? 'transparent' : color + '55' }]} />
       </View>
 
-      <View style={styles.itemLeft}>
-        <Text style={[styles.itemName, { color: ink }]} numberOfLines={1}>
-          {item.name?.trim() || '—'}
+      {/* Body — paddingVertical lives here so the timeline column spans the full row height */}
+      <View style={styles.itemBody}>
+        <View style={styles.itemLeft}>
+          <Text style={[styles.itemName, { color: ink }]} numberOfLines={1}>
+            {item.name?.trim() || '—'}
+          </Text>
+          <View style={styles.itemSubRow}>
+            <Text style={[styles.itemDate, { color: ink2 }]}>{dateStr}</Text>
+            {item.isDeductible && (
+              <View style={[styles.deductBadge, { backgroundColor: colors.primary + '26' }]}>
+                <Text style={[styles.deductBadgeText, { color: colors.primary }]}>
+                  {t('LabelDeductible')}
+                </Text>
+              </View>
+            )}
+            {hasProof && (
+              <View style={[styles.proofBadge, { backgroundColor: ink2 + '22' }]}>
+                <MaterialCommunityIcons name="paperclip" size={9} color={ink2} />
+                <Text style={[styles.proofBadgeText, { color: ink2 }]}>
+                  {t('LabelProofAttached')}
+                </Text>
+              </View>
+            )}
+          </View>
+        </View>
+
+        <Text style={[styles.itemAmt, { color: customColors.expense }]}>
+          −{currency} {fmt(item.amount)}
         </Text>
-        <Text style={[styles.itemDate, { color: ink2 }]}>{dateStr}</Text>
+
+        {canEdit && (
+          <TouchableOpacity onPress={onDelete} hitSlop={8} style={styles.itemDelete}>
+            <MaterialCommunityIcons name="trash-can-outline" size={15} color={customColors.expense} />
+          </TouchableOpacity>
+        )}
       </View>
-
-      <Text style={[styles.itemAmt, { color: customColors.expense }]}>
-        −{currency} {fmt(item.amount)}
-      </Text>
-
-      {canEdit && (
-        <TouchableOpacity onPress={onDelete} hitSlop={8} style={styles.itemDelete}>
-          <MaterialCommunityIcons name="trash-can-outline" size={15} color={customColors.expense} />
-        </TouchableOpacity>
-      )}
     </TouchableOpacity>
   );
 };
@@ -539,18 +561,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 6,
   },
+  // paddingVertical intentionally removed — lives in itemBody so timelineCol fills full row height
   itemRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 9,
+    alignItems: 'stretch',
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   timelineCol:        { width: 16, alignItems: 'center', alignSelf: 'stretch', flexShrink: 0 },
-  timelineLineTop:    { flex: 1, width: 2, borderRadius: 1 },
+  timelineLineTop:    { flex: 1, width: 2 },
   timelineDot:        { width: 8, height: 8, borderRadius: 4 },
-  timelineLineBottom: { flex: 1, width: 2, borderRadius: 1 },
-  itemLeft:   { flex: 1, gap: 2 },
+  timelineLineBottom: { flex: 1, width: 2 },
+  itemBody:    { flex: 1, flexDirection: 'row', alignItems: 'center', paddingVertical: 9, paddingLeft: 10, gap: 10 },
+  itemLeft:    { flex: 1, gap: 2 },
+  itemSubRow:  { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 4 },
   itemName:   { fontSize: 13.5, fontWeight: '600' },
   itemDate:   { fontSize: 11 },
   itemAmt:    { fontSize: 13.5, fontWeight: '700' },

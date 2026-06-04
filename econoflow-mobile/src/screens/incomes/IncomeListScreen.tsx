@@ -165,7 +165,22 @@ export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
               const icon = getCategoryIcon(item.name);
               return (
                 <GlassCard key={item.id} dark={dark} radius={18} style={styles.groupCard}>
-                  <View style={styles.groupHeader}>
+                  <TouchableOpacity
+                    onPress={() => canEdit && setEditState({
+                      visible: true,
+                      editMode: {
+                        type: 'income',
+                        id: item.id,
+                        initialValues: {
+                          name: item.name,
+                          amount: item.amount,
+                          date: item.date,
+                        },
+                      },
+                    })}
+                    activeOpacity={canEdit ? 0.75 : 1}
+                    style={styles.groupHeader}
+                  >
                     <View style={[styles.groupIcon, { backgroundColor: customColors.income + '22' }]}>
                       <MaterialCommunityIcons name={icon as never} size={20} color={customColors.income} />
                     </View>
@@ -180,35 +195,15 @@ export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
                     </Text>
 
                     {canEdit && (
-                      <>
-                        <TouchableOpacity
-                          onPress={() => setEditState({
-                            visible: true,
-                            editMode: {
-                              type: 'income',
-                              id: item.id,
-                              initialValues: {
-                                name: item.name,
-                                amount: item.amount,
-                                date: item.date,
-                              },
-                            },
-                          })}
-                          hitSlop={6}
-                          style={styles.groupAction}
-                        >
-                          <MaterialCommunityIcons name="pencil-outline" size={16} color={ink2} />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          onPress={() => setPendingDeleteId(item.id)}
-                          hitSlop={6}
-                          style={styles.groupAction}
-                        >
-                          <MaterialCommunityIcons name="trash-can-outline" size={16} color={customColors.expense} />
-                        </TouchableOpacity>
-                      </>
+                      <TouchableOpacity
+                        onPress={() => setPendingDeleteId(item.id)}
+                        hitSlop={6}
+                        style={styles.groupAction}
+                      >
+                        <MaterialCommunityIcons name="trash-can-outline" size={16} color={customColors.expense} />
+                      </TouchableOpacity>
                     )}
-                  </View>
+                  </TouchableOpacity>
                 </GlassCard>
               );
             })}
