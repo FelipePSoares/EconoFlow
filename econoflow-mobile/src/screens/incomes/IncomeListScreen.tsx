@@ -196,7 +196,7 @@ export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
 
                     {canEdit && (
                       <TouchableOpacity
-                        onPress={() => setPendingDeleteId(item.id)}
+                        onPress={(e) => { e.stopPropagation(); setPendingDeleteId(item.id); }}
                         hitSlop={6}
                         style={styles.groupAction}
                       >

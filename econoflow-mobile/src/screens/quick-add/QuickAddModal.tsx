@@ -21,6 +21,8 @@ import { getCurrencySymbol } from '../../utils/currency';
 import { currentMonth, toDateOnly, fromDateOnly, dateToMonth, defaultDateForMonth } from '../../utils/date';
 import { buildPatch, buildExpenseItemPatch } from '../../utils/patch';
 import { shouldShowAmountError } from '../../utils/amountValidation';
+import { extractApiErrors } from '../../utils/apiErrors';
+import { ErrorBanner } from '../../components/common/ErrorBanner';
 import { auroraTokens } from '../../theme/useAuroraSkin';
 
 // ── Public types ─────────────────────────────────────────────────────────────
@@ -73,6 +75,9 @@ type ModalState = {
   isDeductible: boolean;
   amountText: string;
   amountError: boolean;
+  dateApiError: string | undefined;
+  amountApiError: string | undefined;
+  apiError: string | undefined;
 };
 
 type ModalAction =
@@ -86,7 +91,8 @@ type ModalAction =
   | { kind: 'close_date_picker' }
   | { kind: 'toggle_deductible' }
   | { kind: 'set_amount_text'; text: string }
-  | { kind: 'set_amount_error'; error: boolean };
+  | { kind: 'set_amount_error'; error: boolean }
+  | { kind: 'set_api_errors'; dateApiError: string | undefined; amountApiError: string | undefined; apiError: string | undefined };
 
 const initState: ModalState = {
   entryType: 'expense',
@@ -97,6 +103,9 @@ const initState: ModalState = {
   isDeductible: false,
   amountText: '',
   amountError: false,
+  dateApiError: undefined,
+  amountApiError: undefined,
+  apiError: undefined,
 };
 
 function modalReducer(state: ModalState, action: ModalAction): ModalState {
@@ -111,6 +120,9 @@ function modalReducer(state: ModalState, action: ModalAction): ModalState {
         showDatePicker: false,
         amountText: action.editMode.initialValues.amount > 0 ? String(Math.round(action.editMode.initialValues.amount * 100)) : '',
         amountError: false,
+        dateApiError: undefined,
+        amountApiError: undefined,
+        apiError: undefined,
       };
     case 'open_add':
       return {
@@ -122,6 +134,9 @@ function modalReducer(state: ModalState, action: ModalAction): ModalState {
         showDatePicker: false,
         amountText: '',
         amountError: false,
+        dateApiError: undefined,
+        amountApiError: undefined,
+        apiError: undefined,
       };
     case 'set_type':
       return { ...state, entryType: action.entryType, selectedCategoryId: null, selectedExpenseId: null };
@@ -141,6 +156,8 @@ function modalReducer(state: ModalState, action: ModalAction): ModalState {
       return { ...state, amountText: action.text };
     case 'set_amount_error':
       return { ...state, amountError: action.error };
+    case 'set_api_errors':
+      return { ...state, dateApiError: action.dateApiError, amountApiError: action.amountApiError, apiError: action.apiError };
     default:
       return state;
   }
@@ -214,7 +231,7 @@ export const QuickAddModal: React.FC<Props> = ({
   // ── Reset form when modal opens / closes ──────────────────────────────────
   // dispatch (useReducer) is NOT a useState setter — the react-hooks/set-state-
   // in-effect rule only flags useState setters, so using dispatch here is safe.
-  const { control, handleSubmit, reset, setValue, formState: { errors } } = useForm<FormValues>({
+  const { control, handleSubmit, reset, setError, formState: { errors } } = useForm<FormValues>({
     defaultValues: { name: '', budget: '' },
   });
 
@@ -227,8 +244,7 @@ export const QuickAddModal: React.FC<Props> = ({
     Animated.spring(dragY, { toValue: 0, useNativeDriver: true, tension: 68, friction: 12 }).start();
 
     if (editMode) {
-      setValue('name',   editMode.initialValues.name);
-      setValue('budget', editMode.initialValues.budget ? String(editMode.initialValues.budget) : '');
+      reset({ name: editMode.initialValues.name, budget: editMode.initialValues.budget ? String(editMode.initialValues.budget) : '' });
       dispatch({ kind: 'open_edit', editMode });
     } else {
       reset({ name: '', budget: '' });
@@ -275,11 +291,49 @@ export const QuickAddModal: React.FC<Props> = ({
     addExpenseItem.isPending || patchExpense.isPending || patchIncome.isPending;
 
   // ── Submit ────────────────────────────────────────────────────────────────
+  const handleApiError = (error: unknown) => {
+    const fieldErrors = extractApiErrors(error);
+    const unmapped: string[] = [];
+    let dateApiError: string | undefined;
+    let amountApiError: string | undefined;
+
+    for (const [key, messages] of Object.entries(fieldErrors)) {
+      const first = messages[0];
+      switch (key.toLowerCase()) {
+        case 'name':
+          setError('name', { type: 'server', message: first });
+          break;
+        case 'budget':
+          setError('budget', { type: 'server', message: first });
+          break;
+        case 'date':
+          dateApiError = first;
+          break;
+        case 'amount':
+          amountApiError = first;
+          break;
+        default:
+          unmapped.push(first);
+      }
+    }
+
+    let apiError: string | undefined;
+    if (unmapped.length > 0) {
+      apiError = unmapped.join(' ');
+    } else if (Object.keys(fieldErrors).length === 0) {
+      apiError = t('ErrorGeneric') ?? 'Something went wrong. Please try again.';
+    }
+
+    dispatch({ kind: 'set_api_errors', dateApiError, amountApiError, apiError });
+  };
+
   const onSubmit = (values: FormValues) => {
     const amount  = (parseInt(modal.amountText || '0', 10) / 100);
     const budget  = parseFloat(values.budget) || 0;
     const dateStr = toDateOnly(modal.date);
     const name    = values.name.trim();
+
+    dispatch({ kind: 'set_api_errors', dateApiError: undefined, amountApiError: undefined, apiError: undefined });
 
     if (shouldShowAmountError(editMode, amount)) {
       dispatch({ kind: 'set_amount_error', error: true });
@@ -292,33 +346,33 @@ export const QuickAddModal: React.FC<Props> = ({
         const idx = editMode.itemIndex ?? 0;
         patchExpense.mutate(
           buildExpenseItemPatch(idx, { name, amount, date: dateStr, isDeductible: modal.isDeductible }),
-          { onSuccess: onClose },
+          { onSuccess: onClose, onError: handleApiError },
         );
         return;
       }
       if (editMode.type === 'expense') {
         const fields: Record<string, unknown> = { name, date: dateStr, isDeductible: modal.isDeductible, budget };
         if (!editMode.hasItems) fields.amount = amount;
-        patchExpense.mutate(buildPatch(fields), { onSuccess: onClose });
+        patchExpense.mutate(buildPatch(fields), { onSuccess: onClose, onError: handleApiError });
       } else {
         // income: only patch name, amount, date — no isDeductible or budget
-        patchIncome.mutate(buildPatch({ name, amount, date: dateStr } as Record<string, unknown>), { onSuccess: onClose });
+        patchIncome.mutate(buildPatch({ name, amount, date: dateStr } as Record<string, unknown>), { onSuccess: onClose, onError: handleApiError });
       }
       return;
     }
 
     if (modal.entryType === 'income') {
-      createIncome.mutate({ name, amount, date: dateStr }, { onSuccess: onClose });
+      createIncome.mutate({ name, amount, date: dateStr }, { onSuccess: onClose, onError: handleApiError });
     } else if (modal.selectedExpenseId) {
       addExpenseItem.mutate(
         { expenseId: modal.selectedExpenseId, item: { name, amount, date: dateStr, isDeductible: modal.isDeductible } as never },
-        { onSuccess: onClose },
+        { onSuccess: onClose, onError: handleApiError },
       );
     } else {
       if (!modal.selectedCategoryId) return;
       createExpense.mutate(
         { name, amount, budget, isDeductible: modal.isDeductible, date: dateStr },
-        { onSuccess: onClose },
+        { onSuccess: onClose, onError: handleApiError },
       );
     }
   };
@@ -400,6 +454,13 @@ export const QuickAddModal: React.FC<Props> = ({
             automaticallyAdjustKeyboardInsets
             contentContainerStyle={styles.scrollContent}
           >
+            {/* API error banner */}
+            <ErrorBanner
+              visible={!!modal.apiError}
+              message={modal.apiError}
+              onDismiss={() => dispatch({ kind: 'set_api_errors', dateApiError: modal.dateApiError, amountApiError: modal.amountApiError, apiError: undefined })}
+            />
+
             {/* Header */}
             <Text style={[styles.title, { color: ink }]}>{title}</Text>
 
@@ -482,6 +543,11 @@ export const QuickAddModal: React.FC<Props> = ({
               {modal.amountError && (
                 <HelperText type="error" style={styles.amountHeroError}>
                   {t('RequiredField') ?? 'Required'}
+                </HelperText>
+              )}
+              {modal.amountApiError && (
+                <HelperText type="error" style={styles.amountHeroError}>
+                  {modal.amountApiError}
                 </HelperText>
               )}
             </Pressable>
@@ -589,13 +655,16 @@ export const QuickAddModal: React.FC<Props> = ({
 
             {/* Budget — expense only, not when adding an item or editing an expense item */}
             {(modal.entryType === 'expense' || isEditMode) && editMode?.type !== 'income' && editMode?.type !== 'expenseItem' && !modal.selectedExpenseId && (
-              <Controller control={control} name="budget"
-                render={({ field: { onChange, value } }) => (
-                  <AuroraField dark={dark} icon="bullseye-arrow" textPrefix={sym || undefined}
-                    placeholder={`${t('FieldBudget') ?? 'Budget'} (${t('Optional') ?? 'optional'})`}
-                    value={value} onChangeText={onChange} keyboardType="decimal-pad" />
-                )}
-              />
+              <>
+                <Controller control={control} name="budget"
+                  render={({ field: { onChange, value } }) => (
+                    <AuroraField dark={dark} icon="bullseye-arrow" textPrefix={sym || undefined}
+                      placeholder={`${t('FieldBudget') ?? 'Budget'} (${t('Optional') ?? 'optional'})`}
+                      value={value} onChangeText={onChange} keyboardType="decimal-pad" hasError={!!errors.budget} />
+                  )}
+                />
+                {errors.budget && <HelperText type="error" style={styles.helperText}>{errors.budget.message}</HelperText>}
+              </>
             )}
 
             {/* Date picker */}
@@ -618,11 +687,15 @@ export const QuickAddModal: React.FC<Props> = ({
                 onChange={(_e, selected) => {
                   if (selected) {
                     dispatch({ kind: 'set_date', date: selected });
+                    dispatch({ kind: 'set_api_errors', dateApiError: undefined, amountApiError: modal.amountApiError, apiError: modal.apiError });
                   } else {
                     dispatch({ kind: 'close_date_picker' });
                   }
                 }}
               />
+            )}
+            {modal.dateApiError && (
+              <HelperText type="error" style={styles.helperText}>{modal.dateApiError}</HelperText>
             )}
 
             {/* Deductible toggle */}

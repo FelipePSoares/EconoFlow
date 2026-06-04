@@ -524,6 +524,7 @@
   "LabelCommonCurrencies": "Common: EUR, USD, GBP, BRL, JPY, CAD, AUD, CHF",
 
   "LabelOver": "over",
+  "LabelOfBudget": "of budget",
   "LabelRemaining": "remaining",
   "LabelForgotPassword": "Forgot password?",
   "LabelForgotPasswordDescription": "Enter your email and we'll send you a reset link.",

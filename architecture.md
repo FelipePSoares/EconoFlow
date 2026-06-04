@@ -502,6 +502,10 @@ AppNavigator
               + QuickAddModal (global bottom-sheet overlay)
 ```
 
+### API validation error handling
+
+Backend 400 responses carry field-level errors as `{ errors: { FieldName: string[] } }`. Use `extractApiErrors(error)` from `src/utils/apiErrors.ts` in mutation `onError` callbacks. Map known field names to react-hook-form via `setError('fieldName', { type: 'server', message })` and render with `<HelperText type="error">`. Map the `Date` field (not controlled by react-hook-form) to a separate `useState`. Show unmapped or generic errors via `<ErrorBanner>`.
+
 ---
 
 ## 13. Configuration Reference
