@@ -24,7 +24,7 @@ import { QuickAddModal } from '../quick-add/QuickAddModal';
 import type { QuickAddEditMode } from '../quick-add/QuickAddModal';
 import { fromDateOnly, formatMonthLabel } from '../../utils/date';
 import { MonthNavigator } from '../../components/common/MonthNavigator';
-import { toggleSetItem } from '../../utils/budget';
+import { toggleSetItem, calculateExpensesOverspend } from '../../utils/budget';
 import { getCategoryColor } from '../../utils/categoryTheme';
 import { getCategoryIcon } from '../../utils/categoryIcon';
 import { getCurrencySymbol } from '../../utils/currency';
@@ -93,9 +93,10 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
   if (isLoading && !expenses) return <LoadingIndicator />;
 
   const list = expenses ?? [];
-  const totalSpent  = list.reduce((s, e) => s + e.amount, 0);
-  const totalBudget = list.reduce((s, e) => s + e.budget, 0);
-  const pct = totalBudget > 0 ? Math.min((totalSpent / totalBudget), 1) : 0;
+  const totalSpent     = list.reduce((s, e) => s + e.amount, 0);
+  const totalBudget    = list.reduce((s, e) => s + e.budget, 0);
+  const totalOverspend = calculateExpensesOverspend(list);
+  const pct = totalBudget > 0 ? totalSpent / totalBudget : 0;
 
   return (
     <GlassScreen dark={dark}>
@@ -135,10 +136,10 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
               size={72}
               strokeWidth={8}
               progress={pct}
-              color={color}
+              color={totalOverspend > 0 ? colors.error : color}
               trackColor={color + '33'}
             >
-              <MaterialCommunityIcons name={getCategoryIcon(categoryName) as never} size={24} color={color} />
+              <MaterialCommunityIcons name={getCategoryIcon(categoryName) as never} size={24} color={totalOverspend > 0 ? colors.error : color} />
             </DonutRing>
 
             <View style={styles.summaryMeta}>
@@ -149,14 +150,15 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
                 {sym} {fmt(totalSpent)}
               </Text>
               {totalBudget > 0 && (
-                <Text style={[styles.summaryBudget, { color: ink2 }]}>
+                <Text style={[styles.summaryBudget, { color: totalOverspend > 0 ? colors.error : ink2 }]}>
                   {t('Budget') ?? 'Budget'} {sym} {fmt(totalBudget)} · {Math.round(pct * 100)}%
+                  {totalOverspend > 0 ? ` · ${fmt(totalOverspend)} ${t('LabelOver') ?? 'over'}` : ''}
                 </Text>
               )}
               <View style={[styles.summaryBar, { backgroundColor: color + '22' }]}>
                 <View style={[
                   styles.summaryBarFill,
-                  { width: `${Math.round(pct * 100)}%` as `${number}%`, backgroundColor: color },
+                  { width: `${Math.min(Math.round(pct * 100), 100)}%` as `${number}%`, backgroundColor: totalOverspend > 0 ? colors.error : color },
                 ]} />
               </View>
             </View>
