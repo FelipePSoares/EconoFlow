@@ -114,4 +114,15 @@ describe('AddCategoryComponent', () => {
     subject.next(makeCategory());
     subject.complete();
   });
+
+  it('should set isSaving to false after a failed save', () => {
+    const subject = new Subject<Category>();
+    categoryServiceMock.add.and.returnValue(subject.asObservable());
+
+    component.categoryForm.setValue({ name: 'Food' });
+    component.save();
+    subject.error({ errors: { general: ['ServerError'] } });
+
+    expect((component as any).isSaving).toBeFalse();
+  });
 });

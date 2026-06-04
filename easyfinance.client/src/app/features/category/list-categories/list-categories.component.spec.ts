@@ -145,4 +145,38 @@ describe('ListCategoriesComponent', () => {
     subject.next(makeCategory('cat-1', 'Updated Food'));
     subject.complete();
   });
+
+  it('should reset isSaving when cancelEdit is called while save is in-flight', () => {
+    const subject = new Subject<Category>();
+    categoryServiceMock.update.and.returnValue(subject.asObservable());
+
+    component.edit(makeCategoryDto());
+    component.categoryForm.patchValue({ name: 'Updated Food' });
+    component.save();
+
+    expect((component as any).isSaving).toBeTrue();
+    component.cancelEdit();
+
+    expect((component as any).isSaving).toBeFalse();
+
+    subject.next(makeCategory('cat-1', 'Updated Food'));
+    subject.complete();
+  });
+
+  it('should reset isSaving when edit is called while save is in-flight', () => {
+    const subject = new Subject<Category>();
+    categoryServiceMock.update.and.returnValue(subject.asObservable());
+
+    component.edit(makeCategoryDto());
+    component.categoryForm.patchValue({ name: 'Updated Food' });
+    component.save();
+
+    expect((component as any).isSaving).toBeTrue();
+    component.edit(makeCategoryDto('cat-2', 'Rent'));
+
+    expect((component as any).isSaving).toBeFalse();
+
+    subject.next(makeCategory('cat-1', 'Updated Food'));
+    subject.complete();
+  });
 });

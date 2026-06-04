@@ -93,6 +93,8 @@ export class AddCategoryComponent implements OnInit, AfterViewInit {
     const newCategory = { name: name } as CategoryDto;
 
     this.isSaving = true;
+    this.httpErrors = false;
+    this.errors = {};
     this.categoryService.add(this.projectId, newCategory).subscribe({
       next: () => {
         this.isSaving = false;

@@ -135,6 +135,8 @@ export class ListCategoriesComponent implements OnInit {
     const patch = compare(this.editingCategory, newCategory);
 
     this.isSaving = true;
+    this.httpErrors = false;
+    this.errors = {};
     this.categoryService.update(this.projectId, id, patch).subscribe({
       next: response => {
         this.isSaving = false;
@@ -162,6 +164,7 @@ export class ListCategoriesComponent implements OnInit {
   }
 
   edit(category: CategoryDto): void {
+    this.isSaving = false;
     this.editingCategory = category;
     this.categoryForm = new FormGroup({
       id: new FormControl(category.id),
@@ -177,6 +180,7 @@ export class ListCategoriesComponent implements OnInit {
   }
 
   cancelEdit(): void {
+    this.isSaving = false;
     this.editingCategory = new CategoryDto();
   }
 
