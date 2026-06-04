@@ -37,7 +37,7 @@
 
       <!-- Submit Button -->
       <div class="float-end">
-        <button mat-raised-button color="primary" type="submit" [disabled]="categoryForm.invalid">
+        <button mat-raised-button color="primary" type="submit" [disabled]="categoryForm.invalid || isSaving">
           {{ 'ButtonCreate' | translate }}
         </button>
       </div>
