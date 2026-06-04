@@ -37,6 +37,7 @@ export class AddCategoryComponent implements OnInit, AfterViewInit {
   private errorMessageService = inject(ErrorMessageService);
 
   categoryForm!: FormGroup;
+  isSaving = false;
   httpErrors = false;
   errors!: Record<string, string[]>;
 
@@ -84,22 +85,26 @@ export class AddCategoryComponent implements OnInit, AfterViewInit {
   }
 
   save() {
-    if (this.categoryForm.valid) {
-      const name = this.name?.value;
-
-      const newCategory = { name: name } as CategoryDto;
-
-      this.categoryService.add(this.projectId, newCategory).subscribe({
-        next: () => {
-          this.router.navigate([{ outlets: { modal: ['projects', this.projectId, 'categories'] } }]);
-        },
-        error: (response: ApiErrorResponse) => {
-          this.httpErrors = true;
-          this.errors = response.errors;
-          this.errorMessageService.setFormErrors(this.categoryForm, this.errors);
-        }
-      });
+    if (!this.categoryForm.valid || this.isSaving) {
+      return;
     }
+
+    const name = this.name?.value;
+    const newCategory = { name: name } as CategoryDto;
+
+    this.isSaving = true;
+    this.categoryService.add(this.projectId, newCategory).subscribe({
+      next: () => {
+        this.isSaving = false;
+        this.router.navigate([{ outlets: { modal: ['projects', this.projectId, 'categories'] } }]);
+      },
+      error: (response: ApiErrorResponse) => {
+        this.isSaving = false;
+        this.httpErrors = true;
+        this.errors = response.errors;
+        this.errorMessageService.setFormErrors(this.categoryForm, this.errors);
+      }
+    });
   }
 
   getFormFieldErrors(fieldName: string): string[] {
