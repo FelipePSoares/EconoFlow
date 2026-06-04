@@ -7,11 +7,13 @@ import { Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import { useIsFocused } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { OverviewStackParamList } from '../../navigation/OverviewStackNavigator';
 import type { MainTabParamList } from '../../navigation/MainNavigator';
 import { useProjectStore } from '../../store/projectStore';
+import { useQuickAddStore } from '../../store/quickAddStore';
 import { useAuthStore } from '../../store/authStore';
 import { useProjects } from '../../hooks/useProjects';
 import { useCategoriesForMonth } from '../../hooks/useCategories';
@@ -47,6 +49,12 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const [month, setMonth] = useState(currentMonth());
   const [refreshing, setRefreshing] = useState(false);
+
+  const setViewedMonth = useQuickAddStore(s => s.setViewedMonth);
+  const isFocused = useIsFocused();
+  useEffect(() => {
+    setViewedMonth(isFocused ? month : null);
+  }, [month, isFocused, setViewedMonth]);
 
   const { user } = useAuthStore();
   const { selectedProject, currency, setSelectedProject } = useProjectStore();

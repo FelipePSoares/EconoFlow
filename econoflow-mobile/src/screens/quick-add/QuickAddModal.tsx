@@ -682,7 +682,7 @@ const styles = StyleSheet.create({
   } as never,
   amountHeroDec: {
     fontSize: 26, fontWeight: '700', letterSpacing: -0.5,
-    paddingBottom: 0, includeFontPadding: false,
+    paddingBottom: 6, includeFontPadding: false,
   } as never,
   hiddenAmountInput: {
     position: 'absolute', width: 1, height: 1, opacity: 0,

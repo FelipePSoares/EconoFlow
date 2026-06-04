@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FlatList, StyleSheet, TouchableOpacity, View, RefreshControl } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import { useIsFocused } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { OverviewStackParamList } from '../../navigation/OverviewStackNavigator';
 import { useProjectStore } from '../../store/projectStore';
+import { useQuickAddStore } from '../../store/quickAddStore';
 import { useCategoriesForMonth } from '../../hooks/useCategories';
 import { CategoryCard } from '../../components/budget/CategoryCard';
 import { LoadingIndicator } from '../../components/common/LoadingIndicator';
@@ -25,6 +27,12 @@ export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
   const [dismissedError, setDismissedError] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const { selectedProject, currency } = useProjectStore();
+
+  const setViewedMonth = useQuickAddStore(s => s.setViewedMonth);
+  const isFocused = useIsFocused();
+  useEffect(() => {
+    setViewedMonth(isFocused ? month : null);
+  }, [month, isFocused, setViewedMonth]);
   const projectId = selectedProject?.project.id ?? '';
 
   const { data: categories, isLoading, isError, refetch } =
