@@ -10,6 +10,8 @@ import { useProjectStore } from '../../store/projectStore';
 import { useCreateExpense, usePatchExpense } from '../../hooks/useExpenses';
 import { toDateOnly, fromDateOnly } from '../../utils/date';
 import { buildPatch } from '../../utils/patch';
+import { extractApiErrors } from '../../utils/apiErrors';
+import { ErrorBanner } from '../../components/common/ErrorBanner';
 
 type Props = NativeStackScreenProps<OverviewStackParamList, 'ExpenseForm'>;
 
@@ -31,11 +33,13 @@ export const ExpenseFormScreen: React.FC<Props> = ({ route, navigation }) => {
     initialValues?.date ? fromDateOnly(initialValues.date) : new Date()
   );
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [dateError, setDateError] = useState<string | undefined>();
+  const [apiError, setApiError] = useState<string | undefined>();
 
   const createExpense = useCreateExpense(projectId, categoryId, month);
   const patchExpense = usePatchExpense(projectId, categoryId, expenseId ?? '', month);
 
-  const { control, handleSubmit, formState: { errors } } = useForm<FormValues>({
+  const { control, handleSubmit, setError, formState: { errors } } = useForm<FormValues>({
     defaultValues: {
       name: initialValues?.name ?? '',
       amount: initialValues?.amount?.toString() ?? '',
@@ -44,7 +48,44 @@ export const ExpenseFormScreen: React.FC<Props> = ({ route, navigation }) => {
     },
   });
 
+  const handleApiError = (error: unknown) => {
+    const fieldErrors = extractApiErrors(error);
+    const unmapped: string[] = [];
+
+    setDateError(undefined);
+    setApiError(undefined);
+
+    for (const [key, messages] of Object.entries(fieldErrors)) {
+      const first = messages[0];
+      switch (key.toLowerCase()) {
+        case 'name':
+          setError('name', { type: 'server', message: first });
+          break;
+        case 'amount':
+          setError('amount', { type: 'server', message: first });
+          break;
+        case 'budget':
+          setError('budget', { type: 'server', message: first });
+          break;
+        case 'date':
+          setDateError(first);
+          break;
+        default:
+          unmapped.push(first);
+      }
+    }
+
+    if (unmapped.length > 0) {
+      setApiError(unmapped.join(' '));
+    } else if (Object.keys(fieldErrors).length === 0) {
+      setApiError(t('ErrorGeneric') ?? 'Something went wrong. Please try again.');
+    }
+  };
+
   const onSubmit = (values: FormValues) => {
+    setDateError(undefined);
+    setApiError(undefined);
+
     const parsed = {
       name: values.name,
       amount: parseFloat(values.amount) || 0,
@@ -56,10 +97,12 @@ export const ExpenseFormScreen: React.FC<Props> = ({ route, navigation }) => {
     if (isEdit) {
       patchExpense.mutate(buildPatch(parsed as Record<string, unknown>), {
         onSuccess: () => navigation.goBack(),
+        onError: handleApiError,
       });
     } else {
       createExpense.mutate(parsed, {
         onSuccess: () => navigation.goBack(),
+        onError: handleApiError,
       });
     }
   };
@@ -68,6 +111,11 @@ export const ExpenseFormScreen: React.FC<Props> = ({ route, navigation }) => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <ErrorBanner
+        visible={!!apiError}
+        message={apiError}
+        onDismiss={() => setApiError(undefined)}
+      />
       <Text variant="headlineSmall" style={styles.title}>
         {isEdit ? (t('LabelEditExpense') ?? 'Edit expense') : (t('LabelAddExpense') ?? 'Add expense')}
       </Text>
@@ -96,9 +144,10 @@ export const ExpenseFormScreen: React.FC<Props> = ({ route, navigation }) => {
         control={control}
         name="budget"
         render={({ field: { onChange, value } }) => (
-          <TextInput label={t('FieldBudget') ?? 'Budget'} value={value} onChangeText={onChange} keyboardType="decimal-pad" style={styles.input} />
+          <TextInput label={t('FieldBudget') ?? 'Budget'} value={value} onChangeText={onChange} keyboardType="decimal-pad" style={styles.input} error={!!errors.budget} />
         )}
       />
+      {errors.budget && <HelperText type="error">{errors.budget.message}</HelperText>}
 
       <Button mode="outlined" onPress={() => setShowDatePicker(true)} style={styles.input}>
         {t('FieldDate') ?? 'Date'}: {toDateOnly(date)}
@@ -110,10 +159,14 @@ export const ExpenseFormScreen: React.FC<Props> = ({ route, navigation }) => {
           maximumDate={new Date()}
           onChange={(_e, selected) => {
             setShowDatePicker(false);
-            if (selected) setDate(selected);
+            if (selected) {
+              setDate(selected);
+              setDateError(undefined);
+            }
           }}
         />
       )}
+      {dateError && <HelperText type="error">{dateError}</HelperText>}
 
       <Controller
         control={control}
