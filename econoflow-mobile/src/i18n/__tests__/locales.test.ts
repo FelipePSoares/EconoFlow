@@ -35,4 +35,28 @@ describe('i18n locale completeness', () => {
   it('pt.json contains LabelProofAttached', () => {
     expect((pt as LocaleMap)['LabelProofAttached']).toBeTruthy();
   });
+
+  it('en.json contains LabelOfBudget', () => {
+    expect((en as LocaleMap)['LabelOfBudget']).toBeTruthy();
+  });
+
+  it('pt.json contains LabelOfBudget', () => {
+    expect((pt as LocaleMap)['LabelOfBudget']).toBeTruthy();
+  });
+
+  it('en.json contains ErrorGeneric', () => {
+    expect((en as LocaleMap)['ErrorGeneric']).toBeTruthy();
+  });
+
+  it('pt.json contains ErrorGeneric', () => {
+    expect((pt as LocaleMap)['ErrorGeneric']).toBeTruthy();
+  });
+
+  it('en.json contains ButtonDismiss', () => {
+    expect((en as LocaleMap)['ButtonDismiss']).toBeTruthy();
+  });
+
+  it('pt.json contains ButtonDismiss', () => {
+    expect((pt as LocaleMap)['ButtonDismiss']).toBeTruthy();
+  });
 });
