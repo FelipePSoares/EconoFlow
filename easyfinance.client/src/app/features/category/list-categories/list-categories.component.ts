@@ -134,9 +134,9 @@ export class ListCategoriesComponent implements OnInit {
     }) as CategoryDto;
     const patch = compare(this.editingCategory, newCategory);
 
-    this.isSaving = true;
     this.httpErrors = false;
     this.errors = {};
+    this.isSaving = true;
     this.categoryService.update(this.projectId, id, patch).subscribe({
       next: response => {
         this.isSaving = false;

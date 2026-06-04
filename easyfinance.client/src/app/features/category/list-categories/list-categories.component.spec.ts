@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { Subject, of, BehaviorSubject } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
@@ -145,6 +145,24 @@ describe('ListCategoriesComponent', () => {
     subject.next(makeCategory('cat-1', 'Updated Food'));
     subject.complete();
   });
+
+  it('should disable submit button while isSaving is true', fakeAsync(() => {
+    const subject = new Subject<Category>();
+    categoryServiceMock.update.and.returnValue(subject.asObservable());
+
+    component.edit(makeCategoryDto('cat-1', 'Food'));
+    component.categoryForm.patchValue({ name: 'Updated Food' });
+    component.save();
+    fixture.detectChanges();
+    tick();
+
+    const submitButton = fixture.nativeElement.querySelector('button[type="submit"]') as HTMLButtonElement;
+    expect(submitButton).not.toBeNull();
+    expect(submitButton.disabled).toBeTrue();
+
+    subject.next(makeCategory('cat-1', 'Updated Food'));
+    subject.complete();
+  }));
 
   it('should reset isSaving when cancelEdit is called while save is in-flight', () => {
     const subject = new Subject<Category>();
