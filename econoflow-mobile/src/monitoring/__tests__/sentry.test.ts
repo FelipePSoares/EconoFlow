@@ -37,12 +37,15 @@ describe('sentry monitoring module', () => {
     });
 
     it('passes EXPO_PUBLIC_SENTRY_DSN as dsn', () => {
-      process.env['EXPO_PUBLIC_SENTRY_DSN'] = 'https://test@o123.ingest.sentry.io/456';
+      // In Jest, process.env assignment works regardless of dot/bracket notation.
+      // In the production Metro bundle only dot notation is statically replaced,
+      // which is why sentry.ts uses process.env.EXPO_PUBLIC_SENTRY_DSN.
+      process.env.EXPO_PUBLIC_SENTRY_DSN = 'https://test@o123.ingest.sentry.io/456';
       initSentry();
       expect(Sentry.init).toHaveBeenCalledWith(
         expect.objectContaining({ dsn: 'https://test@o123.ingest.sentry.io/456' }),
       );
-      delete process.env['EXPO_PUBLIC_SENTRY_DSN'];
+      delete process.env.EXPO_PUBLIC_SENTRY_DSN;
     });
 
     it('sets enabled to false because __DEV__ is true in the test environment', () => {
