@@ -9,16 +9,25 @@
       "distribution": "internal",
       "android": { "buildType": "apk" },
       "ios": { "simulator": true },
-      "env": { "EXPO_PUBLIC_API_URL": "https://econoflow.pt/api" }
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://econoflow.pt",
+        "EXPO_PUBLIC_SENTRY_DSN": "https://e3e5bdde0b6e300e13e77f760e0c1cdf@o4511512006754304.ingest.de.sentry.io/4511512010096720"
+      }
     },
     "preview": {
       "distribution": "internal",
       "android": { "buildType": "apk" },
-      "env": { "EXPO_PUBLIC_API_URL": "https://econoflow.pt/api" }
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://econoflow.pt",
+        "EXPO_PUBLIC_SENTRY_DSN": "https://e3e5bdde0b6e300e13e77f760e0c1cdf@o4511512006754304.ingest.de.sentry.io/4511512010096720"
+      }
     },
     "production": {
       "autoIncrement": true,
-      "env": { "EXPO_PUBLIC_API_URL": "https://econoflow.pt/api" }
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://econoflow.pt",
+        "EXPO_PUBLIC_SENTRY_DSN": "https://e3e5bdde0b6e300e13e77f760e0c1cdf@o4511512006754304.ingest.de.sentry.io/4511512010096720"
+      }
     }
   },
   "submit": {
