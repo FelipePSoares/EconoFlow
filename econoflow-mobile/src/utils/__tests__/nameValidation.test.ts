@@ -13,9 +13,9 @@ describe('isNameRequired', () => {
     });
   });
 
-  describe('creating a new income', () => {
-    it('returns true — name is required for income creation', () => {
-      expect(isNameRequired(undefined, false)).toBe(true);
+  describe('creating a new item where isAddingItemToExpense is true but editMode is set', () => {
+    it('returns true — editMode takes precedence, name required when editing', () => {
+      expect(isNameRequired({ type: 'income' }, true)).toBe(true);
     });
   });
 
