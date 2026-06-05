@@ -1,13 +1,28 @@
 import './src/i18n';
+import { initSentry, navigationIntegration } from './src/monitoring/sentry';
+import * as Sentry from '@sentry/react-native';
 import React, { useCallback } from 'react';
 import { View, useColorScheme } from 'react-native';
-import { NavigationContainer, DarkTheme as NavDarkTheme, DefaultTheme as NavDefaultTheme } from '@react-navigation/native';
+import {
+  NavigationContainer,
+  DarkTheme as NavDarkTheme,
+  DefaultTheme as NavDefaultTheme,
+  createNavigationContainerRef,
+} from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Provider as PaperProvider, MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { AppNavigator } from './src/navigation/AppNavigator';
+
+// Initialise Sentry before any React rendering.
+// Disabled in dev builds; enabled in production releases.
+initSentry();
+
+// Stable ref shared between NavigationContainer and Sentry's navigation
+// integration so that every screen transition is captured as a breadcrumb.
+const navigationRef = createNavigationContainerRef();
 
 // Keep the splash screen visible while the JS bundle and stores hydrate.
 // hideAsync() is called in onLayout once the root View is measured.
@@ -105,7 +120,7 @@ const navDarkTheme = {
   },
 };
 
-export default function App() {
+function App() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
@@ -121,7 +136,13 @@ export default function App() {
       <QueryClientProvider client={queryClient}>
         <PaperProvider theme={isDark ? paperDarkTheme : paperLightTheme}>
           <SafeAreaProvider>
-            <NavigationContainer theme={isDark ? navDarkTheme : navLightTheme}>
+            <NavigationContainer
+              ref={navigationRef}
+              theme={isDark ? navDarkTheme : navLightTheme}
+              onReady={() => {
+                navigationIntegration.registerNavigationContainer(navigationRef);
+              }}
+            >
               <StatusBar style={isDark ? 'light' : 'dark'} />
               <AppNavigator />
             </NavigationContainer>
@@ -131,3 +152,7 @@ export default function App() {
     </View>
   );
 }
+
+// Sentry.wrap adds an error boundary and performance timing around the root
+// component.  It must be the outermost wrapper on the default export.
+export default Sentry.wrap(App);

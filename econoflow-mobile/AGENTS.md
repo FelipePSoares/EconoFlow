@@ -319,3 +319,46 @@ Custom tokens (`theme.customColors` from `useAppTheme()` hook):
 - **i18n**: `react-i18next` with JSON files in `src/i18n/locales/`
 - **Theme hook**: `useAppTheme()` from `src/theme/useAppTheme.ts` — wraps Paper's `useTheme` with custom colour types
 - **Error handling**: `ErrorBanner` component at `src/components/common/ErrorBanner.tsx`
+
+## Monitoring (Sentry)
+
+Package: `@sentry/react-native` (~7.11.0).  
+Central module: `src/monitoring/sentry.ts` — all Sentry interactions go through here.
+
+### Env vars
+
+| Variable | Where to set | Purpose |
+|---|---|---|
+| `EXPO_PUBLIC_SENTRY_DSN` | `.env.local` (dev) / PowerShell session (release) | Sentry ingest endpoint |
+
+The DSN is a **public** identifier (not a secret). It is intentionally embedded in the JS bundle.  
+Sentry is **disabled in development** (`enabled: !__DEV__`), so no events are sent during local runs.
+
+### Release build — add to the PowerShell session before Gradle
+
+```powershell
+$env:EXPO_PUBLIC_API_URL    = "https://econoflow.pt"
+$env:EXPO_PUBLIC_SENTRY_DSN = "https://..."   # ← required for crash reporting
+```
+
+### Usage in application code
+
+```typescript
+import { captureError, addBreadcrumb } from '../monitoring/sentry';
+
+// In a try/catch:
+try {
+  await riskyOperation();
+} catch (err) {
+  captureError(err, { screen: 'ExpenseFormScreen', action: 'submit' });
+}
+
+// Manual breadcrumb (optional context for the next error):
+addBreadcrumb('User opened QuickAdd modal', 'ui');
+```
+
+### Privacy rules
+- **Never** pass financial amounts, email, name, or any PII into `captureError` context or `addBreadcrumb` data.
+- The `beforeSend` hook in `sentry.ts` strips `Authorization` headers automatically.
+- User context is set to the **user ID only** (`setUserContext(user.id)`) — no email, no name.
+- HTTP breadcrumbs log **method + URL** only — never request or response bodies.

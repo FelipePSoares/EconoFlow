@@ -1,5 +1,6 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '../store/authStore';
+import { addBreadcrumb } from '../monitoring/sentry';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://localhost:7003';
 
@@ -27,6 +28,12 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // Breadcrumb: method + URL only — never the body or the auth token.
+  addBreadcrumb(
+    `${(config.method ?? 'GET').toUpperCase()} ${config.url ?? ''}`,
+    'http',
+    { method: (config.method ?? 'GET').toUpperCase(), url: config.url },
+  );
   return config;
 });
 
@@ -36,6 +43,15 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
     if (error.response?.status !== 401 || originalRequest._retry) {
+      // Record non-401 HTTP failures (and exhausted 401 retries) as breadcrumbs.
+      // Status code + URL only — no response body, no financial data.
+      if (error.response?.status) {
+        addBreadcrumb(
+          `HTTP ${error.response.status} ${originalRequest?.url ?? ''}`,
+          'http',
+          { status: error.response.status, url: originalRequest?.url },
+        );
+      }
       return Promise.reject(error);
     }
 
