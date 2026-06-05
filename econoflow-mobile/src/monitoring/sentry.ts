@@ -23,9 +23,19 @@ export function initSentry(): void {
     dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
     enabled: !__DEV__,
     environment: __DEV__ ? 'development' : 'production',
-    // 20% sample rate avoids hitting Sentry's free-tier quota. Raise this
-    // once the app has real users and you need higher fidelity.
+    // 20 % of screen-transitions produce a trace. Raise once you have
+    // real users and need higher fidelity.
     tracesSampleRate: 0.2,
+    // 10 % of sampled traces also carry a Hermes CPU profile, which
+    // surfaces slow renders and expensive computations early.
+    profilesSampleRate: 0.1,
+    // Capture the React component tree on every crash so the Sentry event
+    // shows which screen and component were active. Safe for a finance app:
+    // the view hierarchy contains component names only, never field values
+    // or financial amounts.
+    attachViewHierarchy: true,
+    // Explicitly disabled: screenshots would expose financial data on screen.
+    attachScreenshot: false,
     // Restrict distributed-trace headers to the EconoFlow API only.
     // Without this, every Axios request would carry Sentry trace headers,
     // including any third-party calls added later.

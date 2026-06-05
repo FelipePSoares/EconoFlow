@@ -75,6 +75,27 @@ describe('sentry monitoring module', () => {
       );
     });
 
+    it('sets profilesSampleRate to 0.1', () => {
+      initSentry();
+      expect(Sentry.init).toHaveBeenCalledWith(
+        expect.objectContaining({ profilesSampleRate: 0.1 }),
+      );
+    });
+
+    it('enables attachViewHierarchy for component-tree capture on crash', () => {
+      initSentry();
+      expect(Sentry.init).toHaveBeenCalledWith(
+        expect.objectContaining({ attachViewHierarchy: true }),
+      );
+    });
+
+    it('explicitly disables attachScreenshot to protect financial data on screen', () => {
+      initSentry();
+      expect(Sentry.init).toHaveBeenCalledWith(
+        expect.objectContaining({ attachScreenshot: false }),
+      );
+    });
+
     it('restricts trace propagation to the econoflow.pt domain', () => {
       initSentry();
       const config = (Sentry.init as jest.Mock).mock.calls[0][0] as {

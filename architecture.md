@@ -506,6 +506,28 @@ AppNavigator
 
 Backend 400 responses carry field-level errors as `{ errors: { FieldName: string[] } }`. Use `extractApiErrors(error)` from `src/utils/apiErrors.ts` in mutation `onError` callbacks. Map known field names to react-hook-form via `setError('fieldName', { type: 'server', message })` and render with `<HelperText type="error">`. Map the `Date` field (not controlled by react-hook-form) to a separate `useState`. Show unmapped or generic errors via `<ErrorBanner>`.
 
+### Monitoring (`src/monitoring/sentry.ts`)
+
+Crash reporting and performance tracking: `@sentry/react-native` (~7.11.0). All Sentry interactions go through the central module — never import `@sentry/react-native` directly in feature code.
+
+| Signal | How it is captured |
+|---|---|
+| JS crashes & unhandled rejections | Global handler installed by `Sentry.init`; root component wrapped with `Sentry.wrap` |
+| Screen transitions | `reactNavigationIntegration` — automatic breadcrumb per navigation |
+| HTTP requests | Axios request interceptor — method + URL breadcrumb (no body, no token) |
+| HTTP errors (non-401) | Axios response interceptor — status + URL breadcrumb |
+| User identity | `setUserContext(id)` on login, `onRehydrateStorage` on cold start, `clearUserContext` on logout — ID only, no PII |
+| Component tree on crash | `attachViewHierarchy: true` — structure only, no field values |
+| CPU profiles | `profilesSampleRate: 0.1` — 10 % of sampled traces carry a Hermes CPU profile |
+
+**Privacy constraints enforced at the SDK level:**
+- `attachScreenshot: false` — screenshots are explicitly disabled (would expose financial data)
+- `beforeSend` strips `Authorization` / `authorization` headers before any event is transmitted
+- `tracePropagationTargets: [/^https:\/\/econoflow\.pt/]` — distributed-trace headers only on EconoFlow API calls
+- `tracesSampleRate: 0.2` — 20 % trace sampling to stay within the free-tier quota
+
+Sentry is **disabled in development** (`enabled: !__DEV__`). The DSN must use dot notation (`process.env.EXPO_PUBLIC_SENTRY_DSN`) — Metro's Babel transform does not substitute bracket notation at bundle time.
+
 ---
 
 ## 13. Configuration Reference
@@ -532,6 +554,7 @@ Variables marked **required** will throw at startup (or on first use) if absent.
 | `EconoFlow_WEB_PUSH_PRIVATE_KEY` | optional | VAPID private key override (overrides `appsettings.json`) | value from `appsettings.json` |
 | `EconoFlow_UNSUBSCRIBE_HMAC_SECRET` | **required** (prod) | HMAC-SHA256 key for email unsubscribe link signatures — DEBUG builds fall back to a hardcoded dev value | — (throws `InvalidOperationException` in non-DEBUG builds) |
 | `EXPO_PUBLIC_API_URL` | optional | Mobile app API base URL | `https://localhost:7003` |
+| `EXPO_PUBLIC_SENTRY_DSN` | optional | Mobile Sentry ingest endpoint — public identifier, safe to commit. Sentry is disabled when absent or in dev builds. | disabled |
 
 ### Key `appsettings.json` Settings
 
