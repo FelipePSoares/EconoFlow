@@ -17,7 +17,6 @@
     "android": {
       "package": "pt.econoflow.mobile",
       "versionCode": 2,
-
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon-512x512.png",
         "backgroundColor": "#0f76a8"
@@ -46,6 +45,11 @@
           "imageWidth": 150
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "2265ef61-8266-496c-b5ff-3171b3078e88"
+      }
+    }
   }
 }

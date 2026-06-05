@@ -1,0 +1,51 @@
+name: EAS Production Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Target platform'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - android
+          - ios
+
+permissions:
+  contents: read
+
+jobs:
+  eas-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    # Skip silently if eas build:configure has not been run yet.
+    if: ${{ vars.EAS_PROJECT_ID != '' }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+
+    - name: Cache mobile node_modules
+      uses: actions/cache@v4
+      with:
+        path: ./econoflow-mobile/node_modules
+        key: mobile-node-modules-${{ runner.os }}-${{ hashFiles('./econoflow-mobile/package-lock.json') }}
+
+    - name: Install mobile dependencies
+      run: npm ci
+      working-directory: ./econoflow-mobile
+
+    - name: Install EAS CLI
+      run: npm install -g eas-cli
+
+    - name: Build production (${{ inputs.platform }})
+      run: eas build --platform ${{ inputs.platform }} --profile production --non-interactive
+      working-directory: ./econoflow-mobile
+      env:
+        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
