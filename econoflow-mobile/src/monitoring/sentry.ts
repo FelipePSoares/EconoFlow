@@ -17,7 +17,10 @@ export const navigationIntegration = Sentry.reactNavigationIntegration();
  */
 export function initSentry(): void {
   Sentry.init({
-    dsn: process.env['EXPO_PUBLIC_SENTRY_DSN'],
+    // Must use dot notation — Metro's Babel transform only replaces
+    // process.env.VARIABLE statically; bracket notation yields undefined.
+    // eslint-disable-next-line dot-notation
+    dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
     enabled: !__DEV__,
     environment: __DEV__ ? 'development' : 'production',
     // 20% sample rate avoids hitting Sentry's free-tier quota. Raise this
