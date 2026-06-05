@@ -136,10 +136,10 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
               size={72}
               strokeWidth={8}
               progress={pct}
-              color={totalOverspend > 0 ? colors.error : color}
+              color={pct > 1 ? colors.error : color}
               trackColor={color + '33'}
             >
-              <MaterialCommunityIcons name={getCategoryIcon(categoryName) as never} size={24} color={totalOverspend > 0 ? colors.error : color} />
+              <MaterialCommunityIcons name={getCategoryIcon(categoryName) as never} size={24} color={pct > 1 ? colors.error : color} />
             </DonutRing>
 
             <View style={styles.summaryMeta}>
@@ -150,7 +150,7 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
                 {sym} {fmt(totalSpent)}
               </Text>
               {totalBudget > 0 && (
-                <Text style={[styles.summaryBudget, { color: totalOverspend > 0 ? colors.error : ink2 }]}>
+                <Text style={[styles.summaryBudget, { color: pct > 1 ? colors.error : ink2 }]}>
                   {t('Budget') ?? 'Budget'} {sym} {fmt(totalBudget)} · {Math.round(pct * 100)}%
                   {totalOverspend > 0 ? ` · ${fmt(totalOverspend)} ${t('LabelOver') ?? 'over'}` : ''}
                 </Text>
@@ -158,7 +158,7 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
               <View style={[styles.summaryBar, { backgroundColor: color + '22' }]}>
                 <View style={[
                   styles.summaryBarFill,
-                  { width: `${Math.min(Math.round(pct * 100), 100)}%` as `${number}%`, backgroundColor: totalOverspend > 0 ? colors.error : color },
+                  { width: `${Math.min(Math.round(pct * 100), 100)}%` as `${number}%`, backgroundColor: pct > 1 ? colors.error : color },
                 ]} />
               </View>
             </View>
@@ -186,10 +186,15 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
         ) : (
           <View style={styles.groupList}>
             {list.map((expense) => {
-              const isOpen = expandedIds.has(expense.id);
-              const expIcon = getCategoryIcon(expense.name);
+              const isOpen      = expandedIds.has(expense.id);
+              const expIcon     = getCategoryIcon(expense.name);
+              const expOverspend = calculateExpensesOverspend([expense]);
+              const isExpOver   = expOverspend > 0;
               return (
                 <GlassCard key={expense.id} dark={dark} radius={18} style={styles.groupCard}>
+                  {isExpOver && (
+                    <View style={[styles.overspendAccent, { backgroundColor: colors.error }]} />
+                  )}
                   {/* ── Group header ──────────────────────────────────── */}
                   <TouchableOpacity
                     onPress={() => setExpandedIds(prev => toggleSetItem(prev, expense.id))}
@@ -227,12 +232,14 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
                     </View>
 
                     <View style={styles.groupAmtCol}>
-                      <Text style={[styles.groupAmt, { color: customColors.expense }]}>
+                      <Text style={[styles.groupAmt, { color: isExpOver ? colors.error : customColors.expense }]}>
                         −{sym} {fmt(expense.amount)}
                       </Text>
                       {expense.budget > 0 && (
-                        <Text style={[styles.groupBudget, { color: ink2 }]}>
-                          {t('Of') ?? 'of'} {sym} {fmt(expense.budget)}
+                        <Text style={[styles.groupBudget, { color: isExpOver ? colors.error : ink2 }]}>
+                          {isExpOver
+                            ? `+${sym} ${fmt(expOverspend)} ${t('LabelOver') ?? 'over'}`
+                            : `${t('Of') ?? 'of'} ${sym} ${fmt(expense.budget)}`}
                         </Text>
                       )}
                     </View>
@@ -531,6 +538,10 @@ const styles = StyleSheet.create({
 
   groupList: { paddingHorizontal: 18, gap: 10 },
   groupCard: {},
+  overspendAccent: {
+    position: 'absolute', left: 0, top: 0, bottom: 0, width: 3,
+    borderTopLeftRadius: 18, borderBottomLeftRadius: 18,
+  },
   groupHeader: {
     flexDirection: 'row', alignItems: 'center', gap: 10, padding: 13,
   },

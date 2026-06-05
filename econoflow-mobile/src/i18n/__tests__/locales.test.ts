@@ -59,4 +59,28 @@ describe('i18n locale completeness', () => {
   it('pt.json contains ButtonDismiss', () => {
     expect((pt as LocaleMap)['ButtonDismiss']).toBeTruthy();
   });
+
+  it('en.json contains LabelSpent', () => {
+    expect((en as LocaleMap)['LabelSpent']).toBeTruthy();
+  });
+
+  it('pt.json contains LabelSpent', () => {
+    expect((pt as LocaleMap)['LabelSpent']).toBeTruthy();
+  });
+
+  it('en.json contains LabelBudgetSummary', () => {
+    expect((en as LocaleMap)['LabelBudgetSummary']).toBeTruthy();
+  });
+
+  it('pt.json contains LabelBudgetSummary', () => {
+    expect((pt as LocaleMap)['LabelBudgetSummary']).toBeTruthy();
+  });
+
+  it('en.json contains LabelLeft', () => {
+    expect((en as LocaleMap)['LabelLeft']).toBeTruthy();
+  });
+
+  it('pt.json contains LabelLeft', () => {
+    expect((pt as LocaleMap)['LabelLeft']).toBeTruthy();
+  });
 });

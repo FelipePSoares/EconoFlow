@@ -17,6 +17,7 @@ export const calculateTotalBudget = (categories: Category[]): number =>
 
 export const calculateExpensesOverspend = (expenses: Expense[]): number =>
   expenses.reduce((s, e) => {
+    if (e.budget <= 0) return s;
     const overspend = e.amount - e.budget;
     return s + (overspend > 0 ? overspend : 0);
   }, 0);
@@ -26,6 +27,13 @@ export const calculateTotalOverspend = (categories: Category[]): number =>
     (sum, cat) => sum + calculateExpensesOverspend(cat.expenses),
     0
   );
+
+export const calculateRemainingBudget = (categories: Category[]): number => {
+  const budget = calculateTotalBudget(categories);
+  const expenses = calculateTotalExpenses(categories);
+  const overspend = calculateTotalOverspend(categories);
+  return Math.max(budget - (expenses - overspend), 0);
+};
 
 export const toggleSetItem = (prev: Set<string>, id: string): Set<string> => {
   const next = new Set(prev);

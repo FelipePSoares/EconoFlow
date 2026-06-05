@@ -23,16 +23,17 @@ import { MonthNavigator } from '../../components/common/MonthNavigator';
 import { LoadingIndicator } from '../../components/common/LoadingIndicator';
 import { GlassCard } from '../../components/common/GlassCard';
 import { GlassScreen } from '../../components/common/GlassScreen';
+import { ErrorBanner } from '../../components/common/ErrorBanner';
 import { currentMonth } from '../../utils/date';
 import {
   calculateTotalBudget,
   calculateTotalExpenses,
   calculateTotalIncome,
   calculateTotalOverspend,
+  calculateRemainingBudget,
 } from '../../utils/budget';
-import { getCategoryColor } from '../../utils/categoryTheme';
-import { getCategoryIcon } from '../../utils/categoryIcon';
 import { getCurrencySymbol } from '../../utils/currency';
+import { CategoryCard } from '../../components/budget/CategoryCard';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
 import { useAppTheme } from '../../theme/useAppTheme';
 import { DonutRing } from '../../components/common/DonutRing';
@@ -52,6 +53,7 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const [month, setMonth] = useState(currentMonth());
   const [refreshing, setRefreshing] = useState(false);
+  const [dismissedForMonth, setDismissedForMonth] = useState<string | null>(null);
 
   const setViewedMonth = useQuickAddStore(s => s.setViewedMonth);
   const isFocused = useIsFocused();
@@ -116,7 +118,7 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
   const budgetPct      = totalBudget > 0
     ? Math.round((totalExpenses / totalBudget) * 100)
     : 0;
-  const remaining      = Math.max(totalBudget - (totalExpenses - totalOverspend), 0);
+  const remaining      = calculateRemainingBudget(categories ?? []);
   const activeCategories = (categories ?? []).filter(c => !c.isArchived);
   const sym = getCurrencySymbol(currency);
 
@@ -175,12 +177,11 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
         <MonthNavigator month={month} onChange={setMonth} dark={dark} />
 
         {/* ── Error ────────────────────────────────────────────────────────── */}
-        {(catsError || incError) && (
-          <View style={styles.errorBanner}>
-            <MaterialCommunityIcons name="alert-circle-outline" size={15} color="#e74c3c" />
-            <Text style={styles.errorText}>{t('ErrorGeneric')}</Text>
-          </View>
-        )}
+        <ErrorBanner
+          visible={(catsError || incError) && dismissedForMonth !== month}
+          message={t('ErrorGeneric')}
+          onDismiss={() => setDismissedForMonth(month)}
+        />
 
         {/* ── Balance hero ─────────────────────────────────────────────────── */}
         <GlassCard dark={dark} radius={28} intensity={55} style={styles.heroCard}>
@@ -228,29 +229,39 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
 
         {/* ── Budget + Saved row ───────────────────────────────────────────── */}
         <View style={styles.summaryRow}>
-          <GlassCard dark={dark} radius={22} intensity={40} style={styles.budgetCard}>
-            <View style={styles.budgetInner}>
-              <DonutRing
-                size={58}
-                strokeWidth={8}
-                progress={budgetPct / 100}
-                color={totalOverspend > 0 ? colors.error : colors.primary}
-                trackColor={totalOverspend > 0 ? colors.error + '24' : colors.primary + '24'}
-              >
-                <Text style={[styles.ringPct, { color: totalOverspend > 0 ? colors.error : ink }]}>{budgetPct}%</Text>
-              </DonutRing>
+          <TouchableOpacity
+            style={styles.budgetCard}
+            onPress={() => navigation.navigate('CategoryList', { month })}
+            activeOpacity={0.75}
+          >
+            <GlassCard dark={dark} radius={22} intensity={40} style={styles.budgetCardInner}>
+              <View style={styles.budgetInner}>
+                <DonutRing
+                  size={58}
+                  strokeWidth={8}
+                  progress={budgetPct / 100}
+                  color={budgetPct > 100 ? colors.error : colors.primary}
+                  trackColor={budgetPct > 100 ? colors.error + '24' : colors.primary + '24'}
+                >
+                  <Text style={[styles.ringPct, { color: budgetPct > 100 ? colors.error : ink }]}>{budgetPct}%</Text>
+                </DonutRing>
 
-              <View style={styles.budgetMeta}>
-                <Text style={[styles.budgetMetaLabel, { color: ink2 }]}>{t('Budget')}</Text>
-                <Text style={[styles.budgetMetaAmt, { color: totalOverspend > 0 ? colors.error : ink }]}>
-                  {sym} {fmtCompact(totalOverspend > 0 ? totalOverspend : remaining)}
-                </Text>
-                <Text style={[styles.budgetMetaSub, { color: totalOverspend > 0 ? colors.error : ink2 }]}>
-                  {totalOverspend > 0 ? (t('LabelOver') ?? 'over') : (t('Remaining') ?? 'remaining')}
-                </Text>
+                <View style={styles.budgetMeta}>
+                  <Text style={[styles.budgetMetaLabel, { color: ink2 }]}>{t('Budget')}</Text>
+                  <Text style={[styles.budgetMetaAmt, { color: ink }]}>
+                    {sym} {fmtCompact(remaining)}{' '}
+                    <Text style={[styles.budgetMetaSub, { color: ink2 }]}>{t('Remaining') ?? 'remaining'}</Text>
+                  </Text>
+                  {totalOverspend > 0 && (
+                    <Text style={[styles.budgetMetaOver, { color: colors.error }]}>
+                      +{sym} {fmtCompact(totalOverspend)}{' '}
+                      <Text style={[styles.budgetMetaSub, { color: colors.error }]}>{t('LabelOver') ?? 'over'}</Text>
+                    </Text>
+                  )}
+                </View>
               </View>
-            </View>
-          </GlassCard>
+            </GlassCard>
+          </TouchableOpacity>
 
           <GlassCard
             dark={dark}
@@ -288,47 +299,18 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
             </View>
 
             <View style={styles.catList}>
-              {activeCategories.map((cat, idx) => {
-                const spent  = cat.expenses.reduce((s, e) => s + e.amount, 0);
-                const budget = cat.expenses.reduce((s, e) => s + e.budget, 0);
-                const pct    = budget > 0 ? spent / budget : 0;
-                const isOver = pct > 1;
-                const color  = getCategoryColor(idx);
-
-                return (
-                  <TouchableOpacity
-                    key={cat.id}
-                    onPress={() => navigation.navigate('ExpenseList', {
-                      categoryId: cat.id, categoryName: cat.name, month, categoryIndex: idx,
-                    })}
-                    activeOpacity={0.78}
-                  >
-                    <GlassCard dark={dark} radius={18} intensity={30} style={styles.catCard}>
-                      <View style={styles.catRow}>
-                        <DonutRing
-                          size={46}
-                          strokeWidth={6}
-                          progress={pct}
-                          color={isOver ? colors.error : color}
-                          trackColor={dark ? color + '33' : color + '28'}
-                        >
-                          <MaterialCommunityIcons name={getCategoryIcon(cat.name) as never} size={17} color={isOver ? colors.error : color} />
-                        </DonutRing>
-                        <View style={styles.catInfo}>
-                          <Text style={[styles.catName, { color: ink }]}>{cat.name}</Text>
-                          <Text style={[styles.catSub, { color: isOver ? colors.error : ink2 }]}>
-                            {cat.expenses.length} {t('LabelExpenseItems')} · {Math.round(pct * 100)}%
-                          </Text>
-                        </View>
-                        <Text style={[styles.catAmt, { color: ink }]}>
-                          {sym} {fmtCompact(spent)}
-                        </Text>
-                        <MaterialCommunityIcons name="chevron-right" size={18} color={ink2} />
-                      </View>
-                    </GlassCard>
-                  </TouchableOpacity>
-                );
-              })}
+              {activeCategories.map((cat, idx) => (
+                <CategoryCard
+                  key={cat.id}
+                  category={cat}
+                  currency={currency}
+                  index={idx}
+                  dark={dark}
+                  onPress={() => navigation.navigate('ExpenseList', {
+                    categoryId: cat.id, categoryName: cat.name, month, categoryIndex: idx,
+                  })}
+                />
+              ))}
             </View>
           </>
         )}
@@ -361,13 +343,6 @@ const styles = StyleSheet.create({
   projectName: { fontSize: 16, fontWeight: 'bold' },
   notifCard:   { width: 42, height: 42, alignItems: 'center', justifyContent: 'center' },
 
-  errorBanner: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    marginHorizontal: 18, marginBottom: 10, padding: 10, borderRadius: 10,
-    backgroundColor: 'rgba(231,76,60,0.12)', borderWidth: 1, borderColor: 'rgba(231,76,60,0.28)',
-  },
-  errorText: { color: '#e74c3c', fontSize: 13 },
-
   heroCard:    { marginHorizontal: 18, marginBottom: 12 },
   heroPad:     { padding: 22 },
   heroLabel:   { fontSize: 13, fontWeight: '600', opacity: 0.85, marginBottom: 4 },
@@ -382,18 +357,14 @@ const styles = StyleSheet.create({
   summaryRow: { flexDirection: 'row', marginHorizontal: 18, gap: 12, marginBottom: 20 },
 
   budgetCard:       { flex: 1 },
+  budgetCardInner:  { flex: 1 },
   budgetInner:      { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14 },
-  ringOuter:        { width: 56, height: 56, borderRadius: 28, borderWidth: 7, alignItems: 'center', justifyContent: 'center', flexShrink: 0, position: 'relative' },
-  ringProgress:     { position: 'absolute', width: 56, height: 56, borderRadius: 28, borderWidth: 7 },
-  ringCenter:       { width: 30, height: 30, alignItems: 'center', justifyContent: 'center' },
   ringPct:          { fontSize: 11.5, fontWeight: 'bold' },
   budgetMeta:       { flex: 1, gap: 1 },
   budgetMetaLabel:  { fontSize: 12, fontWeight: '600' },
-  budgetMetaAmt:    { fontSize: 15, fontWeight: 'bold' },
+  budgetMetaAmt:    { fontSize: 14, fontWeight: 'bold' },
+  budgetMetaOver:   { fontSize: 13, fontWeight: '700' },
   budgetMetaSub:    { fontSize: 11 },
-  budgetBar:        { height: 4, borderRadius: 2, marginTop: 5, overflow: 'hidden' },
-  budgetBarFill:    { height: 4, borderRadius: 2, backgroundColor: '#0f76a8' },
-
   savedCard:  { width: 112 },
   savedInner: { gap: 5, padding: 14, flex: 1, borderRadius: 22 },
   savedLabel: { fontSize: 11.5, fontWeight: '600', marginTop: 4 },
@@ -403,16 +374,7 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 16, fontWeight: 'bold' },
   viewAll:      { fontSize: 12.5, fontWeight: '700', color: '#0f76a8' },
 
-  catList: { paddingHorizontal: 18, gap: 10 },
-  catCard: {},
-  catRow:  { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12 },
-  catIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  catInfo: { flex: 1, gap: 3 },
-  catName: { fontSize: 14.5, fontWeight: '700' },
-  catSub:  { fontSize: 12 },
-  catTrack:{ height: 4, borderRadius: 2, marginTop: 3, overflow: 'hidden' },
-  catFill: { height: 4, borderRadius: 2 },
-  catAmt:  { fontSize: 14, fontWeight: 'bold' },
+  catList: {},
 
   emptyCats: { alignItems: 'center', paddingVertical: 48, gap: 12 },
 });
