@@ -2,6 +2,7 @@
   "expo": {
     "name": "EconoFlow",
     "slug": "econoflow-mobile",
+    "owner": "econoflow",
     "scheme": "econoflow",
     "newArchEnabled": false,
     "version": "1.0.0",
