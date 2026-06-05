@@ -133,7 +133,6 @@ export const ExpenseFormScreen: React.FC<Props> = ({ route, navigation }) => {
       <Controller
         control={control}
         name="amount"
-        rules={{ required: t('RequiredField') ?? 'Required', min: { value: 0, message: t('ValueShouldBeGreaterThanOrEqual', { value: 0 }) ?? 'Must be ≥ 0' } }}
         render={({ field: { onChange, value } }) => (
           <TextInput label={t('FieldAmount') ?? 'Amount'} value={value} onChangeText={onChange} keyboardType="decimal-pad" style={styles.input} error={!!errors.amount} />
         )}

@@ -83,4 +83,12 @@ describe('i18n locale completeness', () => {
   it('pt.json contains LabelLeft', () => {
     expect((pt as LocaleMap)['LabelLeft']).toBeTruthy();
   });
+
+  it('en.json contains PlaceholderItemWithoutName', () => {
+    expect((en as LocaleMap)['PlaceholderItemWithoutName']).toBeTruthy();
+  });
+
+  it('pt.json contains PlaceholderItemWithoutName', () => {
+    expect((pt as LocaleMap)['PlaceholderItemWithoutName']).toBeTruthy();
+  });
 });

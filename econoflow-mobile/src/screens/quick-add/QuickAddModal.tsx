@@ -21,6 +21,7 @@ import { getCurrencySymbol } from '../../utils/currency';
 import { currentMonth, toDateOnly, fromDateOnly, dateToMonth, defaultDateForMonth } from '../../utils/date';
 import { buildPatch, buildExpenseItemPatch } from '../../utils/patch';
 import { shouldShowAmountError } from '../../utils/amountValidation';
+import { isNameRequired } from '../../utils/nameValidation';
 import { extractApiErrors } from '../../utils/apiErrors';
 import { ErrorBanner } from '../../components/common/ErrorBanner';
 import { auroraTokens } from '../../theme/useAuroraSkin';
@@ -645,9 +646,10 @@ export const QuickAddModal: React.FC<Props> = ({
             <View style={[styles.fieldsDivider, { borderTopColor: hair }]} />
 
             <Controller control={control} name="name"
-              rules={{ required: t('RequiredField') ?? 'Required' }}
+              rules={{ required: isNameRequired(editMode, !!modal.selectedExpenseId) ? (t('RequiredField') ?? 'Required') : false }}
               render={({ field: { onChange, value } }) => (
-                <AuroraField dark={dark} icon="text-short" placeholder={t('FieldName') ?? 'Name'}
+                <AuroraField dark={dark} icon="text-short"
+                  placeholder={modal.selectedExpenseId ? (t('PlaceholderItemWithoutName') ?? 'Item') : (t('FieldName') ?? 'Name')}
                   value={value} onChangeText={onChange} hasError={!!errors.name} />
               )}
             />
