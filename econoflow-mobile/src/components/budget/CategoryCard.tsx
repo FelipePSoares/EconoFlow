@@ -7,6 +7,7 @@ import type { Category } from '../../api/types';
 import { getCategoryColor } from '../../utils/categoryTheme';
 import { getCategoryIcon } from '../../utils/categoryIcon';
 import { getCurrencySymbol } from '../../utils/currency';
+import { calculateExpensesOverspend } from '../../utils/budget';
 import { GlassCard } from '../common/GlassCard';
 import { DonutRing } from '../common/DonutRing';
 import { auroraTokens } from '../../theme/useAuroraSkin';
@@ -31,13 +32,14 @@ export const CategoryCard: React.FC<Props> = ({
   const { t }  = useTranslation();
   const { ink, ink2 } = auroraTokens(!!dark);
   const { colors } = useAppTheme();
-  const spent  = getTotalSpend(category);
-  const budget = getTotalBudget(category);
-  const pct    = budget > 0 ? spent / budget : 0;
-  const isOver = pct > 1;
-  const color  = getCategoryColor(index);
-  const sym    = getCurrencySymbol(currency);
-  const icon   = getCategoryIcon(category.name);
+  const spent       = getTotalSpend(category);
+  const budget      = getTotalBudget(category);
+  const pct         = budget > 0 ? spent / budget : 0;
+  const isOver      = pct > 1;
+  const catOverspend = calculateExpensesOverspend(category.expenses);
+  const color       = getCategoryColor(index);
+  const sym         = getCurrencySymbol(currency);
+  const icon        = getCategoryIcon(category.name);
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.78} style={styles.wrapper}>
@@ -58,6 +60,11 @@ export const CategoryCard: React.FC<Props> = ({
             <Text style={[styles.sub, { color: isOver ? colors.error : ink2 }]}>
               {category.expenses.length} {t('LabelExpenseItems')} · {Math.round(pct * 100)}%
             </Text>
+            {catOverspend > 0 && (
+              <Text style={[styles.overspend, { color: colors.error }]}>
+                +{sym} {Math.round(catOverspend).toLocaleString()} {t('LabelOver') ?? 'over'}
+              </Text>
+            )}
           </View>
 
           <Text style={[styles.amount, { color: ink }]}>
@@ -73,8 +80,9 @@ export const CategoryCard: React.FC<Props> = ({
 const styles = StyleSheet.create({
   wrapper: { marginHorizontal: 16, marginVertical: 5 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12 },
-  info:   { flex: 1, gap: 3 },
-  name:   { fontSize: 14.5, fontWeight: '700' },
-  sub:    { fontSize: 11.5 },
-  amount: { fontSize: 14, fontWeight: 'bold' },
+  info:     { flex: 1, gap: 3 },
+  name:     { fontSize: 14.5, fontWeight: '700' },
+  sub:      { fontSize: 11.5 },
+  overspend:{ fontSize: 11.5, fontWeight: '700' },
+  amount:   { fontSize: 14, fontWeight: 'bold' },
 });

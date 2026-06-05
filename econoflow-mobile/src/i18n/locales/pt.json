@@ -551,6 +551,9 @@
   "LabelSelectProject": "Selecionar projeto",
   "LabelMyAccount": "Minha Conta",
   "LabelCategories": "Categorias",
+  "LabelSpent": "gasto",
+  "LabelBudgetSummary": "Resumo do Orçamento",
+  "LabelLeft": "restante",
   "Optional": "opcional"
 }
 

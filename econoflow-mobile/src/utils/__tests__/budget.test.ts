@@ -1,4 +1,4 @@
-import { calculateTotalIncome, calculateTotalExpenses, calculateTotalBudget, calculateTotalOverspend, calculateExpensesOverspend, toggleSetItem } from '../budget';
+import { calculateTotalIncome, calculateTotalExpenses, calculateTotalBudget, calculateTotalOverspend, calculateExpensesOverspend, calculateRemainingBudget, toggleSetItem } from '../budget';
 import type { Category, Expense, Income } from '../../api/types';
 
 const makeIncome = (amount: number): Income =>
@@ -32,12 +32,12 @@ describe('calculateExpensesOverspend', () => {
     expect(calculateExpensesOverspend([])).toBe(0);
   });
 
-  it('counts an unplanned expense (budget=0) as full overspend', () => {
-    expect(calculateExpensesOverspend([makeExpense(100, 100), makeExpense(100, 0)])).toBe(100);
+  it('does not count an unplanned expense (budget=0) as overspend', () => {
+    expect(calculateExpensesOverspend([makeExpense(100, 100), makeExpense(100, 0)])).toBe(0);
   });
 
-  it('does not net underspend against overspend', () => {
-    expect(calculateExpensesOverspend([makeExpense(50, 100), makeExpense(100, 0)])).toBe(100);
+  it('does not count an unplanned expense alongside an under-budget expense', () => {
+    expect(calculateExpensesOverspend([makeExpense(50, 100), makeExpense(100, 0)])).toBe(0);
   });
 
   it('handles a partially over-budget expense', () => {
@@ -112,7 +112,7 @@ describe('calculateTotalOverspend', () => {
     expect(calculateTotalOverspend([])).toBe(0);
   });
 
-  it('counts an unplanned expense (budget=0) as full overspend', () => {
+  it('does not count an unplanned expense (budget=0) as overspend', () => {
     expect(
       calculateTotalOverspend([
         makeCategory([
@@ -120,11 +120,10 @@ describe('calculateTotalOverspend', () => {
           { amount: 100, budget: 0 },
         ]),
       ])
-    ).toBe(100);
+    ).toBe(0);
   });
 
-  it('does not net underspend against overspend across expenses', () => {
-    // E1 underspends by 50, E2 overspends by 100 — net would be 50 but correct is 100
+  it('does not net unplanned expense against under-budget expense', () => {
     expect(
       calculateTotalOverspend([
         makeCategory([
@@ -132,20 +131,67 @@ describe('calculateTotalOverspend', () => {
           { amount: 100, budget: 0 },
         ]),
       ])
-    ).toBe(100);
+    ).toBe(0);
   });
 
-  it('sums overspend across multiple categories', () => {
+  it('sums overspend across categories, ignoring unplanned expenses', () => {
     expect(
       calculateTotalOverspend([
         makeCategory([{ amount: 150, budget: 100 }]),
         makeCategory([{ amount: 100, budget: 0 }]),
       ])
-    ).toBe(150);
+    ).toBe(50);
   });
 
   it('handles partially over-budget expense', () => {
     expect(calculateTotalOverspend([makeCategory([{ amount: 120, budget: 100 }])])).toBe(20);
+  });
+});
+
+describe('calculateRemainingBudget', () => {
+  it('returns full budget when nothing is spent', () => {
+    expect(calculateRemainingBudget([makeCategory([{ amount: 0, budget: 100 }])])).toBe(100);
+  });
+
+  it('returns 0 when budget is exactly spent', () => {
+    expect(calculateRemainingBudget([makeCategory([{ amount: 100, budget: 100 }])])).toBe(0);
+  });
+
+  it('sums remaining across multiple under-budget categories', () => {
+    const cats = [
+      makeCategory([{ amount: 50, budget: 100 }]),
+      makeCategory([{ amount: 20, budget: 80 }]),
+    ];
+    // budget=180, expenses=70, overspend=0 → remaining = 110
+    expect(calculateRemainingBudget(cats)).toBe(110);
+  });
+
+  it('does not let overspend from one category reduce the remaining of another', () => {
+    const cats = [
+      makeCategory([{ amount: 50, budget: 100 }]),  // 50 remaining
+      makeCategory([{ amount: 150, budget: 100 }]), // 50 over
+    ];
+    // budget=200, expenses=200, overspend=50 → remaining = max(200-(200-50),0) = 50
+    expect(calculateRemainingBudget(cats)).toBe(50);
+  });
+
+  it('returns 0 when over budget with no under-budget slack', () => {
+    expect(calculateRemainingBudget([makeCategory([{ amount: 150, budget: 100 }])])).toBe(0);
+  });
+
+  it('returns 0 for empty input', () => {
+    expect(calculateRemainingBudget([])).toBe(0);
+  });
+
+  it('unplanned expenses consume remaining budget but are not counted as overspend', () => {
+    // planned: amount=80, budget=100 → 20 remaining
+    // unplanned: amount=100, budget=0 → consumes budget but not "over"
+    // budget=100, expenses=180, overspend=0 → remaining = max(100-180, 0) = 0
+    const cats = [
+      makeCategory([{ amount: 80, budget: 100 }]),
+      makeCategory([{ amount: 100, budget: 0 }]),
+    ];
+    expect(calculateRemainingBudget(cats)).toBe(0);
   });
 });
 

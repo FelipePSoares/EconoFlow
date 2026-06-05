@@ -15,13 +15,23 @@ import { LoadingIndicator } from '../../components/common/LoadingIndicator';
 import { ErrorBanner } from '../../components/common/ErrorBanner';
 import { MonthNavigator } from '../../components/common/MonthNavigator';
 import { GlassScreen } from '../../components/common/GlassScreen';
+import { GlassCard } from '../../components/common/GlassCard';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
+import { useAppTheme } from '../../theme/useAppTheme';
+import {
+  calculateTotalBudget,
+  calculateTotalExpenses,
+  calculateTotalOverspend,
+  calculateRemainingBudget,
+} from '../../utils/budget';
+import { getCurrencySymbol } from '../../utils/currency';
 
 type Props = NativeStackScreenProps<OverviewStackParamList, 'CategoryList'>;
 
 export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
   const { t } = useTranslation();
   const { dark, ink, ink2 } = useAuroraSkin();
+  const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const [month, setMonth] = useState(route.params.month);
   const [dismissedError, setDismissedError] = useState(false);
@@ -47,6 +57,12 @@ export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
   if (isLoading) return <LoadingIndicator />;
 
   const activeCategories = categories?.filter(c => !c.isArchived) ?? [];
+  const sym              = getCurrencySymbol(currency);
+  const totalBudget      = calculateTotalBudget(activeCategories);
+  const totalSpent       = calculateTotalExpenses(activeCategories);
+  const totalOverspend   = calculateTotalOverspend(activeCategories);
+  const remaining        = calculateRemainingBudget(activeCategories);
+  const spentPct         = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
 
   return (
     <GlassScreen dark={dark}>
@@ -78,6 +94,44 @@ export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
         style={{ opacity: isFetching && !!categories ? 0.55 : 1 }}
         data={activeCategories}
         keyExtractor={item => item.id}
+        ListHeaderComponent={
+          activeCategories.length > 0 ? (
+            <GlassCard dark={!!dark} radius={18} intensity={30} style={styles.summaryCard}>
+              <View style={styles.summaryInner}>
+                <Text style={[styles.summaryTitle, { color: ink2 }]}>{t('LabelBudgetSummary') ?? 'Budget Summary'}</Text>
+                <View style={styles.summaryRow}>
+                  <View style={styles.summaryStat}>
+                    <Text style={[styles.summaryStatLabel, { color: ink2 }]}>{t('Budget')}</Text>
+                    <Text style={[styles.summaryStatAmt, { color: ink }]}>
+                      {sym} {Math.round(totalBudget).toLocaleString()}
+                    </Text>
+                  </View>
+                  <View style={[styles.summaryDivider, { backgroundColor: ink2 + '33' }]} />
+                  <View style={styles.summaryStat}>
+                    <Text style={[styles.summaryStatLabel, { color: ink2 }]}>
+                      {t('LabelSpent') ?? 'spent'} · {spentPct}%
+                    </Text>
+                    <Text style={[styles.summaryStatAmt, { color: ink }]}>
+                      {sym} {Math.round(totalSpent).toLocaleString()}
+                    </Text>
+                  </View>
+                  <View style={[styles.summaryDivider, { backgroundColor: ink2 + '33' }]} />
+                  <View style={styles.summaryStat}>
+                    <Text style={[styles.summaryStatLabel, { color: ink2 }]}>{t('Remaining') ?? 'remaining'}</Text>
+                    <Text style={[styles.summaryStatAmt, { color: ink }]}>
+                      {sym} {Math.round(remaining).toLocaleString()}
+                    </Text>
+                    {totalOverspend > 0 && (
+                      <Text style={[styles.summaryOverspend, { color: colors.error }]}>
+                        +{sym} {Math.round(totalOverspend).toLocaleString()} {t('LabelOver') ?? 'over'}
+                      </Text>
+                    )}
+                  </View>
+                </View>
+              </View>
+            </GlassCard>
+          ) : null
+        }
         renderItem={({ item, index }) => (
           <CategoryCard
             category={item}
@@ -122,4 +176,14 @@ const styles = StyleSheet.create({
   headerName: { fontSize: 17, fontWeight: '800' },
   list: { paddingTop: 8, paddingBottom: 24 },
   empty: { textAlign: 'center', marginTop: 48, fontSize: 14, opacity: 0.6 },
+
+  summaryCard:       { marginHorizontal: 16, marginTop: 4, marginBottom: 8 },
+  summaryInner:      { padding: 14, gap: 8 },
+  summaryTitle:      { fontSize: 11.5, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  summaryRow:        { flexDirection: 'row', alignItems: 'flex-start' },
+  summaryStat:       { flex: 1, gap: 2 },
+  summaryDivider:    { width: 1, marginHorizontal: 12, alignSelf: 'stretch' },
+  summaryStatLabel:  { fontSize: 11, fontWeight: '600' },
+  summaryStatAmt:    { fontSize: 15, fontWeight: 'bold' },
+  summaryOverspend:  { fontSize: 11.5, fontWeight: '700' },
 });
