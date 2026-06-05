@@ -44,8 +44,9 @@
           "resizeMode": "contain",
           "imageWidth": 150
         }
-      ]
-    ],
+      ],
+      "@sentry/react-native"
+    ]
     "extra": {
       "eas": {
         "projectId": "2265ef61-8266-496c-b5ff-3171b3078e88"

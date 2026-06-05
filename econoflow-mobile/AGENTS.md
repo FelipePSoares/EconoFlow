@@ -55,66 +55,13 @@ Verify every item below before marking the task done — quote the offending lin
 - [ ] Sensitive data stored via `expo-secure-store`, not `AsyncStorage`
 - [ ] No API keys, tokens, or secrets in source files, `app.json`, or `EXPO_PUBLIC_*` variables
 - [ ] Every new exported function or component has a corresponding Jest test
-- [ ] `econoflow-mobile/AGENTS.md` or repo-root `AGENTS.md` updated if the change introduces new patterns or configuration
+- [ ] `econoflow-mobile/AGENTS.md` updated if the change introduces new patterns or configuration
 
 **The task is not complete until tests are green, typecheck and lint are clean, and every checklist item above is confirmed.**
 
 ---
 
 React Native 0.85 + Expo SDK 56 app. Read the exact versioned docs at https://docs.expo.dev/versions/v56.0.0/ before writing any code.
-
-## Build (release APK)
-
-The release build uses `expo prebuild --clean` to regenerate the native project from scratch, which wipes all manual additions to `android/` (emulator cert, network security config, etc.). That is intentional — the release APK targets production and must not contain dev certs.
-
-```powershell
-cd econoflow-mobile
-
-# 1. Regenerate native Android project from app.json (wipes android/)
-$env:EXPO_PUBLIC_API_URL = "https://econoflow.pt"
-npx expo prebuild --platform android --no-install --clean
-
-# 2. Generate a release signing keystore (one-time)
-keytool -genkey -v `
-  -keystore "$env:USERPROFILE\.android\release.keystore" `
-  -storepass android -alias econoflow -keypass android `
-  -keyalg RSA -keysize 2048 -validity 10000 `
-  -dname "CN=EconoFlow,O=EconoFlow,C=PT"
-
-# 3. Build release APK — MUST override reactNativeArchitectures for ARM devices
-$env:JAVA_HOME = "C:\tools\jdk-17.0.13+11"
-$env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
-$env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
-$env:EXPO_PUBLIC_API_URL = "https://econoflow.pt"
-$keystore = "$env:USERPROFILE\.android\release.keystore"
-
-cd android
-.\gradlew assembleRelease `
-  -PreactNativeArchitectures=arm64-v8a,armeabi-v7a `
-  "--project-prop=android.injected.signing.store.file=$keystore" `
-  "--project-prop=android.injected.signing.store.password=android" `
-  "--project-prop=android.injected.signing.key.alias=econoflow" `
-  "--project-prop=android.injected.signing.key.password=android" `
-  --no-daemon
-
-# APK will be at: android/app/build/outputs/apk/release/app-release.apk
-```
-
-**Why `-PreactNativeArchitectures=arm64-v8a,armeabi-v7a` is required:** `android/gradle.properties`
-defaults to `x86_64` (for fast emulator builds). Physical Android devices are ARM. Omitting this flag
-produces an x86_64-only APK that physical phones refuse to install.
-
-**Why `abiFilters` is NOT in `app.json`:** It was there as `["x86_64"]` which would bake the x86_64
-restriction into `build.gradle` after every prebuild, breaking the release APK. It was removed.
-`reactNativeArchitectures` in `gradle.properties` is the correct single place to control ABI scope.
-
-## Build (debug APK — no signing needed)
-
-```powershell
-cd econoflow-mobile/android
-.\gradlew assembleDebug --no-daemon
-# APK at: android/app/build/outputs/apk/debug/app-debug.apk
-```
 
 ## Dev server (Expo Go + QR scan)
 
@@ -174,7 +121,7 @@ The cert is embedded directly in the APK and referenced from the network securit
 the only reliable approach on API 35 — the traditional system cert store bind-mount injection does
 not work (see Why below).
 
-Files already present in the repo (no action needed unless they were wiped by `prebuild --clean`):
+Files already present in the repo (no action needed unless they were wiped by `npx expo prebuild --clean`):
 
 - `android/app/src/main/res/raw/devcert_emulator.pem` — the cert public key
 - `android/app/src/main/res/xml/network_security_config.xml`:
@@ -209,11 +156,9 @@ cp $env:USERPROFILE\.econoflow\devcert-emulator.pem `
 ```
 
 **Why the bind-mount approach doesn't work on API 35:** `/apex/com.android.conscrypt/cacerts` is
-mounted from its own dm-block device (`dm-46`). Running `mount --bind /data/local/tmp/ca-overlay
-/apex/com.android.conscrypt/cacerts` completes without error but is silently superseded by the APEX
-block device mount. The cert files appear in the directory listing (persisted from a previous write)
-but the trust evaluation uses the APEX-mounted store, not the overlay. Embedding the cert in `@raw`
-bypasses the system store entirely.
+mounted from its own dm-block device. Running `mount --bind` completes without error but is silently
+superseded by the APEX block device mount. Embedding the cert in `@raw` bypasses the system store
+entirely.
 
 ### 3. API URL in .env.local
 
@@ -221,7 +166,7 @@ bypasses the system store entirely.
 EXPO_PUBLIC_API_URL=https://10.0.2.2:7003
 ```
 
-Metro bakes this into the JS bundle at runtime (debug) or build time (release). The fallback in
+Metro bakes this into the JS bundle at build time. The fallback in
 `src/api/client.ts` is `https://localhost:7003` which only works for web, not the emulator.
 
 ### 4. ABI: build for x86_64 only (fast emulator builds)
@@ -233,11 +178,6 @@ reactNativeArchitectures=x86_64
 
 This limits the native build to x86_64 — the Pixel_7_API_35 emulator's ABI. Without it, Gradle
 compiles for arm64-v8a + armeabi-v7a too (~15 min). x86_64-only takes ~2 min.
-
-**arm64 APKs crash immediately on x86_64 emulators** with
-`SoLoaderDSONotFoundError: couldn't find DSO to load: libreactnative.so` because JNI libraries are
-architecture-specific and the emulator cannot translate them. Always build for x86_64 for emulator
-dev, and always pass `-PreactNativeArchitectures=arm64-v8a,armeabi-v7a` for release.
 
 ### Complete dev workflow
 
@@ -252,7 +192,7 @@ dotnet run --project ./EasyFinance.Server
 # Terminal 2 — start emulator
 & "$env:LOCALAPPDATA\Android\Sdk\emulator\emulator.exe" -avd Pixel_7_API_35 -no-boot-anim
 
-# Terminal 2 — build and run (cert trust is embedded in the APK, no adb injection needed)
+# Terminal 2 — build and run
 cd econoflow-mobile
 $env:EXPO_PUBLIC_API_URL = "https://10.0.2.2:7003"
 npx expo run:android
@@ -268,8 +208,8 @@ Backend is serving `devcert.pfx` (CA:TRUE). Fix: update `appsettings.Development
 `devcert-emulator.pfx` and restart the backend process (not just reload config).
 
 **App crashes immediately: `SoLoaderDSONotFoundError: couldn't find DSO to load: libreactnative.so`**
-APK was built for ARM (`arm64-v8a`) but the emulator is x86_64. Fix: rebuild with
-`-PreactNativeArchitectures=x86_64` or ensure `gradle.properties` has `reactNativeArchitectures=x86_64`.
+APK was built for ARM but the emulator is x86_64. Fix: ensure `gradle.properties` has
+`reactNativeArchitectures=x86_64` and run `npx expo run:android` again.
 
 **`adb install` fails: `Broken pipe (32)` or `Can't find service: package`**
 Package manager crashed mid-transfer. Fix: cold-boot the emulator, then install manually:
@@ -319,3 +259,39 @@ Custom tokens (`theme.customColors` from `useAppTheme()` hook):
 - **i18n**: `react-i18next` with JSON files in `src/i18n/locales/`
 - **Theme hook**: `useAppTheme()` from `src/theme/useAppTheme.ts` — wraps Paper's `useTheme` with custom colour types
 - **Error handling**: `ErrorBanner` component at `src/components/common/ErrorBanner.tsx`
+
+## Monitoring (Sentry)
+
+Package: `@sentry/react-native` (~7.11.0).
+Central module: `src/monitoring/sentry.ts` — all Sentry interactions go through here.
+
+### Env vars
+
+| Variable | Where to set | Purpose |
+|---|---|---|
+| `EXPO_PUBLIC_SENTRY_DSN` | `.env.local` | Sentry ingest endpoint |
+
+The DSN is a **public** identifier (not a secret). It is intentionally embedded in the JS bundle.
+Sentry is **disabled in development** (`enabled: !__DEV__`), so no events are sent during local runs.
+
+### Usage in application code
+
+```typescript
+import { captureError, addBreadcrumb } from '../monitoring/sentry';
+
+// In a try/catch:
+try {
+  await riskyOperation();
+} catch (err) {
+  captureError(err, { screen: 'ExpenseFormScreen', action: 'submit' });
+}
+
+// Manual breadcrumb (optional context for the next error):
+addBreadcrumb('User opened QuickAdd modal', 'ui');
+```
+
+### Privacy rules
+- **Never** pass financial amounts, email, name, or any PII into `captureError` context or `addBreadcrumb` data.
+- The `beforeSend` hook in `sentry.ts` strips `Authorization` headers automatically.
+- User context is set to the **user ID only** (`setUserContext(user.id)`) — no email, no name.
+- HTTP breadcrumbs log **method + URL** only — never request or response bodies.
