@@ -2,12 +2,12 @@ import { shouldShowAmountError } from '../amountValidation';
 
 describe('shouldShowAmountError', () => {
   describe('creating a new entry (no editMode)', () => {
-    it('returns true when amount is 0', () => {
-      expect(shouldShowAmountError(undefined, 0)).toBe(true);
+    it('returns false when amount is 0 — amount is optional for new entries', () => {
+      expect(shouldShowAmountError(undefined, 0)).toBe(false);
     });
 
-    it('returns true when amount is negative', () => {
-      expect(shouldShowAmountError(undefined, -5)).toBe(true);
+    it('returns false when amount is negative — no client-side enforcement for new entries', () => {
+      expect(shouldShowAmountError(undefined, -5)).toBe(false);
     });
 
     it('returns false when amount is positive', () => {
