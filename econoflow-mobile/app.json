@@ -45,7 +45,14 @@
           "imageWidth": 150
         }
       ],
-      "@sentry/react-native"
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "organization": "econoflow",
+          "project": "econoflow"
+        }
+      ]
     ],
     "extra": {
       "eas": {
