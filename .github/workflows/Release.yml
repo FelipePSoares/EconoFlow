@@ -148,7 +148,13 @@ jobs:
       working-directory: ./econoflow-mobile/android
       env:
         EXPO_PUBLIC_API_URL: https://econoflow.pt
+        # The Sentry DSN is a public ingest endpoint, not a secret — it is
+        # intentionally baked into the JS bundle by Metro at build time.
         EXPO_PUBLIC_SENTRY_DSN: https://e3e5bdde0b6e300e13e77f760e0c1cdf@o4511512006754304.ingest.de.sentry.io/4511512010096720
+        # Auth token for uploading source maps so Sentry shows real file/line
+        # numbers in crash reports. Add SENTRY_AUTH_TOKEN as a GitHub secret:
+        # repo Settings → Secrets → Actions → New repository secret
+        SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
     - name: Upload release APK
       if: steps.mobile-changes.outputs.mobile == 'true'
