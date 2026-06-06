@@ -4,6 +4,7 @@ import {
   PanResponder,
   StyleSheet,
   TouchableOpacity,
+  View,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAppTheme } from '../../theme/useAppTheme';
@@ -79,34 +80,41 @@ export const SwipeableRow: React.FC<Props> = ({
   }, [translateX, disabled]);
 
   return (
-    <Animated.View
-      style={[styles.container, { transform: [{ translateX }] }]}
-      {...panResponder.panHandlers}
-    >
-      {children}
+    // Outer wrapper clips the sliding content and hosts the action button at a
+    // fixed layout position so React Native's hit-test (which uses pre-transform
+    // coordinates) can reach it after the content slides away.
+    <View style={styles.wrapper}>
       <TouchableOpacity
         onPress={() => { close(); onAction(); }}
-        style={[styles.actionBtn, { backgroundColor: actionColor, right: -ACTION_WIDTH }]}
+        style={[styles.actionBtn, { backgroundColor: actionColor }]}
         activeOpacity={0.8}
       >
         <MaterialCommunityIcons name={actionIcon as never} size={20} color={colors.surface} />
       </TouchableOpacity>
-    </Animated.View>
+      <Animated.View
+        style={[styles.content, { transform: [{ translateX }] }]}
+        {...panResponder.panHandlers}
+      >
+        {children}
+      </Animated.View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
+  wrapper: {
+    overflow: 'hidden',
   },
   actionBtn: {
     position: 'absolute',
-    top: '50%',
-    width: ACTION_WIDTH - 16,
-    height: ACTION_WIDTH - 16,
-    marginTop: -(ACTION_WIDTH - 16) / 2,
-    borderRadius: (ACTION_WIDTH - 16) / 2,
+    top: 0,
+    right: 0,
+    bottom: 0,
+    width: ACTION_WIDTH,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  content: {
+    backgroundColor: 'transparent',
   },
 });
