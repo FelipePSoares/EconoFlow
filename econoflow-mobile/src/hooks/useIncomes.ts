@@ -47,3 +47,13 @@ export const useDeleteIncome = (projectId: string, month: string) => {
     },
   });
 };
+
+export const useRestoreIncome = (projectId: string, month: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (incomeId: string) => IncomesApi.restoreIncome(projectId, incomeId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['incomes', projectId, month] });
+    },
+  });
+};

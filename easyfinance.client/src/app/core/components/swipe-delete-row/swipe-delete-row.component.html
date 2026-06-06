@@ -1,0 +1,20 @@
+<div class="swipe-wrapper"
+  (pointerdown)="onPointerDown($event)"
+  (pointermove)="onPointerMove($event)"
+  (pointerup)="onPointerUp()"
+  (pointercancel)="onPointerCancel()">
+
+  <div class="swipe-action-panel" [class.open]="isOpen()">
+    <button class="swipe-action-btn"
+      [class.swipe-action-delete]="actionIcon === 'trash'"
+      [class.swipe-action-archive]="actionIcon === 'archive'"
+      (click)="triggerAction()"
+      type="button">
+      <i class="bi" [class.bi-trash]="actionIcon === 'trash'" [class.bi-archive]="actionIcon === 'archive'"></i>
+    </button>
+  </div>
+
+  <div #content class="swipe-content" [style.transform]="'translateX(' + offset() + 'px)'">
+    <ng-content></ng-content>
+  </div>
+</div>

@@ -554,6 +554,9 @@
   "LabelSpent": "gasto",
   "LabelBudgetSummary": "Resumo do Orçamento",
   "LabelLeft": "restante",
-  "Optional": "opcional"
+  "Optional": "opcional",
+  "LabelUndoDelete": "Excluído. Desfazer?",
+  "LabelUndoArchive": "Arquivado. Desfazer?",
+  "ButtonUndo": "Desfazer"
 }
 

@@ -71,5 +71,12 @@ namespace EasyFinance.Server.Controllers
 
             return ValidateResponse(deleteResult, HttpStatusCode.NoContent);
         }
+
+        [HttpPut("{incomeId}/restore")]
+        public async Task<IActionResult> RestoreAsync(Guid incomeId)
+        {
+            var result = await incomeService.RestoreAsync(incomeId);
+            return ValidateResponse(result, HttpStatusCode.NoContent);
+        }
     }
 }

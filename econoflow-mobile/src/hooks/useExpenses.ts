@@ -98,3 +98,27 @@ export const useDeleteExpenseItem = (projectId: string, categoryId: string, mont
     },
   });
 };
+
+export const useRestoreExpense = (projectId: string, categoryId: string, month: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (expenseId: string) =>
+      ExpensesApi.restoreExpense(projectId, categoryId, expenseId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['expenses', projectId, categoryId, month] });
+      queryClient.invalidateQueries({ queryKey: ['categories', projectId, month] });
+    },
+  });
+};
+
+export const useRestoreExpenseItem = (projectId: string, categoryId: string, month: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ expenseId, expenseItemId }: { expenseId: string; expenseItemId: string }) =>
+      ExpensesApi.restoreExpenseItem(projectId, categoryId, expenseId, expenseItemId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['expenses', projectId, categoryId, month] });
+      queryClient.invalidateQueries({ queryKey: ['categories', projectId, month] });
+    },
+  });
+};

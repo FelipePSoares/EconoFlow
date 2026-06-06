@@ -162,8 +162,20 @@ export class ExpenseService {
     }).pipe(map(res => res.ok));
   }
 
+  restore(projectId: string, categoryId: string, id: string): Observable<boolean> {
+    return this.http.put('/api/projects/' + projectId + '/categories/' + categoryId + '/expenses/' + id + '/restore', null, {
+      observe: 'response'
+    }).pipe(map(res => res.ok));
+  }
+
   removeItem(projectId: string, categoryId: string, expenseId: string, expenseItemId: string): Observable<boolean> {
     return this.http.delete('/api/projects/' + projectId + '/categories/' + categoryId + '/expenses/' + expenseId + '/expenseItems/' + expenseItemId, {
+      observe: 'response'
+    }).pipe(map(res => res.ok));
+  }
+
+  restoreItem(projectId: string, categoryId: string, expenseId: string, expenseItemId: string): Observable<boolean> {
+    return this.http.put('/api/projects/' + projectId + '/categories/' + categoryId + '/expenses/' + expenseId + '/expenseItems/' + expenseItemId + '/restore', null, {
       observe: 'response'
     }).pipe(map(res => res.ok));
   }

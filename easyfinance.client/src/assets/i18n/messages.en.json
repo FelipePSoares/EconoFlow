@@ -470,5 +470,8 @@
   "PlanAllocationError": "Failed to allocate to plan. Please try again.",
   "PlanAllocationNote": "Allocation from income: {{value}}",
   "BUDGET_OVERFLOW": "Budget for '{{ expenseName }}' in project '{{ projectName }}' has been exceeded!",
-  "BUDGET_WARNING": "Warning: Budget for '{{ expenseName }}' in project '{{ projectName }}' is nearly exhausted (80%)."
+  "BUDGET_WARNING": "Warning: Budget for '{{ expenseName }}' in project '{{ projectName }}' is nearly exhausted (80%).",
+  "UndoDelete": "Deleted. Undo?",
+  "UndoArchive": "Archived. Undo?",
+  "ButtonUndo": "Undo"
 }

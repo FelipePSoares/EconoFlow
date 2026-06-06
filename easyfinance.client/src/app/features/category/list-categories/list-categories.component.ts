@@ -1,5 +1,5 @@
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { Component, Input, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
@@ -8,11 +8,11 @@ import { compare } from 'fast-json-patch';
 import { MatButton } from "@angular/material/button";
 import { MatError, MatFormField, MatLabel } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
-import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CategoryDto } from '../models/category-dto';
 import { CategoryService } from '../../../core/services/category.service';
-import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
+import { SwipeDeleteRowComponent } from '../../../core/components/swipe-delete-row/swipe-delete-row.component';
 import { ApiErrorResponse } from "../../../core/models/error";
 import { ErrorMessageService } from "../../../core/services/error-message.service";
 import { UserProjectDto } from '../../project/models/user-project-dto';
@@ -35,6 +35,7 @@ import { DefaultCategory } from '../../../core/models/default-category';
       MatLabel,
       MatAutocompleteModule,
       DragDropModule,
+      SwipeDeleteRowComponent,
       TranslateModule
     ],
     templateUrl: './list-categories.component.html',
@@ -45,11 +46,9 @@ export class ListCategoriesComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private errorMessageService = inject(ErrorMessageService);
-  private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
   private projectService = inject(ProjectService);
   private translateService = inject(TranslateService);
-
-  @ViewChild(ConfirmDialogComponent) ConfirmDialog!: ConfirmDialogComponent;
 
   private categories: BehaviorSubject<CategoryDto[]> = new BehaviorSubject<CategoryDto[]>([new CategoryDto()]);
   categories$: Observable<CategoryDto[]> = this.categories.asObservable();
@@ -61,7 +60,6 @@ export class ListCategoriesComponent implements OnInit {
 
   categoryForm!: FormGroup;
   editingCategory: CategoryDto = new CategoryDto();
-  itemToDelete!: string;
   httpErrors = false;
   errors!: Record<string, string[]>;
   userProject!: UserProjectDto;
@@ -184,32 +182,19 @@ export class ListCategoriesComponent implements OnInit {
     this.editingCategory = new CategoryDto();
   }
 
-  remove(id: string): void {
-    this.categoryService.remove(this.projectId, id).subscribe({
-      next: () => {
-        const categoriesNewArray: CategoryDto[] = [...this.categories.getValue()];
+  swipeArchive(category: CategoryDto): void {
+    this.categories.next(this.categories.getValue().filter(c => c.id !== category.id));
 
-        categoriesNewArray.forEach((item, index) => {
-          if (item.id === id) {
-            categoriesNewArray.splice(index, 1);
-          }
-        });
+    this.categoryService.remove(this.projectId, category.id).subscribe();
 
-        this.categories.next(categoriesNewArray);
-      }
-    })
-  }
+    const undoLabel = this.translateService.instant('ButtonUndo');
+    const message = this.translateService.instant('UndoArchive');
+    const ref = this.snackBar.open(message, undoLabel, { duration: 5000 });
 
-  triggerDelete(category: CategoryDto): void {
-    this.itemToDelete = category.id
-    const message = this.translateService.instant('AreYouSureYouWantArchiveCategory', { value: category.name });
-
-    this.dialog.open(ConfirmDialogComponent, {
-      data: { title: 'ArchiveCategory', message: message, action: 'ButtonArchive' },
-    }).afterClosed().subscribe((result) => {
-      if (result) {
-        this.remove(this.itemToDelete);
-      }
+    ref.onAction().subscribe(() => {
+      this.categoryService.restore(this.projectId, category.id).subscribe({
+        next: () => this.fillData()
+      });
     });
   }
 

@@ -10,6 +10,12 @@ namespace EasyFinance.Persistence.Mapping.Financial
         {
             builder.ToTable("Expenses");
 
+            builder.HasQueryFilter(p => !p.IsDeleted);
+
+            builder.Property(p => p.IsDeleted)
+                .IsRequired()
+                .HasDefaultValue(false);
+
             builder.Property(p => p.Budget);
             builder.Property(p => p.IsDeductible)
                 .HasDefaultValue(false)

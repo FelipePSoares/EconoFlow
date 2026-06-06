@@ -19,50 +19,53 @@
         <mat-card-content [class.archived-container]="isArchived">
           <div class="list-group list-group-flush">
             @for (expense of (expenses$ | async); track expense.id) {
-              <div class="list-group-item">
+              <div class="list-group-item px-0">
                 @if (isEditingExpense(expense) || isMovingExpense(expense)) {
-                  <app-expense
-                    [projectId]="projectId"
-                    [categoryId]="categoryId"
-                    [expense]="expense"
-                    [inlineMode]="true"
-                    [moveMode]="isMovingExpense(expense)"
-                    (saved)="onExpenseSaved()"
-                    (canceled)="cancelExpenseForm()">
-                  </app-expense>
+                  <div class="px-3">
+                    <app-expense
+                      [projectId]="projectId"
+                      [categoryId]="categoryId"
+                      [expense]="expense"
+                      [inlineMode]="true"
+                      [moveMode]="isMovingExpense(expense)"
+                      (saved)="onExpenseSaved()"
+                      (canceled)="cancelExpenseForm()">
+                    </app-expense>
+                  </div>
                 } @else {
-                  <div class="d-flex align-items-center expense-item">
-                    @if(canAddOrEdit() || (expense.items && expense.items.length > 0)) {
-                      <button class="btn btn-link p-0 me-3"
-                        (click)="toggleExpand(expense.id)"
-                        [attr.aria-expanded]="isExpanded(expense.id)">
-                        <i class="bi" [class]="isExpanded(expense.id) ? 'bi-chevron-down' : 'bi-chevron-right'"></i>
-                      </button>
-                    }
+                  <app-swipe-delete-row
+                    [disabled]="!canAddOrEdit() || isArchived"
+                    actionIcon="trash"
+                    (actionTriggered)="swipeDeleteExpense(expense)">
+                    <div class="d-flex align-items-center expense-item px-3">
+                      @if(canAddOrEdit() || (expense.items && expense.items.length > 0)) {
+                        <button class="btn btn-link p-0 me-3"
+                          (click)="toggleExpand(expense.id)"
+                          [attr.aria-expanded]="isExpanded(expense.id)">
+                          <i class="bi" [class]="isExpanded(expense.id) ? 'bi-chevron-down' : 'bi-chevron-right'"></i>
+                        </button>
+                      }
 
-                    <div class="flex-grow-1">
-                      <div class="d-flex justify-content-between align-items-center">
-                        <h2 class="mb-1 fw-bold name mb-3" [class.archived]="isArchived">{{ expense.name }}</h2>
+                      <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-center">
+                          <h2 class="mb-1 fw-bold name mb-3" [class.archived]="isArchived">{{ expense.name }}</h2>
 
-                        @if (canAddOrEdit()) {
-                          <div class="btn-group">
-                            <button name="edit" class="btn btn-outline-secondary" (click)="startEditExpense(expense)">
-                              <i class="bi bi-pencil-square"></i>
-                            </button>
-                            <button
-                              name="move"
-                              class="btn btn-outline-secondary"
-                              [attr.aria-label]="'ButtonMove' | translate"
-                              [title]="'ButtonMove' | translate"
-                              (click)="startMoveExpense(expense)">
-                              <i class="bi bi-arrow-left-right"></i>
-                            </button>
-                            <button name="delete" class="btn btn-outline-danger" (click)="triggerDelete(expense)">
-                              <i class="bi bi-trash"></i>
-                            </button>
-                          </div>
-                        }
-                      </div>
+                          @if (canAddOrEdit()) {
+                            <div class="btn-group">
+                              <button name="edit" class="btn btn-outline-secondary" (click)="startEditExpense(expense)">
+                                <i class="bi bi-pencil-square"></i>
+                              </button>
+                              <button
+                                name="move"
+                                class="btn btn-outline-secondary"
+                                [attr.aria-label]="'ButtonMove' | translate"
+                                [title]="'ButtonMove' | translate"
+                                (click)="startMoveExpense(expense)">
+                                <i class="bi bi-arrow-left-right"></i>
+                              </button>
+                            </div>
+                          }
+                        </div>
 
                       <div class="expense-flags mb-2" [class.archived]="isArchived">
                         @if (expense.isDeductible) {
@@ -101,6 +104,7 @@
                       </div>
                     </div>
                   </div>
+                  </app-swipe-delete-row>
                 }
 
                 @if (isExpanded(expense.id)) {
@@ -118,72 +122,74 @@
                           (canceled)="cancelSubExpenseForm()">
                         </app-expense-item>
                       } @else {
-                        <div class="d-flex align-items-center mb-2">
-                          <div class="flex-grow-1">
-                            @if (subExpense.name && subExpense.name.trim()) {
-                              <span class="fw-normal name-sub">{{ subExpense.name }}</span>
-                            } @else {
-                              <span class="fw-normal text-muted fst-italic name-sub-placeholder">{{ 'PlaceholderItemWithoutName' | translate }}</span>
-                            }
-
-                            <div class="expense-flags expense-item-flags my-1" [class.archived]="isArchived">
-                              @if (subExpense.isDeductible) {
-                                <span class="expense-flag expense-flag-deductible" data-testid="expense-item-deductible-flag">
-                                  <i class="bi bi-receipt-cutoff me-1"></i>
-                                  {{ 'FieldIsDeductible' | translate }}
-                                </span>
+                        <app-swipe-delete-row
+                          [disabled]="!canAddOrEdit() || isArchived"
+                          actionIcon="trash"
+                          (actionTriggered)="swipeDeleteSubExpense(expense, subExpense)">
+                          <div class="d-flex align-items-center mb-2">
+                            <div class="flex-grow-1">
+                              @if (subExpense.name && subExpense.name.trim()) {
+                                <span class="fw-normal name-sub">{{ subExpense.name }}</span>
+                              } @else {
+                                <span class="fw-normal text-muted fst-italic name-sub-placeholder">{{ 'PlaceholderItemWithoutName' | translate }}</span>
                               }
 
-                              @if (hasDeductibleProofItem(subExpense)) {
-                                @if (getDeductibleProofItemDownloadUrl(expense, subExpense); as proofItemDownloadUrl) {
-                                  <a class="expense-flag expense-flag-proof expense-flag-link"
-                                    [href]="proofItemDownloadUrl"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    data-testid="expense-item-proof-flag">
-                                    <i class="bi bi-paperclip me-1"></i>
-                                    {{ 'DeductibleProofAttached' | translate }}
-                                  </a>
-                                } @else {
-                                  <span class="expense-flag expense-flag-proof" data-testid="expense-item-proof-flag">
-                                    <i class="bi bi-paperclip me-1"></i>
-                                    {{ 'DeductibleProofAttached' | translate }}
+                              <div class="expense-flags expense-item-flags my-1" [class.archived]="isArchived">
+                                @if (subExpense.isDeductible) {
+                                  <span class="expense-flag expense-flag-deductible" data-testid="expense-item-deductible-flag">
+                                    <i class="bi bi-receipt-cutoff me-1"></i>
+                                    {{ 'FieldIsDeductible' | translate }}
                                   </span>
                                 }
-                              }
+
+                                @if (hasDeductibleProofItem(subExpense)) {
+                                  @if (getDeductibleProofItemDownloadUrl(expense, subExpense); as proofItemDownloadUrl) {
+                                    <a class="expense-flag expense-flag-proof expense-flag-link"
+                                      [href]="proofItemDownloadUrl"
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      data-testid="expense-item-proof-flag">
+                                      <i class="bi bi-paperclip me-1"></i>
+                                      {{ 'DeductibleProofAttached' | translate }}
+                                    </a>
+                                  } @else {
+                                    <span class="expense-flag expense-flag-proof" data-testid="expense-item-proof-flag">
+                                      <i class="bi bi-paperclip me-1"></i>
+                                      {{ 'DeductibleProofAttached' | translate }}
+                                    </span>
+                                  }
+                                }
+                              </div>
+
+                              <p class="text-muted fs-6 mb-1">
+                                <span class="me-3 date-sub">
+                                  <i class="bi bi-calendar me-1"></i>
+                                  {{ subExpense.date | date: 'shortDate' : undefined : currentLanguage }}
+                                </span>
+                                <span class="text-nowrap amount-sub privacy-sensitive-value">
+                                  <i class="bi bi-cash-coin me-1"></i>
+                                  {{ subExpense.amount | currencyFormat }}
+                                </span>
+                              </p>
                             </div>
 
-                            <p class="text-muted fs-6 mb-1">
-                              <span class="me-3 date-sub">
-                                <i class="bi bi-calendar me-1"></i>
-                                {{ subExpense.date | date: 'shortDate' : undefined : currentLanguage }}
-                              </span>
-                              <span class="text-nowrap amount-sub privacy-sensitive-value">
-                                <i class="bi bi-cash-coin me-1"></i>
-                                {{ subExpense.amount | currencyFormat }}
-                              </span>
-                            </p>
+                            @if (canAddOrEdit()) {
+                              <div class="btn-group btn-group-sm">
+                                <button name="edit-sub" class="btn btn-outline-secondary" (click)="startEditSubExpense(expense, subExpense)">
+                                  <i class="bi bi-pencil-square"></i>
+                                </button>
+                                <button
+                                  name="move-sub"
+                                  class="btn btn-outline-secondary"
+                                  [attr.aria-label]="'ButtonMove' | translate"
+                                  [title]="'ButtonMove' | translate"
+                                  (click)="startMoveSubExpense(expense, subExpense)">
+                                  <i class="bi bi-arrow-left-right"></i>
+                                </button>
+                              </div>
+                            }
                           </div>
-
-                          @if (canAddOrEdit()) {
-                            <div class="btn-group btn-group-sm">
-                              <button name="edit-sub" class="btn btn-outline-secondary" (click)="startEditSubExpense(expense, subExpense)">
-                                <i class="bi bi-pencil-square"></i>
-                              </button>
-                              <button
-                                name="move-sub"
-                                class="btn btn-outline-secondary"
-                                [attr.aria-label]="'ButtonMove' | translate"
-                                [title]="'ButtonMove' | translate"
-                                (click)="startMoveSubExpense(expense, subExpense)">
-                                <i class="bi bi-arrow-left-right"></i>
-                              </button>
-                              <button name="delete-sub" class="btn btn-outline-danger" (click)="triggerDeleteSubExpense(expense, subExpense)">
-                                <i class="bi bi-trash"></i>
-                              </button>
-                            </div>
-                          }
-                        </div>
+                        </app-swipe-delete-row>
                       }
                     }
 

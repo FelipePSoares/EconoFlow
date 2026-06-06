@@ -116,7 +116,28 @@ namespace EasyFinance.Application.Features.ExpenseItemService
             if (expenseItem == null)
                 return AppResponse.Success();
 
-            unitOfWork.ExpenseItemRepository.Delete(expenseItem);
+            expenseItem.SetDeleted();
+            unitOfWork.ExpenseItemRepository.InsertOrUpdate(expenseItem);
+            await unitOfWork.CommitAsync();
+
+            return AppResponse.Success();
+        }
+
+        public async Task<AppResponse> RestoreAsync(Guid expenseItemId)
+        {
+            if (expenseItemId == Guid.Empty)
+                return AppResponse.Error(code: nameof(expenseItemId), description: ValidationMessages.InvalidExpenseItemId);
+
+            var expenseItem = unitOfWork.ExpenseItemRepository
+                .Trackable()
+                .IgnoreQueryFilters()
+                .FirstOrDefault(e => e.Id == expenseItemId);
+
+            if (expenseItem == null)
+                return AppResponse.Success();
+
+            expenseItem.SetRestored();
+            unitOfWork.ExpenseItemRepository.InsertOrUpdate(expenseItem);
             await unitOfWork.CommitAsync();
 
             return AppResponse.Success();

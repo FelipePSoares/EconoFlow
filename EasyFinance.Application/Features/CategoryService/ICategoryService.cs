@@ -19,6 +19,7 @@ namespace EasyFinance.Application.Features.CategoryService
         Task<AppResponse<CategoryResponseDTO>> UpdateAsync(Guid categoryId, JsonPatchDocument<CategoryRequestDTO> categoryDto);
         Task<AppResponse> UpdateOrderAsync(Guid projectId, ICollection<CategoryOrderRequestDTO> categoriesOrder);
         Task<AppResponse> ArchiveAsync(Guid categoryId);
+        Task<AppResponse> UnarchiveAsync(Guid categoryId);
         Task<AppResponse<ICollection<CategoryWithPercentageDTO>>> GetDefaultCategoriesAsync(Guid projectId);
     }
 }

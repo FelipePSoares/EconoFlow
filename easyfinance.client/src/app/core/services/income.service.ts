@@ -50,4 +50,10 @@ export class IncomeService {
       observe: 'response'
     }).pipe(map(res => res.ok));
   }
+
+  restore(projectId: string, id: string): Observable<boolean> {
+    return this.http.put('/api/projects/' + projectId + '/incomes/' + id + '/restore', null, {
+      observe: 'response'
+    }).pipe(map(res => res.ok));
+  }
 }

@@ -13,10 +13,11 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { OverviewStackParamList } from '../../navigation/OverviewStackNavigator';
 import { useProjectStore } from '../../store/projectStore';
 import { useQuickAddStore } from '../../store/quickAddStore';
-import { useIncomesForMonth, useDeleteIncome } from '../../hooks/useIncomes';
+import { useIncomesForMonth, useDeleteIncome, useRestoreIncome } from '../../hooks/useIncomes';
 import { LoadingIndicator } from '../../components/common/LoadingIndicator';
-import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { ErrorBanner } from '../../components/common/ErrorBanner';
+import { SwipeableRow } from '../../components/common/SwipeableRow';
+import { UndoToast } from '../../components/common/UndoToast';
 import { GlassScreen } from '../../components/common/GlassScreen';
 import { GlassCard } from '../../components/common/GlassCard';
 import { QuickAddModal } from '../quick-add/QuickAddModal';
@@ -44,10 +45,10 @@ export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const [month, setMonth] = useState(route.params.month);
 
-  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [dismissedError, setDismissedError] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [editState, setEditState] = useState<EditState>({ visible: false });
+  const [undoState, setUndoState] = useState<{ visible: boolean; id: string | null }>({ visible: false, id: null });
 
   const { selectedProject, currency } = useProjectStore();
   const sym = getCurrencySymbol(currency);
@@ -69,6 +70,7 @@ export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const { data: incomes, isLoading, isFetching, isError, refetch } = useIncomesForMonth(projectId, month);
   const deleteIncome = useDeleteIncome(projectId, month);
+  const restoreIncome = useRestoreIncome(projectId, month);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -165,45 +167,45 @@ export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
               const icon = getCategoryIcon(item.name);
               return (
                 <GlassCard key={item.id} dark={dark} radius={18} style={styles.groupCard}>
-                  <TouchableOpacity
-                    onPress={() => canEdit && setEditState({
-                      visible: true,
-                      editMode: {
-                        type: 'income',
-                        id: item.id,
-                        initialValues: {
-                          name: item.name,
-                          amount: item.amount,
-                          date: item.date,
-                        },
-                      },
-                    })}
-                    activeOpacity={canEdit ? 0.75 : 1}
-                    style={styles.groupHeader}
+                  <SwipeableRow
+                    disabled={!canEdit}
+                    actionIcon="trash-can-outline"
+                    actionColor={customColors.expense}
+                    onAction={() => {
+                      deleteIncome.mutate(item.id);
+                      setUndoState({ visible: true, id: item.id });
+                    }}
                   >
-                    <View style={[styles.groupIcon, { backgroundColor: customColors.income + '22' }]}>
-                      <MaterialCommunityIcons name={icon as never} size={20} color={customColors.income} />
-                    </View>
+                    <TouchableOpacity
+                      onPress={() => canEdit && setEditState({
+                        visible: true,
+                        editMode: {
+                          type: 'income',
+                          id: item.id,
+                          initialValues: {
+                            name: item.name,
+                            amount: item.amount,
+                            date: item.date,
+                          },
+                        },
+                      })}
+                      activeOpacity={canEdit ? 0.75 : 1}
+                      style={styles.groupHeader}
+                    >
+                      <View style={[styles.groupIcon, { backgroundColor: customColors.income + '22' }]}>
+                        <MaterialCommunityIcons name={icon as never} size={20} color={customColors.income} />
+                      </View>
 
-                    <View style={styles.groupInfo}>
-                      <Text style={[styles.groupName, { color: ink }]}>{item.name}</Text>
-                      <Text style={[styles.groupSub, { color: ink2 }]}>{dateStr}</Text>
-                    </View>
+                      <View style={styles.groupInfo}>
+                        <Text style={[styles.groupName, { color: ink }]}>{item.name}</Text>
+                        <Text style={[styles.groupSub, { color: ink2 }]}>{dateStr}</Text>
+                      </View>
 
-                    <Text style={[styles.groupAmt, { color: customColors.income }]}>
-                      +{sym} {fmt(item.amount)}
-                    </Text>
-
-                    {canEdit && (
-                      <TouchableOpacity
-                        onPress={(e) => { e.stopPropagation(); setPendingDeleteId(item.id); }}
-                        hitSlop={6}
-                        style={styles.groupAction}
-                      >
-                        <MaterialCommunityIcons name="trash-can-outline" size={16} color={customColors.expense} />
-                      </TouchableOpacity>
-                    )}
-                  </TouchableOpacity>
+                      <Text style={[styles.groupAmt, { color: customColors.income }]}>
+                        +{sym} {fmt(item.amount)}
+                      </Text>
+                    </TouchableOpacity>
+                  </SwipeableRow>
                 </GlassCard>
               );
             })}
@@ -211,17 +213,13 @@ export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
         )}
       </ScrollView>
 
-      <ConfirmDialog
-        visible={!!pendingDeleteId}
-        title={t('LabelDeleteIncome') ?? 'Delete income'}
-        message={t('LabelConfirmDeleteIncome') ?? 'Are you sure you want to delete this income?'}
-        onConfirm={() => {
-          if (!pendingDeleteId) return;
-          deleteIncome.mutate(pendingDeleteId, {
-            onSuccess: () => setPendingDeleteId(null),
-          });
+      <UndoToast
+        visible={undoState.visible}
+        message={t('LabelUndoDelete')}
+        onUndo={() => {
+          if (undoState.id) restoreIncome.mutate(undoState.id);
         }}
-        onCancel={() => setPendingDeleteId(null)}
+        onDismiss={() => setUndoState({ visible: false, id: null })}
       />
 
       <QuickAddModal

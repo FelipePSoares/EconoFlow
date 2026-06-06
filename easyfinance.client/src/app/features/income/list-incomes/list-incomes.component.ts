@@ -3,7 +3,9 @@ import { Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DateAdapter } from '@angular/material/core';
 import { MatCardModule } from '@angular/material/card';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MatDialogRef } from '@angular/material/dialog';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { NavigationEnd, Router, UrlSegment } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, Observable, filter, map } from 'rxjs';
@@ -15,10 +17,10 @@ import { IncomeService } from '../../../core/services/income.service';
 import { PlanService } from '../../../core/services/plan.service';
 import { ProjectService } from '../../../core/services/project.service';
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
-import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { PageModalComponent, PageModalDialogData } from '../../../core/components/page-modal/page-modal.component';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
+import { SwipeDeleteRowComponent } from '../../../core/components/swipe-delete-row/swipe-delete-row.component';
 import { UserProjectDto } from '../../project/models/user-project-dto';
 import { AddIncomeComponent } from '../add-income/add-income.component';
 import { PlanAllocationDialogComponent } from '../plan-allocation-dialog/plan-allocation-dialog.component';
@@ -34,6 +36,7 @@ import { IncomeDto } from '../models/income-dto';
     CurrentDateComponent,
     CurrencyFormatPipe,
     AddIncomeComponent,
+    SwipeDeleteRowComponent,
     TranslateModule
   ],
   templateUrl: './list-incomes.component.html',
@@ -46,6 +49,7 @@ export class ListIncomesComponent implements OnInit {
   private router = inject(Router);
   private globalService = inject(GlobalService);
   private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
   private projectService = inject(ProjectService);
   private translateService = inject(TranslateService);
   private currentDateService = inject(CurrentDateService);
@@ -58,7 +62,6 @@ export class ListIncomesComponent implements OnInit {
 
   isCreatingIncome = false;
   editingIncomeId: string | null = null;
-  itemToDelete!: string;
   currentLanguage = this.globalService.currentLanguage;
   userProject!: UserProjectDto;
 
@@ -154,27 +157,21 @@ export class ListIncomesComponent implements OnInit {
     return this.editingIncomeId === income.id;
   }
 
-  remove(id: string): void {
-    this.incomeService.remove(this.projectId, id).subscribe({
-      next: () => {
-        const incomesNewArray = this.incomes
-          .getValue()
-          .filter(item => item.id !== id);
-        this.incomes.next(incomesNewArray);
-      }
-    });
-  }
+  swipeDelete(income: IncomeDto): void {
+    const removed = income;
+    const currentList = this.incomes.getValue();
+    this.incomes.next(currentList.filter(i => i.id !== removed.id));
 
-  triggerDelete(income: IncomeDto): void {
-    this.itemToDelete = income.id;
-    const message = this.translateService.instant('AreYouSureYouWantDeleteIncome', { value: income.name });
+    this.incomeService.remove(this.projectId, removed.id).subscribe();
 
-    this.dialog.open(ConfirmDialogComponent, {
-      data: { title: 'DeleteIncome', message, action: 'ButtonDelete' },
-    }).afterClosed().subscribe((result) => {
-      if (result) {
-        this.remove(this.itemToDelete);
-      }
+    const undoLabel = this.translateService.instant('ButtonUndo');
+    const message = this.translateService.instant('UndoDelete');
+    const ref = this.snackBar.open(message, undoLabel, { duration: 5000 });
+
+    ref.onAction().subscribe(() => {
+      this.incomeService.restore(this.projectId, removed.id).subscribe({
+        next: () => this.fillData(this.currentDateService.currentDate)
+      });
     });
   }
 

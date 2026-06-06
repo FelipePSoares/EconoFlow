@@ -70,6 +70,27 @@ namespace EasyFinance.Application.Features.CategoryService
             return AppResponse.Success();
         }
 
+        public async Task<AppResponse> UnarchiveAsync(Guid categoryId)
+        {
+            if (categoryId == Guid.Empty)
+                return AppResponse.Error(code: nameof(categoryId), description: ValidationMessages.InvalidCategoryId);
+
+            var category = await unitOfWork.CategoryRepository
+                .Trackable()
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(c => c.Id == categoryId) ?? throw new KeyNotFoundException(ValidationMessages.CategoryNotFound);
+
+            category.SetUnarchive();
+
+            var savedCategory = unitOfWork.CategoryRepository.InsertOrUpdate(category);
+            if (savedCategory.Failed)
+                return AppResponse.Error(savedCategory.Messages);
+
+            await unitOfWork.CommitAsync();
+
+            return AppResponse.Success();
+        }
+
         public async Task<AppResponse<ICollection<CategoryResponseDTO>>> GetAllAsync(Guid projectId)
         {
             var result = SortCategories(
@@ -91,20 +112,20 @@ namespace EasyFinance.Application.Features.CategoryService
                 categories = SortCategories((await this.unitOfWork.ProjectRepository.NoTrackable()
                         .Include(p => p.Categories
                             .Where(c =>
-                                c.Expenses.Any(e => e.Date >= from && e.Date < to) // keep category if it has expenses
-                                || !c.IsArchived                                   // keep if not archived
+                                c.Expenses.Any(e => e.Date >= from && e.Date < to && !e.IsDeleted) // keep category if it has non-deleted expenses
+                                || !c.IsArchived                                                   // keep if not archived
                             ))
                                 .ThenInclude(c => c.Expenses
-                                    .Where(e => e.Date >= from && e.Date < to))
+                                    .Where(e => e.Date >= from && e.Date < to && !e.IsDeleted))
                                         .ThenInclude(e => e.Attachments)
                         .Include(p => p.Categories
                             .Where(c =>
-                                c.Expenses.Any(e => e.Date >= from && e.Date < to)
+                                c.Expenses.Any(e => e.Date >= from && e.Date < to && !e.IsDeleted)
                                 || !c.IsArchived
                             ))
                                 .ThenInclude(c => c.Expenses
-                                    .Where(e => e.Date >= from && e.Date < to))
-                                        .ThenInclude(e => e.Items)
+                                    .Where(e => e.Date >= from && e.Date < to && !e.IsDeleted))
+                                        .ThenInclude(e => e.Items.Where(i => !i.IsDeleted))
                                             .ThenInclude(i => i.Attachments)
                         .IgnoreQueryFilters() // ignore global IsArchived filter
                         .FirstOrDefaultAsync(p => p.Id == projectId))?
@@ -148,11 +169,11 @@ namespace EasyFinance.Application.Features.CategoryService
         {
             var result = SortCategories((await this.unitOfWork.ProjectRepository.NoTrackable()
                     .Include(p => p.Categories)
-                    .ThenInclude(c => c.Expenses.Where(e => e.Date.Year == year))
+                    .ThenInclude(c => c.Expenses.Where(e => e.Date.Year == year && !e.IsDeleted))
                     .ThenInclude(e => e.Attachments)
                     .Include(p => p.Categories)
-                    .ThenInclude(c => c.Expenses.Where(e => e.Date.Year == year))
-                    .ThenInclude(e => e.Items)
+                    .ThenInclude(c => c.Expenses.Where(e => e.Date.Year == year && !e.IsDeleted))
+                    .ThenInclude(e => e.Items.Where(i => !i.IsDeleted))
                     .ThenInclude(i => i.Attachments)
                     .IgnoreQueryFilters() // disables the global filter IsArchived
                     .FirstOrDefaultAsync(p => p.Id == projectId))?

@@ -4,15 +4,16 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DateAdapter } from '@angular/material/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatCardModule } from '@angular/material/card';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { NavigationEnd, Router, UrlSegment } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
 import { Observable } from 'rxjs/internal/Observable';
 import { map } from 'rxjs/internal/operators/map';
 import { filter } from 'rxjs';
-import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
+import { SwipeDeleteRowComponent } from '../../../core/components/swipe-delete-row/swipe-delete-row.component';
 import { CategoryService } from '../../../core/services/category.service';
 import { CurrentDateService } from '../../../core/services/current-date.service';
 import { ExpenseService } from '../../../core/services/expense.service';
@@ -39,6 +40,7 @@ import { ExpenseItemDto } from '../models/expense-item-dto';
     CurrencyFormatPipe,
     AddExpenseComponent,
     AddExpenseItemComponent,
+    SwipeDeleteRowComponent,
     MatCardModule,
     TranslateModule
   ],
@@ -52,6 +54,7 @@ export class ListExpensesComponent implements OnInit {
   private router = inject(Router);
   private globalService = inject(GlobalService);
   private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
   private projectService = inject(ProjectService);
   private translateService = inject(TranslateService);
   private currentDateService = inject(CurrentDateService);
@@ -157,47 +160,40 @@ export class ListExpensesComponent implements OnInit {
     this.fillData(newDate);
   }
 
-  remove(id: string): void {
-    this.expenseService.remove(this.projectId, this.categoryId, id).subscribe({
-      next: () => {
-        const expensesNewArray = this.expenses
-          .getValue()
-          .filter(item => item.id !== id);
+  swipeDeleteExpense(expense: ExpenseDto): void {
+    const removed = expense;
+    this.expenses.next(this.expenses.getValue().filter(e => e.id !== removed.id));
 
-        this.expenses.next(expensesNewArray);
-      }
+    this.expenseService.remove(this.projectId, this.categoryId, removed.id).subscribe();
+
+    const undoLabel = this.translateService.instant('ButtonUndo');
+    const message = this.translateService.instant('UndoDelete');
+    const ref = this.snackBar.open(message, undoLabel, { duration: 5000 });
+
+    ref.onAction().subscribe(() => {
+      this.expenseService.restore(this.projectId, this.categoryId, removed.id).subscribe({
+        next: () => this.fillData(this.currentDateService.currentDate)
+      });
     });
   }
 
-  triggerDelete(expense: ExpenseDto): void {
-    const message = this.translateService.instant('AreYouSureYouWantDeleteExpense', { value: expense.name });
-
-    this.dialog.open(ConfirmDialogComponent, {
-      data: { title: 'DeleteExpense', message: message, action: 'ButtonDelete' },
-    }).afterClosed().subscribe((result) => {
-      if (result) {
-        this.remove(expense.id);
-      }
+  swipeDeleteSubExpense(expense: ExpenseDto, subExpense: ExpenseItemDto): void {
+    const currentExpenses = this.expenses.getValue().map(e => {
+      if (e.id !== expense.id) return e;
+      return { ...e, items: e.items.filter(i => i.id !== subExpense.id) } as ExpenseDto;
     });
-  }
+    this.expenses.next(currentExpenses);
 
-  removeSubExpense(expense: ExpenseDto, subExpense: ExpenseItemDto): void {
-    this.expenseService.removeItem(this.projectId, this.categoryId, expense.id, subExpense.id).subscribe({
-      next: () => {
-        this.fillData(this.currentDateService.currentDate);
-      }
-    });
-  }
+    this.expenseService.removeItem(this.projectId, this.categoryId, expense.id, subExpense.id).subscribe();
 
-  triggerDeleteSubExpense(expense: ExpenseDto, subExpense: ExpenseItemDto): void {
-    const message = this.translateService.instant('AreYouSureYouWantDeleteExpense', { value: subExpense.name });
+    const undoLabel = this.translateService.instant('ButtonUndo');
+    const message = this.translateService.instant('UndoDelete');
+    const ref = this.snackBar.open(message, undoLabel, { duration: 5000 });
 
-    this.dialog.open(ConfirmDialogComponent, {
-      data: { title: 'DeleteExpense', message: message, action: 'ButtonDelete' },
-    }).afterClosed().subscribe((result) => {
-      if (result) {
-        this.removeSubExpense(expense, subExpense);
-      }
+    ref.onAction().subscribe(() => {
+      this.expenseService.restoreItem(this.projectId, this.categoryId, expense.id, subExpense.id).subscribe({
+        next: () => this.fillData(this.currentDateService.currentDate)
+      });
     });
   }
 
