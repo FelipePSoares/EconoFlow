@@ -115,6 +115,43 @@ namespace EasyFinance.Application.Tests
         }
 
         [Fact]
+        public async Task Expense_DeleteAsync_ShouldNotReturnDeletedExpenseInGet()
+        {
+            using var scope = this.serviceProvider.CreateScope();
+            var expenseService = scope.ServiceProvider.GetRequiredService<IExpenseService>();
+
+            var category = this.project1.Categories.First();
+            var expenseId = category.Expenses.First().Id;
+            await expenseService.DeleteAsync(expenseId);
+
+            var from = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30));
+            var to = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
+            var result = await expenseService.GetAsync(category.Id, from, to);
+
+            result.Succeeded.Should().BeTrue();
+            result.Data.Should().NotContain(e => e.Id == expenseId);
+        }
+
+        [Fact]
+        public async Task ExpenseItem_DeleteAsync_ShouldNotReturnDeletedExpenseItemInGet()
+        {
+            using var scope = this.serviceProvider.CreateScope();
+            var expenseItemService = scope.ServiceProvider.GetRequiredService<IExpenseItemService>();
+            var expenseService = scope.ServiceProvider.GetRequiredService<IExpenseService>();
+
+            var category = this.project1.Categories.First(cat => cat.Expenses.Any(e => e.Items.Any()));
+            var expenseItemId = category.Expenses.First(e => e.Items.Any()).Items.First().Id;
+            await expenseItemService.DeleteAsync(expenseItemId);
+
+            var from = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30));
+            var to = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
+            var result = await expenseService.GetAsync(category.Id, from, to);
+
+            result.Succeeded.Should().BeTrue();
+            result.Data.Should().NotContain(e => e.Items.Any(i => i.Id == expenseItemId));
+        }
+
+        [Fact]
         public async Task Expense_RestoreAsync_WithValidId_ShouldMarkAsNotDeleted()
         {
             using var scope = this.serviceProvider.CreateScope();

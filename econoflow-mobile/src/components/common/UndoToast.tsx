@@ -45,7 +45,7 @@ export const UndoToast: React.FC<Props> = ({ message, visible, onUndo, onDismiss
   if (!visible) return null;
 
   return (
-    <Animated.View style={[styles.container, { opacity, backgroundColor: colors.onSurface }]}>
+    <Animated.View style={[styles.container, { opacity, backgroundColor: colors.onSurface, shadowColor: colors.shadow }]}>
       <Text style={[styles.message, { color: colors.surface }]}>{message}</Text>
       <TouchableOpacity onPress={() => { onUndo(); onDismiss(); }} hitSlop={8}>
         <Text style={[styles.undoBtn, { color: colors.primary }]}>
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     elevation: 6,
-    shadowColor: '#000',
+    shadowColor: 'transparent',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,

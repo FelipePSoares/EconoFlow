@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 const ACTION_WIDTH = 72;
 const THRESHOLD = 40;
@@ -25,6 +26,7 @@ export const SwipeableRow: React.FC<Props> = ({
   disabled = false,
   children,
 }) => {
+  const { colors } = useAppTheme();
   const [translateX] = useState(() => new Animated.Value(0));
 
   const close = useCallback(() => {
@@ -87,7 +89,7 @@ export const SwipeableRow: React.FC<Props> = ({
         style={[styles.actionBtn, { backgroundColor: actionColor, right: -ACTION_WIDTH }]}
         activeOpacity={0.8}
       >
-        <MaterialCommunityIcons name={actionIcon as never} size={20} color="#fff" />
+        <MaterialCommunityIcons name={actionIcon as never} size={20} color={colors.surface} />
       </TouchableOpacity>
     </Animated.View>
   );
