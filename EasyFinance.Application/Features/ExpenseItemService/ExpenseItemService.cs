@@ -62,7 +62,7 @@ namespace EasyFinance.Application.Features.ExpenseItemService
                 .Where(p => p.Id == projectId)
                 .Include(p => p.Categories.Where(c => c.Id == sourceCategoryId || c.Id == targetCategoryId))
                     .ThenInclude(c => c.Expenses.Where(e => e.Id == sourceExpenseId || e.Id == targetExpenseId))
-                        .ThenInclude(e => e.Items.Where(item => item.Id == expenseItemId))
+                        .ThenInclude(e => e.Items.Where(item => item.Id == expenseItemId && !item.IsDeleted))
                 .FirstOrDefaultAsync();
 
             if (project == null)

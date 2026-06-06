@@ -3,6 +3,7 @@ using EasyFinance.Application.Features.CategoryService;
 using EasyFinance.Application.Features.ExpenseItemService;
 using EasyFinance.Application.Features.ExpenseService;
 using EasyFinance.Application.Features.IncomeService;
+using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Common.Tests;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -273,6 +274,62 @@ namespace EasyFinance.Application.Tests
             var result = await categoryService.UnarchiveAsync(Guid.Empty);
 
             result.Succeeded.Should().BeFalse();
+        }
+
+        // ── ProjectService overview / latest transactions ────────────────────
+
+        [Fact]
+        public async Task GetOverviewSummaryAsync_ShouldExcludeSoftDeletedExpense()
+        {
+            using var scope = this.serviceProvider.CreateScope();
+            var projectService = scope.ServiceProvider.GetRequiredService<IProjectService>();
+            var expenseService = scope.ServiceProvider.GetRequiredService<IExpenseService>();
+
+            var from = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30));
+            var to = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
+
+            var before = await projectService.GetOverviewSummaryAsync(this.project1.Id, from, to, 5);
+            before.Succeeded.Should().BeTrue();
+            var totalBefore = before.Data.TotalExpense;
+
+            var expenseId = this.project1.Categories.First().Expenses.First().Id;
+            await expenseService.DeleteAsync(expenseId);
+
+            var after = await projectService.GetOverviewSummaryAsync(this.project1.Id, from, to, 5);
+            after.Succeeded.Should().BeTrue();
+            after.Data.TotalExpense.Should().BeLessThan(totalBefore);
+        }
+
+        [Fact]
+        public async Task GetLatestAsync_ShouldExcludeSoftDeletedExpense()
+        {
+            using var scope = this.serviceProvider.CreateScope();
+            var projectService = scope.ServiceProvider.GetRequiredService<IProjectService>();
+            var expenseService = scope.ServiceProvider.GetRequiredService<IExpenseService>();
+
+            var expenseId = this.project1.Categories.First().Expenses.First().Id;
+            await expenseService.DeleteAsync(expenseId);
+
+            var result = await projectService.GetLatestAsync(this.project1.Id, 10);
+
+            result.Succeeded.Should().BeTrue();
+            result.Data.Should().NotContain(t => t.Id == expenseId);
+        }
+
+        [Fact]
+        public async Task GetLatestAsync_ShouldExcludeSoftDeletedExpenseItem()
+        {
+            using var scope = this.serviceProvider.CreateScope();
+            var projectService = scope.ServiceProvider.GetRequiredService<IProjectService>();
+            var expenseItemService = scope.ServiceProvider.GetRequiredService<IExpenseItemService>();
+
+            var expenseItemId = this.project1.Categories.First().Expenses.First().Items.First().Id;
+            await expenseItemService.DeleteAsync(expenseItemId);
+
+            var result = await projectService.GetLatestAsync(this.project1.Id, 10);
+
+            result.Succeeded.Should().BeTrue();
+            result.Data.Should().NotContain(t => t.Id == expenseItemId);
         }
     }
 }
