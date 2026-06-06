@@ -54,6 +54,7 @@ export class SwipeDeleteRowComponent {
 
     if (!this.isHorizontal) {
       this.isDragging = false;
+      (event.currentTarget as HTMLElement).releasePointerCapture(event.pointerId);
       return;
     }
 
