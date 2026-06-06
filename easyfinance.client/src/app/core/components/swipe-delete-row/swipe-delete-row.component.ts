@@ -1,5 +1,5 @@
 import {
-  Component, ElementRef, EventEmitter, Input, Output, ViewChild, signal
+  Component, EventEmitter, Input, Output, signal
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
@@ -13,8 +13,6 @@ export class SwipeDeleteRowComponent {
   @Input() actionIcon: 'trash' | 'archive' = 'trash';
   @Input() disabled = false;
   @Output() actionTriggered = new EventEmitter<void>();
-
-  @ViewChild('content') contentRef!: ElementRef<HTMLElement>;
 
   private startX = 0;
   private startY = 0;
