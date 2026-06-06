@@ -143,11 +143,32 @@ namespace EasyFinance.Application.Features.IncomeService
 
             if (income == null)
             {
-                logger.LogWarning("Expense not found for deletion!");
+                logger.LogWarning("Income not found for soft deletion!");
                 return AppResponse.Success();
             }
 
-            unitOfWork.IncomeRepository.Delete(income);
+            income.SetDeleted();
+            unitOfWork.IncomeRepository.InsertOrUpdate(income);
+            await unitOfWork.CommitAsync();
+
+            return AppResponse.Success();
+        }
+
+        public async Task<AppResponse> RestoreAsync(Guid incomeId)
+        {
+            if (incomeId == Guid.Empty)
+                return AppResponse.Error(code: nameof(incomeId), description: ValidationMessages.InvalidIncomeId);
+
+            var income = unitOfWork.IncomeRepository
+                .Trackable()
+                .IgnoreQueryFilters()
+                .FirstOrDefault(i => i.Id == incomeId);
+
+            if (income == null)
+                return AppResponse.Success();
+
+            income.SetRestored();
+            unitOfWork.IncomeRepository.InsertOrUpdate(income);
             await unitOfWork.CommitAsync();
 
             return AppResponse.Success();

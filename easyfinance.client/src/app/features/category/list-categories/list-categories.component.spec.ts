@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { Subject, of, BehaviorSubject } from 'rxjs';
+import { Subject, of, BehaviorSubject, EMPTY } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ListCategoriesComponent } from './list-categories.component';
 import { CategoryService } from '../../../core/services/category.service';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
@@ -18,6 +19,7 @@ describe('ListCategoriesComponent', () => {
   let fixture: ComponentFixture<ListCategoriesComponent>;
   let component: ListCategoriesComponent;
   let categoryServiceMock: jasmine.SpyObj<CategoryService>;
+  let snackBarMock: jasmine.SpyObj<MatSnackBar>;
 
   const makeCategory = (id = 'cat-1', name = 'Food'): Category => {
     const cat = new Category();
@@ -47,11 +49,16 @@ describe('ListCategoriesComponent', () => {
 
   beforeEach(async () => {
     categoryServiceMock = jasmine.createSpyObj<CategoryService>('CategoryService', [
-      'get', 'getDefaultCategories', 'update'
+      'get', 'getDefaultCategories', 'update', 'remove', 'restore'
     ]);
     categoryServiceMock.get.and.returnValue(of([makeCategory()]));
     categoryServiceMock.getDefaultCategories.and.returnValue(of([]));
     categoryServiceMock.update.and.returnValue(of(makeCategory()));
+    categoryServiceMock.remove.and.returnValue(of(true));
+    categoryServiceMock.restore.and.returnValue(of(true));
+
+    snackBarMock = jasmine.createSpyObj<MatSnackBar>('MatSnackBar', ['open']);
+    snackBarMock.open.and.returnValue({ onAction: () => EMPTY } as any);
 
     const selectedUserProject$ = new BehaviorSubject<UserProjectDto>(makeUserProject());
     const projectServiceMock = jasmine.createSpyObj<ProjectService>('ProjectService', ['getUserProject', 'selectUserProject']);
@@ -68,6 +75,7 @@ describe('ListCategoriesComponent', () => {
         { provide: ProjectService, useValue: projectServiceMock },
         { provide: Router, useValue: { navigate: jasmine.createSpy('navigate') } },
         { provide: ActivatedRoute, useValue: {} },
+        { provide: MatSnackBar, useValue: snackBarMock },
         {
           provide: MatDialog,
           useValue: { open: jasmine.createSpy('open').and.returnValue({ afterClosed: () => of(false) }) }
@@ -196,5 +204,49 @@ describe('ListCategoriesComponent', () => {
 
     subject.next(makeCategory('cat-1', 'Updated Food'));
     subject.complete();
+  });
+
+  describe('swipeArchive', () => {
+    it('should optimistically remove the category from the list', () => {
+      const category = makeCategoryDto('cat-1', 'Food');
+      (component as any).categories.next([category]);
+
+      component.swipeArchive(category);
+
+      const remaining = (component as any).categories.getValue() as CategoryDto[];
+      expect(remaining.find(c => c.id === 'cat-1')).toBeUndefined();
+    });
+
+    it('should call the archive API', () => {
+      const category = makeCategoryDto('cat-1', 'Food');
+      (component as any).categories.next([category]);
+
+      component.swipeArchive(category);
+
+      expect(categoryServiceMock.remove).toHaveBeenCalledWith('project-1', 'cat-1');
+    });
+
+    it('should show a snackbar with undo action', () => {
+      const category = makeCategoryDto('cat-1', 'Food');
+      (component as any).categories.next([category]);
+
+      component.swipeArchive(category);
+
+      expect(snackBarMock.open).toHaveBeenCalled();
+    });
+
+    it('should call restore API and refill data when undo is clicked', () => {
+      const actionSubject = new Subject<void>();
+      snackBarMock.open.and.returnValue({ onAction: () => actionSubject.asObservable() } as any);
+
+      const category = makeCategoryDto('cat-1', 'Food');
+      (component as any).categories.next([category]);
+
+      component.swipeArchive(category);
+      actionSubject.next();
+
+      expect(categoryServiceMock.restore).toHaveBeenCalledWith('project-1', 'cat-1');
+      expect(categoryServiceMock.get).toHaveBeenCalledTimes(2);
+    });
   });
 });

@@ -14,3 +14,6 @@ export const patchCategory = (projectId: string, id: string, ops: PatchOperation
 
 export const archiveCategory = (projectId: string, id: string) =>
   apiClient.put(`/api/Projects/${projectId}/Categories/${id}/Archive`);
+
+export const unarchiveCategory = (projectId: string, id: string) =>
+  apiClient.put(`/api/Projects/${projectId}/Categories/${id}/Unarchive`);

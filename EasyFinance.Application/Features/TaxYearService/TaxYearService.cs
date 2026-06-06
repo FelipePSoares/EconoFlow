@@ -87,7 +87,7 @@ namespace EasyFinance.Application.Features.TaxYearService
                 .NoTrackable()
                 .IgnoreQueryFilters()
                 .Where(p => p.Id == projectId)
-                .SelectMany(p => p.Categories.SelectMany(c => c.Expenses.Select(e => e.Date)))
+                .SelectMany(p => p.Categories.SelectMany(c => c.Expenses.Where(e => !e.IsDeleted).Select(e => e.Date)))
                 .ToListAsync();
 
             var currentPeriod = TaxYearCalculator.GetPeriod(project, DateOnly.FromDateTime(DateTime.UtcNow.Date));
@@ -321,7 +321,7 @@ namespace EasyFinance.Application.Features.TaxYearService
                     .NoTrackable()
                     .IgnoreQueryFilters()
                     .Where(p => p.Id == projectId)
-                    .SelectMany(p => p.Categories.SelectMany(c => c.Expenses))
+                    .SelectMany(p => p.Categories.SelectMany(c => c.Expenses.Where(e => !e.IsDeleted)))
                     .FirstOrDefaultAsync(e => e.Id == effectiveExpenseId);
 
                 if (expense == null)
@@ -355,7 +355,7 @@ namespace EasyFinance.Application.Features.TaxYearService
                 .NoTrackable()
                 .IgnoreQueryFilters()
                 .Where(p => p.Id == projectId)
-                .SelectMany(p => p.Categories.SelectMany(c => c.Expenses.SelectMany(e => e.Items)))
+                .SelectMany(p => p.Categories.SelectMany(c => c.Expenses.Where(e => !e.IsDeleted).SelectMany(e => e.Items.Where(i => !i.IsDeleted))))
                 .FirstOrDefaultAsync(item => item.Id == effectiveExpenseItemId);
 
             if (expenseItem == null)

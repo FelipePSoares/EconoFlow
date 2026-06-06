@@ -91,4 +91,28 @@ describe('i18n locale completeness', () => {
   it('pt.json contains PlaceholderItemWithoutName', () => {
     expect((pt as LocaleMap)['PlaceholderItemWithoutName']).toBeTruthy();
   });
+
+  it('en.json contains LabelUndoDelete', () => {
+    expect((en as LocaleMap)['LabelUndoDelete']).toBeTruthy();
+  });
+
+  it('pt.json contains LabelUndoDelete', () => {
+    expect((pt as LocaleMap)['LabelUndoDelete']).toBeTruthy();
+  });
+
+  it('en.json contains LabelUndoArchive', () => {
+    expect((en as LocaleMap)['LabelUndoArchive']).toBeTruthy();
+  });
+
+  it('pt.json contains LabelUndoArchive', () => {
+    expect((pt as LocaleMap)['LabelUndoArchive']).toBeTruthy();
+  });
+
+  it('en.json contains ButtonUndo', () => {
+    expect((en as LocaleMap)['ButtonUndo']).toBeTruthy();
+  });
+
+  it('pt.json contains ButtonUndo', () => {
+    expect((pt as LocaleMap)['ButtonUndo']).toBeTruthy();
+  });
 });

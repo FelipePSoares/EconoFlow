@@ -15,6 +15,7 @@ namespace EasyFinance.Application.Features.ExpenseItemService
             Guid targetCategoryId,
             Guid targetExpenseId);
         Task<AppResponse> DeleteAsync(Guid expenseItemId);
+        Task<AppResponse> RestoreAsync(Guid expenseItemId);
         Task<AppResponse> RemoveLinkAsync(User user);
     }
 }

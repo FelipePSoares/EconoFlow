@@ -555,5 +555,8 @@
   "LabelSpent": "spent",
   "LabelBudgetSummary": "Budget Summary",
   "LabelLeft": "left",
-  "Optional": "optional"
+  "Optional": "optional",
+  "LabelUndoDelete": "Deleted. Undo?",
+  "LabelUndoArchive": "Archived. Undo?",
+  "ButtonUndo": "Undo"
 }

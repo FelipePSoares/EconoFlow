@@ -90,10 +90,9 @@ namespace EasyFinance.Domain.Financial
             this.Expenses.Add(expense);
         }
 
-        public void SetArchive()
-        {
-            IsArchived = true;
-        }
+        public void SetArchive() => IsArchived = true;
+
+        public void SetUnarchive() => IsArchived = false;
 
         public ICollection<Expense> CopyBudgetToCurrentMonth(User user, DateOnly currentDate)
         {

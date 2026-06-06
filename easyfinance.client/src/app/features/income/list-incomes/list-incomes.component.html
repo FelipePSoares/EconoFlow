@@ -21,52 +21,51 @@
         <mat-card-content>
           <div class="list-group list-group-flush">
             @for (income of (incomes$ | async); track income.id) {
-              <div class="list-group-item">
+              <div class="list-group-item px-0">
                 @if (isEditingIncome(income)) {
-                  <app-add-income
-                    [projectId]="projectId"
-                    [income]="income"
-                    [inlineMode]="true"
-                    (saved)="onIncomeSaved()"
-                    (canceled)="cancelIncomeForm()">
-                  </app-add-income>
+                  <div class="px-3">
+                    <app-add-income
+                      [projectId]="projectId"
+                      [income]="income"
+                      [inlineMode]="true"
+                      (saved)="onIncomeSaved()"
+                      (canceled)="cancelIncomeForm()">
+                    </app-add-income>
+                  </div>
                 } @else {
-                  <div class="d-flex w-100 justify-content-between align-items-center">
-                    <div class="flex-grow-1">
-                      <div class="d-flex align-items-center">
-                        <div class="flex-grow-1">
-                          <h2 class="mb-1 fw-bold name">{{ income.name }}</h2>
-                          <p class="text-muted fs-6">
-                            <span class="me-3 date">
-                              <i class="bi bi-calendar me-1"></i>
-                              {{ income.date | date: 'shortDate' : undefined : currentLanguage }}
-                            </span>
-                            <span class="text-nowrap amount privacy-sensitive-value">
-                              <i class="bi bi-cash-coin me-1"></i>
-                              {{ income.amount | currencyFormat }}
-                            </span>
-                          </p>
+                  <app-swipe-delete-row
+                    [disabled]="!canAddOrEdit()"
+                    actionIcon="trash"
+                    (actionTriggered)="swipeDelete(income)">
+                    <div class="d-flex w-100 justify-content-between align-items-center px-3 py-1">
+                      <div class="flex-grow-1">
+                        <div class="d-flex align-items-center">
+                          <div class="flex-grow-1">
+                            <h2 class="mb-1 fw-bold name">{{ income.name }}</h2>
+                            <p class="text-muted fs-6">
+                              <span class="me-3 date">
+                                <i class="bi bi-calendar me-1"></i>
+                                {{ income.date | date: 'shortDate' : undefined : currentLanguage }}
+                              </span>
+                              <span class="text-nowrap amount privacy-sensitive-value">
+                                <i class="bi bi-cash-coin me-1"></i>
+                                {{ income.amount | currencyFormat }}
+                              </span>
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    @if (canAddOrEdit()) {
-                      <div class="btn-group ms-3">
+                      @if (canAddOrEdit()) {
                         <button name="edit"
-                          class="btn btn-outline-secondary"
+                          class="btn btn-outline-secondary btn-sm"
                           (click)="startEditIncome(income)"
                           aria-label="Editar receita">
                           <i class="bi bi-pencil-square"></i>
                         </button>
-                        <button name="delete"
-                          class="btn btn-outline-danger"
-                          (click)="triggerDelete(income)"
-                          aria-label="Excluir receita">
-                          <i class="bi bi-trash"></i>
-                        </button>
-                      </div>
-                    }
-                  </div>
+                      }
+                    </div>
+                  </app-swipe-delete-row>
                 }
               </div>
             }

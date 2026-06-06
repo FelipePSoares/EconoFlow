@@ -9,26 +9,28 @@
       @for (category of (categories$ | async); track category.id) {
         <div class="list-group-item" cdkDrag [cdkDragDisabled]="!canAddOrEdit() || category.id === editingCategory.id || isSavingOrder">
           @if (category.id !== this.editingCategory.id) {
-            <div class="d-flex justify-content-between">
-              <div class="d-flex align-items-center">
-                @if (canAddOrEdit()) {
-                  <button type="button" class="btn btn-link drag-handle p-0 me-2" cdkDragHandle [attr.aria-label]="'Reorder category'">
-                    <i class="bi bi-grip-vertical"></i>
-                  </button>
-                }
-                <h3 class="category-name">{{ category.name }}</h3>
-              </div>
-              @if (canAddOrEdit()){
-                <div class="btn-group actions">
-                  <button class="btn btn-outline-secondary" (click)="edit(category);">
-                    <i class="bi bi-pencil-square"></i>
-                  </button>
-                  <button class="btn btn-outline-danger" (click)="triggerDelete(category);">
-                    <i class="bi bi-archive"></i>
-                  </button>
+            <app-swipe-delete-row
+              [disabled]="!canAddOrEdit()"
+              actionIcon="archive"
+              (actionTriggered)="swipeArchive(category)">
+              <div class="d-flex justify-content-between">
+                <div class="d-flex align-items-center">
+                  @if (canAddOrEdit()) {
+                    <button type="button" class="btn btn-link drag-handle p-0 me-2" cdkDragHandle [attr.aria-label]="'Reorder category'">
+                      <i class="bi bi-grip-vertical"></i>
+                    </button>
+                  }
+                  <h3 class="category-name">{{ category.name }}</h3>
                 </div>
-              }
-            </div>
+                @if (canAddOrEdit()){
+                  <div class="btn-group actions">
+                    <button class="btn btn-outline-secondary" (click)="edit(category);">
+                      <i class="bi bi-pencil-square"></i>
+                    </button>
+                  </div>
+                }
+              </div>
+            </app-swipe-delete-row>
           } @else {
             <div>
               <form [formGroup]="categoryForm" (ngSubmit)="save()">

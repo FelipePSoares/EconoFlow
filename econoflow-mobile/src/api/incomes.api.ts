@@ -14,3 +14,6 @@ export const patchIncome = (projectId: string, id: string, ops: PatchOperation[]
 
 export const deleteIncome = (projectId: string, id: string) =>
   apiClient.delete(`/api/Projects/${projectId}/Incomes/${id}`);
+
+export const restoreIncome = (projectId: string, id: string) =>
+  apiClient.put(`/api/Projects/${projectId}/Incomes/${id}/restore`);

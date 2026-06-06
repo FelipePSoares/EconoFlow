@@ -74,5 +74,12 @@ namespace EasyFinance.Server.Controllers
 
             return ValidateResponse(archiveResult, HttpStatusCode.NoContent);
         }
+
+        [HttpPut("{categoryId}/Unarchive")]
+        public async Task<IActionResult> Unarchive(Guid categoryId)
+        {
+            var result = await categoryService.UnarchiveAsync(categoryId);
+            return ValidateResponse(result, HttpStatusCode.NoContent);
+        }
     }
 }
