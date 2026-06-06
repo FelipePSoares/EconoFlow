@@ -54,45 +54,27 @@ describe('SwipeDeleteRowComponent', () => {
       } as unknown as PointerEvent;
     }
 
-    it('should NOT call setPointerCapture immediately on pointerdown', () => {
+    it('should call setPointerCapture immediately for non-interactive targets', () => {
+      // Bug: deferred implementation never calls setPointerCapture in onPointerDown
       const wrapper = el.querySelector('.swipe-wrapper') as HTMLElement;
       const setCaptureSpy = spyOn(wrapper, 'setPointerCapture');
       const content = el.querySelector('.swipe-content') as HTMLElement;
 
       component.onPointerDown(makePointerDownEvent(content, wrapper));
-
-      // Bug: current code calls setPointerCapture here, stealing click events
-      expect(setCaptureSpy).not.toHaveBeenCalled();
-    });
-
-    it('should call setPointerCapture after confirming horizontal direction in onPointerMove', () => {
-      const wrapper = el.querySelector('.swipe-wrapper') as HTMLElement;
-      const setCaptureSpy = spyOn(wrapper, 'setPointerCapture');
-      const content = el.querySelector('.swipe-content') as HTMLElement;
-
-      component.onPointerDown(makePointerDownEvent(content, wrapper));
-
-      component.onPointerMove({
-        clientX: 188, // 12px left — clearly horizontal
-        clientY: 51,  // 1px down
-        currentTarget: wrapper,
-        preventDefault: () => { /* no-op */ }
-      } as unknown as PointerEvent);
 
       expect(setCaptureSpy).toHaveBeenCalledWith(1);
     });
 
-    it('should skip drag setup when the tap target is inside the action panel', () => {
+    it('should NOT call setPointerCapture when the tap target is a button', () => {
       const wrapper = el.querySelector('.swipe-wrapper') as HTMLElement;
       const setCaptureSpy = spyOn(wrapper, 'setPointerCapture');
       const actionBtn = el.querySelector('.swipe-action-btn') as HTMLElement;
 
       component.onPointerDown(makePointerDownEvent(actionBtn, wrapper));
 
-      // No capture should be set up when tapping the action button
       expect(setCaptureSpy).not.toHaveBeenCalled();
 
-      // Simulate move to confirm no drag started
+      // A subsequent move also must not start the drag
       component.onPointerMove({
         clientX: 188,
         clientY: 51,
@@ -100,7 +82,6 @@ describe('SwipeDeleteRowComponent', () => {
         preventDefault: () => { /* no-op */ }
       } as unknown as PointerEvent);
 
-      // Still no capture — drag was never initiated
       expect(setCaptureSpy).not.toHaveBeenCalled();
     });
   });

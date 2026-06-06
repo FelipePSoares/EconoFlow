@@ -19,11 +19,6 @@ export class SwipeDeleteRowComponent {
   private currentX = 0;
   private isDragging = false;
   private isHorizontal: boolean | null = null;
-  // Deferred pointer capture: set only after we confirm a horizontal swipe,
-  // so that simple taps on inner elements (expand button, action button) still
-  // receive the synthesised click event from the browser.
-  private captureElement: HTMLElement | null = null;
-  private capturePointerId: number | null = null;
 
   readonly ACTION_PANEL_WIDTH = 70;
   readonly OPEN_THRESHOLD = 50;
@@ -33,18 +28,17 @@ export class SwipeDeleteRowComponent {
 
   onPointerDown(event: PointerEvent): void {
     if (this.disabled) return;
-    const el = event.currentTarget as HTMLElement;
-    // Taps on the action panel must reach the button — never start a drag there.
-    const panel = el.querySelector('.swipe-action-panel');
-    if (panel?.contains(event.target as Node)) return;
+    // Skip drag for interactive elements: their click events must not be
+    // swallowed by the pointer capture that the wrapper sets below.
+    if ((event.target as HTMLElement).closest('button, a, input, select, textarea')) return;
 
+    const el = event.currentTarget as HTMLElement;
     this.startX = event.clientX;
     this.startY = event.clientY;
     this.currentX = this.offset();
     this.isDragging = true;
     this.isHorizontal = null;
-    this.captureElement = el;
-    this.capturePointerId = event.pointerId;
+    el.setPointerCapture(event.pointerId);
   }
 
   onPointerMove(event: PointerEvent): void {
@@ -56,11 +50,6 @@ export class SwipeDeleteRowComponent {
     if (this.isHorizontal === null) {
       if (Math.abs(dx) < 5 && Math.abs(dy) < 5) return;
       this.isHorizontal = Math.abs(dx) > Math.abs(dy);
-      if (this.isHorizontal && this.captureElement !== null && this.capturePointerId !== null) {
-        this.captureElement.setPointerCapture(this.capturePointerId);
-      }
-      this.captureElement = null;
-      this.capturePointerId = null;
     }
 
     if (!this.isHorizontal) {
@@ -74,8 +63,6 @@ export class SwipeDeleteRowComponent {
   }
 
   onPointerUp(): void {
-    this.captureElement = null;
-    this.capturePointerId = null;
     if (!this.isDragging) return;
     this.isDragging = false;
 
@@ -90,8 +77,6 @@ export class SwipeDeleteRowComponent {
   }
 
   onPointerCancel(): void {
-    this.captureElement = null;
-    this.capturePointerId = null;
     this.isDragging = false;
     this.offset.set(0);
     this.isOpen.set(false);
