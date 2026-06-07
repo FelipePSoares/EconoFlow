@@ -17,6 +17,7 @@ namespace EasyFinance.Application.Features.ExpenseService
         Task<AppResponse<ExpenseResponseDTO>> UpdateAsync(User user, Guid projectId, Guid categoryId, Guid expenseId, JsonPatchDocument<ExpenseRequestDTO> expenseDto);
         Task<AppResponse> MoveAsync(Guid projectId, Guid sourceCategoryId, Guid expenseId, Guid targetCategoryId);
         Task<AppResponse> DeleteAsync(Guid expenseId);
+        Task<AppResponse> RestoreAsync(Guid expenseId);
         Task<AppResponse> RemoveLinkAsync(User user);
     }
 }

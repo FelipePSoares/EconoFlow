@@ -431,7 +431,7 @@ main.ts
 ### `HttpRequestInterceptor` responsibilities
 
 1. Attach `X-Correlation-Id` header (generated and persisted in `localStorage`).
-2. On `201 Created` or `DELETE 204`: show success snackbar.
+2. On `201 Created`: show a "created" success snackbar. On `DELETE 200`: show a "deleted" success snackbar. Callers that manage their own post-delete UI (e.g. undo snackbars) should pass `context: new HttpContext().set(SUPPRESS_SUCCESS_NOTIFICATION, true)` on the DELETE request to opt out of the auto-notification.
 3. On `401 Unauthorized` (non-auth routes):
    - If a refresh is already in-flight: queue the request and wait.
    - Otherwise call `/api/AccessControl/refresh-token`, update stored tokens, retry all queued requests.

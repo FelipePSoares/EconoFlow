@@ -1,4 +1,4 @@
-import { HttpInterceptorFn, HttpRequest, HttpResponse } from '@angular/common/http';
+import { HttpContextToken, HttpInterceptorFn, HttpRequest, HttpResponse } from '@angular/common/http';
 import { catchError, Subject, switchMap, take, tap, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { inject, Injector, PLATFORM_ID } from '@angular/core';
@@ -8,6 +8,8 @@ import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../services/auth.service';
 import { ApiErrorResponse } from '../models/error';
 import { SnackbarComponent } from '../components/snackbar/snackbar.component';
+
+export const SUPPRESS_SUCCESS_NOTIFICATION = new HttpContextToken<boolean>(() => false);
 
 interface RequestException {
   method: string;
@@ -59,7 +61,7 @@ export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
         snackBar.openSuccessSnackbar(translateService.instant('CreatedSuccess'));
       }
 
-      if (req.method === 'DELETE' && event.status === 200) {
+      if (req.method === 'DELETE' && event.status === 200 && !req.context.get(SUPPRESS_SUCCESS_NOTIFICATION)) {
         snackBar.openSuccessSnackbar(translateService.instant('DeletedSuccess'));
       }
     }),

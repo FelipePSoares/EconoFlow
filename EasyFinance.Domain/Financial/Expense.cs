@@ -11,6 +11,11 @@ namespace EasyFinance.Domain.Financial
     {
         private Expense() { }
 
+        public bool IsDeleted { get; private set; }
+
+        public void SetDeleted() => IsDeleted = true;
+        public void SetRestored() => IsDeleted = false;
+
         public Expense(
             string name = "default",
             DateOnly date = default,

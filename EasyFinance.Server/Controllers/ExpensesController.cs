@@ -132,6 +132,13 @@ namespace EasyFinance.Server.Controllers
             return ValidateResponse(result, HttpStatusCode.OK);
         }
 
+        [HttpPut("{expenseId}/restore")]
+        public async Task<IActionResult> RestoreAsync(Guid expenseId)
+        {
+            var result = await expenseService.RestoreAsync(expenseId);
+            return ValidateResponse(result, HttpStatusCode.OK);
+        }
+
         [HttpPost("{expenseId}/attachments")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> UploadAttachmentAsync(

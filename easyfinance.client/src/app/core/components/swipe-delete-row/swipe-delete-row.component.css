@@ -1,0 +1,57 @@
+.swipe-wrapper {
+  position: relative;
+  overflow: hidden;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.swipe-action-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.swipe-action-panel.open {
+  opacity: 1;
+}
+
+.swipe-action-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  transition: transform 0.15s ease;
+}
+
+.swipe-action-btn:active {
+  transform: scale(0.9);
+}
+
+.swipe-action-delete {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+.swipe-action-archive {
+  background-color: #6c757d;
+  color: #fff;
+}
+
+.swipe-content {
+  transition: transform 0.2s ease;
+  background: inherit;
+  position: relative;
+  z-index: 1;
+}

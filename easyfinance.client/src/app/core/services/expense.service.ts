@@ -1,4 +1,5 @@
-import { HttpClient, HttpEvent, HttpEventType, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpEvent, HttpEventType, HttpParams } from '@angular/common/http';
+import { SUPPRESS_SUCCESS_NOTIFICATION } from '../interceptor/http-request-interceptor';
 import { inject, Injectable } from '@angular/core';
 import { Observable, filter, map } from 'rxjs';
 import { Operation } from 'fast-json-patch';
@@ -158,12 +159,26 @@ export class ExpenseService {
 
   remove(projectId: string, categoryId: string, id: string): Observable<boolean> {
     return this.http.delete('/api/projects/' + projectId + '/categories/' + categoryId + '/expenses/' + id, {
+      observe: 'response',
+      context: new HttpContext().set(SUPPRESS_SUCCESS_NOTIFICATION, true)
+    }).pipe(map(res => res.ok));
+  }
+
+  restore(projectId: string, categoryId: string, id: string): Observable<boolean> {
+    return this.http.put('/api/projects/' + projectId + '/categories/' + categoryId + '/expenses/' + id + '/restore', null, {
       observe: 'response'
     }).pipe(map(res => res.ok));
   }
 
   removeItem(projectId: string, categoryId: string, expenseId: string, expenseItemId: string): Observable<boolean> {
     return this.http.delete('/api/projects/' + projectId + '/categories/' + categoryId + '/expenses/' + expenseId + '/expenseItems/' + expenseItemId, {
+      observe: 'response',
+      context: new HttpContext().set(SUPPRESS_SUCCESS_NOTIFICATION, true)
+    }).pipe(map(res => res.ok));
+  }
+
+  restoreItem(projectId: string, categoryId: string, expenseId: string, expenseItemId: string): Observable<boolean> {
+    return this.http.put('/api/projects/' + projectId + '/categories/' + categoryId + '/expenses/' + expenseId + '/expenseItems/' + expenseItemId + '/restore', null, {
       observe: 'response'
     }).pipe(map(res => res.ok));
   }

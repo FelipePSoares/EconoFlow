@@ -39,3 +39,16 @@ export const deleteExpenseItem = (
   apiClient.delete(
     `/api/Projects/${projectId}/Categories/${categoryId}/Expenses/${expenseId}/ExpenseItems/${expenseItemId}`
   );
+
+export const restoreExpense = (projectId: string, categoryId: string, id: string) =>
+  apiClient.put(`/api/Projects/${projectId}/Categories/${categoryId}/Expenses/${id}/restore`);
+
+export const restoreExpenseItem = (
+  projectId: string,
+  categoryId: string,
+  expenseId: string,
+  expenseItemId: string
+) =>
+  apiClient.put(
+    `/api/Projects/${projectId}/Categories/${categoryId}/Expenses/${expenseId}/ExpenseItems/${expenseItemId}/restore`
+  );

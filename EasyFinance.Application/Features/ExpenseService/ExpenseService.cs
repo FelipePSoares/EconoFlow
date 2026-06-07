@@ -48,11 +48,11 @@ namespace EasyFinance.Application.Features.ExpenseService
             var category = await unitOfWork.CategoryRepository
                 .NoTrackable()
                 .IgnoreQueryFilters()
-                .Include(p => p.Expenses.Where(e => e.Date >= from && e.Date < to))
-                    .ThenInclude(e => e.Items.Where(i => i.Date >= from && i.Date < to)
+                .Include(p => p.Expenses.Where(e => e.Date >= from && e.Date < to && !e.IsDeleted))
+                    .ThenInclude(e => e.Items.Where(i => i.Date >= from && i.Date < to && !i.IsDeleted)
                         .OrderBy(item => item.Date))
                         .ThenInclude(item => item.Attachments)
-                .Include(p => p.Expenses.Where(e => e.Date >= from && e.Date < to))
+                .Include(p => p.Expenses.Where(e => e.Date >= from && e.Date < to && !e.IsDeleted))
                     .ThenInclude(e => e.Attachments)
                 .FirstOrDefaultAsync(p => p.Id == categoryId) ?? throw new KeyNotFoundException(ValidationMessages.CategoryNotFound);
 
@@ -247,7 +247,7 @@ namespace EasyFinance.Application.Features.ExpenseService
                 .IgnoreQueryFilters()
                 .Where(p => p.Id == projectId)
                 .Include(p => p.Categories.Where(c => c.Id == sourceCategoryId || c.Id == targetCategoryId))
-                    .ThenInclude(c => c.Expenses.Where(e => e.Id == expenseId))
+                    .ThenInclude(c => c.Expenses.Where(e => e.Id == expenseId && !e.IsDeleted))
                 .FirstOrDefaultAsync();
 
             if (project == null)
@@ -285,11 +285,32 @@ namespace EasyFinance.Application.Features.ExpenseService
 
             if (expense == null)
             {
-                logger.LogWarning("Expense not found for deletion!");
+                logger.LogWarning("Expense not found for soft deletion!");
                 return AppResponse.Success();
             }
 
-            unitOfWork.ExpenseRepository.Delete(expense);
+            expense.SetDeleted();
+            unitOfWork.ExpenseRepository.InsertOrUpdate(expense);
+            await unitOfWork.CommitAsync();
+
+            return AppResponse.Success();
+        }
+
+        public async Task<AppResponse> RestoreAsync(Guid expenseId)
+        {
+            if (expenseId == Guid.Empty)
+                return AppResponse.Error(nameof(expenseId), ValidationMessages.InvalidExpenseId);
+
+            var expense = unitOfWork.ExpenseRepository
+                .Trackable()
+                .IgnoreQueryFilters()
+                .FirstOrDefault(e => e.Id == expenseId);
+
+            if (expense == null)
+                return AppResponse.Success();
+
+            expense.SetRestored();
+            unitOfWork.ExpenseRepository.InsertOrUpdate(expense);
             await unitOfWork.CommitAsync();
 
             return AppResponse.Success();

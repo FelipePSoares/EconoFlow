@@ -35,6 +35,13 @@ namespace EasyFinance.Server.Controllers
             return ValidateResponse(result, HttpStatusCode.OK);
         }
 
+        [HttpPut("{expenseItemId}/restore")]
+        public async Task<IActionResult> RestoreAsync(Guid expenseItemId)
+        {
+            var result = await this.expenseItemService.RestoreAsync(expenseItemId);
+            return ValidateResponse(result, HttpStatusCode.OK);
+        }
+
         [HttpPost("{expenseItemId}/move")]
         public async Task<IActionResult> MoveAsync(
             Guid projectId,

@@ -1,4 +1,5 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
+import { SUPPRESS_SUCCESS_NOTIFICATION } from '../interceptor/http-request-interceptor';
 import { Injectable, inject } from '@angular/core';
 import { Income } from '../models/income';
 import { Observable, map } from 'rxjs';
@@ -47,6 +48,13 @@ export class IncomeService {
 
   remove(projectId: string, id: string): Observable<boolean> {
     return this.http.delete('/api/projects/' + projectId + '/incomes/' + id, {
+      observe: 'response',
+      context: new HttpContext().set(SUPPRESS_SUCCESS_NOTIFICATION, true)
+    }).pipe(map(res => res.ok));
+  }
+
+  restore(projectId: string, id: string): Observable<boolean> {
+    return this.http.put('/api/projects/' + projectId + '/incomes/' + id + '/restore', null, {
       observe: 'response'
     }).pipe(map(res => res.ok));
   }

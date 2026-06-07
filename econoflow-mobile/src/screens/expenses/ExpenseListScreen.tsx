@@ -14,9 +14,11 @@ import type { OverviewStackParamList } from '../../navigation/OverviewStackNavig
 import { useProjectStore } from '../../store/projectStore';
 import {
   useExpensesForMonth, useDeleteExpense, useDeleteExpenseItem,
+  useRestoreExpense, useRestoreExpenseItem,
 } from '../../hooks/useExpenses';
 import { LoadingIndicator } from '../../components/common/LoadingIndicator';
-import { ConfirmDialog } from '../../components/common/ConfirmDialog';
+import { SwipeableRow } from '../../components/common/SwipeableRow';
+import { UndoToast } from '../../components/common/UndoToast';
 import { GlassScreen } from '../../components/common/GlassScreen';
 import { GlassCard } from '../../components/common/GlassCard';
 import { DonutRing } from '../../components/common/DonutRing';
@@ -75,14 +77,15 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const { data: expenses, isLoading, isFetching, refetch } =
     useExpensesForMonth(projectId, categoryId, month);
-  const deleteExpense     = useDeleteExpense(projectId, categoryId, month);
-  const deleteExpenseItem = useDeleteExpenseItem(projectId, categoryId, month);
+  const deleteExpense      = useDeleteExpense(projectId, categoryId, month);
+  const deleteExpenseItem  = useDeleteExpenseItem(projectId, categoryId, month);
+  const restoreExpense     = useRestoreExpense(projectId, categoryId, month);
+  const restoreExpenseItem = useRestoreExpenseItem(projectId, categoryId, month);
 
-  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
-  const [pendingDeleteItem, setPendingDeleteItem] = useState<{ expenseId: string; expenseItemId: string } | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [refreshing, setRefreshing] = useState(false);
   const [quickAdd, setQuickAdd] = useState<QuickAddState>({ visible: false });
+  const [undoState, setUndoState] = useState<{ visible: boolean; expenseId: string | null; itemId: string | null }>({ visible: false, expenseId: null, itemId: null });
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -195,6 +198,15 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
                   {isExpOver && (
                     <View style={[styles.overspendAccent, { backgroundColor: colors.error }]} />
                   )}
+                  <SwipeableRow
+                    disabled={!canEdit}
+                    actionIcon="trash-can-outline"
+                    actionColor={customColors.expense}
+                    onAction={() => {
+                      deleteExpense.mutate(expense.id);
+                      setUndoState({ visible: true, expenseId: expense.id, itemId: null });
+                    }}
+                  >
                   {/* ── Group header ──────────────────────────────────── */}
                   <TouchableOpacity
                     onPress={() => setExpandedIds(prev => toggleSetItem(prev, expense.id))}
@@ -245,8 +257,7 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
                     </View>
 
                     {canEdit && (
-                      <>
-                        <TouchableOpacity
+                      <TouchableOpacity
                           onPress={() => setQuickAdd({
                             visible: true,
                             editMode: {
@@ -268,14 +279,6 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
                         >
                           <MaterialCommunityIcons name="pencil-outline" size={16} color={ink2} />
                         </TouchableOpacity>
-                        <TouchableOpacity
-                          onPress={() => setPendingDeleteId(expense.id)}
-                          hitSlop={6}
-                          style={styles.groupAction}
-                        >
-                          <MaterialCommunityIcons name="trash-can-outline" size={16} color={customColors.expense} />
-                        </TouchableOpacity>
-                      </>
                     )}
 
                     <MaterialCommunityIcons
@@ -286,6 +289,7 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
                     />
                   </TouchableOpacity>
 
+                  </SwipeableRow>
                   {/* ── Expanded items ────────────────────────────────── */}
                   {isOpen && (
                     <ExpenseItemsSection
@@ -302,9 +306,10 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
                         visible: true,
                         defaultExpenseId: expense.id,
                       })}
-                      onDeleteItem={(expenseItemId) =>
-                        setPendingDeleteItem({ expenseId: expense.id, expenseItemId })
-                      }
+                      onDeleteItem={(expenseItemId) => {
+                        deleteExpenseItem.mutate({ expenseId: expense.id, expenseItemId });
+                        setUndoState({ visible: true, expenseId: expense.id, itemId: expenseItemId });
+                      }}
                       onEditItem={(item, itemIndex) => setQuickAdd({
                         visible: true,
                         editMode: {
@@ -329,30 +334,17 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
         )}
       </ScrollView>
 
-      <ConfirmDialog
-        visible={!!pendingDeleteId}
-        title={t('LabelDeleteExpense') ?? 'Delete expense'}
-        message={t('LabelConfirmDeleteExpense') ?? 'Are you sure?'}
-        onConfirm={() => {
-          if (!pendingDeleteId) return;
-          deleteExpense.mutate(pendingDeleteId, {
-            onSuccess: () => setPendingDeleteId(null),
-          });
+      <UndoToast
+        visible={undoState.visible}
+        message={t('LabelUndoDelete')}
+        onUndo={() => {
+          if (undoState.itemId && undoState.expenseId) {
+            restoreExpenseItem.mutate({ expenseId: undoState.expenseId, expenseItemId: undoState.itemId });
+          } else if (undoState.expenseId) {
+            restoreExpense.mutate(undoState.expenseId);
+          }
         }}
-        onCancel={() => setPendingDeleteId(null)}
-      />
-
-      <ConfirmDialog
-        visible={!!pendingDeleteItem}
-        title={t('LabelDeleteExpenseItem') ?? 'Delete item'}
-        message={t('LabelConfirmDeleteExpenseItem') ?? 'Are you sure you want to delete this item?'}
-        onConfirm={() => {
-          if (!pendingDeleteItem) return;
-          deleteExpenseItem.mutate(pendingDeleteItem, {
-            onSuccess: () => setPendingDeleteItem(null),
-          });
-        }}
-        onCancel={() => setPendingDeleteItem(null)}
+        onDismiss={() => setUndoState({ visible: false, expenseId: null, itemId: null })}
       />
 
       {/* ── Local QuickAddModal — category pre-selected ─────────────── */}
@@ -449,55 +441,56 @@ const ExpenseItemRow: React.FC<ItemRowProps> = ({
   const hasProof = item.attachments.length > 0;
 
   return (
-    <TouchableOpacity
-      onPress={onEdit}
-      activeOpacity={0.72}
-      style={[styles.itemRow, { borderBottomColor: showBottomBorder ? hair : 'transparent' }]}
+    <SwipeableRow
+      disabled={!canEdit}
+      actionIcon="trash-can-outline"
+      actionColor={customColors.expense}
+      onAction={onDelete}
     >
-      {/* Timeline column — no padding so it fills the full row height, making lines connect between rows */}
-      <View style={styles.timelineCol}>
-        <View style={[styles.timelineLineTop, { backgroundColor: isFirst ? 'transparent' : color + '55' }]} />
-        <View style={[styles.timelineDot, { backgroundColor: color }]} />
-        <View style={[styles.timelineLineBottom, { backgroundColor: isLast ? 'transparent' : color + '55' }]} />
-      </View>
-
-      {/* Body — paddingVertical lives here so the timeline column spans the full row height */}
-      <View style={styles.itemBody}>
-        <View style={styles.itemLeft}>
-          <Text style={[styles.itemName, { color: ink }]} numberOfLines={1}>
-            {item.name?.trim() || '—'}
-          </Text>
-          <View style={styles.itemSubRow}>
-            <Text style={[styles.itemDate, { color: ink2 }]}>{dateStr}</Text>
-            {item.isDeductible && (
-              <View style={[styles.deductBadge, { backgroundColor: colors.primary + '26' }]}>
-                <Text style={[styles.deductBadgeText, { color: colors.primary }]}>
-                  {t('LabelDeductible')}
-                </Text>
-              </View>
-            )}
-            {hasProof && (
-              <View style={[styles.proofBadge, { backgroundColor: ink2 + '22' }]}>
-                <MaterialCommunityIcons name="paperclip" size={9} color={ink2} />
-                <Text style={[styles.proofBadgeText, { color: ink2 }]}>
-                  {t('LabelProofAttached')}
-                </Text>
-              </View>
-            )}
-          </View>
+      <TouchableOpacity
+        onPress={onEdit}
+        activeOpacity={0.72}
+        style={[styles.itemRow, { borderBottomColor: showBottomBorder ? hair : 'transparent' }]}
+      >
+        {/* Timeline column */}
+        <View style={styles.timelineCol}>
+          <View style={[styles.timelineLineTop, { backgroundColor: isFirst ? 'transparent' : color + '55' }]} />
+          <View style={[styles.timelineDot, { backgroundColor: color }]} />
+          <View style={[styles.timelineLineBottom, { backgroundColor: isLast ? 'transparent' : color + '55' }]} />
         </View>
 
-        <Text style={[styles.itemAmt, { color: customColors.expense }]}>
-          −{currency} {fmt(item.amount)}
-        </Text>
+        {/* Body */}
+        <View style={styles.itemBody}>
+          <View style={styles.itemLeft}>
+            <Text style={[styles.itemName, { color: ink }]} numberOfLines={1}>
+              {item.name?.trim() || '—'}
+            </Text>
+            <View style={styles.itemSubRow}>
+              <Text style={[styles.itemDate, { color: ink2 }]}>{dateStr}</Text>
+              {item.isDeductible && (
+                <View style={[styles.deductBadge, { backgroundColor: colors.primary + '26' }]}>
+                  <Text style={[styles.deductBadgeText, { color: colors.primary }]}>
+                    {t('LabelDeductible')}
+                  </Text>
+                </View>
+              )}
+              {hasProof && (
+                <View style={[styles.proofBadge, { backgroundColor: ink2 + '22' }]}>
+                  <MaterialCommunityIcons name="paperclip" size={9} color={ink2} />
+                  <Text style={[styles.proofBadgeText, { color: ink2 }]}>
+                    {t('LabelProofAttached')}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
 
-        {canEdit && (
-          <TouchableOpacity onPress={onDelete} hitSlop={8} style={styles.itemDelete}>
-            <MaterialCommunityIcons name="trash-can-outline" size={15} color={customColors.expense} />
-          </TouchableOpacity>
-        )}
-      </View>
-    </TouchableOpacity>
+          <Text style={[styles.itemAmt, { color: customColors.expense }]}>
+            −{currency} {fmt(item.amount)}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </SwipeableRow>
   );
 };
 

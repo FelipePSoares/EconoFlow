@@ -77,4 +77,10 @@ export class CategoryService {
       observe: 'response'
     }).pipe(map(res => res.ok));
   }
+
+  restore(projectId: string, id: string): Observable<boolean> {
+    return this.http.put('/api/projects/' + projectId + '/categories/' + id + '/unarchive', {}, {
+      observe: 'response'
+    }).pipe(map(res => res.ok));
+  }
 }

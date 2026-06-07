@@ -246,7 +246,7 @@ namespace EasyFinance.Application.Features.ProjectService
                 .IgnoreQueryFilters()
                 .Where(project => project.Id == projectId)
                 .SelectMany(project => project.Categories.SelectMany(category => category.Expenses
-                    .Where(expense => expense.Date >= from && expense.Date < to)))
+                    .Where(expense => expense.Date >= from && expense.Date < to && !expense.IsDeleted)))
                 .Include(expense => expense.Items)
                 .ToListAsync();
 
@@ -291,6 +291,7 @@ namespace EasyFinance.Application.Features.ProjectService
                 .Where(project => project.Id == projectId)
                 .SelectMany(project => project.Categories.SelectMany(category => category.Expenses
                     .Where(expense => expense.Amount > 0
+                        && !expense.IsDeleted
                         && expense.Items.Count == 0
                         && (!from.HasValue || expense.Date >= from.Value)
                         && (!to.HasValue || expense.Date < to.Value))
@@ -313,11 +314,12 @@ namespace EasyFinance.Application.Features.ProjectService
                 .IgnoreQueryFilters()
                 .Where(project => project.Id == projectId)
                 .SelectMany(project => project.Categories.SelectMany(category => category.Expenses
-                    .Where(expense => expense.Items.Count > 0)
+                    .Where(expense => !expense.IsDeleted && expense.Items.Count > 0)
                     .OrderByDescending(expense => expense.Date)
                     .Take(numberOfTransactions)
                     .SelectMany(expense => expense.Items
-                        .Where(item => item.Amount > 0
+                        .Where(item => !item.IsDeleted
+                            && item.Amount > 0
                             && (!from.HasValue || item.Date >= from.Value)
                             && (!to.HasValue || item.Date < to.Value))
                         .Select(item => new TransactionResponseDTO

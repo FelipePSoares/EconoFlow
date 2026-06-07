@@ -9,13 +9,15 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { OverviewStackParamList } from '../../navigation/OverviewStackNavigator';
 import { useProjectStore } from '../../store/projectStore';
 import { useQuickAddStore } from '../../store/quickAddStore';
-import { useCategoriesForMonth } from '../../hooks/useCategories';
+import { useCategoriesForMonth, useArchiveCategory, useUnarchiveCategory } from '../../hooks/useCategories';
 import { CategoryCard } from '../../components/budget/CategoryCard';
 import { LoadingIndicator } from '../../components/common/LoadingIndicator';
 import { ErrorBanner } from '../../components/common/ErrorBanner';
 import { MonthNavigator } from '../../components/common/MonthNavigator';
 import { GlassScreen } from '../../components/common/GlassScreen';
 import { GlassCard } from '../../components/common/GlassCard';
+import { SwipeableRow } from '../../components/common/SwipeableRow';
+import { UndoToast } from '../../components/common/UndoToast';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
 import { useAppTheme } from '../../theme/useAppTheme';
 import {
@@ -36,7 +38,9 @@ export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
   const [month, setMonth] = useState(route.params.month);
   const [dismissedError, setDismissedError] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [undoState, setUndoState] = useState<{ visible: boolean; id: string | null }>({ visible: false, id: null });
   const { selectedProject, currency } = useProjectStore();
+  const canEdit = selectedProject?.role !== 'Viewer';
 
   const setViewedMonth = useQuickAddStore(s => s.setViewedMonth);
   const isFocused = useIsFocused();
@@ -47,6 +51,8 @@ export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const { data: categories, isLoading, isFetching, isError, refetch } =
     useCategoriesForMonth(projectId, month);
+  const archiveCategory   = useArchiveCategory(projectId, month);
+  const unarchiveCategory = useUnarchiveCategory(projectId, month);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -133,20 +139,30 @@ export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
           ) : null
         }
         renderItem={({ item, index }) => (
-          <CategoryCard
-            category={item}
-            currency={currency}
-            index={index}
-            dark={dark}
-            onPress={() =>
-              navigation.navigate('ExpenseList', {
-                categoryId: item.id,
-                categoryName: item.name,
-                month,
-                categoryIndex: index,
-              })
-            }
-          />
+          <SwipeableRow
+            disabled={!canEdit}
+            actionIcon="archive-outline"
+            actionColor={ink2}
+            onAction={() => {
+              archiveCategory.mutate(item.id);
+              setUndoState({ visible: true, id: item.id });
+            }}
+          >
+            <CategoryCard
+              category={item}
+              currency={currency}
+              index={index}
+              dark={dark}
+              onPress={() =>
+                navigation.navigate('ExpenseList', {
+                  categoryId: item.id,
+                  categoryName: item.name,
+                  month,
+                  categoryIndex: index,
+                })
+              }
+            />
+          </SwipeableRow>
         )}
         ListEmptyComponent={
           <Text style={[styles.empty, { color: ink2 }]}>{t('LabelNoCategories')}</Text>
@@ -155,6 +171,15 @@ export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={ink2} />
         }
+      />
+
+      <UndoToast
+        visible={undoState.visible}
+        message={t('LabelUndoArchive')}
+        onUndo={() => {
+          if (undoState.id) unarchiveCategory.mutate(undoState.id);
+        }}
+        onDismiss={() => setUndoState({ visible: false, id: null })}
       />
     </GlassScreen>
   );

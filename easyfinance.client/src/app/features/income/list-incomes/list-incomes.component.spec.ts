@@ -3,8 +3,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NavigationEnd, Router } from '@angular/router';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule } from '@ngx-translate/core';
-import { BehaviorSubject, of } from 'rxjs';
+import { BehaviorSubject, Subject, of, EMPTY } from 'rxjs';
 import { PlanType } from '../../../core/enums/plan-type';
 import { Plan } from '../../../core/models/plan';
 import { CurrentDateService } from '../../../core/services/current-date.service';
@@ -46,6 +47,7 @@ describe('ListIncomesComponent', () => {
   let incomeServiceMock: jasmine.SpyObj<IncomeService>;
   let planServiceMock: jasmine.SpyObj<PlanService>;
   let dialogMock: jasmine.SpyObj<MatDialog>;
+  let snackBarMock: jasmine.SpyObj<MatSnackBar>;
 
   beforeEach(async () => {
     const routerEvents = new BehaviorSubject(new NavigationEnd(
@@ -70,7 +72,7 @@ describe('ListIncomesComponent', () => {
       }
     } as unknown as Router;
 
-    incomeServiceMock = jasmine.createSpyObj<IncomeService>('IncomeService', ['get', 'remove']);
+    incomeServiceMock = jasmine.createSpyObj<IncomeService>('IncomeService', ['get', 'remove', 'restore']);
     incomeServiceMock.get.and.returnValue(of([
       {
         id: 'income-1',
@@ -80,6 +82,10 @@ describe('ListIncomesComponent', () => {
       }
     ]));
     incomeServiceMock.remove.and.returnValue(of(true));
+    incomeServiceMock.restore.and.returnValue(of(true));
+
+    snackBarMock = jasmine.createSpyObj<MatSnackBar>('MatSnackBar', ['open']);
+    snackBarMock.open.and.returnValue({ onAction: () => EMPTY } as any);
 
     planServiceMock = jasmine.createSpyObj<PlanService>('PlanService', ['getPlans']);
     planServiceMock.getPlans.and.returnValue(of([]));
@@ -103,6 +109,10 @@ describe('ListIncomesComponent', () => {
         {
           provide: MatDialog,
           useValue: dialogMock
+        },
+        {
+          provide: MatSnackBar,
+          useValue: snackBarMock
         },
         {
           provide: IncomeService,
@@ -232,5 +242,49 @@ describe('ListIncomesComponent', () => {
     component.onIncomeSaved();
 
     expect(planServiceMock.getPlans).not.toHaveBeenCalled();
+  });
+
+  describe('swipeDelete', () => {
+    it('should optimistically remove the income from the list', () => {
+      const income = makeIncome();
+      (component as any).incomes.next([income]);
+
+      component.swipeDelete(income);
+
+      const remaining = (component as any).incomes.getValue() as IncomeDto[];
+      expect(remaining.find(i => i.id === 'income-1')).toBeUndefined();
+    });
+
+    it('should call the remove API', () => {
+      const income = makeIncome();
+      (component as any).incomes.next([income]);
+
+      component.swipeDelete(income);
+
+      expect(incomeServiceMock.remove).toHaveBeenCalledWith('project-1', 'income-1');
+    });
+
+    it('should show a snackbar with undo action', () => {
+      const income = makeIncome();
+      (component as any).incomes.next([income]);
+
+      component.swipeDelete(income);
+
+      expect(snackBarMock.open).toHaveBeenCalled();
+    });
+
+    it('should call restore API and refill data when undo is clicked', () => {
+      const actionSubject = new Subject<void>();
+      snackBarMock.open.and.returnValue({ onAction: () => actionSubject.asObservable() } as any);
+
+      const income = makeIncome();
+      (component as any).incomes.next([income]);
+
+      component.swipeDelete(income);
+      actionSubject.next();
+
+      expect(incomeServiceMock.restore).toHaveBeenCalledWith('project-1', 'income-1');
+      expect(incomeServiceMock.get).toHaveBeenCalledTimes(2);
+    });
   });
 });

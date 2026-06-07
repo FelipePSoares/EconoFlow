@@ -10,6 +10,12 @@ namespace EasyFinance.Persistence.Mapping.Financial
         {
             builder.ToTable("Incomes");
 
+            builder.HasQueryFilter(p => !p.IsDeleted);
+
+            builder.Property(p => p.IsDeleted)
+                .IsRequired()
+                .HasDefaultValue(false);
+
             builder.Property(p => p.Name)
                 .HasMaxLength(150)
                 .IsRequired();
