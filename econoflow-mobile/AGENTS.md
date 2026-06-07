@@ -84,7 +84,8 @@ be configured for the app to talk to the local backend over HTTPS.
 
 ### 1. Backend: bind to all interfaces with the emulator cert
 
-`EasyFinance.Server/appsettings.Development.json` must use `devcert-emulator.pfx`, NOT `devcert.pfx`:
+`EasyFinance.Server/appsettings.Development.json` must use `devcert-emulator.pfx`, NOT `devcert.pfx`.
+This file may not exist by default — if missing, create it with the content below (it's `.gitignore`d so safe to create locally):
 
 ```json
 "Kestrel": {
@@ -166,8 +167,11 @@ entirely.
 EXPO_PUBLIC_API_URL=https://10.0.2.2:7003
 ```
 
-Metro bakes this into the JS bundle at build time. The fallback in
+Metro reads this when the JS bundle is served (runtime for debug, build time for release). The fallback in
 `src/api/client.ts` is `https://localhost:7003` which only works for web, not the emulator.
+
+**Important:** If Metro is already running when you change this variable, you must restart Metro
+for the change to take effect. There is no hot-reload for `EXPO_PUBLIC_*` vars.
 
 ### 4. ABI: build for x86_64 only (fast emulator builds)
 
@@ -181,21 +185,77 @@ compiles for arm64-v8a + armeabi-v7a too (~15 min). x86_64-only takes ~2 min.
 
 ### Complete dev workflow
 
+Open **three separate PowerShell windows** and do NOT close them until you're done.
+
+#### Terminal 1 — Backend
+
+First, ensure `appsettings.Development.json` exists at `EasyFinance.Server/appsettings.Development.json`:
+
+```json
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "Kestrel": {
+    "Endpoints": {
+      "Https": { "Url": "https://0.0.0.0:7003" }
+    },
+    "Certificates": {
+      "Default": {
+        "Path": "C:\\Users\\felip\\.econoflow\\devcert-emulator.pfx",
+        "Password": "econoflow"
+      }
+    }
+  }
+}
+```
+
+Then:
+
 ```powershell
-# --- Step 0: verify the backend cert config ---
+# Verify cert config first
 Select-String -Path "EasyFinance.Server\appsettings.Development.json" -Pattern "devcert"
-# Must show: devcert-emulator.pfx
+# Must show: devcert-emulator.pfx  (NOT devcert.pfx)
 
-# Terminal 1 — start backend
+# Start backend — do NOT pass --urls flag, let appsettings.Development.json handle binding
 dotnet run --project ./EasyFinance.Server
+```
 
-# Terminal 2 — start emulator
+#### Terminal 2 — Android emulator
+
+```powershell
 & "$env:LOCALAPPDATA\Android\Sdk\emulator\emulator.exe" -avd Pixel_7_API_35 -no-boot-anim
+```
 
-# Terminal 2 — build and run
+Wait for the emulator to fully boot before moving to Terminal 3 (check with `adb shell getprop sys.boot_completed`).
+
+#### Terminal 3 — Build, install & Metro
+
+```powershell
 cd econoflow-mobile
 $env:EXPO_PUBLIC_API_URL = "https://10.0.2.2:7003"
 npx expo run:android
+```
+
+This will build the APK (~2-10 min on first run, faster after cached), install it on the emulator, **and start Metro**. Keep this window open — Metro must stay running for the app to load its JavaScript bundle.
+
+#### If Metro window was closed (restart Metro without rebuilding)
+
+If the APK is already installed and you only need Metro:
+
+```powershell
+cd econoflow-mobile
+$env:EXPO_PUBLIC_API_URL = "https://10.0.2.2:7003"
+npx expo start --dev-client
+```
+
+Then relaunch the app on the emulator:
+
+```powershell
+adb shell am start -n pt.econoflow.mobile/.MainActivity
 ```
 
 If `npx expo run:android` fails during install (Broken pipe / Can't find service: package) —
@@ -224,6 +284,27 @@ adb shell am start -n pt.econoflow.mobile/.MainActivity
 
 **`adb install` is interrupted mid-way — never force-kill it.** The package becomes frozen
 (`SecurityException: Package is currently frozen`) and the only fix is a cold boot.
+
+**App launches but shows a blank/white screen or "Cannot connect to Metro"**
+Metro is not running or was started without `--dev-client` flag. Fix:
+```powershell
+# Kill any stale Metro
+Get-Process -Name "node" | Where-Object CommandLine -match "expo.*start" | Stop-Process -Force
+# Restart Metro with dev-client flag
+cd econoflow-mobile
+$env:EXPO_PUBLIC_API_URL = "https://10.0.2.2:7003"
+npx expo start --dev-client
+# Then relaunch app
+adb shell am start -n pt.econoflow.mobile/.MainActivity
+```
+
+**Backend fails to start or immediately exits (port already in use)**
+A stale dotnet process is holding port 7003. Fix:
+```powershell
+$pid = netstat -ano | Select-String "0.0.0.0:7003.*LISTENING" | ForEach-Object { $_ -replace '.*\s+(\d+)\s*$', '$1' }
+if ($pid) { Stop-Process -Id $pid -Force; Start-Sleep -Seconds 3 }
+dotnet run --project ./EasyFinance.Server
+```
 
 ### Cert file reference
 
