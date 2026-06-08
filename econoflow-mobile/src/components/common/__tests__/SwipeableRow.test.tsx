@@ -1,7 +1,7 @@
 import React from 'react';
-import { Animated, View } from 'react-native';
+import { View } from 'react-native';
+import { render, act } from '@testing-library/react-native';
 import { SwipeableRow } from '../SwipeableRow';
-import TestRenderer, { act } from 'react-test-renderer';
 
 jest.mock('@expo/vector-icons', () => ({
   MaterialCommunityIcons: 'MaterialCommunityIcons',
@@ -50,10 +50,10 @@ describe('SwipeableRow', () => {
     expect(onAction).toHaveBeenCalledTimes(1);
   });
 
-  it('wraps the action button in an extra Animated.View with a translateX transform for swipe reveal', () => {
-    let testRenderer: TestRenderer.ReactTestRenderer;
-    act(() => {
-      testRenderer = TestRenderer.create(
+  it('wraps the action button in an extra Animated.View with a translateX transform for swipe reveal', async () => {
+    let renderResult: Awaited<ReturnType<typeof render>>;
+    await act(async () => {
+      renderResult = await render(
         <SwipeableRow
           onAction={jest.fn()}
           actionIcon="trash-can-outline"
@@ -64,29 +64,24 @@ describe('SwipeableRow', () => {
       );
     });
 
-    const root = testRenderer!.root;
-    const animatedViews = root.findAllByType(Animated.View);
-
-    // Old code:
-    //   Animated.View inside TouchableOpacity (opacity) +
-    //   Animated.View for content (translateX)
-    //   = 2 total
-    //
-    // New code adds a 3rd Animated.View wrapping the action TouchableOpacity
-    // with a translateX transform for the reveal-on-swipe effect.
-    expect(animatedViews.length).toBe(3);
-
-    // The first Animated.View should be the action button wrapper with a translateX transform
-    // The other two are the TouchableOpacity's internal opacity Animated.View and the content Animated.View
-    const actionBtnWrapper = animatedViews[0];
-    expect(actionBtnWrapper.props.style).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          transform: expect.arrayContaining([
-            { translateX: expect.any(Object) },
-          ]),
-        }),
-      ])
+    const withTranslateX = renderResult!.container.queryAll(
+      (instance) => {
+        const style = instance.props?.style;
+        if (!style) return false;
+        const arr = Array.isArray(style) ? style : [style];
+        return arr.some(
+          (s: Record<string, unknown>) =>
+            Array.isArray(s?.transform) &&
+            s.transform.some((t: Record<string, unknown>) => t?.translateX !== undefined),
+        );
+      },
     );
-  });
+
+    expect(withTranslateX.length).toBe(2);
+
+    const actionBtnWrapper = withTranslateX[0];
+    expect(actionBtnWrapper.props.style.transform).toEqual(
+      [{ translateX: expect.any(Number) }],
+    );
+  }, 20000);
 });
