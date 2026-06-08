@@ -30,6 +30,16 @@ export const SwipeableRow: React.FC<Props> = ({
   const { colors } = useAppTheme();
   const [translateX] = useState(() => new Animated.Value(0));
 
+  const actionTranslateX = useMemo(
+    () =>
+      translateX.interpolate({
+        inputRange: [-ACTION_WIDTH, 0],
+        outputRange: [0, ACTION_WIDTH],
+        extrapolate: 'clamp',
+      }),
+    [translateX],
+  );
+
   const close = useCallback(() => {
     Animated.spring(translateX, {
       toValue: 0,
@@ -84,13 +94,19 @@ export const SwipeableRow: React.FC<Props> = ({
     // fixed layout position so React Native's hit-test (which uses pre-transform
     // coordinates) can reach it after the content slides away.
     <View style={styles.wrapper}>
-      <TouchableOpacity
-        onPress={() => { close(); onAction(); }}
-        style={[styles.actionBtn, { backgroundColor: actionColor }]}
-        activeOpacity={0.8}
+      <Animated.View
+        style={[
+          styles.actionBtn,
+          { backgroundColor: actionColor, transform: [{ translateX: actionTranslateX }] },
+        ]}
       >
-        <MaterialCommunityIcons name={actionIcon as never} size={20} color={colors.surface} />
-      </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => { close(); onAction(); }}
+          activeOpacity={0.8}
+        >
+          <MaterialCommunityIcons name={actionIcon as never} size={20} color={colors.surface} />
+        </TouchableOpacity>
+      </Animated.View>
       <Animated.View
         style={[styles.content, { transform: [{ translateX }] }]}
         {...panResponder.panHandlers}

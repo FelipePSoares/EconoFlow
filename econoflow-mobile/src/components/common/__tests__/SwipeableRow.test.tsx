@@ -1,4 +1,6 @@
 import React from 'react';
+import { View } from 'react-native';
+import { render, act } from '@testing-library/react-native';
 import { SwipeableRow } from '../SwipeableRow';
 
 jest.mock('@expo/vector-icons', () => ({
@@ -47,4 +49,39 @@ describe('SwipeableRow', () => {
     props.onAction();
     expect(onAction).toHaveBeenCalledTimes(1);
   });
+
+  it('wraps the action button in an extra Animated.View with a translateX transform for swipe reveal', async () => {
+    let renderResult: Awaited<ReturnType<typeof render>>;
+    await act(async () => {
+      renderResult = await render(
+        <SwipeableRow
+          onAction={jest.fn()}
+          actionIcon="trash-can-outline"
+          actionColor="#ff0000"
+        >
+          <View />
+        </SwipeableRow>
+      );
+    });
+
+    const withTranslateX = renderResult!.container.queryAll(
+      (instance) => {
+        const style = instance.props?.style;
+        if (!style) return false;
+        const arr = Array.isArray(style) ? style : [style];
+        return arr.some(
+          (s: Record<string, unknown>) =>
+            Array.isArray(s?.transform) &&
+            s.transform.some((t: Record<string, unknown>) => t?.translateX !== undefined),
+        );
+      },
+    );
+
+    expect(withTranslateX.length).toBe(2);
+
+    const actionBtnWrapper = withTranslateX[0];
+    expect(actionBtnWrapper.props.style.transform).toEqual(
+      [{ translateX: expect.any(Number) }],
+    );
+  }, 20000);
 });
