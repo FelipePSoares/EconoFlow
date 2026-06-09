@@ -229,5 +229,42 @@ describe('ListExpensesComponent', () => {
       expect(expenseServiceMock.restoreItem).toHaveBeenCalledWith('project-1', 'cat-1', 'expense-1', 'item-1');
       expect(expenseServiceMock.get).toHaveBeenCalledTimes(2);
     });
+
+    it('should preserve ExpenseDto prototype methods on the parent after item removal', () => {
+      const item = makeItem();
+      const expense = makeExpense({ items: [item] });
+      (component as any).expenses.next([expense]);
+
+      component.swipeDeleteSubExpense(expense, item);
+
+      const remaining = (component as any).expenses.getValue() as ExpenseDto[];
+      expect(remaining[0]).toBeInstanceOf(ExpenseDto);
+      expect(() => remaining[0].getSpend()).not.toThrow();
+    });
+  });
+
+  describe('snackbar positioning', () => {
+    it('swipeDeleteExpense should open snackbar with center-bottom position', () => {
+      const expense = makeExpense();
+      (component as any).expenses.next([expense]);
+      component.swipeDeleteExpense(expense);
+      expect(snackBarMock.open).toHaveBeenCalledWith(
+        jasmine.any(String),
+        jasmine.any(String),
+        jasmine.objectContaining({ horizontalPosition: 'center', verticalPosition: 'bottom' }),
+      );
+    });
+
+    it('swipeDeleteSubExpense should open snackbar with center-bottom position', () => {
+      const item = makeItem();
+      const expense = makeExpense({ items: [item] });
+      (component as any).expenses.next([expense]);
+      component.swipeDeleteSubExpense(expense, item);
+      expect(snackBarMock.open).toHaveBeenCalledWith(
+        jasmine.any(String),
+        jasmine.any(String),
+        jasmine.objectContaining({ horizontalPosition: 'center', verticalPosition: 'bottom' }),
+      );
+    });
   });
 });

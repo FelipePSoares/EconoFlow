@@ -168,7 +168,11 @@ export class ListExpensesComponent implements OnInit {
 
     const undoLabel = this.translateService.instant('ButtonUndo');
     const message = this.translateService.instant('UndoDelete');
-    const ref = this.snackBar.open(message, undoLabel, { duration: 5000 });
+    const ref = this.snackBar.open(message, undoLabel, {
+      duration: 5000,
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom',
+    });
 
     ref.onAction().subscribe(() => {
       this.expenseService.restore(this.projectId, this.categoryId, removed.id).subscribe({
@@ -180,7 +184,9 @@ export class ListExpensesComponent implements OnInit {
   swipeDeleteSubExpense(expense: ExpenseDto, subExpense: ExpenseItemDto): void {
     const currentExpenses = this.expenses.getValue().map(e => {
       if (e.id !== expense.id) return e;
-      return { ...e, items: e.items.filter(i => i.id !== subExpense.id) } as ExpenseDto;
+      const updated = Object.assign(new ExpenseDto(), e);
+      updated.items = e.items.filter(i => i.id !== subExpense.id);
+      return updated;
     });
     this.expenses.next(currentExpenses);
 
@@ -188,7 +194,11 @@ export class ListExpensesComponent implements OnInit {
 
     const undoLabel = this.translateService.instant('ButtonUndo');
     const message = this.translateService.instant('UndoDelete');
-    const ref = this.snackBar.open(message, undoLabel, { duration: 5000 });
+    const ref = this.snackBar.open(message, undoLabel, {
+      duration: 5000,
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom',
+    });
 
     ref.onAction().subscribe(() => {
       this.expenseService.restoreItem(this.projectId, this.categoryId, expense.id, subExpense.id).subscribe({
