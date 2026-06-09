@@ -16,7 +16,6 @@ import { ErrorBanner } from '../../components/common/ErrorBanner';
 import { MonthNavigator } from '../../components/common/MonthNavigator';
 import { GlassScreen } from '../../components/common/GlassScreen';
 import { GlassCard } from '../../components/common/GlassCard';
-import { SwipeableRow } from '../../components/common/SwipeableRow';
 import { UndoToast } from '../../components/common/UndoToast';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
 import { useAppTheme } from '../../theme/useAppTheme';
@@ -139,30 +138,26 @@ export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
           ) : null
         }
         renderItem={({ item, index }) => (
-          <SwipeableRow
-            disabled={!canEdit}
-            actionIcon="archive-outline"
-            actionColor={ink2}
-            onAction={() => {
+          <CategoryCard
+            category={item}
+            currency={currency}
+            index={index}
+            dark={dark}
+            onSwipeAction={() => {
               archiveCategory.mutate(item.id);
               setUndoState({ visible: true, id: item.id });
             }}
-          >
-            <CategoryCard
-              category={item}
-              currency={currency}
-              index={index}
-              dark={dark}
-              onPress={() =>
-                navigation.navigate('ExpenseList', {
-                  categoryId: item.id,
-                  categoryName: item.name,
-                  month,
-                  categoryIndex: index,
-                })
-              }
-            />
-          </SwipeableRow>
+            swipeActionColor={ink2}
+            swipeDisabled={!canEdit}
+            onPress={() =>
+              navigation.navigate('ExpenseList', {
+                categoryId: item.id,
+                categoryName: item.name,
+                month,
+                categoryIndex: index,
+              })
+            }
+          />
         )}
         ListEmptyComponent={
           <Text style={[styles.empty, { color: ink2 }]}>{t('LabelNoCategories')}</Text>

@@ -16,7 +16,8 @@ import { useProjectStore } from '../../store/projectStore';
 import { useQuickAddStore } from '../../store/quickAddStore';
 import { useAuthStore } from '../../store/authStore';
 import { useProjects } from '../../hooks/useProjects';
-import { useCategoriesForMonth } from '../../hooks/useCategories';
+import { useCategoriesForMonth, useArchiveCategory, useUnarchiveCategory } from '../../hooks/useCategories';
+import { UndoToast } from '../../components/common/UndoToast';
 import { useIncomesForMonth } from '../../hooks/useIncomes';
 import { useTotalSavedForMonth } from '../../hooks/usePlans';
 import { MonthNavigator } from '../../components/common/MonthNavigator';
@@ -54,6 +55,7 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
   const [month, setMonth] = useState(currentMonth());
   const [refreshing, setRefreshing] = useState(false);
   const [dismissedForMonth, setDismissedForMonth] = useState<string | null>(null);
+  const [undoState, setUndoState] = useState<{ visible: boolean; id: string | null }>({ visible: false, id: null });
 
   const setViewedMonth = useQuickAddStore(s => s.setViewedMonth);
   const isFocused = useIsFocused();
@@ -70,6 +72,9 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
     data: categories, isLoading: loadingCats, isFetching: fetchingCats,
     isError: catsError, refetch: refetchCats,
   } = useCategoriesForMonth(projectId, month);
+  const archiveCategory   = useArchiveCategory(projectId, month);
+  const unarchiveCategory = useUnarchiveCategory(projectId, month);
+  const canEdit = selectedProject?.role !== 'Viewer';
   const {
     data: incomes, isLoading: loadingInc, isFetching: fetchingIncs,
     isError: incError, refetch: refetchIncs,
@@ -306,6 +311,12 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
                   currency={currency}
                   index={idx}
                   dark={dark}
+                  onSwipeAction={() => {
+                    archiveCategory.mutate(cat.id);
+                    setUndoState({ visible: true, id: cat.id });
+                  }}
+                  swipeActionColor={ink2}
+                  swipeDisabled={!canEdit}
                   onPress={() => navigation.navigate('ExpenseList', {
                     categoryId: cat.id, categoryName: cat.name, month, categoryIndex: idx,
                   })}
@@ -323,6 +334,15 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
         )}
         </ScrollView>
       </View>
+
+      <UndoToast
+        visible={undoState.visible}
+        message={t('LabelUndoArchive')}
+        onUndo={() => {
+          if (undoState.id) unarchiveCategory.mutate(undoState.id);
+        }}
+        onDismiss={() => setUndoState({ visible: false, id: null })}
+      />
     </GlassScreen>
   );
 };

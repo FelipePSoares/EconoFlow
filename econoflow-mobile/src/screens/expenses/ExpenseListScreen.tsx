@@ -577,7 +577,7 @@ const styles = StyleSheet.create({
   timelineLineTop:    { flex: 1, width: 2 },
   timelineDot:        { width: 8, height: 8, borderRadius: 4 },
   timelineLineBottom: { flex: 1, width: 2 },
-  itemBody:    { flex: 1, flexDirection: 'row', alignItems: 'center', paddingVertical: 9, paddingLeft: 10, gap: 10 },
+  itemBody:    { flex: 1, flexDirection: 'row', alignItems: 'center', paddingVertical: 9, paddingLeft: 10, paddingRight: 10, gap: 10 },
   itemLeft:    { flex: 1, gap: 2 },
   itemSubRow:  { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 4 },
   itemName:   { fontSize: 13.5, fontWeight: '600' },
