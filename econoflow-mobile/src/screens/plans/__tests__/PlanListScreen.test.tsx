@@ -200,7 +200,7 @@ describe('PlanListScreen', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const PlanCard = (jest.requireMock('../../../components/plans/PlanCard') as any).PlanCard;
     const swipeAction: () => void = PlanCard.mock.calls[0][0].onSwipeAction;
-    act(() => { swipeAction(); });
+    await act(async () => { swipeAction(); });
 
     expect(mockArchiveMutate).toHaveBeenCalledWith('plan-1');
   });
