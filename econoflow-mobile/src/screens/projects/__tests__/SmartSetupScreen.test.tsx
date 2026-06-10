@@ -465,6 +465,48 @@ describe('SmartSetupScreen', () => {
     });
   });
 
+  it('income hero renders integer part of entered amount', async () => {
+    await render(<SmartSetupScreen navigation={mockNavigation} route={mockRoute} />);
+    await fireEvent.changeText(screen.getByTestId('FieldAnnualIncome'), '60000.50');
+    expect(screen.getByTestId('income-hero-int').props.children).toBe('60000');
+  });
+
+  it('income hero renders decimal part of entered amount', async () => {
+    await render(<SmartSetupScreen navigation={mockNavigation} route={mockRoute} />);
+    await fireEvent.changeText(screen.getByTestId('FieldAnnualIncome'), '60000.50');
+    expect(screen.getByTestId('income-hero-dec').props.children).toBe('.50');
+  });
+
+  it('emergency reserve hero shows integer part of pre-filled value', async () => {
+    await render(<SmartSetupScreen navigation={mockNavigation} route={mockRoute} />);
+    await fireEvent.changeText(screen.getByTestId('FieldAnnualIncome'), '12000');
+    await fireEvent.press(screen.getByTestId('SmartSetupNext'));
+    await screen.findByText('SmartSetupStep2Title');
+    await fireEvent.press(screen.getByTestId('SmartSetupNext'));
+    await screen.findByText('SmartSetupStep3Title');
+    // 6 × (12000 / 12) = 6000 → integer part "6000"
+    expect(screen.getByTestId('reserve-hero-int').props.children).toBe('6000');
+  });
+
+  it('emergency reserve hero shows decimal part of pre-filled value', async () => {
+    await render(<SmartSetupScreen navigation={mockNavigation} route={mockRoute} />);
+    await fireEvent.changeText(screen.getByTestId('FieldAnnualIncome'), '12000');
+    await fireEvent.press(screen.getByTestId('SmartSetupNext'));
+    await screen.findByText('SmartSetupStep2Title');
+    await fireEvent.press(screen.getByTestId('SmartSetupNext'));
+    await screen.findByText('SmartSetupStep3Title');
+    // 6 × (12000 / 12) = 6000.00 → decimal part ".00"
+    expect(screen.getByTestId('reserve-hero-dec').props.children).toBe('.00');
+  });
+
+  it('slider does not release responder once granted', async () => {
+    await render(<SmartSetupScreen navigation={mockNavigation} route={mockRoute} />);
+    await goToStep2();
+    const slider = screen.getByTestId('cat-1-pct-slider');
+    expect(typeof slider.props.onResponderTerminationRequest).toBe('function');
+    expect(slider.props.onResponderTerminationRequest()).toBe(false);
+  });
+
   it('categories from API without ids get unique local ids so sliders are independent', async () => {
     // The real API returns CategoryWithPercentageDTO which has no Id field.
     // Without a local-id fallback every category gets id=undefined and all

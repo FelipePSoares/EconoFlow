@@ -2,9 +2,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -79,6 +81,7 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
       onLayout={(e) => { widthRef.current = e.nativeEvent.layout.width; }}
       onStartShouldSetResponder={() => true}
       onMoveShouldSetResponder={() => true}
+      onResponderTerminationRequest={() => false}
       onResponderGrant={(e) => handleTouch(e.nativeEvent.locationX)}
       onResponderMove={(e) => handleTouch(e.nativeEvent.locationX)}
     >
@@ -136,6 +139,8 @@ export const SmartSetupScreen: React.FC<Props> = ({ navigation, route }) => {
   const [error, setError] = useState<string | null>(null);
 
   const initialized = useRef(false);
+  const annualIncomeInputRef = useRef<TextInput>(null);
+  const emergencyInputRef = useRef<TextInput>(null);
 
   const { currency } = useProjectStore();
   const setHideTabBar = useUIStore((s) => s.setHideTabBar);
@@ -163,6 +168,14 @@ export const SmartSetupScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const annualIncome = parseFloat(annualIncomeStr) || 0;
   const monthlyIncome = annualIncome / 12;
+
+  const incomeParts = annualIncomeStr ? annualIncomeStr.split('.') : [];
+  const incomeIntStr = incomeParts[0] || '0';
+  const incomeDecStr = `.${(incomeParts[1] ?? '00').padEnd(2, '0').slice(0, 2)}`;
+
+  const reserveParts = emergencyInput ? emergencyInput.split('.') : [];
+  const reserveIntStr = reserveParts[0] || '0';
+  const reserveDecStr = `.${(reserveParts[1] ?? '00').padEnd(2, '0').slice(0, 2)}`;
 
   const percentageTotal = categories.reduce(
     (sum, c) => sum + (parseFloat(c.percentageStr) || 0),
@@ -283,16 +296,34 @@ export const SmartSetupScreen: React.FC<Props> = ({ navigation, route }) => {
       <Text style={[styles.stepDescription, { color: ink2 }]}>
         {t('SmartSetupStep1Description')}
       </Text>
-      <GlassCard dark={dark} radius={18} style={styles.fieldCard}>
-        <AuroraField
-          dark={dark}
-          textPrefix={getCurrencySymbol(currency)}
-          testID={t('FieldAnnualIncome')}
-          placeholder={t('FieldAnnualIncome')}
-          value={annualIncomeStr}
-          onChangeText={setAnnualIncomeStr}
-          keyboardType="decimal-pad"
-        />
+      <GlassCard dark={dark} radius={18} style={styles.heroCard}>
+        <Pressable style={styles.incomeHero} onPress={() => annualIncomeInputRef.current?.focus()}>
+          <Text style={[styles.heroLabel, { color: ink2 }]}>
+            {t('SmartSetupStep1Title').toUpperCase()}
+          </Text>
+          <View style={styles.heroRow}>
+            <Text testID="FieldAnnualIncome-prefix" style={[styles.heroSym, { color: colors.primary }]}>
+              {getCurrencySymbol(currency)}
+            </Text>
+            <Text testID="income-hero-int" style={[styles.heroInt, { color: ink }]}>
+              {incomeIntStr}
+            </Text>
+            <Text testID="income-hero-dec" style={[styles.heroDec, { color: ink2 }]}>
+              {incomeDecStr}
+            </Text>
+          </View>
+          <TextInput
+            ref={annualIncomeInputRef}
+            testID="FieldAnnualIncome"
+            value={annualIncomeStr}
+            onChangeText={setAnnualIncomeStr}
+            keyboardType="decimal-pad"
+            caretHidden
+            accessible={false}
+            importantForAccessibility="no"
+            style={styles.hiddenInput}
+          />
+        </Pressable>
       </GlassCard>
       <AuroraPrimaryButton
         testID={t('SmartSetupNext')}
@@ -425,16 +456,34 @@ export const SmartSetupScreen: React.FC<Props> = ({ navigation, route }) => {
       <Text style={[styles.stepDescription, { color: ink2 }]}>
         {t('SmartSetupStep3Description')}
       </Text>
-      <GlassCard dark={dark} radius={18} style={styles.fieldCard}>
-        <AuroraField
-          dark={dark}
-          textPrefix={getCurrencySymbol(currency)}
-          testID={t('SmartSetupEmergencyReserveLabel')}
-          placeholder={t('SmartSetupEmergencyReserveLabel')}
-          value={emergencyInput}
-          onChangeText={setEmergencyInput}
-          keyboardType="decimal-pad"
-        />
+      <GlassCard dark={dark} radius={18} style={styles.heroCard}>
+        <Pressable style={styles.incomeHero} onPress={() => emergencyInputRef.current?.focus()}>
+          <Text style={[styles.heroLabel, { color: ink2 }]}>
+            {t('SmartSetupEmergencyReserveLabel').toUpperCase()}
+          </Text>
+          <View style={styles.heroRow}>
+            <Text style={[styles.heroSym, { color: colors.primary }]}>
+              {getCurrencySymbol(currency)}
+            </Text>
+            <Text testID="reserve-hero-int" style={[styles.heroInt, { color: ink }]}>
+              {reserveIntStr}
+            </Text>
+            <Text testID="reserve-hero-dec" style={[styles.heroDec, { color: ink2 }]}>
+              {reserveDecStr}
+            </Text>
+          </View>
+          <TextInput
+            ref={emergencyInputRef}
+            testID="SmartSetupEmergencyReserveLabel"
+            value={emergencyInput}
+            onChangeText={setEmergencyInput}
+            keyboardType="decimal-pad"
+            caretHidden
+            accessible={false}
+            importantForAccessibility="no"
+            style={styles.hiddenInput}
+          />
+        </Pressable>
       </GlassCard>
       <Text style={[styles.hint, { color: ink2 }]}>{t('SmartSetupEmergencyReserveHint')}</Text>
 
@@ -497,7 +546,14 @@ const styles = StyleSheet.create({
   stepContent: { gap: 12, paddingTop: 4 },
   stepTitle: { fontSize: 20, fontWeight: '800', marginBottom: 2 },
   stepDescription: { fontSize: 13, fontWeight: '500', marginBottom: 8 },
-  fieldCard: { padding: 4 },
+  heroCard: { padding: 0 },
+  incomeHero: { alignItems: 'center', paddingVertical: 20, paddingHorizontal: 16 },
+  heroLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.9, marginBottom: 10 },
+  heroRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 2 },
+  heroSym: { fontSize: 22, fontWeight: '600', paddingBottom: 10 },
+  heroInt: { fontSize: 48, fontWeight: '800', letterSpacing: -1 },
+  heroDec: { fontSize: 24, fontWeight: '700', letterSpacing: -0.5, paddingBottom: 10 },
+  hiddenInput: { position: 'absolute', width: 1, height: 1, opacity: 0 },
   categoryCard: { padding: 14, gap: 8 },
   categoryNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   categoryNameField: { flex: 1 },
