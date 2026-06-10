@@ -2,6 +2,7 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import i18n from '../i18n';
 import { useAuthStore } from '../store/authStore';
 import { addBreadcrumb } from '../monitoring/sentry';
+import i18n from '../i18n';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://localhost:7003';
 
@@ -29,7 +30,7 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  config.headers['Accept-Language'] = i18n.language;
+  config.headers['Accept-Language'] = i18n.language ?? 'en';
   // Breadcrumb: method + URL only — never the body or the auth token.
   addBreadcrumb(
     `${(config.method ?? 'GET').toUpperCase()} ${config.url ?? ''}`,
