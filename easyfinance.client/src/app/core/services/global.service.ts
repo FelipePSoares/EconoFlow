@@ -11,7 +11,7 @@ import { SupportedLanguage } from '../types/supported-language';
 export class GlobalService {
   private translateService = inject(TranslateService);
 
-  private languageLoaded = 'en-US';
+  private languageLoaded = 'en';
   public languageStorageKey = "language-key";
   public groupSeparator = '.';
   public decimalSeparator = ',';

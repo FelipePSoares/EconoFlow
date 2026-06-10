@@ -18,6 +18,11 @@ jest.mock('../../store/authStore', () => ({
   },
 }));
 
+jest.mock('../../i18n', () => ({
+  __esModule: true,
+  default: { language: 'en' },
+}));
+
 // ---------------------------------------------------------------------------
 // Minimal axios adapter helpers
 // ---------------------------------------------------------------------------
@@ -41,6 +46,43 @@ const errorAdapter = (status: number, url = '/api/test'): AnyAdapter =>
       config: { url, method: 'get', headers: {} },
     }),
   );
+
+describe('apiClient interceptors – Accept-Language header', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let savedAdapter: any;
+
+  beforeAll(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    savedAdapter = (apiClient.defaults as any).adapter;
+  });
+
+  afterEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (apiClient.defaults as any).adapter = savedAdapter;
+    jest.clearAllMocks();
+  });
+
+  it('adds Accept-Language header derived from i18n.language to every request', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let capturedConfig: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (apiClient.defaults as any).adapter = (config: any) => {
+      capturedConfig = config;
+      return Promise.resolve({
+        data: {},
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config,
+        request: {},
+      });
+    };
+
+    await apiClient.get('/api/test');
+
+    expect(capturedConfig?.headers?.['Accept-Language']).toBe('en');
+  });
+});
 
 describe('apiClient interceptors – Sentry breadcrumbs', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
