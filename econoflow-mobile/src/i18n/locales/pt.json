@@ -98,6 +98,7 @@
   "ButtonTryAgain": "Tentar novamente",
   "ButtonSaveAndContinue": "Salvar e continuar",
   "ButtonAccept": "Aceitar",
+  "ButtonNewProject": "Novo projeto",
 
   "MenuAccount": "Conta",
   "MenuPasswordAuthentication": "Senhas e Autenticação",
@@ -557,6 +558,31 @@
   "Optional": "opcional",
   "LabelUndoDelete": "Excluído. Desfazer?",
   "LabelUndoArchive": "Arquivado. Desfazer?",
-  "ButtonUndo": "Desfazer"
+  "ButtonUndo": "Desfazer",
+
+  "TaxYearTypeCalendar": "Ano civil",
+  "TaxYearTypeCustom": "Mês de início personalizado",
+  "TaxYearLabelingByStart": "Pelo ano de início",
+  "TaxYearLabelingByEnd": "Pelo ano de fim",
+
+  "SmartSetupTitle": "Configuração Inteligente",
+  "SmartSetupSubtitle": "Vamos configurar seu orçamento em poucos passos.",
+  "SmartSetupStep1Title": "Renda Anual",
+  "SmartSetupStep1Description": "Informe sua renda anual média. Usaremos isso para distribuir seu orçamento mensal.",
+  "SmartSetupStep2Title": "Alocação do Orçamento",
+  "SmartSetupStep2Description": "Atribua uma porcentagem da sua renda mensal a cada categoria.",
+  "SmartSetupPercentageRemaining": "{{amount}} restante",
+  "SmartSetupPercentageExceeded": "{{amount}} excedido",
+  "SmartSetupMonthlyBudgetPreview": "≈ {{amount}}/mês",
+  "SmartSetupStep3Title": "Reserva de Emergência",
+  "SmartSetupStep3Description": "Sugerimos guardar 6 meses de despesas fixas como reserva de emergência.",
+  "SmartSetupEmergencyReserveLabel": "Meta de Reserva de Emergência",
+  "SmartSetupEmergencyReserveHint": "Sugestão: 6 meses de despesas. Você pode ajustar esse valor.",
+  "SmartSetupSkip": "Pular",
+  "SmartSetupNext": "Próximo",
+  "SmartSetupBack": "Voltar",
+  "SmartSetupFinish": "Concluir",
+  "SmartSetupAddCategory": "Adicionar Categoria",
+  "SmartSetupCategoryNamePlaceholder": "Nome da categoria"
 }
 

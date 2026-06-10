@@ -98,6 +98,7 @@
   "ButtonTryAgain": "Try Again",
   "ButtonSaveAndContinue": "Save and continue",
   "ButtonAccept": "Accept",
+  "ButtonNewProject": "New project",
 
   "MenuAccount": "Account",
   "MenuPasswordAuthentication": "Password and Authentication",
@@ -558,5 +559,30 @@
   "Optional": "optional",
   "LabelUndoDelete": "Deleted. Undo?",
   "LabelUndoArchive": "Archived. Undo?",
-  "ButtonUndo": "Undo"
+  "ButtonUndo": "Undo",
+
+  "TaxYearTypeCalendar": "Calendar Year",
+  "TaxYearTypeCustom": "Custom Start Month",
+  "TaxYearLabelingByStart": "By Start Year",
+  "TaxYearLabelingByEnd": "By End Year",
+
+  "SmartSetupTitle": "Smart Setup",
+  "SmartSetupSubtitle": "Let's configure your budget in a few quick steps.",
+  "SmartSetupStep1Title": "Annual Income",
+  "SmartSetupStep1Description": "Enter your average annual income. We use this to distribute your monthly budget.",
+  "SmartSetupStep2Title": "Budget Allocation",
+  "SmartSetupStep2Description": "Assign a percentage of your monthly income to each category.",
+  "SmartSetupPercentageRemaining": "{{amount}} remaining",
+  "SmartSetupPercentageExceeded": "{{amount}} exceeded",
+  "SmartSetupMonthlyBudgetPreview": "≈ {{amount}}/month",
+  "SmartSetupStep3Title": "Emergency Reserve",
+  "SmartSetupStep3Description": "We suggest saving 6 months of your fixed expenses as an emergency reserve.",
+  "SmartSetupEmergencyReserveLabel": "Emergency Reserve Target",
+  "SmartSetupEmergencyReserveHint": "Suggested: 6 months of expenses. You can adjust this value.",
+  "SmartSetupSkip": "Skip",
+  "SmartSetupNext": "Next",
+  "SmartSetupBack": "Back",
+  "SmartSetupFinish": "Finish",
+  "SmartSetupAddCategory": "Add Category",
+  "SmartSetupCategoryNamePlaceholder": "Category name"
 }

@@ -153,3 +153,24 @@ export interface CreateExpenseItemRequest {
   date: string;
   amount: number;
 }
+
+export interface TaxYearSettingsRequest {
+  taxYearType: 'CalendarYear' | 'CustomStartMonth';
+  taxYearStartMonth?: number;
+  taxYearStartDay?: number;
+  taxYearLabeling?: 'ByStartYear' | 'ByEndYear';
+}
+
+export interface DefaultCategory {
+  // Backend DTO (CategoryWithPercentageDTO) has no Id field; absent in real responses.
+  id?: string;
+  name: string;
+  percentage: number;
+}
+
+export interface SmartSetupRequest {
+  annualIncome: number;
+  date: string;
+  defaultCategories: DefaultCategory[];
+  emergencyReserveTarget: number;
+}

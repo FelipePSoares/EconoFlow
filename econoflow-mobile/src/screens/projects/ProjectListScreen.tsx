@@ -16,6 +16,7 @@ import { LoadingIndicator } from '../../components/common/LoadingIndicator';
 import { GlassScreen } from '../../components/common/GlassScreen';
 import { GlassCard } from '../../components/common/GlassCard';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
+import { AuroraPrimaryButton } from '../../components/auth/AuroraPrimaryButton';
 import type { UserProject } from '../../api/types';
 
 type Props = {
@@ -77,13 +78,6 @@ export const ProjectListScreen: React.FC<Props> = ({ navigation }) => {
           <View style={styles.emptyWrap}>
             <MaterialCommunityIcons name="folder-open-outline" size={52} color={ink2} />
             <Text style={[styles.emptyText, { color: ink2 }]}>{t('LabelNoProjects')}</Text>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('CreateProject')}
-              style={styles.emptyBtn}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.emptyBtnText}>{t('ButtonCreate') ?? 'Create project'}</Text>
-            </TouchableOpacity>
           </View>
         ) : (
           (projects ?? []).map((item, idx) => {
@@ -138,6 +132,14 @@ export const ProjectListScreen: React.FC<Props> = ({ navigation }) => {
           })
         )}
       </ScrollView>
+
+      <View style={[styles.addBtnWrap, { paddingBottom: insets.bottom + 8 }]}>
+        <AuroraPrimaryButton
+          label={t('ButtonNewProject')}
+          onPress={() => navigation.navigate('CreateProject')}
+          icon="plus"
+        />
+      </View>
     </GlassScreen>
   );
 };
@@ -159,11 +161,8 @@ const styles = StyleSheet.create({
 
   emptyWrap: { alignItems: 'center', paddingTop: 80, gap: 12 },
   emptyText: { fontSize: 15, textAlign: 'center', opacity: 0.7 },
-  emptyBtn: {
-    marginTop: 8, paddingHorizontal: 22, paddingVertical: 13,
-    borderRadius: 14, backgroundColor: '#0f76a8',
-  },
-  emptyBtnText: { color: '#fff', fontWeight: '800', fontSize: 14.5 },
+
+  addBtnWrap: { paddingHorizontal: 22, paddingTop: 4 },
 
   card: { overflow: 'hidden' },
   cardRow: {

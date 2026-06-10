@@ -8,15 +8,18 @@ interface Props {
   label: string;
   onPress: () => void;
   loading?: boolean;
+  disabled?: boolean;
   icon?: string;
+  testID?: string;
 }
 
-export const AuroraPrimaryButton: React.FC<Props> = ({ label, onPress, loading, icon }) => (
+export const AuroraPrimaryButton: React.FC<Props> = ({ label, onPress, loading, disabled, icon, testID }) => (
   <TouchableOpacity
+    testID={testID}
     onPress={onPress}
-    disabled={loading}
+    disabled={loading || disabled}
     activeOpacity={0.82}
-    style={[styles.btn, loading && styles.btnDisabled]}
+    style={[styles.btn, (loading || disabled) && styles.btnDisabled]}
   >
     {/* Teal → green gradient from the design */}
     <LinearGradient

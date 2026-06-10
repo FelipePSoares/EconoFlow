@@ -12,6 +12,7 @@ import { OverviewStackNavigator } from './OverviewStackNavigator';
 import { ProfileScreen } from '../screens/profile/ProfileScreen';
 import { QuickAddModal } from '../screens/quick-add/QuickAddModal';
 import { useQuickAddStore } from '../store/quickAddStore';
+import { useUIStore } from '../store/uiStore';
 import { currentMonth } from '../utils/date';
 
 type IconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
@@ -34,6 +35,7 @@ export const MainNavigator: React.FC = () => {
   const dark   = useColorScheme() === 'dark';
   const barBg  = dark ? 'rgba(6,30,51,0.92)' : 'rgba(230,239,246,0.92)';
   const barBorder = dark ? 'rgba(255,255,255,0.08)' : 'rgba(13,33,55,0.08)';
+  const hideTabBar = useUIStore((s) => s.hideTabBar);
   const [quickAddVisible, setQuickAddVisible] = useState(false);
   const quickAddCategoryId = useQuickAddStore(s => s.categoryId);
   const quickAddDefaultType = useQuickAddStore(s => s.defaultType);
@@ -45,14 +47,16 @@ export const MainNavigator: React.FC = () => {
       initialRouteName="Overview"
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarStyle: {
-          backgroundColor: barBg,
-          borderTopColor: barBorder,
-          borderTopWidth: StyleSheet.hairlineWidth,
-          height: 64,
-          paddingBottom: 8,
-          paddingTop: 6,
-        },
+        tabBarStyle: hideTabBar
+          ? { display: 'none' as const }
+          : {
+            backgroundColor: barBg,
+            borderTopColor: barBorder,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            height: 64,
+            paddingBottom: 8,
+            paddingTop: 6,
+          },
         tabBarActiveTintColor:   '#0f76a8',
         tabBarInactiveTintColor: dark ? '#8aa0b6' : '#9aa9b8',
         tabBarIcon: ({ color, size }) => {
