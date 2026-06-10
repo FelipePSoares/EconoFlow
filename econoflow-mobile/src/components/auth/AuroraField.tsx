@@ -4,7 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 interface Props extends TextInputProps {
   dark: boolean;
-  icon: string;
+  icon?: string;
   /** When set, renders a currency/text symbol instead of the icon. */
   textPrefix?: string;
   placeholder: string;
@@ -29,9 +29,9 @@ export const AuroraField: React.FC<Props> = ({
     ]}>
       {textPrefix ? (
         <Text style={[styles.textPrefix, { color: ink2 }]}>{textPrefix}</Text>
-      ) : (
+      ) : icon ? (
         <MaterialCommunityIcons name={icon as never} size={20} color={ink2} style={styles.icon} />
-      )}
+      ) : null}
       <TextInput
         placeholder={placeholder}
         placeholderTextColor={ink2}

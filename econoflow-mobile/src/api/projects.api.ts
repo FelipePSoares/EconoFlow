@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { UserProject, CreateProjectRequest, PatchOperation } from './types';
+import type { UserProject, CreateProjectRequest, PatchOperation, TaxYearSettingsRequest } from './types';
 
 export const getProjects = () =>
   apiClient.get<UserProject[]>('/api/Projects');
@@ -15,3 +15,6 @@ export const patchProject = (id: string, ops: PatchOperation[]) =>
 
 export const archiveProject = (id: string) =>
   apiClient.put(`/api/Projects/${id}/archive`);
+
+export const putTaxYearSettings = (id: string, data: TaxYearSettingsRequest) =>
+  apiClient.put(`/api/Projects/${id}/settings/tax-year`, data);
