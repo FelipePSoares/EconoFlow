@@ -67,6 +67,9 @@ namespace EasyFinance.Server.Tests.Controllers
         public async Task Register_NormalizesLanguageCodeToTwoLetterISOCode(string uiCulture, string expectedCode)
         {
             // Arrange
+            var originalCulture = CultureInfo.CurrentUICulture;
+            try
+            {
             CultureInfo.CurrentUICulture = new CultureInfo(uiCulture);
 
             User? capturedUser = null;
@@ -99,6 +102,11 @@ namespace EasyFinance.Server.Tests.Controllers
             // Assert
             capturedUser.ShouldNotBeNull();
             capturedUser!.LanguageCode.ShouldBe(expectedCode);
+            }
+            finally
+            {
+                CultureInfo.CurrentUICulture = originalCulture;
+            }
         }
     }
 }
