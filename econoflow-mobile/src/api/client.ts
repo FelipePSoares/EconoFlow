@@ -1,6 +1,8 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '../store/authStore';
+import { useProjectStore } from '../store/projectStore';
 import { addBreadcrumb } from '../monitoring/sentry';
+import { queryClient } from './queryClient';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://localhost:7003';
 
@@ -71,10 +73,13 @@ apiClient.interceptors.response.use(
     isRefreshing = true;
 
     const { refreshToken, setTokens, clearAuth } = useAuthStore.getState();
+    const { clearProject } = useProjectStore.getState();
 
     if (!refreshToken) {
       isRefreshing = false;
+      queryClient.clear();
       clearAuth();
+      clearProject();
       return Promise.reject(error);
     }
 
@@ -94,7 +99,9 @@ apiClient.interceptors.response.use(
       return apiClient(originalRequest);
     } catch (refreshError) {
       processQueue(refreshError, null);
+      queryClient.clear();
       clearAuth();
+      clearProject();
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;
