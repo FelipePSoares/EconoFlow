@@ -26,7 +26,7 @@ type Props = NativeStackScreenProps<PlansStackParamList, 'PlanEntryForm'>;
 export const PlanEntryFormScreen: React.FC<Props> = ({ route, navigation }) => {
   const { t } = useTranslation();
   const { dark, ink, ink2 } = useAuroraSkin();
-  const { customColors } = useAppTheme();
+  const { colors, customColors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const { selectedProject } = useProjectStore();
   const projectId = selectedProject?.project.id ?? '';
@@ -156,7 +156,7 @@ export const PlanEntryFormScreen: React.FC<Props> = ({ route, navigation }) => {
                 dark={!!dark}
                 hasError={!!amountError}
               />
-              {amountError && <Text style={[styles.errorText, { color: '#e74c3c' }]}>{amountError}</Text>}
+              {amountError && <Text style={[styles.errorText, { color: colors.error }]}>{amountError}</Text>}
             </View>
 
             {/* ── Date picker ────────────────────────────────────────── */}

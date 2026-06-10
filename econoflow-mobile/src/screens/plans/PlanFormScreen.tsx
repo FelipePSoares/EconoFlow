@@ -198,7 +198,7 @@ export const PlanFormScreen: React.FC<Props> = ({ route, navigation }) => {
                 dark={!!dark}
                 hasError={!!nameError}
               />
-              {nameError && <Text style={[styles.errorText, { color: '#e74c3c' }]}>{nameError}</Text>}
+              {nameError && <Text style={[styles.errorText, { color: colors.error }]}>{nameError}</Text>}
             </View>
 
             {/* ── Target amount field ────────────────────────────────── */}
@@ -212,7 +212,7 @@ export const PlanFormScreen: React.FC<Props> = ({ route, navigation }) => {
                 dark={!!dark}
                 hasError={!!targetError}
               />
-              {targetError && <Text style={[styles.errorText, { color: '#e74c3c' }]}>{targetError}</Text>}
+              {targetError && <Text style={[styles.errorText, { color: colors.error }]}>{targetError}</Text>}
             </View>
           </View>
         </GlassCard>

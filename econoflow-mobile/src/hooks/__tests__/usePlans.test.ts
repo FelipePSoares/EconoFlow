@@ -5,6 +5,7 @@ import {
   useCreatePlan,
   useArchivePlan,
   useAddPlanEntry,
+  useTotalSavedForMonth,
 } from '../usePlans';
 import type { CreatePlanRequest, CreatePlanEntryRequest } from '../../api/types';
 
@@ -16,9 +17,14 @@ beforeEach(() => {
   mockInvalidateQueries.mockReset();
 });
 
+// Capture queries registered via useQueries so useTotalSavedForMonth tests can
+// simulate the per-plan entries results. Must be prefixed with "mock" so Jest
+// allows the reference inside jest.mock() factories (which are hoisted).
+let mockUseQueriesResult: { data?: unknown; isLoading: boolean }[] = [];
+
 jest.mock('@tanstack/react-query', () => ({
   useQuery: jest.fn((opts) => ({ data: undefined, isLoading: false, _opts: opts })),
-  useQueries: jest.fn(() => []),
+  useQueries: jest.fn(() => mockUseQueriesResult),
   useMutation: jest.fn((opts) => ({
     mutate: jest.fn(),
     mutateAsync: jest.fn(),
@@ -190,5 +196,103 @@ describe('useAddPlanEntry', () => {
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
       queryKey: ['plans', 'proj-1'],
     });
+  });
+});
+
+describe('useTotalSavedForMonth', () => {
+  const MONTH = '2026-06';
+
+  beforeEach(() => {
+    mockUseQueriesResult = [];
+  });
+
+  it('returns totalSaved=0 and isLoading=false when there are no plans', () => {
+    const { useQuery } = jest.requireMock('@tanstack/react-query') as { useQuery: jest.Mock };
+    // usePlans returns empty plan list
+    useQuery.mockReturnValueOnce({ data: [], isLoading: false });
+
+    const result = useTotalSavedForMonth('proj-1', MONTH);
+
+    expect(result.totalSaved).toBe(0);
+    expect(result.isLoading).toBe(false);
+  });
+
+  it('sums entries for the target month across all plans', () => {
+    const { useQuery } = jest.requireMock('@tanstack/react-query') as { useQuery: jest.Mock };
+    // Two plans
+    useQuery.mockReturnValueOnce({
+      data: [
+        { id: 'p-1', name: 'Vacation' },
+        { id: 'p-2', name: 'Emergency' },
+      ],
+      isLoading: false,
+    });
+    // Entries for plan-1: two entries in the target month, one outside
+    // Entries for plan-2: one entry in the target month
+    mockUseQueriesResult = [
+      {
+        data: [
+          { id: 'e-1', date: '2026-06-01', amountSigned: 300 },
+          { id: 'e-2', date: '2026-06-15', amountSigned: 200 },
+          { id: 'e-3', date: '2026-05-31', amountSigned: 1000 }, // outside month
+        ],
+        isLoading: false,
+      },
+      {
+        data: [
+          { id: 'e-4', date: '2026-06-10', amountSigned: 150 },
+        ],
+        isLoading: false,
+      },
+    ];
+
+    const result = useTotalSavedForMonth('proj-1', MONTH);
+
+    // 300 + 200 (plan-1) + 150 (plan-2) = 650; entry from 2026-05 excluded
+    expect(result.totalSaved).toBe(650);
+    expect(result.isLoading).toBe(false);
+  });
+
+  it('includes negative entries (withdrawals) in the total', () => {
+    const { useQuery } = jest.requireMock('@tanstack/react-query') as { useQuery: jest.Mock };
+    useQuery.mockReturnValueOnce({
+      data: [{ id: 'p-1', name: 'Savings' }],
+      isLoading: false,
+    });
+    mockUseQueriesResult = [
+      {
+        data: [
+          { id: 'e-1', date: '2026-06-01', amountSigned: 500 },
+          { id: 'e-2', date: '2026-06-20', amountSigned: -100 }, // withdrawal
+        ],
+        isLoading: false,
+      },
+    ];
+
+    const result = useTotalSavedForMonth('proj-1', MONTH);
+
+    expect(result.totalSaved).toBe(400);
+  });
+
+  it('propagates isLoading=true when plans are still loading', () => {
+    const { useQuery } = jest.requireMock('@tanstack/react-query') as { useQuery: jest.Mock };
+    useQuery.mockReturnValueOnce({ data: [], isLoading: true });
+
+    const result = useTotalSavedForMonth('proj-1', MONTH);
+
+    expect(result.isLoading).toBe(true);
+  });
+
+  it('propagates isLoading=true when any plan entries query is loading', () => {
+    const { useQuery } = jest.requireMock('@tanstack/react-query') as { useQuery: jest.Mock };
+    useQuery.mockReturnValueOnce({
+      data: [{ id: 'p-1', name: 'Savings' }],
+      isLoading: false,
+    });
+    mockUseQueriesResult = [{ data: undefined, isLoading: true }];
+
+    const result = useTotalSavedForMonth('proj-1', MONTH);
+
+    expect(result.isLoading).toBe(true);
   });
 });
