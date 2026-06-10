@@ -1,6 +1,6 @@
 import { useQueries, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as PlansApi from '../api/plans.api';
-import type { CreatePlanRequest, CreatePlanEntryRequest } from '../api/types';
+import type { CreatePlanRequest, CreatePlanEntryRequest, PatchOperation } from '../api/types';
 
 export const usePlans = (projectId: string) =>
   useQuery({
@@ -32,6 +32,16 @@ export const useArchivePlan = (projectId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (planId: string) => PlansApi.archivePlan(projectId, planId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['plans', projectId] });
+    },
+  });
+};
+
+export const usePatchPlan = (projectId: string, planId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (ops: PatchOperation[]) => PlansApi.patchPlan(projectId, planId, ops),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['plans', projectId] });
     },

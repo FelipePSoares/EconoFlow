@@ -110,6 +110,7 @@ const EXISTING_EMERGENCY_PLAN: Plan = {
 jest.mock('../../../hooks/usePlans', () => ({
   usePlans: jest.fn(() => ({ data: [] })),
   useCreatePlan: jest.fn(() => ({ mutate: jest.fn(), isPending: false })),
+  usePatchPlan: jest.fn(() => ({ mutate: jest.fn(), isPending: false })),
 }));
 
 // ─── Navigation mock ──────────────────────────────────────────────────────────
@@ -196,9 +197,13 @@ describe('PlanFormScreen', () => {
     expect(screen.getByTestId('btn-ButtonSave')).toBeTruthy();
   });
 
-  it('calls patchPlan with projectId, planId, and patch ops on save in edit mode', async () => {
-    const { patchPlan } = jest.requireMock('../../../api/plans.api') as { patchPlan: jest.Mock };
-    patchPlan.mockResolvedValue({ data: {} });
+  it('calls usePatchPlan.mutate with patch ops on save in edit mode', async () => {
+    const mockMutate = jest.fn().mockImplementation((_ops, { onSuccess }) => onSuccess());
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/usePlans') as any).usePatchPlan.mockReturnValue({
+      mutate: mockMutate,
+      isPending: false,
+    });
 
     await act(async () => {
       render(<PlanFormScreen navigation={mockNavigation} route={makeEditRoute('plan-1')} />);
@@ -209,10 +214,9 @@ describe('PlanFormScreen', () => {
       fireEvent.press(screen.getByTestId('btn-ButtonSave'));
     });
 
-    expect(patchPlan).toHaveBeenCalledWith(
-      'proj-1',
-      'plan-1',
+    expect(mockMutate).toHaveBeenCalledWith(
       expect.arrayContaining([expect.objectContaining({ path: '/name' })]),
+      expect.objectContaining({ onSuccess: expect.any(Function) }),
     );
     expect(mockGoBack).toHaveBeenCalled();
   });

@@ -63,10 +63,6 @@ jest.mock('../../../components/common/ErrorBanner', () => ({
   ErrorBanner: () => null,
 }));
 
-jest.mock('../../../components/common/UndoToast', () => ({
-  UndoToast: jest.fn(() => null),
-}));
-
 jest.mock('../../../components/plans/PlanCard', () => ({
   PlanCard: jest.fn(() => null),
 }));
@@ -187,12 +183,25 @@ describe('PlanListScreen', () => {
     expect(mockNavigate).toHaveBeenCalledWith('PlanForm', {});
   });
 
-  it('renders UndoToast in the component tree', async () => {
+  it('calls archivePlan.mutate when swipe action is triggered', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/usePlans') as any).usePlans.mockReturnValue({
+      data: [MOCK_PLAN],
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
+
     await act(async () => {
       render(<PlanListScreen navigation={mockNavigation} route={mockRoute} />);
     });
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const UndoToast = (jest.requireMock('../../../components/common/UndoToast') as any).UndoToast;
-    expect(UndoToast).toHaveBeenCalled();
+    const PlanCard = (jest.requireMock('../../../components/plans/PlanCard') as any).PlanCard;
+    const swipeAction: () => void = PlanCard.mock.calls[0][0].onSwipeAction;
+    act(() => { swipeAction(); });
+
+    expect(mockArchiveMutate).toHaveBeenCalledWith('plan-1');
   });
 });

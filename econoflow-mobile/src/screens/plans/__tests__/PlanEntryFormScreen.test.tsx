@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen, fireEvent } from '@testing-library/react-native';
+import { act, cleanup, render, screen, fireEvent } from '@testing-library/react-native';
 import { PlanEntryFormScreen } from '../PlanEntryFormScreen';
 
 // ─── UI infrastructure mocks ──────────────────────────────────────────────────
@@ -110,7 +110,13 @@ const mockRoute = {
 
 describe('PlanEntryFormScreen', () => {
   beforeEach(() => {
+    cleanup();
     mockGoBack.mockReset();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/usePlans') as any).useAddPlanEntry.mockReturnValue({
+      mutate: jest.fn(),
+      isPending: false,
+    });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (jest.requireMock('../../../store/projectStore') as any).useProjectStore.mockReturnValue({
       selectedProject: {
@@ -161,5 +167,94 @@ describe('PlanEntryFormScreen', () => {
     });
     // Note field is identified by the label text rendered above it
     expect(screen.getByText('PlanEntryNote')).toBeTruthy();
+  });
+
+  it('shows amount validation error when Save is pressed with no amount', async () => {
+    await act(async () => {
+      render(<PlanEntryFormScreen navigation={mockNavigation} route={mockRoute} />);
+    });
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('btn-ButtonSave'));
+    });
+
+    // t('ValueShouldBeGreaterThan') returns the key in test
+    expect(screen.getByText('ValueShouldBeGreaterThan')).toBeTruthy();
+  });
+
+  it('calls addEntry.mutate with positive amountSigned in deposit mode', async () => {
+    const mockMutate = jest.fn();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/usePlans') as any).useAddPlanEntry.mockReturnValue({
+      mutate: mockMutate,
+      isPending: false,
+    });
+
+    await act(async () => {
+      render(<PlanEntryFormScreen navigation={mockNavigation} route={mockRoute} />);
+    });
+
+    await act(async () => {
+      fireEvent.changeText(screen.getByTestId('field-0.00'), '150');
+    });
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('btn-ButtonSave'));
+    });
+
+    expect(mockMutate).toHaveBeenCalledWith(
+      expect.objectContaining({ amountSigned: 150 }),
+      expect.any(Object),
+    );
+  });
+
+  it('calls addEntry.mutate with negative amountSigned in withdrawal mode', async () => {
+    const mockMutate = jest.fn();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/usePlans') as any).useAddPlanEntry.mockReturnValue({
+      mutate: mockMutate,
+      isPending: false,
+    });
+
+    await act(async () => {
+      render(<PlanEntryFormScreen navigation={mockNavigation} route={mockRoute} />);
+    });
+
+    await act(async () => {
+      fireEvent.press(screen.getByText('PlanActionRemoveMoney'));
+      fireEvent.changeText(screen.getByTestId('field-0.00'), '50');
+    });
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('btn-ButtonSave'));
+    });
+
+    expect(mockMutate).toHaveBeenCalledWith(
+      expect.objectContaining({ amountSigned: -50 }),
+      expect.any(Object),
+    );
+  });
+
+  it('calls navigation.goBack on successful save', async () => {
+    const mockMutate = jest.fn().mockImplementation((_data, callbacks) => callbacks.onSuccess());
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/usePlans') as any).useAddPlanEntry.mockReturnValue({
+      mutate: mockMutate,
+      isPending: false,
+    });
+
+    await act(async () => {
+      render(<PlanEntryFormScreen navigation={mockNavigation} route={mockRoute} />);
+    });
+
+    await act(async () => {
+      fireEvent.changeText(screen.getByTestId('field-0.00'), '100');
+    });
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('btn-ButtonSave'));
+    });
+
+    expect(mockGoBack).toHaveBeenCalled();
   });
 });

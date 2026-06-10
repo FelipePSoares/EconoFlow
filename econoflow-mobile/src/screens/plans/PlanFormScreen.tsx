@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { PlansStackParamList } from '../../navigation/PlansStackNavigator';
 import { useProjectStore } from '../../store/projectStore';
-import { usePlans, useCreatePlan } from '../../hooks/usePlans';
+import { usePlans, useCreatePlan, usePatchPlan } from '../../hooks/usePlans';
 import { GlassScreen } from '../../components/common/GlassScreen';
 import { GlassCard } from '../../components/common/GlassCard';
 import { AuroraField } from '../../components/auth/AuroraField';
@@ -16,7 +16,6 @@ import { ErrorBanner } from '../../components/common/ErrorBanner';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
 import { useAppTheme } from '../../theme/useAppTheme';
 import { extractApiErrors } from '../../utils/apiErrors';
-import * as PlansApi from '../../api/plans.api';
 import { buildPatch } from '../../utils/patch';
 
 type PlanType = 'Savings' | 'EmergencyReserve';
@@ -47,6 +46,7 @@ export const PlanFormScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const { data: plans } = usePlans(projectId);
   const createPlan = useCreatePlan(projectId);
+  const patchPlan = usePatchPlan(projectId, planId ?? '');
 
   const hasEmergencyReserve = (plans ?? []).some(
     (p) => p.type === 'EmergencyReserve' && !p.isArchived && p.id !== planId,
@@ -99,7 +99,9 @@ export const PlanFormScreen: React.FC<Props> = ({ route, navigation }) => {
     try {
       if (isEdit && planId) {
         const ops = buildPatch({ name: name.trim(), targetAmount: amount } as Record<string, unknown>);
-        await PlansApi.patchPlan(projectId, planId, ops);
+        await new Promise<void>((resolve, reject) => {
+          patchPlan.mutate(ops, { onSuccess: () => resolve(), onError: (err) => reject(err) });
+        });
         navigation.goBack();
       } else {
         await new Promise<void>((resolve, reject) => {

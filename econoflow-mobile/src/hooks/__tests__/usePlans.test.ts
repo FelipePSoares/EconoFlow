@@ -3,11 +3,12 @@ import {
   usePlans,
   usePlanEntries,
   useCreatePlan,
+  usePatchPlan,
   useArchivePlan,
   useAddPlanEntry,
   useTotalSavedForMonth,
 } from '../usePlans';
-import type { CreatePlanRequest, CreatePlanEntryRequest } from '../../api/types';
+import type { CreatePlanRequest, CreatePlanEntryRequest, PatchOperation } from '../../api/types';
 
 jest.mock('../../api/plans.api');
 
@@ -123,6 +124,39 @@ describe('useCreatePlan', () => {
     });
 
     useCreatePlan('proj-1');
+    capturedOnSuccess();
+
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({ queryKey: ['plans', 'proj-1'] });
+  });
+});
+
+describe('usePatchPlan', () => {
+  it('mutationFn calls patchPlan with projectId, planId, and ops', async () => {
+    (PlansApi.patchPlan as jest.Mock).mockResolvedValue({ data: {} });
+
+    const { useMutation } = jest.requireMock('@tanstack/react-query') as { useMutation: jest.Mock };
+    let capturedMutationFn!: (ops: PatchOperation[]) => Promise<unknown>;
+    useMutation.mockImplementationOnce((opts: { mutationFn: typeof capturedMutationFn }) => {
+      capturedMutationFn = opts.mutationFn;
+      return { mutate: jest.fn(), isPending: false };
+    });
+
+    usePatchPlan('proj-1', 'plan-1');
+    const ops: PatchOperation[] = [{ op: 'replace', path: '/name', value: 'New' }];
+    await capturedMutationFn(ops);
+
+    expect(PlansApi.patchPlan).toHaveBeenCalledWith('proj-1', 'plan-1', ops);
+  });
+
+  it('onSuccess invalidates plans query for the project', () => {
+    const { useMutation } = jest.requireMock('@tanstack/react-query') as { useMutation: jest.Mock };
+    let capturedOnSuccess!: () => void;
+    useMutation.mockImplementationOnce((opts: { onSuccess: typeof capturedOnSuccess }) => {
+      capturedOnSuccess = opts.onSuccess;
+      return { mutate: jest.fn(), isPending: false };
+    });
+
+    usePatchPlan('proj-1', 'plan-1');
     capturedOnSuccess();
 
     expect(mockInvalidateQueries).toHaveBeenCalledWith({ queryKey: ['plans', 'proj-1'] });

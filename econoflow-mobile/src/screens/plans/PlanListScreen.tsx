@@ -12,7 +12,6 @@ import { PlanCard } from '../../components/plans/PlanCard';
 import { LoadingIndicator } from '../../components/common/LoadingIndicator';
 import { ErrorBanner } from '../../components/common/ErrorBanner';
 import { GlassScreen } from '../../components/common/GlassScreen';
-import { UndoToast } from '../../components/common/UndoToast';
 import { AuroraPrimaryButton } from '../../components/auth/AuroraPrimaryButton';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
 
@@ -24,7 +23,6 @@ export const PlanListScreen: React.FC<Props> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const [dismissedError, setDismissedError] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [undoState, setUndoState] = useState<{ visible: boolean; id: string | null }>({ visible: false, id: null });
   const { selectedProject, currency } = useProjectStore();
   const canEdit = selectedProject?.role !== 'Viewer';
   const projectId = selectedProject?.project.id ?? '';
@@ -79,7 +77,6 @@ export const PlanListScreen: React.FC<Props> = ({ navigation }) => {
             onPress={() => navigation.navigate('PlanDetail', { planId: item.id, planName: item.name })}
             onSwipeAction={canEdit ? () => {
               archivePlan.mutate(item.id);
-              setUndoState({ visible: true, id: item.id });
             } : undefined}
             swipeDisabled={!canEdit}
           />
@@ -104,17 +101,6 @@ export const PlanListScreen: React.FC<Props> = ({ navigation }) => {
         }
       />
 
-      <UndoToast
-        visible={undoState.visible}
-        message={t('LabelUndoArchive')}
-        onUndo={() => {
-          if (undoState.id) {
-            // Undo: re-fetch plans list to reflect server state
-            refetch();
-          }
-        }}
-        onDismiss={() => setUndoState({ visible: false, id: null })}
-      />
     </GlassScreen>
   );
 };
