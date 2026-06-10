@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
+import { useQueryClient } from '@tanstack/react-query';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { MainTabParamList } from '../../navigation/MainNavigator';
 import { useAuthStore } from '../../store/authStore';
@@ -52,8 +53,10 @@ export const ProfileScreen: React.FC<Props> = () => {
   const insets = useSafeAreaInsets();
   const { user, clearAuth } = useAuthStore();
   const { clearProject, selectedProject } = useProjectStore();
+  const queryClient = useQueryClient();
 
   const handleSignOut = () => {
+    queryClient.clear();
     clearAuth();
     clearProject();
   };
