@@ -148,6 +148,18 @@ export interface PlanEntry {
   note: string;
 }
 
+export interface CreatePlanRequest {
+  type: 'Savings' | 'EmergencyReserve';
+  name: string;
+  targetAmount: number;
+}
+
+export interface CreatePlanEntryRequest {
+  date: string;
+  amountSigned: number;
+  note?: string;
+}
+
 export interface CreateExpenseItemRequest {
   name: string;
   date: string;
