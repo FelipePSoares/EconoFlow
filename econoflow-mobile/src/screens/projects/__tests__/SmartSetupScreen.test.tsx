@@ -507,6 +507,53 @@ describe('SmartSetupScreen', () => {
     expect(slider.props.onResponderTerminationRequest()).toBe(false);
   });
 
+  it('slider grant uses pageX not locationX to compute percentage', async () => {
+    const { getByTestId: localGet } = await render(
+      <SmartSetupScreen navigation={mockNavigation} route={mockRoute} />,
+    );
+    await goToStep2();
+
+    const slider = localGet('cat-1-pct-slider');
+
+    // Inform the slider of its width (View.measure is a no-op in tests so wrapperPageX=0)
+    await act(async () => {
+      slider.props.onLayout({ nativeEvent: { layout: { width: 300 } } });
+    });
+
+    // Simulate touching the thumb: pageX=150 (absolute, 50% of 300px track) but
+    // locationX=5 (5px from the thumb's own left edge). Old code using locationX
+    // would compute round(5/300*100)=2%. The fix using pageX gives 50%.
+    await act(async () => {
+      slider.props.onResponderGrant({ nativeEvent: { pageX: 150, locationX: 5 } });
+    });
+
+    expect(localGet('cat-1-pct').props.value).toBe('50');
+  });
+
+  it('slider move uses pageX not locationX to compute percentage', async () => {
+    const { getByTestId: localGet } = await render(
+      <SmartSetupScreen navigation={mockNavigation} route={mockRoute} />,
+    );
+    await goToStep2();
+
+    const slider = localGet('cat-1-pct-slider');
+
+    await act(async () => {
+      slider.props.onLayout({ nativeEvent: { layout: { width: 300 } } });
+    });
+    await act(async () => {
+      slider.props.onResponderGrant({ nativeEvent: { pageX: 150, locationX: 5 } });
+    });
+
+    // Drag to 75% (225px): locationX stays near the thumb edge (5px) as in the bug,
+    // but pageX correctly reflects the finger's absolute screen position.
+    await act(async () => {
+      slider.props.onResponderMove({ nativeEvent: { pageX: 225, locationX: 5 } });
+    });
+
+    expect(localGet('cat-1-pct').props.value).toBe('75');
+  });
+
   it('categories from API without ids get unique local ids so sliders are independent', async () => {
     // The real API returns CategoryWithPercentageDTO which has no Id field.
     // Without a local-id fallback every category gets id=undefined and all

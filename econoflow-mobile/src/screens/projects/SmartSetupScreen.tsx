@@ -66,24 +66,36 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
   fillColor,
   trackColor,
 }) => {
+  const wrapperRef = useRef<View>(null);
   const widthRef = useRef(0);
+  const pageXRef = useRef(0);
   const fillPct = Math.min(100, Math.max(0, value));
 
-  const handleTouch = (locationX: number) => {
-    const pct = Math.min(100, Math.max(0, Math.round((locationX / (widthRef.current || 1)) * 100)));
-    onValueChange(pct);
-  };
+  const computePct = (pageX: number) =>
+    Math.min(100, Math.max(0, Math.round(((pageX - pageXRef.current) / (widthRef.current || 1)) * 100)));
 
   return (
     <View
+      ref={wrapperRef}
       testID={testID}
       style={sliderStyles.wrapper}
-      onLayout={(e) => { widthRef.current = e.nativeEvent.layout.width; }}
+      onLayout={(e) => {
+        widthRef.current = e.nativeEvent.layout.width;
+        wrapperRef.current?.measure((_x, _y, _w, _h, px) => {
+          pageXRef.current = px;
+        });
+      }}
       onStartShouldSetResponder={() => true}
       onMoveShouldSetResponder={() => true}
       onResponderTerminationRequest={() => false}
-      onResponderGrant={(e) => handleTouch(e.nativeEvent.locationX)}
-      onResponderMove={(e) => handleTouch(e.nativeEvent.locationX)}
+      onResponderGrant={(e) => {
+        const { pageX } = e.nativeEvent;
+        onValueChange(computePct(pageX));
+        wrapperRef.current?.measure((_x, _y, _w, _h, px) => {
+          pageXRef.current = px;
+        });
+      }}
+      onResponderMove={(e) => onValueChange(computePct(e.nativeEvent.pageX))}
     >
       <View style={[sliderStyles.track, { backgroundColor: trackColor }]}>
         <View style={[sliderStyles.fill, { width: `${fillPct}%`, backgroundColor: fillColor }]} />
