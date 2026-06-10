@@ -30,6 +30,9 @@ namespace EasyFinance.Server.Tests.Controllers
         public AccessControlControllerRegisterTests()
         {
             _userStoreMock = new Mock<IUserStore<User>>();
+            // Extend the mock to implement IUserEmailStore<User> BEFORE Object is first
+            // accessed (Moq requires As<T>() to be called before the first Object access).
+            _userStoreMock.As<IUserEmailStore<User>>();
 
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
             _userManagerMock = new Mock<UserManager<User>>(
