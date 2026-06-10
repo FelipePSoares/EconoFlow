@@ -222,7 +222,7 @@ namespace EasyFinance.Server.Controllers
             }
 
             var user = new User();
-            user.SetLanguageCode(CultureInfo.CurrentUICulture.Name);
+            user.SetLanguageCode(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName);
             await userStore.SetUserNameAsync(user, email, CancellationToken.None);
             await emailStore.SetEmailAsync(user, email, CancellationToken.None);
             user.SetNotificationChannels(NotificationChannels.Push | NotificationChannels.Email);

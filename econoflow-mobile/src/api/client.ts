@@ -1,9 +1,9 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import i18n from '../i18n';
 import { useAuthStore } from '../store/authStore';
 import { useProjectStore } from '../store/projectStore';
 import { addBreadcrumb } from '../monitoring/sentry';
 import { queryClient } from './queryClient';
-import i18n from '../i18n';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://localhost:7003';
 
