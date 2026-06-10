@@ -488,6 +488,17 @@ describe('SmartSetupScreen', () => {
     expect(screen.getByTestId('reserve-hero-int').props.children).toBe('6000');
   });
 
+  it('emergency reserve hero shows decimal part of pre-filled value', async () => {
+    await render(<SmartSetupScreen navigation={mockNavigation} route={mockRoute} />);
+    await fireEvent.changeText(screen.getByTestId('FieldAnnualIncome'), '12000');
+    await fireEvent.press(screen.getByTestId('SmartSetupNext'));
+    await screen.findByText('SmartSetupStep2Title');
+    await fireEvent.press(screen.getByTestId('SmartSetupNext'));
+    await screen.findByText('SmartSetupStep3Title');
+    // 6 × (12000 / 12) = 6000.00 → decimal part ".00"
+    expect(screen.getByTestId('reserve-hero-dec').props.children).toBe('.00');
+  });
+
   it('slider does not release responder once granted', async () => {
     await render(<SmartSetupScreen navigation={mockNavigation} route={mockRoute} />);
     await goToStep2();
