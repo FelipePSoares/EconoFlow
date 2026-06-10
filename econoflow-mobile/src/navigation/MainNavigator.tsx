@@ -9,6 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { ProjectStackNavigator } from './ProjectStackNavigator';
 import { OverviewStackNavigator } from './OverviewStackNavigator';
+import { PlansStackNavigator } from './PlansStackNavigator';
 import { ProfileScreen } from '../screens/profile/ProfileScreen';
 import { QuickAddModal } from '../screens/quick-add/QuickAddModal';
 import { useQuickAddStore } from '../store/quickAddStore';
@@ -115,11 +116,8 @@ export const MainNavigator: React.FC = () => {
 
       <Tab.Screen
         name="Plans"
-        component={EmptyScreen}
+        component={PlansStackNavigator}
         options={{ tabBarLabel: t('TabPlans') }}
-        listeners={{
-          tabPress: (e) => e.preventDefault(),
-        }}
       />
 
       <Tab.Screen
