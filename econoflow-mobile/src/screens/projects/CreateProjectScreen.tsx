@@ -25,6 +25,7 @@ import { ErrorBanner } from '../../components/common/ErrorBanner';
 import { AuthHero } from '../../components/auth/AuthHero';
 import { AuroraField } from '../../components/auth/AuroraField';
 import { AuroraPrimaryButton } from '../../components/auth/AuroraPrimaryButton';
+import { CurrencyPickerField } from '../../components/common/CurrencyPickerField';
 
 type Props = {
   navigation: NativeStackNavigationProp<ProjectStackParamList, 'CreateProject'>;
@@ -148,15 +149,11 @@ export const CreateProjectScreen: React.FC<Props> = ({ navigation }) => {
               name="preferredCurrency"
               rules={{ required: t('RequiredField') }}
               render={({ field: { onChange, value } }) => (
-                <AuroraField
+                <CurrencyPickerField
                   dark={dark}
-                  icon="currency-usd"
-                  testID={t('FieldCurrency')}
-                  placeholder={t('FieldCurrency')}
+                  testID="currency-picker-field"
                   value={value}
-                  onChangeText={(text) => onChange(text.toUpperCase())}
-                  autoCapitalize="characters"
-                  maxLength={3}
+                  onChange={onChange}
                   hasError={!!errors.preferredCurrency}
                 />
               )}
@@ -164,7 +161,6 @@ export const CreateProjectScreen: React.FC<Props> = ({ navigation }) => {
             {errors.preferredCurrency && (
               <HelperText type="error">{errors.preferredCurrency.message}</HelperText>
             )}
-            <Text style={[styles.hint, { color: ink2 }]}>{t('LabelCommonCurrencies')}</Text>
 
             {/* Tax year type toggle */}
             <Text style={[styles.sectionLabel, { color: ink2 }]}>
@@ -318,7 +314,6 @@ const styles = StyleSheet.create({
   scroll: { flexGrow: 1, paddingHorizontal: 20 },
   card: { padding: 22, marginBottom: 16 },
   cardTitle: { fontSize: 19, fontWeight: '800', marginBottom: 12 },
-  hint: { fontSize: 12, marginTop: 4, marginBottom: 8 },
   sectionLabel: { fontSize: 13, fontWeight: '600', marginTop: 16, marginBottom: 6 },
   toggleRow: { flexDirection: 'row', gap: 8 },
   toggleBtn: {
