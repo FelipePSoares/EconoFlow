@@ -46,6 +46,7 @@
   "PlaceholderExpenseName": "Ex: Aluguel, Mercado, Internet",
   "PlaceholderItemWithoutName": "Item",
   "PlaceholderLanguage": "Selecione a sua Língua",
+  "PlaceholderSearchCurrency": "Pesquisar moeda...",
   "PlaceholderAuthenticatorCode": "Código de 6 dígitos",
   "PlaceholderRecoveryCode": "Digite um código de recuperação",
   "PlaceholderCurrentPassword": "Senha atual",

@@ -46,6 +46,7 @@
   "PlaceholderExpenseName": "E.g., Rent, Grocery Shopping, Internet Bill",
   "PlaceholderItemWithoutName": "Item",
   "PlaceholderLanguage": "Select your language",
+  "PlaceholderSearchCurrency": "Search currency...",
   "PlaceholderAuthenticatorCode": "6-digit code",
   "PlaceholderRecoveryCode": "Enter a recovery code",
   "PlaceholderCurrentPassword": "Current password",

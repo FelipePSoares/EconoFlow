@@ -104,6 +104,28 @@ jest.mock('../../../components/auth/AuroraPrimaryButton', () => {
   };
 });
 
+jest.mock('../../../components/common/CurrencyPickerField', () => {
+  const React = require('react');
+  const { TouchableOpacity, Text } = require('react-native');
+  return {
+    CurrencyPickerField: ({
+      value,
+      testID,
+    }: {
+      value?: string;
+      onChange?: (c: string) => void;
+      testID?: string;
+      dark?: boolean;
+      hasError?: boolean;
+    }) =>
+      React.createElement(
+        TouchableOpacity,
+        { testID: testID ?? 'currency-picker-field' },
+        React.createElement(Text, null, value ?? ''),
+      ),
+  };
+});
+
 jest.mock('expo-linear-gradient', () => {
   const React = require('react');
   const { View } = require('react-native');
@@ -200,6 +222,11 @@ describe('CreateProjectScreen', () => {
     expect(screen.queryByTestId('FieldTaxYearStartDay')).toBeNull();
   });
 
+  it('renders currency picker field instead of a plain text input for currency', async () => {
+    await render(<CreateProjectScreen navigation={mockNavigation} />);
+    expect(screen.getByTestId('currency-picker-field')).toBeTruthy();
+  });
+
   it('calls createProject, putTaxYearSettings, sets project, and navigates to SmartSetup on success', async () => {
     mockMutateAsync.mockResolvedValue(MOCK_USER_PROJECT);
     getPutTaxYearMock().mockResolvedValue({ data: undefined });
@@ -207,7 +234,6 @@ describe('CreateProjectScreen', () => {
     await render(<CreateProjectScreen navigation={mockNavigation} />);
 
     await fireEvent.changeText(screen.getByTestId('PlaceholderProjectName'), 'My Budget');
-    await fireEvent.changeText(screen.getByTestId('FieldCurrency'), 'EUR');
     await fireEvent.press(screen.getByTestId('ButtonCreate'));
 
     await waitFor(() => {
@@ -229,7 +255,6 @@ describe('CreateProjectScreen', () => {
     await render(<CreateProjectScreen navigation={mockNavigation} />);
 
     await fireEvent.changeText(screen.getByTestId('PlaceholderProjectName'), 'My Budget');
-    await fireEvent.changeText(screen.getByTestId('FieldCurrency'), 'EUR');
     await fireEvent.press(screen.getByTestId('ButtonCreate'));
 
     expect(await screen.findByTestId('error-banner', {}, { timeout: 3000 })).toBeTruthy();
