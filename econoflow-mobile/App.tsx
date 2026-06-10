@@ -9,7 +9,8 @@ import {
   DefaultTheme as NavDefaultTheme,
   createNavigationContainerRef,
 } from '@react-navigation/native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from './src/api/queryClient';
 import { Provider as PaperProvider, MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -27,15 +28,6 @@ const navigationRef = createNavigationContainerRef();
 // Keep the splash screen visible while the JS bundle and stores hydrate.
 // hideAsync() is called in onLayout once the root View is measured.
 void SplashScreen.preventAutoHideAsync();
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      staleTime: 30_000,
-    },
-  },
-});
 
 // ── Common semantic colour tokens ─────────────────────────────────────────────
 const commonCustom = {

@@ -1,5 +1,6 @@
 // All imports first — Jest hoists jest.mock() calls before any imports at
 // runtime regardless of their position in source, so this ordering is safe.
+import axios from 'axios';
 import { apiClient } from '../client';
 import { addBreadcrumb } from '../../monitoring/sentry';
 
@@ -18,6 +19,18 @@ jest.mock('../../store/authStore', () => ({
   },
 }));
 
+jest.mock('../../store/projectStore', () => ({
+  useProjectStore: {
+    getState: jest.fn().mockReturnValue({
+      clearProject: jest.fn(),
+    }),
+  },
+}));
+
+jest.mock('../queryClient', () => ({
+  queryClient: { clear: jest.fn() },
+}));
+  
 jest.mock('../../i18n', () => ({
   __esModule: true,
   default: { language: 'en' },
@@ -46,6 +59,13 @@ const errorAdapter = (status: number, url = '/api/test'): AnyAdapter =>
       config: { url, method: 'get', headers: {} },
     }),
   );
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const getAuthStoreMock = () => (jest.requireMock('../../store/authStore') as any).useAuthStore;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const getProjectStoreMock = () => (jest.requireMock('../../store/projectStore') as any).useProjectStore;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const getQueryClientMock = () => (jest.requireMock('../queryClient') as any).queryClient;
 
 describe('apiClient interceptors – Accept-Language header', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -127,5 +147,112 @@ describe('apiClient interceptors – Sentry breadcrumbs', () => {
     const calls = (addBreadcrumb as jest.Mock).mock.calls as [string, string][];
     const errorCrumbs = calls.filter(([msg]) => msg.includes('401'));
     expect(errorCrumbs).toHaveLength(0);
+  });
+});
+
+describe('apiClient interceptors – auto-logout data cleanup', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let savedAdapter: any;
+
+  beforeAll(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    savedAdapter = (apiClient.defaults as any).adapter;
+  });
+
+  afterEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (apiClient.defaults as any).adapter = savedAdapter;
+    jest.clearAllMocks();
+    getAuthStoreMock().getState.mockReturnValue({
+      accessToken: null,
+      refreshToken: null,
+      setTokens: jest.fn(),
+      clearAuth: jest.fn(),
+    });
+    getProjectStoreMock().getState.mockReturnValue({ clearProject: jest.fn() });
+  });
+
+  it('clears the React Query cache on 401 when there is no refresh token', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (apiClient.defaults as any).adapter = errorAdapter(401, '/api/categories');
+    getAuthStoreMock().getState.mockReturnValue({
+      accessToken: 'tok',
+      refreshToken: null,
+      setTokens: jest.fn(),
+      clearAuth: jest.fn(),
+    });
+
+    await expect(apiClient.get('/api/categories')).rejects.toBeDefined();
+
+    expect(getQueryClientMock().clear).toHaveBeenCalledTimes(1);
+  });
+
+  it('clears the React Query cache before clearAuth on the no-refresh-token path', async () => {
+    const callOrder: string[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (apiClient.defaults as any).adapter = errorAdapter(401, '/api/categories');
+    const mockClearAuth = jest.fn(() => { callOrder.push('clearAuth'); });
+    getAuthStoreMock().getState.mockReturnValue({
+      accessToken: 'tok',
+      refreshToken: null,
+      setTokens: jest.fn(),
+      clearAuth: mockClearAuth,
+    });
+    getQueryClientMock().clear.mockImplementation(() => { callOrder.push('queryClient.clear'); });
+
+    await expect(apiClient.get('/api/categories')).rejects.toBeDefined();
+
+    expect(callOrder).toEqual(['queryClient.clear', 'clearAuth']);
+  });
+
+  it('clears the React Query cache when the token refresh request fails', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (apiClient.defaults as any).adapter = errorAdapter(401, '/api/expenses');
+    getAuthStoreMock().getState.mockReturnValue({
+      accessToken: 'old-tok',
+      refreshToken: 'old-refresh',
+      setTokens: jest.fn(),
+      clearAuth: jest.fn(),
+    });
+    jest.spyOn(axios, 'post').mockRejectedValueOnce(new Error('Refresh failed'));
+
+    await expect(apiClient.get('/api/expenses')).rejects.toBeDefined();
+
+    expect(getQueryClientMock().clear).toHaveBeenCalledTimes(1);
+  });
+
+  it('clears clearProject on 401 when there is no refresh token', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (apiClient.defaults as any).adapter = errorAdapter(401, '/api/categories');
+    const mockClearProject = jest.fn();
+    getAuthStoreMock().getState.mockReturnValue({
+      accessToken: 'tok',
+      refreshToken: null,
+      setTokens: jest.fn(),
+      clearAuth: jest.fn(),
+    });
+    getProjectStoreMock().getState.mockReturnValue({ clearProject: mockClearProject });
+
+    await expect(apiClient.get('/api/categories')).rejects.toBeDefined();
+
+    expect(mockClearProject).toHaveBeenCalledTimes(1);
+  });
+
+  it('clears clearProject when the token refresh request fails', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (apiClient.defaults as any).adapter = errorAdapter(401, '/api/expenses');
+    const mockClearProject = jest.fn();
+    getAuthStoreMock().getState.mockReturnValue({
+      accessToken: 'old-tok',
+      refreshToken: 'old-refresh',
+      setTokens: jest.fn(),
+      clearAuth: jest.fn(),
+    });
+    getProjectStoreMock().getState.mockReturnValue({ clearProject: mockClearProject });
+    jest.spyOn(axios, 'post').mockRejectedValueOnce(new Error('Refresh failed'));
+
+    await expect(apiClient.get('/api/expenses')).rejects.toBeDefined();
+
+    expect(mockClearProject).toHaveBeenCalledTimes(1);
   });
 });
