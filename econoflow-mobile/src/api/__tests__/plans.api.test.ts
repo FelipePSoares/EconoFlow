@@ -1,6 +1,6 @@
-import { createPlan, archivePlan, addPlanEntry } from '../plans.api';
+import { getPlans, getPlanEntries, createPlan, patchPlan, archivePlan, addPlanEntry } from '../plans.api';
 import { apiClient } from '../client';
-import type { CreatePlanRequest, CreatePlanEntryRequest } from '../types';
+import type { CreatePlanRequest, CreatePlanEntryRequest, PatchOperation } from '../types';
 
 jest.mock('../client', () => ({
   apiClient: {
@@ -10,6 +10,26 @@ jest.mock('../client', () => ({
     patch: jest.fn(),
   },
 }));
+
+describe('plans.api — queries', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  describe('getPlans', () => {
+    it('GETs /api/Projects/{projectId}/Plans', async () => {
+      (apiClient.get as jest.Mock).mockResolvedValue({ data: [] });
+      await getPlans('proj-1');
+      expect(apiClient.get).toHaveBeenCalledWith('/api/Projects/proj-1/Plans');
+    });
+  });
+
+  describe('getPlanEntries', () => {
+    it('GETs /api/Projects/{projectId}/Plans/{planId}/entries', async () => {
+      (apiClient.get as jest.Mock).mockResolvedValue({ data: [] });
+      await getPlanEntries('proj-1', 'plan-1');
+      expect(apiClient.get).toHaveBeenCalledWith('/api/Projects/proj-1/Plans/plan-1/entries');
+    });
+  });
+});
 
 describe('plans.api — mutations', () => {
   afterEach(() => jest.clearAllMocks());
@@ -27,6 +47,15 @@ describe('plans.api — mutations', () => {
       const req: CreatePlanRequest = { type: 'EmergencyReserve', name: 'Emergency', targetAmount: 5000 };
       await createPlan('proj-1', req);
       expect(apiClient.post).toHaveBeenCalledWith('/api/Projects/proj-1/Plans', req);
+    });
+  });
+
+  describe('patchPlan', () => {
+    it('PATCHes /api/Projects/{projectId}/Plans/{planId} with operations', async () => {
+      (apiClient.patch as jest.Mock).mockResolvedValue({ data: {} });
+      const ops: PatchOperation[] = [{ op: 'replace', path: '/name', value: 'New Name' }];
+      await patchPlan('proj-1', 'plan-1', ops);
+      expect(apiClient.patch).toHaveBeenCalledWith('/api/Projects/proj-1/Plans/plan-1', ops);
     });
   });
 

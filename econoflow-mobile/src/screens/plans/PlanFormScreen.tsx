@@ -78,7 +78,7 @@ export const PlanFormScreen: React.FC<Props> = ({ route, navigation }) => {
     if (unmapped.length > 0) {
       setApiError(unmapped.join(' '));
     } else if (Object.keys(fieldErrors).length === 0) {
-      setApiError(t('ErrorGeneric') ?? 'Something went wrong.');
+      setApiError(t('ErrorGeneric'));
     }
   };
 
@@ -86,12 +86,12 @@ export const PlanFormScreen: React.FC<Props> = ({ route, navigation }) => {
     clearErrors();
 
     if (!name.trim()) {
-      setNameError(t('RequiredField') ?? 'Required');
+      setNameError(t('RequiredField'));
       return;
     }
     const amount = parseFloat(targetAmount);
     if (!targetAmount || isNaN(amount) || amount <= 0) {
-      setTargetError(t('ValueShouldBeGreaterThan', { value: 0 }) ?? 'Must be > 0');
+      setTargetError(t('ValueShouldBeGreaterThan', { value: 0 }));
       return;
     }
 

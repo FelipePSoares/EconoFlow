@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { PlanFormScreen } from '../PlanFormScreen';
 import type { Plan } from '../../../api/types';
 
@@ -194,5 +194,26 @@ describe('PlanFormScreen', () => {
       render(<PlanFormScreen navigation={mockNavigation} route={makeCreateRoute()} />);
     });
     expect(screen.getByTestId('btn-ButtonSave')).toBeTruthy();
+  });
+
+  it('calls patchPlan with projectId, planId, and patch ops on save in edit mode', async () => {
+    const { patchPlan } = jest.requireMock('../../../api/plans.api') as { patchPlan: jest.Mock };
+    patchPlan.mockResolvedValue({ data: {} });
+
+    await act(async () => {
+      render(<PlanFormScreen navigation={mockNavigation} route={makeEditRoute('plan-1')} />);
+    });
+
+    // Fields are pre-filled by initialValues; just press Save
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('btn-ButtonSave'));
+    });
+
+    expect(patchPlan).toHaveBeenCalledWith(
+      'proj-1',
+      'plan-1',
+      expect.arrayContaining([expect.objectContaining({ path: '/name' })]),
+    );
+    expect(mockGoBack).toHaveBeenCalled();
   });
 });

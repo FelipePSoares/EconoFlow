@@ -65,7 +65,7 @@ export const PlanEntryFormScreen: React.FC<Props> = ({ route, navigation }) => {
     if (unmapped.length > 0) {
       setApiError(unmapped.join(' '));
     } else if (Object.keys(fieldErrors).length === 0) {
-      setApiError(t('ErrorGeneric') ?? 'Something went wrong.');
+      setApiError(t('ErrorGeneric'));
     }
   };
 
@@ -73,7 +73,7 @@ export const PlanEntryFormScreen: React.FC<Props> = ({ route, navigation }) => {
     clearErrors();
     const parsed = parseFloat(amount);
     if (!amount || isNaN(parsed) || parsed <= 0) {
-      setAmountError(t('ValueShouldBeGreaterThan', { value: 0 }) ?? 'Must be > 0');
+      setAmountError(t('ValueShouldBeGreaterThan', { value: 0 }));
       return;
     }
     const amountSigned = action === 'deposit' ? parsed : -parsed;

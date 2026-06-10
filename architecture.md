@@ -498,6 +498,11 @@ AppNavigator
         ├── Categories tab  → CategoryListScreen → ExpenseListScreen → ExpenseFormScreen
         ├── Incomes tab     → IncomeListScreen → IncomeFormScreen
         ├── Overview tab    → MonthlyOverviewScreen
+        ├── Plans tab       → PlansStackNavigator
+        │                         ├── PlanListScreen
+        │                         ├── PlanDetailScreen
+        │                         ├── PlanFormScreen  (create & edit)
+        │                         └── PlanEntryFormScreen
         └── Profile tab     → ProfileScreen
               + QuickAddModal (global bottom-sheet overlay)
 ```
