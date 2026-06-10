@@ -81,6 +81,9 @@ namespace EasyFinance.Server.Tests.Controllers
                 .Setup(u => u.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
                 .Callback<User, string>((user, _) => capturedUser = user)
                 .ReturnsAsync(IdentityResult.Success);
+            _userManagerMock
+                .Setup(u => u.GenerateEmailConfirmationTokenAsync(It.IsAny<User>()))
+                .ReturnsAsync("token");
 
             _userStoreMock.As<IUserEmailStore<User>>()
                 .Setup(s => s.SetUserNameAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
