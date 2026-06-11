@@ -122,15 +122,6 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
         <GlassCard dark={dark} radius={20} style={styles.card}>
           <SettingRow
             dark={dark} ink={ink} ink2={ink2} hair={hair}
-            icon="shield-check-outline"
-            label={t('LabelTwoFactorAuthentication') ?? '2FA'}
-            value={user?.twoFactorEnabled ? (t('LabelEnabled') ?? 'Enabled') : (t('LabelDisabled') ?? 'Disabled')}
-            valueColor={user?.twoFactorEnabled ? '#0e9f6e' : undefined}
-            onPress={() => navigation.navigate('TwoFactorSetup')}
-            testID="row-TwoFactorSetup"
-          />
-          <SettingRow
-            dark={dark} ink={ink} ink2={ink2} hair={hair}
             icon="translate"
             label={t('LabelLanguage') ?? 'Language'}
             value={user?.languageCode ?? 'en-US'}

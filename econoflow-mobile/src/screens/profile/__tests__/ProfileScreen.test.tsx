@@ -162,12 +162,6 @@ describe('ProfileScreen – row navigation', () => {
     expect(mockNavigate).toHaveBeenCalledWith('LanguagePicker');
   });
 
-  it('navigates to TwoFactorSetup when the 2FA row is pressed', async () => {
-    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
-    fireEvent.press(screen.getByTestId('row-TwoFactorSetup'));
-    expect(mockNavigate).toHaveBeenCalledWith('TwoFactorSetup');
-  });
-
   it('navigates to TwoFactorSetup when the Authenticator App row is pressed', async () => {
     await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
     fireEvent.press(screen.getByTestId('row-AuthenticatorApp'));
