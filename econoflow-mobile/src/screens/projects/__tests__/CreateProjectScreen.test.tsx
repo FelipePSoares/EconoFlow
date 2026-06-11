@@ -28,13 +28,6 @@ jest.mock('../../../theme/useAuroraSkin', () => ({
   useAuroraSkin: () => ({ dark: false, ink: '#000', ink2: '#666', hair: '#ccc' }),
 }));
 
-jest.mock('../../../theme/useAppTheme', () => ({
-  useAppTheme: () => ({
-    colors: { primary: '#0f76a8', error: '#e74c3c', surface: '#fff' },
-    customColors: { success: '#2ecc71', warning: '#f39c12' },
-  }),
-}));
-
 jest.mock('react-native-paper', () => {
   const React = require('react');
   const { Text } = require('react-native');
@@ -73,8 +66,9 @@ jest.mock('../../../components/common/ErrorBanner', () => {
   };
 });
 
+const mockAuthHero = jest.fn(() => null);
 jest.mock('../../../components/auth/AuthHero', () => ({
-  AuthHero: jest.fn(() => null),
+  AuthHero: mockAuthHero,
 }));
 
 jest.mock('../../../components/auth/AuroraField', () => {
@@ -202,6 +196,7 @@ describe('CreateProjectScreen', () => {
     mockGoBack.mockReset();
     mockSetSelectedProject.mockReset();
     getPutTaxYearMock().mockReset();
+    mockAuthHero.mockClear();
   });
 
   it('shows required field error when name is empty on submit', async () => {
@@ -288,6 +283,27 @@ describe('CreateProjectScreen', () => {
     );
 
     expect(screen.queryByText('OnboardingSkip')).toBeTruthy();
+  });
+
+  it('does not render the AuthHero component', async () => {
+    await render(<CreateProjectScreen navigation={mockNavigation} />);
+    expect(mockAuthHero).not.toHaveBeenCalled();
+  });
+
+  it('renders a project name section label', async () => {
+    await render(<CreateProjectScreen navigation={mockNavigation} />);
+    expect(screen.getByText('LabelProjectName')).toBeTruthy();
+  });
+
+  it('renders a currency section label', async () => {
+    await render(<CreateProjectScreen navigation={mockNavigation} />);
+    expect(screen.getByText('FieldCurrency')).toBeTruthy();
+  });
+
+  it('renders a nav bar back button that calls goBack', async () => {
+    await render(<CreateProjectScreen navigation={mockNavigation} />);
+    await fireEvent.press(screen.getByTestId('nav-back-btn'));
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('skip button dispatches CommonActions.reset to the root navigator in onboarding context', async () => {

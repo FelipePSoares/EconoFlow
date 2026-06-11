@@ -55,6 +55,8 @@ export const CurrencyPickerField: React.FC<Props> = ({
     closeModal();
   };
 
+  const selectedCurrency = AVAILABLE_CURRENCIES.find(c => c.code === value);
+
   return (
     <>
       <TouchableOpacity
@@ -66,11 +68,16 @@ export const CurrencyPickerField: React.FC<Props> = ({
         onPress={() => setModalVisible(true)}
         activeOpacity={0.8}
       >
-        <MaterialCommunityIcons name="currency-usd" size={20} color={ink2} style={styles.icon} />
-        <Text style={[styles.valueText, { color: value ? ink : ink2 }]}>
-          {value || t('FieldCurrency')}
-        </Text>
-        <MaterialCommunityIcons name="chevron-down" size={20} color={ink2} />
+        <MaterialCommunityIcons name="currency-usd" size={20} color="#0f76a8" style={styles.icon} />
+        <View style={styles.triggerContent}>
+          <Text style={[styles.triggerLabel, { color: ink2 }]}>
+            {t('FieldCurrencyPreferred')}
+          </Text>
+          <Text style={[styles.valueText, { color: value ? ink : ink2 }]}>
+            {selectedCurrency ? `${selectedCurrency.code} · ${selectedCurrency.name}` : t('FieldCurrency')}
+          </Text>
+        </View>
+        <MaterialCommunityIcons name="chevron-right" size={20} color={ink2} />
       </TouchableOpacity>
 
       {modalVisible && (
@@ -153,11 +160,13 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginTop: 11,
+    paddingVertical: 13,
+    marginTop: 8,
   },
-  icon:       { marginRight: 10 },
-  valueText:  { flex: 1, fontSize: 14.5, fontWeight: '500' },
+  icon:           { marginRight: 10 },
+  triggerContent: { flex: 1 },
+  triggerLabel:   { fontSize: 11, fontWeight: '600', letterSpacing: 0.2, marginBottom: 2 },
+  valueText:      { fontSize: 14.5, fontWeight: '600' },
   backdrop:   { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0,0,0,0.55)' },
   centeredWrap: {
     flex: 1,

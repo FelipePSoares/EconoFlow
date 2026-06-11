@@ -9,6 +9,8 @@ import {
   View,
 } from 'react-native';
 import { HelperText } from 'react-native-paper';
+import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useForm, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,11 +23,9 @@ import { useCreateProject } from '../../hooks/useProjects';
 import { putTaxYearSettings } from '../../api/projects.api';
 import { useProjectStore } from '../../store/projectStore';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
-import { useAppTheme } from '../../theme/useAppTheme';
 import { GlassScreen } from '../../components/common/GlassScreen';
 import { GlassCard } from '../../components/common/GlassCard';
 import { ErrorBanner } from '../../components/common/ErrorBanner';
-import { AuthHero } from '../../components/auth/AuthHero';
 import { AuroraField } from '../../components/auth/AuroraField';
 import { AuroraPrimaryButton } from '../../components/auth/AuroraPrimaryButton';
 import { CurrencyPickerField } from '../../components/common/CurrencyPickerField';
@@ -45,10 +45,11 @@ interface FormValues {
   taxYearStartDay: string;
 }
 
+const TOGGLE_GRADIENT: [string, string] = ['#0f76a8', '#14c08a'];
+
 export const CreateProjectScreen: React.FC<Props> = ({ navigation, route }) => {
   const { t } = useTranslation();
-  const { dark, ink, ink2, hair } = useAuroraSkin();
-  const { colors } = useAppTheme();
+  const { dark, ink, ink2 } = useAuroraSkin();
   const insets = useSafeAreaInsets();
   const createProject = useCreateProject();
   const { setSelectedProject } = useProjectStore();
@@ -101,7 +102,41 @@ export const CreateProjectScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const toggleBg = dark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.52)';
   const toggleBorder = dark ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.86)';
-  const activeBg = colors.primary;
+
+  const renderToggle = (
+    options: [string, string][],
+    activeValue: string,
+    onChange: (v: string) => void,
+  ) => (
+    <View style={styles.toggleRow}>
+      {options.map(([v, labelKey]) => {
+        const active = activeValue === v;
+        return (
+          <TouchableOpacity
+            key={v}
+            style={[
+              styles.toggleBtn,
+              { backgroundColor: active ? 'transparent' : toggleBg,
+                borderColor: active ? '#0f76a8' : toggleBorder },
+            ]}
+            onPress={() => onChange(v)}
+          >
+            {active && (
+              <LinearGradient
+                colors={TOGGLE_GRADIENT}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={StyleSheet.absoluteFill}
+              />
+            )}
+            <Text style={[styles.toggleBtnText, { color: active ? '#fff' : ink }]}>
+              {t(labelKey)}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
 
   return (
     <GlassScreen dark={dark}>
@@ -109,21 +144,38 @@ export const CreateProjectScreen: React.FC<Props> = ({ navigation, route }) => {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
+        {/* ── Nav bar ── */}
+        <View style={[styles.navBar, { paddingTop: insets.top + 6 }]}>
+          <TouchableOpacity
+            testID="nav-back-btn"
+            style={[styles.navBackBtn, { backgroundColor: toggleBg, borderColor: toggleBorder }]}
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.75}
+          >
+            <MaterialCommunityIcons name="arrow-left" size={22} color={ink} />
+          </TouchableOpacity>
+
+          <Text style={[styles.navTitle, { color: ink }]} numberOfLines={1}>
+            {t('CreateProject')}
+          </Text>
+
+          <View style={styles.navSpacer} />
+        </View>
+
+        {/* ── Scrollable body ── */}
         <ScrollView
           contentContainerStyle={[
             styles.scroll,
-            { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 24 },
+            { paddingBottom: insets.bottom + 24 },
           ]}
           keyboardShouldPersistTaps="handled"
         >
-          <AuthHero dark={dark} subtitle={t('CreateEditProject')} />
-
           <GlassCard dark={dark} radius={26} style={styles.card}>
-            <Text style={[styles.cardTitle, { color: ink }]}>
-              {t('CreateEditProject')}
-            </Text>
 
             {/* Project name */}
+            <Text style={[styles.sectionLabel, { color: ink2 }]}>
+              {t('LabelProjectName')}
+            </Text>
             <Controller
               control={control}
               name="name"
@@ -149,6 +201,9 @@ export const CreateProjectScreen: React.FC<Props> = ({ navigation, route }) => {
             )}
 
             {/* Currency */}
+            <Text style={[styles.sectionLabel, { color: ink2 }]}>
+              {t('FieldCurrency')}
+            </Text>
             <Controller
               control={control}
               name="preferredCurrency"
@@ -171,118 +226,98 @@ export const CreateProjectScreen: React.FC<Props> = ({ navigation, route }) => {
             <Text style={[styles.sectionLabel, { color: ink2 }]}>
               {t('FieldTaxYearType')}
             </Text>
-            <View style={[styles.toggleRow, { borderColor: hair }]}>
-              {(['CalendarYear', 'CustomStartMonth'] as const).map((type) => (
-                <TouchableOpacity
-                  key={type}
-                  style={[
-                    styles.toggleBtn,
-                    {
-                      backgroundColor: taxYearType === type ? activeBg : toggleBg,
-                      borderColor: taxYearType === type ? activeBg : toggleBorder,
-                    },
-                  ]}
-                  onPress={() => setTaxYearType(type)}
-                >
-                  <Text
-                    style={[
-                      styles.toggleBtnText,
-                      { color: taxYearType === type ? '#fff' : ink },
-                    ]}
-                  >
-                    {t(type === 'CalendarYear' ? 'TaxYearTypeCalendar' : 'TaxYearTypeCustom')}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+            {renderToggle(
+              [
+                ['CalendarYear', 'TaxYearTypeCalendar'],
+                ['CustomStartMonth', 'TaxYearTypeCustom'],
+              ],
+              taxYearType,
+              v => setTaxYearType(v as TaxYearType),
+            )}
 
             {/* Conditional custom tax year fields */}
             {taxYearType === 'CustomStartMonth' && (
               <>
-                <Controller
-                  control={control}
-                  name="taxYearStartMonth"
-                  rules={{
-                    required: t('RequiredField'),
-                    validate: (v) => {
-                      const n = parseInt(v, 10);
-                      return (n >= 1 && n <= 12) || t('OnlyNumbersIsValid');
-                    },
-                  }}
-                  render={({ field: { onChange, value } }) => (
-                    <AuroraField
-                      dark={dark}
-                      icon="calendar-month-outline"
-                      testID={t('FieldTaxYearStartMonth')}
-                      placeholder={t('FieldTaxYearStartMonth')}
-                      value={value}
-                      onChangeText={onChange}
-                      keyboardType="number-pad"
-                      maxLength={2}
-                      hasError={!!errors.taxYearStartMonth}
+                <View style={styles.monthDayRow}>
+                  <View style={styles.monthDayField}>
+                    <Text style={[styles.fieldSubLabel, { color: ink2 }]}>
+                      {t('FieldTaxYearStartMonth')}
+                    </Text>
+                    <Controller
+                      control={control}
+                      name="taxYearStartMonth"
+                      rules={{
+                        required: t('RequiredField'),
+                        validate: (v) => {
+                          const n = parseInt(v, 10);
+                          return (n >= 1 && n <= 12) || t('OnlyNumbersIsValid');
+                        },
+                      }}
+                      render={({ field: { onChange, value } }) => (
+                        <AuroraField
+                          dark={dark}
+                          icon="calendar-month-outline"
+                          testID={t('FieldTaxYearStartMonth')}
+                          placeholder="1 – 12"
+                          value={value}
+                          onChangeText={onChange}
+                          keyboardType="number-pad"
+                          maxLength={2}
+                          hasError={!!errors.taxYearStartMonth}
+                        />
+                      )}
                     />
-                  )}
-                />
-                {errors.taxYearStartMonth && (
-                  <HelperText type="error">{errors.taxYearStartMonth.message}</HelperText>
-                )}
+                    {errors.taxYearStartMonth && (
+                      <HelperText type="error">{errors.taxYearStartMonth.message}</HelperText>
+                    )}
+                  </View>
 
-                <Controller
-                  control={control}
-                  name="taxYearStartDay"
-                  rules={{
-                    required: t('RequiredField'),
-                    validate: (v) => {
-                      const n = parseInt(v, 10);
-                      return (n >= 1 && n <= 31) || t('OnlyNumbersIsValid');
-                    },
-                  }}
-                  render={({ field: { onChange, value } }) => (
-                    <AuroraField
-                      dark={dark}
-                      icon="calendar-today"
-                      testID={t('FieldTaxYearStartDay')}
-                      placeholder={t('FieldTaxYearStartDay')}
-                      value={value}
-                      onChangeText={onChange}
-                      keyboardType="number-pad"
-                      maxLength={2}
-                      hasError={!!errors.taxYearStartDay}
+                  <View style={styles.monthDayField}>
+                    <Text style={[styles.fieldSubLabel, { color: ink2 }]}>
+                      {t('FieldTaxYearStartDay')}
+                    </Text>
+                    <Controller
+                      control={control}
+                      name="taxYearStartDay"
+                      rules={{
+                        required: t('RequiredField'),
+                        validate: (v) => {
+                          const n = parseInt(v, 10);
+                          return (n >= 1 && n <= 31) || t('OnlyNumbersIsValid');
+                        },
+                      }}
+                      render={({ field: { onChange, value } }) => (
+                        <AuroraField
+                          dark={dark}
+                          icon="calendar-today"
+                          testID={t('FieldTaxYearStartDay')}
+                          placeholder="1 – 31"
+                          value={value}
+                          onChangeText={onChange}
+                          keyboardType="number-pad"
+                          maxLength={2}
+                          hasError={!!errors.taxYearStartDay}
+                        />
+                      )}
                     />
-                  )}
-                />
-                {errors.taxYearStartDay && (
-                  <HelperText type="error">{errors.taxYearStartDay.message}</HelperText>
-                )}
+                    {errors.taxYearStartDay && (
+                      <HelperText type="error">{errors.taxYearStartDay.message}</HelperText>
+                    )}
+                  </View>
+                </View>
 
                 {/* Year labeling toggle */}
                 <Text style={[styles.sectionLabel, { color: ink2 }]}>
                   {t('FieldTaxYearLabeling')}
                 </Text>
-                <View style={[styles.toggleRow, { borderColor: hair }]}>
-                  {(['ByStartYear', 'ByEndYear'] as const).map((label) => (
-                    <TouchableOpacity
-                      key={label}
-                      style={[
-                        styles.toggleBtn,
-                        {
-                          backgroundColor: taxYearLabeling === label ? activeBg : toggleBg,
-                          borderColor: taxYearLabeling === label ? activeBg : toggleBorder,
-                        },
-                      ]}
-                      onPress={() => setTaxYearLabeling(label)}
-                    >
-                      <Text
-                        style={[
-                          styles.toggleBtnText,
-                          { color: taxYearLabeling === label ? '#fff' : ink },
-                        ]}
-                      >
-                        {t(label === 'ByStartYear' ? 'TaxYearLabelingByStart' : 'TaxYearLabelingByEnd')}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
+                {renderToggle(
+                  [
+                    ['ByStartYear', 'TaxYearLabelingByStart'],
+                    ['ByEndYear', 'TaxYearLabelingByEnd'],
+                  ],
+                  taxYearLabeling,
+                  v => setTaxYearLabeling(v as TaxYearLabeling),
+                )}
               </>
             )}
 
@@ -333,26 +368,66 @@ export const CreateProjectScreen: React.FC<Props> = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  scroll: { flexGrow: 1, paddingHorizontal: 20 },
-  card: { padding: 22, marginBottom: 16 },
-  cardTitle: { fontSize: 19, fontWeight: '800', marginBottom: 12 },
-  sectionLabel: { fontSize: 13, fontWeight: '600', marginTop: 16, marginBottom: 6 },
-  toggleRow: { flexDirection: 'row', gap: 8 },
+
+  navBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 18,
+    paddingBottom: 10,
+    flexShrink: 0,
+  },
+  navBackBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  navTitle:   { fontSize: 16, fontWeight: '800', flex: 1, textAlign: 'center', marginHorizontal: 8 },
+  navSpacer:  { width: 42 },
+
+  scroll: { flexGrow: 1, paddingHorizontal: 22 },
+  card:   { padding: 22, marginBottom: 16 },
+
+  sectionLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    marginTop: 20,
+    marginBottom: 0,
+  },
+  fieldSubLabel: {
+    fontSize: 11.5,
+    fontWeight: '600',
+    marginTop: 14,
+    marginBottom: 0,
+  },
+
+  toggleRow: { flexDirection: 'row', gap: 8, marginTop: 8 },
   toggleBtn: {
     flex: 1,
     paddingVertical: 10,
     paddingHorizontal: 8,
     borderRadius: 12,
-    borderWidth: 1,
+    borderWidth: 1.5,
     alignItems: 'center',
+    overflow: 'hidden',
   },
-  toggleBtnText: { fontSize: 13, fontWeight: '600' },
+  toggleBtnText: { fontSize: 13, fontWeight: '700' },
+
+  monthDayRow:   { flexDirection: 'row', gap: 10 },
+  monthDayField: { flex: 1 },
+
   cancelBtn: {
     marginHorizontal: 20,
     paddingVertical: 14,
     borderRadius: 14,
     borderWidth: 1,
     alignItems: 'center',
+    marginBottom: 8,
   },
   cancelText: { fontSize: 14, fontWeight: '600' },
 });
