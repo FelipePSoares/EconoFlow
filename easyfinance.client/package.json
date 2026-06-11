@@ -52,7 +52,7 @@
     "@angular/build": "21.2.7",
     "@angular/cli": "21.2.7",
     "@angular/compiler-cli": "21.2.13",
-    "@angular/localize": "21.2.13",
+    "@angular/localize": "22.0.1",
     "@types/bootstrap": "^5.2.10",
     "@types/chart.js": "^2.9.41",
     "@types/crypto-js": "^4.2.2",
