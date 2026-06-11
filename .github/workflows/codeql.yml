@@ -68,11 +68,11 @@ jobs:
 
     - name: Restore
       if: matrix.language == 'csharp'
-      run: dotnet restore
+      run: dotnet restore EasyFinance.Server/EasyFinance.Server.csproj
 
     - name: Build
       if: matrix.language == 'csharp'
-      run: dotnet build --configuration Release --no-restore
+      run: dotnet build EasyFinance.Server/EasyFinance.Server.csproj --configuration Release --no-restore
 
     - name: Install frontend dependencies
       if: matrix.language == 'csharp'

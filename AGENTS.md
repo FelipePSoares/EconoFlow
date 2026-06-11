@@ -93,6 +93,12 @@ dotnet list package --vulnerable --include-transitive # NuGet vulnerability scan
 - `Roslynator.Analyzers` runs on all projects (added via `Directory.Build.props`)
 - Nullable-related warnings (`CS86xx`) are excluded from `TreatWarningsAsErrors` via `<WarningsNotAsErrors>` for projects that have `Nullable=disable`
 
+### CI / Pipelines
+
+- `global.json` pins SDK to 8.0.x to avoid issues with .NET 10 runner pre-installs
+- All `dotnet restore` / `dotnet build` / `dotnet test` commands target explicit `.csproj` files (never the `.sln`) to skip `easyfinance.client.esproj` which has no target framework
+- `EASBuild.yml` is mobile-only and not affected
+
 EF Core migration (note `--configuration release`):
 ```powershell
 dotnet ef migrations add {Name} --context EasyFinanceDatabaseContext --project EasyFinance.Persistence --configuration release -s ./EasyFinance.Server

@@ -32,7 +32,7 @@ jobs:
           key: node-modules-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
 
       - name: Publish
-        run: dotnet publish --configuration Release
+        run: dotnet publish EasyFinance.Server/EasyFinance.Server.csproj --configuration Release
 
       - name: Archive publish files
         uses: actions/upload-artifact@v4
