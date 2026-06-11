@@ -172,4 +172,16 @@ describe('ProjectListScreen', () => {
       expect(mockSetOpenCreateProjectOnStart).toHaveBeenCalledWith(false);
     });
   });
+
+  it('renders add button inside the scroll list content (not as a fixed bottom footer)', async () => {
+    getUseProjectsMock().mockReturnValue({
+      data: [MOCK_PROJECT],
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+
+    await render(<ProjectListScreen navigation={mockNavigation} />);
+
+    expect(screen.getByTestId('add-project-in-list')).toBeTruthy();
+  });
 });

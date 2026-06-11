@@ -141,15 +141,15 @@ export const ProjectListScreen: React.FC<Props> = ({ navigation }) => {
             );
           })
         )}
-      </ScrollView>
 
-      <View style={[styles.addBtnWrap, { paddingBottom: insets.bottom + 8 }]}>
-        <AuroraPrimaryButton
-          label={t('ButtonNewProject')}
-          onPress={() => navigation.navigate('CreateProject', {})}
-          icon="plus"
-        />
-      </View>
+        <View style={styles.addBtnWrap} testID="add-project-in-list">
+          <AuroraPrimaryButton
+            label={t('ButtonNewProject')}
+            onPress={() => navigation.navigate('CreateProject', {})}
+            icon="plus"
+          />
+        </View>
+      </ScrollView>
     </GlassScreen>
   );
 };
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   emptyWrap: { alignItems: 'center', paddingTop: 80, gap: 12 },
   emptyText: { fontSize: 15, textAlign: 'center', opacity: 0.7 },
 
-  addBtnWrap: { paddingHorizontal: 22, paddingTop: 4 },
+  addBtnWrap: { paddingHorizontal: 4, paddingTop: 16 },
 
   card: { overflow: 'hidden' },
   cardRow: {
