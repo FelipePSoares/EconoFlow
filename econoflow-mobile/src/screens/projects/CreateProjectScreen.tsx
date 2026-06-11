@@ -12,8 +12,11 @@ import { HelperText } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { CommonActions } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RouteProp } from '@react-navigation/native';
 import type { ProjectStackParamList } from '../../navigation/ProjectStackNavigator';
+import type { RootParamList } from '../../navigation/AppNavigator';
 import { useCreateProject } from '../../hooks/useProjects';
 import { putTaxYearSettings } from '../../api/projects.api';
 import { useProjectStore } from '../../store/projectStore';
@@ -29,6 +32,7 @@ import { CurrencyPickerField } from '../../components/common/CurrencyPickerField
 
 type Props = {
   navigation: NativeStackNavigationProp<ProjectStackParamList, 'CreateProject'>;
+  route?: RouteProp<ProjectStackParamList, 'CreateProject'>;
 };
 
 type TaxYearType = 'CalendarYear' | 'CustomStartMonth';
@@ -41,13 +45,14 @@ interface FormValues {
   taxYearStartDay: string;
 }
 
-export const CreateProjectScreen: React.FC<Props> = ({ navigation }) => {
+export const CreateProjectScreen: React.FC<Props> = ({ navigation, route }) => {
   const { t } = useTranslation();
   const { dark, ink, ink2, hair } = useAuroraSkin();
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const createProject = useCreateProject();
   const { setSelectedProject } = useProjectStore();
+  const fromOnboarding = route?.params?.fromOnboarding ?? false;
 
   const [taxYearType, setTaxYearType] = useState<TaxYearType>('CalendarYear');
   const [taxYearLabeling, setTaxYearLabeling] = useState<TaxYearLabeling>('ByStartYear');
@@ -86,7 +91,7 @@ export const CreateProjectScreen: React.FC<Props> = ({ navigation }) => {
       });
 
       setSelectedProject(userProject);
-      navigation.navigate('SmartSetup', { projectId: userProject.project.id });
+      navigation.navigate('SmartSetup', { projectId: userProject.project.id, fromOnboarding });
     } catch {
       setError(t('ErrorGeneric'));
     } finally {
@@ -296,13 +301,30 @@ export const CreateProjectScreen: React.FC<Props> = ({ navigation }) => {
             />
           </GlassCard>
 
-          {/* Cancel */}
-          <TouchableOpacity
-            style={[styles.cancelBtn, { backgroundColor: toggleBg, borderColor: toggleBorder }]}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={[styles.cancelText, { color: ink2 }]}>{t('ButtonCancel')}</Text>
-          </TouchableOpacity>
+          {fromOnboarding ? (
+            /* Skip — exits onboarding entirely */
+            <TouchableOpacity
+              style={[styles.cancelBtn, { backgroundColor: toggleBg, borderColor: toggleBorder }]}
+              onPress={() =>
+                navigation
+                  .getParent()
+                  ?.getParent<NativeStackNavigationProp<RootParamList>>()
+                  ?.dispatch(
+                    CommonActions.reset({ index: 0, routes: [{ name: 'Main' }] }),
+                  )
+              }
+            >
+              <Text style={[styles.cancelText, { color: ink2 }]}>{t('OnboardingSkip')}</Text>
+            </TouchableOpacity>
+          ) : (
+            /* Cancel — goes back in ProjectStack */
+            <TouchableOpacity
+              style={[styles.cancelBtn, { backgroundColor: toggleBg, borderColor: toggleBorder }]}
+              onPress={() => navigation.goBack()}
+            >
+              <Text style={[styles.cancelText, { color: ink2 }]}>{t('ButtonCancel')}</Text>
+            </TouchableOpacity>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </GlassScreen>

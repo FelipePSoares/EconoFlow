@@ -2,6 +2,14 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react-native';
 import { CreateProjectScreen } from '../CreateProjectScreen';
 
+// ─── Navigation mock ──────────────────────────────────────────────────────────
+
+jest.mock('@react-navigation/native', () => ({
+  CommonActions: {
+    reset: jest.fn((payload) => ({ type: 'RESET', payload })),
+  },
+}));
+
 // ─── UI infrastructure mocks ─────────────────────────────────────────────────
 
 jest.mock('@expo/vector-icons', () => ({
@@ -166,6 +174,7 @@ const mockNavigation = {
   navigate: mockNavigate,
   goBack: mockGoBack,
   dispatch: jest.fn(),
+  getParent: jest.fn(),
 } as unknown as React.ComponentProps<typeof CreateProjectScreen>['navigation'];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -245,7 +254,7 @@ describe('CreateProjectScreen', () => {
         expect.objectContaining({ taxYearType: 'CalendarYear' }),
       );
       expect(mockSetSelectedProject).toHaveBeenCalledWith(MOCK_USER_PROJECT);
-      expect(mockNavigate).toHaveBeenCalledWith('SmartSetup', { projectId: 'proj-1' });
+      expect(mockNavigate).toHaveBeenCalledWith('SmartSetup', expect.objectContaining({ projectId: 'proj-1' }));
     });
   });
 
@@ -260,9 +269,49 @@ describe('CreateProjectScreen', () => {
     expect(await screen.findByTestId('error-banner', {}, { timeout: 3000 })).toBeTruthy();
   });
 
-  it('calls goBack when cancel is pressed', async () => {
+  it('calls goBack when cancel is pressed (non-onboarding context)', async () => {
     await render(<CreateProjectScreen navigation={mockNavigation} />);
     await fireEvent.press(screen.getByText('ButtonCancel'));
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows a skip button when fromOnboarding param is true', async () => {
+    const mockRouteOnboarding = {
+      key: 'CreateProject-1',
+      name: 'CreateProject',
+      params: { fromOnboarding: true },
+    };
+
+    await render(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      <CreateProjectScreen navigation={mockNavigation} route={mockRouteOnboarding as any} />,
+    );
+
+    expect(screen.queryByText('OnboardingSkip')).toBeTruthy();
+  });
+
+  it('skip button dispatches CommonActions.reset to the root navigator in onboarding context', async () => {
+    const mockRootDispatch = jest.fn();
+    const mockRootNav = { dispatch: mockRootDispatch };
+    const mockTabNav = { getParent: jest.fn(() => mockRootNav) };
+    const mockNavigationOnboarding = {
+      ...mockNavigation,
+      getParent: jest.fn(() => mockTabNav),
+    } as unknown as React.ComponentProps<typeof CreateProjectScreen>['navigation'];
+
+    const mockRouteOnboarding = {
+      key: 'CreateProject-1',
+      name: 'CreateProject',
+      params: { fromOnboarding: true },
+    };
+
+    await render(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      <CreateProjectScreen navigation={mockNavigationOnboarding} route={mockRouteOnboarding as any} />,
+    );
+
+    await fireEvent.press(screen.getByText('OnboardingSkip'));
+
+    expect(mockRootDispatch).toHaveBeenCalled();
   });
 });

@@ -585,5 +585,11 @@
   "SmartSetupBack": "Back",
   "SmartSetupFinish": "Finish",
   "SmartSetupAddCategory": "Add Category",
-  "SmartSetupCategoryNamePlaceholder": "Category name"
+  "SmartSetupCategoryNamePlaceholder": "Category name",
+
+  "ProfileSetupTitle": "Tell us about yourself",
+  "ProfileSetupSubtitle": "Help us personalise your experience",
+  "ErrorProfileUpdateFailed": "Failed to update your profile. Please try again.",
+  "ErrorAutoLoginFailed": "Account created, but sign-in failed. Please sign in manually.",
+  "OnboardingSkip": "Skip"
 }

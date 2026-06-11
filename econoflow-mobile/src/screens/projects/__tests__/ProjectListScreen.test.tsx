@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react-native';
 import { ProjectListScreen } from '../ProjectListScreen';
 
 // ─── UI infrastructure mocks ─────────────────────────────────────────────────
@@ -69,6 +69,11 @@ jest.mock('../../../components/auth/AuroraPrimaryButton', () => {
 // ─── Store / hook mocks ───────────────────────────────────────────────────────
 
 const mockSetSelectedProject = jest.fn();
+const mockSetOpenCreateProjectOnStart = jest.fn();
+const mockAuthState = {
+  openCreateProjectOnStart: false,
+  setOpenCreateProjectOnStart: mockSetOpenCreateProjectOnStart,
+};
 
 jest.mock('../../../hooks/useProjects', () => ({
   useProjects: jest.fn(() => ({ data: [], isLoading: false, refetch: jest.fn() })),
@@ -79,6 +84,10 @@ jest.mock('../../../store/projectStore', () => ({
     selectedProject: null,
     setSelectedProject: mockSetSelectedProject,
   })),
+}));
+
+jest.mock('../../../store/authStore', () => ({
+  useAuthStore: jest.fn((selector: (s: typeof mockAuthState) => unknown) => selector(mockAuthState)),
 }));
 
 // ─── Navigation mock ──────────────────────────────────────────────────────────
@@ -113,6 +122,8 @@ describe('ProjectListScreen', () => {
   beforeEach(() => {
     mockNavigate.mockReset();
     mockSetSelectedProject.mockReset();
+    mockSetOpenCreateProjectOnStart.mockReset();
+    mockAuthState.openCreateProjectOnStart = false;
     mockGetParent.mockReturnValue({ navigate: jest.fn() });
   });
 
@@ -147,6 +158,18 @@ describe('ProjectListScreen', () => {
 
     fireEvent.press(screen.getByTestId('btn-ButtonNewProject'));
 
-    expect(mockNavigate).toHaveBeenCalledWith('CreateProject');
+    expect(mockNavigate).toHaveBeenCalledWith('CreateProject', {});
+  });
+
+  it('navigates to CreateProject and clears flag on mount when openCreateProjectOnStart is true', async () => {
+    mockAuthState.openCreateProjectOnStart = true;
+    getUseProjectsMock().mockReturnValue({ data: [], isLoading: false, refetch: jest.fn() });
+
+    await render(<ProjectListScreen navigation={mockNavigation} />);
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('CreateProject', { fromOnboarding: true });
+      expect(mockSetOpenCreateProjectOnStart).toHaveBeenCalledWith(false);
+    });
   });
 });

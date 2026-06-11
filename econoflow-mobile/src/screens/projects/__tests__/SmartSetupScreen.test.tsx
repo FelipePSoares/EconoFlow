@@ -580,4 +580,45 @@ describe('SmartSetupScreen', () => {
     expect(ids[1]).not.toBe('undefined');
     expect(ids[0]).not.toBe(ids[1]);
   });
+
+  // ─── fromOnboarding=true path ─────────────────────────────────────────────────
+
+  const mockRouteOnboarding = {
+    params: { projectId: 'proj-1', fromOnboarding: true },
+  } as unknown as React.ComponentProps<typeof SmartSetupScreen>['route'];
+
+  it('does not hide the tab bar when fromOnboarding is true', async () => {
+    await render(
+      <SmartSetupScreen navigation={mockNavigation} route={mockRouteOnboarding} />,
+    );
+    expect(useUIStore.getState().hideTabBar).toBe(false);
+  });
+
+  it('Skip resets the project stack and navigates to Overview when fromOnboarding is true', async () => {
+    await render(
+      <SmartSetupScreen navigation={mockNavigation} route={mockRouteOnboarding} />,
+    );
+
+    await fireEvent.press(screen.getByText('SmartSetupSkip'));
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'RESET' }),
+    );
+    expect(mockParentNavigate).toHaveBeenCalledWith('Overview');
+  });
+
+  it('Finish navigates to Overview when fromOnboarding is true', async () => {
+    mockMutateAsync.mockResolvedValue(undefined);
+
+    await render(
+      <SmartSetupScreen navigation={mockNavigation} route={mockRouteOnboarding} />,
+    );
+
+    await goToStep3();
+    await fireEvent.press(screen.getByTestId('SmartSetupFinish'));
+
+    await waitFor(() => {
+      expect(mockParentNavigate).toHaveBeenCalledWith('Overview');
+    });
+  });
 });
