@@ -15,8 +15,6 @@ namespace EasyFinance.Domain
 
         public void SetId(Guid id)
         {
-            ArgumentNullException.ThrowIfNull(id);
-
             Id = id;
         }
 

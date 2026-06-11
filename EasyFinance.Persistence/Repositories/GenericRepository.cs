@@ -27,8 +27,9 @@ namespace EasyFinance.Persistence.Repositories
         {
 #if DEBUG
             return this.dbSet.Add(entity).Entity;
-#endif
+#else
             return entity;
+#endif
         }
 
         public AppResponse<T> InsertOrUpdate(T entity)

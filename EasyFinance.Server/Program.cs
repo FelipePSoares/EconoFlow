@@ -93,7 +93,7 @@ if (!builder.Environment.IsDevelopment())
     var keys = builder.Services.AddDataProtection()
         .PersistKeysToDbContext<MyKeysContext>();
 
-    if (bool.TryParse(Environment.GetEnvironmentVariable("EconoFlow_KEY_ENCRYPT_ACTIVE"), out var result) && result)
+    if (OperatingSystem.IsWindows() && bool.TryParse(Environment.GetEnvironmentVariable("EconoFlow_KEY_ENCRYPT_ACTIVE"), out var result) && result)
         keys.ProtectKeysWithDpapi(false);
 }
 

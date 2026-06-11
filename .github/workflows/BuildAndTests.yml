@@ -106,6 +106,12 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
 
+    - name: Check code formatting
+      run: dotnet format --verify-no-changes --no-restore
+
+    - name: Check for vulnerable NuGet packages
+      run: dotnet list package --vulnerable --include-transitive
+
     - name: Build backend application
       run: dotnet build --configuration Debug --no-restore
 
@@ -162,6 +168,24 @@ jobs:
     - name: Run .Net tests
       run: dotnet test --configuration Debug --no-build --no-restore --verbosity normal --logger trx --collect:"XPlat Code Coverage"
 
+    - name: Check code coverage threshold
+      if: always()
+      shell: bash
+      run: |
+        COVERAGE_FILE=$(find . -name "coverage.cobertura.xml" -type f | head -1)
+        if [ -z "$COVERAGE_FILE" ]; then
+          echo "::warning::No coverage.cobertura.xml file found — skipping threshold check"
+          exit 0
+        fi
+        LINE_RATE=$(grep -oP 'line-rate="\K[0-9.]+' "$COVERAGE_FILE" | head -1)
+        COVERAGE=$(echo "$LINE_RATE * 100 / 1" | bc)
+        THRESHOLD=80
+        if [ "$COVERAGE" -lt "$THRESHOLD" ]; then
+          echo "::error::Coverage ${COVERAGE}% is below threshold ${THRESHOLD}%"
+          exit 1
+        fi
+        echo "::notice::Coverage ${COVERAGE}% meets threshold ${THRESHOLD}%"
+
     - name: Upload Test Results
       uses: actions/upload-artifact@v4
       if: always()
@@ -183,6 +207,17 @@ jobs:
     - name: Run Angular tests
       id: angular
       run: npm test -- --watch=false --browsers=ChromeHeadlessCI
+      working-directory: ./easyfinance.client
+
+    - name: Run Angular lint
+      if: always()
+      run: npm run lint
+      working-directory: ./easyfinance.client
+
+    - name: Run npm audit
+      if: always()
+      continue-on-error: true
+      run: npm audit --audit-level=high
       working-directory: ./easyfinance.client
 
   mobile-check:
