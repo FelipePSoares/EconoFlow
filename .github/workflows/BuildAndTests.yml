@@ -128,7 +128,7 @@ jobs:
         dotnet build EasyFinance.Server.Tests/EasyFinance.Server.Tests.csproj --configuration Debug --no-restore
 
     - name: Upload backend build outputs
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: backend-build-debug
         path: |
@@ -202,7 +202,7 @@ jobs:
         echo "::notice::Coverage ${COVERAGE}% meets threshold ${THRESHOLD}%"
 
     - name: Upload Test Results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       if: always()
       with:
         name: test-results
@@ -355,7 +355,7 @@ jobs:
 
     - name: Archive Cypress errors
       if: failure()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: cypress-screenshots
         path: ./easyfinance.client/cypress/screenshots
