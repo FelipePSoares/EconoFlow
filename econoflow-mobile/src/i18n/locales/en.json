@@ -591,5 +591,12 @@
   "ProfileSetupSubtitle": "Help us personalise your experience",
   "ErrorProfileUpdateFailed": "Failed to update your profile. Please try again.",
   "ErrorAutoLoginFailed": "Account created, but sign-in failed. Please sign in manually.",
-  "OnboardingSkip": "Skip"
+  "OnboardingSkip": "Skip",
+
+  "EditName": "Edit Name",
+  "VerificationEmailSent": "A verification email has been sent. Please check your inbox.",
+  "ErrorChangePasswordFailed": "Failed to change password. Please try again.",
+  "ErrorChangeEmailFailed": "Failed to change email. Please try again.",
+  "ErrorNewPasswordSameAsCurrent": "New password must differ from the current password.",
+  "PlaceholderConfirmNewPassword": "Confirm new password"
 }

@@ -186,3 +186,30 @@ export interface SmartSetupRequest {
   defaultCategories: DefaultCategory[];
   emergencyReserveTarget: number;
 }
+
+export interface ManageInfoRequest {
+  oldPassword?: string;
+  newPassword?: string;
+  newEmail?: string;
+}
+
+export interface TwoFactorSetupInfo {
+  isTwoFactorEnabled: boolean;
+  sharedKey: string;
+  otpAuthUri: string;
+}
+
+export interface EnableTwoFactorRequest {
+  code: string;
+}
+
+export interface EnableTwoFactorResponse {
+  twoFactorEnabled: boolean;
+  recoveryCodes: string[];
+}
+
+export interface DisableTwoFactorRequest {
+  password: string;
+  twoFactorCode?: string;
+  twoFactorRecoveryCode?: string;
+}

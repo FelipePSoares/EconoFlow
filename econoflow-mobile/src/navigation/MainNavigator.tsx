@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { ProjectStackNavigator } from './ProjectStackNavigator';
 import { OverviewStackNavigator } from './OverviewStackNavigator';
 import { PlansStackNavigator } from './PlansStackNavigator';
-import { ProfileScreen } from '../screens/profile/ProfileScreen';
+import { ProfileStackNavigator } from './ProfileStackNavigator';
 import { QuickAddModal } from '../screens/quick-add/QuickAddModal';
 import { useQuickAddStore } from '../store/quickAddStore';
 import { useUIStore } from '../store/uiStore';
@@ -124,7 +124,7 @@ export const MainNavigator: React.FC = () => {
 
       <Tab.Screen
         name="Profile"
-        component={ProfileScreen}
+        component={ProfileStackNavigator}
         options={{ headerShown: false, tabBarLabel: t('TabProfile') }}
       />
     </Tab.Navigator>

@@ -155,4 +155,44 @@ describe('i18n locale completeness', () => {
   it('pt.json contains OnboardingSkip', () => {
     expect((pt as LocaleMap)['OnboardingSkip']).toBeTruthy();
   });
+
+  it('en.json contains EditName', () => {
+    expect((en as LocaleMap)['EditName']).toBeTruthy();
+  });
+
+  it('pt.json contains EditName', () => {
+    expect((pt as LocaleMap)['EditName']).toBeTruthy();
+  });
+
+  it('en.json contains VerificationEmailSent', () => {
+    expect((en as LocaleMap)['VerificationEmailSent']).toBeTruthy();
+  });
+
+  it('pt.json contains VerificationEmailSent', () => {
+    expect((pt as LocaleMap)['VerificationEmailSent']).toBeTruthy();
+  });
+
+  it('en.json contains ErrorChangePasswordFailed', () => {
+    expect((en as LocaleMap)['ErrorChangePasswordFailed']).toBeTruthy();
+  });
+
+  it('pt.json contains ErrorChangePasswordFailed', () => {
+    expect((pt as LocaleMap)['ErrorChangePasswordFailed']).toBeTruthy();
+  });
+
+  it('en.json contains ErrorChangeEmailFailed', () => {
+    expect((en as LocaleMap)['ErrorChangeEmailFailed']).toBeTruthy();
+  });
+
+  it('pt.json contains ErrorChangeEmailFailed', () => {
+    expect((pt as LocaleMap)['ErrorChangeEmailFailed']).toBeTruthy();
+  });
+
+  it('en.json contains ErrorNewPasswordSameAsCurrent', () => {
+    expect((en as LocaleMap)['ErrorNewPasswordSameAsCurrent']).toBeTruthy();
+  });
+
+  it('pt.json contains ErrorNewPasswordSameAsCurrent', () => {
+    expect((pt as LocaleMap)['ErrorNewPasswordSameAsCurrent']).toBeTruthy();
+  });
 });
