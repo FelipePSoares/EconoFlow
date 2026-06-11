@@ -1,6 +1,13 @@
 import React from 'react';
-import { act, cleanup, render, screen, fireEvent } from '@testing-library/react-native';
+import { act, cleanup, render, screen, fireEvent, waitFor } from '@testing-library/react-native';
 import { PlanEntryFormScreen } from '../PlanEntryFormScreen';
+
+// ─── Sentry mock ──────────────────────────────────────────────────────────────
+
+const mockCaptureError = jest.fn();
+jest.mock('../../../monitoring/sentry', () => ({
+  captureError: (...args: unknown[]) => mockCaptureError(...args),
+}));
 
 // ─── UI infrastructure mocks ──────────────────────────────────────────────────
 
@@ -112,6 +119,7 @@ describe('PlanEntryFormScreen', () => {
   beforeEach(() => {
     cleanup();
     mockGoBack.mockReset();
+    mockCaptureError.mockReset();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (jest.requireMock('../../../hooks/usePlans') as any).useAddPlanEntry.mockReturnValue({
       mutate: jest.fn(),
@@ -256,5 +264,34 @@ describe('PlanEntryFormScreen', () => {
     });
 
     expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('calls captureError when addEntry mutation fails', async () => {
+    const entryError = new Error('save entry failed');
+    const mockMutate = jest.fn().mockImplementation((_data, callbacks) => callbacks.onError(entryError));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/usePlans') as any).useAddPlanEntry.mockReturnValue({
+      mutate: mockMutate,
+      isPending: false,
+    });
+
+    await act(async () => {
+      render(<PlanEntryFormScreen navigation={mockNavigation} route={mockRoute} />);
+    });
+
+    await act(async () => {
+      fireEvent.changeText(screen.getByTestId('field-0.00'), '100');
+    });
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('btn-ButtonSave'));
+    });
+
+    await waitFor(() =>
+      expect(mockCaptureError).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({ screen: 'PlanEntryFormScreen', action: 'savePlanEntry' }),
+      ),
+    );
   });
 });

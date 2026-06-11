@@ -21,6 +21,7 @@ import dayjs from 'dayjs';
 import type { ProjectStackParamList } from '../../navigation/ProjectStackNavigator';
 import type { MainTabParamList } from '../../navigation/MainNavigator';
 import { useDefaultCategories, usePostSmartSetup } from '../../hooks/useSmartSetup';
+import { captureError } from '../../monitoring/sentry';
 import { useProjectStore } from '../../store/projectStore';
 import { useUIStore } from '../../store/uiStore';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
@@ -229,7 +230,8 @@ export const SmartSetupScreen: React.FC<Props> = ({ navigation, route }) => {
         },
       });
       navigateToOverview();
-    } catch {
+    } catch (err) {
+      captureError(err, { screen: 'SmartSetupScreen', action: 'smartSetup' });
       setError(t('ErrorGeneric'));
     }
   };

@@ -11,6 +11,7 @@ import { ErrorBanner } from '../../components/common/ErrorBanner';
 import { AuroraField } from '../../components/auth/AuroraField';
 import { AuroraPrimaryButton } from '../../components/auth/AuroraPrimaryButton';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
+import { captureError } from '../../monitoring/sentry';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'ChangePassword'>;
 
@@ -67,7 +68,8 @@ export const ChangePasswordScreen: React.FC<Props> = ({ navigation }) => {
     try {
       await mutateAsync({ oldPassword: currentPassword, newPassword });
       navigation.goBack();
-    } catch {
+    } catch (err) {
+      captureError(err, { screen: 'ChangePasswordScreen', action: 'changePassword' });
       setApiError(t('ErrorChangePasswordFailed') ?? 'Failed to change password. Please try again.');
     } finally {
       setCurrentPassword('');

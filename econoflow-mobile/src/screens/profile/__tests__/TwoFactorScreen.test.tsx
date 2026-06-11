@@ -2,6 +2,13 @@ import React from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { TwoFactorScreen } from '../TwoFactorScreen';
 
+// ─── Sentry mock ──────────────────────────────────────────────────────────────
+
+const mockCaptureError = jest.fn();
+jest.mock('../../../monitoring/sentry', () => ({
+  captureError: (...args: unknown[]) => mockCaptureError(...args),
+}));
+
 // ─── UI infrastructure mocks ─────────────────────────────────────────────────
 
 jest.mock('@expo/vector-icons', () => ({
@@ -144,6 +151,7 @@ describe('TwoFactorScreen – setup (2FA disabled)', () => {
     mockEnableMutateAsync.mockReset();
     mockEnableMutateAsync.mockImplementation(() => new Promise(() => {}));
     mockGoBack.mockReset();
+    mockCaptureError.mockReset();
 
     jest.requireMock('../../../hooks/useProfile').useTwoFactorSetup.mockReturnValue({
       data: { isTwoFactorEnabled: false, sharedKey: 'abcd efgh', otpAuthUri: 'otpauth://...' },
@@ -199,6 +207,17 @@ describe('TwoFactorScreen – setup (2FA disabled)', () => {
     await pressButton('ButtonEnableTwoFactor');
     await waitFor(() => { expect(screen.queryByTestId('error-banner')).toBeTruthy(); });
   });
+
+  it('calls captureError when enable API fails', async () => {
+    const err = new Error('Invalid code');
+    mockEnableMutateAsync.mockRejectedValue(err);
+    await render(<TwoFactorScreen navigation={mockNavigation} route={mockRoute} />);
+    await changeText('PlaceholderAuthenticatorCode', '999999');
+    await pressButton('ButtonEnableTwoFactor');
+    await waitFor(() => {
+      expect(mockCaptureError).toHaveBeenCalledWith(err, { screen: 'ProfileTwoFactorScreen', action: 'enableTwoFactor' });
+    });
+  });
 });
 
 // ─── Disable (2FA enabled) ────────────────────────────────────────────────────
@@ -208,6 +227,7 @@ describe('TwoFactorScreen – disable (2FA enabled)', () => {
     mockDisableMutateAsync.mockReset();
     mockDisableMutateAsync.mockImplementation(() => new Promise(() => {}));
     mockGoBack.mockReset();
+    mockCaptureError.mockReset();
 
     jest.requireMock('../../../hooks/useProfile').useTwoFactorSetup.mockReturnValue({
       data: { isTwoFactorEnabled: true, sharedKey: '', otpAuthUri: '' },
@@ -260,5 +280,17 @@ describe('TwoFactorScreen – disable (2FA enabled)', () => {
     await changeText('PlaceholderAuthenticatorCode', '111111');
     await pressButton('ButtonDisableTwoFactor');
     await waitFor(() => { expect(screen.queryByTestId('error-banner')).toBeTruthy(); });
+  });
+
+  it('calls captureError when disable API fails', async () => {
+    const err = new Error('Invalid password');
+    mockDisableMutateAsync.mockRejectedValue(err);
+    await render(<TwoFactorScreen navigation={mockNavigation} route={mockRoute} />);
+    await changeText('PlaceholderCurrentPassword', 'wrongpassword');
+    await changeText('PlaceholderAuthenticatorCode', '111111');
+    await pressButton('ButtonDisableTwoFactor');
+    await waitFor(() => {
+      expect(mockCaptureError).toHaveBeenCalledWith(err, { screen: 'ProfileTwoFactorScreen', action: 'disableTwoFactor' });
+    });
   });
 });

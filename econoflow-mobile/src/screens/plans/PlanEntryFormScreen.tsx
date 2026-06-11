@@ -18,6 +18,7 @@ import { useAuroraSkin } from '../../theme/useAuroraSkin';
 import { useAppTheme } from '../../theme/useAppTheme';
 import { extractApiErrors } from '../../utils/apiErrors';
 import { toDateOnly } from '../../utils/date';
+import { captureError } from '../../monitoring/sentry';
 
 type ActionType = 'deposit' | 'withdrawal';
 
@@ -48,6 +49,7 @@ export const PlanEntryFormScreen: React.FC<Props> = ({ route, navigation }) => {
   };
 
   const handleApiError = (error: unknown) => {
+    captureError(error, { screen: 'PlanEntryFormScreen', action: 'savePlanEntry' });
     const fieldErrors = extractApiErrors(error);
     const unmapped: string[] = [];
     clearErrors();

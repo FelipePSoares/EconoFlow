@@ -32,6 +32,7 @@ import { getCategoryIcon } from '../../utils/categoryIcon';
 import { getCurrencySymbol } from '../../utils/currency';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
 import { useAppTheme } from '../../theme/useAppTheme';
+import { captureError } from '../../monitoring/sentry';
 import { useQuickAddStore } from '../../store/quickAddStore';
 import { formatAmount } from '../../utils/format';
 import type { TFunction } from 'i18next';
@@ -75,12 +76,16 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
     setViewedMonth(isFocused ? month : null);
   }, [month, isFocused, setViewedMonth]);
 
-  const { data: expenses, isLoading, isFetching, refetch } =
+  const { data: expenses, isLoading, isFetching, refetch, error: expensesError } =
     useExpensesForMonth(projectId, categoryId, month);
   const deleteExpense      = useDeleteExpense(projectId, categoryId, month);
   const deleteExpenseItem  = useDeleteExpenseItem(projectId, categoryId, month);
   const restoreExpense     = useRestoreExpense(projectId, categoryId, month);
   const restoreExpenseItem = useRestoreExpenseItem(projectId, categoryId, month);
+
+  useEffect(() => {
+    if (expensesError) captureError(expensesError, { screen: 'ExpenseListScreen', action: 'fetchExpenses' });
+  }, [expensesError]);
 
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [refreshing, setRefreshing] = useState(false);
@@ -203,7 +208,9 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
                     actionIcon="trash-can-outline"
                     actionColor={customColors.expense}
                     onAction={() => {
-                      deleteExpense.mutate(expense.id);
+                      deleteExpense.mutate(expense.id, {
+                        onError: (err) => captureError(err, { screen: 'ExpenseListScreen', action: 'deleteExpense' }),
+                      });
                       setUndoState({ visible: true, expenseId: expense.id, itemId: null });
                     }}
                   >
@@ -307,7 +314,10 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
                         defaultExpenseId: expense.id,
                       })}
                       onDeleteItem={(expenseItemId) => {
-                        deleteExpenseItem.mutate({ expenseId: expense.id, expenseItemId });
+                        deleteExpenseItem.mutate(
+                          { expenseId: expense.id, expenseItemId },
+                          { onError: (err) => captureError(err, { screen: 'ExpenseListScreen', action: 'deleteExpense' }) },
+                        );
                         setUndoState({ visible: true, expenseId: expense.id, itemId: expenseItemId });
                       }}
                       onEditItem={(item, itemIndex) => setQuickAdd({
@@ -339,9 +349,14 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
         message={t('LabelUndoDelete')}
         onUndo={() => {
           if (undoState.itemId && undoState.expenseId) {
-            restoreExpenseItem.mutate({ expenseId: undoState.expenseId, expenseItemId: undoState.itemId });
+            restoreExpenseItem.mutate(
+              { expenseId: undoState.expenseId, expenseItemId: undoState.itemId },
+              { onError: (err) => captureError(err, { screen: 'ExpenseListScreen', action: 'restoreExpense' }) },
+            );
           } else if (undoState.expenseId) {
-            restoreExpense.mutate(undoState.expenseId);
+            restoreExpense.mutate(undoState.expenseId, {
+              onError: (err) => captureError(err, { screen: 'ExpenseListScreen', action: 'restoreExpense' }),
+            });
           }
         }}
         onDismiss={() => setUndoState({ visible: false, expenseId: null, itemId: null })}

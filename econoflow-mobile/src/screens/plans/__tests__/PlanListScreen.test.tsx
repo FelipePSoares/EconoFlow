@@ -167,6 +167,9 @@ describe('PlanListScreen', () => {
       error: null,
       refetch: jest.fn(),
     });
+    // reset useArchivePlan to use the shared mockArchiveMutate
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/usePlans') as any).useArchivePlan.mockReturnValue({ mutate: mockArchiveMutate });
   });
 
   it('shows empty state when there are no plans', async () => {
@@ -193,7 +196,7 @@ describe('PlanListScreen', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const PlanCard = (jest.requireMock('../../../components/plans/PlanCard') as any).PlanCard;
     expect(PlanCard.mock.calls.length).toBeGreaterThan(0);
-    expect(PlanCard.mock.calls[0][0].plan.id).toBe('plan-1');
+    expect(PlanCard.mock.calls[PlanCard.mock.calls.length - 1][0].plan.id).toBe('plan-1');
   });
 
   it('navigates to PlanForm when create button is pressed', async () => {
@@ -220,10 +223,10 @@ describe('PlanListScreen', () => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const PlanCard = (jest.requireMock('../../../components/plans/PlanCard') as any).PlanCard;
-    const swipeAction: () => void = PlanCard.mock.calls[0][0].onSwipeAction;
+    const swipeAction: () => void = PlanCard.mock.calls[PlanCard.mock.calls.length - 1][0].onSwipeAction;
     await act(async () => { swipeAction(); });
 
-    expect(mockArchiveMutate).toHaveBeenCalledWith('plan-1');
+    expect(mockArchiveMutate).toHaveBeenCalledWith('plan-1', expect.objectContaining({ onError: expect.any(Function) }));
   });
 
   it('does not render header top-right create button', async () => {
@@ -304,7 +307,8 @@ describe('PlanListScreen', () => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const PlanCard = (jest.requireMock('../../../components/plans/PlanCard') as any).PlanCard;
-    const swipeAction: () => void = PlanCard.mock.calls[0][0].onSwipeAction;
+    const lastCall = PlanCard.mock.calls[PlanCard.mock.calls.length - 1];
+    const swipeAction: () => void = lastCall[0].onSwipeAction;
     await act(async () => { swipeAction(); });
 
     await waitFor(() =>

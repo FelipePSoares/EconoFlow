@@ -29,6 +29,7 @@ import { getCategoryIcon } from '../../utils/categoryIcon';
 import { fromDateOnly, formatMonthLabel } from '../../utils/date';
 import { formatAmount } from '../../utils/format';
 import { MonthNavigator } from '../../components/common/MonthNavigator';
+import { captureError } from '../../monitoring/sentry';
 
 type Props = NativeStackScreenProps<OverviewStackParamList, 'IncomeList'>;
 
@@ -68,9 +69,13 @@ export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
     setViewedMonth(isFocused ? month : null);
   }, [month, isFocused, setViewedMonth]);
 
-  const { data: incomes, isLoading, isFetching, isError, refetch } = useIncomesForMonth(projectId, month);
+  const { data: incomes, isLoading, isFetching, isError, error: incomesError, refetch } = useIncomesForMonth(projectId, month);
   const deleteIncome = useDeleteIncome(projectId, month);
   const restoreIncome = useRestoreIncome(projectId, month);
+
+  useEffect(() => {
+    if (incomesError) captureError(incomesError, { screen: 'IncomeListScreen', action: 'fetchIncomes' });
+  }, [incomesError]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -172,7 +177,9 @@ export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
                     actionIcon="trash-can-outline"
                     actionColor={customColors.expense}
                     onAction={() => {
-                      deleteIncome.mutate(item.id);
+                      deleteIncome.mutate(item.id, {
+                        onError: (err) => captureError(err, { screen: 'IncomeListScreen', action: 'deleteIncome' }),
+                      });
                       setUndoState({ visible: true, id: item.id });
                     }}
                   >
@@ -217,7 +224,11 @@ export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
         visible={undoState.visible}
         message={t('LabelUndoDelete')}
         onUndo={() => {
-          if (undoState.id) restoreIncome.mutate(undoState.id);
+          if (undoState.id) {
+            restoreIncome.mutate(undoState.id, {
+              onError: (err) => captureError(err, { screen: 'IncomeListScreen', action: 'restoreIncome' }),
+            });
+          }
         }}
         onDismiss={() => setUndoState({ visible: false, id: null })}
       />

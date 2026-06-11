@@ -21,6 +21,7 @@ import type { ProjectStackParamList } from '../../navigation/ProjectStackNavigat
 import type { RootParamList } from '../../navigation/AppNavigator';
 import { useCreateProject } from '../../hooks/useProjects';
 import { putTaxYearSettings } from '../../api/projects.api';
+import { captureError } from '../../monitoring/sentry';
 import { useProjectStore } from '../../store/projectStore';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
 import { GlassScreen } from '../../components/common/GlassScreen';
@@ -93,7 +94,8 @@ export const CreateProjectScreen: React.FC<Props> = ({ navigation, route }) => {
 
       setSelectedProject(userProject);
       navigation.navigate('SmartSetup', { projectId: userProject.project.id, fromOnboarding });
-    } catch {
+    } catch (err) {
+      captureError(err, { screen: 'CreateProjectScreen', action: 'createProject' });
       setError(t('ErrorGeneric'));
     } finally {
       setIsSubmitting(false);

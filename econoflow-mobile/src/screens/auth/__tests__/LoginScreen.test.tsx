@@ -134,12 +134,13 @@ const createQueryClient = () =>
     },
   });
 
-const renderScreen = (queryClient: QueryClient) =>
-  render(
+const renderScreen = async (queryClient: QueryClient) => {
+  await render(
     <QueryClientProvider client={queryClient}>
       <LoginScreen navigation={mockNavigation} />
     </QueryClientProvider>,
   );
+};
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
@@ -156,14 +157,10 @@ describe('LoginScreen', () => {
     mockCaptureError.mockReset();
   });
 
-  afterEach(() => {
-    queryClient.clear();
-  });
-
   const fillAndSubmit = async () => {
-    fireEvent.changeText(screen.getByTestId('FieldEmailAddress'), 'user@example.com');
-    fireEvent.changeText(screen.getByTestId('FieldPassword'), 'Passw0rd!');
-    fireEvent.press(screen.getByTestId('ButtonSignIn'));
+    await fireEvent.changeText(screen.getByTestId('FieldEmailAddress'), 'user@example.com');
+    await fireEvent.changeText(screen.getByTestId('FieldPassword'), 'Passw0rd!');
+    await fireEvent.press(screen.getByTestId('ButtonSignIn'));
   };
 
   it('saves tokens and user on successful login', async () => {
@@ -171,7 +168,7 @@ describe('LoginScreen', () => {
     mockMobileLogin.mockResolvedValue({ data: { accessToken: 'at', refreshToken: 'rt' } });
     mockGetCurrentUser.mockResolvedValue({ data: mockUser });
 
-    renderScreen(queryClient);
+    await renderScreen(queryClient);
     await fillAndSubmit();
 
     await waitFor(() => {
@@ -183,7 +180,7 @@ describe('LoginScreen', () => {
   it('navigates to TwoFactor when requiresTwoFactor is true in response data', async () => {
     mockMobileLogin.mockResolvedValue({ data: { requiresTwoFactor: true } });
 
-    renderScreen(queryClient);
+    await renderScreen(queryClient);
     await fillAndSubmit();
 
     await waitFor(() =>
@@ -199,7 +196,7 @@ describe('LoginScreen', () => {
       response: { data: { requiresTwoFactor: true } },
     });
 
-    renderScreen(queryClient);
+    await renderScreen(queryClient);
     await fillAndSubmit();
 
     await waitFor(() =>
@@ -213,7 +210,7 @@ describe('LoginScreen', () => {
   it('shows error when login fails with non-2FA error', async () => {
     mockMobileLogin.mockRejectedValue(new Error('invalid credentials'));
 
-    renderScreen(queryClient);
+    await renderScreen(queryClient);
     await fillAndSubmit();
 
     await waitFor(() =>
@@ -225,7 +222,7 @@ describe('LoginScreen', () => {
     const error = new Error('server error');
     mockMobileLogin.mockRejectedValue(error);
 
-    renderScreen(queryClient);
+    await renderScreen(queryClient);
     await fillAndSubmit();
 
     await waitFor(() =>
@@ -241,7 +238,7 @@ describe('LoginScreen', () => {
       response: { data: { requiresTwoFactor: true } },
     });
 
-    renderScreen(queryClient);
+    await renderScreen(queryClient);
     await fillAndSubmit();
 
     await waitFor(() =>
@@ -253,7 +250,7 @@ describe('LoginScreen', () => {
   it('does NOT capture error to Sentry when login redirects to TwoFactor via success response', async () => {
     mockMobileLogin.mockResolvedValue({ data: { requiresTwoFactor: true } });
 
-    renderScreen(queryClient);
+    await renderScreen(queryClient);
     await fillAndSubmit();
 
     await waitFor(() =>
@@ -267,7 +264,7 @@ describe('LoginScreen', () => {
     mockMobileLogin.mockResolvedValue({ data: { accessToken: 'at', refreshToken: 'rt' } });
     mockGetCurrentUser.mockRejectedValue(fetchError);
 
-    renderScreen(queryClient);
+    await renderScreen(queryClient);
     await fillAndSubmit();
 
     await waitFor(() =>
@@ -282,7 +279,7 @@ describe('LoginScreen', () => {
     mockMobileLogin.mockResolvedValue({ data: { accessToken: 'at', refreshToken: 'rt' } });
     mockGetCurrentUser.mockResolvedValue({ data: { id: 'u1', firstName: '', languageCode: 'en' } });
 
-    renderScreen(queryClient);
+    await renderScreen(queryClient);
     await fillAndSubmit();
 
     await waitFor(() => expect(mockSetTokens).toHaveBeenCalled());

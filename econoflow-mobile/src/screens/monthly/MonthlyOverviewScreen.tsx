@@ -16,6 +16,7 @@ import { useProjectStore } from '../../store/projectStore';
 import { useQuickAddStore } from '../../store/quickAddStore';
 import { useAuthStore } from '../../store/authStore';
 import { useProjects } from '../../hooks/useProjects';
+import { captureError } from '../../monitoring/sentry';
 import { useCategoriesForMonth, useArchiveCategory, useUnarchiveCategory } from '../../hooks/useCategories';
 import { UndoToast } from '../../components/common/UndoToast';
 import { useIncomesForMonth } from '../../hooks/useIncomes';
@@ -70,14 +71,14 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
 
   const {
     data: categories, isLoading: loadingCats, isFetching: fetchingCats,
-    isError: catsError, refetch: refetchCats,
+    isError: catsError, error: categoriesError, refetch: refetchCats,
   } = useCategoriesForMonth(projectId, month);
   const archiveCategory   = useArchiveCategory(projectId, month);
   const unarchiveCategory = useUnarchiveCategory(projectId, month);
   const canEdit = selectedProject?.role !== 'Viewer';
   const {
     data: incomes, isLoading: loadingInc, isFetching: fetchingIncs,
-    isError: incError, refetch: refetchIncs,
+    isError: incError, error: incomesError, refetch: refetchIncs,
   } = useIncomesForMonth(projectId, month);
   const { totalSaved, isLoading: loadingSaved } = useTotalSavedForMonth(projectId, month);
 
@@ -89,6 +90,14 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
         : null) ?? projects[0];
     if (pick) setSelectedProject(pick);
   }, [projects, selectedProject, user, setSelectedProject]);
+
+  useEffect(() => {
+    if (categoriesError) captureError(categoriesError, { screen: 'MonthlyOverviewScreen', action: 'fetchCategories' });
+  }, [categoriesError]);
+
+  useEffect(() => {
+    if (incomesError) captureError(incomesError, { screen: 'MonthlyOverviewScreen', action: 'fetchIncomes' });
+  }, [incomesError]);
 
   // Header is hidden in the navigator; clear the title so it never bleeds through
   useEffect(() => { navigation.setOptions({ title: '' }); }, [navigation]);
@@ -322,7 +331,9 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
                   index={idx}
                   dark={dark}
                   onSwipeAction={() => {
-                    archiveCategory.mutate(cat.id);
+                    archiveCategory.mutate(cat.id, {
+                      onError: (err) => captureError(err, { screen: 'MonthlyOverviewScreen', action: 'archiveCategory' }),
+                    });
                     setUndoState({ visible: true, id: cat.id });
                   }}
                   swipeActionColor={ink2}
@@ -349,7 +360,9 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
         visible={undoState.visible}
         message={t('LabelUndoArchive')}
         onUndo={() => {
-          if (undoState.id) unarchiveCategory.mutate(undoState.id);
+          if (undoState.id) unarchiveCategory.mutate(undoState.id, {
+            onError: (err) => captureError(err, { screen: 'MonthlyOverviewScreen', action: 'unarchiveCategory' }),
+          });
         }}
         onDismiss={() => setUndoState({ visible: false, id: null })}
       />

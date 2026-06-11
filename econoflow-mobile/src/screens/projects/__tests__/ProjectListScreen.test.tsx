@@ -66,6 +66,13 @@ jest.mock('../../../components/auth/AuroraPrimaryButton', () => {
   };
 });
 
+// ─── Sentry mock ─────────────────────────────────────────────────────────────
+
+const mockCaptureError = jest.fn();
+jest.mock('../../../monitoring/sentry', () => ({
+  captureError: (...args: unknown[]) => mockCaptureError(...args),
+}));
+
 // ─── Store / hook mocks ───────────────────────────────────────────────────────
 
 const mockSetSelectedProject = jest.fn();
@@ -125,6 +132,7 @@ describe('ProjectListScreen', () => {
     mockSetOpenCreateProjectOnStart.mockReset();
     mockAuthState.openCreateProjectOnStart = false;
     mockGetParent.mockReturnValue({ navigate: jest.fn() });
+    mockCaptureError.mockReset();
   });
 
   it('shows the new project button when the list is empty', async () => {
@@ -170,6 +178,25 @@ describe('ProjectListScreen', () => {
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('CreateProject', { fromOnboarding: true });
       expect(mockSetOpenCreateProjectOnStart).toHaveBeenCalledWith(false);
+    });
+  });
+
+  it('calls captureError when useProjects query has an error', async () => {
+    const err = new Error('Fetch failed');
+    getUseProjectsMock().mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: err,
+      refetch: jest.fn(),
+    });
+
+    await render(<ProjectListScreen navigation={mockNavigation} />);
+
+    await waitFor(() => {
+      expect(mockCaptureError).toHaveBeenCalledWith(
+        err,
+        { screen: 'ProjectListScreen', action: 'fetchProjects' },
+      );
     });
   });
 

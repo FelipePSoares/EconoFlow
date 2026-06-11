@@ -12,6 +12,7 @@ import { toDateOnly, fromDateOnly } from '../../utils/date';
 import { buildPatch } from '../../utils/patch';
 import { extractApiErrors } from '../../utils/apiErrors';
 import { ErrorBanner } from '../../components/common/ErrorBanner';
+import { captureError } from '../../monitoring/sentry';
 
 type Props = NativeStackScreenProps<OverviewStackParamList, 'ExpenseForm'>;
 
@@ -97,12 +98,18 @@ export const ExpenseFormScreen: React.FC<Props> = ({ route, navigation }) => {
     if (isEdit) {
       patchExpense.mutate(buildPatch(parsed as Record<string, unknown>), {
         onSuccess: () => navigation.goBack(),
-        onError: handleApiError,
+        onError: (error) => {
+          captureError(error, { screen: 'ExpenseFormScreen', action: 'updateExpense' });
+          handleApiError(error);
+        },
       });
     } else {
       createExpense.mutate(parsed, {
         onSuccess: () => navigation.goBack(),
-        onError: handleApiError,
+        onError: (error) => {
+          captureError(error, { screen: 'ExpenseFormScreen', action: 'createExpense' });
+          handleApiError(error);
+        },
       });
     }
   };

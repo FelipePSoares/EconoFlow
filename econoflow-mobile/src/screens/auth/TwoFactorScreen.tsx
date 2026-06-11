@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { mobileLogin, getCurrentUser } from '../../api/auth.api';
+import { captureError } from '../../monitoring/sentry';
 import { useAuthStore } from '../../store/authStore';
 import i18n from '../../i18n';
 import { AuthHero } from '../../components/auth/AuthHero';
@@ -46,9 +47,14 @@ export const TwoFactorScreen: React.FC<Props> = ({ route }) => {
           const lang = userResponse.data.languageCode.startsWith('pt') ? 'pt' : 'en';
           i18n.changeLanguage(lang);
         }
-      } catch { /* proceed */ }
+      } catch (err) {
+        captureError(err, { screen: 'TwoFactorScreen', action: 'fetchCurrentUser' });
+      }
     },
-    onError: () => setAuthError(t('ErrorInvalidTwoFactorCode')),
+    onError: (error) => {
+      captureError(error, { screen: 'TwoFactorScreen', action: 'verifyTwoFactor' });
+      setAuthError(t('ErrorInvalidTwoFactorCode'));
+    },
   });
 
   return (

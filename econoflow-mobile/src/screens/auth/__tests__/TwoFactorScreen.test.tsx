@@ -1,13 +1,11 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ForgotPasswordScreen } from '../ForgotPasswordScreen';
+import { TwoFactorScreen } from '../TwoFactorScreen';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { AuthStackParamList } from '../../../navigation/AuthNavigator';
 
 // ─── UI infrastructure mocks ─────────────────────────────────────────────────
-
-jest.mock('@expo/vector-icons', () => ({
-  MaterialCommunityIcons: 'MaterialCommunityIcons',
-}));
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (k: string) => k }),
@@ -86,12 +84,28 @@ jest.mock('react-native-paper', () => {
   };
 });
 
-// ─── API mock ─────────────────────────────────────────────────────────────────
+// ─── API / store mocks ────────────────────────────────────────────────────────
 
-const mockForgotPassword = jest.fn();
+const mockMobileLogin = jest.fn();
+const mockGetCurrentUser = jest.fn();
+const mockSetTokens = jest.fn();
+const mockSetUser = jest.fn();
 
 jest.mock('../../../api/auth.api', () => ({
-  forgotPassword: (...args: unknown[]) => mockForgotPassword(...args),
+  mobileLogin: (...args: unknown[]) => mockMobileLogin(...args),
+  getCurrentUser: (...args: unknown[]) => mockGetCurrentUser(...args),
+}));
+
+jest.mock('../../../store/authStore', () => ({
+  useAuthStore: jest.fn(() => ({
+    setTokens: mockSetTokens,
+    setUser: mockSetUser,
+  })),
+}));
+
+jest.mock('../../../i18n', () => ({
+  __esModule: true,
+  default: { changeLanguage: jest.fn() },
 }));
 
 // ─── Sentry mock ─────────────────────────────────────────────────────────────
@@ -102,13 +116,17 @@ jest.mock('../../../monitoring/sentry', () => ({
   captureError: (...args: unknown[]) => mockCaptureError(...args),
 }));
 
-// ─── Navigation mock ──────────────────────────────────────────────────────────
+// ─── Route / navigation mock ─────────────────────────────────────────────────
 
-const mockNavigate = jest.fn();
+type TwoFactorProps = NativeStackScreenProps<AuthStackParamList, 'TwoFactor'>;
 
-const mockNavigation = {
-  navigate: mockNavigate,
-} as unknown as React.ComponentProps<typeof ForgotPasswordScreen>['navigation'];
+const mockRoute = {
+  params: { email: 'user@example.com', password: 'Passw0rd!' },
+  key: 'TwoFactor',
+  name: 'TwoFactor',
+} as TwoFactorProps['route'];
+
+const mockNavigation = {} as TwoFactorProps['navigation'];
 
 // ─── Test helpers ─────────────────────────────────────────────────────────────
 
@@ -123,74 +141,110 @@ const createQueryClient = () =>
 const renderScreen = async (queryClient: QueryClient) => {
   await render(
     <QueryClientProvider client={queryClient}>
-      <ForgotPasswordScreen navigation={mockNavigation} />
+      <TwoFactorScreen route={mockRoute} navigation={mockNavigation} />
     </QueryClientProvider>,
   );
 };
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
-describe('ForgotPasswordScreen', () => {
+describe('TwoFactorScreen', () => {
   let queryClient: QueryClient;
 
   beforeEach(() => {
     queryClient = createQueryClient();
-    mockForgotPassword.mockReset();
-    mockNavigate.mockReset();
+    mockMobileLogin.mockReset();
+    mockGetCurrentUser.mockReset();
+    mockSetTokens.mockReset();
+    mockSetUser.mockReset();
     mockCaptureError.mockReset();
   });
 
-  const submitForm = async () => {
-    await fireEvent.changeText(screen.getByTestId('FieldEmailAddress'), 'user@example.com');
-    await fireEvent.press(screen.getByTestId('ButtonSendResetLink'));
+  const fillAndSubmit = async () => {
+    await fireEvent.changeText(screen.getByTestId('FieldTwoFactorCode'), '123456');
+    await fireEvent.press(screen.getByTestId('ButtonVerify'));
   };
 
-  it('shows success UI when mutation succeeds', async () => {
-    mockForgotPassword.mockResolvedValue({});
+  it('saves tokens and user on successful 2FA verification', async () => {
+    const mockUser = { id: 'u1', firstName: 'Test', languageCode: 'en' };
+    mockMobileLogin.mockResolvedValue({ data: { accessToken: 'at', refreshToken: 'rt' } });
+    mockGetCurrentUser.mockResolvedValue({ data: mockUser });
 
     await renderScreen(queryClient);
-    await submitForm();
+    await fillAndSubmit();
+
+    await waitFor(() => {
+      expect(mockSetTokens).toHaveBeenCalledWith('at', 'rt');
+      expect(mockSetUser).toHaveBeenCalledWith(mockUser);
+    });
+  });
+
+  it('shows error when 2FA verification fails', async () => {
+    mockMobileLogin.mockRejectedValue(new Error('invalid code'));
+
+    await renderScreen(queryClient);
+    await fillAndSubmit();
 
     await waitFor(() =>
-      expect(screen.queryByText('LabelCheckYourEmail')).toBeTruthy(),
+      expect(screen.queryByText('ErrorInvalidTwoFactorCode')).toBeTruthy(),
     );
   });
 
-  it('shows success UI even when mutation fails (anti-enumeration)', async () => {
-    mockForgotPassword.mockRejectedValue(new Error('not found'));
+  it('calls mobileLogin with email, password, and 2FA code from route params', async () => {
+    mockMobileLogin.mockResolvedValue({ data: { accessToken: 'at', refreshToken: 'rt' } });
+    mockGetCurrentUser.mockResolvedValue({ data: { id: 'u1', firstName: '', languageCode: 'en' } });
 
     await renderScreen(queryClient);
-    await submitForm();
+    await fillAndSubmit();
 
     await waitFor(() =>
-      expect(screen.queryByText('LabelCheckYourEmail')).toBeTruthy(),
+      expect(mockMobileLogin).toHaveBeenCalledWith({
+        email: 'user@example.com',
+        password: 'Passw0rd!',
+        twoFactorCode: '123456',
+      }),
     );
   });
 
-  it('captures error to Sentry when mutation fails', async () => {
-    const error = new Error('server error');
-    mockForgotPassword.mockRejectedValue(error);
+  it('captures error to Sentry when 2FA mutation fails', async () => {
+    const error = new Error('invalid 2FA code');
+    mockMobileLogin.mockRejectedValue(error);
 
     await renderScreen(queryClient);
-    await submitForm();
+    await fillAndSubmit();
 
     await waitFor(() =>
       expect(mockCaptureError).toHaveBeenCalledWith(
         error,
-        expect.objectContaining({ screen: 'ForgotPasswordScreen', action: 'forgotPassword' }),
+        expect.objectContaining({ screen: 'TwoFactorScreen', action: 'verifyTwoFactor' }),
       ),
     );
   });
 
-  it('does NOT capture error to Sentry when mutation succeeds', async () => {
-    mockForgotPassword.mockResolvedValue({});
+  it('captures error to Sentry when getCurrentUser fails silently', async () => {
+    const fetchError = new Error('profile fetch failed');
+    mockMobileLogin.mockResolvedValue({ data: { accessToken: 'at', refreshToken: 'rt' } });
+    mockGetCurrentUser.mockRejectedValue(fetchError);
 
     await renderScreen(queryClient);
-    await submitForm();
+    await fillAndSubmit();
 
     await waitFor(() =>
-      expect(screen.queryByText('LabelCheckYourEmail')).toBeTruthy(),
+      expect(mockCaptureError).toHaveBeenCalledWith(
+        fetchError,
+        expect.objectContaining({ screen: 'TwoFactorScreen', action: 'fetchCurrentUser' }),
+      ),
     );
+  });
+
+  it('does NOT capture error to Sentry on successful 2FA with profile', async () => {
+    mockMobileLogin.mockResolvedValue({ data: { accessToken: 'at', refreshToken: 'rt' } });
+    mockGetCurrentUser.mockResolvedValue({ data: { id: 'u1', firstName: '', languageCode: 'en' } });
+
+    await renderScreen(queryClient);
+    await fillAndSubmit();
+
+    await waitFor(() => expect(mockSetTokens).toHaveBeenCalled());
     expect(mockCaptureError).not.toHaveBeenCalled();
   });
 });

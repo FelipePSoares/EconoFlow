@@ -12,6 +12,7 @@ import { ErrorBanner } from '../../components/common/ErrorBanner';
 import { AuroraField } from '../../components/auth/AuroraField';
 import { AuroraPrimaryButton } from '../../components/auth/AuroraPrimaryButton';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
+import { captureError } from '../../monitoring/sentry';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'ChangeEmail'>;
 
@@ -48,7 +49,8 @@ export const ChangeEmailScreen: React.FC<Props> = ({ navigation: _navigation }) 
     try {
       await mutateAsync({ newEmail: email.trim() });
       setSuccess(true);
-    } catch {
+    } catch (err) {
+      captureError(err, { screen: 'ChangeEmailScreen', action: 'changeEmail' });
       setApiError(t('ErrorChangeEmailFailed') ?? 'Failed to change email. Please try again.');
     }
   };

@@ -11,6 +11,7 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { ProjectStackParamList } from '../../navigation/ProjectStackNavigator';
 import type { MainTabParamList } from '../../navigation/MainNavigator';
 import { useProjects } from '../../hooks/useProjects';
+import { captureError } from '../../monitoring/sentry';
 import { useProjectStore } from '../../store/projectStore';
 import { useAuthStore } from '../../store/authStore';
 import { LoadingIndicator } from '../../components/common/LoadingIndicator';
@@ -38,7 +39,7 @@ export const ProjectListScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
   const { dark, ink, ink2 } = useAuroraSkin();
   const insets = useSafeAreaInsets();
-  const { data: projects, isLoading, refetch } = useProjects();
+  const { data: projects, isLoading, error: projectsError, refetch } = useProjects();
   const { selectedProject, setSelectedProject } = useProjectStore();
   const openCreateProjectOnStart = useAuthStore((s) => s.openCreateProjectOnStart);
   const setOpenCreateProjectOnStart = useAuthStore((s) => s.setOpenCreateProjectOnStart);
@@ -50,6 +51,10 @@ export const ProjectListScreen: React.FC<Props> = ({ navigation }) => {
       navigation.navigate('CreateProject', { fromOnboarding: true });
     }
   }, [openCreateProjectOnStart, navigation, setOpenCreateProjectOnStart]);
+
+  useEffect(() => {
+    if (projectsError) captureError(projectsError, { screen: 'ProjectListScreen', action: 'fetchProjects' });
+  }, [projectsError]);
 
   const handleSelect = (userProject: UserProject) => {
     setSelectedProject(userProject);

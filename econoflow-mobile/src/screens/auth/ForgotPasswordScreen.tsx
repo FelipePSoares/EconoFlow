@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { forgotPassword } from '../../api/auth.api';
+import { captureError } from '../../monitoring/sentry';
 import { AuthHero } from '../../components/auth/AuthHero';
 import { AuroraField } from '../../components/auth/AuroraField';
 import { AuroraPrimaryButton } from '../../components/auth/AuroraPrimaryButton';
@@ -37,7 +38,10 @@ export const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
     // This prevents leaking whether an email address is registered (security best
     // practice) and fixes the silent no-op when the server returns an error.
     onSuccess: () => setSent(true),
-    onError:   () => setSent(true),
+    onError:   (error) => {
+      captureError(error, { screen: 'ForgotPasswordScreen', action: 'forgotPassword' });
+      setSent(true);
+    },
   });
 
   if (sent) {

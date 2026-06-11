@@ -10,6 +10,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useForm, Controller } from 'react-hook-form';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from 'react-i18next';
+import { captureError } from '../../monitoring/sentry';
 import { useProjectStore } from '../../store/projectStore';
 import { useCategoriesForMonth } from '../../hooks/useCategories';
 import { useExpensesForMonth, useCreateExpense, useAddExpenseItem, usePatchExpense } from '../../hooks/useExpenses';
@@ -347,33 +348,69 @@ export const QuickAddModal: React.FC<Props> = ({
         const idx = editMode.itemIndex ?? 0;
         patchExpense.mutate(
           buildExpenseItemPatch(idx, { name, amount, date: dateStr, isDeductible: modal.isDeductible }),
-          { onSuccess: onClose, onError: handleApiError },
+          {
+            onSuccess: onClose,
+            onError: (err) => {
+              captureError(err, { screen: 'QuickAddModal', action: 'addExpenseItem' });
+              handleApiError(err);
+            },
+          },
         );
         return;
       }
       if (editMode.type === 'expense') {
         const fields: Record<string, unknown> = { name, date: dateStr, isDeductible: modal.isDeductible, budget };
         if (!editMode.hasItems) fields.amount = amount;
-        patchExpense.mutate(buildPatch(fields), { onSuccess: onClose, onError: handleApiError });
+        patchExpense.mutate(buildPatch(fields), {
+          onSuccess: onClose,
+          onError: (err) => {
+            captureError(err, { screen: 'QuickAddModal', action: 'updateExpense' });
+            handleApiError(err);
+          },
+        });
       } else {
         // income: only patch name, amount, date — no isDeductible or budget
-        patchIncome.mutate(buildPatch({ name, amount, date: dateStr } as Record<string, unknown>), { onSuccess: onClose, onError: handleApiError });
+        patchIncome.mutate(buildPatch({ name, amount, date: dateStr } as Record<string, unknown>), {
+          onSuccess: onClose,
+          onError: (err) => {
+            captureError(err, { screen: 'QuickAddModal', action: 'updateIncome' });
+            handleApiError(err);
+          },
+        });
       }
       return;
     }
 
     if (modal.entryType === 'income') {
-      createIncome.mutate({ name, amount, date: dateStr }, { onSuccess: onClose, onError: handleApiError });
+      createIncome.mutate({ name, amount, date: dateStr }, {
+        onSuccess: onClose,
+        onError: (err) => {
+          captureError(err, { screen: 'QuickAddModal', action: 'createIncome' });
+          handleApiError(err);
+        },
+      });
     } else if (modal.selectedExpenseId) {
       addExpenseItem.mutate(
         { expenseId: modal.selectedExpenseId, item: { name, amount, date: dateStr, isDeductible: modal.isDeductible } as never },
-        { onSuccess: onClose, onError: handleApiError },
+        {
+          onSuccess: onClose,
+          onError: (err) => {
+            captureError(err, { screen: 'QuickAddModal', action: 'addExpenseItem' });
+            handleApiError(err);
+          },
+        },
       );
     } else {
       if (!modal.selectedCategoryId) return;
       createExpense.mutate(
         { name, amount, budget, isDeductible: modal.isDeductible, date: dateStr },
-        { onSuccess: onClose, onError: handleApiError },
+        {
+          onSuccess: onClose,
+          onError: (err) => {
+            captureError(err, { screen: 'QuickAddModal', action: 'createExpense' });
+            handleApiError(err);
+          },
+        },
       );
     }
   };

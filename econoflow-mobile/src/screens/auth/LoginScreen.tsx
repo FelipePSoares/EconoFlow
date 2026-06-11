@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { mobileLogin, getCurrentUser } from '../../api/auth.api';
+import { captureError } from '../../monitoring/sentry';
 import { useAuthStore } from '../../store/authStore';
 import i18n from '../../i18n';
 import { AuthHero } from '../../components/auth/AuthHero';
@@ -64,13 +65,16 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
           const lang = userResponse.data.languageCode.startsWith('pt') ? 'pt' : 'en';
           i18n.changeLanguage(lang);
         }
-      } catch { /* proceed without user profile */ }
+      } catch (err) {
+        captureError(err, { screen: 'LoginScreen', action: 'fetchCurrentUser' });
+      }
     },
     onError: (err: { response?: { data?: { requiresTwoFactor?: boolean } } }, variables) => {
       if (err?.response?.data?.requiresTwoFactor) {
         navigation.navigate('TwoFactor', { email: variables.email, password: variables.password });
         return;
       }
+      captureError(err, { screen: 'LoginScreen', action: 'login' });
       setLoginError(t('ErrorInvalidCredentials'));
     },
   });

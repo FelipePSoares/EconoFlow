@@ -4,7 +4,7 @@
  * correctly wired for each role.
  */
 import React from 'react';
-import { act, render, screen, fireEvent } from '@testing-library/react-native';
+import { act, render, screen, fireEvent, waitFor } from '@testing-library/react-native';
 import { MonthlyOverviewScreen } from '../MonthlyOverviewScreen';
 import type { Category } from '../../../api/types';
 
@@ -68,6 +68,13 @@ jest.mock('../../../components/common/UndoToast', () => ({
 
 jest.mock('../../../components/budget/CategoryCard', () => ({
   CategoryCard: jest.fn(() => null),
+}));
+
+// ─── Sentry mock ─────────────────────────────────────────────────────────────
+
+const mockCaptureError = jest.fn();
+jest.mock('../../../monitoring/sentry', () => ({
+  captureError: (...args: unknown[]) => mockCaptureError(...args),
 }));
 
 // ─── Store / hook mocks ───────────────────────────────────────────────────────
@@ -156,6 +163,7 @@ describe('MonthlyOverviewScreen — archive-category capability', () => {
     getCategoryCardSpy().mockClear();
     getUndoToastSpy().mockClear();
     mockParentNavigate.mockReset();
+    mockCaptureError.mockReset();
   });
 
   it('passes onSwipeAction and swipeDisabled=false to CategoryCard for Manager role', async () => {
@@ -196,6 +204,128 @@ describe('MonthlyOverviewScreen — archive-category capability', () => {
     });
 
     expect(getUndoToastSpy()).toHaveBeenCalled();
+  });
+
+  it('calls captureError when useCategoriesForMonth query has an error', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../store/projectStore') as any).useProjectStore.mockImplementation(() => makeProjectStore('Manager'));
+
+    const err = new Error('Cats fetch failed');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/useCategories') as any).useCategoriesForMonth.mockReturnValueOnce({
+      data: undefined,
+      isLoading: false,
+      isFetching: false,
+      isError: true,
+      error: err,
+      refetch: jest.fn(),
+    });
+
+    await act(async () => {
+      render(<MonthlyOverviewScreen navigation={mockNavigation} />);
+    });
+
+    await waitFor(() => {
+      expect(mockCaptureError).toHaveBeenCalledWith(
+        err,
+        { screen: 'MonthlyOverviewScreen', action: 'fetchCategories' },
+      );
+    });
+  });
+
+  it('calls captureError when useIncomesForMonth query has an error', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../store/projectStore') as any).useProjectStore.mockImplementation(() => makeProjectStore('Manager'));
+
+    const err = new Error('Incomes fetch failed');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/useIncomes') as any).useIncomesForMonth.mockReturnValueOnce({
+      data: undefined,
+      isLoading: false,
+      isFetching: false,
+      isError: true,
+      error: err,
+      refetch: jest.fn(),
+    });
+
+    await act(async () => {
+      render(<MonthlyOverviewScreen navigation={mockNavigation} />);
+    });
+
+    await waitFor(() => {
+      expect(mockCaptureError).toHaveBeenCalledWith(
+        err,
+        { screen: 'MonthlyOverviewScreen', action: 'fetchIncomes' },
+      );
+    });
+  });
+
+  it('calls captureError with archiveCategory action when archive mutation errors', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../store/projectStore') as any).useProjectStore.mockImplementation(() => makeProjectStore('Manager'));
+
+    const err = new Error('Archive failed');
+    const mockArchiveWithError = jest.fn();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/useCategories') as any).useArchiveCategory.mockReturnValueOnce({
+      mutate: (_id: string, opts?: { onError?: (e: unknown) => void }) => {
+        mockArchiveWithError();
+        opts?.onError?.(err);
+      },
+    });
+
+    await act(async () => {
+      render(<MonthlyOverviewScreen navigation={mockNavigation} />);
+    });
+
+    const categoryCardProps = getCategoryCardSpy().mock.calls[0][0];
+    await act(async () => {
+      categoryCardProps.onSwipeAction();
+    });
+
+    await waitFor(() => {
+      expect(mockCaptureError).toHaveBeenCalledWith(
+        err,
+        { screen: 'MonthlyOverviewScreen', action: 'archiveCategory' },
+      );
+    });
+  });
+
+  it('calls captureError with unarchiveCategory action when unarchive mutation errors', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../store/projectStore') as any).useProjectStore.mockImplementation(() => makeProjectStore('Manager'));
+
+    const err = new Error('Unarchive failed');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/useCategories') as any).useUnarchiveCategory.mockReturnValue({
+      mutate: (_id: string, opts?: { onError?: (e: unknown) => void }) => {
+        opts?.onError?.(err);
+      },
+    });
+
+    await act(async () => {
+      render(<MonthlyOverviewScreen navigation={mockNavigation} />);
+    });
+
+    // First trigger a swipe to populate undoState.id so the undo call is guarded
+    const categoryCardProps = getCategoryCardSpy().mock.calls[0][0];
+    await act(async () => {
+      categoryCardProps.onSwipeAction();
+    });
+
+    // UndoToast re-renders after swipe — use the latest call to get the updated onUndo closure
+    const undoToastCalls = getUndoToastSpy().mock.calls;
+    const latestUndoToastProps = undoToastCalls[undoToastCalls.length - 1][0];
+    await act(async () => {
+      latestUndoToastProps.onUndo();
+    });
+
+    await waitFor(() => {
+      expect(mockCaptureError).toHaveBeenCalledWith(
+        err,
+        { screen: 'MonthlyOverviewScreen', action: 'unarchiveCategory' },
+      );
+    });
   });
 
   it('pressing the saved panel navigates to the Plans tab', async () => {
