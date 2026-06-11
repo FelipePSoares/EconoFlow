@@ -96,7 +96,13 @@ jest.mock('@tanstack/react-query', () => ({
 
 // ─── Navigation mock ──────────────────────────────────────────────────────────
 
-const mockNavigation = {} as React.ComponentProps<typeof ProfileScreen>['navigation'];
+const mockNavigate = jest.fn();
+
+const mockNavigation = {
+  navigate: mockNavigate,
+} as unknown as React.ComponentProps<typeof ProfileScreen>['navigation'];
+
+const mockRoute = {} as unknown as React.ComponentProps<typeof ProfileScreen>['route'];
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
@@ -105,23 +111,60 @@ describe('ProfileScreen – sign out', () => {
     mockClearAuth.mockReset();
     mockClearProject.mockReset();
     mockQueryClientClear.mockReset();
+    mockNavigate.mockReset();
   });
 
   it('calls clearAuth when the sign-out button is pressed', async () => {
-    await render(<ProfileScreen navigation={mockNavigation} />);
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
     fireEvent.press(screen.getByText('ButtonSignOut'));
     expect(mockClearAuth).toHaveBeenCalledTimes(1);
   });
 
   it('calls clearProject when the sign-out button is pressed', async () => {
-    await render(<ProfileScreen navigation={mockNavigation} />);
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
     fireEvent.press(screen.getByText('ButtonSignOut'));
     expect(mockClearProject).toHaveBeenCalledTimes(1);
   });
 
   it('clears the React Query cache when the sign-out button is pressed', async () => {
-    await render(<ProfileScreen navigation={mockNavigation} />);
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
     fireEvent.press(screen.getByText('ButtonSignOut'));
     expect(mockQueryClientClear).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('ProfileScreen – row navigation', () => {
+  beforeEach(() => {
+    mockNavigate.mockReset();
+  });
+
+  it('navigates to EditName when the edit-name row is pressed', async () => {
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    fireEvent.press(screen.getByTestId('row-EditName'));
+    expect(mockNavigate).toHaveBeenCalledWith('EditName');
+  });
+
+  it('navigates to ChangePassword when the change-password row is pressed', async () => {
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    fireEvent.press(screen.getByTestId('row-ChangePassword'));
+    expect(mockNavigate).toHaveBeenCalledWith('ChangePassword');
+  });
+
+  it('navigates to ChangeEmail when the change-email row is pressed', async () => {
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    fireEvent.press(screen.getByTestId('row-ChangeEmail'));
+    expect(mockNavigate).toHaveBeenCalledWith('ChangeEmail');
+  });
+
+  it('navigates to LanguagePicker when the language row is pressed', async () => {
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    fireEvent.press(screen.getByTestId('row-LanguagePicker'));
+    expect(mockNavigate).toHaveBeenCalledWith('LanguagePicker');
+  });
+
+  it('navigates to TwoFactorSetup when the 2FA row is pressed', async () => {
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    fireEvent.press(screen.getByTestId('row-TwoFactorSetup'));
+    expect(mockNavigate).toHaveBeenCalledWith('TwoFactorSetup');
   });
 });

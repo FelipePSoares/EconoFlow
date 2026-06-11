@@ -8,17 +8,15 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import type { MainTabParamList } from '../../navigation/MainNavigator';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { ProfileStackParamList } from '../../navigation/ProfileStackNavigator';
 import { useAuthStore } from '../../store/authStore';
 import { useProjectStore } from '../../store/projectStore';
 import { GlassScreen } from '../../components/common/GlassScreen';
 import { GlassCard } from '../../components/common/GlassCard';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
 
-type Props = {
-  navigation: BottomTabNavigationProp<MainTabParamList, 'Profile'>;
-};
+type Props = NativeStackScreenProps<ProfileStackParamList, 'Profile'>;
 
 interface SettingRowProps {
   icon: string;
@@ -30,24 +28,38 @@ interface SettingRowProps {
   ink2: string;
   hair: string;
   isLast?: boolean;
+  onPress?: () => void;
+  testID?: string;
 }
 
 const SettingRow: React.FC<SettingRowProps> = ({
-  icon, label, value, valueColor, dark, ink, ink2, hair, isLast,
-}) => (
-  <View style={[styles.settingRow, { borderBottomColor: isLast ? 'transparent' : hair }]}>
-    <View style={[styles.settingIconWrap, { backgroundColor: '#0f76a8' + (dark ? '28' : '18') }]}>
-      <MaterialCommunityIcons name={icon as never} size={18} color="#0f76a8" />
+  icon, label, value, valueColor, dark, ink, ink2, hair, isLast, onPress, testID,
+}) => {
+  const inner = (
+    <View style={[styles.settingRow, { borderBottomColor: isLast ? 'transparent' : hair }]}>
+      <View style={[styles.settingIconWrap, { backgroundColor: '#0f76a8' + (dark ? '28' : '18') }]}>
+        <MaterialCommunityIcons name={icon as never} size={18} color="#0f76a8" />
+      </View>
+      <View style={styles.settingInfo}>
+        <Text style={[styles.settingLabel, { color: ink2 }]}>{label}</Text>
+        <Text style={[styles.settingValue, { color: valueColor ?? ink }]}>{value}</Text>
+      </View>
+      <MaterialCommunityIcons name="chevron-right" size={18} color={ink2} />
     </View>
-    <View style={styles.settingInfo}>
-      <Text style={[styles.settingLabel, { color: ink2 }]}>{label}</Text>
-      <Text style={[styles.settingValue, { color: valueColor ?? ink }]}>{value}</Text>
-    </View>
-    <MaterialCommunityIcons name="chevron-right" size={18} color={ink2} />
-  </View>
-);
+  );
 
-export const ProfileScreen: React.FC<Props> = () => {
+  if (onPress) {
+    return (
+      <TouchableOpacity onPress={onPress} activeOpacity={0.7} testID={testID}>
+        {inner}
+      </TouchableOpacity>
+    );
+  }
+
+  return <View testID={testID}>{inner}</View>;
+};
+
+export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
   const { dark, ink, ink2, hair } = useAuroraSkin();
   const insets = useSafeAreaInsets();
@@ -76,7 +88,12 @@ export const ProfileScreen: React.FC<Props> = () => {
       >
         {/* Avatar + name */}
         <View style={styles.heroSection}>
-          <View style={styles.avatarWrap}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('EditName')}
+            activeOpacity={0.7}
+            testID="row-EditName"
+            style={styles.avatarWrap}
+          >
             <LinearGradient
               colors={['#0f76a8', '#14c08a']}
               start={{ x: 0, y: 0 }}
@@ -85,8 +102,10 @@ export const ProfileScreen: React.FC<Props> = () => {
             >
               <Text style={styles.avatarText}>{initial}</Text>
             </LinearGradient>
-          </View>
-          <Text style={[styles.displayName, { color: ink }]}>{displayName}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('EditName')} testID="row-EditName-name">
+            <Text style={[styles.displayName, { color: ink }]}>{displayName}</Text>
+          </TouchableOpacity>
           <Text style={[styles.email, { color: ink2 }]}>{user?.email}</Text>
           {selectedProject && (
             <View style={styles.projectPill}>
@@ -107,17 +126,29 @@ export const ProfileScreen: React.FC<Props> = () => {
             label={t('LabelTwoFactorAuthentication') ?? '2FA'}
             value={user?.twoFactorEnabled ? (t('LabelEnabled') ?? 'Enabled') : (t('LabelDisabled') ?? 'Disabled')}
             valueColor={user?.twoFactorEnabled ? '#0e9f6e' : undefined}
+            onPress={() => navigation.navigate('TwoFactorSetup')}
+            testID="row-TwoFactorSetup"
           />
           <SettingRow
             dark={dark} ink={ink} ink2={ink2} hair={hair}
             icon="translate"
             label={t('LabelLanguage') ?? 'Language'}
             value={user?.languageCode ?? 'en-US'}
+            onPress={() => navigation.navigate('LanguagePicker')}
+            testID="row-LanguagePicker"
+          />
+          <SettingRow
+            dark={dark} ink={ink} ink2={ink2} hair={hair}
+            icon="email-outline"
+            label={t('ChangeEmailAddress') ?? 'Email'}
+            value={user?.email ?? ''}
+            onPress={() => navigation.navigate('ChangeEmail')}
+            testID="row-ChangeEmail"
           />
           <SettingRow
             dark={dark} ink={ink} ink2={ink2} hair={hair}
             icon="email-check-outline"
-            label={t('EmailVerification') ?? 'Email'}
+            label={t('EmailVerification') ?? 'Email Verification'}
             value={user?.emailConfirmed ? (t('EmailVerified') ?? 'Verified') : (t('EmailNotVerified') ?? 'Not verified')}
             valueColor={user?.emailConfirmed ? '#0e9f6e' : '#e74c3c'}
             isLast
@@ -134,6 +165,8 @@ export const ProfileScreen: React.FC<Props> = () => {
             icon="lock-reset"
             label={t('ChangePassword') ?? 'Change Password'}
             value=""
+            onPress={() => navigation.navigate('ChangePassword')}
+            testID="row-ChangePassword"
           />
           <SettingRow
             dark={dark} ink={ink} ink2={ink2} hair={hair}
@@ -141,6 +174,7 @@ export const ProfileScreen: React.FC<Props> = () => {
             label={t('AuthenticatorAppTitle') ?? 'Authenticator App'}
             value={user?.twoFactorEnabled ? t('LabelEnabled') ?? 'On' : t('LabelDisabled') ?? 'Off'}
             valueColor={user?.twoFactorEnabled ? '#0e9f6e' : undefined}
+            onPress={() => navigation.navigate('TwoFactorSetup')}
             isLast
           />
         </GlassCard>

@@ -51,6 +51,10 @@ jest.mock('../PlansStackNavigator', () => ({
   PlansStackNavigator: () => null,
 }));
 
+jest.mock('../ProfileStackNavigator', () => ({
+  ProfileStackNavigator: () => null,
+}));
+
 jest.mock('../../screens/profile/ProfileScreen', () => ({
   ProfileScreen: () => null,
 }));

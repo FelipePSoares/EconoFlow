@@ -590,6 +590,13 @@
   "ProfileSetupSubtitle": "Ajude-nos a personalizar sua experiência",
   "ErrorProfileUpdateFailed": "Falha ao actualizar o seu perfil. Por favor, tente novamente.",
   "ErrorAutoLoginFailed": "Conta criada, mas o login automático falhou. Por favor, entre manualmente.",
-  "OnboardingSkip": "Pular"
+  "OnboardingSkip": "Pular",
+
+  "EditName": "Editar Nome",
+  "VerificationEmailSent": "Um e-mail de verificação foi enviado. Por favor, verifique sua caixa de entrada.",
+  "ErrorChangePasswordFailed": "Falha ao alterar a senha. Por favor, tente novamente.",
+  "ErrorChangeEmailFailed": "Falha ao alterar o e-mail. Por favor, tente novamente.",
+  "ErrorNewPasswordSameAsCurrent": "A nova senha deve ser diferente da senha atual.",
+  "PlaceholderConfirmNewPassword": "Confirmar nova senha"
 }
 
