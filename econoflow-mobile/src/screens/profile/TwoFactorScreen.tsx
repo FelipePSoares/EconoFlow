@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -18,6 +18,8 @@ import { AuroraField } from '../../components/auth/AuroraField';
 import { AuroraPrimaryButton } from '../../components/auth/AuroraPrimaryButton';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
 import { captureError } from '../../monitoring/sentry';
+import QRCode from 'react-native-qrcode-svg';
+import * as Clipboard from 'expo-clipboard';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'TwoFactorSetup'>;
 
@@ -184,11 +186,31 @@ export const TwoFactorScreen: React.FC<Props> = ({ navigation }) => {
               {t('TwoFactorSetupInstructionsDescription') ?? 'Scan this QR code in your authenticator app, then confirm with the first 6-digit code.'}
             </Text>
 
+            {setupData?.otpAuthUri && (
+              <View style={styles.qrCodeWrap}>
+                <QRCode
+                  value={setupData.otpAuthUri}
+                  size={200}
+                  backgroundColor="white"
+                  testID="TwoFactorQRCode"
+                />
+              </View>
+            )}
+
             <View style={[styles.keyBox, { borderColor: hair }]}>
               <Text style={[styles.keyLabel, { color: ink2 }]}>{t('ManualSetupKeyLabel') ?? 'Manual setup key'}</Text>
-              <Text style={[styles.keyValue, { color: ink }]} selectable>
-                {setupData?.sharedKey ?? ''}
-              </Text>
+              <View style={styles.keyRow}>
+                <Text style={[styles.keyValue, { color: ink }]} selectable>
+                  {setupData?.sharedKey ?? ''}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => Clipboard.setStringAsync(setupData?.sharedKey ?? '')}
+                  testID="ButtonCopySharedKey"
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <MaterialCommunityIcons name="content-copy" size={18} color="#0f76a8" />
+                </TouchableOpacity>
+              </View>
             </View>
 
             <View style={[styles.separator, { backgroundColor: hair }]} />
@@ -234,9 +256,11 @@ const styles = StyleSheet.create({
   center:        { flex: 1, alignItems: 'center', justifyContent: 'center' },
   title:         { fontSize: 22, fontWeight: '800', marginBottom: 8 },
   description:   { fontSize: 13.5, fontWeight: '500', marginBottom: 20, lineHeight: 20 },
+  qrCodeWrap:    { alignItems: 'center', marginBottom: 20 },
   keyBox:        { borderWidth: 1, borderRadius: 16, padding: 16, marginBottom: 20 },
   keyLabel:      { fontSize: 11, fontWeight: '700', letterSpacing: 0.6, marginBottom: 6 },
-  keyValue:      { fontSize: 15, fontWeight: '700', letterSpacing: 1, fontVariant: ['tabular-nums'] },
+  keyRow:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  keyValue:      { fontSize: 15, fontWeight: '700', letterSpacing: 1, fontVariant: ['tabular-nums'], flex: 1 },
   separator:     { height: StyleSheet.hairlineWidth, marginBottom: 8 },
   errorText:     { color: '#e74c3c', fontSize: 12, marginTop: 4, marginLeft: 4 },
   codesBox:      { marginVertical: 16, gap: 8 },
