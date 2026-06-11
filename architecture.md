@@ -551,6 +551,7 @@ Variables marked **required** will throw at startup (or on first use) if absent.
 | `EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN` | **required** | Signs account-deletion confirmation tokens — throws on every DELETE `/api/AccessControl` call if missing | — |
 | `EconoFlow_TURNSTILE_SECRET_KEY` | optional | Cloudflare Turnstile server-side secret | `""` (captcha always passes) |
 | `EconoFlow_TURNSTILE_SITE_KEY` | optional | Cloudflare Turnstile site key returned to clients | `""` |
+| `X-Client-Type` request header | — | Custom header set by the mobile app (`"mobile"`). Controllers skip Turnstile validation when present. | Set by `apiClient` interceptor in the mobile app |
 | `EconoFlow_KEY_ENCRYPT_ACTIVE` | optional | Enable AES key encryption for ASP.NET Data Protection | encryption disabled |
 | `EconoFlow_BETA_TESTER_ADMIN_KEY` | optional | Auth key to grant the BetaTester role via `/api/AccessControl/beta` | endpoint returns 403 for all callers |
 | `EconoFlow_PUBLIC_BASE_URL` | optional | Public base URL used in email unsubscribe links | `https://www.econoflow.pt` |

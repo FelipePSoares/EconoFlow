@@ -333,7 +333,7 @@ Custom tokens (`theme.customColors` from `useAppTheme()` hook):
 
 ## Key patterns
 
-- **API client**: `src/api/client.ts` — Axios instance with token refresh interceptor
+- **API client**: `src/api/client.ts` — Axios instance with token refresh interceptor; sends `X-Client-Type: mobile` header on every request (bypasses Turnstile CAPTCHA on the backend)
 - **Env var for API URL**: `EXPO_PUBLIC_API_URL` (default: `https://localhost:7003`, no `/api` suffix)
 - **State**: Zustand stores in `src/store/` for auth & project; React Query for server state
 - **Navigation**: `@react-navigation/native-stack` + `bottom-tabs` in `src/navigation/`

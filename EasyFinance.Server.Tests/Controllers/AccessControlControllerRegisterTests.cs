@@ -114,6 +114,52 @@ namespace EasyFinance.Server.Tests.Controllers
                 CultureInfo.CurrentUICulture = originalCulture;
             }
         }
+
+        [Fact]
+        public async Task Register_WhenMobileHeaderPresent_ShouldBypassCaptcha()
+        {
+            // Arrange
+            var turnstileServiceMock = new Mock<ITurnstileService>();
+            turnstileServiceMock.Setup(x => x.IsEnabled()).Returns(true);
+
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+            var signInManagerMock = new Mock<SignInManager<User>>(
+                _userManagerMock.Object,
+                Mock.Of<IHttpContextAccessor>(),
+                Mock.Of<IUserClaimsPrincipalFactory<User>>(),
+                null, null, null, null);
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+
+            var controller = new AccessControlController(
+                userManager: _userManagerMock.Object,
+                signInManager: signInManagerMock.Object,
+                emailSender: Mock.Of<IEmailSender<User>>(),
+                userService: Mock.Of<IUserService>(),
+                linkGenerator: Mock.Of<LinkGenerator>(),
+                accessControlService: Mock.Of<IAccessControlService>(),
+                featureRolloutService: Mock.Of<IFeatureRolloutService>(),
+                tokenSettings: new TokenSettings { SecretKey = Guid.NewGuid().ToString() },
+                notificationService: Mock.Of<INotificationService>(),
+                turnstileService: turnstileServiceMock.Object,
+                turnstileSettings: Options.Create(new TurnstileSettings()),
+                logger: Mock.Of<ILogger<AccessControlController>>());
+
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext()
+            };
+            controller.ControllerContext.HttpContext.Request.Headers["X-Client-Type"] = "mobile";
+
+            var registration = new RegisterRequestDTO { Email = "test@example.com", Password = "Password1!" };
+
+            // Act
+            IActionResult? result = null;
+            try { result = await controller.Register(_userStoreMock.Object, registration); }
+            catch (NotSupportedException) { /* expected — capture-check mode throws in unit tests */ }
+
+            // Assert — captcha was bypassed so we never got a BadRequest
+            result.ShouldNotBeOfType<BadRequestObjectResult>();
+        }
     }
 }
 #pragma warning restore CS8602 // Dereference of a possibly null reference.

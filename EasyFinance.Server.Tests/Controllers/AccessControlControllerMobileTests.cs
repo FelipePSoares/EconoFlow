@@ -255,6 +255,65 @@ namespace EasyFinance.Server.Tests.Controllers
             payload.RefreshToken.ShouldNotBeNullOrEmpty();
         }
 
+        [Fact]
+        public async Task MobileSignInAsync_WhenMobileHeaderPresent_ShouldBypassCaptcha()
+        {
+            // Arrange
+            this.user.AccessFailedCount = 3;
+
+            var turnstileServiceMock = new Mock<ITurnstileService>();
+            turnstileServiceMock.Setup(x => x.IsEnabled()).Returns(true);
+
+            var controllerWithCaptcha = this.CreateControllerWithTurnstile(
+                turnstileServiceMock.Object,
+                this.tokenSettings);
+
+            this.userManagerMock.Setup(x => x.FindByEmailAsync(this.user.Email!)).ReturnsAsync(this.user);
+            this.signInManagerMock
+                .Setup(x => x.CheckPasswordSignInAsync(this.user, "Passw0rd!", true))
+                .ReturnsAsync(Microsoft.AspNetCore.Identity.SignInResult.Success);
+            this.userManagerMock.Setup(x => x.GetTwoFactorEnabledAsync(this.user)).ReturnsAsync(false);
+
+            // Act
+            var result = await controllerWithCaptcha.MobileSignInAsync(new SignInRequestDTO
+            {
+                Email = this.user.Email!,
+                Password = "Passw0rd!"
+            });
+
+            // Assert — captcha was bypassed, login succeeds
+            var okResult = result.ShouldBeOfType<OkObjectResult>();
+            var payload = okResult.Value.ShouldBeOfType<MobileLoginResponseDTO>();
+            payload.AccessToken.ShouldNotBeNullOrEmpty();
+            payload.RefreshToken.ShouldNotBeNullOrEmpty();
+        }
+
+        private AccessControlController CreateControllerWithTurnstile(ITurnstileService turnstileService, TokenSettings tokenSettings)
+        {
+            var controllerWithCaptcha = new AccessControlController(
+                userManager: this.userManagerMock.Object,
+                signInManager: this.signInManagerMock.Object,
+                emailSender: Mock.Of<IEmailSender<User>>(),
+                userService: Mock.Of<IUserService>(),
+                linkGenerator: Mock.Of<LinkGenerator>(),
+                accessControlService: Mock.Of<IAccessControlService>(),
+                featureRolloutService: Mock.Of<IFeatureRolloutService>(),
+                tokenSettings: tokenSettings,
+                notificationService: Mock.Of<INotificationService>(),
+                turnstileService: turnstileService,
+                turnstileSettings: Options.Create(new TurnstileSettings()),
+                logger: Mock.Of<ILogger<AccessControlController>>());
+
+            controllerWithCaptcha.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext()
+            };
+            controllerWithCaptcha.ControllerContext.HttpContext.Request.Headers["X-Client-Type"] = "mobile";
+            controllerWithCaptcha.ControllerContext.HttpContext.Items[correlationIdClaimType] = Guid.NewGuid().ToString();
+
+            return controllerWithCaptcha;
+        }
+
         private void SetContextWithCorrelationId()
         {
             this.controller.ControllerContext = new ControllerContext
