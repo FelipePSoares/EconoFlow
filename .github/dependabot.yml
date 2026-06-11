@@ -10,20 +10,76 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 10
+    groups:
+      angular:
+        patterns:
+          - "@angular/*"
+      ngx-translate:
+        patterns:
+          - "@ngx-translate/*"
+      types:
+        patterns:
+          - "@types/*"
+      testing:
+        patterns:
+          - "jasmine*"
+          - "karma*"
 
   - package-ecosystem: "npm"
     directory: "/econoflow-mobile"
     schedule:
       interval: weekly
     open-pull-requests-limit: 10
+    groups:
+      react-native:
+        patterns:
+          - "react-native"
+          - "@react-native/*"
+      react-navigation:
+        patterns:
+          - "@react-navigation/*"
+      sentry:
+        patterns:
+          - "@sentry/*"
+      react:
+        patterns:
+          - "react"
+          - "@types/react"
+      types:
+        patterns:
+          - "@types/*"
 
   - package-ecosystem: "nuget"
     directory: "/"
     schedule:
       interval: weekly
     open-pull-requests-limit: 10
+    groups:
+      aspnetcore:
+        patterns:
+          - "Microsoft.AspNetCore.*"
+      extensions:
+        patterns:
+          - "Microsoft.Extensions.*"
+      entity-framework-core:
+        patterns:
+          - "Microsoft.EntityFrameworkCore*"
+      test-tools:
+        patterns:
+          - "coverlet*"
+          - "FluentAssertions"
+          - "Moq"
+          - "xunit*"
+          - "Shouldly"
+      dotnet-tools:
+        patterns:
+          - "dotnet-ef"
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: weekly
+    groups:
+      actions:
+        patterns:
+          - "*"
