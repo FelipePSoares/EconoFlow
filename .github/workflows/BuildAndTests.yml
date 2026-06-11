@@ -23,7 +23,7 @@ jobs:
     timeout-minutes: 20
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
@@ -34,7 +34,7 @@ jobs:
 
     - name: Detect frontend changes in PR
       id: changes
-      uses: dorny/paths-filter@v3
+      uses: dorny/paths-filter@v4
       with:
         filters: |
           client:
@@ -92,13 +92,13 @@ jobs:
 
     - name: Cache node_modules
       id: cache-node-modules-build
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ./easyfinance.client/node_modules
         key: node-modules-${{ runner.os }}-${{ hashFiles('./easyfinance.client/package-lock.json') }}
             
     - name: Cache Cypress binary
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ~/.cache/Cypress
         key: cypress-${{ runner.os }}-${{ hashFiles('./easyfinance.client/package-lock.json') }}
@@ -128,7 +128,7 @@ jobs:
         dotnet build EasyFinance.Server.Tests/EasyFinance.Server.Tests.csproj --configuration Debug --no-restore
 
     - name: Upload backend build outputs
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: backend-build-debug
         path: |
@@ -147,7 +147,7 @@ jobs:
     timeout-minutes: 20
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -161,7 +161,7 @@ jobs:
     
     - name: Cache node_modules
       id: cache-node-modules-unit
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ./easyfinance.client/node_modules
         key: node-modules-${{ runner.os }}-${{ hashFiles('./easyfinance.client/package-lock.json') }}
@@ -202,7 +202,7 @@ jobs:
         echo "::notice::Coverage ${COVERAGE}% meets threshold ${THRESHOLD}%"
 
     - name: Upload Test Results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       if: always()
       with:
         name: test-results
@@ -240,11 +240,11 @@ jobs:
     timeout-minutes: 15
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Detect mobile changes in PR
       id: mobile-changes
-      uses: dorny/paths-filter@v3
+      uses: dorny/paths-filter@v4
       with:
         filters: |
           mobile:
@@ -262,7 +262,7 @@ jobs:
 
     - name: Cache mobile node_modules
       if: steps.mobile-changes.outputs.mobile == 'true'
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ./econoflow-mobile/node_modules
         key: mobile-node-modules-${{ runner.os }}-${{ hashFiles('./econoflow-mobile/package-lock.json') }}
@@ -293,7 +293,7 @@ jobs:
     timeout-minutes: 35
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -307,13 +307,13 @@ jobs:
     
     - name: Cache node_modules
       id: cache-node-modules-integration
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ./easyfinance.client/node_modules
         key: node-modules-${{ runner.os }}-${{ hashFiles('./easyfinance.client/package-lock.json') }}
 
     - name: Cache Cypress binary
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ~/.cache/Cypress
         key: cypress-${{ runner.os }}-${{ hashFiles('./easyfinance.client/package-lock.json') }}
@@ -355,7 +355,7 @@ jobs:
 
     - name: Archive Cypress errors
       if: failure()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: cypress-screenshots
         path: ./easyfinance.client/cypress/screenshots
