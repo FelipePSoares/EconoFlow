@@ -106,6 +106,14 @@ jest.mock('../../../api/auth.api', () => ({
   getCurrentUser: (...args: unknown[]) => mockGetCurrentUser(...args),
 }));
 
+// ─── Sentry mock ─────────────────────────────────────────────────────────────
+
+const mockCaptureError = jest.fn();
+
+jest.mock('../../../monitoring/sentry', () => ({
+  captureError: (...args: unknown[]) => mockCaptureError(...args),
+}));
+
 jest.mock('../../../store/authStore', () => ({
   useAuthStore: jest.fn(() => ({
     setTokens: mockSetTokens,
@@ -160,6 +168,7 @@ describe('RegisterScreen — auto-login after registration', () => {
     mockSetTokens.mockReset();
     mockSetUser.mockReset();
     mockNavigate.mockReset();
+    mockCaptureError.mockReset();
   });
 
   const fillAndSubmitForm = async () => {
@@ -245,5 +254,49 @@ describe('RegisterScreen — auto-login after registration', () => {
     await fillAndSubmitForm();
 
     await waitFor(() => expect(screen.queryByText('ErrorRegistrationFailed')).toBeTruthy());
+  });
+
+  it('captures error to Sentry when register API call fails', async () => {
+    const error = new Error('network error');
+    mockRegister.mockRejectedValue(error);
+
+    await renderScreen(queryClient);
+    await fillAndSubmitForm();
+
+    await waitFor(() =>
+      expect(mockCaptureError).toHaveBeenCalledWith(
+        error,
+        expect.objectContaining({ screen: 'RegisterScreen', action: 'register' }),
+      ),
+    );
+  });
+
+  it('captures error to Sentry when auto-login fails after registration', async () => {
+    const error = new Error('login failed');
+    mockRegister.mockResolvedValue({ data: {} });
+    mockMobileLogin.mockRejectedValue(error);
+
+    await renderScreen(queryClient);
+    await fillAndSubmitForm();
+
+    await waitFor(() =>
+      expect(mockCaptureError).toHaveBeenCalledWith(
+        error,
+        expect.objectContaining({ screen: 'RegisterScreen', action: 'autoLogin' }),
+      ),
+    );
+  });
+
+  it('does not capture error to Sentry when auto-login redirects to TwoFactor', async () => {
+    mockRegister.mockResolvedValue({ data: {} });
+    mockMobileLogin.mockResolvedValue({ data: { requiresTwoFactor: true } });
+
+    await renderScreen(queryClient);
+    await fillAndSubmitForm();
+
+    await waitFor(() =>
+      expect(mockNavigate).toHaveBeenCalledWith('TwoFactor', expect.any(Object)),
+    );
+    expect(mockCaptureError).not.toHaveBeenCalled();
   });
 });
