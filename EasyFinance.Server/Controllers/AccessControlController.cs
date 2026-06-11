@@ -206,7 +206,7 @@ namespace EasyFinance.Server.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Register([FromServices] IUserStore<User> userStore, [FromBody] RegisterRequestDTO registration, [FromQuery] Guid? token = null)
         {
-            if (turnstileService.IsEnabled() && !await turnstileService.ValidateTokenAsync(registration.CaptchaToken))
+            if (!IsMobileRequest() && turnstileService.IsEnabled() && !await turnstileService.ValidateTokenAsync(registration.CaptchaToken))
                 return BadRequest(ValidationMessages.CaptchaValidationFailed);
 
             if (!userManager.SupportsUserEmail)
@@ -547,7 +547,7 @@ namespace EasyFinance.Server.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> ForgotPasswordAsync([FromBody] ForgotPasswordRequestDTO resetRequest)
         {
-            if (turnstileService.IsEnabled() && !await turnstileService.ValidateTokenAsync(resetRequest.CaptchaToken))
+            if (!IsMobileRequest() && turnstileService.IsEnabled() && !await turnstileService.ValidateTokenAsync(resetRequest.CaptchaToken))
                 return BadRequest(ValidationMessages.CaptchaValidationFailed);
 
             var user = await userManager.FindByEmailAsync(resetRequest.Email);
@@ -1004,7 +1004,7 @@ namespace EasyFinance.Server.Controllers
             if (user == null || !user.Enabled)
                 return (Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidCredentials)), null, null);
 
-            var requiresCaptcha = turnstileService.IsEnabled() && user.AccessFailedCount >= captchaRequiredAfterFailedAttempts;
+            var requiresCaptcha = !IsMobileRequest() && turnstileService.IsEnabled() && user.AccessFailedCount >= captchaRequiredAfterFailedAttempts;
 
             if (requiresCaptcha && !await turnstileService.ValidateTokenAsync(login.CaptchaToken))
                 return (BadRequest(ValidationMessages.CaptchaValidationFailed), null, null);
@@ -1016,7 +1016,7 @@ namespace EasyFinance.Server.Controllers
 
             if (!result.Succeeded && !result.RequiresTwoFactor)
             {
-                var captchaNeededAfterThisFailure = turnstileService.IsEnabled() && user.AccessFailedCount >= captchaRequiredAfterFailedAttempts;
+                var captchaNeededAfterThisFailure = !IsMobileRequest() && turnstileService.IsEnabled() && user.AccessFailedCount >= captchaRequiredAfterFailedAttempts;
                 return (Unauthorized(CreateLoginFailureResponse(loginFailureCodeInvalidCredentials, requiresCaptcha: captchaNeededAfterThisFailure)), null, null);
             }
 

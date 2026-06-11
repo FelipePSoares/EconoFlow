@@ -33,7 +33,7 @@ namespace EasyFinance.Server.Controllers
         {
             if (contactUsDto == null) return BadRequest();
 
-            if (turnstileService.IsEnabled() && !await turnstileService.ValidateTokenAsync(contactUsDto.CaptchaToken))
+            if (!IsMobileRequest() && turnstileService.IsEnabled() && !await turnstileService.ValidateTokenAsync(contactUsDto.CaptchaToken))
                 return BadRequest(ValidationMessages.CaptchaValidationFailed);
 
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);

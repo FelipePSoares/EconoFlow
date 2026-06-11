@@ -32,6 +32,7 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
   config.headers['Accept-Language'] = i18n.language ?? 'en';
+  config.headers['X-Client-Type'] = 'mobile';
   // Breadcrumb: method + URL only — never the body or the auth token.
   addBreadcrumb(
     `${(config.method ?? 'GET').toUpperCase()} ${config.url ?? ''}`,

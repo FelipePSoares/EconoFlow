@@ -81,6 +81,22 @@ describe('apiClient interceptors – Accept-Language header', () => {
     (apiClient.defaults as any).adapter = savedAdapter;
   });
 
+  it('sets X-Client-Type header to mobile on every request', async () => {
+    const adapter: AnyAdapter = jest.fn().mockResolvedValue({
+      data: {},
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config: { url: '/api/test', method: 'get', headers: {} },
+      request: {},
+    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (apiClient.defaults as any).adapter = adapter;
+    await apiClient.get('/api/test');
+    const [config] = adapter.mock.calls[0] as [{ headers: Record<string, string> }];
+    expect(config.headers['X-Client-Type']).toBe('mobile');
+  });
+
   it('sets Accept-Language header from i18n language on every request', async () => {
     const adapter: AnyAdapter = jest.fn().mockResolvedValue({
       data: {},

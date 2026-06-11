@@ -6,6 +6,10 @@ namespace EasyFinance.Server.Controllers
 {
     public class BaseController : ControllerBase
     {
+        protected bool IsMobileRequest() =>
+            HttpContext.Request.Headers.TryGetValue("X-Client-Type", out var clientType)
+            && clientType == "mobile";
+
         protected IActionResult ValidateResponse<T>(AppResponse<T> appResponse, HttpStatusCode successStatusCode)
         {
             if (appResponse.Succeeded)
