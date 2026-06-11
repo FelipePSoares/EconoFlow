@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ScrollView, StyleSheet, TouchableOpacity, View, RefreshControl,
 } from 'react-native';
@@ -12,6 +12,7 @@ import type { ProjectStackParamList } from '../../navigation/ProjectStackNavigat
 import type { MainTabParamList } from '../../navigation/MainNavigator';
 import { useProjects } from '../../hooks/useProjects';
 import { useProjectStore } from '../../store/projectStore';
+import { useAuthStore } from '../../store/authStore';
 import { LoadingIndicator } from '../../components/common/LoadingIndicator';
 import { GlassScreen } from '../../components/common/GlassScreen';
 import { GlassCard } from '../../components/common/GlassCard';
@@ -39,7 +40,16 @@ export const ProjectListScreen: React.FC<Props> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { data: projects, isLoading, refetch } = useProjects();
   const { selectedProject, setSelectedProject } = useProjectStore();
+  const openCreateProjectOnStart = useAuthStore((s) => s.openCreateProjectOnStart);
+  const setOpenCreateProjectOnStart = useAuthStore((s) => s.setOpenCreateProjectOnStart);
   const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    if (openCreateProjectOnStart) {
+      setOpenCreateProjectOnStart(false);
+      navigation.navigate('CreateProject', { fromOnboarding: true });
+    }
+  }, [openCreateProjectOnStart, navigation, setOpenCreateProjectOnStart]);
 
   const handleSelect = (userProject: UserProject) => {
     setSelectedProject(userProject);
@@ -136,7 +146,7 @@ export const ProjectListScreen: React.FC<Props> = ({ navigation }) => {
       <View style={[styles.addBtnWrap, { paddingBottom: insets.bottom + 8 }]}>
         <AuroraPrimaryButton
           label={t('ButtonNewProject')}
-          onPress={() => navigation.navigate('CreateProject')}
+          onPress={() => navigation.navigate('CreateProject', {})}
           icon="plus"
         />
       </View>

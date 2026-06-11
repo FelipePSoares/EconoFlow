@@ -43,6 +43,37 @@ const getRehydrationCallback = (): ((state: AuthState | undefined) => void) => {
   return options.onRehydrateStorage();
 };
 
+describe('authStore – needsOnboarding derived value', () => {
+  beforeEach(() => {
+    useAuthStore.setState({
+      accessToken: null,
+      refreshToken: null,
+      user: null,
+      isAuthenticated: false,
+    });
+  });
+
+  it('is false when user is null', () => {
+    expect(useAuthStore.getState().needsOnboarding).toBe(false);
+  });
+
+  it('is true when user has no firstName', () => {
+    useAuthStore.getState().setUser({ ...mockUser, firstName: '' });
+    expect(useAuthStore.getState().needsOnboarding).toBe(true);
+  });
+
+  it('is false when user has a firstName', () => {
+    useAuthStore.getState().setUser({ ...mockUser, firstName: 'Alice' });
+    expect(useAuthStore.getState().needsOnboarding).toBe(false);
+  });
+
+  it('becomes false after clearAuth', () => {
+    useAuthStore.getState().setUser({ ...mockUser, firstName: '' });
+    useAuthStore.getState().clearAuth();
+    expect(useAuthStore.getState().needsOnboarding).toBe(false);
+  });
+});
+
 describe('authStore – Sentry user context integration', () => {
   beforeEach(() => {
     useAuthStore.setState({
@@ -123,5 +154,44 @@ describe('authStore – Sentry user context integration', () => {
       rehydrate({ ...useAuthStore.getState(), user: null });
       expect(setUserContext).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe('authStore – partialize (persistence shape)', () => {
+  it('does not persist needsOnboarding (recomputed from user on rehydration)', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { partialize } = (useAuthStore as any).persist.getOptions() as {
+      partialize: (s: AuthState) => Record<string, unknown>;
+    };
+    const partial = partialize({ ...useAuthStore.getState(), needsOnboarding: true, openCreateProjectOnStart: true });
+    expect(partial).not.toHaveProperty('needsOnboarding');
+    expect(partial).not.toHaveProperty('openCreateProjectOnStart');
+  });
+});
+
+describe('authStore – openCreateProjectOnStart flag', () => {
+  beforeEach(() => {
+    useAuthStore.setState({ openCreateProjectOnStart: false });
+  });
+
+  it('defaults to false', () => {
+    expect(useAuthStore.getState().openCreateProjectOnStart).toBe(false);
+  });
+
+  it('setOpenCreateProjectOnStart(true) sets it to true', () => {
+    useAuthStore.getState().setOpenCreateProjectOnStart(true);
+    expect(useAuthStore.getState().openCreateProjectOnStart).toBe(true);
+  });
+
+  it('setOpenCreateProjectOnStart(false) resets it', () => {
+    useAuthStore.getState().setOpenCreateProjectOnStart(true);
+    useAuthStore.getState().setOpenCreateProjectOnStart(false);
+    expect(useAuthStore.getState().openCreateProjectOnStart).toBe(false);
+  });
+
+  it('clearAuth resets openCreateProjectOnStart to false', () => {
+    useAuthStore.getState().setOpenCreateProjectOnStart(true);
+    useAuthStore.getState().clearAuth();
+    expect(useAuthStore.getState().openCreateProjectOnStart).toBe(false);
   });
 });

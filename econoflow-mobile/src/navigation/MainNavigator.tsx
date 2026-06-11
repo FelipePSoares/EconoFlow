@@ -14,6 +14,7 @@ import { ProfileScreen } from '../screens/profile/ProfileScreen';
 import { QuickAddModal } from '../screens/quick-add/QuickAddModal';
 import { useQuickAddStore } from '../store/quickAddStore';
 import { useUIStore } from '../store/uiStore';
+import { useAuthStore } from '../store/authStore';
 import { currentMonth } from '../utils/date';
 
 type IconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
@@ -37,6 +38,7 @@ export const MainNavigator: React.FC = () => {
   const barBg  = dark ? 'rgba(6,30,51,0.92)' : 'rgba(230,239,246,0.92)';
   const barBorder = dark ? 'rgba(255,255,255,0.08)' : 'rgba(13,33,55,0.08)';
   const hideTabBar = useUIStore((s) => s.hideTabBar);
+  const openCreateProjectOnStart = useAuthStore((s) => s.openCreateProjectOnStart);
   const [quickAddVisible, setQuickAddVisible] = useState(false);
   const quickAddCategoryId = useQuickAddStore(s => s.categoryId);
   const quickAddDefaultType = useQuickAddStore(s => s.defaultType);
@@ -45,7 +47,7 @@ export const MainNavigator: React.FC = () => {
   return (
     <>
     <Tab.Navigator
-      initialRouteName="Overview"
+      initialRouteName={openCreateProjectOnStart ? 'Projects' : 'Overview'}
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: hideTabBar

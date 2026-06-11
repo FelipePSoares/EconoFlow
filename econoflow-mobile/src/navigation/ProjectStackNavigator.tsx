@@ -5,10 +5,13 @@ import { ProjectListScreen } from '../screens/projects/ProjectListScreen';
 import { CreateProjectScreen } from '../screens/projects/CreateProjectScreen';
 import { SmartSetupScreen } from '../screens/projects/SmartSetupScreen';
 
+export type CreateProjectParams = { fromOnboarding?: boolean };
+export type SmartSetupParams = { projectId: string; fromOnboarding?: boolean };
+
 export type ProjectStackParamList = {
   ProjectList: undefined;
-  CreateProject: undefined;
-  SmartSetup: { projectId: string };
+  CreateProject: CreateProjectParams;
+  SmartSetup: SmartSetupParams;
 };
 
 const Stack = createNativeStackNavigator<ProjectStackParamList>();

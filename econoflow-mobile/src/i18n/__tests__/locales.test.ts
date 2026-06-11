@@ -115,4 +115,44 @@ describe('i18n locale completeness', () => {
   it('pt.json contains ButtonUndo', () => {
     expect((pt as LocaleMap)['ButtonUndo']).toBeTruthy();
   });
+
+  it('en.json contains ProfileSetupTitle', () => {
+    expect((en as LocaleMap)['ProfileSetupTitle']).toBeTruthy();
+  });
+
+  it('pt.json contains ProfileSetupTitle', () => {
+    expect((pt as LocaleMap)['ProfileSetupTitle']).toBeTruthy();
+  });
+
+  it('en.json contains ErrorAutoLoginFailed', () => {
+    expect((en as LocaleMap)['ErrorAutoLoginFailed']).toBeTruthy();
+  });
+
+  it('pt.json contains ErrorAutoLoginFailed', () => {
+    expect((pt as LocaleMap)['ErrorAutoLoginFailed']).toBeTruthy();
+  });
+
+  it('en.json contains ProfileSetupSubtitle', () => {
+    expect((en as LocaleMap)['ProfileSetupSubtitle']).toBeTruthy();
+  });
+
+  it('pt.json contains ProfileSetupSubtitle', () => {
+    expect((pt as LocaleMap)['ProfileSetupSubtitle']).toBeTruthy();
+  });
+
+  it('en.json contains ErrorProfileUpdateFailed', () => {
+    expect((en as LocaleMap)['ErrorProfileUpdateFailed']).toBeTruthy();
+  });
+
+  it('pt.json contains ErrorProfileUpdateFailed', () => {
+    expect((pt as LocaleMap)['ErrorProfileUpdateFailed']).toBeTruthy();
+  });
+
+  it('en.json contains OnboardingSkip', () => {
+    expect((en as LocaleMap)['OnboardingSkip']).toBeTruthy();
+  });
+
+  it('pt.json contains OnboardingSkip', () => {
+    expect((pt as LocaleMap)['OnboardingSkip']).toBeTruthy();
+  });
 });

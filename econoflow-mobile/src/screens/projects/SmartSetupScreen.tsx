@@ -138,7 +138,7 @@ const getCurrencySymbol = (code: string): string => {
 };
 
 export const SmartSetupScreen: React.FC<Props> = ({ navigation, route }) => {
-  const { projectId } = route.params;
+  const { projectId, fromOnboarding } = route.params;
   const { t } = useTranslation();
   const { dark, ink, ink2, hair } = useAuroraSkin();
   const { colors, customColors } = useAppTheme();
@@ -159,10 +159,13 @@ export const SmartSetupScreen: React.FC<Props> = ({ navigation, route }) => {
   const { data: defaultCategoriesData } = useDefaultCategories(projectId);
   const postSmartSetupMutation = usePostSmartSetup();
 
+  // Keep the tab bar visible when coming from the onboarding flow so the user
+  // can see the main navigation structure for the first time.
   useEffect(() => {
+    if (fromOnboarding) return undefined;
     setHideTabBar(true);
     return () => { setHideTabBar(false); };
-  }, [setHideTabBar]);
+  }, [fromOnboarding, setHideTabBar]);
 
   useEffect(() => {
     if (defaultCategoriesData && !initialized.current) {

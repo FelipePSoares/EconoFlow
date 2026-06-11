@@ -584,6 +584,12 @@
   "SmartSetupBack": "Voltar",
   "SmartSetupFinish": "Concluir",
   "SmartSetupAddCategory": "Adicionar Categoria",
-  "SmartSetupCategoryNamePlaceholder": "Nome da categoria"
+  "SmartSetupCategoryNamePlaceholder": "Nome da categoria",
+
+  "ProfileSetupTitle": "Fale-nos sobre você",
+  "ProfileSetupSubtitle": "Ajude-nos a personalizar sua experiência",
+  "ErrorProfileUpdateFailed": "Falha ao actualizar o seu perfil. Por favor, tente novamente.",
+  "ErrorAutoLoginFailed": "Conta criada, mas o login automático falhou. Por favor, entre manualmente.",
+  "OnboardingSkip": "Pular"
 }
 
