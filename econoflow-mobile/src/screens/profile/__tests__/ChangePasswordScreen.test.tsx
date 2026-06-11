@@ -2,6 +2,13 @@ import React from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { ChangePasswordScreen } from '../ChangePasswordScreen';
 
+// ─── Sentry mock ──────────────────────────────────────────────────────────────
+
+const mockCaptureError = jest.fn();
+jest.mock('../../../monitoring/sentry', () => ({
+  captureError: (...args: unknown[]) => mockCaptureError(...args),
+}));
+
 // ─── UI infrastructure mocks ─────────────────────────────────────────────────
 
 jest.mock('@expo/vector-icons', () => ({
@@ -127,6 +134,7 @@ describe('ChangePasswordScreen', () => {
     // Default: never resolve — prevents accidental navigation
     mockMutateAsync.mockImplementation(() => new Promise(() => {}));
     mockGoBack.mockReset();
+    mockCaptureError.mockReset();
   });
 
   it('renders current password, new password, and confirm password fields', async () => {
@@ -188,5 +196,18 @@ describe('ChangePasswordScreen', () => {
     await changeText('PlaceholderConfirmNewPassword', 'newpass');
     await pressButton('ButtonSave');
     await waitFor(() => { expect(screen.queryByTestId('error-banner')).toBeTruthy(); });
+  });
+
+  it('calls captureError when API fails', async () => {
+    const err = new Error('Network error');
+    mockMutateAsync.mockRejectedValue(err);
+    await render(<ChangePasswordScreen navigation={mockNavigation} route={mockRoute} />);
+    await changeText('PlaceholderCurrentPassword', 'oldpass');
+    await changeText('PlaceholderNewPassword', 'newpass');
+    await changeText('PlaceholderConfirmNewPassword', 'newpass');
+    await pressButton('ButtonSave');
+    await waitFor(() => {
+      expect(mockCaptureError).toHaveBeenCalledWith(err, { screen: 'ChangePasswordScreen', action: 'changePassword' });
+    });
   });
 });

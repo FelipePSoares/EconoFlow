@@ -2,6 +2,13 @@ import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { LanguagePickerScreen } from '../LanguagePickerScreen';
 
+// ─── Sentry mock ──────────────────────────────────────────────────────────────
+
+const mockCaptureError = jest.fn();
+jest.mock('../../../monitoring/sentry', () => ({
+  captureError: (...args: unknown[]) => mockCaptureError(...args),
+}));
+
 // ─── UI infrastructure mocks ─────────────────────────────────────────────────
 
 jest.mock('@expo/vector-icons', () => ({
@@ -107,6 +114,7 @@ describe('LanguagePickerScreen', () => {
   beforeEach(() => {
     mockMutateAsync.mockReset();
     jest.requireMock('../../../i18n').default.changeLanguage.mockReset();
+    mockCaptureError.mockReset();
   });
 
   it('renders language options for en-US and pt-BR', async () => {
@@ -155,5 +163,15 @@ describe('LanguagePickerScreen', () => {
     fireEvent.press(screen.getByTestId('lang-pt-BR'));
     await waitFor(() => { expect(screen.queryByTestId('error-banner')).toBeTruthy(); });
     expect(jest.requireMock('../../../i18n').default.changeLanguage).not.toHaveBeenCalled();
+  });
+
+  it('calls captureError when API fails', async () => {
+    const err = new Error('Network error');
+    mockMutateAsync.mockRejectedValue(err);
+    await render(<LanguagePickerScreen navigation={mockNavigation} route={mockRoute} />);
+    fireEvent.press(screen.getByTestId('lang-pt-BR'));
+    await waitFor(() => {
+      expect(mockCaptureError).toHaveBeenCalledWith(err, { screen: 'LanguagePickerScreen', action: 'updateLanguage' });
+    });
   });
 });

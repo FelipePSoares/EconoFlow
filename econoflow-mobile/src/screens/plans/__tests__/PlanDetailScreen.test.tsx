@@ -1,7 +1,14 @@
 import React from 'react';
-import { act, render, screen, fireEvent } from '@testing-library/react-native';
+import { act, render, screen, fireEvent, waitFor } from '@testing-library/react-native';
 import { PlanDetailScreen } from '../PlanDetailScreen';
 import type { Plan, PlanEntry } from '../../../api/types';
+
+// ─── Sentry mock ──────────────────────────────────────────────────────────────
+
+const mockCaptureError = jest.fn();
+jest.mock('../../../monitoring/sentry', () => ({
+  captureError: (...args: unknown[]) => mockCaptureError(...args),
+}));
 
 // ─── UI infrastructure mocks ──────────────────────────────────────────────────
 
@@ -144,6 +151,7 @@ const mockRoute = {
 describe('PlanDetailScreen', () => {
   beforeEach(() => {
     mockNavigate.mockReset();
+    mockCaptureError.mockReset();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (jest.requireMock('../../../store/projectStore') as any).useProjectStore.mockReturnValue({
       selectedProject: {
@@ -152,6 +160,17 @@ describe('PlanDetailScreen', () => {
         project: { id: 'proj-1', name: 'Test', preferredCurrency: 'EUR', isArchived: false },
       },
       currency: 'EUR',
+    });
+    // reset hooks to default non-error state
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/usePlans') as any).usePlans.mockReturnValue({ data: [MOCK_PLAN], error: null });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/usePlans') as any).usePlanEntries.mockReturnValue({
+      data: [MOCK_ENTRY],
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: jest.fn(),
     });
   });
 
@@ -189,6 +208,7 @@ describe('PlanDetailScreen', () => {
       data: [],
       isLoading: false,
       isError: false,
+      error: null,
       refetch: jest.fn(),
     });
 
@@ -196,5 +216,48 @@ describe('PlanDetailScreen', () => {
       render(<PlanDetailScreen navigation={mockNavigation} route={mockRoute} />);
     });
     expect(screen.getByText('NoPlanEntriesYet')).toBeTruthy();
+  });
+
+  it('calls captureError when usePlans query returns an error', async () => {
+    const plansError = new Error('plans fetch failed');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/usePlans') as any).usePlans.mockReturnValue({
+      data: undefined,
+      error: plansError,
+    });
+
+    await act(async () => {
+      render(<PlanDetailScreen navigation={mockNavigation} route={mockRoute} />);
+    });
+
+    await waitFor(() =>
+      expect(mockCaptureError).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({ screen: 'PlanDetailScreen', action: 'fetchPlans' }),
+      ),
+    );
+  });
+
+  it('calls captureError when usePlanEntries query returns an error', async () => {
+    const entriesError = new Error('entries fetch failed');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/usePlans') as any).usePlanEntries.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      error: entriesError,
+      refetch: jest.fn(),
+    });
+
+    await act(async () => {
+      render(<PlanDetailScreen navigation={mockNavigation} route={mockRoute} />);
+    });
+
+    await waitFor(() =>
+      expect(mockCaptureError).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({ screen: 'PlanDetailScreen', action: 'fetchPlanEntries' }),
+      ),
+    );
   });
 });

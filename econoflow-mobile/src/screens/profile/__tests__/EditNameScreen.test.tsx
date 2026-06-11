@@ -2,6 +2,13 @@ import React from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { EditNameScreen } from '../EditNameScreen';
 
+// ─── Sentry mock ──────────────────────────────────────────────────────────────
+
+const mockCaptureError = jest.fn();
+jest.mock('../../../monitoring/sentry', () => ({
+  captureError: (...args: unknown[]) => mockCaptureError(...args),
+}));
+
 // ─── UI infrastructure mocks ─────────────────────────────────────────────────
 
 jest.mock('@expo/vector-icons', () => ({
@@ -145,6 +152,7 @@ describe('EditNameScreen', () => {
     // Default: never resolve — prevents accidental navigation
     mockMutateAsync.mockImplementation(() => new Promise(() => {}));
     mockGoBack.mockReset();
+    mockCaptureError.mockReset();
   });
 
   it('pre-fills first name and last name from user store', async () => {
@@ -197,5 +205,17 @@ describe('EditNameScreen', () => {
     await changeText('PlaceholderLastName', 'Jones');
     await pressButton('ButtonSave');
     await waitFor(() => { expect(screen.queryByTestId('error-banner')).toBeTruthy(); });
+  });
+
+  it('calls captureError when API fails', async () => {
+    const err = new Error('Network error');
+    mockMutateAsync.mockRejectedValue(err);
+    await render(<EditNameScreen navigation={mockNavigation} route={mockRoute} />);
+    await changeText('PlaceholderFirstName', 'Bob');
+    await changeText('PlaceholderLastName', 'Jones');
+    await pressButton('ButtonSave');
+    await waitFor(() => {
+      expect(mockCaptureError).toHaveBeenCalledWith(err, { screen: 'EditNameScreen', action: 'updateProfile' });
+    });
   });
 });
