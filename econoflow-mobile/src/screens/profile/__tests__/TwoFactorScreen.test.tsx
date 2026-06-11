@@ -9,6 +9,24 @@ jest.mock('../../../monitoring/sentry', () => ({
   captureError: (...args: unknown[]) => mockCaptureError(...args),
 }));
 
+// ─── QR code mock ─────────────────────────────────────────────────────────────
+
+jest.mock('react-native-qrcode-svg', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return {
+    __esModule: true,
+    default: ({ testID }: { testID?: string }) => React.createElement(View, { testID: testID ?? 'QRCode' }),
+  };
+});
+
+// ─── Clipboard mock ────────────────────────────────────────────────────────────
+
+const mockSetStringAsync = jest.fn();
+jest.mock('expo-clipboard', () => ({
+  setStringAsync: (...args: unknown[]) => mockSetStringAsync(...args),
+}));
+
 // ─── UI infrastructure mocks ─────────────────────────────────────────────────
 
 jest.mock('@expo/vector-icons', () => ({
@@ -152,6 +170,7 @@ describe('TwoFactorScreen – setup (2FA disabled)', () => {
     mockEnableMutateAsync.mockImplementation(() => new Promise(() => {}));
     mockGoBack.mockReset();
     mockCaptureError.mockReset();
+    mockSetStringAsync.mockReset();
 
     jest.requireMock('../../../hooks/useProfile').useTwoFactorSetup.mockReturnValue({
       data: { isTwoFactorEnabled: false, sharedKey: 'abcd efgh', otpAuthUri: 'otpauth://...' },
@@ -166,6 +185,17 @@ describe('TwoFactorScreen – setup (2FA disabled)', () => {
   it('shows the shared key', async () => {
     await render(<TwoFactorScreen navigation={mockNavigation} route={mockRoute} />);
     expect(screen.getByText('abcd efgh')).toBeTruthy();
+  });
+
+  it('renders a QR code from otpAuthUri', async () => {
+    await render(<TwoFactorScreen navigation={mockNavigation} route={mockRoute} />);
+    expect(screen.getByTestId('TwoFactorQRCode')).toBeTruthy();
+  });
+
+  it('copies the shared key to clipboard when copy icon is pressed', async () => {
+    await render(<TwoFactorScreen navigation={mockNavigation} route={mockRoute} />);
+    fireEvent.press(screen.getByTestId('ButtonCopySharedKey'));
+    expect(mockSetStringAsync).toHaveBeenCalledWith('abcd efgh');
   });
 
   it('shows the setup title', async () => {
