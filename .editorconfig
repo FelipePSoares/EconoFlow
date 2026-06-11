@@ -1,0 +1,26 @@
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{cs,razor}]
+indent_size = 4
+
+[*.{ts,tsx,js,jsx,json,yml,yaml,html,css,scss}]
+indent_size = 2
+
+[*.md]
+indent_size = 2
+trim_trailing_whitespace = false
+
+[*.cs]
+dotnet_sort_system_directives_first = true
+dotnet_style_require_accessibility_modifiers = for_non_interface_members
+csharp_style_expression_bodied_methods = true
+csharp_style_var_for_built_in_types = false
+csharp_style_var_when_type_is_apparent = true
+csharp_style_pattern_matching_over_is_with_cast_check = true
+csharp_style_throw_expression = true

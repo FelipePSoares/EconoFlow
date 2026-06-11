@@ -51,7 +51,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EasyFinance.Application\EasyFinance.Application.csproj" />
-    <ProjectReference Include="..\easyfinance.client\easyfinance.client.esproj">
+    <ProjectReference Include="..\easyfinance.client\easyfinance.client.esproj" Condition="'$(IncludeSpaProject)' == 'true' Or '$(BuildingInsideVisualStudio)' == 'true'">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\EasyFinance.Domain\EasyFinance.Domain.csproj" />

@@ -1,9 +1,9 @@
-﻿using EasyFinance.Domain.AccessControl;
+using System;
+using System.Collections.Generic;
+using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
-using System;
-using System.Collections.Generic;
 
 namespace EasyFinance.Domain.Financial
 {

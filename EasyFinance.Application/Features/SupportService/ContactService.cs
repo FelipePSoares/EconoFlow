@@ -27,7 +27,7 @@ namespace EasyFinance.Application.Features.SupportService
                 return AppResponse<ContactUsResponseDTO>.Error(code: nameof(contactUs), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(contactUs)));
 
             contactUs.SetCreatedBy(user);
-           
+
             var savedContact = this.unitOfWork.ContactUsRepository.InsertOrUpdate(contactUs);
             if (savedContact.Failed)
             {
@@ -49,7 +49,7 @@ namespace EasyFinance.Application.Features.SupportService
 
             return AppResponse<ContactUsResponseDTO>.Success(contactUs.ToDTO());
         }
-        
+
         public AppResponse<ContactUsResponseDTO> GetById(Guid messageId)
         {
             var result = unitOfWork.ContactUsRepository.Trackable().FirstOrDefault(p => p.Id == messageId);

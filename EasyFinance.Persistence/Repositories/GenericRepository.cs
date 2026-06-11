@@ -1,4 +1,4 @@
-﻿using EasyFinance.Application.Contracts.Persistence;
+using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Domain;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.EntityFrameworkCore;
@@ -27,8 +27,9 @@ namespace EasyFinance.Persistence.Repositories
         {
 #if DEBUG
             return this.dbSet.Add(entity).Entity;
-#endif
+#else
             return entity;
+#endif
         }
 
         public AppResponse<T> InsertOrUpdate(T entity)

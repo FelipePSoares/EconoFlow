@@ -1,4 +1,4 @@
-﻿using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Account;
 using EasyFinance.Domain.FinancialProject;
 using Microsoft.EntityFrameworkCore;

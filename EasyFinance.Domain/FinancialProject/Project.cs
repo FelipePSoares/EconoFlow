@@ -1,12 +1,12 @@
-﻿using EasyFinance.Domain.Financial;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using EasyFinance.Domain.Financial;
 using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using EasyFinance.Infrastructure.Extensions;
 using EasyFinance.Infrastructure.Validators;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace EasyFinance.Domain.FinancialProject
 {

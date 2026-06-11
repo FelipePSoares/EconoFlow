@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using EasyFinance.Domain.AccessControl;
 
 namespace EasyFinance.Application.DTOs.AccessControl

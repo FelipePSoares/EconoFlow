@@ -1,4 +1,4 @@
-﻿namespace EasyFinance.Domain.Account
+namespace EasyFinance.Domain.Account
 {
     public enum NotificationType
     {

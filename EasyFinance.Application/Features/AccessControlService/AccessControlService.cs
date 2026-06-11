@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -331,7 +331,7 @@ namespace EasyFinance.Application.Features.AccessControlService
             return AppResponse.Success();
         }
 
-        public Task<RefreshTokenContextDTO?> GetRefreshTokenContextAsync(Guid userId) 
+        public Task<RefreshTokenContextDTO?> GetRefreshTokenContextAsync(Guid userId)
             => this.accessControlReadRepository.GetRefreshTokenContextAsync(userId);
     }
 }

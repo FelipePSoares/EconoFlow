@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Threading.Channels;
 using EasyFinance.Application.DTOs.BackgroundService.Email;

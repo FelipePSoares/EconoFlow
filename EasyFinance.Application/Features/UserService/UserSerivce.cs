@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using EasyFinance.Application.Contracts.Persistence;
@@ -43,7 +43,8 @@ namespace EasyFinance.Application.Features.UserService
         {
             var projectsWhereUserIsSoleAdmin = await this.projectService.GetProjectsWhereUserIsSoleAdminAsync(user);
 
-            if (projectsWhereUserIsSoleAdmin.Data.Any()){
+            if (projectsWhereUserIsSoleAdmin.Data.Any())
+            {
                 var projects = string.Concat(projectsWhereUserIsSoleAdmin.Data.Select((value) => $"<li>{value}</li>"));
                 return string.Format(ValidationMessages.WarningMessageToAdminUserWhoWantsToDeleteAccount, projects);
             }

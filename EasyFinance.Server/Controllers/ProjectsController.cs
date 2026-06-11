@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Security.Claims;
 using EasyFinance.Application.DTOs.AccessControl;
 using EasyFinance.Application.DTOs.Financial;
@@ -236,7 +236,7 @@ namespace EasyFinance.Server.Controllers
 
             if (!hasAuthorization)
                 throw new UnauthorizedAccessException();
-            
+
             AppResponse result = await this.projectService.SmartSetupAsync(user, projectId, smartRequest);
 
             return ValidateResponse(result, HttpStatusCode.OK);

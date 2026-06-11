@@ -1,4 +1,4 @@
-﻿using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.AccessControl;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -33,7 +33,7 @@ namespace EasyFinance.Persistence.Mapping.AccessControl
 
             builder.HasOne(p => p.User)
                 .WithMany();
-            
+
 
             builder.HasIndex(p => p.Token)
                 .IsUnique();

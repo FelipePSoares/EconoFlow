@@ -36,9 +36,9 @@ Only after you have a failing test may you move to Step 2.
 
 Run the full suite for every sub-project that has changed files:
 
-| Sub-project | Test command | Lint command |
-|-------------|-------------|-------------|
-| Backend | `dotnet test` | — |
+| Sub-project | Test command | Lint / Analysis command |
+|-------------|-------------|------------------------|
+| Backend | `dotnet test` | `dotnet format --verify-no-changes --no-restore` |
 | Frontend | `cd easyfinance.client && npm test -- --watch=false --browsers=ChromeHeadless` | `cd easyfinance.client && npm run lint` |
 | Mobile | `cd econoflow-mobile && npm test && npm run typecheck` | `cd econoflow-mobile && npm run lint` |
 
@@ -83,7 +83,21 @@ Public name **EconoFlow**, internal codebase name **EasyFinance** — appears in
 dotnet run --project ./EasyFinance.Server --urls https://localhost:7003/
 dotnet test                                           # all test projects
 dotnet test EasyFinance.Application.Tests/            # single project
+dotnet format --verify-no-changes --no-restore        # code style check
+dotnet list package --vulnerable --include-transitive # NuGet vulnerability scan
 ```
+
+### Code analysis
+
+- `Directory.Build.props` at repo root enables `TreatWarningsAsErrors`, `EnableNETAnalyzers`, `AnalysisLevel=latest`, `EnforceCodeStyleInBuild`
+- `Roslynator.Analyzers` runs on all projects (added via `Directory.Build.props`)
+- Nullable-related warnings (`CS86xx`) are excluded from `TreatWarningsAsErrors` via `<WarningsNotAsErrors>` for projects that have `Nullable=disable`
+
+### CI / Pipelines
+
+- `global.json` pins SDK to 8.0.x to avoid issues with .NET 10 runner pre-installs
+- All `dotnet restore` / `dotnet build` / `dotnet test` commands target explicit `.csproj` files (never the `.sln`) to skip `easyfinance.client.esproj` which has no target framework
+- `EASBuild.yml` is mobile-only and not affected
 
 EF Core migration (note `--configuration release`):
 ```powershell

@@ -1,9 +1,9 @@
-using EasyFinance.Application.DTOs.FinancialProject;
-using EasyFinance.Domain.Financial;
-using EasyFinance.Domain.FinancialProject;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using EasyFinance.Application.DTOs.FinancialProject;
+using EasyFinance.Domain.Financial;
+using EasyFinance.Domain.FinancialProject;
 
 namespace EasyFinance.Application.Mappers
 {

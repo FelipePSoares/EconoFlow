@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using EasyFinance.Application.DTOs.BackgroundService.Email;
 using EasyFinance.Application.Features.UserService;
 using EasyFinance.Domain.AccessControl;
-using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.AspNetCore.Identity;
-using EasyFinance.Infrastructure.Extensions;
-using EasyFinance.Application.DTOs.BackgroundService.Email;
 using EasyFinance.Infrastructure.DTOs;
+using EasyFinance.Infrastructure.Extensions;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace EasyFinance.Application.Features.EmailService
 {

@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Security.Claims;
 using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.Features.IncomeService;
@@ -31,7 +31,7 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpGet("{incomeId}")]
-        public IActionResult GetById(Guid incomeId) 
+        public IActionResult GetById(Guid incomeId)
         {
             var income = incomeService.GetById(incomeId);
 
@@ -52,14 +52,14 @@ namespace EasyFinance.Server.Controllers
             return ValidateResponse(actionName: nameof(GetById), routeValues: new { projectId, incomeId = createdIncome?.Data?.Id }, createdIncome);
         }
 
-       
+
 
         [HttpPatch("{incomeId}")]
         public async Task<IActionResult> Update(Guid projectId, Guid incomeId, [FromBody] JsonPatchDocument<IncomeRequestDTO> incomeDto)
         {
             if (incomeDto == null) return BadRequest();
 
-            var updateResult = await incomeService.UpdateAsync(incomeId: incomeId, incomeDto: incomeDto);          
+            var updateResult = await incomeService.UpdateAsync(incomeId: incomeId, incomeDto: incomeDto);
 
             return ValidateResponse(updateResult, HttpStatusCode.OK);
         }

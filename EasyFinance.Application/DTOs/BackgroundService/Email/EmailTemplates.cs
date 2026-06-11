@@ -1,4 +1,4 @@
-﻿namespace EasyFinance.Application.DTOs.BackgroundService.Email
+namespace EasyFinance.Application.DTOs.BackgroundService.Email
 {
     public enum EmailTemplates
     {

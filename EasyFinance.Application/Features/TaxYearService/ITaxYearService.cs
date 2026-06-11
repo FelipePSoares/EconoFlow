@@ -1,8 +1,8 @@
-using EasyFinance.Application.DTOs.FinancialProject;
-using EasyFinance.Infrastructure.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using EasyFinance.Application.DTOs.FinancialProject;
+using EasyFinance.Infrastructure.DTOs;
 
 namespace EasyFinance.Application.Features.TaxYearService
 {

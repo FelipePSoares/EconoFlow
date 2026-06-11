@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Globalization;
 using System.Net;
@@ -22,7 +22,6 @@ using EasyFinance.Infrastructure.Authentication;
 using EasyFinance.Infrastructure.DTOs;
 using EasyFinance.Server.Config;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.JsonPatch;
@@ -30,6 +29,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
 
 
@@ -291,7 +291,7 @@ namespace EasyFinance.Server.Controllers
 
             if (twoFactorRecommendationResult.Failed)
                 this.logger.LogWarning("Failed to create two-factor recommendation notification for user {UserId}: {Errors}", user.Id, string.Join(", ", twoFactorRecommendationResult.Messages.Select(m => m.Description)));
-             
+
             var correlationId = HttpContext.Items[correlationIdClaimType].ToString();
 
             await GenerateUserToken(user, correlationId);

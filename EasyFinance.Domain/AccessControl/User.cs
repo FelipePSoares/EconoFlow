@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
 using System.Linq;
@@ -41,7 +41,7 @@ namespace EasyFinance.Domain.AccessControl
         public string LanguageCode { get; private set; } = "en-US";
 
         [NotMapped]
-        public CultureInfo Culture => new (LanguageCode);
+        public CultureInfo Culture => new(LanguageCode);
 
         public AppResponse Validate
         {
@@ -63,7 +63,7 @@ namespace EasyFinance.Domain.AccessControl
 
                 if (string.IsNullOrEmpty(FirstName))
                     response.AddErrorMessage(nameof(FirstName), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(FirstName)));
-                
+
                 if (!string.IsNullOrEmpty(FirstName) && FirstName.Length > PropertyMaxLengths.GetMaxLength(PropertyType.UserFirstName))
                     response.AddErrorMessage(nameof(FirstName),
                         string.Format(ValidationMessages.PropertyMaxLength,
@@ -72,7 +72,7 @@ namespace EasyFinance.Domain.AccessControl
 
                 if (string.IsNullOrEmpty(LastName))
                     response.AddErrorMessage(nameof(LastName), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(LastName)));
-                
+
                 if (!string.IsNullOrEmpty(LastName) && LastName.Length > PropertyMaxLengths.GetMaxLength(PropertyType.UserLastName))
                     response.AddErrorMessage(nameof(LastName),
                         string.Format(ValidationMessages.PropertyMaxLength,

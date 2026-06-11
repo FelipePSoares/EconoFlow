@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Security.Claims;
 using EasyFinance.Application.Features.UserKeyService;
 using Microsoft.AspNetCore.Mvc;

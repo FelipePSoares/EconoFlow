@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using EasyFinance.Domain;
 using EasyFinance.Infrastructure.DTOs;
 

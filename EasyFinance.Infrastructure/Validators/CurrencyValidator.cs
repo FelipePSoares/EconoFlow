@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace EasyFinance.Infrastructure.Validators
 {
-    public class CurrencyValidator
+    public static class CurrencyValidator
     {
         private static readonly HashSet<string> Iso4217CurrencyCodes = new HashSet<string>(
             CultureInfo.GetCultures(CultureTypes.SpecificCultures)

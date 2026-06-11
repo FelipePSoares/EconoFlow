@@ -1,8 +1,8 @@
-﻿using EasyFinance.Domain.FinancialProject;
+using System;
+using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
-using System;
 
 namespace EasyFinance.Domain.AccessControl
 {

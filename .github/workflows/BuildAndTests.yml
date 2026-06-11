@@ -104,10 +104,28 @@ jobs:
         key: cypress-${{ runner.os }}-${{ hashFiles('./easyfinance.client/package-lock.json') }}
 
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore EasyFinance.Server/EasyFinance.Server.csproj
+
+    - name: Check code formatting
+      run: dotnet format EasyFinance.Server/EasyFinance.Server.csproj --verify-no-changes --no-restore
+
+    - name: Check for vulnerable NuGet packages
+      run: dotnet list EasyFinance.Server/EasyFinance.Server.csproj package --vulnerable --include-transitive
 
     - name: Build backend application
-      run: dotnet build --configuration Debug --no-restore
+      run: dotnet build EasyFinance.Server/EasyFinance.Server.csproj --configuration Debug --no-restore
+
+    - name: Restore test projects
+      run: |
+        dotnet restore EasyFinance.Domain.Tests/EasyFinance.Domain.Tests.csproj
+        dotnet restore EasyFinance.Application.Tests/EasyFinance.Application.Tests.csproj
+        dotnet restore EasyFinance.Server.Tests/EasyFinance.Server.Tests.csproj
+
+    - name: Build test projects
+      run: |
+        dotnet build EasyFinance.Domain.Tests/EasyFinance.Domain.Tests.csproj --configuration Debug --no-restore
+        dotnet build EasyFinance.Application.Tests/EasyFinance.Application.Tests.csproj --configuration Debug --no-restore
+        dotnet build EasyFinance.Server.Tests/EasyFinance.Server.Tests.csproj --configuration Debug --no-restore
 
     - name: Upload backend build outputs
       uses: actions/upload-artifact@v4
@@ -160,7 +178,28 @@ jobs:
         path: .
 
     - name: Run .Net tests
-      run: dotnet test --configuration Debug --no-build --no-restore --verbosity normal --logger trx --collect:"XPlat Code Coverage"
+      run: |
+        dotnet test EasyFinance.Domain.Tests/EasyFinance.Domain.Tests.csproj --configuration Debug --no-build --no-restore --verbosity normal --logger trx --collect:"XPlat Code Coverage"
+        dotnet test EasyFinance.Application.Tests/EasyFinance.Application.Tests.csproj --configuration Debug --no-build --no-restore --verbosity normal --logger trx --collect:"XPlat Code Coverage"
+        dotnet test EasyFinance.Server.Tests/EasyFinance.Server.Tests.csproj --configuration Debug --no-build --no-restore --verbosity normal --logger trx --collect:"XPlat Code Coverage"
+
+    - name: Check code coverage threshold
+      if: always()
+      shell: bash
+      run: |
+        COVERAGE_FILE=$(find . -name "coverage.cobertura.xml" -type f | head -1)
+        if [ -z "$COVERAGE_FILE" ]; then
+          echo "::warning::No coverage.cobertura.xml file found — skipping threshold check"
+          exit 0
+        fi
+        LINE_RATE=$(grep -oP 'line-rate="\K[0-9.]+' "$COVERAGE_FILE" | head -1)
+        COVERAGE=$(echo "$LINE_RATE * 100 / 1" | bc)
+        THRESHOLD=80
+        if [ "$COVERAGE" -lt "$THRESHOLD" ]; then
+          echo "::error::Coverage ${COVERAGE}% is below threshold ${THRESHOLD}%"
+          exit 1
+        fi
+        echo "::notice::Coverage ${COVERAGE}% meets threshold ${THRESHOLD}%"
 
     - name: Upload Test Results
       uses: actions/upload-artifact@v4
@@ -183,6 +222,17 @@ jobs:
     - name: Run Angular tests
       id: angular
       run: npm test -- --watch=false --browsers=ChromeHeadlessCI
+      working-directory: ./easyfinance.client
+
+    - name: Run Angular lint
+      if: always()
+      run: npm run lint
+      working-directory: ./easyfinance.client
+
+    - name: Run npm audit
+      if: always()
+      continue-on-error: true
+      run: npm audit --audit-level=high
       working-directory: ./easyfinance.client
 
   mobile-check:
@@ -289,7 +339,7 @@ jobs:
 
     - name: Start application
       id: dotnet
-      run: dotnet run --project ./EasyFinance.Server --configuration Debug --no-build --no-restore --urls https://localhost:7003/ &
+      run: dotnet run --project ./EasyFinance.Server --configuration Debug --no-build --no-restore -p:IncludeSpaProject=true --urls https://localhost:7003/ &
       env:
         EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN: ci-integration-test-placeholder-secret-key-32chars
 

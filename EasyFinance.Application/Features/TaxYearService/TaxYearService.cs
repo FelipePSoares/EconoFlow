@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.DTOs.FinancialProject;
 using EasyFinance.Application.Mappers;
@@ -5,10 +9,6 @@ using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace EasyFinance.Application.Features.TaxYearService
 {

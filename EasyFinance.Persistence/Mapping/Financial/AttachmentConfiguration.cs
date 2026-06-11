@@ -1,4 +1,4 @@
-﻿using EasyFinance.Domain.Financial;
+using EasyFinance.Domain.Financial;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

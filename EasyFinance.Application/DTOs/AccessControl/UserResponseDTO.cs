@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Account;
 
@@ -39,7 +39,7 @@ namespace EasyFinance.Application.DTOs.AccessControl
         public bool IsFirstLogin { get; init; }
         public bool EmailConfirmed { get; init; }
         public bool TwoFactorEnabled { get; init; }
-        public Guid? DefaultProjectId {  get; init; }
+        public Guid? DefaultProjectId { get; init; }
         public NotificationChannels NotificationChannels { get; init; }
         public string LanguageCode { get; init; }
         public bool IsBetaTester { get; init; }

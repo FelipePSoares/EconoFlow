@@ -1,4 +1,4 @@
-﻿using EasyFinance.Domain.Financial;
+using EasyFinance.Domain.Financial;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -27,7 +27,7 @@ namespace EasyFinance.Persistence.Mapping.Financial
             builder.Property(p => p.Date).IsRequired();
 
             builder.Property(p => p.Amount)
-                .HasPrecision(18,2)
+                .HasPrecision(18, 2)
                 .IsRequired();
 
             builder.Property(p => p.CreatorName)

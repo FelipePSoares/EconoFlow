@@ -29,8 +29,8 @@ namespace EasyFinance.Application.Features.ExpenseService
         private readonly ILogger<ExpenseService> logger;
 
         public ExpenseService(
-            IUnitOfWork unitOfWork, 
-            IAttachmentService attachmentService, 
+            IUnitOfWork unitOfWork,
+            IAttachmentService attachmentService,
             INotificationService notificationService,
             ILogger<ExpenseService> logger)
         {
@@ -70,7 +70,7 @@ namespace EasyFinance.Application.Features.ExpenseService
                 .ThenInclude(e => e.Attachments)
                 .Include(e => e.Attachments)
                 .Include(e => e.CreatedBy)
-                .FirstOrDefaultAsync(p => p.Id == expenseId) ?? throw new KeyNotFoundException(ValidationMessages.ExpenseNotFound); 
+                .FirstOrDefaultAsync(p => p.Id == expenseId) ?? throw new KeyNotFoundException(ValidationMessages.ExpenseNotFound);
 
             return AppResponse<ExpenseResponseDTO>.Success(expense.ToDTO());
         }
@@ -97,7 +97,7 @@ namespace EasyFinance.Application.Features.ExpenseService
                 return AppResponse<ExpenseResponseDTO>.Error(savedExpense.Messages);
 
             category.AddExpense(savedExpense.Data);
-            
+
             var savedCategory = unitOfWork.CategoryRepository.InsertOrUpdate(category);
             if (savedCategory.Failed)
                 return AppResponse<ExpenseResponseDTO>.Error(savedCategory.Messages);

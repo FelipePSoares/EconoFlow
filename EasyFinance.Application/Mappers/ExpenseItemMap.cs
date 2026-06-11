@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using EasyFinance.Application.DTOs.Financial;
@@ -40,7 +40,7 @@ namespace EasyFinance.Application.Mappers
             };
         }
 
-        public static ICollection<ExpenseItemRequestDTO> ToRequestDTO(this ICollection<ExpenseItem> expenseItems) 
+        public static ICollection<ExpenseItemRequestDTO> ToRequestDTO(this ICollection<ExpenseItem> expenseItems)
             => expenseItems.Select(p => p.ToRequestDTO()).ToList();
 
         public static ICollection<ExpenseItem> FromDTO(this ICollection<ExpenseItemRequestDTO> expenseItemsDTO, IList<ExpenseItem> expenseItems = null)

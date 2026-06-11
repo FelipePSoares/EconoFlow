@@ -1,4 +1,4 @@
-﻿namespace EasyFinance.Application.DTOs.FinancialProject
+namespace EasyFinance.Application.DTOs.FinancialProject
 {
     public enum TransactionType
     {

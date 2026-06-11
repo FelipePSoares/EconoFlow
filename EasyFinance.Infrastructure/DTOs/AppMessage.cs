@@ -1,4 +1,4 @@
-﻿namespace EasyFinance.Infrastructure.DTOs
+namespace EasyFinance.Infrastructure.DTOs
 {
     public class AppMessage
     {

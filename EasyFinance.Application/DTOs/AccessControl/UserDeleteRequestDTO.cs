@@ -1,4 +1,4 @@
-﻿namespace EasyFinance.Application.DTOs.AccessControl
+namespace EasyFinance.Application.DTOs.AccessControl
 {
     public class UserDeleteRequestDTO
     {

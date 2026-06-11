@@ -1,7 +1,7 @@
-﻿using EasyFinance.Domain.AccessControl;
+using System.Security.Claims;
+using EasyFinance.Domain.AccessControl;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
-using System.Security.Claims;
 
 namespace EasyFinance.Server.Extensions
 {

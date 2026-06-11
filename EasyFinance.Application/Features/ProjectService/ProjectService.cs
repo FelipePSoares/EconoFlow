@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,8 +8,8 @@ using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.DTOs.FinancialProject;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
-using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Domain.Financial;
+using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Identity;
@@ -191,7 +191,8 @@ namespace EasyFinance.Application.Features.ProjectService
             return AppResponse.Success();
         }
 
-        public async Task<AppResponse<IList<string>>> GetProjectsWhereUserIsSoleAdminAsync(User user){
+        public async Task<AppResponse<IList<string>>> GetProjectsWhereUserIsSoleAdminAsync(User user)
+        {
             var userProjects = await unitOfWork.UserProjectRepository.Trackable().Include(up => up.Project)
                 .Where(up => up.User.Id == user.Id && up.Role == Role.Admin)
                 .ToListAsync();
@@ -354,7 +355,7 @@ namespace EasyFinance.Application.Features.ProjectService
 
             if (project.Categories.Count > 0)
                 return AppResponse.Error(ValidationMessages.SmartSetupNotAvailable);
-                
+
             var categories = smartRequest.DefaultCategories
                 .Select(c => Category.CreateDefaultCategoryWithExpense(user, c.Name, c.Percentage, smartRequest.AnnualIncome, smartRequest.Date))
                 .ToList();

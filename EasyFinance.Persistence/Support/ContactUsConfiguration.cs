@@ -6,7 +6,7 @@ namespace EasyFinance.Persistence.Mapping.Support
 {
     public class ContactUsConfiguration : BaseEntityConfiguration<ContactUs>
     {
-         public override void ConfigureEntity(EntityTypeBuilder<ContactUs> builder)
+        public override void ConfigureEntity(EntityTypeBuilder<ContactUs> builder)
         {
             builder.ToTable("ContactUs");
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -55,8 +55,8 @@ namespace EasyFinance.Application.Features.NotificationService
         {
             var notifications = await this.unitOfWork.NotificationRepository
                 .NoTrackable()
-                .Where(n => 
-                    n.User.Id == userId && 
+                .Where(n =>
+                    n.User.Id == userId &&
                     (notificationCategory == NotificationCategory.None || n.Category == notificationCategory))
                 .ToDTO()
                 .ToListAsync();
