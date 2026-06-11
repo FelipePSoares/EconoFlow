@@ -38,9 +38,14 @@ describe('CurrencyPickerField', () => {
     expect(typeof CurrencyPickerField).toBe('function');
   });
 
-  it('renders the selected currency code', async () => {
+  it('renders the selected currency value in the trigger', async () => {
     const { getByText } = await render(<CurrencyPickerField {...defaultProps} />);
-    expect(getByText('EUR')).toBeTruthy();
+    expect(getByText('EUR · Euro')).toBeTruthy();
+  });
+
+  it('displays the selected currency name alongside the code in CODE · Name format', async () => {
+    const { getByText } = await render(<CurrencyPickerField {...defaultProps} value="USD" />);
+    expect(getByText('USD · United States Dollar')).toBeTruthy();
   });
 
   it('renders with the provided testID', async () => {
