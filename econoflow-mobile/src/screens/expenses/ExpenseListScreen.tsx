@@ -352,7 +352,7 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
           if (undoState.itemId && undoState.expenseId) {
             restoreExpenseItem.mutate(
               { expenseId: undoState.expenseId, expenseItemId: undoState.itemId },
-              { onError: (err) => captureError(err, { screen: 'ExpenseListScreen', action: 'restoreExpense' }) },
+              { onError: (err) => captureError(err, { screen: 'ExpenseListScreen', action: 'restoreExpenseItem' }) },
             );
           } else if (undoState.expenseId) {
             restoreExpense.mutate(undoState.expenseId, {

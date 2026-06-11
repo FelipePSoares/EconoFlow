@@ -419,6 +419,59 @@ describe('ExpenseListScreen — captureError', () => {
     );
   });
 
+  it('calls captureError with restoreExpenseItem action when restoreExpenseItem mutation fails', async () => {
+    const restoreItemError = new Error('restore item failed');
+    mockRestoreExpenseItemMutate.mockImplementation(
+      (_data: unknown, opts?: { onError?: (e: unknown) => void }) => {
+        opts?.onError?.(restoreItemError);
+      },
+    );
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/useExpenses') as any).useExpensesForMonth.mockReturnValue({
+      data: [MOCK_EXPENSE_WITH_ITEMS],
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+    mockDeleteExpenseItemMutate.mockImplementation(jest.fn()); // no-op delete item
+
+    await act(async () => {
+      render(<ExpenseListScreen navigation={mockNavigation} route={mockRoute} />);
+    });
+
+    // Expand the expense group to reveal items
+    MockSwipeableRow.mockClear();
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('expand-exp-1'));
+    });
+
+    // Trigger item delete to populate undoState with both expenseId and itemId
+    const allCalls = MockSwipeableRow.mock.calls.filter(
+      (call) => typeof call[0]?.onAction === 'function',
+    );
+    const itemCall = allCalls.at(-1);
+    expect(itemCall).toBeTruthy();
+    await act(async () => { itemCall![0].onAction!(); });
+
+    // Trigger undo — because undoState has itemId, restoreExpenseItem.mutate is called
+    const latestUndoCall = MockUndoToast.mock.calls[MockUndoToast.mock.calls.length - 1];
+    expect(latestUndoCall).toBeTruthy();
+    const onUndo: () => void = latestUndoCall[0]?.onUndo!;
+    expect(onUndo).toBeDefined();
+
+    await act(async () => { onUndo(); });
+
+    await waitFor(() =>
+      expect(mockCaptureError).toHaveBeenCalledWith(
+        restoreItemError,
+        expect.objectContaining({ screen: 'ExpenseListScreen', action: 'restoreExpenseItem' }),
+      ),
+    );
+  });
+
   it('does not call captureError when query succeeds', async () => {
     await act(async () => {
       render(<ExpenseListScreen navigation={mockNavigation} route={mockRoute} />);
