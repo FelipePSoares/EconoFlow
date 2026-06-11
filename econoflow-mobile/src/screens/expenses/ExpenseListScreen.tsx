@@ -216,6 +216,7 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
                   >
                   {/* ── Group header ──────────────────────────────────── */}
                   <TouchableOpacity
+                    testID={`expand-${expense.id}`}
                     onPress={() => setExpandedIds(prev => toggleSetItem(prev, expense.id))}
                     activeOpacity={0.75}
                     style={styles.groupHeader}
@@ -316,7 +317,7 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
                       onDeleteItem={(expenseItemId) => {
                         deleteExpenseItem.mutate(
                           { expenseId: expense.id, expenseItemId },
-                          { onError: (err) => captureError(err, { screen: 'ExpenseListScreen', action: 'deleteExpense' }) },
+                          { onError: (err) => captureError(err, { screen: 'ExpenseListScreen', action: 'deleteExpenseItem' }) },
                         );
                         setUndoState({ visible: true, expenseId: expense.id, itemId: expenseItemId });
                       }}

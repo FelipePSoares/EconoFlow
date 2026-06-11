@@ -351,7 +351,7 @@ export const QuickAddModal: React.FC<Props> = ({
           {
             onSuccess: onClose,
             onError: (err) => {
-              captureError(err, { screen: 'QuickAddModal', action: 'addExpenseItem' });
+              captureError(err, { screen: 'QuickAddModal', action: 'updateExpenseItem' });
               handleApiError(err);
             },
           },

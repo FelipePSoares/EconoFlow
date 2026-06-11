@@ -339,4 +339,34 @@ describe('QuickAddModal — Sentry captureError', () => {
       );
     });
   });
+
+  it('calls captureError with updateExpenseItem action when patchExpense errors on edit-expenseItem path', async () => {
+    const err = new Error('Patch expense item failed');
+    mockPatchExpenseMutate.mockImplementation(
+      (_data: unknown, opts?: { onSuccess?: () => void; onError?: (e: unknown) => void }) => {
+        opts?.onError?.(err);
+      },
+    );
+
+    const editMode = {
+      type: 'expenseItem' as const,
+      id: 'exp-1',
+      categoryId: 'cat-1',
+      itemIndex: 0,
+      initialValues: { name: 'Groceries', amount: 50, date: '2026-06-01', isDeductible: false },
+    };
+
+    await act(async () => { renderModal({ editMode }); });
+
+    await act(async () => {
+      fireEvent.press(screen.getByText('ButtonSave'));
+    });
+
+    await waitFor(() => {
+      expect(mockCaptureError).toHaveBeenCalledWith(
+        err,
+        { screen: 'QuickAddModal', action: 'updateExpenseItem' },
+      );
+    });
+  });
 });

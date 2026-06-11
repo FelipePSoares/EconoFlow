@@ -1,7 +1,7 @@
 import React from 'react';
-import { act, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { ExpenseListScreen } from '../ExpenseListScreen';
-import type { Expense } from '../../../api/types';
+import type { Expense, ExpenseItem } from '../../../api/types';
 
 // ─── Sentry mock ──────────────────────────────────────────────────────────────
 
@@ -69,11 +69,21 @@ jest.mock('../../../components/common/LoadingIndicator', () => ({
 }));
 
 const MockSwipeableRow = jest.fn(
-  (_props: { onAction?: () => void; disabled?: boolean; [key: string]: unknown }) => null,
+  (_props: { onAction?: () => void; disabled?: boolean; children?: unknown }) => null,
 );
-jest.mock('../../../components/common/SwipeableRow', () => ({
-  SwipeableRow: (props: unknown) => MockSwipeableRow(props as Record<string, unknown>),
-}));
+jest.mock('../../../components/common/SwipeableRow', () => {
+  const React = require('react');
+  return {
+    SwipeableRow: (props: unknown) => {
+      MockSwipeableRow(props as Record<string, unknown>);
+      return React.createElement(
+        React.Fragment,
+        null,
+        (props as Record<string, unknown>).children,
+      );
+    },
+  };
+});
 
 const MockUndoToast = jest.fn(
   (_props: { visible?: boolean; onUndo?: () => void; onDismiss?: () => void; message?: string }) => null,
@@ -193,6 +203,21 @@ const MOCK_EXPENSE: Expense = {
   isDeductible: false,
   items: [],
   attachments: [],
+};
+
+const MOCK_ITEM: ExpenseItem = {
+  id: 'item-1',
+  name: 'Coffee',
+  amount: 5,
+  date: '2024-01-15',
+  isDeductible: false,
+  attachments: [],
+};
+
+const MOCK_EXPENSE_WITH_ITEMS: Expense = {
+  ...MOCK_EXPENSE,
+  amount: 5,
+  items: [MOCK_ITEM],
 };
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
@@ -345,6 +370,51 @@ describe('ExpenseListScreen — captureError', () => {
       expect(mockCaptureError).toHaveBeenCalledWith(
         restoreError,
         expect.objectContaining({ screen: 'ExpenseListScreen', action: 'restoreExpense' }),
+      ),
+    );
+  });
+
+  it('calls captureError with deleteExpenseItem action when deleteExpenseItem mutation fails', async () => {
+    const deleteItemError = new Error('delete item failed');
+    mockDeleteExpenseItemMutate.mockImplementation(
+      (_data: unknown, opts?: { onError?: (e: unknown) => void }) => {
+        opts?.onError?.(deleteItemError);
+      },
+    );
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/useExpenses') as any).useExpensesForMonth.mockReturnValue({
+      data: [MOCK_EXPENSE_WITH_ITEMS],
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+
+    await act(async () => {
+      render(<ExpenseListScreen navigation={mockNavigation} route={mockRoute} />);
+    });
+
+    // Expand the expense group to reveal its items
+    MockSwipeableRow.mockClear();
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('expand-exp-1'));
+    });
+
+    // The item-level SwipeableRow is the last call after expansion
+    const allCalls = MockSwipeableRow.mock.calls.filter(
+      (call) => typeof call[0]?.onAction === 'function',
+    );
+    const itemCall = allCalls.at(-1);
+    expect(itemCall).toBeTruthy();
+
+    await act(async () => { itemCall![0].onAction!(); });
+
+    await waitFor(() =>
+      expect(mockCaptureError).toHaveBeenCalledWith(
+        deleteItemError,
+        expect.objectContaining({ screen: 'ExpenseListScreen', action: 'deleteExpenseItem' }),
       ),
     );
   });
