@@ -4,7 +4,7 @@
  * correctly wired for each role.
  */
 import React from 'react';
-import { act, render } from '@testing-library/react-native';
+import { act, render, screen, fireEvent } from '@testing-library/react-native';
 import { MonthlyOverviewScreen } from '../MonthlyOverviewScreen';
 import type { Category } from '../../../api/types';
 
@@ -136,11 +136,12 @@ function makeProjectStore(role: 'Admin' | 'Manager' | 'Viewer') {
   };
 }
 
+const mockParentNavigate = jest.fn();
 const mockNavigation = {
   navigate: jest.fn(),
   goBack: jest.fn(),
   setOptions: jest.fn(),
-  getParent: jest.fn(() => ({ navigate: jest.fn() })),
+  getParent: jest.fn(() => ({ navigate: mockParentNavigate })),
 } as unknown as React.ComponentProps<typeof MonthlyOverviewScreen>['navigation'];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -154,6 +155,7 @@ describe('MonthlyOverviewScreen — archive-category capability', () => {
   beforeEach(() => {
     getCategoryCardSpy().mockClear();
     getUndoToastSpy().mockClear();
+    mockParentNavigate.mockReset();
   });
 
   it('passes onSwipeAction and swipeDisabled=false to CategoryCard for Manager role', async () => {
@@ -194,5 +196,17 @@ describe('MonthlyOverviewScreen — archive-category capability', () => {
     });
 
     expect(getUndoToastSpy()).toHaveBeenCalled();
+  });
+
+  it('pressing the saved panel navigates to the Plans tab', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../store/projectStore') as any).useProjectStore.mockImplementation(() => makeProjectStore('Manager'));
+
+    await act(async () => {
+      render(<MonthlyOverviewScreen navigation={mockNavigation} />);
+    });
+
+    fireEvent.press(screen.getByTestId('saved-panel'));
+    expect(mockParentNavigate).toHaveBeenCalledWith('Plans');
   });
 });

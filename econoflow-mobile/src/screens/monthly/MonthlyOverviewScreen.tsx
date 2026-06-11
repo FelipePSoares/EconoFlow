@@ -268,29 +268,39 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
             </GlassCard>
           </TouchableOpacity>
 
-          <GlassCard
-            dark={dark}
-            radius={22}
-            intensity={40}
-            style={[
-              styles.savedCard,
-              dark ? { borderColor: 'rgba(46,204,113,0.35)' } : { borderColor: 'transparent' },
-            ]}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            testID="saved-panel"
+            onPress={() =>
+              navigation
+                .getParent<BottomTabNavigationProp<MainTabParamList>>()
+                ?.navigate('Plans')
+            }
           >
-            <View style={[styles.savedInner, !dark && { backgroundColor: '#14c08a' }]}>
-              <MaterialCommunityIcons
-                name="piggy-bank-outline"
-                size={24}
-                color={dark ? '#2ecc71' : '#fff'}
-              />
-              <Text style={[styles.savedLabel, { color: dark ? '#2ecc71' : 'rgba(255,255,255,0.9)' }]}>
-                {t('LabelSaved')}
-              </Text>
-              <Text style={[styles.savedAmt, { color: dark ? '#e6edf3' : '#fff' }]}>
-                {loadingSaved ? '—' : `${sym} ${fmtCompact(totalSaved)}`}
-              </Text>
-            </View>
-          </GlassCard>
+            <GlassCard
+              dark={dark}
+              radius={22}
+              intensity={40}
+              style={[
+                styles.savedCard,
+                dark ? { borderColor: 'rgba(46,204,113,0.35)' } : { borderColor: 'transparent' },
+              ]}
+            >
+              <View style={[styles.savedInner, !dark && { backgroundColor: '#14c08a' }]}>
+                <MaterialCommunityIcons
+                  name="piggy-bank-outline"
+                  size={24}
+                  color={dark ? '#2ecc71' : '#fff'}
+                />
+                <Text style={[styles.savedLabel, { color: dark ? '#2ecc71' : 'rgba(255,255,255,0.9)' }]}>
+                  {t('LabelSaved')}
+                </Text>
+                <Text style={[styles.savedAmt, { color: dark ? '#e6edf3' : '#fff' }]}>
+                  {loadingSaved ? '—' : `${sym} ${fmtCompact(totalSaved)}`}
+                </Text>
+              </View>
+            </GlassCard>
+          </TouchableOpacity>
         </View>
 
         {/* ── Categories ───────────────────────────────────────────────────── */}

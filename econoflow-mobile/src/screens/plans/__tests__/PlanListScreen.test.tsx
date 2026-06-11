@@ -102,9 +102,11 @@ jest.mock('../../../hooks/usePlans', () => ({
 // ─── Navigation mock ──────────────────────────────────────────────────────────
 
 const mockNavigate = jest.fn();
+const mockParentNavigate = jest.fn();
 const mockNavigation = {
   navigate: mockNavigate,
   goBack: jest.fn(),
+  getParent: jest.fn(() => ({ navigate: mockParentNavigate })),
 } as unknown as React.ComponentProps<typeof PlanListScreen>['navigation'];
 
 const mockRoute = {
@@ -144,6 +146,7 @@ describe('PlanListScreen', () => {
   beforeEach(() => {
     mockNavigate.mockReset();
     mockArchiveMutate.mockReset();
+    mockParentNavigate.mockReset();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (jest.requireMock('../../../store/projectStore') as any).useProjectStore.mockReturnValue(makeProjectStore());
   });
@@ -203,5 +206,34 @@ describe('PlanListScreen', () => {
     await act(async () => { swipeAction(); });
 
     expect(mockArchiveMutate).toHaveBeenCalledWith('plan-1');
+  });
+
+  it('does not render header top-right create button', async () => {
+    await act(async () => {
+      render(<PlanListScreen navigation={mockNavigation} route={mockRoute} />);
+    });
+    expect(screen.queryByTestId('header-create-btn')).toBeNull();
+  });
+
+  it('renders a back button in the header', async () => {
+    await act(async () => {
+      render(<PlanListScreen navigation={mockNavigation} route={mockRoute} />);
+    });
+    expect(screen.getByTestId('header-back-btn')).toBeTruthy();
+  });
+
+  it('pressing back button navigates to Overview tab', async () => {
+    await act(async () => {
+      render(<PlanListScreen navigation={mockNavigation} route={mockRoute} />);
+    });
+    fireEvent.press(screen.getByTestId('header-back-btn'));
+    expect(mockParentNavigate).toHaveBeenCalledWith('Overview');
+  });
+
+  it('renders a spacer to keep the title centred', async () => {
+    await act(async () => {
+      render(<PlanListScreen navigation={mockNavigation} route={mockRoute} />);
+    });
+    expect(screen.getByTestId('header-title-spacer')).toBeTruthy();
   });
 });

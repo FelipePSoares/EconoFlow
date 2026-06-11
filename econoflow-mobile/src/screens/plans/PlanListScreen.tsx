@@ -5,7 +5,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { PlansStackParamList } from '../../navigation/PlansStackNavigator';
+import type { MainTabParamList } from '../../navigation/MainNavigator';
 import { useProjectStore } from '../../store/projectStore';
 import { usePlans, useArchivePlan } from '../../hooks/usePlans';
 import { PlanCard } from '../../components/plans/PlanCard';
@@ -44,17 +46,21 @@ export const PlanListScreen: React.FC<Props> = ({ navigation }) => {
     <GlassScreen dark={dark}>
       {/* ── Header ───────────────────────────────────────────────────── */}
       <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
+        <TouchableOpacity
+          onPress={() =>
+            navigation
+              .getParent<BottomTabNavigationProp<MainTabParamList>>()
+              ?.navigate('Overview')
+          }
+          style={[styles.headerBtn, { borderColor: dark ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.8)' }]}
+          activeOpacity={0.7}
+          testID="header-back-btn"
+        >
+          <MaterialCommunityIcons name="arrow-left" size={22} color={ink} />
+        </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: ink }]}>{t('PlanList')}</Text>
-        {canEdit && (
-          <TouchableOpacity
-            onPress={() => navigation.navigate('PlanForm', {})}
-            style={[styles.headerBtn, { borderColor: dark ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.8)' }]}
-            activeOpacity={0.7}
-            testID="header-create-btn"
-          >
-            <MaterialCommunityIcons name="plus" size={22} color={ink} />
-          </TouchableOpacity>
-        )}
+        {/* Spacer keeps title centred */}
+        <View style={styles.headerBtn} testID="header-title-spacer" />
       </View>
 
       {isError && !dismissedError && (
