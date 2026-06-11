@@ -116,10 +116,16 @@ jobs:
       run: dotnet build EasyFinance.Server/EasyFinance.Server.csproj --configuration Debug --no-restore
 
     - name: Restore test projects
-      run: dotnet restore EasyFinance.Domain.Tests/EasyFinance.Domain.Tests.csproj EasyFinance.Application.Tests/EasyFinance.Application.Tests.csproj EasyFinance.Server.Tests/EasyFinance.Server.Tests.csproj
+      run: |
+        dotnet restore EasyFinance.Domain.Tests/EasyFinance.Domain.Tests.csproj
+        dotnet restore EasyFinance.Application.Tests/EasyFinance.Application.Tests.csproj
+        dotnet restore EasyFinance.Server.Tests/EasyFinance.Server.Tests.csproj
 
     - name: Build test projects
-      run: dotnet build EasyFinance.Domain.Tests/EasyFinance.Domain.Tests.csproj EasyFinance.Application.Tests/EasyFinance.Application.Tests.csproj EasyFinance.Server.Tests/EasyFinance.Server.Tests.csproj --configuration Debug --no-restore
+      run: |
+        dotnet build EasyFinance.Domain.Tests/EasyFinance.Domain.Tests.csproj --configuration Debug --no-restore
+        dotnet build EasyFinance.Application.Tests/EasyFinance.Application.Tests.csproj --configuration Debug --no-restore
+        dotnet build EasyFinance.Server.Tests/EasyFinance.Server.Tests.csproj --configuration Debug --no-restore
 
     - name: Upload backend build outputs
       uses: actions/upload-artifact@v4
