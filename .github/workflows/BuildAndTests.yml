@@ -34,7 +34,7 @@ jobs:
 
     - name: Detect frontend changes in PR
       id: changes
-      uses: dorny/paths-filter@v3
+      uses: dorny/paths-filter@v4
       with:
         filters: |
           client:
@@ -244,7 +244,7 @@ jobs:
 
     - name: Detect mobile changes in PR
       id: mobile-changes
-      uses: dorny/paths-filter@v3
+      uses: dorny/paths-filter@v4
       with:
         filters: |
           mobile:
