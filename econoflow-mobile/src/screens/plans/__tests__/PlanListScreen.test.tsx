@@ -1,7 +1,14 @@
 import React from 'react';
-import { act, render, screen, fireEvent } from '@testing-library/react-native';
+import { act, render, screen, fireEvent, waitFor } from '@testing-library/react-native';
 import { PlanListScreen } from '../PlanListScreen';
 import type { Plan } from '../../../api/types';
+
+// ─── Sentry mock ──────────────────────────────────────────────────────────────
+
+const mockCaptureError = jest.fn();
+jest.mock('../../../monitoring/sentry', () => ({
+  captureError: (...args: unknown[]) => mockCaptureError(...args),
+}));
 
 // ─── UI infrastructure mocks ──────────────────────────────────────────────────
 
@@ -147,8 +154,22 @@ describe('PlanListScreen', () => {
     mockNavigate.mockReset();
     mockArchiveMutate.mockReset();
     mockParentNavigate.mockReset();
+    mockCaptureError.mockReset();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (jest.requireMock('../../../store/projectStore') as any).useProjectStore.mockReturnValue(makeProjectStore());
+    // reset usePlans to a default non-error state
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/usePlans') as any).usePlans.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+    // reset useArchivePlan to use the shared mockArchiveMutate
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/usePlans') as any).useArchivePlan.mockReturnValue({ mutate: mockArchiveMutate });
   });
 
   it('shows empty state when there are no plans', async () => {
@@ -175,7 +196,7 @@ describe('PlanListScreen', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const PlanCard = (jest.requireMock('../../../components/plans/PlanCard') as any).PlanCard;
     expect(PlanCard.mock.calls.length).toBeGreaterThan(0);
-    expect(PlanCard.mock.calls[0][0].plan.id).toBe('plan-1');
+    expect(PlanCard.mock.calls[PlanCard.mock.calls.length - 1][0].plan.id).toBe('plan-1');
   });
 
   it('navigates to PlanForm when create button is pressed', async () => {
@@ -202,10 +223,10 @@ describe('PlanListScreen', () => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const PlanCard = (jest.requireMock('../../../components/plans/PlanCard') as any).PlanCard;
-    const swipeAction: () => void = PlanCard.mock.calls[0][0].onSwipeAction;
+    const swipeAction: () => void = PlanCard.mock.calls[PlanCard.mock.calls.length - 1][0].onSwipeAction;
     await act(async () => { swipeAction(); });
 
-    expect(mockArchiveMutate).toHaveBeenCalledWith('plan-1');
+    expect(mockArchiveMutate).toHaveBeenCalledWith('plan-1', expect.objectContaining({ onError: expect.any(Function) }));
   });
 
   it('does not render header top-right create button', async () => {
@@ -235,5 +256,66 @@ describe('PlanListScreen', () => {
       render(<PlanListScreen navigation={mockNavigation} route={mockRoute} />);
     });
     expect(screen.getByTestId('header-title-spacer')).toBeTruthy();
+  });
+
+  it('calls captureError when usePlans query returns an error', async () => {
+    const fetchError = new Error('network error');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/usePlans') as any).usePlans.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isFetching: false,
+      isError: true,
+      error: fetchError,
+      refetch: jest.fn(),
+    });
+
+    await act(async () => {
+      render(<PlanListScreen navigation={mockNavigation} route={mockRoute} />);
+    });
+
+    await waitFor(() =>
+      expect(mockCaptureError).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({ screen: 'PlanListScreen', action: 'fetchPlans' }),
+      ),
+    );
+  });
+
+  it('calls captureError when archivePlan mutation fails', async () => {
+    const archiveError = new Error('archive failed');
+    const mockMutateWithError = jest.fn().mockImplementation((_id, opts) => {
+      opts?.onError?.(archiveError);
+    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/usePlans') as any).usePlans.mockReturnValue({
+      data: [MOCK_PLAN],
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/usePlans') as any).useArchivePlan.mockReturnValue({
+      mutate: mockMutateWithError,
+    });
+
+    await act(async () => {
+      render(<PlanListScreen navigation={mockNavigation} route={mockRoute} />);
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const PlanCard = (jest.requireMock('../../../components/plans/PlanCard') as any).PlanCard;
+    const lastCall = PlanCard.mock.calls[PlanCard.mock.calls.length - 1];
+    const swipeAction: () => void = lastCall[0].onSwipeAction;
+    await act(async () => { swipeAction(); });
+
+    await waitFor(() =>
+      expect(mockCaptureError).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({ screen: 'PlanListScreen', action: 'archivePlan' }),
+      ),
+    );
   });
 });

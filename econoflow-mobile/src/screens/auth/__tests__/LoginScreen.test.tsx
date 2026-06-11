@@ -1,13 +1,9 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { RegisterScreen } from '../RegisterScreen';
+import { LoginScreen } from '../LoginScreen';
 
 // ─── UI infrastructure mocks ─────────────────────────────────────────────────
-
-jest.mock('@expo/vector-icons', () => ({
-  MaterialCommunityIcons: 'MaterialCommunityIcons',
-}));
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (k: string) => k }),
@@ -88,30 +84,16 @@ jest.mock('react-native-paper', () => {
   };
 });
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(),
-}));
-
 // ─── API / store mocks ────────────────────────────────────────────────────────
 
-const mockRegister = jest.fn();
 const mockMobileLogin = jest.fn();
 const mockGetCurrentUser = jest.fn();
 const mockSetTokens = jest.fn();
 const mockSetUser = jest.fn();
 
 jest.mock('../../../api/auth.api', () => ({
-  register: (...args: unknown[]) => mockRegister(...args),
   mobileLogin: (...args: unknown[]) => mockMobileLogin(...args),
   getCurrentUser: (...args: unknown[]) => mockGetCurrentUser(...args),
-}));
-
-// ─── Sentry mock ─────────────────────────────────────────────────────────────
-
-const mockCaptureError = jest.fn();
-
-jest.mock('../../../monitoring/sentry', () => ({
-  captureError: (...args: unknown[]) => mockCaptureError(...args),
 }));
 
 jest.mock('../../../store/authStore', () => ({
@@ -126,13 +108,21 @@ jest.mock('../../../i18n', () => ({
   default: { changeLanguage: jest.fn() },
 }));
 
+// ─── Sentry mock ─────────────────────────────────────────────────────────────
+
+const mockCaptureError = jest.fn();
+
+jest.mock('../../../monitoring/sentry', () => ({
+  captureError: (...args: unknown[]) => mockCaptureError(...args),
+}));
+
 // ─── Navigation mock ──────────────────────────────────────────────────────────
 
 const mockNavigate = jest.fn();
 
 const mockNavigation = {
   navigate: mockNavigate,
-} as unknown as React.ComponentProps<typeof RegisterScreen>['navigation'];
+} as unknown as React.ComponentProps<typeof LoginScreen>['navigation'];
 
 // ─── Test helpers ─────────────────────────────────────────────────────────────
 
@@ -144,25 +134,21 @@ const createQueryClient = () =>
     },
   });
 
-const renderScreen = async (queryClient: QueryClient) =>
-  render(
+const renderScreen = async (queryClient: QueryClient) => {
+  await render(
     <QueryClientProvider client={queryClient}>
-      <RegisterScreen navigation={mockNavigation} />
+      <LoginScreen navigation={mockNavigation} />
     </QueryClientProvider>,
   );
+};
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
-describe('RegisterScreen — auto-login after registration', () => {
+describe('LoginScreen', () => {
   let queryClient: QueryClient;
-
-  afterEach(() => {
-    queryClient.clear();
-  });
 
   beforeEach(() => {
     queryClient = createQueryClient();
-    mockRegister.mockReset();
     mockMobileLogin.mockReset();
     mockGetCurrentUser.mockReset();
     mockSetTokens.mockReset();
@@ -171,49 +157,19 @@ describe('RegisterScreen — auto-login after registration', () => {
     mockCaptureError.mockReset();
   });
 
-  const fillAndSubmitForm = async () => {
+  const fillAndSubmit = async () => {
     await fireEvent.changeText(screen.getByTestId('FieldEmailAddress'), 'user@example.com');
     await fireEvent.changeText(screen.getByTestId('FieldPassword'), 'Passw0rd!');
-    await fireEvent.changeText(screen.getByTestId('FieldConfirmPassword'), 'Passw0rd!');
-    await fireEvent.press(screen.getByTestId('ButtonRegister'));
+    await fireEvent.press(screen.getByTestId('ButtonSignIn'));
   };
 
-  it('does not show a "Check your email" success state after registration', async () => {
-    mockRegister.mockResolvedValue({ data: {} });
-    mockMobileLogin.mockResolvedValue({ data: { accessToken: 'at', refreshToken: 'rt' } });
-    mockGetCurrentUser.mockResolvedValue({ data: { id: 'u1', firstName: '', languageCode: 'en' } });
-
-    await renderScreen(queryClient);
-    await fillAndSubmitForm();
-
-    await waitFor(() => expect(mockMobileLogin).toHaveBeenCalled());
-    expect(screen.queryByText('LabelCheckYourEmail')).toBeNull();
-  });
-
-  it('calls mobileLogin with the same credentials after successful registration', async () => {
-    mockRegister.mockResolvedValue({ data: {} });
-    mockMobileLogin.mockResolvedValue({ data: { accessToken: 'at', refreshToken: 'rt' } });
-    mockGetCurrentUser.mockResolvedValue({ data: { id: 'u1', firstName: '', languageCode: 'en' } });
-
-    await renderScreen(queryClient);
-    await fillAndSubmitForm();
-
-    await waitFor(() =>
-      expect(mockMobileLogin).toHaveBeenCalledWith({
-        email: 'user@example.com',
-        password: 'Passw0rd!',
-      }),
-    );
-  });
-
-  it('saves tokens and user when auto-login succeeds', async () => {
-    const mockUser = { id: 'u1', firstName: '', languageCode: 'en' };
-    mockRegister.mockResolvedValue({ data: {} });
+  it('saves tokens and user on successful login', async () => {
+    const mockUser = { id: 'u1', firstName: 'Test', languageCode: 'en' };
     mockMobileLogin.mockResolvedValue({ data: { accessToken: 'at', refreshToken: 'rt' } });
     mockGetCurrentUser.mockResolvedValue({ data: mockUser });
 
     await renderScreen(queryClient);
-    await fillAndSubmitForm();
+    await fillAndSubmit();
 
     await waitFor(() => {
       expect(mockSetTokens).toHaveBeenCalledWith('at', 'rt');
@@ -221,12 +177,11 @@ describe('RegisterScreen — auto-login after registration', () => {
     });
   });
 
-  it('navigates to TwoFactor when auto-login returns requiresTwoFactor', async () => {
-    mockRegister.mockResolvedValue({ data: {} });
+  it('navigates to TwoFactor when requiresTwoFactor is true in response data', async () => {
     mockMobileLogin.mockResolvedValue({ data: { requiresTwoFactor: true } });
 
     await renderScreen(queryClient);
-    await fillAndSubmitForm();
+    await fillAndSubmit();
 
     await waitFor(() =>
       expect(mockNavigate).toHaveBeenCalledWith('TwoFactor', {
@@ -236,67 +191,98 @@ describe('RegisterScreen — auto-login after registration', () => {
     );
   });
 
-  it('shows error banner with sign-in link when auto-login fails', async () => {
-    mockRegister.mockResolvedValue({ data: {} });
-    mockMobileLogin.mockRejectedValue(new Error('server error'));
+  it('navigates to TwoFactor when requiresTwoFactor is true in error response', async () => {
+    mockMobileLogin.mockRejectedValue({
+      response: { data: { requiresTwoFactor: true } },
+    });
 
     await renderScreen(queryClient);
-    await fillAndSubmitForm();
-
-    await waitFor(() => expect(screen.queryByText('ErrorAutoLoginFailed')).toBeTruthy());
-    expect(screen.queryByText('ButtonSignIn')).toBeTruthy();
-  });
-
-  it('shows registration error when register API call fails', async () => {
-    mockRegister.mockRejectedValue(new Error('server error'));
-
-    await renderScreen(queryClient);
-    await fillAndSubmitForm();
-
-    await waitFor(() => expect(screen.queryByText('ErrorRegistrationFailed')).toBeTruthy());
-  });
-
-  it('captures error to Sentry when register API call fails', async () => {
-    const error = new Error('network error');
-    mockRegister.mockRejectedValue(error);
-
-    await renderScreen(queryClient);
-    await fillAndSubmitForm();
+    await fillAndSubmit();
 
     await waitFor(() =>
-      expect(mockCaptureError).toHaveBeenCalledWith(
-        error,
-        expect.objectContaining({ screen: 'RegisterScreen', action: 'register' }),
-      ),
+      expect(mockNavigate).toHaveBeenCalledWith('TwoFactor', {
+        email: 'user@example.com',
+        password: 'Passw0rd!',
+      }),
     );
   });
 
-  it('captures error to Sentry when auto-login fails after registration', async () => {
-    const error = new Error('login failed');
-    mockRegister.mockResolvedValue({ data: {} });
+  it('shows error when login fails with non-2FA error', async () => {
+    mockMobileLogin.mockRejectedValue(new Error('invalid credentials'));
+
+    await renderScreen(queryClient);
+    await fillAndSubmit();
+
+    await waitFor(() =>
+      expect(screen.queryByText('ErrorInvalidCredentials')).toBeTruthy(),
+    );
+  });
+
+  it('captures error to Sentry when login mutation fails (non-2FA)', async () => {
+    const error = new Error('server error');
     mockMobileLogin.mockRejectedValue(error);
 
     await renderScreen(queryClient);
-    await fillAndSubmitForm();
+    await fillAndSubmit();
 
     await waitFor(() =>
       expect(mockCaptureError).toHaveBeenCalledWith(
         error,
-        expect.objectContaining({ screen: 'RegisterScreen', action: 'autoLogin' }),
+        expect.objectContaining({ screen: 'LoginScreen', action: 'login' }),
       ),
     );
   });
 
-  it('does not capture error to Sentry when auto-login redirects to TwoFactor', async () => {
-    mockRegister.mockResolvedValue({ data: {} });
-    mockMobileLogin.mockResolvedValue({ data: { requiresTwoFactor: true } });
+  it('does NOT capture error to Sentry when login redirects to TwoFactor via error response', async () => {
+    mockMobileLogin.mockRejectedValue({
+      response: { data: { requiresTwoFactor: true } },
+    });
 
     await renderScreen(queryClient);
-    await fillAndSubmitForm();
+    await fillAndSubmit();
 
     await waitFor(() =>
       expect(mockNavigate).toHaveBeenCalledWith('TwoFactor', expect.any(Object)),
     );
+    expect(mockCaptureError).not.toHaveBeenCalled();
+  });
+
+  it('does NOT capture error to Sentry when login redirects to TwoFactor via success response', async () => {
+    mockMobileLogin.mockResolvedValue({ data: { requiresTwoFactor: true } });
+
+    await renderScreen(queryClient);
+    await fillAndSubmit();
+
+    await waitFor(() =>
+      expect(mockNavigate).toHaveBeenCalledWith('TwoFactor', expect.any(Object)),
+    );
+    expect(mockCaptureError).not.toHaveBeenCalled();
+  });
+
+  it('captures error to Sentry when getCurrentUser fails silently', async () => {
+    const fetchError = new Error('profile fetch failed');
+    mockMobileLogin.mockResolvedValue({ data: { accessToken: 'at', refreshToken: 'rt' } });
+    mockGetCurrentUser.mockRejectedValue(fetchError);
+
+    await renderScreen(queryClient);
+    await fillAndSubmit();
+
+    await waitFor(() =>
+      expect(mockCaptureError).toHaveBeenCalledWith(
+        fetchError,
+        expect.objectContaining({ screen: 'LoginScreen', action: 'fetchCurrentUser' }),
+      ),
+    );
+  });
+
+  it('does NOT capture error to Sentry on successful login with profile', async () => {
+    mockMobileLogin.mockResolvedValue({ data: { accessToken: 'at', refreshToken: 'rt' } });
+    mockGetCurrentUser.mockResolvedValue({ data: { id: 'u1', firstName: '', languageCode: 'en' } });
+
+    await renderScreen(queryClient);
+    await fillAndSubmit();
+
+    await waitFor(() => expect(mockSetTokens).toHaveBeenCalled());
     expect(mockCaptureError).not.toHaveBeenCalled();
   });
 });

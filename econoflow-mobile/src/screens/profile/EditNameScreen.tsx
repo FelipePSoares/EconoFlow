@@ -12,6 +12,7 @@ import { ErrorBanner } from '../../components/common/ErrorBanner';
 import { AuroraField } from '../../components/auth/AuroraField';
 import { AuroraPrimaryButton } from '../../components/auth/AuroraPrimaryButton';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
+import { captureError } from '../../monitoring/sentry';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'EditName'>;
 
@@ -54,7 +55,8 @@ export const EditNameScreen: React.FC<Props> = ({ navigation }) => {
         { op: 'replace', path: '/lastName', value: lastName.trim() },
       ]);
       navigation.goBack();
-    } catch {
+    } catch (err) {
+      captureError(err, { screen: 'EditNameScreen', action: 'updateProfile' });
       setApiError(t('ErrorProfileUpdateFailed') ?? 'Failed to update your profile. Please try again.');
     }
   };

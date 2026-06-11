@@ -17,6 +17,7 @@ import { AuroraPrimaryButton } from '../../components/auth/AuroraPrimaryButton';
 import { GlassCard } from '../../components/common/GlassCard';
 import { GlassScreen } from '../../components/common/GlassScreen';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
+import { captureError } from '../../monitoring/sentry';
 
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'Register'>;
@@ -76,10 +77,14 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
           navigation.navigate('TwoFactor', { email: variables.email, password: variables.password });
           return;
         }
+        captureError(err, { screen: 'RegisterScreen', action: 'autoLogin' });
         setAutoLoginFailed(true);
       }
     },
-    onError: () => setServerError(t('ErrorRegistrationFailed')),
+    onError: (error) => {
+      captureError(error, { screen: 'RegisterScreen', action: 'register' });
+      setServerError(t('ErrorRegistrationFailed'));
+    },
   });
 
   if (autoLoginFailed) {

@@ -137,6 +137,13 @@ jest.mock('expo-linear-gradient', () => {
   };
 });
 
+// ─── Sentry mock ─────────────────────────────────────────────────────────────
+
+const mockCaptureError = jest.fn();
+jest.mock('../../../monitoring/sentry', () => ({
+  captureError: (...args: unknown[]) => mockCaptureError(...args),
+}));
+
 // ─── Store / hook mocks ───────────────────────────────────────────────────────
 
 const mockMutateAsync = jest.fn();
@@ -197,6 +204,7 @@ describe('CreateProjectScreen', () => {
     mockSetSelectedProject.mockReset();
     getPutTaxYearMock().mockReset();
     mockAuthHero.mockClear();
+    mockCaptureError.mockReset();
   });
 
   it('shows required field error when name is empty on submit', async () => {
@@ -262,6 +270,23 @@ describe('CreateProjectScreen', () => {
     await fireEvent.press(screen.getByTestId('ButtonCreate'));
 
     expect(await screen.findByTestId('error-banner', {}, { timeout: 3000 })).toBeTruthy();
+  });
+
+  it('calls captureError when createProject API call fails', async () => {
+    const err = new Error('Network error');
+    mockMutateAsync.mockRejectedValue(err);
+
+    await render(<CreateProjectScreen navigation={mockNavigation} />);
+
+    await fireEvent.changeText(screen.getByTestId('PlaceholderProjectName'), 'My Budget');
+    await fireEvent.press(screen.getByTestId('ButtonCreate'));
+
+    await waitFor(() => {
+      expect(mockCaptureError).toHaveBeenCalledWith(
+        err,
+        { screen: 'CreateProjectScreen', action: 'createProject' },
+      );
+    });
   });
 
   it('calls goBack when cancel is pressed (non-onboarding context)', async () => {

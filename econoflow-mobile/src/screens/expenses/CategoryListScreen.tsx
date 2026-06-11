@@ -26,6 +26,7 @@ import {
   calculateRemainingBudget,
 } from '../../utils/budget';
 import { getCurrencySymbol } from '../../utils/currency';
+import { captureError } from '../../monitoring/sentry';
 
 type Props = NativeStackScreenProps<OverviewStackParamList, 'CategoryList'>;
 
@@ -48,10 +49,14 @@ export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
   }, [month, isFocused, setViewedMonth]);
   const projectId = selectedProject?.project.id ?? '';
 
-  const { data: categories, isLoading, isFetching, isError, refetch } =
+  const { data: categories, isLoading, isFetching, isError, error: categoriesError, refetch } =
     useCategoriesForMonth(projectId, month);
   const archiveCategory   = useArchiveCategory(projectId, month);
   const unarchiveCategory = useUnarchiveCategory(projectId, month);
+
+  useEffect(() => {
+    if (categoriesError) captureError(categoriesError, { screen: 'CategoryListScreen', action: 'fetchCategories' });
+  }, [categoriesError]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -144,7 +149,9 @@ export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
             index={index}
             dark={dark}
             onSwipeAction={() => {
-              archiveCategory.mutate(item.id);
+              archiveCategory.mutate(item.id, {
+                onError: (err) => captureError(err, { screen: 'CategoryListScreen', action: 'archiveCategory' }),
+              });
               setUndoState({ visible: true, id: item.id });
             }}
             swipeActionColor={ink2}
@@ -172,7 +179,11 @@ export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
         visible={undoState.visible}
         message={t('LabelUndoArchive')}
         onUndo={() => {
-          if (undoState.id) unarchiveCategory.mutate(undoState.id);
+          if (undoState.id) {
+            unarchiveCategory.mutate(undoState.id, {
+              onError: (err) => captureError(err, { screen: 'CategoryListScreen', action: 'unarchiveCategory' }),
+            });
+          }
         }}
         onDismiss={() => setUndoState({ visible: false, id: null })}
       />

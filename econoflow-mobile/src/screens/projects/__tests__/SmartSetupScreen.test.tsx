@@ -134,6 +134,13 @@ jest.mock('../../../store/projectStore', () => ({
   useProjectStore: jest.fn(() => ({ currency: 'EUR' })),
 }));
 
+// ─── Sentry mock ─────────────────────────────────────────────────────────────
+
+const mockCaptureError = jest.fn();
+jest.mock('../../../monitoring/sentry', () => ({
+  captureError: (...args: unknown[]) => mockCaptureError(...args),
+}));
+
 // ─── Hook mocks ───────────────────────────────────────────────────────────────
 
 const MOCK_CATEGORIES: DefaultCategory[] = [
@@ -194,6 +201,7 @@ describe('SmartSetupScreen', () => {
     mockParentNavigate.mockReset();
     (CommonActions.reset as jest.Mock).mockClear();
     useUIStore.setState({ hideTabBar: false });
+    mockCaptureError.mockReset();
   });
 
   it('renders step 1 with annual income field by default', async () => {
@@ -350,6 +358,23 @@ describe('SmartSetupScreen', () => {
     await fireEvent.press(screen.getByTestId('SmartSetupFinish'));
 
     expect(await screen.findByTestId('error-banner', {}, { timeout: 3000 })).toBeTruthy();
+  });
+
+  it('calls captureError when Finish API call fails', async () => {
+    const err = new Error('Server error');
+    mockMutateAsync.mockRejectedValue(err);
+
+    await render(<SmartSetupScreen navigation={mockNavigation} route={mockRoute} />);
+
+    await goToStep3();
+    await fireEvent.press(screen.getByTestId('SmartSetupFinish'));
+
+    await waitFor(() => {
+      expect(mockCaptureError).toHaveBeenCalledWith(
+        err,
+        { screen: 'SmartSetupScreen', action: 'smartSetup' },
+      );
+    });
   });
 
   it('Skip on step 2 navigates to Overview', async () => {

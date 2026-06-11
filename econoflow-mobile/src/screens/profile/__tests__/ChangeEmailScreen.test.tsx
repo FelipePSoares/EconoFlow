@@ -2,6 +2,13 @@ import React from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { ChangeEmailScreen } from '../ChangeEmailScreen';
 
+// ─── Sentry mock ──────────────────────────────────────────────────────────────
+
+const mockCaptureError = jest.fn();
+jest.mock('../../../monitoring/sentry', () => ({
+  captureError: (...args: unknown[]) => mockCaptureError(...args),
+}));
+
 // ─── UI infrastructure mocks ─────────────────────────────────────────────────
 
 jest.mock('@expo/vector-icons', () => ({
@@ -145,6 +152,7 @@ describe('ChangeEmailScreen', () => {
     // Default: never resolve — prevents accidental success state
     mockMutateAsync.mockImplementation(() => new Promise(() => {}));
     mockGoBack.mockReset();
+    mockCaptureError.mockReset();
   });
 
   it('pre-fills the email field with the current user email', async () => {
@@ -188,5 +196,16 @@ describe('ChangeEmailScreen', () => {
     await changeText('PlaceholderEmailAddress', 'new@example.com');
     await pressButton('ButtonSave');
     await waitFor(() => { expect(screen.queryByTestId('error-banner')).toBeTruthy(); });
+  });
+
+  it('calls captureError when API fails', async () => {
+    const err = new Error('Network error');
+    mockMutateAsync.mockRejectedValue(err);
+    await render(<ChangeEmailScreen navigation={mockNavigation} route={mockRoute} />);
+    await changeText('PlaceholderEmailAddress', 'new@example.com');
+    await pressButton('ButtonSave');
+    await waitFor(() => {
+      expect(mockCaptureError).toHaveBeenCalledWith(err, { screen: 'ChangeEmailScreen', action: 'changeEmail' });
+    });
   });
 });

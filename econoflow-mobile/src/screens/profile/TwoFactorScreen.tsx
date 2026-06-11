@@ -17,6 +17,7 @@ import { ErrorBanner } from '../../components/common/ErrorBanner';
 import { AuroraField } from '../../components/auth/AuroraField';
 import { AuroraPrimaryButton } from '../../components/auth/AuroraPrimaryButton';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
+import { captureError } from '../../monitoring/sentry';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'TwoFactorSetup'>;
 
@@ -56,7 +57,8 @@ export const TwoFactorScreen: React.FC<Props> = ({ navigation }) => {
       const result = await enableMutation.mutateAsync({ code: code.trim() });
       setRecoveryCodes(result.recoveryCodes ?? []);
       setCode('');
-    } catch {
+    } catch (err) {
+      captureError(err, { screen: 'ProfileTwoFactorScreen', action: 'enableTwoFactor' });
       setApiError(t('ErrorGeneric') ?? 'Something went wrong. Please try again.');
     }
   };
@@ -84,7 +86,8 @@ export const TwoFactorScreen: React.FC<Props> = ({ navigation }) => {
     try {
       await disableMutation.mutateAsync({ password, twoFactorCode: code.trim() });
       navigation.goBack();
-    } catch {
+    } catch (err) {
+      captureError(err, { screen: 'ProfileTwoFactorScreen', action: 'disableTwoFactor' });
       setApiError(t('ErrorGeneric') ?? 'Something went wrong. Please try again.');
     } finally {
       setPassword('');

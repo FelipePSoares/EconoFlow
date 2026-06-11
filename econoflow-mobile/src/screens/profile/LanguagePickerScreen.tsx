@@ -13,6 +13,7 @@ import { GlassCard } from '../../components/common/GlassCard';
 import { ErrorBanner } from '../../components/common/ErrorBanner';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
 import i18n from '../../i18n';
+import { captureError } from '../../monitoring/sentry';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'LanguagePicker'>;
 
@@ -36,7 +37,8 @@ export const LanguagePickerScreen: React.FC<Props> = ({ navigation: _navigation 
     try {
       await mutateAsync([{ op: 'replace', path: '/languageCode', value: code }]);
       i18n.changeLanguage(code);
-    } catch {
+    } catch (err) {
+      captureError(err, { screen: 'LanguagePickerScreen', action: 'updateLanguage' });
       setApiError(t('ErrorGeneric') ?? 'Something went wrong. Please try again.');
     }
   };

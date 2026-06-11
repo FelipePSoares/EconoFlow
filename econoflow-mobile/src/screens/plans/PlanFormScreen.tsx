@@ -17,6 +17,7 @@ import { useAuroraSkin } from '../../theme/useAuroraSkin';
 import { useAppTheme } from '../../theme/useAppTheme';
 import { extractApiErrors } from '../../utils/apiErrors';
 import { buildPatch } from '../../utils/patch';
+import { captureError } from '../../monitoring/sentry';
 
 type PlanType = 'Savings' | 'EmergencyReserve';
 
@@ -100,14 +101,26 @@ export const PlanFormScreen: React.FC<Props> = ({ route, navigation }) => {
       if (isEdit && planId) {
         const ops = buildPatch({ name: name.trim(), targetAmount: amount } as Record<string, unknown>);
         await new Promise<void>((resolve, reject) => {
-          patchPlan.mutate(ops, { onSuccess: () => resolve(), onError: (err) => reject(err) });
+          patchPlan.mutate(ops, {
+            onSuccess: () => resolve(),
+            onError: (err) => {
+              captureError(err, { screen: 'PlanFormScreen', action: 'updatePlan' });
+              reject(err);
+            },
+          });
         });
         navigation.goBack();
       } else {
         await new Promise<void>((resolve, reject) => {
           createPlan.mutate(
             { type: selectedType, name: name.trim(), targetAmount: amount },
-            { onSuccess: () => resolve(), onError: (err) => reject(err) },
+            {
+              onSuccess: () => resolve(),
+              onError: (err) => {
+                captureError(err, { screen: 'PlanFormScreen', action: 'createPlan' });
+                reject(err);
+              },
+            },
           );
         });
         navigation.goBack();

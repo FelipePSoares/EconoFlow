@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FlatList, StyleSheet, TouchableOpacity, View, RefreshControl } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,6 +16,7 @@ import { ErrorBanner } from '../../components/common/ErrorBanner';
 import { GlassScreen } from '../../components/common/GlassScreen';
 import { AuroraPrimaryButton } from '../../components/auth/AuroraPrimaryButton';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
+import { captureError } from '../../monitoring/sentry';
 
 type Props = NativeStackScreenProps<PlansStackParamList, 'PlanList'>;
 
@@ -29,8 +30,12 @@ export const PlanListScreen: React.FC<Props> = ({ navigation }) => {
   const canEdit = selectedProject?.role !== 'Viewer';
   const projectId = selectedProject?.project.id ?? '';
 
-  const { data: plans, isLoading, isFetching, isError, refetch } = usePlans(projectId);
+  const { data: plans, isLoading, isFetching, isError, error: plansError, refetch } = usePlans(projectId);
   const archivePlan = useArchivePlan(projectId);
+
+  useEffect(() => {
+    if (plansError) captureError(plansError, { screen: 'PlanListScreen', action: 'fetchPlans' });
+  }, [plansError]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -82,7 +87,9 @@ export const PlanListScreen: React.FC<Props> = ({ navigation }) => {
             dark={dark}
             onPress={() => navigation.navigate('PlanDetail', { planId: item.id, planName: item.name })}
             onSwipeAction={canEdit ? () => {
-              archivePlan.mutate(item.id);
+              archivePlan.mutate(item.id, {
+                onError: (err) => captureError(err, { screen: 'PlanListScreen', action: 'archivePlan' }),
+              });
             } : undefined}
             swipeDisabled={!canEdit}
           />

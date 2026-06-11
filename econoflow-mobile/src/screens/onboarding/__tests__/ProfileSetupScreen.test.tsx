@@ -109,6 +109,13 @@ jest.mock('../../../i18n', () => ({
   default: { language: 'en', changeLanguage: jest.fn() },
 }));
 
+// ─── Sentry mock ─────────────────────────────────────────────────────────────
+
+const mockCaptureError = jest.fn();
+jest.mock('../../../monitoring/sentry', () => ({
+  captureError: (...args: unknown[]) => mockCaptureError(...args),
+}));
+
 // ─── Hook / store mocks ───────────────────────────────────────────────────────
 
 const mockMutateAsync = jest.fn();
@@ -145,6 +152,7 @@ describe('ProfileSetupScreen', () => {
     mockMutateAsync.mockReset();
     mockNavigate.mockReset();
     mockSetOpenCreateProjectOnStart.mockReset();
+    mockCaptureError.mockReset();
   });
 
   it('renders first name, last name, and language fields', async () => {
@@ -229,6 +237,24 @@ describe('ProfileSetupScreen', () => {
 
     await waitFor(() => {
       expect(mockSetOpenCreateProjectOnStart).toHaveBeenCalledWith(false);
+    });
+  });
+
+  it('calls captureError when patchUser API fails', async () => {
+    const err = new Error('Network error');
+    mockMutateAsync.mockRejectedValue(err);
+
+    await render(<ProfileSetupScreen navigation={mockNavigation} />);
+
+    await fireEvent.changeText(screen.getByTestId('PlaceholderFirstName'), 'John');
+    await fireEvent.changeText(screen.getByTestId('PlaceholderLastName'), 'Doe');
+    await fireEvent.press(screen.getByTestId('ButtonSaveAndContinue'));
+
+    await waitFor(() => {
+      expect(mockCaptureError).toHaveBeenCalledWith(
+        err,
+        { screen: 'ProfileSetupScreen', action: 'setupProfile' },
+      );
     });
   });
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FlatList, StyleSheet, TouchableOpacity, View, RefreshControl } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,6 +18,7 @@ import { AuroraPrimaryButton } from '../../components/auth/AuroraPrimaryButton';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
 import { useAppTheme } from '../../theme/useAppTheme';
 import { getCurrencySymbol } from '../../utils/currency';
+import { captureError } from '../../monitoring/sentry';
 
 type Props = NativeStackScreenProps<PlansStackParamList, 'PlanDetail'>;
 
@@ -34,15 +35,24 @@ export const PlanDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const { planId, planName } = route.params;
   const sym = getCurrencySymbol(currency);
 
-  const { data: plans } = usePlans(projectId);
+  const { data: plans, error: plansError } = usePlans(projectId);
   const plan = (plans ?? []).find((p) => p.id === planId);
 
   const {
     data: entries,
     isLoading,
     isError,
+    error: entriesError,
     refetch,
   } = usePlanEntries(projectId, planId);
+
+  useEffect(() => {
+    if (plansError) captureError(plansError, { screen: 'PlanDetailScreen', action: 'fetchPlans' });
+  }, [plansError]);
+
+  useEffect(() => {
+    if (entriesError) captureError(entriesError, { screen: 'PlanDetailScreen', action: 'fetchPlanEntries' });
+  }, [entriesError]);
 
   const onRefresh = async () => {
     setRefreshing(true);

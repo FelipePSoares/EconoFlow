@@ -10,6 +10,7 @@ import { useProjectStore } from '../../store/projectStore';
 import { useCreateIncome, usePatchIncome } from '../../hooks/useIncomes';
 import { toDateOnly, fromDateOnly, currentMonth } from '../../utils/date';
 import { buildPatch } from '../../utils/patch';
+import { captureError } from '../../monitoring/sentry';
 
 type Props = NativeStackScreenProps<OverviewStackParamList, 'IncomeForm'>;
 
@@ -50,10 +51,12 @@ export const IncomeFormScreen: React.FC<Props> = ({ route, navigation }) => {
     if (isEdit) {
       patchIncome.mutate(buildPatch(parsed as Record<string, unknown>), {
         onSuccess: () => navigation.goBack(),
+        onError: (error) => captureError(error, { screen: 'IncomeFormScreen', action: 'updateIncome' }),
       });
     } else {
       createIncome.mutate(parsed, {
         onSuccess: () => navigation.goBack(),
+        onError: (error) => captureError(error, { screen: 'IncomeFormScreen', action: 'createIncome' }),
       });
     }
   };

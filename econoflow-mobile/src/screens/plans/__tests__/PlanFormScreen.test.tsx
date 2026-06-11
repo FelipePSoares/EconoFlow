@@ -1,7 +1,14 @@
 import React from 'react';
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { PlanFormScreen } from '../PlanFormScreen';
 import type { Plan } from '../../../api/types';
+
+// ─── Sentry mock ──────────────────────────────────────────────────────────────
+
+const mockCaptureError = jest.fn();
+jest.mock('../../../monitoring/sentry', () => ({
+  captureError: (...args: unknown[]) => mockCaptureError(...args),
+}));
 
 // ─── UI infrastructure mocks ──────────────────────────────────────────────────
 
@@ -144,6 +151,7 @@ describe('PlanFormScreen', () => {
   beforeEach(() => {
     mockNavigate.mockReset();
     mockGoBack.mockReset();
+    mockCaptureError.mockReset();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (jest.requireMock('../../../store/projectStore') as any).useProjectStore.mockReturnValue({
       selectedProject: {
@@ -153,6 +161,13 @@ describe('PlanFormScreen', () => {
       },
       currency: 'EUR',
     });
+    // reset hooks to defaults
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/usePlans') as any).usePlans.mockReturnValue({ data: [] });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/usePlans') as any).useCreatePlan.mockReturnValue({ mutate: jest.fn(), isPending: false });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/usePlans') as any).usePatchPlan.mockReturnValue({ mutate: jest.fn(), isPending: false });
   });
 
   it('shows CreatePlan title in create mode', async () => {
@@ -219,5 +234,60 @@ describe('PlanFormScreen', () => {
       expect.objectContaining({ onSuccess: expect.any(Function) }),
     );
     expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('calls captureError when createPlan mutation fails', async () => {
+    const createError = new Error('create failed');
+    const mockMutate = jest.fn().mockImplementation((_data, { onError }) => onError(createError));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/usePlans') as any).useCreatePlan.mockReturnValue({
+      mutate: mockMutate,
+      isPending: false,
+    });
+
+    await act(async () => {
+      render(<PlanFormScreen navigation={mockNavigation} route={makeCreateRoute()} />);
+    });
+
+    await act(async () => {
+      fireEvent.changeText(screen.getByTestId('field-PlanName'), 'Test Plan');
+      fireEvent.changeText(screen.getByTestId('field-0'), '500');
+    });
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('btn-ButtonSave'));
+    });
+
+    await waitFor(() =>
+      expect(mockCaptureError).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({ screen: 'PlanFormScreen', action: 'createPlan' }),
+      ),
+    );
+  });
+
+  it('calls captureError when patchPlan mutation fails', async () => {
+    const patchError = new Error('patch failed');
+    const mockMutate = jest.fn().mockImplementation((_ops, { onError }) => onError(patchError));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/usePlans') as any).usePatchPlan.mockReturnValue({
+      mutate: mockMutate,
+      isPending: false,
+    });
+
+    await act(async () => {
+      render(<PlanFormScreen navigation={mockNavigation} route={makeEditRoute('plan-1')} />);
+    });
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('btn-ButtonSave'));
+    });
+
+    await waitFor(() =>
+      expect(mockCaptureError).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({ screen: 'PlanFormScreen', action: 'updatePlan' }),
+      ),
+    );
   });
 });
