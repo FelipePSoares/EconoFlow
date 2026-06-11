@@ -26,7 +26,7 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Cache node_modules
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ./easyfinance.client/node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
@@ -97,7 +97,7 @@ jobs:
 
     - name: Cache mobile node_modules
       if: steps.mobile-changes.outputs.mobile == 'true'
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ./econoflow-mobile/node_modules
         key: mobile-node-modules-${{ runner.os }}-${{ hashFiles('./econoflow-mobile/package-lock.json') }}
@@ -114,7 +114,7 @@ jobs:
 
     - name: Cache Gradle
       if: steps.mobile-changes.outputs.mobile == 'true'
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: |
           ~/.gradle/caches

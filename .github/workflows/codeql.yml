@@ -48,14 +48,14 @@ jobs:
 
     - name: Cache node_modules
       if: matrix.language == 'csharp'
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ./easyfinance.client/node_modules
         key: node-modules-${{ runner.os }}-${{ hashFiles('./easyfinance.client/package-lock.json') }}
 
     - name: Cache Cypress binary
       if: matrix.language == 'csharp'
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ~/.cache/Cypress
         key: cypress-${{ runner.os }}-${{ hashFiles('./easyfinance.client/package-lock.json') }}
