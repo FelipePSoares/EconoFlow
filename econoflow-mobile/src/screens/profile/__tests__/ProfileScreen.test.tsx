@@ -167,4 +167,10 @@ describe('ProfileScreen – row navigation', () => {
     fireEvent.press(screen.getByTestId('row-TwoFactorSetup'));
     expect(mockNavigate).toHaveBeenCalledWith('TwoFactorSetup');
   });
+
+  it('navigates to TwoFactorSetup when the Authenticator App row is pressed', async () => {
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    fireEvent.press(screen.getByTestId('row-AuthenticatorApp'));
+    expect(mockNavigate).toHaveBeenCalledWith('TwoFactorSetup');
+  });
 });

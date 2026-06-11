@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { LanguagePickerScreen } from '../LanguagePickerScreen';
 
 // ─── UI infrastructure mocks ─────────────────────────────────────────────────
@@ -44,6 +44,17 @@ jest.mock('../../../components/common/GlassCard', () => {
   return {
     GlassCard: ({ children }: { children: React.ReactNode }) =>
       React.createElement(View, null, children),
+  };
+});
+
+jest.mock('../../../components/common/ErrorBanner', () => {
+  const React = require('react');
+  const { Text } = require('react-native');
+  return {
+    ErrorBanner: ({ visible, message }: { visible: boolean; message?: string }) =>
+      visible
+        ? React.createElement(Text, { testID: 'error-banner' }, message ?? 'Error')
+        : null,
   };
 });
 
@@ -121,11 +132,28 @@ describe('LanguagePickerScreen', () => {
     );
   });
 
-  it('calls i18n.changeLanguage when a language is selected', async () => {
+  it('calls i18n.changeLanguage only after successful API call', async () => {
     mockMutateAsync.mockResolvedValue({});
     await render(<LanguagePickerScreen navigation={mockNavigation} route={mockRoute} />);
     const btn = screen.getByTestId('lang-pt-BR');
     fireEvent.press(btn);
-    expect(jest.requireMock('../../../i18n').default.changeLanguage).toHaveBeenCalledWith('pt-BR');
+    await waitFor(() => {
+      expect(jest.requireMock('../../../i18n').default.changeLanguage).toHaveBeenCalledWith('pt-BR');
+    });
+  });
+
+  it('shows error banner when API fails', async () => {
+    mockMutateAsync.mockRejectedValue(new Error('Network error'));
+    await render(<LanguagePickerScreen navigation={mockNavigation} route={mockRoute} />);
+    fireEvent.press(screen.getByTestId('lang-pt-BR'));
+    await waitFor(() => { expect(screen.queryByTestId('error-banner')).toBeTruthy(); });
+  });
+
+  it('does not call i18n.changeLanguage when API fails', async () => {
+    mockMutateAsync.mockRejectedValue(new Error('Network error'));
+    await render(<LanguagePickerScreen navigation={mockNavigation} route={mockRoute} />);
+    fireEvent.press(screen.getByTestId('lang-pt-BR'));
+    await waitFor(() => { expect(screen.queryByTestId('error-banner')).toBeTruthy(); });
+    expect(jest.requireMock('../../../i18n').default.changeLanguage).not.toHaveBeenCalled();
   });
 });

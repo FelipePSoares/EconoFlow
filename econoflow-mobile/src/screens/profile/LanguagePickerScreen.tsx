@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,6 +10,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useUpdateProfile } from '../../hooks/useUpdateProfile';
 import { GlassScreen } from '../../components/common/GlassScreen';
 import { GlassCard } from '../../components/common/GlassCard';
+import { ErrorBanner } from '../../components/common/ErrorBanner';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
 import i18n from '../../i18n';
 
@@ -27,15 +28,22 @@ export const LanguagePickerScreen: React.FC<Props> = ({ navigation: _navigation 
   const { user } = useAuthStore();
   const { mutateAsync } = useUpdateProfile();
 
+  const [apiError, setApiError] = useState('');
   const currentLang = user?.languageCode ?? 'en-US';
 
   const handleSelect = async (code: string) => {
-    i18n.changeLanguage(code);
-    await mutateAsync([{ op: 'replace', path: '/languageCode', value: code }]);
+    setApiError('');
+    try {
+      await mutateAsync([{ op: 'replace', path: '/languageCode', value: code }]);
+      i18n.changeLanguage(code);
+    } catch {
+      setApiError(t('ErrorGeneric') ?? 'Something went wrong. Please try again.');
+    }
   };
 
   return (
     <GlassScreen dark={dark}>
+      <ErrorBanner visible={!!apiError} message={apiError} onDismiss={() => setApiError('')} />
       <ScrollView
         style={styles.fill}
         contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 32 }]}

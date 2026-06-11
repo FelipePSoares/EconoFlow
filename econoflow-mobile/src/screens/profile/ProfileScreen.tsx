@@ -175,6 +175,7 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
             value={user?.twoFactorEnabled ? t('LabelEnabled') ?? 'On' : t('LabelDisabled') ?? 'Off'}
             valueColor={user?.twoFactorEnabled ? '#0e9f6e' : undefined}
             onPress={() => navigation.navigate('TwoFactorSetup')}
+            testID="row-AuthenticatorApp"
             isLast
           />
         </GlassCard>
