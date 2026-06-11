@@ -124,6 +124,10 @@ jest.mock('../../../hooks/useCategories', () => ({
   useUnarchiveCategory: jest.fn(() => ({ mutate: mockUnarchiveMutate })),
 }));
 
+jest.mock('../../../hooks/useNotifications', () => ({
+  useNotifications: jest.fn(() => ({ data: [], isLoading: false })),
+}));
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function makeProjectStore(role: 'Admin' | 'Manager' | 'Viewer') {

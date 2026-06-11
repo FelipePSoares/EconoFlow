@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Alert, StyleSheet, TouchableOpacity, View,
+  StyleSheet, TouchableOpacity, View,
   ScrollView, RefreshControl,
 } from 'react-native';
 import { Text } from 'react-native-paper';
@@ -21,6 +21,7 @@ import { useCategoriesForMonth, useArchiveCategory, useUnarchiveCategory } from 
 import { UndoToast } from '../../components/common/UndoToast';
 import { useIncomesForMonth } from '../../hooks/useIncomes';
 import { useTotalSavedForMonth } from '../../hooks/usePlans';
+import { useNotifications } from '../../hooks/useNotifications';
 import { MonthNavigator } from '../../components/common/MonthNavigator';
 import { LoadingIndicator } from '../../components/common/LoadingIndicator';
 import { GlassCard } from '../../components/common/GlassCard';
@@ -81,6 +82,8 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
     isError: incError, error: incomesError, refetch: refetchIncs,
   } = useIncomesForMonth(projectId, month);
   const { totalSaved, isLoading: loadingSaved } = useTotalSavedForMonth(projectId, month);
+  const { data: notifications } = useNotifications();
+  const unreadCount = notifications?.length ?? 0;
 
   useEffect(() => {
     if (selectedProject || !projects?.length) return;
@@ -178,11 +181,11 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
             </View>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => Alert.alert(t('Notifications'), t('NoNotifications'))}
+            onPress={() => navigation.navigate('NotificationCentre')}
             activeOpacity={0.7}
           >
             <GlassCard dark={dark} radius={14} intensity={40} style={styles.notifCard}>
-              <MaterialCommunityIcons name="bell-outline" size={22} color="#0f76a8" />
+              <MaterialCommunityIcons name={unreadCount > 0 ? 'bell-badge-outline' : 'bell-outline'} size={22} color="#0f76a8" />
             </GlassCard>
           </TouchableOpacity>
         </View>

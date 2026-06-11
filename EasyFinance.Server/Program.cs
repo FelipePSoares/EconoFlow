@@ -4,6 +4,7 @@ using EasyFinance.Application.BackgroundServices.AttachmentCleanup;
 using EasyFinance.Application.BackgroundServices.NotifierBackgroundService;
 using EasyFinance.Application.Features.FeatureRolloutService;
 using EasyFinance.Application.Features.TurnstileService;
+using EasyFinance.Application.Features.ExpoPushTokenService;
 using EasyFinance.Application.Features.WebPushService;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Persistence;
@@ -28,6 +29,7 @@ builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddApplicationServices();
 builder.Services.Configure<NotifierFallbackOptions>(builder.Configuration.GetSection(NotifierFallbackOptions.SectionName));
 builder.Services.Configure<WebPushOptions>(builder.Configuration.GetSection(WebPushOptions.SectionName));
+builder.Services.Configure<ExpoPushOptions>(builder.Configuration.GetSection(ExpoPushOptions.SectionName));
 builder.Services.Configure<FeatureRolloutOptions>(builder.Configuration.GetSection(FeatureRolloutOptions.SectionName));
 builder.Services.Configure<TemporaryAttachmentCleanupOptions>(builder.Configuration.GetSection(TemporaryAttachmentCleanupOptions.SectionName));
 

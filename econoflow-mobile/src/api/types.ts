@@ -213,3 +213,14 @@ export interface DisableTwoFactorRequest {
   twoFactorCode?: string;
   twoFactorRecoveryCode?: string;
 }
+
+export interface AppNotification {
+  id: string;
+  codeMessage: string;
+  actionLabelCode: string;
+  type: string;
+  category: string;
+  isActionRequired: boolean;
+  isSticky: boolean;
+  metadata: string;
+}

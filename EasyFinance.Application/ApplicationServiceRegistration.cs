@@ -23,6 +23,8 @@ using EasyFinance.Application.Features.TaxYearService;
 using EasyFinance.Application.Features.TurnstileService;
 using EasyFinance.Application.Features.UserKeyService;
 using EasyFinance.Application.Features.UserService;
+using EasyFinance.Application.Features.ExpoPushTokenService;
+using EasyFinance.Application.Features.TurnstileService;
 using EasyFinance.Application.Features.WebPushService;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -52,7 +54,12 @@ namespace EasyFinance.Application
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IWebPushService, WebPushService>();
+            services.AddScoped<IExpoPushTokenService, ExpoPushTokenService>();
             services.AddScoped<IUserKeyService>(provider => new UserKeyService(userKeySalt));
+
+            // Expo Push
+            services.AddHttpClient<IExpoPushClient, ExpoPushClient>();
+            services.AddOptions<ExpoPushOptions>();
 
             // Turnstile CAPTCHA
             services.AddHttpClient<ITurnstileService, TurnstileService>();
