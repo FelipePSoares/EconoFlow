@@ -1,4 +1,4 @@
-﻿namespace EasyFinance.Infrastructure.Authentication
+namespace EasyFinance.Infrastructure.Authentication
 {
     public class TokenSettings
     {

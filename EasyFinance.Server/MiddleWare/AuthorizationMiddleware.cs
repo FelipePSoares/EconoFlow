@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Security.Claims;
 using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Application.Features.ProjectService;
@@ -36,7 +36,7 @@ namespace EasyFinance.Server.MiddleWare
                     httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                     return;
                 }
-                
+
                 var accessNeeded = httpContext.Request.Method == "GET" ? Role.Viewer : Role.Manager;
 
                 var hasAuthorization = accessControlService.HasAuthorization(userId, projectId, accessNeeded);

@@ -1,10 +1,10 @@
-﻿using EasyFinance.Domain.AccessControl;
-using EasyFinance.Domain.Shared;
-using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Shared;
+using EasyFinance.Infrastructure;
+using EasyFinance.Infrastructure.DTOs;
 
 namespace EasyFinance.Domain.Financial
 {
@@ -39,7 +39,7 @@ namespace EasyFinance.Domain.Financial
         public decimal TotalBudget => Expenses.Sum(e => e.Budget);
         public decimal TotalWaste => Expenses.Sum(e => e.Amount);
 
-        public override AppResponse Validate 
+        public override AppResponse Validate
         {
             get
             {
@@ -47,7 +47,7 @@ namespace EasyFinance.Domain.Financial
 
                 if (string.IsNullOrEmpty(Name))
                     response.AddErrorMessage(nameof(Name), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(Name)));
-                
+
                 if (!string.IsNullOrEmpty(Name) && Name.Length > PropertyMaxLengths.GetMaxLength(PropertyType.CategoryName))
                     response.AddErrorMessage(nameof(Name),
                         string.Format(ValidationMessages.PropertyMaxLength,
@@ -109,7 +109,8 @@ namespace EasyFinance.Domain.Financial
             return newExpenses;
         }
 
-        public static Category CreateDefaultCategoryWithExpense(User user, string name, int percentage, decimal annualIncome, DateOnly date){
+        public static Category CreateDefaultCategoryWithExpense(User user, string name, int percentage, decimal annualIncome, DateOnly date)
+        {
             var monthIncome = annualIncome / 12;
 
             if (name == FixedExpenses.Name)
@@ -252,8 +253,10 @@ namespace EasyFinance.Domain.Financial
                         0,
                         user,
                         budget: categoryBudget * 40 / 100)
-                );}
-            else{
+                );
+            }
+            else
+            {
                 return new Category(
                     name,
                     new Expense(

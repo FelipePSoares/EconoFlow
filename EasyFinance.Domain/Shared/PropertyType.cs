@@ -1,4 +1,4 @@
-﻿namespace EasyFinance.Domain.Shared
+namespace EasyFinance.Domain.Shared
 {
     public enum PropertyType
     {

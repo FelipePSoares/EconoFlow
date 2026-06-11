@@ -1,7 +1,7 @@
+using System.Net;
 using EasyFinance.Application.DTOs.FinancialProject;
 using EasyFinance.Application.Features.TaxYearService;
 using Microsoft.AspNetCore.Mvc;
-using System.Net;
 
 namespace EasyFinance.Server.Controllers
 {

@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 
 namespace EasyFinance.Server.Middleware
 {
@@ -33,7 +33,9 @@ namespace EasyFinance.Server.Middleware
                         continue;
                     }
                 }
-            } else {
+            }
+            else
+            {
                 CultureInfo.CurrentCulture = new CultureInfo("en-US");
                 CultureInfo.CurrentUICulture = new CultureInfo("en-US");
             }

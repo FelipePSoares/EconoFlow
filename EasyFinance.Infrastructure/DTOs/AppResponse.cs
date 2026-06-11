@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace EasyFinance.Infrastructure.DTOs
@@ -16,13 +16,13 @@ namespace EasyFinance.Infrastructure.DTOs
 
         public static AppResponse Success() => new AppResponse();
 
-        public static AppResponse Error(string description) 
+        public static AppResponse Error(string description)
             => new AppResponse().AddErrorMessage(description);
-        public static AppResponse Error(string code, string description) 
+        public static AppResponse Error(string code, string description)
             => new AppResponse().AddErrorMessage(code, description);
-        public static AppResponse Error(params AppMessage[] messages) 
+        public static AppResponse Error(params AppMessage[] messages)
             => new AppResponse().AddErrorMessage(messages);
-        public static AppResponse Error(IEnumerable<AppMessage> messages) 
+        public static AppResponse Error(IEnumerable<AppMessage> messages)
             => new AppResponse().AddErrorMessage(messages);
 
         public AppResponse AddErrorMessage(string description)

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using EasyFinance.Application.DTOs.FinancialProject;
 using EasyFinance.Domain.AccessControl;
 
@@ -15,7 +15,7 @@ namespace EasyFinance.Application.DTOs.AccessControl
 
         public UserProjectResponseDTO()
         {
-            
+
         }
 
         public Guid Id { get; set; }

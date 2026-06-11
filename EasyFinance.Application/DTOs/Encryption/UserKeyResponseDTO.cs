@@ -1,4 +1,4 @@
-﻿namespace EasyFinance.Application.DTOs.Encryption
+namespace EasyFinance.Application.DTOs.Encryption
 {
     public class UserKeyResponseDTO
     {

@@ -1,6 +1,6 @@
-﻿using EasyFinance.Domain.AccessControl;
-using EasyFinance.Domain.Financial;
 using System.Collections.Generic;
+using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Financial;
 
 namespace EasyFinance.Domain.Shared
 {

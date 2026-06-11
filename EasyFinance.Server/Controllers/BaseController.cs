@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Mvc;
 

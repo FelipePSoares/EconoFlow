@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using EasyFinance.Domain.Account;
 using EasyFinance.Infrastructure.DTOs;
 

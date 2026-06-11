@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using EasyFinance.Infrastructure.DTOs;
 
 namespace EasyFinance.Domain
@@ -24,7 +24,7 @@ namespace EasyFinance.Domain
 
         public void SetCreatedDate(DateTime createdDate) => CreatedDate = createdDate;
         public void SetModifiedAt(DateTime modifiedAt) => ModifiedAt = modifiedAt;
-        
+
         public abstract AppResponse Validate { get; }
     }
 }

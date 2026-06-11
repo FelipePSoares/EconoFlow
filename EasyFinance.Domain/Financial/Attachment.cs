@@ -1,10 +1,10 @@
+using System;
+using System.Linq;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using EasyFinance.Infrastructure.Extensions;
-using System;
-using System.Linq;
 
 namespace EasyFinance.Domain.Financial
 {
@@ -49,14 +49,15 @@ namespace EasyFinance.Domain.Financial
         public bool IsTemporary { get; private set; }
         public User CreatedBy { get; private set; } = new User();
 
-        public override AppResponse Validate {
+        public override AppResponse Validate
+        {
             get
             {
                 var response = AppResponse.Success();
 
                 if (string.IsNullOrEmpty(Name))
                     response.AddErrorMessage(nameof(Name), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(Name)));
-                
+
                 if (!string.IsNullOrEmpty(Name) && Name.Length > PropertyMaxLengths.GetMaxLength(PropertyType.AttachmentName))
                     response.AddErrorMessage(nameof(Name),
                         string.Format(ValidationMessages.PropertyMaxLength,

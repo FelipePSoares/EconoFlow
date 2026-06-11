@@ -1,6 +1,6 @@
-using EasyFinance.Domain.FinancialProject;
 using System;
 using System.Collections.Generic;
+using EasyFinance.Domain.FinancialProject;
 
 namespace EasyFinance.Application.DTOs.FinancialProject
 {

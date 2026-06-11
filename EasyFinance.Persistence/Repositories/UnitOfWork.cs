@@ -1,4 +1,4 @@
-﻿using EasyFinance.Application.Contracts.Persistence;
+using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Domain;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Account;
@@ -96,9 +96,9 @@ namespace EasyFinance.Persistence.Repositories
             var entries = this.context.ChangeTracker.Entries();
 
             var updatedUsers = entries
-                .Where(e => 
-                    e.Entity is UserProject userProject && 
-                    userProject.User != null && 
+                .Where(e =>
+                    e.Entity is UserProject userProject &&
+                    userProject.User != null &&
                     entityStates.Contains(e.State))
                 .Select(e => ((UserProject)e.Entity).User.Id)
                 .Distinct()

@@ -54,7 +54,7 @@ builder.Services.AddControllers(config =>
                      .RequireAuthenticatedUser()
                      .Build();
     config.Filters.Add(new AuthorizeFilter(policy));
-    config.SuppressAsyncSuffixInActionNames = false; 
+    config.SuppressAsyncSuffixInActionNames = false;
 })
     .AddNewtonsoftJson(setup =>
     {

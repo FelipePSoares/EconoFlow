@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure.Authentication;
 using EasyFinance.Persistence.DatabaseContext;

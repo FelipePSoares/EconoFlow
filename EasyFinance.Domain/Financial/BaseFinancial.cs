@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.Extensions;
 using EasyFinance.Infrastructure.DTOs;
+using EasyFinance.Infrastructure.Extensions;
 
 namespace EasyFinance.Domain.Financial
 {
@@ -64,7 +64,7 @@ namespace EasyFinance.Domain.Financial
 
         public void SetAmount(decimal amount) => Amount = amount;
 
-        public void SetCreatedBy(User createdBy) 
+        public void SetCreatedBy(User createdBy)
             => CreatedBy = createdBy ?? throw new ArgumentNullException(null, string.Format(ValidationMessages.PropertyCantBeNull, nameof(createdBy)));
 
         public void RemoveUserLink()

@@ -1,8 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Domain.Financial;
-using System;
 
 namespace EasyFinance.Application.Mappers
 {

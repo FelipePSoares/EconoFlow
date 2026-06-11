@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;

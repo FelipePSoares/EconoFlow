@@ -1,4 +1,4 @@
-﻿using EasyFinance.Application.DTOs.Encryption;
+using EasyFinance.Application.DTOs.Encryption;
 using EasyFinance.Infrastructure.DTOs;
 
 namespace EasyFinance.Application.Features.UserKeyService

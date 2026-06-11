@@ -1,4 +1,4 @@
-﻿using EasyFinance.Application.Contracts.Persistence;
+using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Persistence.DatabaseContext;
 using EasyFinance.Persistence.Repositories;
 using Microsoft.AspNetCore.Builder;

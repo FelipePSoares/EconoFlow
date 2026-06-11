@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using EasyFinance.Application.DTOs.Account;
 using EasyFinance.Domain.Account;
@@ -16,7 +16,7 @@ namespace EasyFinance.Application.Mappers
         public static NotificationResponseDTO ToDTO(this Notification notification)
             => new(notification);
 
-        public static Notification FromDTO(this NotificationRequestDTO dto) 
+        public static Notification FromDTO(this NotificationRequestDTO dto)
             => new(
                 dto.User,
                 dto.CodeMessage,
