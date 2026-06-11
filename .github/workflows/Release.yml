@@ -90,7 +90,7 @@ jobs:
 
     - name: Setup Java 17
       if: steps.mobile-changes.outputs.mobile == 'true'
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
         java-version: '17'
