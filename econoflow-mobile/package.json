@@ -27,7 +27,7 @@
     "react": "19.2.3",
     "react-hook-form": "^7.76.1",
     "react-i18next": "^17.0.8",
-    "react-native": "0.85.3",
+    "react-native": "0.86.0",
     "react-native-paper": "^5.15.3",
     "react-native-qrcode-svg": "^6.3.21",
     "react-native-safe-area-context": "~5.7.0",
