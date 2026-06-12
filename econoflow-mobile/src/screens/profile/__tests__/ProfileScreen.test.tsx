@@ -56,6 +56,26 @@ jest.mock('../../../components/common/GlassCard', () => {
   };
 });
 
+// ─── Notification mocks ────────────────────────────────────────────────────────
+
+const mockRegisterPushNotifications = jest.fn();
+const mockUnregisterPushNotifications = jest.fn();
+
+jest.mock('../../../hooks/usePushNotifications', () => ({
+  usePushNotifications: jest.fn(() => ({
+    notificationsEnabled: false,
+    registerPushNotifications: mockRegisterPushNotifications,
+    unregisterPushNotifications: mockUnregisterPushNotifications,
+  })),
+}));
+
+jest.mock('../../../store/notificationStore', () => ({
+  useNotificationStore: jest.fn(() => ({
+    expoPushToken: null,
+    notificationsEnabled: false,
+  })),
+}));
+
 // ─── Store / React Query mocks ────────────────────────────────────────────────
 
 const mockClearAuth = jest.fn();
@@ -112,6 +132,8 @@ describe('ProfileScreen – sign out', () => {
     mockClearProject.mockReset();
     mockQueryClientClear.mockReset();
     mockNavigate.mockReset();
+    mockRegisterPushNotifications.mockReset();
+    mockUnregisterPushNotifications.mockReset();
   });
 
   it('calls clearAuth when the sign-out button is pressed', async () => {
@@ -130,6 +152,12 @@ describe('ProfileScreen – sign out', () => {
     await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
     fireEvent.press(screen.getByText('ButtonSignOut'));
     expect(mockQueryClientClear).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls unregisterPushNotifications when the sign-out button is pressed', async () => {
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    fireEvent.press(screen.getByText('ButtonSignOut'));
+    expect(mockUnregisterPushNotifications).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -166,5 +194,46 @@ describe('ProfileScreen – row navigation', () => {
     await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
     fireEvent.press(screen.getByTestId('row-AuthenticatorApp'));
     expect(mockNavigate).toHaveBeenCalledWith('TwoFactorSetup');
+  });
+});
+
+describe('ProfileScreen – push notifications toggle', () => {
+  beforeEach(() => {
+    mockRegisterPushNotifications.mockReset();
+    mockUnregisterPushNotifications.mockReset();
+    mockClearAuth.mockReset();
+    mockClearProject.mockReset();
+    mockQueryClientClear.mockReset();
+  });
+
+  it('renders the push notifications toggle row', async () => {
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    expect(screen.getByTestId('row-PushNotifications')).toBeTruthy();
+  });
+
+  it('calls registerPushNotifications when toggled on', async () => {
+    const { usePushNotifications } = jest.requireMock('../../../hooks/usePushNotifications');
+    usePushNotifications.mockReturnValue({
+      notificationsEnabled: false,
+      registerPushNotifications: mockRegisterPushNotifications,
+      unregisterPushNotifications: mockUnregisterPushNotifications,
+    });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    fireEvent.press(screen.getByTestId('row-PushNotifications'));
+    expect(mockRegisterPushNotifications).toHaveBeenCalled();
+  });
+
+  it('calls unregisterPushNotifications when toggled off', async () => {
+    const { usePushNotifications } = jest.requireMock('../../../hooks/usePushNotifications');
+    usePushNotifications.mockReturnValue({
+      notificationsEnabled: true,
+      registerPushNotifications: mockRegisterPushNotifications,
+      unregisterPushNotifications: mockUnregisterPushNotifications,
+    });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    fireEvent.press(screen.getByTestId('row-PushNotifications'));
+    expect(mockUnregisterPushNotifications).toHaveBeenCalled();
   });
 });

@@ -116,6 +116,16 @@ jest.mock('../../../monitoring/sentry', () => ({
   captureError: (...args: unknown[]) => mockCaptureError(...args),
 }));
 
+// ─── Push notification mock ────────────────────────────────────────────────────
+
+const mockRegisterPushNotifications = jest.fn();
+
+jest.mock('../../../hooks/usePushNotifications', () => ({
+  usePushNotifications: jest.fn(() => ({
+    registerPushNotifications: mockRegisterPushNotifications,
+  })),
+}));
+
 // ─── Hook / store mocks ───────────────────────────────────────────────────────
 
 const mockMutateAsync = jest.fn();
@@ -153,6 +163,7 @@ describe('ProfileSetupScreen', () => {
     mockNavigate.mockReset();
     mockSetOpenCreateProjectOnStart.mockReset();
     mockCaptureError.mockReset();
+    mockRegisterPushNotifications.mockReset();
   });
 
   it('renders first name, last name, and language fields', async () => {
@@ -263,5 +274,40 @@ describe('ProfileSetupScreen', () => {
     expect(screen.queryByText('SmartSetupSkip')).toBeNull();
     expect(screen.queryByText('ButtonCancel')).toBeNull();
     expect(screen.queryByText('SmartSetupBack')).toBeNull();
+  });
+
+  it('calls registerPushNotifications on successful submit', async () => {
+    mockMutateAsync.mockResolvedValue({});
+
+    await render(<ProfileSetupScreen navigation={mockNavigation} />);
+
+    await act(async () => {
+      await fireEvent.changeText(screen.getByTestId('PlaceholderFirstName'), 'John');
+      await fireEvent.changeText(screen.getByTestId('PlaceholderLastName'), 'Doe');
+      await fireEvent.press(screen.getByTestId('ButtonSaveAndContinue'));
+      await new Promise(resolve => setTimeout(resolve, 0));
+    });
+
+    await waitFor(() => {
+      expect(mockRegisterPushNotifications).toHaveBeenCalled();
+    });
+  });
+
+  it('does not show error banner when registerPushNotifications fails', async () => {
+    mockMutateAsync.mockResolvedValue({});
+    mockRegisterPushNotifications.mockRejectedValue(new Error('Push error'));
+
+    await render(<ProfileSetupScreen navigation={mockNavigation} />);
+
+    await act(async () => {
+      await fireEvent.changeText(screen.getByTestId('PlaceholderFirstName'), 'John');
+      await fireEvent.changeText(screen.getByTestId('PlaceholderLastName'), 'Doe');
+      await fireEvent.press(screen.getByTestId('ButtonSaveAndContinue'));
+      await new Promise(resolve => setTimeout(resolve, 0));
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('error-banner')).toBeNull();
+    });
   });
 });

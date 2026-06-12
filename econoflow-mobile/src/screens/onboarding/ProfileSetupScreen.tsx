@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { OnboardingParamList } from '../../navigation/OnboardingNavigator';
 import { useUpdateProfile } from '../../hooks/useUpdateProfile';
+import { usePushNotifications } from '../../hooks/usePushNotifications';
 import { captureError } from '../../monitoring/sentry';
 import { useAuthStore } from '../../store/authStore';
 import i18n from '../../i18n';
@@ -50,6 +51,7 @@ export const ProfileSetupScreen: React.FC<Props> = () => {
 
   const updateProfile = useUpdateProfile();
   const setOpenCreateProjectOnStart = useAuthStore((s) => s.setOpenCreateProjectOnStart);
+  const { registerPushNotifications } = usePushNotifications();
 
   const {
     control,
@@ -78,6 +80,8 @@ export const ProfileSetupScreen: React.FC<Props> = () => {
       if (values.languageCode) {
         i18n.changeLanguage(values.languageCode.startsWith('pt') ? 'pt' : 'en');
       }
+
+      registerPushNotifications().catch(() => {});
     } catch (err) {
       captureError(err, { screen: 'ProfileSetupScreen', action: 'setupProfile' });
       setOpenCreateProjectOnStart(false);

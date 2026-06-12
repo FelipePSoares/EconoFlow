@@ -18,8 +18,8 @@ import { captureError } from '../../monitoring/sentry';
 type Props = NativeStackScreenProps<ProfileStackParamList, 'LanguagePicker'>;
 
 const SUPPORTED_LANGUAGES: { code: string; label: string }[] = [
-  { code: 'en-US', label: 'English (US)' },
-  { code: 'pt-BR', label: 'Português (Brasil)' },
+  { code: 'en', label: 'English' },
+  { code: 'pt', label: 'Português' },
 ];
 
 export const LanguagePickerScreen: React.FC<Props> = ({ navigation: _navigation }) => {
@@ -30,7 +30,7 @@ export const LanguagePickerScreen: React.FC<Props> = ({ navigation: _navigation 
   const { mutateAsync } = useUpdateProfile();
 
   const [apiError, setApiError] = useState('');
-  const currentLang = user?.languageCode ?? 'en-US';
+  const currentLang = user?.languageCode ?? 'en';
 
   const handleSelect = async (code: string) => {
     setApiError('');
