@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import { BehaviorSubject, Observable, map } from 'rxjs';
 import { Router } from '@angular/router';
 import { AsyncPipe, CommonModule } from '@angular/common';
@@ -22,6 +22,7 @@ import { Role } from '../../../core/enums/Role';
     TranslateModule
   ],
   templateUrl: './list-projects.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './list-projects.component.css'
 })
 export class ListProjectsComponent implements OnInit {

@@ -9,7 +9,8 @@ import {
   ViewChild,
   NgZone,
   inject,
-  PLATFORM_ID
+  PLATFORM_ID,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { TurnstileService } from '../../services/turnstile.service';
@@ -28,6 +29,7 @@ declare global {
 @Component({
   selector: 'app-turnstile-widget',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `<div #turnstileContainer></div>`
 })
 export class TurnstileWidgetComponent implements OnInit, OnDestroy {

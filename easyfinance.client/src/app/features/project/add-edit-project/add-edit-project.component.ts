@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -36,6 +36,7 @@ import { GlobalService } from '../../../core/services/global.service';
     TranslateModule
 ],
   templateUrl: './add-edit-project.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './add-edit-project.component.css'
 })
 export class AddEditProjectComponent implements OnInit {

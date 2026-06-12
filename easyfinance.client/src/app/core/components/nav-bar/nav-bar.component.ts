@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Observable, combineLatest, map } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
@@ -24,6 +24,7 @@ import { ThemeService } from '../../services/theme.service';
     StickyNotificationsComponent
   ],
   templateUrl: './nav-bar.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./nav-bar.component.css']
 })
 export class NavBarComponent {

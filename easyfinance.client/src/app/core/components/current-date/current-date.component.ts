@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, DestroyRef, EventEmitter, inject, Input, OnInit, Output } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, inject, Input, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DateAdapter } from '@angular/material/core';
 import { MatDatepicker, MatDatepickerModule } from '@angular/material/datepicker';
@@ -18,6 +18,7 @@ import { CurrentDateService } from '../../services/current-date.service';
   ],
   templateUrl: './current-date.component.html',
   styleUrl: './current-date.component.css',
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: []
 })
 export class CurrentDateComponent implements OnInit {

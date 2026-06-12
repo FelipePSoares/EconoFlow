@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -29,6 +29,7 @@ import { IncomeDto } from '../models/income-dto';
     CurrencyFormatPipe
   ],
   templateUrl: './plan-allocation-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './plan-allocation-dialog.component.css'
 })
 export class PlanAllocationDialogComponent implements OnInit {

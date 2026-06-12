@@ -1,5 +1,5 @@
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DateAdapter } from '@angular/material/core';
 import { MatCardModule } from '@angular/material/card';
@@ -35,6 +35,7 @@ import { PlanDto } from '../models/plan-dto';
     TranslateModule
   ],
   templateUrl: './income-plan-mode.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './income-plan-mode.component.css'
 })
 export class IncomePlanModeComponent implements OnInit {

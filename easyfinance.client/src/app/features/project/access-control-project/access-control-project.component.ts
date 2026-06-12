@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BehaviorSubject, map, Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
@@ -34,6 +34,7 @@ import { conditionalEmailValidator } from '../../../core/utils/custom-validators
     TranslateModule
   ],
   templateUrl: './access-control-project.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './access-control-project.component.css'
 })
 export class AccessControlProjectComponent implements OnInit {

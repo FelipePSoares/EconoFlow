@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpResponse } from '@angular/common/http';
-import { Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
@@ -67,6 +67,7 @@ interface DeductibleEntry {
   ],
   providers: [CurrencyFormatPipe],
   templateUrl: './deductions.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './deductions.component.css'
 })
 export class DeductionsComponent implements OnInit {

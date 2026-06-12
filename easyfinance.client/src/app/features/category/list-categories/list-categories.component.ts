@@ -1,5 +1,5 @@
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
@@ -39,6 +39,7 @@ import { DefaultCategory } from '../../../core/models/default-category';
       TranslateModule
     ],
     templateUrl: './list-categories.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './list-categories.component.css'
 })
 export class ListCategoriesComponent implements OnInit {

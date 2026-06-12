@@ -1,5 +1,5 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AfterViewInit, Component, DestroyRef, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { compare } from 'fast-json-patch';
@@ -37,6 +37,7 @@ import { CurrentDateService } from '../../../core/services/current-date.service'
     TranslateModule
 ],
     templateUrl: './add-income.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './add-income.component.css'
 })
 export class AddIncomeComponent implements OnInit, AfterViewInit {

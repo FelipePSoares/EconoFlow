@@ -1,5 +1,5 @@
 import { NgComponentOutlet } from '@angular/common';
-import { Component, OnDestroy, Type, inject } from '@angular/core';
+import { Component, OnDestroy, Type, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogContent, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -26,6 +26,7 @@ export interface PageModalDialogData {
     TranslateModule
 ],
   templateUrl: './page-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './page-modal.component.css'
 })
 export class PageModalComponent implements OnDestroy {

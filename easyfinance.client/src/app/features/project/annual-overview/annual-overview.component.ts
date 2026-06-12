@@ -1,5 +1,5 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { AfterViewInit, Component, DestroyRef, inject, Input, OnInit, PLATFORM_ID } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, inject, Input, OnInit, PLATFORM_ID, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ChartData, ChartOptions, TooltipItem } from 'chart.js';
@@ -39,6 +39,7 @@ interface CategoryInsight {
   ],
   providers: [CurrencyFormatPipe],
   templateUrl: './annual-overview.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './annual-overview.component.css'
 })
 export class AnnualOverviewComponent implements OnInit, AfterViewInit {

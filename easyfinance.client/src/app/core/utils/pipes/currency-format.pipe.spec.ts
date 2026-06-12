@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { CurrencyPipe } from '@angular/common';
 import { CurrencyFormatPipe } from './currency-format.pipe';
 import { GlobalService } from '../../services/global.service';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { ProjectService } from '../../services/project.service';
 import { Project } from '../../models/project';
 import { UserProject } from '../../models/user-project';
@@ -25,7 +25,7 @@ describe('CurrencyFormatPipe', () => {
       ],
       providers: [
         ProjectService,
-        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting(),
         GlobalService,
         HttpTestingController,

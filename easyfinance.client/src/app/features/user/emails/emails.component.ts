@@ -1,5 +1,5 @@
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
@@ -22,6 +22,7 @@ import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.co
     MatInputModule,
   ],
   templateUrl: './emails.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './emails.component.css'
 })
 export class EmailsComponent implements OnInit {

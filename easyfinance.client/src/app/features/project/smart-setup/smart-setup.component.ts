@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -40,6 +40,7 @@ import { CurrentDateService } from '../../../core/services/current-date.service'
     MatButtonModule
   ],
   templateUrl: './smart-setup.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './smart-setup.component.css'
 })
 export class SmartSetupComponent implements OnInit {

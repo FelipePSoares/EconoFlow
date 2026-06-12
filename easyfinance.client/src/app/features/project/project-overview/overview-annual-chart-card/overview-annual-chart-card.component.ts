@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { ChartData, ChartOptions } from 'chart.js';
 import { BudgetBarComponent } from '../../../../core/components/budget-bar/budget-bar.component';
@@ -14,6 +14,7 @@ import { AnnualIncomeExpenseChartComponent } from '../../detail-project/annual-i
     AnnualIncomeExpenseChartComponent
   ],
   templateUrl: './overview-annual-chart-card.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './overview-annual-chart-card.component.css'
 })
 export class OverviewAnnualChartCardComponent {

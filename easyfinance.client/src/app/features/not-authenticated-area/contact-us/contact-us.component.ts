@@ -1,4 +1,4 @@
-import { Component, ViewChild, inject, OnInit } from '@angular/core';
+import { Component, ViewChild, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UserService } from 'src/app/core/services/user.service';
@@ -26,6 +26,7 @@ import { TurnstileWidgetComponent } from 'src/app/core/components/turnstile-widg
     TurnstileWidgetComponent
 ],
   templateUrl: './contact-us.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./contact-us.component.css']
 })
 export class ContactUsComponent implements OnInit {

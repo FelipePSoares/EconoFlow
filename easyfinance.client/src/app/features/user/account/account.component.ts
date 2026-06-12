@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, Observable, Subscription } from 'rxjs';
@@ -38,6 +38,7 @@ import { PrivacyModeService } from '../../../core/services/privacy-mode.service'
     MatSlideToggleModule
   ],
   templateUrl: './account.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './account.component.css'
 })
 export class AccountComponent implements OnInit, OnDestroy {

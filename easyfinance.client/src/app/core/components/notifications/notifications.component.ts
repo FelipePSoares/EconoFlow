@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, inject } from '@angular/core';
+import { Component, ElementRef, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { map, Observable } from 'rxjs';
 import { TranslateModule } from '@ngx-translate/core';
@@ -12,6 +12,7 @@ import { Notification } from '../../models/notification';
     TranslateModule
   ],
   templateUrl: './notifications.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './notifications.component.css'
 })
 export class NotificationsComponent {

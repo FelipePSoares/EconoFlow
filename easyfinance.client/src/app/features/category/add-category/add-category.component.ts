@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -28,6 +28,7 @@ import { DefaultCategory } from '../../../core/models/default-category';
         TranslateModule
     ],
     templateUrl: './add-category.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './add-category.component.css'
 })
 export class AddCategoryComponent implements OnInit, AfterViewInit {

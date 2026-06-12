@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, inject, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CurrencyFormatPipe } from '../../utils/pipes/currency-format.pipe';
@@ -14,6 +14,7 @@ import { GlobalService } from '../../services/global.service';
     TranslateModule
   ],
   templateUrl: './budget-bar.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './budget-bar.component.css'
 })
 export class BudgetBarComponent implements OnInit {

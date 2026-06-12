@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -12,6 +12,7 @@ import { TranslateModule } from '@ngx-translate/core';
     TranslateModule
   ],
   templateUrl: './web-push-blocked-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './web-push-blocked-dialog.component.css'
 })
 export class WebPushBlockedDialogComponent {

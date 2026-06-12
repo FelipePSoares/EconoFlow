@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -37,6 +37,7 @@ import { UserProjectDto } from '../models/user-project-dto';
   ],
   providers: [CurrencyFormatPipe],
   templateUrl: './project-overview.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './project-overview.component.css'
 })
 export class ProjectOverviewComponent implements OnInit {

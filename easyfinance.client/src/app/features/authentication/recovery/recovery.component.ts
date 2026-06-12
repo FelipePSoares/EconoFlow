@@ -1,5 +1,5 @@
 
-import { Component, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
@@ -26,6 +26,7 @@ import { TurnstileWidgetComponent } from '../../../core/components/turnstile-wid
     TurnstileWidgetComponent
 ],
     templateUrl: './recovery.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './recovery.component.css'
 })
 export class RecoveryComponent implements OnInit {

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -33,6 +33,7 @@ type PlanEntryAction = 'add' | 'remove';
     TranslateModule
   ],
   templateUrl: './add-plan-entry.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './add-plan-entry.component.css'
 })
 export class AddPlanEntryComponent implements OnInit, OnChanges {

@@ -1,10 +1,11 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { ProjectService } from '../../services/project.service';
 import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-accept-invite',
   template: '',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: []
 })
 export class AcceptInviteComponent implements OnInit {

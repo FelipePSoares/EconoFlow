@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { compare } from 'fast-json-patch';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
@@ -30,6 +30,7 @@ import { PlanPatchModel } from '../models/plan-patch-model';
     TranslateModule
   ],
   templateUrl: './add-edit-plan.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './add-edit-plan.component.css'
 })
 export class AddEditPlanComponent implements OnInit, OnChanges {

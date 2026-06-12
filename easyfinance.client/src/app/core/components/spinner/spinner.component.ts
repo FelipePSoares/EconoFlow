@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { LoaderService } from '../../services/loader.service';
 import { TranslateModule } from '@ngx-translate/core';
 import { AsyncPipe } from '@angular/common';
@@ -10,6 +10,7 @@ import { AsyncPipe } from '@angular/common';
     TranslateModule
 ],
   templateUrl: './spinner.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./spinner.component.css']
 })
 export class SpinnerComponent {

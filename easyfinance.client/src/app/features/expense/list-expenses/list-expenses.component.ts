@@ -1,5 +1,5 @@
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DateAdapter } from '@angular/material/core';
 import { MatDialog } from '@angular/material/dialog';
@@ -45,6 +45,7 @@ import { ExpenseItemDto } from '../models/expense-item-dto';
     TranslateModule
   ],
   templateUrl: './list-expenses.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './list-expenses.component.css'
 })
 export class ListExpensesComponent implements OnInit {

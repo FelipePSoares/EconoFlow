@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -25,6 +25,7 @@ import { ApiErrorResponse } from '../../models/error';
     TranslateModule
   ],
   templateUrl: './configure-tax-year-rule-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './configure-tax-year-rule-dialog.component.css'
 })
 export class ConfigureTaxYearRuleDialogComponent implements OnInit {

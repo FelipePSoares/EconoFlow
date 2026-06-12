@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Observable, filter, map, startWith } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
@@ -13,6 +13,7 @@ import { NavigationEnd, Router } from '@angular/router';
     TranslateModule
   ],
   templateUrl: './sticky-notifications.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './sticky-notifications.component.css'
 })
 export class StickyNotificationsComponent {

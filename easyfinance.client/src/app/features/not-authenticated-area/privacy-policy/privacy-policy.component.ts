@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { GlobalService } from '../../../core/services/global.service';
 
@@ -8,6 +8,7 @@ import { GlobalService } from '../../../core/services/global.service';
     TranslateModule
   ],
   templateUrl: './privacy-policy.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './privacy-policy.component.css'
 })
 export class PrivacyPolicyComponent {

@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, inject, NgZone, OnDestroy, PLATFORM_ID } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, NgZone, OnDestroy, PLATFORM_ID, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 
@@ -10,6 +10,7 @@ import { TranslateModule } from '@ngx-translate/core';
     TranslateModule
   ],
   templateUrl: './index.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './index.component.css'
 })
 export class IndexComponent implements AfterViewInit, OnDestroy  {

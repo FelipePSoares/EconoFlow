@@ -1,10 +1,11 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
     selector: 'app-add-button',
     imports: [TranslateModule],
     templateUrl: './add-button.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './add-button.component.css'
 })
 export class AddButtonComponent {

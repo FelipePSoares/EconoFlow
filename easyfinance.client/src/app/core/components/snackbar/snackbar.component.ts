@@ -1,9 +1,10 @@
-import { Component, Injectable, inject } from '@angular/core';
+import { Component, Injectable, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 
 @Component({
     selector: 'app-snackbar',
     imports: [],
+    changeDetection: ChangeDetectionStrategy.Eager,
     template: ''
 })
 @Injectable({

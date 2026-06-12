@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -28,6 +28,7 @@ import { compare } from 'fast-json-patch';
     TranslateModule
   ],
   templateUrl: './first-sign-in.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./first-sign-in.component.css']
 })
 export class FirstSignInComponent {

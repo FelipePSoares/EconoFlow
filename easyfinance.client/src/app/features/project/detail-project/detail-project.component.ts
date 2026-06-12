@@ -1,5 +1,5 @@
 import { CdkTableDataSourceInput } from '@angular/cdk/table';
-import { Component, DestroyRef, inject, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -40,6 +40,7 @@ import { TransactionDto } from '../models/transaction-dto';
     ],
     providers: [CurrencyFormatPipe],
     templateUrl: './detail-project.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './detail-project.component.scss'
 })
 

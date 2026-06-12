@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { take } from 'rxjs';
@@ -29,6 +29,7 @@ import { TurnstileWidgetComponent } from '../../../core/components/turnstile-wid
     TurnstileWidgetComponent
 ],
     templateUrl: './register.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrls: ['./register.component.css']
 })
 export class RegisterComponent implements OnInit {

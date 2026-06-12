@@ -1,5 +1,5 @@
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DateAdapter } from '@angular/material/core';
 import { MatCardModule } from '@angular/material/card';
@@ -40,6 +40,7 @@ import { IncomeDto } from '../models/income-dto';
     TranslateModule
   ],
   templateUrl: './list-incomes.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './list-incomes.component.css'
 })
 export class ListIncomesComponent implements OnInit {

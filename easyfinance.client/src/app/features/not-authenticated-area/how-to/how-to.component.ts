@@ -1,4 +1,4 @@
-import { Component, OnDestroy, inject } from '@angular/core';
+import { Component, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
@@ -7,6 +7,7 @@ import { Subscription } from 'rxjs';
   selector: 'app-how-to',
   imports: [],
   templateUrl: './how-to.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './how-to.component.css'
 })
 export class HowToComponent implements OnDestroy {

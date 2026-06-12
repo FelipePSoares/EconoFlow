@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { IncomeService } from './income.service';
 import { SUPPRESS_SUCCESS_NOTIFICATION } from '../interceptor/http-request-interceptor';
@@ -12,7 +12,7 @@ describe('IncomeService HTTP context', () => {
     TestBed.configureTestingModule({
       providers: [
         IncomeService,
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting()
       ]
     });

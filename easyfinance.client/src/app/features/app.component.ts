@@ -1,7 +1,7 @@
 
 import { combineLatest, distinctUntilChanged, filter, firstValueFrom, map, take } from 'rxjs';
 import { FormsModule } from '@angular/forms';
-import { ApplicationRef, Component, inject, PLATFORM_ID } from '@angular/core';
+import { ApplicationRef, Component, inject, PLATFORM_ID, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
@@ -43,6 +43,7 @@ import { ProjectOverviewRefreshService } from '../core/services/project-overview
     AddButtonComponent
   ],
   templateUrl: './app.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./app.component.css']
 })
 

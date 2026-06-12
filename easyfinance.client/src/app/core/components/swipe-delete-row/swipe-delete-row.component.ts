@@ -1,5 +1,6 @@
 import {
-  Component, EventEmitter, Input, Output, signal
+  Component, EventEmitter, Input, Output, signal,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
@@ -7,6 +8,7 @@ import { CommonModule } from '@angular/common';
   selector: 'app-swipe-delete-row',
   imports: [CommonModule],
   templateUrl: './swipe-delete-row.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './swipe-delete-row.component.css'
 })
 export class SwipeDeleteRowComponent {

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 
@@ -9,6 +9,7 @@ import { TranslateModule } from '@ngx-translate/core';
     TranslateModule
   ],
   templateUrl: './offline.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './offline.component.css'
 })
 export class OfflineComponent {

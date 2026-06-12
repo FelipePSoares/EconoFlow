@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, inject, Input, OnChanges, OnInit, PLATFORM_ID, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, inject, Input, OnChanges, OnInit, PLATFORM_ID, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { ChartConfiguration, ChartOptions } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
@@ -14,6 +14,7 @@ import { ChartColors } from '../../../../core/constants/chart-colors';
   selector: 'app-monthly-expenses-chart',
   imports: [BaseChartDirective],
   templateUrl: './monthly-expenses-chart.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './monthly-expenses-chart.component.css'
 })
 export class MonthlyExpensesChartComponent implements OnInit, OnChanges, AfterViewInit {

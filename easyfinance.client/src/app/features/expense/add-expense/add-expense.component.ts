@@ -1,5 +1,5 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AfterViewInit, ChangeDetectorRef, Component, DestroyRef, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, DestroyRef, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -56,6 +56,7 @@ import { PageModalComponent, PageModalDialogData } from '../../../core/component
     TranslateModule
 ],
     templateUrl: './add-expense.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './add-expense.component.css'
 })
 export class AddExpenseComponent implements OnInit, AfterViewInit {
