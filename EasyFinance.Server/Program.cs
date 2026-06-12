@@ -29,7 +29,12 @@ builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddApplicationServices();
 builder.Services.Configure<NotifierFallbackOptions>(builder.Configuration.GetSection(NotifierFallbackOptions.SectionName));
 builder.Services.Configure<WebPushOptions>(builder.Configuration.GetSection(WebPushOptions.SectionName));
-builder.Services.Configure<ExpoPushOptions>(builder.Configuration.GetSection(ExpoPushOptions.SectionName));
+var expoPushSettings = builder.Configuration.GetSection(ExpoPushOptions.SectionName).Get<ExpoPushOptions>() ?? new ExpoPushOptions();
+expoPushSettings.AccessToken = Environment.GetEnvironmentVariable("EconoFlow_EXPO_PUSH_ACCESS_TOKEN") ?? expoPushSettings.AccessToken;
+builder.Services.Configure<ExpoPushOptions>(options =>
+{
+    options.AccessToken = expoPushSettings.AccessToken;
+});
 builder.Services.Configure<FeatureRolloutOptions>(builder.Configuration.GetSection(FeatureRolloutOptions.SectionName));
 builder.Services.Configure<TemporaryAttachmentCleanupOptions>(builder.Configuration.GetSection(TemporaryAttachmentCleanupOptions.SectionName));
 
