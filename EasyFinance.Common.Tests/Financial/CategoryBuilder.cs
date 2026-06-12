@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using EasyFinance.Domain.Financial;
 
 namespace EasyFinance.Common.Tests.Financial
@@ -8,7 +8,7 @@ namespace EasyFinance.Common.Tests.Financial
         private Category category;
 
         public CategoryBuilder()
-        { 
+        {
             this.category = new Category();
         }
 

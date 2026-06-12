@@ -1,4 +1,4 @@
-﻿using EasyFinance.Common.Tests;
+using EasyFinance.Common.Tests;
 using EasyFinance.Common.Tests.Financial;
 using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
@@ -233,7 +233,7 @@ namespace EasyFinance.Domain.Tests.Financial
             expense.AddItem(item);
 
             var expenseResult = expense.Validate;
-            
+
             var itemResult = item.Validate;
 
             // Assert

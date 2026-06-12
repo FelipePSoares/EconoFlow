@@ -1,7 +1,7 @@
-﻿using EasyFinance.Common.Tests.FinancialProject;
+using System;
+using EasyFinance.Common.Tests.FinancialProject;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.FinancialProject;
-using System;
 
 namespace EasyFinance.Common.Tests.AccessControl
 {

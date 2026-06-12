@@ -73,41 +73,41 @@ namespace EasyFinance.Server.Tests.Controllers
             var originalCulture = CultureInfo.CurrentUICulture;
             try
             {
-            CultureInfo.CurrentUICulture = new CultureInfo(uiCulture);
+                CultureInfo.CurrentUICulture = new CultureInfo(uiCulture);
 
-            User? capturedUser = null;
-            _userManagerMock.Setup(u => u.SupportsUserEmail).Returns(true);
-            _userManagerMock
-                .Setup(u => u.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
-                .Callback<User, string>((user, _) => capturedUser = user)
-                .ReturnsAsync(IdentityResult.Success);
-            _userManagerMock
-                .Setup(u => u.GenerateEmailConfirmationTokenAsync(It.IsAny<User>()))
-                .ReturnsAsync("token");
+                User? capturedUser = null;
+                _userManagerMock.Setup(u => u.SupportsUserEmail).Returns(true);
+                _userManagerMock
+                    .Setup(u => u.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
+                    .Callback<User, string>((user, _) => capturedUser = user)
+                    .ReturnsAsync(IdentityResult.Success);
+                _userManagerMock
+                    .Setup(u => u.GenerateEmailConfirmationTokenAsync(It.IsAny<User>()))
+                    .ReturnsAsync("token");
 
-            _userStoreMock.As<IUserEmailStore<User>>()
-                .Setup(s => s.SetUserNameAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
-            _userStoreMock.As<IUserEmailStore<User>>()
-                .Setup(s => s.SetEmailAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
+                _userStoreMock.As<IUserEmailStore<User>>()
+                    .Setup(s => s.SetUserNameAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .Returns(Task.CompletedTask);
+                _userStoreMock.As<IUserEmailStore<User>>()
+                    .Setup(s => s.SetEmailAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .Returns(Task.CompletedTask);
 
-            _controller.ControllerContext = new ControllerContext
-            {
-                HttpContext = new DefaultHttpContext()
-            };
+                _controller.ControllerContext = new ControllerContext
+                {
+                    HttpContext = new DefaultHttpContext()
+                };
 
-            var registration = new RegisterRequestDTO { Email = "test@example.com", Password = "Password1!" };
+                var registration = new RegisterRequestDTO { Email = "test@example.com", Password = "Password1!" };
 
-            // Act — NotSupportedException from link generation is expected in unit tests
-            // that don't set up the full routing infrastructure; language code is already
-            // captured via the CreateAsync callback before that path is reached.
-            try { await _controller.Register(_userStoreMock.Object, registration); }
-            catch (NotSupportedException) { }
+                // Act — NotSupportedException from link generation is expected in unit tests
+                // that don't set up the full routing infrastructure; language code is already
+                // captured via the CreateAsync callback before that path is reached.
+                try { await _controller.Register(_userStoreMock.Object, registration); }
+                catch (NotSupportedException) { }
 
-            // Assert
-            capturedUser.ShouldNotBeNull();
-            capturedUser!.LanguageCode.ShouldBe(expectedCode);
+                // Assert
+                capturedUser.ShouldNotBeNull();
+                capturedUser!.LanguageCode.ShouldBe(expectedCode);
             }
             finally
             {

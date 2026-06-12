@@ -15,8 +15,8 @@ using EasyFinance.Infrastructure.DTOs;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
-using Moq;
 using MockQueryable;
+using Moq;
 
 namespace EasyFinance.Application.Tests
 {
@@ -61,12 +61,13 @@ namespace EasyFinance.Application.Tests
                 this.unitOfWorkMock.Object
                 );
         }
-        
+
         [Fact]
         public async Task SetDefaultProjectAsync_InexistentProjectId_ShouldReturnError()
         {
             // Arrange
-            var user = new User(){
+            var user = new User()
+            {
                 Id = Guid.NewGuid()
             };
 
@@ -92,12 +93,13 @@ namespace EasyFinance.Application.Tests
             await action.Should().ThrowAsync<KeyNotFoundException>()
                 .WithMessage(ValidationMessages.ProjectNotFoundOrInsufficientUserPermissions);
         }
-        
+
         [Fact]
         public async Task SetDefaultProjectAsync_UserDontHavePermission_ShouldReturnError()
         {
             // Arrange
-            var user = new User(){
+            var user = new User()
+            {
                 Id = Guid.NewGuid()
             };
 
@@ -124,12 +126,13 @@ namespace EasyFinance.Application.Tests
             await action.Should().ThrowAsync<KeyNotFoundException>()
                 .WithMessage(ValidationMessages.ProjectNotFoundOrInsufficientUserPermissions);
         }
-        
+
         [Fact]
         public async Task SetDefaultProjectAsync_ProjectExistsAndUserHasPermission_ShouldReturnSuccess()
         {
             // Arrange
-            var user = new User(){
+            var user = new User()
+            {
                 Id = Guid.NewGuid()
             };
 
@@ -160,7 +163,8 @@ namespace EasyFinance.Application.Tests
         {
             // Arrange
             var secretKey = "SCXbtFO7XfcVWdBg4FsCwDz8u&D$Hp%$7Eo";
-            var user = new User(){
+            var user = new User()
+            {
                 Id = Guid.NewGuid()
             };
 
@@ -193,10 +197,11 @@ namespace EasyFinance.Application.Tests
         {
             // Arrange
             var secretKey = "SCXbtFO7XfcVWdBg4FsCwDz8u&D$Hp%$7Eo";
-            var user = new User(){
+            var user = new User()
+            {
                 Id = Guid.NewGuid()
             };
-            
+
             var token = this.GenerateToken(user, secretKey);
 
             // Act
@@ -211,13 +216,15 @@ namespace EasyFinance.Application.Tests
         {
             // Arrange
             var secretKey = "SCXbtFO7XfcVWdBg4FsCwDz8u&D$Hp%$7Eo";
-            var user = new User(){
+            var user = new User()
+            {
                 Id = Guid.NewGuid()
             };
-            var user2 = new User(){
+            var user2 = new User()
+            {
                 Id = Guid.NewGuid()
             };
-            
+
             var token = this.GenerateToken(user, secretKey);
 
             // Act
@@ -232,10 +239,11 @@ namespace EasyFinance.Application.Tests
         {
             // Arrange
             var secretKey = "SCXbtFO7XfcVWdBg4FsCwDz8u&D$Hp%$7Eo";
-            var user = new User(){
+            var user = new User()
+            {
                 Id = Guid.NewGuid()
             };
-            
+
             var token = this.GenerateToken(user, secretKey, "Test");
 
             // Act
@@ -251,10 +259,11 @@ namespace EasyFinance.Application.Tests
             // Arrange
             var secretKey = "SCXbtFO7XfcVWdBg4FsCwDz8u&D$Hp%$7Eo";
             var secretKey2 = "Q3WV0@10epC2^Xa!JMCnNOvNx5yp5j2poKb";
-            var user = new User(){
+            var user = new User()
+            {
                 Id = Guid.NewGuid()
             };
-            
+
             var token = this.GenerateToken(user, secretKey);
 
             // Act
@@ -268,10 +277,11 @@ namespace EasyFinance.Application.Tests
         public async Task GenerateConfirmationMessageAsync_ViewerUser_ShouldReturnDefaultMessage()
         {
             // Arrange
-            var user = new User(){
+            var user = new User()
+            {
                 Id = Guid.NewGuid()
             };
-            
+
             this.projectServiceMock.Setup(x => x.GetProjectsWhereUserIsSoleAdminAsync(It.IsAny<User>()))
                 .ReturnsAsync(AppResponse<IList<string>>.Success([]));
 
@@ -286,13 +296,14 @@ namespace EasyFinance.Application.Tests
         public async Task GenerateConfirmationMessageAsync_SoleAdminUser_ShouldReturnAdminMessageWithProjectsName()
         {
             // Arrange
-            var user = new User(){
+            var user = new User()
+            {
                 Id = Guid.NewGuid()
             };
-            
+
             this.projectServiceMock.Setup(x => x.GetProjectsWhereUserIsSoleAdminAsync(It.IsAny<User>()))
                 .ReturnsAsync(AppResponse<IList<string>>.Success(new List<string> { "Test Project" }));
-                
+
             // Act
             var result = await this.userService.GenerateConfirmationMessageAsync(user);
 
@@ -300,7 +311,8 @@ namespace EasyFinance.Application.Tests
             result.Should().Be("<p>This action is permanent and cannot be undone. Are you sure you want to delete your account?</p><p><span class=\"danger\" >You are associated as a sole administrator of the projects below:</span></p><ul><li>Test Project</li></ul><p>Please transfer the administration to another user before deleting your account. Otherwise, the project(s) will be deleted also.</p>");
         }
 
-        private string GenerateToken(User user, string secretKey, string action = "confirm_delete"){
+        private string GenerateToken(User user, string secretKey, string action = "confirm_delete")
+        {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(secretKey);
 

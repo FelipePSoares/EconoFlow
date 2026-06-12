@@ -1,4 +1,4 @@
-﻿using EasyFinance.Common.Tests;
+using EasyFinance.Common.Tests;
 using EasyFinance.Common.Tests.AccessControl;
 using EasyFinance.Domain.Account;
 using EasyFinance.Infrastructure;

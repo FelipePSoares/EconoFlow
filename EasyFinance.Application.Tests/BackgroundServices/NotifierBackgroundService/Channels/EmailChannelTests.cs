@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using EasyFinance.Application.BackgroundServices.NotifierBackgroundService.Channels;
 using EasyFinance.Application.Features.EmailService;
 using EasyFinance.Common.Tests;

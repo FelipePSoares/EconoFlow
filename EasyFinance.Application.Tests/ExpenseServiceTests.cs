@@ -1,22 +1,22 @@
 using System.Text.Json;
 using EasyFinance.Application.Contracts.Persistence;
+using EasyFinance.Application.DTOs.Account;
+using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.Features.ExpenseService;
 using EasyFinance.Common.Tests;
+using EasyFinance.Common.Tests.AccessControl;
+using EasyFinance.Common.Tests.Financial;
+using EasyFinance.Common.Tests.FinancialProject;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Account;
 using EasyFinance.Domain.Financial;
+using EasyFinance.Infrastructure.DTOs;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using EasyFinance.Application.DTOs.Financial;
-using EasyFinance.Application.DTOs.Account;
-using EasyFinance.Domain.Account;
-using EasyFinance.Infrastructure.DTOs;
-using EasyFinance.Common.Tests.FinancialProject;
-using EasyFinance.Common.Tests.Financial;
-using EasyFinance.Common.Tests.AccessControl;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
 namespace EasyFinance.Application.Tests
@@ -205,7 +205,7 @@ namespace EasyFinance.Application.Tests
             // Create a fresh project, category and expense in this scope
             var project = new ProjectBuilder().AddName("Update Project").Build();
             unitOfWork.ProjectRepository.InsertOrUpdate(project);
-            
+
             var category = new CategoryBuilder().AddName("Update Category").Build();
             project.AddCategory(category);
             unitOfWork.CategoryRepository.InsertOrUpdate(category);
@@ -219,7 +219,7 @@ namespace EasyFinance.Application.Tests
 
             // Ensure user is linked to project
             unitOfWork.UserProjectRepository.InsertOrUpdate(new UserProjectBuilder().AddProject(project).AddUser(this.user1).AddAccepted().Build());
-            
+
             await unitOfWork.CommitAsync();
 
             var patch = new JsonPatchDocument<ExpenseRequestDTO>();
@@ -245,7 +245,7 @@ namespace EasyFinance.Application.Tests
             // Create a fresh project, category and expense in this scope
             var project = new ProjectBuilder().AddName("Jump Project").Build();
             unitOfWork.ProjectRepository.InsertOrUpdate(project);
-            
+
             var category = new CategoryBuilder().AddName("Jump Category").Build();
             project.AddCategory(category);
             unitOfWork.CategoryRepository.InsertOrUpdate(category);
@@ -259,7 +259,7 @@ namespace EasyFinance.Application.Tests
 
             // Ensure user is linked to project
             unitOfWork.UserProjectRepository.InsertOrUpdate(new UserProjectBuilder().AddProject(project).AddUser(this.user1).AddAccepted().Build());
-            
+
             await unitOfWork.CommitAsync();
 
             notificationServiceMock.Invocations.Clear();

@@ -1,4 +1,4 @@
-﻿namespace EasyFinance.Common.Tests
+namespace EasyFinance.Common.Tests
 {
     public interface IBuilder<T> where T : class
     {
