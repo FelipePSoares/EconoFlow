@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  ScrollView, StyleSheet, TouchableOpacity, View,
+  ScrollView, StyleSheet, Switch, TouchableOpacity, View,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,6 +12,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { ProfileStackParamList } from '../../navigation/ProfileStackNavigator';
 import { useAuthStore } from '../../store/authStore';
 import { useProjectStore } from '../../store/projectStore';
+import { usePushNotifications } from '../../hooks/usePushNotifications';
 import { GlassScreen } from '../../components/common/GlassScreen';
 import { GlassCard } from '../../components/common/GlassCard';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
@@ -59,6 +60,46 @@ const SettingRow: React.FC<SettingRowProps> = ({
   return <View testID={testID}>{inner}</View>;
 };
 
+interface SettingToggleRowProps {
+  icon: string;
+  label: string;
+  value: string;
+  toggled: boolean;
+  dark: boolean;
+  ink: string;
+  ink2: string;
+  hair: string;
+  disabled?: boolean;
+  isLast?: boolean;
+  onPress?: () => void;
+  testID?: string;
+}
+
+const SettingToggleRow: React.FC<SettingToggleRowProps> = ({
+  icon, label, value, toggled, dark, ink, ink2, hair, disabled, isLast, onPress, testID,
+}) => {
+  const inner = (
+    <View style={[styles.settingRow, { borderBottomColor: isLast ? 'transparent' : hair }]}>
+      <View style={[styles.settingIconWrap, { backgroundColor: '#0f76a8' + (dark ? '28' : '18') }]}>
+        <MaterialCommunityIcons name={icon as never} size={18} color="#0f76a8" />
+      </View>
+      <View style={styles.settingInfo}>
+        <Text style={[styles.settingLabel, { color: ink2 }]}>{label}</Text>
+        <Text style={[styles.settingValue, { color: ink }]}>{value}</Text>
+      </View>
+      <Switch
+        value={toggled}
+        disabled={disabled}
+        onValueChange={onPress}
+        trackColor={{ false: hair, true: '#0f76a880' }}
+        thumbColor={toggled ? '#0f76a8' : '#ccc'}
+      />
+    </View>
+  );
+
+  return <View testID={testID}>{inner}</View>;
+};
+
 export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
   const { dark, ink, ink2, hair } = useAuroraSkin();
@@ -66,11 +107,26 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
   const { user, clearAuth } = useAuthStore();
   const { clearProject, selectedProject } = useProjectStore();
   const queryClient = useQueryClient();
+  const {
+    notificationsEnabled,
+    isRegistering,
+    registerPushNotifications,
+    unregisterPushNotifications,
+  } = usePushNotifications();
 
   const handleSignOut = () => {
+    unregisterPushNotifications();
     queryClient.clear();
     clearAuth();
     clearProject();
+  };
+
+  const handleToggleNotifications = () => {
+    if (notificationsEnabled) {
+      unregisterPushNotifications();
+    } else {
+      registerPushNotifications();
+    }
   };
 
   const displayName = user?.fullName
@@ -124,7 +180,7 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
             dark={dark} ink={ink} ink2={ink2} hair={hair}
             icon="translate"
             label={t('LabelLanguage') ?? 'Language'}
-            value={user?.languageCode ?? 'en-US'}
+            value={user?.languageCode ?? 'en'}
             onPress={() => navigation.navigate('LanguagePicker')}
             testID="row-LanguagePicker"
           />
@@ -142,6 +198,24 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
             label={t('EmailVerification') ?? 'Email Verification'}
             value={user?.emailConfirmed ? (t('EmailVerified') ?? 'Verified') : (t('EmailNotVerified') ?? 'Not verified')}
             valueColor={user?.emailConfirmed ? '#0e9f6e' : '#e74c3c'}
+            isLast
+          />
+        </GlassCard>
+
+        {/* Notifications */}
+        <Text style={[styles.sectionTitle, { color: ink2 }]}>
+          {t('NotificationPreferences') ?? 'Notifications'}
+        </Text>
+        <GlassCard dark={dark} radius={20} style={styles.card}>
+          <SettingToggleRow
+            dark={dark} ink={ink} ink2={ink2} hair={hair}
+            icon="bell-outline"
+            label={t('PushNotifications') ?? 'Push Notifications'}
+            value={t('ReceiveRealTimePushNotificationsYourDevices') ?? 'Receive real-time push notifications on your devices'}
+            toggled={notificationsEnabled}
+            disabled={isRegistering}
+            onPress={handleToggleNotifications}
+            testID="row-PushNotifications"
             isLast
           />
         </GlassCard>
