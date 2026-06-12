@@ -26,6 +26,7 @@ namespace EasyFinance.Application.Contracts.Persistence
         IGenericRepository<ContactUs> ContactUsRepository { get; }
         IGenericRepository<Notification> NotificationRepository { get; }
         IGenericRepository<WebPushSubscription> WebPushSubscriptionRepository { get; }
+        IGenericRepository<ExpoPushToken> ExpoPushTokenRepository { get; }
 
         Task CommitAsync();
 

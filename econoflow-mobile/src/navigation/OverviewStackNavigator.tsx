@@ -8,9 +8,11 @@ import { ExpenseListScreen } from '../screens/expenses/ExpenseListScreen';
 import { ExpenseFormScreen } from '../screens/expenses/ExpenseFormScreen';
 import { IncomeListScreen } from '../screens/incomes/IncomeListScreen';
 import { IncomeFormScreen } from '../screens/incomes/IncomeFormScreen';
+import { NotificationListScreen } from '../screens/notifications/NotificationListScreen';
 
 export type OverviewStackParamList = {
   MonthlyOverview: undefined;
+  NotificationCentre: undefined;
   CategoryList: { month: string };
   ExpenseList: {
     categoryId: string;
@@ -46,7 +48,7 @@ export type OverviewStackParamList = {
 const Stack = createNativeStackNavigator<OverviewStackParamList>();
 
 // Aurora screens that own their own full-screen header — suppress the nav bar
-const HEADERLESS = ['MonthlyOverview', 'CategoryList', 'ExpenseList', 'IncomeList'] as const;
+const HEADERLESS = ['MonthlyOverview', 'CategoryList', 'ExpenseList', 'IncomeList', 'NotificationCentre'] as const;
 
 export const OverviewStackNavigator: React.FC = () => {
   const { t } = useTranslation();
@@ -90,6 +92,7 @@ export const OverviewStackNavigator: React.FC = () => {
         component={IncomeFormScreen}
         options={{ title: t('Income') }}
       />
+      <Stack.Screen name="NotificationCentre" component={NotificationListScreen} />
     </Stack.Navigator>
   );
 };

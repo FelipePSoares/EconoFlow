@@ -428,4 +428,10 @@ You will be redirect in 5 seconds ...</value>
   <data name="UnsubscribeSuccess" xml:space="preserve">
     <value>You have been unsubscribed from email notifications.</value>
   </data>
+  <data name="ExpoPushTokenRequired" xml:space="preserve">
+    <value>Expo push token is required.</value>
+  </data>
+  <data name="ExpoPushTokenNotOwned" xml:space="preserve">
+    <value>Token does not belong to this user.</value>
+  </data>
 </root>

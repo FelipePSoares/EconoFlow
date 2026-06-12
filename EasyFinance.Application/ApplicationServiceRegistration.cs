@@ -13,6 +13,7 @@ using EasyFinance.Application.Features.CategoryService;
 using EasyFinance.Application.Features.EmailService;
 using EasyFinance.Application.Features.ExpenseItemService;
 using EasyFinance.Application.Features.ExpenseService;
+using EasyFinance.Application.Features.ExpoPushTokenService;
 using EasyFinance.Application.Features.FeatureRolloutService;
 using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Application.Features.NotificationService;
@@ -52,7 +53,12 @@ namespace EasyFinance.Application
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IWebPushService, WebPushService>();
+            services.AddScoped<IExpoPushTokenService, ExpoPushTokenService>();
             services.AddScoped<IUserKeyService>(provider => new UserKeyService(userKeySalt));
+
+            // Expo Push
+            services.AddHttpClient<IExpoPushClient, ExpoPushClient>();
+            services.AddOptions<ExpoPushOptions>();
 
             // Turnstile CAPTCHA
             services.AddHttpClient<ITurnstileService, TurnstileService>();
