@@ -1,8 +1,8 @@
+using System;
 using AutoFixture;
 using EasyFinance.Common.Tests.AccessControl;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Financial;
-using System;
 
 namespace EasyFinance.Common.Tests.Financial
 {

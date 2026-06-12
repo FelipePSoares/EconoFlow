@@ -1,4 +1,4 @@
-﻿using EasyFinance.Application.BackgroundServices.NotifierBackgroundService;
+using EasyFinance.Application.BackgroundServices.NotifierBackgroundService;
 using EasyFinance.Application.BackgroundServices.NotifierBackgroundService.Channels;
 using EasyFinance.Common.Tests;
 using EasyFinance.Common.Tests.AccessControl;

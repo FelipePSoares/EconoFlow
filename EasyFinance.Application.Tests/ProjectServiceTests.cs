@@ -1,4 +1,4 @@
-﻿using EasyFinance.Application.Contracts.Persistence;
+using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Common.Tests;
 using EasyFinance.Domain.AccessControl;

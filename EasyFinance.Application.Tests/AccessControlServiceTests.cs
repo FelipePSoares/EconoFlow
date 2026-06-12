@@ -348,10 +348,10 @@ namespace EasyFinance.Application.Tests
             this.unitOfWork.Setup(u => u.GetAffectedUsers(It.IsAny<EntityState[]>())).Returns([]);
 
             var userProjectDto = new JsonPatchDocument<IList<UserProjectRequestDTO>>()
-                .Add(up => up, new UserProjectRequestDTO() 
-                { 
+                .Add(up => up, new UserProjectRequestDTO()
+                {
                     UserEmail = "newuser@example.com",
-                    Role = Role.Viewer 
+                    Role = Role.Viewer
                 });
 
             // Act

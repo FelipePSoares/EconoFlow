@@ -121,7 +121,7 @@ namespace EasyFinance.Application.Tests
             savedAttachment.ExpenseId.Should().BeNull();
             File.Exists(ToStoragePath(savedAttachment.StorageKey)).Should().BeTrue();
         }
-        
+
         [Fact]
         public async Task AttachTemporaryToExpenseItem_ShouldMoveTemporaryAttachmentToExpenseItem()
         {

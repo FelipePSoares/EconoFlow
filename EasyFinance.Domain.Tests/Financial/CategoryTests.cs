@@ -1,4 +1,4 @@
-﻿using EasyFinance.Common.Tests.Financial;
+using EasyFinance.Common.Tests.Financial;
 using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
 using FluentAssertions;

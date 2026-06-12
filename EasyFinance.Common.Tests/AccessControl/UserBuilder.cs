@@ -1,7 +1,7 @@
-﻿using AutoFixture;
-using EasyFinance.Domain.AccessControl;
 using System;
 using System.Net.Mail;
+using AutoFixture;
+using EasyFinance.Domain.AccessControl;
 
 namespace EasyFinance.Common.Tests.AccessControl
 {

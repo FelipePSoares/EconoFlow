@@ -3,10 +3,9 @@ using EasyFinance.Application.Features.AttachmentService;
 using EasyFinance.Application.Features.ExpenseItemService;
 using EasyFinance.Application.Features.ExpenseService;
 using EasyFinance.Application.Features.IncomeService;
+using EasyFinance.Application.Features.NotificationService;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Application.Features.UserService;
-using EasyFinance.Application.Features.NotificationService;
-using Moq;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Account;
 using EasyFinance.Persistence.DatabaseContext;
@@ -15,6 +14,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 
 namespace EasyFinance.Application.Tests
 {
