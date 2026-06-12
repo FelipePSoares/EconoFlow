@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EasyFinance.Application.Features.ExpoPushTokenService;
 using EasyFinance.Domain.Account;
+using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.Extensions.Logging;
 
@@ -28,11 +30,15 @@ namespace EasyFinance.Application.BackgroundServices.NotifierBackgroundService.C
                 return AppResponse.Success();
             }
 
+            var culture = notification.User?.Culture ?? CultureInfo.InvariantCulture;
+            var body = NotificationMessages.ResourceManager.GetString(notification.CodeMessage, culture)
+                       ?? notification.CodeMessage;
+
             var messages = tokens.Select(token => new ExpoMessage
             {
                 To = token,
-                Title = notification.CodeMessage,
-                Body = notification.CodeMessage,
+                Title = "EconoFlow",
+                Body = body,
                 Data = new { notificationId = notification.Id, category = notification.Category.ToString() },
             });
 

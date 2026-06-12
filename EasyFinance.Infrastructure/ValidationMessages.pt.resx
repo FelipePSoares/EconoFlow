@@ -428,4 +428,10 @@ Você será redirecionado em 5 segundos...</value>
   <data name="UnsubscribeSuccess" xml:space="preserve">
     <value>Você foi removido das notificações por e-mail.</value>
   </data>
+  <data name="ExpoPushTokenRequired" xml:space="preserve">
+    <value>Token de push Expo é obrigatório.</value>
+  </data>
+  <data name="ExpoPushTokenNotOwned" xml:space="preserve">
+    <value>O token não pertence a este usuário.</value>
+  </data>
 </root>

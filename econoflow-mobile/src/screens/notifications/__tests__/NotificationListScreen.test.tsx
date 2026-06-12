@@ -164,4 +164,13 @@ describe('NotificationListScreen', () => {
     });
     expect(mockMarkAllAsRead).toHaveBeenCalled();
   });
+
+  it('renders without crashing when there is an error', async () => {
+    notificationsMock.useNotifications.mockReturnValue({ data: [], isLoading: false, isError: true, refetch: mockRefetch });
+    await act(async () => {
+      render(<NotificationListScreen navigation={mockNavigation} />);
+    });
+    // ErrorBanner is mocked to null; component must render without throwing
+    expect(screen.getByTestId('mark-all-read-btn')).toBeTruthy();
+  });
 });

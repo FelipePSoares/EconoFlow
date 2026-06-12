@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Domain.Account;
+using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,7 +17,7 @@ namespace EasyFinance.Application.Features.ExpoPushTokenService
         public async Task<AppResponse> UpsertTokenAsync(Guid userId, string token, string? deviceName)
         {
             if (string.IsNullOrWhiteSpace(token))
-                return AppResponse.Error(nameof(token), "Expo push token is required.");
+                return AppResponse.Error(nameof(token), ValidationMessages.ExpoPushTokenRequired);
 
             var existing = await unitOfWork.ExpoPushTokenRepository
                 .Trackable()
@@ -56,7 +57,7 @@ namespace EasyFinance.Application.Features.ExpoPushTokenService
                 return AppResponse.Success();
 
             if (existing.UserId != userId)
-                return AppResponse.Error("forbidden", "Token does not belong to this user.");
+                return AppResponse.Error("forbidden", ValidationMessages.ExpoPushTokenNotOwned);
 
             existing.Revoke(DateTime.UtcNow);
             await unitOfWork.CommitAsync();
