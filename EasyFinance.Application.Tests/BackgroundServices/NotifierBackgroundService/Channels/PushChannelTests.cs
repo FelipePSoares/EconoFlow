@@ -1,8 +1,11 @@
+using System.Collections.Generic;
+using System.Linq;
 using EasyFinance.Application.BackgroundServices.NotifierBackgroundService.Channels;
 using EasyFinance.Application.Features.ExpoPushTokenService;
 using EasyFinance.Common.Tests;
 using EasyFinance.Common.Tests.AccessControl;
 using EasyFinance.Domain.Account;
+using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
@@ -77,6 +80,31 @@ namespace EasyFinance.Application.Tests.BackgroundServices.NotifierBackgroundSer
             var result = await CreateChannel().SendAsync(notification);
 
             result.Failed.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task SendAsync_KnownCodeMessage_ShouldSendLocalizedBodyNotRawCodeKey()
+        {
+            var notification = new NotificationBuilder().AddCodeMessage("BUDGET_WARNING").Build();
+            var token = "ExponentPushToken[AAAAAAAAAAAAAAAAAAAAAA]";
+
+            tokenServiceMock
+                .Setup(s => s.GetActiveTokensForUserAsync(notification.User.Id))
+                .ReturnsAsync([token]);
+
+            IEnumerable<ExpoMessage>? capturedMessages = null;
+            pushClientMock
+                .Setup(c => c.SendAsync(It.IsAny<IEnumerable<ExpoMessage>>(), It.IsAny<CancellationToken>()))
+                .Callback<IEnumerable<ExpoMessage>, CancellationToken>((msgs, _) => capturedMessages = msgs.ToList())
+                .ReturnsAsync(AppResponse.Success());
+
+            await CreateChannel().SendAsync(notification);
+
+            capturedMessages.Should().NotBeNull();
+            var message = capturedMessages!.Single();
+            message.Title.Should().Be("EconoFlow");
+            message.Body.Should().Be(NotificationMessages.BUDGET_WARNING);
+            message.Body.Should().NotBe("BUDGET_WARNING");
         }
 
         [Fact]
