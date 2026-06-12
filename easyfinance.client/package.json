@@ -63,7 +63,7 @@
     "angular-eslint": "22.0.0",
     "cypress": "^15.17.0",
     "eslint": "^9.39.2",
-    "jasmine-core": "~5.13.0",
+    "jasmine-core": "~6.3.0",
     "karma": "~6.4.4",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.1",
