@@ -13,6 +13,7 @@ using EasyFinance.Application.Features.CategoryService;
 using EasyFinance.Application.Features.EmailService;
 using EasyFinance.Application.Features.ExpenseItemService;
 using EasyFinance.Application.Features.ExpenseService;
+using EasyFinance.Application.Features.ExpoPushTokenService;
 using EasyFinance.Application.Features.FeatureRolloutService;
 using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Application.Features.NotificationService;
@@ -23,8 +24,6 @@ using EasyFinance.Application.Features.TaxYearService;
 using EasyFinance.Application.Features.TurnstileService;
 using EasyFinance.Application.Features.UserKeyService;
 using EasyFinance.Application.Features.UserService;
-using EasyFinance.Application.Features.ExpoPushTokenService;
-using EasyFinance.Application.Features.TurnstileService;
 using EasyFinance.Application.Features.WebPushService;
 using Microsoft.Extensions.DependencyInjection;
 
