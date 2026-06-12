@@ -185,7 +185,7 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
             activeOpacity={0.7}
           >
             <GlassCard dark={dark} radius={14} intensity={40} style={styles.notifCard}>
-              <MaterialCommunityIcons name={unreadCount > 0 ? 'bell-badge-outline' : 'bell-outline'} size={22} color="#0f76a8" />
+              <MaterialCommunityIcons name={unreadCount > 0 ? 'bell-badge-outline' : 'bell-outline'} size={22} color={colors.primary} />
             </GlassCard>
           </TouchableOpacity>
         </View>

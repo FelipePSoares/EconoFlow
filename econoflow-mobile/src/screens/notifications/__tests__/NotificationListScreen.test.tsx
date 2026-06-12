@@ -53,6 +53,10 @@ jest.mock('../../../components/common/LoadingIndicator', () => ({
   LoadingIndicator: () => null,
 }));
 
+jest.mock('../../../components/common/ErrorBanner', () => ({
+  ErrorBanner: () => null,
+}));
+
 const mockMarkAsRead = jest.fn();
 const mockMarkAllAsRead = jest.fn();
 const mockRefetch = jest.fn().mockResolvedValue(undefined);
@@ -81,7 +85,7 @@ describe('NotificationListScreen', () => {
   });
 
   it('renders empty state when no notifications', async () => {
-    notificationsMock.useNotifications.mockReturnValue({ data: [], isLoading: false, refetch: mockRefetch });
+    notificationsMock.useNotifications.mockReturnValue({ data: [], isLoading: false, isError: false, refetch: mockRefetch });
     await act(async () => {
       render(<NotificationListScreen navigation={mockNavigation} />);
     });
@@ -89,7 +93,7 @@ describe('NotificationListScreen', () => {
   });
 
   it('renders loading indicator when loading', async () => {
-    notificationsMock.useNotifications.mockReturnValue({ data: undefined, isLoading: true, refetch: mockRefetch });
+    notificationsMock.useNotifications.mockReturnValue({ data: undefined, isLoading: true, isError: false, refetch: mockRefetch });
     await act(async () => {
       render(<NotificationListScreen navigation={mockNavigation} />);
     });
@@ -119,7 +123,7 @@ describe('NotificationListScreen', () => {
         metadata: '',
       },
     ];
-    notificationsMock.useNotifications.mockReturnValue({ data: notifications, isLoading: false, refetch: mockRefetch });
+    notificationsMock.useNotifications.mockReturnValue({ data: notifications, isLoading: false, isError: false, refetch: mockRefetch });
     await act(async () => {
       render(<NotificationListScreen navigation={mockNavigation} />);
     });
@@ -140,7 +144,7 @@ describe('NotificationListScreen', () => {
         metadata: '',
       },
     ];
-    notificationsMock.useNotifications.mockReturnValue({ data: notifications, isLoading: false, refetch: mockRefetch });
+    notificationsMock.useNotifications.mockReturnValue({ data: notifications, isLoading: false, isError: false, refetch: mockRefetch });
     await act(async () => {
       render(<NotificationListScreen navigation={mockNavigation} />);
     });
@@ -151,7 +155,7 @@ describe('NotificationListScreen', () => {
   });
 
   it('calls markAllAsRead when mark-all button is pressed', async () => {
-    notificationsMock.useNotifications.mockReturnValue({ data: [], isLoading: false, refetch: mockRefetch });
+    notificationsMock.useNotifications.mockReturnValue({ data: [], isLoading: false, isError: false, refetch: mockRefetch });
     await act(async () => {
       render(<NotificationListScreen navigation={mockNavigation} />);
     });

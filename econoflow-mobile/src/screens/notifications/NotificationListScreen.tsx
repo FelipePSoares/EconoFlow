@@ -12,6 +12,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { GlassScreen } from '../../components/common/GlassScreen';
 import { LoadingIndicator } from '../../components/common/LoadingIndicator';
+import { ErrorBanner } from '../../components/common/ErrorBanner';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
 import { useAppTheme } from '../../theme/useAppTheme';
 import { useNotifications, useMarkAsRead, useMarkAllAsRead } from '../../hooks/useNotifications';
@@ -30,12 +31,13 @@ interface Props {
 
 export const NotificationListScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
-  const { dark, ink, ink2 } = useAuroraSkin();
+  const { dark, ink, ink2, hair } = useAuroraSkin();
   const theme = useAppTheme();
   const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = React.useState(false);
 
-  const { data: notifications = [], isLoading, refetch } = useNotifications();
+  const { data: notifications = [], isLoading, isError, refetch } = useNotifications();
+  const [errorDismissed, setErrorDismissed] = React.useState(false);
   const { mutate: markAsRead } = useMarkAsRead();
   const { mutate: markAllAsRead } = useMarkAllAsRead();
 
@@ -45,11 +47,23 @@ export const NotificationListScreen: React.FC<Props> = ({ navigation }) => {
     setRefreshing(false);
   };
 
+  const parseMetadata = (raw: string): Record<string, string> => {
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed))
+        return parsed as Record<string, string>;
+    } catch {
+      // ignore malformed metadata
+    }
+    return {};
+  };
+
   const renderItem = ({ item }: { item: AppNotification }) => {
     const icon = CATEGORY_ICONS[item.category] ?? 'bell-outline';
+    const params = item.metadata ? parseMetadata(item.metadata) : undefined;
     return (
       <TouchableOpacity
-        style={[styles.item, { borderBottomColor: dark ? '#1e3a52' : '#d0dde8' }]}
+        style={[styles.item, { borderBottomColor: hair }]}
         onPress={() => markAsRead(item.id)}
         activeOpacity={0.7}
       >
@@ -60,7 +74,7 @@ export const NotificationListScreen: React.FC<Props> = ({ navigation }) => {
             color={theme.colors.primary}
           />
         </View>
-        <Text style={[styles.message, { color: ink }]}>{item.codeMessage}</Text>
+        <Text style={[styles.message, { color: ink }]}>{t(item.codeMessage, params)}</Text>
       </TouchableOpacity>
     );
   };
@@ -80,6 +94,11 @@ export const NotificationListScreen: React.FC<Props> = ({ navigation }) => {
           testID="mark-all-read-btn"
         />
       </View>
+
+      <ErrorBanner
+        visible={isError && !errorDismissed}
+        onDismiss={() => setErrorDismissed(true)}
+      />
 
       {isLoading ? (
         <LoadingIndicator />
