@@ -516,7 +516,7 @@ Backend 400 responses carry field-level errors as `{ errors: { FieldName: string
 Crash reporting and performance tracking: `@sentry/react-native` (~7.11.0). All Sentry interactions go through the central module — never import `@sentry/react-native` directly in feature code.
 
 | Signal | How it is captured |
-|---|---|
+|---|---|---|
 | JS crashes & unhandled rejections | Global handler installed by `Sentry.init`; root component wrapped with `Sentry.wrap` |
 | Screen transitions | `reactNavigationIntegration` — automatic breadcrumb per navigation |
 | HTTP requests | Axios request interceptor — method + URL breadcrumb (no body, no token) |
@@ -524,6 +524,10 @@ Crash reporting and performance tracking: `@sentry/react-native` (~7.11.0). All 
 | User identity | `setUserContext(id)` on login, `onRehydrateStorage` on cold start, `clearUserContext` on logout — ID only, no PII |
 | Component tree on crash | `attachViewHierarchy: true` — structure only, no field values |
 | CPU profiles | `profilesSampleRate: 0.1` — 10 % of sampled traces carry a Hermes CPU profile |
+| Push notification registration errors | `captureError(err, { screen: 'usePushNotifications', action: 'register' })` — API call failure |
+| Push notification unregistration errors | `captureError(err, { screen: 'usePushNotifications', action: 'unregister' })` — API call failure |
+| Push registration skipped (emulator) | `addBreadcrumb('Push registration skipped — not a physical device', 'debug')` — no error event, only breadcrumb |
+| Push registration skipped (permission denied) | `addBreadcrumb('Push registration skipped — permission not granted', 'debug', { status })` — no error event, only breadcrumb |
 
 **Privacy constraints enforced at the SDK level:**
 - `attachScreenshot: false` — screenshots are explicitly disabled (would expose financial data)
