@@ -30,10 +30,13 @@ jest.mock('expo-device', () => ({
 }));
 
 const mockCaptureError = jest.fn();
-const mockAddBreadcrumb = jest.fn();
 jest.mock('../../monitoring/sentry', () => ({
   captureError: (...args: unknown[]) => mockCaptureError(...args),
-  addBreadcrumb: (...args: unknown[]) => mockAddBreadcrumb(...args),
+}));
+
+jest.mock('react-native', () => ({
+  Platform: { OS: 'android' },
+  Alert: { alert: jest.fn() },
 }));
 
 describe('registerPushNotificationsAsync', () => {
@@ -46,12 +49,15 @@ describe('registerPushNotificationsAsync', () => {
     jest.clearAllMocks();
   });
 
-  it('silently returns and adds breadcrumb when Device.isDevice is false', async () => {
+  it('captures error to Sentry when Device.isDevice is false', async () => {
     mockIsDevice.current = false;
 
     await registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled);
 
-    expect(mockAddBreadcrumb).toHaveBeenCalled();
+    expect(mockCaptureError).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.stringContaining('not a physical device') }),
+      { screen: 'usePushNotifications', action: 'register' },
+    );
     expect(NotificationsApi.registerExpoPushToken).not.toHaveBeenCalled();
     expect(setNotificationsEnabled).not.toHaveBeenCalled();
   });
@@ -82,32 +88,44 @@ describe('registerPushNotificationsAsync', () => {
     expect(setNotificationsEnabled).toHaveBeenCalledWith(true);
   });
 
-  it('skips registration when permission is denied', async () => {
+  it('captures error to Sentry and shows alert when permission is denied after request', async () => {
     const expoNotifications = jest.requireMock('expo-notifications') as {
       getPermissionsAsync: jest.Mock;
       requestPermissionsAsync: jest.Mock;
     };
+    const { Alert } = jest.requireMock('react-native') as { Alert: { alert: jest.Mock } };
 
     expoNotifications.getPermissionsAsync.mockResolvedValue({ status: 'undetermined' });
     expoNotifications.requestPermissionsAsync.mockResolvedValue({ status: 'denied' });
 
     await registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled);
 
+    expect(Alert.alert).toHaveBeenCalled();
+    expect(mockCaptureError).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.stringContaining('permission not granted') }),
+      { screen: 'usePushNotifications', action: 'register' },
+    );
     expect(NotificationsApi.registerExpoPushToken).not.toHaveBeenCalled();
     expect(setNotificationsEnabled).not.toHaveBeenCalled();
   });
 
-  it('skips registration when permission was previously denied', async () => {
+  it('captures error to Sentry and shows alert when permission was previously denied', async () => {
     const expoNotifications = jest.requireMock('expo-notifications') as {
       getPermissionsAsync: jest.Mock;
       requestPermissionsAsync: jest.Mock;
     };
+    const { Alert } = jest.requireMock('react-native') as { Alert: { alert: jest.Mock } };
 
     expoNotifications.getPermissionsAsync.mockResolvedValue({ status: 'denied' });
 
     await registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled);
 
+    expect(Alert.alert).toHaveBeenCalled();
     expect(expoNotifications.requestPermissionsAsync).not.toHaveBeenCalled();
+    expect(mockCaptureError).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.stringContaining('permission not granted') }),
+      { screen: 'usePushNotifications', action: 'register' },
+    );
     expect(NotificationsApi.registerExpoPushToken).not.toHaveBeenCalled();
   });
 
