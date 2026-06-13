@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "161955009930",
+    "project_id": "pt-econoflow-mobile",
+    "storage_bucket": "pt-econoflow-mobile.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:161955009930:android:24e3be2557e89bbe586473",
+        "android_client_info": {
+          "package_name": "pt.econoflow.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD3sG8Ma4U_t4rrFQH3yEze6scS0CkQl6A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

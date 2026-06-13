@@ -15,6 +15,7 @@
       "backgroundColor": "#061e33"
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "package": "pt.econoflow.mobile",
       "versionCode": 2,
       "adaptiveIcon": {
