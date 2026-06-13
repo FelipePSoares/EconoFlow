@@ -24,8 +24,16 @@ jest.mock('expo-notifications', () => ({
   getExpoPushTokenAsync: jest.fn(),
 }));
 
+const mockIsDevice = { current: true };
 jest.mock('expo-device', () => ({
-  isDevice: true,
+  get isDevice() { return mockIsDevice.current; },
+}));
+
+const mockCaptureError = jest.fn();
+const mockAddBreadcrumb = jest.fn();
+jest.mock('../../monitoring/sentry', () => ({
+  captureError: (...args: unknown[]) => mockCaptureError(...args),
+  addBreadcrumb: (...args: unknown[]) => mockAddBreadcrumb(...args),
 }));
 
 describe('registerPushNotificationsAsync', () => {
@@ -34,7 +42,18 @@ describe('registerPushNotificationsAsync', () => {
 
   beforeEach(() => {
     useNotificationStore.setState({ expoPushToken: null, notificationsEnabled: false });
+    mockIsDevice.current = true;
     jest.clearAllMocks();
+  });
+
+  it('silently returns and adds breadcrumb when Device.isDevice is false', async () => {
+    mockIsDevice.current = false;
+
+    await registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled);
+
+    expect(mockAddBreadcrumb).toHaveBeenCalled();
+    expect(NotificationsApi.registerExpoPushToken).not.toHaveBeenCalled();
+    expect(setNotificationsEnabled).not.toHaveBeenCalled();
   });
 
   it('requests permissions, gets push token, calls API, and calls setters', async () => {
@@ -92,7 +111,7 @@ describe('registerPushNotificationsAsync', () => {
     expect(NotificationsApi.registerExpoPushToken).not.toHaveBeenCalled();
   });
 
-  it('silently catches API errors and disables notifications', async () => {
+  it('captures error to Sentry and disables notifications when API fails', async () => {
     const expoNotifications = jest.requireMock('expo-notifications') as {
       getPermissionsAsync: jest.Mock;
       requestPermissionsAsync: jest.Mock;
@@ -102,12 +121,14 @@ describe('registerPushNotificationsAsync', () => {
     expoNotifications.getPermissionsAsync.mockResolvedValue({ status: 'granted' });
     expoNotifications.getExpoPushTokenAsync.mockResolvedValue({ data: 'ExponentPushToken[abc]' });
 
-    (NotificationsApi.registerExpoPushToken as jest.Mock).mockRejectedValue(new Error('API error'));
+    const apiError = new Error('API error');
+    (NotificationsApi.registerExpoPushToken as jest.Mock).mockRejectedValue(apiError);
 
     await expect(
       registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled),
     ).resolves.toBeUndefined();
 
+    expect(mockCaptureError).toHaveBeenCalledWith(apiError, { screen: 'usePushNotifications', action: 'register' });
     expect(setNotificationsEnabled).toHaveBeenCalledWith(false);
   });
 });
@@ -117,6 +138,7 @@ describe('unregisterPushNotificationsAsync', () => {
 
   beforeEach(() => {
     useNotificationStore.setState({ expoPushToken: null, notificationsEnabled: false });
+    mockIsDevice.current = true;
     jest.clearAllMocks();
   });
 
@@ -127,6 +149,7 @@ describe('unregisterPushNotificationsAsync', () => {
 
     expect(NotificationsApi.unregisterExpoPushToken).toHaveBeenCalledWith('ExponentPushToken[abc]');
     expect(clearNotificationState).toHaveBeenCalled();
+    expect(mockCaptureError).not.toHaveBeenCalled();
   });
 
   it('does nothing when no token is provided', async () => {
@@ -136,11 +159,13 @@ describe('unregisterPushNotificationsAsync', () => {
     expect(clearNotificationState).not.toHaveBeenCalled();
   });
 
-  it('calls clearNotificationState even when API fails', async () => {
-    (NotificationsApi.unregisterExpoPushToken as jest.Mock).mockRejectedValue(new Error('API error'));
+  it('captures error to Sentry and clears store when API fails', async () => {
+    const apiError = new Error('API error');
+    (NotificationsApi.unregisterExpoPushToken as jest.Mock).mockRejectedValue(apiError);
 
     await unregisterPushNotificationsAsync('ExponentPushToken[abc]', clearNotificationState);
 
+    expect(mockCaptureError).toHaveBeenCalledWith(apiError, { screen: 'usePushNotifications', action: 'unregister' });
     expect(NotificationsApi.unregisterExpoPushToken).toHaveBeenCalled();
     expect(clearNotificationState).toHaveBeenCalled();
   });
