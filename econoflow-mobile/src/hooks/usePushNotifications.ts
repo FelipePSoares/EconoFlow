@@ -4,12 +4,14 @@ import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { registerExpoPushToken as apiRegister, unregisterExpoPushToken as apiUnregister } from '../api/notifications.api';
 import { useNotificationStore } from '../store/notificationStore';
+import { captureError, addBreadcrumb } from '../monitoring/sentry';
 
 export async function registerPushNotificationsAsync(
   setExpoPushToken: (t: string) => void,
   setNotificationsEnabled: (v: boolean) => void,
 ): Promise<void> {
   if (!Device.isDevice) {
+    addBreadcrumb('Push registration skipped — not a physical device', 'debug');
     return;
   }
 
@@ -22,6 +24,7 @@ export async function registerPushNotificationsAsync(
   }
 
   if (finalStatus !== 'granted') {
+    addBreadcrumb('Push registration skipped — permission not granted', 'debug', { status: finalStatus });
     return;
   }
 
@@ -33,7 +36,8 @@ export async function registerPushNotificationsAsync(
     await apiRegister(token, deviceName);
     setExpoPushToken(token);
     setNotificationsEnabled(true);
-  } catch {
+  } catch (err) {
+    captureError(err, { screen: 'usePushNotifications', action: 'register' });
     setNotificationsEnabled(false);
   }
 }
@@ -48,8 +52,8 @@ export async function unregisterPushNotificationsAsync(
 
   try {
     await apiUnregister(expoPushToken);
-  } catch {
-    // best-effort
+  } catch (err) {
+    captureError(err, { screen: 'usePushNotifications', action: 'unregister' });
   } finally {
     clearNotificationState();
   }
