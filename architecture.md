@@ -515,8 +515,8 @@ Backend 400 responses carry field-level errors as `{ errors: { FieldName: string
 
 Crash reporting and performance tracking: `@sentry/react-native` (~7.11.0). All Sentry interactions go through the central module — never import `@sentry/react-native` directly in feature code.
 
-| Signal | How it is captured |
-|---|---|---|
+| Signal | How it is captured | 
+|---|---|
 | JS crashes & unhandled rejections | Global handler installed by `Sentry.init`; root component wrapped with `Sentry.wrap` |
 | Screen transitions | `reactNavigationIntegration` — automatic breadcrumb per navigation |
 | HTTP requests | Axios request interceptor — method + URL breadcrumb (no body, no token) |
