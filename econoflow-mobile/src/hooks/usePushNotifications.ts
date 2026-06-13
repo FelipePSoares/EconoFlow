@@ -11,32 +11,38 @@ export async function registerPushNotificationsAsync(
   setNotificationsEnabled: (v: boolean) => void,
 ): Promise<void> {
   if (!Device.isDevice) {
+    // eslint-disable-next-line no-console
+    console.warn('[PushNotifications] Registration skipped — not a physical device');
     addBreadcrumb('Push registration skipped — not a physical device', 'debug');
     return;
   }
 
-  const { status: existingStatus } = await Notifications.getPermissionsAsync();
-  let finalStatus = existingStatus;
-
-  if (existingStatus === 'undetermined') {
-    const { status } = await Notifications.requestPermissionsAsync();
-    finalStatus = status;
-  }
-
-  if (finalStatus !== 'granted') {
-    addBreadcrumb('Push registration skipped — permission not granted', 'debug', { status: finalStatus });
-    return;
-  }
-
-  const tokenData = await Notifications.getExpoPushTokenAsync();
-  const token = tokenData.data;
-  const deviceName = Platform.OS === 'ios' ? 'iOS' : 'Android';
-
   try {
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+
+    if (existingStatus === 'undetermined') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+
+    if (finalStatus !== 'granted') {
+      // eslint-disable-next-line no-console
+      console.warn('[PushNotifications] Registration skipped — permission not granted', finalStatus);
+      addBreadcrumb('Push registration skipped — permission not granted', 'debug', { status: finalStatus });
+      return;
+    }
+
+    const tokenData = await Notifications.getExpoPushTokenAsync();
+    const token = tokenData.data;
+    const deviceName = Platform.OS === 'ios' ? 'iOS' : 'Android';
+
     await apiRegister(token, deviceName);
     setExpoPushToken(token);
     setNotificationsEnabled(true);
   } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('[PushNotifications] Registration failed', err);
     captureError(err, { screen: 'usePushNotifications', action: 'register' });
     setNotificationsEnabled(false);
   }
@@ -53,6 +59,8 @@ export async function unregisterPushNotificationsAsync(
   try {
     await apiUnregister(expoPushToken);
   } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('[PushNotifications] Unregistration failed', err);
     captureError(err, { screen: 'usePushNotifications', action: 'unregister' });
   } finally {
     clearNotificationState();
