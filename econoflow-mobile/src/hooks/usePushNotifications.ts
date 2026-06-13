@@ -1,10 +1,10 @@
 import { useState, useCallback } from 'react';
-import { Platform } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { registerExpoPushToken as apiRegister, unregisterExpoPushToken as apiUnregister } from '../api/notifications.api';
 import { useNotificationStore } from '../store/notificationStore';
-import { captureError, addBreadcrumb } from '../monitoring/sentry';
+import { captureError } from '../monitoring/sentry';
 
 export async function registerPushNotificationsAsync(
   setExpoPushToken: (t: string) => void,
@@ -13,7 +13,7 @@ export async function registerPushNotificationsAsync(
   if (!Device.isDevice) {
     // eslint-disable-next-line no-console
     console.warn('[PushNotifications] Registration skipped — not a physical device');
-    addBreadcrumb('Push registration skipped — not a physical device', 'debug');
+    captureError(new Error('Push registration skipped — not a physical device'), { screen: 'usePushNotifications', action: 'register' });
     return;
   }
 
@@ -29,7 +29,11 @@ export async function registerPushNotificationsAsync(
     if (finalStatus !== 'granted') {
       // eslint-disable-next-line no-console
       console.warn('[PushNotifications] Registration skipped — permission not granted', finalStatus);
-      addBreadcrumb('Push registration skipped — permission not granted', 'debug', { status: finalStatus });
+      captureError(new Error('Push registration skipped — permission not granted'), { screen: 'usePushNotifications', action: 'register' });
+      Alert.alert(
+        'Enable notifications',
+        'To receive push alerts, enable notifications in your device settings.',
+      );
       return;
     }
 
