@@ -131,6 +131,43 @@ describe('registerPushNotificationsAsync', () => {
     expect(mockCaptureError).toHaveBeenCalledWith(apiError, { screen: 'usePushNotifications', action: 'register' });
     expect(setNotificationsEnabled).toHaveBeenCalledWith(false);
   });
+
+  it('captures error when getExpoPushTokenAsync throws', async () => {
+    const expoNotifications = jest.requireMock('expo-notifications') as {
+      getPermissionsAsync: jest.Mock;
+      getExpoPushTokenAsync: jest.Mock;
+    };
+
+    expoNotifications.getPermissionsAsync.mockResolvedValue({ status: 'granted' });
+
+    const tokenError = new Error('Expo push service unreachable');
+    expoNotifications.getExpoPushTokenAsync.mockRejectedValue(tokenError);
+
+    await expect(
+      registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled),
+    ).resolves.toBeUndefined();
+
+    expect(mockCaptureError).toHaveBeenCalledWith(tokenError, { screen: 'usePushNotifications', action: 'register' });
+    expect(setNotificationsEnabled).toHaveBeenCalledWith(false);
+    expect(NotificationsApi.registerExpoPushToken).not.toHaveBeenCalled();
+  });
+
+  it('captures error when getPermissionsAsync throws', async () => {
+    const expoNotifications = jest.requireMock('expo-notifications') as {
+      getPermissionsAsync: jest.Mock;
+    };
+
+    const permError = new Error('Native module error');
+    expoNotifications.getPermissionsAsync.mockRejectedValue(permError);
+
+    await expect(
+      registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled),
+    ).resolves.toBeUndefined();
+
+    expect(mockCaptureError).toHaveBeenCalledWith(permError, { screen: 'usePushNotifications', action: 'register' });
+    expect(setNotificationsEnabled).toHaveBeenCalledWith(false);
+    expect(NotificationsApi.registerExpoPushToken).not.toHaveBeenCalled();
+  });
 });
 
 describe('unregisterPushNotificationsAsync', () => {
