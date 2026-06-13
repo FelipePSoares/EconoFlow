@@ -97,14 +97,6 @@ const SettingToggleRow: React.FC<SettingToggleRowProps> = ({
     </View>
   );
 
-  if (onPress) {
-    return (
-      <TouchableOpacity onPress={onPress} activeOpacity={0.7} testID={testID}>
-        {inner}
-      </TouchableOpacity>
-    );
-  }
-
   return <View testID={testID}>{inner}</View>;
 };
 
