@@ -602,6 +602,20 @@
   "ErrorChangePasswordFailed": "Falha ao alterar a senha. Por favor, tente novamente.",
   "ErrorChangeEmailFailed": "Falha ao alterar o e-mail. Por favor, tente novamente.",
   "ErrorNewPasswordSameAsCurrent": "A nova senha deve ser diferente da senha atual.",
-  "PlaceholderConfirmNewPassword": "Confirmar nova senha"
+  "PlaceholderConfirmNewPassword": "Confirmar nova senha",
+
+  "BiometricAuthLabel": "Autenticação Biométrica",
+  "BiometricAuthDescription": "Use a impressão digital ou rosto para desbloquear o app",
+  "BiometricGateTitle": "Desbloqueie o EconoFlow",
+  "BiometricGateSubtitle": "Autentique-se para continuar",
+  "BiometricPromptReason": "Autentique-se para aceder às suas finanças",
+  "BiometricNotAvailable": "Biometria não disponível neste dispositivo",
+  "BiometricUsePasscode": "Usar código do dispositivo",
+  "BiometricSignOut": "Sair",
+  "BiometricEnrollTitle": "Ativar autenticação biométrica?",
+  "BiometricEnrollMessage": "Aceda de forma rápida e segura à sua conta usando a sua impressão digital ou rosto.",
+  "BiometricEnrollEnable": "Ativar",
+  "BiometricEnrollSkip": "Agora não",
+  "BiometricErrorLockedOut": "Muitas tentativas. Use o código do seu dispositivo."
 }
 

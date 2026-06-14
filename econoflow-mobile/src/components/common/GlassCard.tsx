@@ -7,6 +7,7 @@ interface Props {
   style?: StyleProp<ViewStyle>;
   children: React.ReactNode;
   radius?: number;
+  testID?: string;
   /** Kept for API compatibility — ignored (GlassScreen owns the blur). */
   intensity?: number;
 }
@@ -23,7 +24,7 @@ interface Props {
  * No per-card BlurView is used (would fight the global blur and hurt perf).
  */
 export const GlassCard: React.FC<Props> = ({
-  dark, style, children, radius = 22,
+  dark, style, children, radius = 22, testID,
 }) => {
   // Dark mode: very light white tint (same family as the auth icon container)
   // Light mode: white-glass tint for definition against the blurred background
@@ -38,7 +39,7 @@ export const GlassCard: React.FC<Props> = ({
     : ['rgba(255,255,255,0.50)', 'transparent', 'rgba(255,255,255,0.08)'];
 
   return (
-    <View style={[styles.container, { borderRadius: radius, borderColor: border }, style]}>
+    <View style={[styles.container, { borderRadius: radius, borderColor: border }, style]} testID={testID}>
       {/* Colour tint */}
       <View style={[StyleSheet.absoluteFill, { borderRadius: radius, backgroundColor: tintBg }]} />
       {/* Diagonal mirror-reflection sheen */}
