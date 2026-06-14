@@ -1,11 +1,10 @@
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EasyFinance.Application.Features.ExpoPushTokenService;
+using EasyFinance.Application.Features.NotificationMessageResolver;
 using EasyFinance.Domain.Account;
-using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.Extensions.Logging;
 
@@ -14,10 +13,12 @@ namespace EasyFinance.Application.BackgroundServices.NotifierBackgroundService.C
     public class PushChannel(
         IExpoPushTokenService tokenService,
         IExpoPushClient pushClient,
+        INotificationMessageResolver messageResolver,
         ILogger<PushChannel> logger) : INotificationChannel
     {
         private readonly IExpoPushTokenService tokenService = tokenService;
         private readonly IExpoPushClient pushClient = pushClient;
+        private readonly INotificationMessageResolver messageResolver = messageResolver;
         private readonly ILogger<PushChannel> logger = logger;
 
         public async Task<AppResponse> SendAsync(Notification notification)
@@ -30,9 +31,7 @@ namespace EasyFinance.Application.BackgroundServices.NotifierBackgroundService.C
                 return AppResponse.Success();
             }
 
-            var culture = notification.User?.Culture ?? CultureInfo.InvariantCulture;
-            var body = NotificationMessages.ResourceManager.GetString(notification.CodeMessage, culture)
-                       ?? notification.CodeMessage;
+            var body = messageResolver.ResolveBody(notification);
 
             var messages = tokens.Select(token => new ExpoMessage
             {

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using EasyFinance.Application.BackgroundServices.NotifierBackgroundService.Channels;
 using EasyFinance.Application.Features.ExpoPushTokenService;
+using EasyFinance.Application.Features.NotificationMessageResolver;
 using EasyFinance.Common.Tests;
 using EasyFinance.Common.Tests.AccessControl;
 using EasyFinance.Domain.Account;
@@ -17,10 +18,11 @@ namespace EasyFinance.Application.Tests.BackgroundServices.NotifierBackgroundSer
     {
         private readonly Mock<IExpoPushTokenService> tokenServiceMock = new();
         private readonly Mock<IExpoPushClient> pushClientMock = new();
+        private readonly Mock<INotificationMessageResolver> messageResolverMock = new();
         private readonly Mock<ILogger<PushChannel>> loggerMock = new();
 
         private PushChannel CreateChannel() =>
-            new PushChannel(tokenServiceMock.Object, pushClientMock.Object, loggerMock.Object);
+            new PushChannel(tokenServiceMock.Object, pushClientMock.Object, messageResolverMock.Object, loggerMock.Object);
 
         [Fact]
         public async Task SendAsync_UserHasActiveToken_ShouldCallPushClient()
@@ -83,7 +85,7 @@ namespace EasyFinance.Application.Tests.BackgroundServices.NotifierBackgroundSer
         }
 
         [Fact]
-        public async Task SendAsync_KnownCodeMessage_ShouldSendLocalizedBodyNotRawCodeKey()
+        public async Task SendAsync_KnownCodeMessage_ShouldSendResolvedBody()
         {
             var notification = new NotificationBuilder().AddCodeMessage("BUDGET_WARNING").Build();
             var token = "ExponentPushToken[AAAAAAAAAAAAAAAAAAAAAA]";
@@ -91,6 +93,10 @@ namespace EasyFinance.Application.Tests.BackgroundServices.NotifierBackgroundSer
             tokenServiceMock
                 .Setup(s => s.GetActiveTokensForUserAsync(notification.User.Id))
                 .ReturnsAsync([token]);
+
+            messageResolverMock
+                .Setup(r => r.ResolveBody(notification))
+                .Returns("Warning: Budget for 'Groceries' in project 'Monthly' is nearly exhausted (80%).");
 
             IEnumerable<ExpoMessage>? capturedMessages = null;
             pushClientMock
@@ -103,7 +109,7 @@ namespace EasyFinance.Application.Tests.BackgroundServices.NotifierBackgroundSer
             capturedMessages.Should().NotBeNull();
             var message = capturedMessages!.Single();
             message.Title.Should().Be("EconoFlow");
-            message.Body.Should().Be(NotificationMessages.BUDGET_WARNING);
+            message.Body.Should().Be("Warning: Budget for 'Groceries' in project 'Monthly' is nearly exhausted (80%).");
             message.Body.Should().NotBe("BUDGET_WARNING");
         }
 

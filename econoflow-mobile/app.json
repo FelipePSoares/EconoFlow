@@ -37,7 +37,13 @@
     },
     "plugins": [
       "expo-secure-store",
-      "expo-notifications",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/favicon.png",
+          "color": "#0f76a8"
+        }
+      ],
       [
         "expo-splash-screen",
         {

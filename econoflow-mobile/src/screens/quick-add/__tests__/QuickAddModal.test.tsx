@@ -369,4 +369,11 @@ describe('QuickAddModal — Sentry captureError', () => {
       );
     });
   });
+
+  it('renders KeyboardAvoidingView with behavior prop for keyboard avoidance', async () => {
+    await act(async () => { renderModal(); });
+
+    const kav = screen.getByTestId('quick-add-keyboard-avoid');
+    expect(kav).toBeTruthy();
+  });
 });

@@ -16,10 +16,10 @@
     <value>You received a project invitation.</value>
   </data>
   <data name="ProjectInvitationPushBodyWithProject" xml:space="preserve">
-    <value>You received a project invitation to {0}.</value>
+    <value>You received a project invitation to {projectName}.</value>
   </data>
   <data name="ProjectAccessLevelChangedPushBody" xml:space="preserve">
-    <value>{0} changed your access level to {1} in project {2}.</value>
+    <value>{fullName} changed your access level to {role} in project {projectName}.</value>
   </data>
   <data name="NotificationRoleViewer" xml:space="preserve">
     <value>Viewer</value>
@@ -31,9 +31,9 @@
     <value>Admin</value>
   </data>
   <data name="BUDGET_WARNING" xml:space="preserve">
-    <value>Warning: Budget for '{0}' in project '{1}' is nearly exhausted (80%).</value>
+    <value>Warning: Budget for '{expenseName}' in project '{projectName}' is nearly exhausted (80%).</value>
   </data>
   <data name="BUDGET_OVERFLOW" xml:space="preserve">
-    <value>Budget for '{0}' in project '{1}' has been exceeded!</value>
+    <value>Budget for '{expenseName}' in project '{projectName}' has been exceeded!</value>
   </data>
 </root>
