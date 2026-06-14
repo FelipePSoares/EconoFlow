@@ -8,7 +8,7 @@ import { PlanEntryFormScreen } from '../screens/plans/PlanEntryFormScreen';
 export type PlansStackParamList = {
   PlanList: undefined;
   PlanDetail: { planId: string; planName: string };
-  PlanForm: { planId?: string; initialValues?: { type: 'Savings' | 'EmergencyReserve'; name: string; targetAmount: number } };
+  PlanForm: { planId?: string; initialValues?: { type: 'Saving' | 'EmergencyReserve'; name: string; targetAmount: number } };
   PlanEntryForm: { planId: string; planName: string };
 };
 

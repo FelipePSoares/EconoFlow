@@ -31,7 +31,7 @@ export const PlanCard: React.FC<Props> = ({
   const isComplete = pct >= 1;
   const ringColor = isComplete ? customColors.income : colors.primary;
   const trackColor = dark ? ringColor + '33' : ringColor + '28';
-  const isSavings = plan.type === 'Savings';
+  const isSavings = plan.type === 'Saving';
   const badgeColor = isSavings ? colors.primary : colors.error;
   const badgeLabel = isSavings ? t('PlanTypeSaving') : t('PlanTypeEmergencyReserve');
 

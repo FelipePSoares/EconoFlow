@@ -37,7 +37,7 @@ describe('plans.api — mutations', () => {
   describe('createPlan', () => {
     it('POSTs to /api/Projects/{projectId}/Plans with payload', async () => {
       (apiClient.post as jest.Mock).mockResolvedValue({ data: {} });
-      const req: CreatePlanRequest = { type: 'Savings', name: 'Vacation', targetAmount: 1000 };
+      const req: CreatePlanRequest = { type: 'Saving', name: 'Vacation', targetAmount: 1000 };
       await createPlan('proj-1', req);
       expect(apiClient.post).toHaveBeenCalledWith('/api/Projects/proj-1/Plans', req);
     });

@@ -19,7 +19,7 @@ import { extractApiErrors } from '../../utils/apiErrors';
 import { buildPatch } from '../../utils/patch';
 import { captureError } from '../../monitoring/sentry';
 
-type PlanType = 'Savings' | 'EmergencyReserve';
+type PlanType = 'Saving' | 'EmergencyReserve';
 
 type Props = NativeStackScreenProps<PlansStackParamList, 'PlanForm'>;
 
@@ -34,7 +34,7 @@ export const PlanFormScreen: React.FC<Props> = ({ route, navigation }) => {
   const isEdit = !!planId;
 
   const [selectedType, setSelectedType] = useState<PlanType>(
-    (initialValues?.type as PlanType) ?? 'Savings',
+    (initialValues?.type as PlanType) ?? 'Saving',
   );
   const [name, setName] = useState(initialValues?.name ?? '');
   const [targetAmount, setTargetAmount] = useState(
@@ -146,7 +146,6 @@ export const PlanFormScreen: React.FC<Props> = ({ route, navigation }) => {
         <Text style={[styles.headerTitle, { color: ink }]}>
           {isEdit ? t('EditPlan') : t('CreatePlan')}
         </Text>
-        <View style={styles.headerBtn} />
       </View>
 
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}>
@@ -167,15 +166,15 @@ export const PlanFormScreen: React.FC<Props> = ({ route, navigation }) => {
                   <TouchableOpacity
                     style={[
                       styles.togglePill,
-                      selectedType === 'Savings' && { backgroundColor: colors.primary + '22', borderColor: colors.primary },
-                      selectedType !== 'Savings' && { borderColor: ink2 + '44' },
+                      selectedType === 'Saving' && { backgroundColor: colors.primary + '22', borderColor: colors.primary },
+                      selectedType !== 'Saving' && { borderColor: ink2 + '44' },
                     ]}
-                    onPress={() => setSelectedType('Savings')}
+                    onPress={() => setSelectedType('Saving')}
                     activeOpacity={0.8}
                   >
                     <Text style={[
                       styles.toggleText,
-                      { color: selectedType === 'Savings' ? colors.primary : ink2 },
+                      { color: selectedType === 'Saving' ? colors.primary : ink2 },
                     ]}>
                       {t('PlanTypeSaving')}
                     </Text>
@@ -251,7 +250,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingBottom: 4,
   },
-  headerTitle: { fontSize: 17, fontWeight: '800' },
+  headerTitle: { fontSize: 17, fontWeight: '800', flex: 1, textAlign: 'center' },
   headerBtn: {
     width: 38, height: 38, borderRadius: 12,
     borderWidth: 1, alignItems: 'center', justifyContent: 'center',

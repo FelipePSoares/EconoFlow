@@ -378,4 +378,12 @@ describe('QuickAddModal — Sentry captureError', () => {
     expect(scroll).toBeTruthy();
     expect(scroll.props.automaticallyAdjustKeyboardInsets).toBe(true);
   });
+
+  it('wraps the panel in KeyboardAvoidingView with behavior="padding" to prevent keyboard overlap', async () => {
+    await act(async () => { renderModal(); });
+
+    // Fails currently (wrapper is a plain View without this testID)
+    // Passes after fix (KeyboardAvoidingView wrapper with testID)
+    expect(screen.queryByTestId('quick-add-kav')).not.toBeNull();
+  });
 });

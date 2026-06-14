@@ -140,7 +140,7 @@ function makeEditRoute(planId: string) {
   return {
     params: {
       planId,
-      initialValues: { type: 'Savings' as const, name: 'Existing Plan', targetAmount: 1000 },
+      initialValues: { type: 'Saving' as const, name: 'Existing Plan', targetAmount: 1000 },
     },
   } as unknown as React.ComponentProps<typeof PlanFormScreen>['route'];
 }

@@ -138,7 +138,7 @@ function makeProjectStore(role: 'Admin' | 'Manager' | 'Viewer' = 'Manager') {
 const MOCK_PLAN: Plan = {
   id: 'plan-1',
   projectId: 'proj-1',
-  type: 'Savings',
+  type: 'Saving',
   name: 'Vacation Fund',
   targetAmount: 2000,
   currentBalance: 800,
