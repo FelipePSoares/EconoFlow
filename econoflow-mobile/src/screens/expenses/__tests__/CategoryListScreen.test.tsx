@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, waitFor } from '@testing-library/react-native';
+import { act, render, waitFor, fireEvent, screen } from '@testing-library/react-native';
 import { CategoryListScreen } from '../CategoryListScreen';
 
 // ─── Sentry mock ──────────────────────────────────────────────────────────────
@@ -80,6 +80,22 @@ jest.mock('../../../components/budget/CategoryCard', () => ({
   CategoryCard: (props: unknown) => MockCategoryCard(props as Record<string, unknown>),
 }));
 
+const MockAuroraPrimaryButton = jest.fn();
+jest.mock('../../../components/auth/AuroraPrimaryButton', () => {
+  const React = require('react');
+  const { TouchableOpacity, Text } = require('react-native');
+  return {
+    AuroraPrimaryButton: ({ label, onPress }: { label: string; onPress: () => void }) => {
+      MockAuroraPrimaryButton({ label, onPress });
+      return React.createElement(
+        TouchableOpacity,
+        { onPress, testID: `btn-${label}` },
+        React.createElement(Text, null, label),
+      );
+    },
+  };
+});
+
 const MockUndoToast = jest.fn(
   (_props: { visible?: boolean; onUndo?: () => void; onDismiss?: () => void; message?: string }) => null,
 );
@@ -156,6 +172,14 @@ const MOCK_CATEGORY = {
   isArchived: false,
   budget: 500,
   totalExpenses: 200,
+};
+
+const MOCK_ARCHIVED_CATEGORY = {
+  id: 'cat-2',
+  name: 'Old Category',
+  isArchived: true,
+  budget: 0,
+  totalExpenses: 0,
 };
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
@@ -306,5 +330,128 @@ describe('CategoryListScreen — captureError', () => {
     });
 
     expect(mockCaptureError).not.toHaveBeenCalled();
+  });
+});
+
+describe('CategoryListScreen — archived categories', () => {
+  beforeEach(() => {
+    MockCategoryCard.mockReset();
+    MockAuroraPrimaryButton.mockReset();
+    mockArchiveMutate.mockReset();
+    mockUnarchiveMutate.mockReset();
+    mockNavigate.mockReset();
+    mockGoBack.mockReset();
+    mockCaptureError.mockReset();
+  });
+
+  it('renders archived categories alongside active categories', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/useCategories') as any).useCategoriesForMonth.mockReturnValue({
+      data: [MOCK_CATEGORY, MOCK_ARCHIVED_CATEGORY],
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+
+    await act(async () => {
+      render(<CategoryListScreen navigation={mockNavigation} route={mockRoute} />);
+    });
+
+    const categoryCalls = MockCategoryCard.mock.calls;
+    expect(categoryCalls.length).toBe(2);
+    const archivedCall = categoryCalls.find(
+      (call: unknown[]) => (call[0] as Record<string, unknown>)?.category && (call[0] as Record<string, Record<string, unknown>>)?.category?.isArchived === true,
+    );
+    expect(archivedCall).toBeTruthy();
+  });
+
+  it('passes category data with isArchived=true to CategoryCard', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/useCategories') as any).useCategoriesForMonth.mockReturnValue({
+      data: [MOCK_CATEGORY, MOCK_ARCHIVED_CATEGORY],
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+
+    await act(async () => {
+      render(<CategoryListScreen navigation={mockNavigation} route={mockRoute} />);
+    });
+
+    // Archived categories are sorted last, so check the last call
+    const lastCall = MockCategoryCard.mock.calls[MockCategoryCard.mock.calls.length - 1];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((lastCall[0] as any).category.isArchived).toBe(true);
+  });
+});
+
+describe('CategoryListScreen — add category button', () => {
+  beforeEach(() => {
+    MockCategoryCard.mockReset();
+    MockAuroraPrimaryButton.mockReset();
+    mockArchiveMutate.mockReset();
+    mockUnarchiveMutate.mockReset();
+    mockNavigate.mockReset();
+    mockGoBack.mockReset();
+    mockCaptureError.mockReset();
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/useCategories') as any).useCategoriesForMonth.mockReturnValue({
+      data: [MOCK_CATEGORY],
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+  });
+
+  it('shows add category button for Manager role', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../store/projectStore') as any).useProjectStore.mockImplementation(() => ({
+      selectedProject: { project: { id: 'proj-1' }, role: 'Manager' },
+      currency: 'EUR',
+    }));
+
+    await act(async () => {
+      render(<CategoryListScreen navigation={mockNavigation} route={mockRoute} />);
+    });
+
+    expect(() => screen.getByTestId('btn-ButtonAddCategory')).not.toThrow();
+  });
+
+  it('does NOT show add category button for Viewer role', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../store/projectStore') as any).useProjectStore.mockImplementation(() => ({
+      selectedProject: { project: { id: 'proj-1' }, role: 'Viewer' },
+      currency: 'EUR',
+    }));
+
+    await act(async () => {
+      render(<CategoryListScreen navigation={mockNavigation} route={mockRoute} />);
+    });
+
+    expect(() => screen.getByTestId('btn-ButtonAddCategory')).toThrow();
+  });
+
+  it('navigates to AddCategory when add button is pressed', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../store/projectStore') as any).useProjectStore.mockImplementation(() => ({
+      selectedProject: { project: { id: 'proj-1' }, role: 'Manager' },
+      currency: 'EUR',
+    }));
+
+    await act(async () => {
+      render(<CategoryListScreen navigation={mockNavigation} route={mockRoute} />);
+    });
+
+    const addButton = screen.getByTestId('btn-ButtonAddCategory');
+    await act(async () => { fireEvent.press(addButton); });
+
+    expect(mockNavigate).toHaveBeenCalledWith('AddCategory', { month: '2024-01' });
   });
 });

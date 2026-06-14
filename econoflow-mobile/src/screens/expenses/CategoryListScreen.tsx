@@ -17,6 +17,7 @@ import { MonthNavigator } from '../../components/common/MonthNavigator';
 import { GlassScreen } from '../../components/common/GlassScreen';
 import { GlassCard } from '../../components/common/GlassCard';
 import { UndoToast } from '../../components/common/UndoToast';
+import { AuroraPrimaryButton } from '../../components/auth/AuroraPrimaryButton';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
 import { useAppTheme } from '../../theme/useAppTheme';
 import {
@@ -66,12 +67,15 @@ export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
 
   if (isLoading) return <LoadingIndicator />;
 
-  const activeCategories = categories?.filter(c => !c.isArchived) ?? [];
+  const sortedCategories = [...(categories ?? [])].sort((a, b) => {
+    if (a.isArchived !== b.isArchived) return a.isArchived ? 1 : -1;
+    return a.displayOrder - b.displayOrder;
+  });
   const sym              = getCurrencySymbol(currency);
-  const totalBudget      = calculateTotalBudget(activeCategories);
-  const totalSpent       = calculateTotalExpenses(activeCategories);
-  const totalOverspend   = calculateTotalOverspend(activeCategories);
-  const remaining        = calculateRemainingBudget(activeCategories);
+  const totalBudget      = calculateTotalBudget(sortedCategories);
+  const totalSpent       = calculateTotalExpenses(sortedCategories);
+  const totalOverspend   = calculateTotalOverspend(sortedCategories);
+  const remaining        = calculateRemainingBudget(sortedCategories);
   const spentPct         = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
 
   return (
@@ -102,10 +106,10 @@ export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
 
       <FlatList
         style={{ opacity: isFetching && !!categories ? 0.55 : 1 }}
-        data={activeCategories}
+        data={sortedCategories}
         keyExtractor={item => item.id}
         ListHeaderComponent={
-          activeCategories.length > 0 ? (
+          sortedCategories.length > 0 ? (
             <GlassCard dark={!!dark} radius={18} intensity={30} style={styles.summaryCard}>
               <View style={styles.summaryInner}>
                 <Text style={[styles.summaryTitle, { color: ink2 }]}>{t('LabelBudgetSummary') ?? 'Budget Summary'}</Text>
@@ -148,7 +152,7 @@ export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
             currency={currency}
             index={index}
             dark={dark}
-            onSwipeAction={() => {
+            onSwipeAction={item.isArchived ? undefined : () => {
               archiveCategory.mutate(item.id, {
                 onError: (err) => captureError(err, { screen: 'CategoryListScreen', action: 'archiveCategory' }),
               });
@@ -168,6 +172,17 @@ export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
         )}
         ListEmptyComponent={
           <Text style={[styles.empty, { color: ink2 }]}>{t('LabelNoCategories')}</Text>
+        }
+        ListFooterComponent={
+          canEdit ? (
+            <View style={styles.createBtnWrap}>
+              <AuroraPrimaryButton
+                label={t('ButtonAddCategory')}
+                onPress={() => navigation.navigate('AddCategory', { month })}
+                icon="plus"
+              />
+            </View>
+          ) : null
         }
         contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 16 }]}
         refreshControl={
@@ -217,4 +232,5 @@ const styles = StyleSheet.create({
   summaryStatLabel:  { fontSize: 11, fontWeight: '600' },
   summaryStatAmt:    { fontSize: 15, fontWeight: 'bold' },
   summaryOverspend:  { fontSize: 11.5, fontWeight: '700' },
+  createBtnWrap:     { paddingHorizontal: 12, paddingTop: 8 },
 });

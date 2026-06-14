@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, act } from '@testing-library/react-native';
+import { render, act, screen } from '@testing-library/react-native';
 import { CategoryCard } from '../CategoryCard';
 import type { Category } from '../../../api/types';
 
@@ -20,7 +20,6 @@ jest.mock('../../../theme/useAuroraSkin', () => ({
 }));
 
 jest.mock('../../../components/common/GlassCard', () => ({
-  // Render children so that nested SwipeableRow / content is actually mounted.
   GlassCard: jest.fn(({ children }: { children: unknown }) => children),
 }));
 
@@ -36,7 +35,7 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (k: string) => k }),
 }));
 
-const makeCategory = (): Category => ({
+const makeCategory = (overrides?: Partial<Category>): Category => ({
   id: 'cat-1',
   name: 'Food',
   isArchived: false,
@@ -56,11 +55,11 @@ const makeCategory = (): Category => ({
       temporaryAttachmentIds: [],
     } as unknown as Category['expenses'][0],
   ],
+  ...overrides,
 });
 
-// Access the spy through jest.requireMock so it is the same reference used inside the module
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const getSwipeableRowSpy = (): jest.Mock => (jest.requireMock('../../../components/common/SwipeableRow') as any).SwipeableRow;
+const getSwipeableRowSpy = (): jest.Mock =>
+  (jest.requireMock('../../../components/common/SwipeableRow') as any).SwipeableRow;
 
 beforeEach(() => {
   getSwipeableRowSpy().mockClear();
@@ -88,5 +87,53 @@ describe('CategoryCard', () => {
       );
     });
     expect(getSwipeableRowSpy()).toHaveBeenCalled();
+  });
+
+  it('does NOT render a SwipeableRow when category is archived even if onSwipeAction provided', async () => {
+    await act(async () => {
+      render(
+        <CategoryCard
+          category={makeCategory({ isArchived: true })}
+          currency="USD"
+          onPress={jest.fn()}
+          onSwipeAction={jest.fn()}
+          swipeActionColor="#aabbcc"
+          swipeDisabled={false}
+        />,
+      );
+    });
+
+    expect(getSwipeableRowSpy()).not.toHaveBeenCalled();
+  });
+
+  it('renders the archived label when category is archived', async () => {
+    await act(async () => {
+      render(
+        <CategoryCard
+          category={makeCategory({ isArchived: true })}
+          currency="USD"
+          onPress={jest.fn()}
+        />,
+      );
+    });
+
+    expect(screen.getByText('Archived')).toBeTruthy();
+  });
+
+  it('renders with reduced opacity when category is archived', async () => {
+    await act(async () => {
+      render(
+        <CategoryCard
+          category={makeCategory({ isArchived: true })}
+          currency="USD"
+          onPress={jest.fn()}
+        />,
+      );
+    });
+
+    const archivedRow = screen.getByTestId('archived-category-row');
+    expect(archivedRow.props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ opacity: 0.55 })]),
+    );
   });
 });

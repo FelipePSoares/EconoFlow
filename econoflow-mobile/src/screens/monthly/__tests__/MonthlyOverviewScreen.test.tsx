@@ -332,6 +332,33 @@ describe('MonthlyOverviewScreen — archive-category capability', () => {
     });
   });
 
+  it('renders archived categories alongside active categories', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../store/projectStore') as any).useProjectStore.mockImplementation(() => makeProjectStore('Manager'));
+
+    const archiveCat = { id: 'cat-arch', name: 'Archived', isArchived: true, displayOrder: 1, totalBudget: 0, totalWaste: 0, expenses: [] } as Category;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/useCategories') as any).useCategoriesForMonth.mockReturnValueOnce({
+      data: [
+        { id: 'cat-1', name: 'Food', isArchived: false, displayOrder: 0, totalBudget: 100, totalWaste: 0, expenses: [] } as Category,
+        archiveCat,
+      ],
+      isLoading: false, isFetching: false, isError: false, refetch: jest.fn(),
+    });
+
+    await act(async () => {
+      render(<MonthlyOverviewScreen navigation={mockNavigation} />);
+    });
+
+    const categoryCalls = getCategoryCardSpy().mock.calls;
+    expect(categoryCalls.length).toBe(2);
+    const archivedCall = categoryCalls.find(
+      (call: unknown[]) => (call[0] as Record<string, unknown>)?.category && (call[0] as Record<string, Record<string, unknown>>)?.category?.isArchived === true,
+    );
+    expect(archivedCall).toBeTruthy();
+  });
+
   it('pressing the saved panel navigates to the Plans tab', async () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (jest.requireMock('../../../store/projectStore') as any).useProjectStore.mockImplementation(() => makeProjectStore('Manager'));
