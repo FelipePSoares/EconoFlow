@@ -6,6 +6,7 @@ import { Text, TextInput, HelperText, Button } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useForm, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { OverviewStackParamList } from '../../navigation/OverviewStackNavigator';
 import { useProjectStore } from '../../store/projectStore';
@@ -25,6 +26,7 @@ interface FormValues {
 export const AddCategoryScreen: React.FC<Props> = ({ route, navigation }) => {
   const { t } = useTranslation();
   const { dark, ink, ink2 } = useAuroraSkin();
+  const insets = useSafeAreaInsets();
   const { month } = route.params;
   const { selectedProject } = useProjectStore();
   const projectId = selectedProject?.project.id ?? '';
@@ -67,7 +69,7 @@ export const AddCategoryScreen: React.FC<Props> = ({ route, navigation }) => {
         keyboardShouldPersistTaps="handled"
       >
         {/* ── Header ──────────────────────────────────────────────────── */}
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
             style={[styles.backBtn, { borderColor: dark ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.8)' }]}
@@ -76,7 +78,7 @@ export const AddCategoryScreen: React.FC<Props> = ({ route, navigation }) => {
           >
             <MaterialCommunityIcons name="arrow-left" size={22} color={ink} />
           </TouchableOpacity>
-          <Text style={[styles.title, { color: ink }]}>{t('CreateExpenseCategory')}</Text>
+          <Text style={[styles.title, { color: ink }]}>{t('CreateCategory')}</Text>
           <View style={styles.backBtn} />
         </View>
 
@@ -155,7 +157,6 @@ export const AddCategoryScreen: React.FC<Props> = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
-    paddingTop: 20,
   },
   header: {
     flexDirection: 'row',
@@ -169,7 +170,7 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   title: {
-    fontSize: 17, fontWeight: '800', textAlign: 'center',
+    fontSize: 17, fontWeight: '800', flex: 1, textAlign: 'center',
   },
   input: {
     marginTop: 4,

@@ -296,7 +296,7 @@
   "DeleteIncome": "Delete Income",
   "AreYouSureYouWantDeleteIncome": "Are you sure you want to delete the <b>{{value}}</b> income?",
   "CreateIncome": "Create Income",
-  "CreateExpenseCategory": "Create Expense Category",
+  "CreateCategory": "Create Category",
   "DeleteExpense": "Delete Expense",
   "AreYouSureYouWantDeleteExpense": "Are you sure you want to delete the <b>{{value}}</b> expense?",
   "CreateExpense": "Create Expense",

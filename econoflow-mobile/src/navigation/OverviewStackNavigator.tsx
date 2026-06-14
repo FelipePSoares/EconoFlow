@@ -82,7 +82,7 @@ export const OverviewStackNavigator: React.FC = () => {
       <Stack.Screen
         name="AddCategory"
         component={AddCategoryScreen}
-        options={{ title: t('CreateExpenseCategory') }}
+        options={{ title: t('CreateCategory') }}
       />
       <Stack.Screen
         name="ExpenseForm"
