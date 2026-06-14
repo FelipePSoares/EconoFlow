@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useReducer, useRef } from 'react';
 import {
   Modal, View, StyleSheet, TouchableOpacity, TextInput, Pressable,
-  ScrollView, KeyboardAvoidingView, ActivityIndicator, Platform,
+  Keyboard, ScrollView, KeyboardAvoidingView, ActivityIndicator,
   useColorScheme, useWindowDimensions, PanResponder, Animated,
 } from 'react-native';
 import { Text, HelperText } from 'react-native-paper';
@@ -199,7 +199,22 @@ export const QuickAddModal: React.FC<Props> = ({
   // ref access).
   const [dismissCount, setDismissCount] = useState(0);
 
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
   const amountInputRef = useRef<TextInput>(null);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', (e) => {
+      setKeyboardHeight(e.endCoordinates.height);
+    });
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardHeight(0);
+    });
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   useEffect(() => {
     if (dismissCount === 0) return;
@@ -472,7 +487,7 @@ export const QuickAddModal: React.FC<Props> = ({
       <KeyboardAvoidingView
         style={styles.kavWrap}
         pointerEvents="box-none"
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior="padding"
         testID="quick-add-keyboard-avoid"
       >
         <Animated.View
@@ -492,7 +507,8 @@ export const QuickAddModal: React.FC<Props> = ({
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             automaticallyAdjustKeyboardInsets
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={[styles.scrollContent, { paddingBottom: 44 + keyboardHeight }]}
+            testID="quick-add-scroll"
           >
             {/* API error banner */}
             <ErrorBanner
