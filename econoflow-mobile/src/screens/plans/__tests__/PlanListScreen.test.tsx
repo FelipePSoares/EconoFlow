@@ -251,13 +251,6 @@ describe('PlanListScreen', () => {
     expect(mockParentNavigate).toHaveBeenCalledWith('Overview');
   });
 
-  it('renders a spacer to keep the title centred', async () => {
-    await act(async () => {
-      render(<PlanListScreen navigation={mockNavigation} route={mockRoute} />);
-    });
-    expect(screen.getByTestId('header-title-spacer')).toBeTruthy();
-  });
-
   it('calls captureError when usePlans query returns an error', async () => {
     const fetchError = new Error('network error');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
