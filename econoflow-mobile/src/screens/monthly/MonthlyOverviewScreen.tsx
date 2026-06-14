@@ -136,7 +136,10 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
     ? Math.round((totalExpenses / totalBudget) * 100)
     : 0;
   const remaining      = calculateRemainingBudget(categories ?? []);
-  const activeCategories = (categories ?? []).filter(c => !c.isArchived);
+  const sortedCategories = [...(categories ?? [])].sort((a, b) => {
+    if (a.isArchived !== b.isArchived) return a.isArchived ? 1 : -1;
+    return a.displayOrder - b.displayOrder;
+  });
   const sym = getCurrencySymbol(currency);
 
   return (
@@ -316,7 +319,7 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
         </View>
 
         {/* ── Categories ───────────────────────────────────────────────────── */}
-        {activeCategories.length > 0 && (
+        {sortedCategories.length > 0 && (
           <>
             <View style={styles.sectionHead}>
               <Text style={[styles.sectionTitle, { color: ink }]}>{t('ListCategories')}</Text>
@@ -326,14 +329,14 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
             </View>
 
             <View style={styles.catList}>
-              {activeCategories.map((cat, idx) => (
+              {sortedCategories.map((cat, idx) => (
                 <CategoryCard
                   key={cat.id}
                   category={cat}
                   currency={currency}
                   index={idx}
                   dark={dark}
-                  onSwipeAction={() => {
+                  onSwipeAction={cat.isArchived ? undefined : () => {
                     archiveCategory.mutate(cat.id, {
                       onError: (err) => captureError(err, { screen: 'MonthlyOverviewScreen', action: 'archiveCategory' }),
                     });
@@ -350,7 +353,7 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
           </>
         )}
 
-        {activeCategories.length === 0 && !loadingCats && (
+        {sortedCategories.length === 0 && !loadingCats && (
           <View style={styles.emptyCats}>
             <MaterialCommunityIcons name="calendar-blank-outline" size={44} color={ink2} />
             <Text style={[styles.emptyText, { color: ink2 }]}>{t('LabelNoCategories')}</Text>

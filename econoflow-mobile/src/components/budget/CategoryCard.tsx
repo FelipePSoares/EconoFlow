@@ -48,7 +48,10 @@ export const CategoryCard: React.FC<Props> = ({
 
   const rowContent = (
     <TouchableOpacity onPress={onPress} activeOpacity={0.78}>
-      <View style={styles.row}>
+      <View
+        style={[styles.row, category.isArchived && styles.rowArchived]}
+        testID={category.isArchived ? 'archived-category-row' : undefined}
+      >
         <DonutRing
           size={46}
           strokeWidth={6}
@@ -60,7 +63,12 @@ export const CategoryCard: React.FC<Props> = ({
         </DonutRing>
 
         <View style={styles.info}>
-          <Text style={[styles.name, { color: ink }]}>{category.name}</Text>
+          <View style={styles.nameRow}>
+        <Text style={[styles.name, { color: ink }]}>{category.name}</Text>
+        {category.isArchived && (
+          <Text style={[styles.archivedLabel, { color: ink2 }]}>{t('Archived')}</Text>
+        )}
+      </View>
           <Text style={[styles.sub, { color: isOver ? colors.error : ink2 }]}>
             {category.expenses.length} {t('LabelExpenseItems')} · {Math.round(pct * 100)}%
           </Text>
@@ -79,9 +87,11 @@ export const CategoryCard: React.FC<Props> = ({
     </TouchableOpacity>
   );
 
+  const swipeable = !category.isArchived && !!onSwipeAction;
+
   return (
     <GlassCard dark={!!dark} radius={18} intensity={30} style={styles.wrapper}>
-      {onSwipeAction ? (
+      {swipeable ? (
         <SwipeableRow
           disabled={!!swipeDisabled}
           actionIcon="archive-outline"
@@ -100,8 +110,11 @@ export const CategoryCard: React.FC<Props> = ({
 const styles = StyleSheet.create({
   wrapper: { marginHorizontal: 16, marginVertical: 5 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12 },
+  rowArchived: { opacity: 0.55 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   info:     { flex: 1, gap: 3 },
   name:     { fontSize: 14.5, fontWeight: '700' },
+  archivedLabel: { fontSize: 10.5, fontWeight: '600', opacity: 0.7 },
   sub:      { fontSize: 11.5 },
   overspend:{ fontSize: 11.5, fontWeight: '700' },
   amount:   { fontSize: 14, fontWeight: 'bold' },

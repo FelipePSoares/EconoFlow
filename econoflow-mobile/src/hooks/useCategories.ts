@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import * as CategoriesApi from '../api/categories.api';
+import type { CreateCategoryRequest } from '../api/types';
 import { monthStart, monthEnd } from '../utils/date';
 
 export const useCategoriesForMonth = (projectId: string, month: string) => {
@@ -12,6 +13,17 @@ export const useCategoriesForMonth = (projectId: string, month: string) => {
     enabled: !!projectId,
     staleTime: 30_000,
     placeholderData: keepPreviousData,
+  });
+};
+
+export const useCreateCategory = (projectId: string, month: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateCategoryRequest) =>
+      CategoriesApi.createCategory(projectId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories', projectId, month] });
+    },
   });
 };
 

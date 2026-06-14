@@ -6,6 +6,7 @@ import { MonthlyOverviewScreen } from '../screens/monthly/MonthlyOverviewScreen'
 import { CategoryListScreen } from '../screens/expenses/CategoryListScreen';
 import { ExpenseListScreen } from '../screens/expenses/ExpenseListScreen';
 import { ExpenseFormScreen } from '../screens/expenses/ExpenseFormScreen';
+import { AddCategoryScreen } from '../screens/expenses/AddCategoryScreen';
 import { IncomeListScreen } from '../screens/incomes/IncomeListScreen';
 import { IncomeFormScreen } from '../screens/incomes/IncomeFormScreen';
 import { NotificationListScreen } from '../screens/notifications/NotificationListScreen';
@@ -21,6 +22,7 @@ export type OverviewStackParamList = {
     /** Index of this category in the list — used to pick the Aurora accent colour. */
     categoryIndex?: number;
   };
+  AddCategory: { month: string };
   ExpenseForm: {
     categoryId: string;
     month: string;
@@ -76,6 +78,11 @@ export const OverviewStackNavigator: React.FC = () => {
         name="ExpenseList"
         component={ExpenseListScreen}
         options={({ route }) => ({ title: route.params.categoryName })}
+      />
+      <Stack.Screen
+        name="AddCategory"
+        component={AddCategoryScreen}
+        options={{ title: t('CreateExpenseCategory') }}
       />
       <Stack.Screen
         name="ExpenseForm"
