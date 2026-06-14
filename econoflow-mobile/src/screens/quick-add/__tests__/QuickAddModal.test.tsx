@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, render, screen, fireEvent, waitFor } from '@testing-library/react-native';
-import { Keyboard } from 'react-native';
+
 import { QuickAddModal } from '../QuickAddModal';
 
 // ─── Sentry mock ─────────────────────────────────────────────────────────────
@@ -371,30 +371,11 @@ describe('QuickAddModal — Sentry captureError', () => {
     });
   });
 
-  it('renders KeyboardAvoidingView wrapper for keyboard avoidance', async () => {
+  it('uses automaticallyAdjustKeyboardInsets on ScrollView for keyboard avoidance', async () => {
     await act(async () => { renderModal(); });
 
-    const kav = screen.getByTestId('quick-add-keyboard-avoid');
-    expect(kav).toBeTruthy();
-  });
-
-  it('subscribes to keyboard show/hide events to adjust modal position', async () => {
-    const addListenerSpy = jest.spyOn(Keyboard, 'addListener');
-
-    await act(async () => { renderModal(); });
-
-    expect(addListenerSpy).toHaveBeenCalledWith('keyboardDidShow', expect.any(Function));
-    expect(addListenerSpy).toHaveBeenCalledWith('keyboardDidHide', expect.any(Function));
-
-    addListenerSpy.mockRestore();
-  });
-
-  it('applies keyboard height as bottom padding on ScrollView content', async () => {
-    await act(async () => { renderModal(); });
-
-    // The scroll content container should use styles.scrollContent as base
-    // and dynamically add extra paddingBottom when keyboard is shown
-    const scrollView = screen.getByTestId('quick-add-scroll');
-    expect(scrollView).toBeTruthy();
+    const scroll = screen.getByTestId('quick-add-scroll');
+    expect(scroll).toBeTruthy();
+    expect(scroll.props.automaticallyAdjustKeyboardInsets).toBe(true);
   });
 });
