@@ -103,7 +103,6 @@ export const PlanEntryFormScreen: React.FC<Props> = ({ route, navigation }) => {
           <MaterialCommunityIcons name="arrow-left" size={22} color={ink} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: ink }]}>{planName}</Text>
-        <View style={styles.headerBtn} />
       </View>
 
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}>
@@ -217,7 +216,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingBottom: 4,
   },
-  headerTitle: { fontSize: 17, fontWeight: '800' },
+  headerTitle: { fontSize: 17, fontWeight: '800', flex: 1, textAlign: 'center' },
   headerBtn: {
     width: 38, height: 38, borderRadius: 12,
     borderWidth: 1, alignItems: 'center', justifyContent: 'center',

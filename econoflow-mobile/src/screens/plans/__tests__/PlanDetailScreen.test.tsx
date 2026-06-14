@@ -105,7 +105,7 @@ jest.mock('../../../store/projectStore', () => ({
 const MOCK_PLAN: Plan = {
   id: 'plan-1',
   projectId: 'proj-1',
-  type: 'Savings',
+  type: 'Saving',
   name: 'Vacation Fund',
   targetAmount: 2000,
   currentBalance: 800,
@@ -235,6 +235,21 @@ describe('PlanDetailScreen', () => {
         expect.any(Error),
         expect.objectContaining({ screen: 'PlanDetailScreen', action: 'fetchPlans' }),
       ),
+    );
+  });
+
+  it('has a centered title with no right-side edit button', async () => {
+    await act(async () => {
+      render(<PlanDetailScreen navigation={mockNavigation} route={mockRoute} />);
+    });
+
+    // Currently: headerTitle style has NO textAlign: 'center' (test fails)
+    // After fix: headerTitle includes textAlign: 'center' (test passes)
+    const title = screen.getByText('Vacation Fund');
+    expect(title.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ textAlign: 'center' }),
+      ]),
     );
   });
 

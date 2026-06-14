@@ -149,7 +149,7 @@ export interface PlanEntry {
 }
 
 export interface CreatePlanRequest {
-  type: 'Savings' | 'EmergencyReserve';
+  type: 'Saving' | 'EmergencyReserve';
   name: string;
   targetAmount: number;
 }

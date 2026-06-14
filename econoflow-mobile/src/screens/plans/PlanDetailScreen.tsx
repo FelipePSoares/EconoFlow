@@ -81,19 +81,6 @@ export const PlanDetailScreen: React.FC<Props> = ({ route, navigation }) => {
           <MaterialCommunityIcons name="arrow-left" size={22} color={ink} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: ink }]}>{planName}</Text>
-        {canEdit && plan && (
-          <TouchableOpacity
-            onPress={() => navigation.navigate('PlanForm', {
-              planId: plan.id,
-              initialValues: { type: plan.type as 'Savings' | 'EmergencyReserve', name: plan.name, targetAmount: plan.targetAmount },
-            })}
-            style={[styles.headerBtn, { borderColor: dark ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.8)' }]}
-            activeOpacity={0.7}
-          >
-            <MaterialCommunityIcons name="pencil-outline" size={20} color={ink} />
-          </TouchableOpacity>
-        )}
-        {!canEdit && <View style={styles.headerBtn} />}
       </View>
 
       {isError && !dismissedError && (
@@ -186,7 +173,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingBottom: 4,
   },
-  headerTitle: { fontSize: 17, fontWeight: '800' },
+  headerTitle: { fontSize: 17, fontWeight: '800', flex: 1, textAlign: 'center' },
   headerBtn: {
     width: 38, height: 38, borderRadius: 12,
     borderWidth: 1, alignItems: 'center', justifyContent: 'center',

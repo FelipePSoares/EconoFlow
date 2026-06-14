@@ -109,7 +109,7 @@ describe('useCreatePlan', () => {
     });
 
     useCreatePlan('proj-1');
-    const data: CreatePlanRequest = { type: 'Savings', name: 'Test', targetAmount: 500 };
+    const data: CreatePlanRequest = { type: 'Saving', name: 'Test', targetAmount: 500 };
     await capturedMutationFn(data);
 
     expect(PlansApi.createPlan).toHaveBeenCalledWith('proj-1', data);
@@ -290,7 +290,7 @@ describe('useTotalSavedForMonth', () => {
   it('includes negative entries (withdrawals) in the total', () => {
     const { useQuery } = jest.requireMock('@tanstack/react-query') as { useQuery: jest.Mock };
     useQuery.mockReturnValueOnce({
-      data: [{ id: 'p-1', name: 'Savings' }],
+      data: [{ id: 'p-1', name: 'Saving' }],
       isLoading: false,
     });
     mockUseQueriesResult = [
@@ -320,7 +320,7 @@ describe('useTotalSavedForMonth', () => {
   it('propagates isLoading=true when any plan entries query is loading', () => {
     const { useQuery } = jest.requireMock('@tanstack/react-query') as { useQuery: jest.Mock };
     useQuery.mockReturnValueOnce({
-      data: [{ id: 'p-1', name: 'Savings' }],
+      data: [{ id: 'p-1', name: 'Saving' }],
       isLoading: false,
     });
     mockUseQueriesResult = [{ data: undefined, isLoading: true }];

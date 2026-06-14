@@ -64,7 +64,6 @@ export const PlanListScreen: React.FC<Props> = ({ navigation }) => {
           <MaterialCommunityIcons name="arrow-left" size={22} color={ink} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: ink }]}>{t('PlanList')}</Text>
-        <View style={styles.headerBtn} />
       </View>
 
       {isError && !dismissedError && (

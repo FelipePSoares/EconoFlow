@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useReducer, useRef } from 'react';
 import {
   Modal, View, StyleSheet, TouchableOpacity, TextInput, Pressable,
-  ScrollView, ActivityIndicator,
+  ScrollView, ActivityIndicator, KeyboardAvoidingView,
   useColorScheme, useWindowDimensions, PanResponder, Animated,
 } from 'react-native';
 import { Text, HelperText } from 'react-native-paper';
@@ -469,9 +469,11 @@ export const QuickAddModal: React.FC<Props> = ({
       </View>
 
       {/* Bottom sheet */}
-      <View
+      <KeyboardAvoidingView
         style={styles.kavWrap}
         pointerEvents="box-none"
+        behavior="padding"
+        testID="quick-add-kav"
       >
         <Animated.View
           style={[
@@ -778,7 +780,7 @@ export const QuickAddModal: React.FC<Props> = ({
             </TouchableOpacity>
           </ScrollView>
         </Animated.View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };
