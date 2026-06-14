@@ -2,6 +2,7 @@ using EasyFinance.Application.BackgroundServices.NotifierBackgroundService;
 using EasyFinance.Application.BackgroundServices.NotifierBackgroundService.Channels;
 using EasyFinance.Application.Features.EmailService;
 using EasyFinance.Application.Features.ExpoPushTokenService;
+using EasyFinance.Application.Features.NotificationMessageResolver;
 using EasyFinance.Application.Features.WebPushService;
 using EasyFinance.Common.Tests;
 using EasyFinance.Domain.Account;
@@ -28,6 +29,7 @@ namespace EasyFinance.Application.Tests.BackgroundServices.NotifierBackgroundSer
             this.pushChannelMock = new Mock<PushChannel>(
                 new Mock<IExpoPushTokenService>().Object,
                 new Mock<IExpoPushClient>().Object,
+                new Mock<INotificationMessageResolver>().Object,
                 new Mock<ILogger<PushChannel>>().Object);
             this.webPushChannelMock = new Mock<WebPushChannel>(new Mock<IWebPushService>().Object, new Mock<ILogger<WebPushChannel>>().Object);
             this.serviceProviderMock = new Mock<IServiceProvider>();

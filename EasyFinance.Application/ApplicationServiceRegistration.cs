@@ -16,6 +16,7 @@ using EasyFinance.Application.Features.ExpenseService;
 using EasyFinance.Application.Features.ExpoPushTokenService;
 using EasyFinance.Application.Features.FeatureRolloutService;
 using EasyFinance.Application.Features.IncomeService;
+using EasyFinance.Application.Features.NotificationMessageResolver;
 using EasyFinance.Application.Features.NotificationService;
 using EasyFinance.Application.Features.PlanService;
 using EasyFinance.Application.Features.ProjectService;
@@ -52,6 +53,7 @@ namespace EasyFinance.Application
             services.AddScoped<IContactService, ContactService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<INotificationService, NotificationService>();
+            services.AddSingleton<INotificationMessageResolver, NotificationMessageResolver>();
             services.AddScoped<IWebPushService, WebPushService>();
             services.AddScoped<IExpoPushTokenService, ExpoPushTokenService>();
             services.AddScoped<IUserKeyService>(provider => new UserKeyService(userKeySalt));

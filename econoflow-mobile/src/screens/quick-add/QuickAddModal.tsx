@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useReducer, useRef } from 'react';
 import {
   Modal, View, StyleSheet, TouchableOpacity, TextInput, Pressable,
-  ScrollView, KeyboardAvoidingView, ActivityIndicator,
+  ScrollView, KeyboardAvoidingView, ActivityIndicator, Platform,
   useColorScheme, useWindowDimensions, PanResponder, Animated,
 } from 'react-native';
 import { Text, HelperText } from 'react-native-paper';
@@ -472,6 +472,8 @@ export const QuickAddModal: React.FC<Props> = ({
       <KeyboardAvoidingView
         style={styles.kavWrap}
         pointerEvents="box-none"
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        testID="quick-add-keyboard-avoid"
       >
         <Animated.View
           style={[

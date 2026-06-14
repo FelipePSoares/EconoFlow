@@ -1,6 +1,7 @@
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.DTOs.Account;
 using EasyFinance.Application.Features.FeatureRolloutService;
+using EasyFinance.Application.Features.NotificationMessageResolver;
 using EasyFinance.Application.Features.WebPushService;
 using EasyFinance.Common.Tests;
 using EasyFinance.Domain.AccessControl;
@@ -174,6 +175,7 @@ namespace EasyFinance.Application.Tests
                 }),
                 userManager.Object,
                 featureRolloutService.Object,
+                Mock.Of<INotificationMessageResolver>(),
                 Mock.Of<ILogger<WebPushService>>());
         }
     }

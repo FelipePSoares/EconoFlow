@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Text.Json;
@@ -9,12 +8,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.DTOs.Account;
-using EasyFinance.Application.DTOs.BackgroundService.Email;
 using EasyFinance.Application.DTOs.BackgroundService.Notification;
 using EasyFinance.Application.Features.FeatureRolloutService;
+using EasyFinance.Application.Features.NotificationMessageResolver;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Account;
-using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -29,6 +27,7 @@ namespace EasyFinance.Application.Features.WebPushService
         IOptions<WebPushOptions> webPushOptions,
         UserManager<User> userManager,
         IFeatureRolloutService featureRolloutService,
+        INotificationMessageResolver messageResolver,
         ILogger<WebPushService> logger) : IWebPushService
     {
         private static readonly JsonSerializerOptions serializerOptions = new()
@@ -41,6 +40,7 @@ namespace EasyFinance.Application.Features.WebPushService
         private readonly WebPushOptions webPushOptions = webPushOptions.Value;
         private readonly UserManager<User> userManager = userManager;
         private readonly IFeatureRolloutService featureRolloutService = featureRolloutService;
+        private readonly INotificationMessageResolver messageResolver = messageResolver;
         private readonly ILogger<WebPushService> logger = logger;
 
         public AppResponse<WebPushPublicKeyResponseDTO> GetPublicKey()
@@ -206,7 +206,7 @@ namespace EasyFinance.Application.Features.WebPushService
                 new WebPushPayload
                 {
                     Title = "EconoFlow",
-                    Body = ResolveNotificationBody(notification),
+                    Body = messageResolver.ResolveBody(notification),
                     Url = ResolveActionUrl(notification),
                     Tag = $"notification-{notification.Id}",
                     RequireInteraction = notification.IsSticky,
@@ -401,77 +401,6 @@ namespace EasyFinance.Application.Features.WebPushService
                 return actionUrlFromMetadata;
 
             return ResolveActionUrlFromActionLabel(notification.ActionLabelCode);
-        }
-
-        private static string ResolveNotificationBody(Notification notification)
-        {
-            var culture = ResolveNotificationCulture(notification.User?.Culture);
-            var projectName = ResolveMetadataValue(notification.Metadata, "ProjectName");
-
-            if (string.Equals(notification.CodeMessage, EmailTemplates.GrantedAccess.ToString(), StringComparison.Ordinal))
-            {
-                var messageTemplate = string.IsNullOrWhiteSpace(projectName)
-                    ? NotificationMessages.ResourceManager.GetString(nameof(NotificationMessages.ProjectInvitationPushBodyNoProject), culture)
-                    : NotificationMessages.ResourceManager.GetString(nameof(NotificationMessages.ProjectInvitationPushBodyWithProject), culture);
-
-                if (string.IsNullOrWhiteSpace(messageTemplate))
-                    return notification.CodeMessage;
-
-                return string.IsNullOrWhiteSpace(projectName)
-                    ? messageTemplate
-                    : string.Format(culture, messageTemplate, projectName);
-            }
-
-            if (string.Equals(notification.CodeMessage, EmailTemplates.AccessLevelChanged.ToString(), StringComparison.Ordinal))
-            {
-                var messageTemplate = NotificationMessages.ResourceManager.GetString(nameof(NotificationMessages.ProjectAccessLevelChangedPushBody), culture);
-                if (string.IsNullOrWhiteSpace(messageTemplate))
-                    return notification.CodeMessage;
-
-                var inviterName = ResolveMetadataValue(notification.Metadata, "FullName");
-                var roleValue = ResolveMetadataValue(notification.Metadata, "Role");
-                var roleLabel = ResolveRoleLabel(roleValue, culture);
-
-                return string.Format(culture, messageTemplate, inviterName, roleLabel, projectName);
-            }
-
-            if (string.Equals(notification.CodeMessage, "BUDGET_WARNING", StringComparison.Ordinal) ||
-                string.Equals(notification.CodeMessage, "BUDGET_OVERFLOW", StringComparison.Ordinal))
-            {
-                var messageTemplate = NotificationMessages.ResourceManager.GetString(notification.CodeMessage, culture);
-                if (string.IsNullOrWhiteSpace(messageTemplate))
-                    return notification.CodeMessage;
-
-                var expenseName = ResolveMetadataValue(notification.Metadata, "expenseName");
-                return string.Format(culture, messageTemplate, expenseName, projectName);
-            }
-
-            return NotificationMessages.ResourceManager.GetString(notification.CodeMessage, culture) ?? notification.CodeMessage;
-        }
-
-        private static CultureInfo ResolveNotificationCulture(CultureInfo culture)
-            => culture ?? CultureInfo.InvariantCulture;
-
-        private static string ResolveRoleLabel(string roleValue, CultureInfo culture)
-        {
-            if (string.IsNullOrWhiteSpace(roleValue))
-                return string.Empty;
-
-            if (!Enum.TryParse<Role>(roleValue, ignoreCase: true, out var role))
-                return roleValue;
-
-            var key = role switch
-            {
-                Role.Viewer => nameof(NotificationMessages.NotificationRoleViewer),
-                Role.Manager => nameof(NotificationMessages.NotificationRoleManager),
-                Role.Admin => nameof(NotificationMessages.NotificationRoleAdmin),
-                _ => string.Empty
-            };
-
-            if (string.IsNullOrWhiteSpace(key))
-                return roleValue;
-
-            return NotificationMessages.ResourceManager.GetString(key, culture) ?? roleValue;
         }
 
         private static string ResolveActionUrlFromActionLabel(string actionLabelCode)
