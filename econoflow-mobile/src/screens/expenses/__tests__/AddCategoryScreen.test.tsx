@@ -224,6 +224,14 @@ describe('AddCategoryScreen', () => {
     expect(screen.getByTestId('add-category-back-btn')).toBeTruthy();
   });
 
+  it('renders the "Create Category" title', async () => {
+    await act(async () => {
+      render(<AddCategoryScreen navigation={mockNavigation} route={mockRoute} />);
+    });
+
+    expect(screen.getByText('CreateCategory')).toBeTruthy();
+  });
+
   it('does not call createCategory mutation when form is invalid', async () => {
     await act(async () => {
       render(<AddCategoryScreen navigation={mockNavigation} route={mockRoute} />);

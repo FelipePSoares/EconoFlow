@@ -64,6 +64,7 @@ export const PlanListScreen: React.FC<Props> = ({ navigation }) => {
           <MaterialCommunityIcons name="arrow-left" size={22} color={ink} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: ink }]}>{t('PlanList')}</Text>
+        <View style={styles.headerBtn} />
       </View>
 
       {isError && !dismissedError && (
@@ -124,7 +125,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingBottom: 8,
   },
-  headerTitle: { fontSize: 22, fontWeight: '800' },
+  headerTitle: { fontSize: 22, fontWeight: '800', flex: 1, textAlign: 'center' },
   headerBtn: {
     width: 38, height: 38, borderRadius: 12,
     borderWidth: 1, alignItems: 'center', justifyContent: 'center',

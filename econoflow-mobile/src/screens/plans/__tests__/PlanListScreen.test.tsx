@@ -236,6 +236,13 @@ describe('PlanListScreen', () => {
     expect(screen.queryByTestId('header-create-btn')).toBeNull();
   });
 
+  it('renders the header title', async () => {
+    await act(async () => {
+      render(<PlanListScreen navigation={mockNavigation} route={mockRoute} />);
+    });
+    expect(screen.getByText('PlanList')).toBeTruthy();
+  });
+
   it('renders a back button in the header', async () => {
     await act(async () => {
       render(<PlanListScreen navigation={mockNavigation} route={mockRoute} />);

@@ -296,7 +296,7 @@
   "DeleteIncome": "Deletar Renda",
   "AreYouSureYouWantDeleteIncome": "Você tem certeza que quer deletar a renda <b>{{value}}</b>?",
   "CreateIncome": "Criar Renda",
-  "CreateExpenseCategory": "Criar Categoria de Despesa",
+  "CreateCategory": "Criar Categoria",
   "DeleteExpense": "Deletar Despesa",
   "AreYouSureYouWantDeleteExpense": "Você tem certeza que quer deletar a despesa <b>{{value}}</b>?",
   "CreateExpense": "Criar Despesa",
