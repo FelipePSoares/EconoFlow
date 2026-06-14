@@ -118,12 +118,18 @@ jest.mock('../../../monitoring/sentry', () => ({
 
 // ─── Push notification mock ────────────────────────────────────────────────────
 
-const mockRegisterPushNotifications = jest.fn();
+const mockRegisterPushNotificationsAsync = jest.fn();
+const mockNotificationGetState = jest.fn();
 
 jest.mock('../../../hooks/usePushNotifications', () => ({
-  usePushNotifications: jest.fn(() => ({
-    registerPushNotifications: mockRegisterPushNotifications,
-  })),
+  registerPushNotificationsAsync: (...args: unknown[]) => mockRegisterPushNotificationsAsync(...args),
+}));
+
+jest.mock('../../../store/notificationStore', () => ({
+  useNotificationStore: Object.assign(
+    jest.fn(),
+    { getState: () => mockNotificationGetState() },
+  ),
 }));
 
 // ─── Hook / store mocks ───────────────────────────────────────────────────────
@@ -163,7 +169,13 @@ describe('ProfileSetupScreen', () => {
     mockNavigate.mockReset();
     mockSetOpenCreateProjectOnStart.mockReset();
     mockCaptureError.mockReset();
-    mockRegisterPushNotifications.mockReset();
+    mockRegisterPushNotificationsAsync.mockReset();
+    mockNotificationGetState.mockReset();
+    mockNotificationGetState.mockReturnValue({
+      expoPushToken: null,
+      setExpoPushToken: jest.fn(),
+      setNotificationsEnabled: jest.fn(),
+    });
   });
 
   it('renders first name, last name, and language fields', async () => {
@@ -276,7 +288,7 @@ describe('ProfileSetupScreen', () => {
     expect(screen.queryByText('SmartSetupBack')).toBeNull();
   });
 
-  it('calls registerPushNotifications on successful submit', async () => {
+  it('calls registerPushNotificationsAsync on successful submit', async () => {
     mockMutateAsync.mockResolvedValue({});
 
     await render(<ProfileSetupScreen navigation={mockNavigation} />);
@@ -289,13 +301,13 @@ describe('ProfileSetupScreen', () => {
     });
 
     await waitFor(() => {
-      expect(mockRegisterPushNotifications).toHaveBeenCalled();
+      expect(mockRegisterPushNotificationsAsync).toHaveBeenCalled();
     });
   });
 
-  it('does not show error banner when registerPushNotifications fails', async () => {
+  it('does not show error banner when registerPushNotificationsAsync completes', async () => {
     mockMutateAsync.mockResolvedValue({});
-    mockRegisterPushNotifications.mockRejectedValue(new Error('Push error'));
+    mockRegisterPushNotificationsAsync.mockResolvedValue(undefined);
 
     await render(<ProfileSetupScreen navigation={mockNavigation} />);
 

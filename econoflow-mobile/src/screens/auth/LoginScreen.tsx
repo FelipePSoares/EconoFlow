@@ -15,6 +15,8 @@ import type { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { mobileLogin, getCurrentUser } from '../../api/auth.api';
 import { captureError } from '../../monitoring/sentry';
 import { useAuthStore } from '../../store/authStore';
+import { useNotificationStore } from '../../store/notificationStore';
+import { registerPushNotificationsAsync } from '../../hooks/usePushNotifications';
 import i18n from '../../i18n';
 import { AuthHero } from '../../components/auth/AuthHero';
 import { AuroraField } from '../../components/auth/AuroraField';
@@ -61,6 +63,10 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
       try {
         const userResponse = await getCurrentUser();
         setUser(userResponse.data);
+        const { expoPushToken: existingToken, setExpoPushToken, setNotificationsEnabled } = useNotificationStore.getState();
+        if (!existingToken) {
+          registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled);
+        }
         if (userResponse.data.languageCode) {
           const lang = userResponse.data.languageCode.startsWith('pt') ? 'pt' : 'en';
           i18n.changeLanguage(lang);

@@ -114,8 +114,8 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
     unregisterPushNotifications,
   } = usePushNotifications();
 
-  const handleSignOut = () => {
-    unregisterPushNotifications();
+  const handleSignOut = async () => {
+    await unregisterPushNotifications();
     queryClient.clear();
     clearAuth();
     clearProject();

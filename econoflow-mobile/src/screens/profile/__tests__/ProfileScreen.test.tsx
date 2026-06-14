@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react-native';
 import { ProfileScreen } from '../ProfileScreen';
 
 // ─── UI infrastructure mocks ─────────────────────────────────────────────────
@@ -139,25 +139,33 @@ describe('ProfileScreen – sign out', () => {
   it('calls clearAuth when the sign-out button is pressed', async () => {
     await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
     fireEvent.press(screen.getByText('ButtonSignOut'));
-    expect(mockClearAuth).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(mockClearAuth).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('calls clearProject when the sign-out button is pressed', async () => {
     await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
     fireEvent.press(screen.getByText('ButtonSignOut'));
-    expect(mockClearProject).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(mockClearProject).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('clears the React Query cache when the sign-out button is pressed', async () => {
     await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
     fireEvent.press(screen.getByText('ButtonSignOut'));
-    expect(mockQueryClientClear).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(mockQueryClientClear).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('calls unregisterPushNotifications when the sign-out button is pressed', async () => {
     await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
     fireEvent.press(screen.getByText('ButtonSignOut'));
-    expect(mockUnregisterPushNotifications).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(mockUnregisterPushNotifications).toHaveBeenCalledTimes(1);
+    });
   });
 });
 
