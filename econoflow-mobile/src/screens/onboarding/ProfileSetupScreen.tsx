@@ -15,9 +15,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { OnboardingParamList } from '../../navigation/OnboardingNavigator';
 import { useUpdateProfile } from '../../hooks/useUpdateProfile';
-import { usePushNotifications } from '../../hooks/usePushNotifications';
+import { registerPushNotificationsAsync } from '../../hooks/usePushNotifications';
 import { captureError } from '../../monitoring/sentry';
 import { useAuthStore } from '../../store/authStore';
+import { useNotificationStore } from '../../store/notificationStore';
 import i18n from '../../i18n';
 import { AuthHero } from '../../components/auth/AuthHero';
 import { AuroraField } from '../../components/auth/AuroraField';
@@ -51,7 +52,6 @@ export const ProfileSetupScreen: React.FC<Props> = () => {
 
   const updateProfile = useUpdateProfile();
   const setOpenCreateProjectOnStart = useAuthStore((s) => s.setOpenCreateProjectOnStart);
-  const { registerPushNotifications } = usePushNotifications();
 
   const {
     control,
@@ -81,7 +81,8 @@ export const ProfileSetupScreen: React.FC<Props> = () => {
         i18n.changeLanguage(values.languageCode.startsWith('pt') ? 'pt' : 'en');
       }
 
-      registerPushNotifications().catch(() => {});
+      const { setExpoPushToken, setNotificationsEnabled } = useNotificationStore.getState();
+      registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled);
     } catch (err) {
       captureError(err, { screen: 'ProfileSetupScreen', action: 'setupProfile' });
       setOpenCreateProjectOnStart(false);

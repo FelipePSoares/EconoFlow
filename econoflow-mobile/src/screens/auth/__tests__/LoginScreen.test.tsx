@@ -84,6 +84,22 @@ jest.mock('react-native-paper', () => {
   };
 });
 
+// ─── Push notification mocks ───────────────────────────────────────────────────
+
+const mockRegisterPushNotificationsAsync = jest.fn();
+const mockNotificationGetState = jest.fn();
+
+jest.mock('../../../hooks/usePushNotifications', () => ({
+  registerPushNotificationsAsync: (...args: unknown[]) => mockRegisterPushNotificationsAsync(...args),
+}));
+
+jest.mock('../../../store/notificationStore', () => ({
+  useNotificationStore: Object.assign(
+    jest.fn(),
+    { getState: () => mockNotificationGetState() },
+  ),
+}));
+
 // ─── API / store mocks ────────────────────────────────────────────────────────
 
 const mockMobileLogin = jest.fn();
@@ -155,6 +171,13 @@ describe('LoginScreen', () => {
     mockSetUser.mockReset();
     mockNavigate.mockReset();
     mockCaptureError.mockReset();
+    mockRegisterPushNotificationsAsync.mockReset();
+    mockNotificationGetState.mockReset();
+    mockNotificationGetState.mockReturnValue({
+      expoPushToken: null,
+      setExpoPushToken: jest.fn(),
+      setNotificationsEnabled: jest.fn(),
+    });
   });
 
   const fillAndSubmit = async () => {
@@ -284,5 +307,63 @@ describe('LoginScreen', () => {
 
     await waitFor(() => expect(mockSetTokens).toHaveBeenCalled());
     expect(mockCaptureError).not.toHaveBeenCalled();
+  });
+
+  // ─── Push notification registration tests ────────────────────────────────
+
+  it('calls push registration on successful login when no token exists', async () => {
+    mockMobileLogin.mockResolvedValue({ data: { accessToken: 'at', refreshToken: 'rt' } });
+    mockGetCurrentUser.mockResolvedValue({
+      data: { id: 'u1', firstName: 'Test', languageCode: 'en' },
+    });
+    mockNotificationGetState.mockReturnValue({
+      expoPushToken: null,
+      setExpoPushToken: jest.fn(),
+      setNotificationsEnabled: jest.fn(),
+    });
+
+    await renderScreen(queryClient);
+    await fillAndSubmit();
+
+    await waitFor(() => {
+      expect(mockSetTokens).toHaveBeenCalled();
+      expect(mockRegisterPushNotificationsAsync).toHaveBeenCalled();
+    });
+  });
+
+  it('skips push registration when token already exists', async () => {
+    mockMobileLogin.mockResolvedValue({ data: { accessToken: 'at', refreshToken: 'rt' } });
+    mockGetCurrentUser.mockResolvedValue({
+      data: { id: 'u1', firstName: 'Test', languageCode: 'en' },
+    });
+    mockNotificationGetState.mockReturnValue({
+      expoPushToken: 'ExponentPushToken[existing]',
+      setExpoPushToken: jest.fn(),
+      setNotificationsEnabled: jest.fn(),
+    });
+
+    await renderScreen(queryClient);
+    await fillAndSubmit();
+
+    await waitFor(() => {
+      expect(mockSetTokens).toHaveBeenCalled();
+    });
+    expect(mockRegisterPushNotificationsAsync).not.toHaveBeenCalled();
+  });
+
+  it('does not break login flow when push registration completes', async () => {
+    mockMobileLogin.mockResolvedValue({ data: { accessToken: 'at', refreshToken: 'rt' } });
+    mockGetCurrentUser.mockResolvedValue({
+      data: { id: 'u1', firstName: 'Test', languageCode: 'en' },
+    });
+    mockRegisterPushNotificationsAsync.mockResolvedValue(undefined);
+
+    await renderScreen(queryClient);
+    await fillAndSubmit();
+
+    await waitFor(() => {
+      expect(mockSetTokens).toHaveBeenCalledWith('at', 'rt');
+      expect(mockSetUser).toHaveBeenCalled();
+    });
   });
 });
