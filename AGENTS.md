@@ -146,7 +146,7 @@ npx cypress run           # headless E2E (requires backend at localhost:7003)
 
 ## Mobile
 
-See `econoflow-mobile/AGENTS.md` for full build/run instructions. Pre-commit hook (`.husky/pre-commit`) runs lint + typecheck only when mobile files are staged.
+See `econoflow-mobile/AGENTS.md` for quick commands and `econoflow-mobile/setup.md` for the full emulator + local API dev workflow.
 
 ## Project conventions
 

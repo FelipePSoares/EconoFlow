@@ -478,12 +478,13 @@ Translation JSON files live under `src/assets/i18n/{lang}.json`. All user-visibl
 
 ```
 axios.create({ baseURL: EXPO_PUBLIC_API_URL })
-  Request interceptor  → attach Bearer token from Zustand store
+  Request interceptor  → attach Bearer token from Zustand store, set X-Client-Type: mobile
   Response interceptor → 401: call /mobile/refresh-token, rotate token, retry
                          refresh fail: clearAuth(), navigate to Auth stack
 ```
 
 `EXPO_PUBLIC_API_URL` defaults to `https://localhost:7003` — no trailing `/api/`.
+The `X-Client-Type: mobile` header bypasses Turnstile CAPTCHA validation on the backend.
 
 ### Navigation structure
 
@@ -506,6 +507,27 @@ AppNavigator
         └── Profile tab     → ProfileScreen
               + QuickAddModal (global bottom-sheet overlay)
 ```
+
+### Theme
+
+The app uses react-native-paper MD3 theming with custom semantic colours defined in `App.tsx`:
+
+| Role        | Light      | Dark       |
+|-------------|------------|------------|
+| primary     | `#0f76a8`  | `#4da7d6`  |
+| secondary   | `#0c628c`  | `#6db8df`  |
+| tertiary    | `#2ecc71`  | `#2ecc71`  |
+| error       | `#e74c3c`  | `#e74c3c`  |
+| background  | `#f5f8fc`  | `#0f1724`  |
+| surface     | `#ffffff`  | `#172233`  |
+| onSurface   | `#0d2137`  | `#e6edf3`  |
+
+Custom tokens (`theme.customColors` from `useAppTheme()` hook):
+`success`, `warning`, `income`, `expense`, `accentGreen`
+
+### i18n
+
+`react-i18next` with JSON translation files in `src/i18n/locales/`. All user-visible strings go through `useTranslation()` / `i18next.t()`.
 
 ### API validation error handling
 
@@ -536,6 +558,43 @@ Crash reporting and performance tracking: `@sentry/react-native` (~7.11.0). All 
 - `tracesSampleRate: 0.2` — 20 % trace sampling to stay within the free-tier quota
 
 Sentry is **disabled in development** (`enabled: !__DEV__`). The DSN must use dot notation (`process.env.EXPO_PUBLIC_SENTRY_DSN`) — Metro's Babel transform does not substitute bracket notation at bundle time.
+
+#### Usage in application code
+
+```typescript
+import { captureError, addBreadcrumb } from '../monitoring/sentry';
+
+try {
+  await riskyOperation();
+} catch (err) {
+  captureError(err, { screen: 'ExpenseFormScreen', action: 'submit' });
+}
+
+addBreadcrumb('User opened QuickAdd modal', 'ui');
+```
+
+#### Privacy rules
+
+- **Never** pass financial amounts, email, name, or any PII into `captureError` context or `addBreadcrumb` data.
+- The `beforeSend` hook in `sentry.ts` strips `Authorization` headers automatically.
+- User context is set to the **user ID only** (`setUserContext(user.id)`) — no email, no name.
+- HTTP breadcrumbs log **method + URL** only — never request or response bodies.
+
+#### Env var
+
+| Variable | Where to set | Purpose |
+|---|---|---|
+| `EXPO_PUBLIC_SENTRY_DSN` | `.env.local` | Sentry ingest endpoint (public identifier, safe to commit) |
+
+### Biometric authentication
+
+Package: `expo-local-authentication`. Central module: `src/store/biometricStore.ts` — Zustand store persisted to SecureStore. Gate screen at `src/screens/auth/BiometricGateScreen.tsx`.
+
+- **Store**: `useBiometricStore()` — exposes `biometricEnabled`, `skipCount`, `setBiometricEnabled()`, `incrementSkipCount()`, `resetSkipCount()`, `clearBiometric()`. Persisted to `econoflow-biometric` key.
+- **Gate flow**: `AppNavigator` renders `BiometricGateScreen` before `Main`/`Onboarding` when `isAuthenticated && biometricEnabled`. Gate calls `LocalAuthentication.authenticateAsync()` and navigates to `Main`/`Onboarding` on success, shows fallback (passcode / sign out) on failure.
+- **Enrollment**: `BiometricEnrollPrompt` component shown once after login/register if device supports biometrics and user hasn't been prompted too many times (>3 skips).
+- **Profile toggle**: Security section in `ProfileScreen` has a `SettingToggleRow` for `BiometricAuthLabel` bound to `biometricEnabled`.
+- **Cold start only**: Biometric prompt only appears on cold app start, not on foreground resume.
 
 ---
 
