@@ -73,15 +73,11 @@ jest.mock('expo-local-authentication', () => ({
 
 // ─── Store mocks ──────────────────────────────────────────────────────────────
 
-const mockBiometricEnabled = true;
-const mockSetBiometricEnabled = jest.fn();
-
-const biometricState = { biometricEnabled: mockBiometricEnabled, setBiometricEnabled: mockSetBiometricEnabled };
-
 jest.mock('../../../store/biometricStore', () => ({
-  useBiometricStore: jest.fn((selector?: (s: typeof biometricState) => unknown) =>
-    selector ? selector(biometricState) : biometricState,
-  ),
+  useBiometricStore: jest.fn().mockReturnValue({
+    biometricEnabled: true,
+    setBiometricEnabled: jest.fn(),
+  }),
 }));
 
 const mockClearAuth = jest.fn();
@@ -110,6 +106,11 @@ const mockRoute = {} as unknown as React.ComponentProps<typeof BiometricGateScre
 describe('BiometricGateScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    const { useBiometricStore } = jest.requireMock('../../../store/biometricStore');
+    useBiometricStore.mockReturnValue({
+      biometricEnabled: true,
+      setBiometricEnabled: jest.fn(),
+    });
     mockHasHardwareAsync.mockResolvedValue(true);
     mockIsEnrolledAsync.mockResolvedValue(true);
     mockAuthenticateAsync.mockResolvedValue({ success: true });
@@ -223,6 +224,24 @@ describe('BiometricGateScreen', () => {
 
     await waitFor(() => {
       expect(mockAuthenticateAsync).not.toHaveBeenCalled();
+    });
+  });
+
+  it('navigates to BiometricEnroll when biometricEnabled is false', async () => {
+    const { useBiometricStore } = jest.requireMock('../../../store/biometricStore');
+    useBiometricStore.mockReturnValue({
+      biometricEnabled: false,
+      setBiometricEnabled: jest.fn(),
+    });
+
+    await render(<BiometricGateScreen navigation={mockNavigation} route={mockRoute} />);
+
+    await waitFor(() => {
+      expect(mockAuthenticateAsync).not.toHaveBeenCalled();
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: 'BiometricEnroll' }],
+      });
     });
   });
 });
