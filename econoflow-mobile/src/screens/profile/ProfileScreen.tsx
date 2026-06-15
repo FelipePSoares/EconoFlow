@@ -107,7 +107,7 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { user, clearAuth } = useAuthStore();
   const { clearProject, selectedProject } = useProjectStore();
-  const { biometricEnabled, setBiometricEnabled } = useBiometricStore();
+  const { biometricEnabled, setBiometricEnabled, resetBiometricPromptSkipped } = useBiometricStore();
   const queryClient = useQueryClient();
   const {
     notificationsEnabled,
@@ -250,7 +250,11 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
             label={t('BiometricAuthLabel') ?? 'Biometric Authentication'}
             value={t('BiometricAuthDescription') ?? 'Use fingerprint or face to unlock the app'}
             toggled={biometricEnabled}
-            onPress={() => setBiometricEnabled(!biometricEnabled)}
+            onPress={() => {
+              const newValue = !biometricEnabled;
+              setBiometricEnabled(newValue);
+              if (newValue) resetBiometricPromptSkipped();
+            }}
             testID="row-BiometricAuth"
             isLast
           />

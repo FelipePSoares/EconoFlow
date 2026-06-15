@@ -22,6 +22,17 @@ export const BiometricGateScreen: React.FC<Props> = ({ navigation }) => {
   const { biometricEnabled } = useBiometricStore();
   const [state, setState] = useState<'loading' | 'authenticating' | 'failed' | 'locked' | 'done'>('loading');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [hydrated, setHydrated] = useState(useBiometricStore.persist.hasHydrated());
+
+  useEffect(() => {
+    const unsub = useBiometricStore.persist.onFinishHydration(() => setHydrated(true));
+    // Re-check in case hydration completed between render and effect body
+    if (useBiometricStore.persist.hasHydrated()) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setHydrated(true);
+    }
+    return unsub;
+  }, []);
 
   const getTarget = useCallback(() => needsOnboarding ? 'Onboarding' : 'Main', [needsOnboarding]);
 
@@ -107,6 +118,8 @@ export const BiometricGateScreen: React.FC<Props> = ({ navigation }) => {
       setState('failed');
     }
   };
+
+  if (!hydrated) return null;
 
   if (state === 'loading') {
     return (

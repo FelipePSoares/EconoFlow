@@ -107,6 +107,7 @@ jest.mock('../../../store/biometricStore', () => ({
   useBiometricStore: jest.fn(() => ({
     biometricEnabled: false,
     setBiometricEnabled: jest.fn(),
+    resetBiometricPromptSkipped: jest.fn(),
   })),
 }));
 
@@ -270,6 +271,7 @@ describe('ProfileScreen – biometric toggle', () => {
     useBiometricStore.mockReturnValue({
       biometricEnabled: false,
       setBiometricEnabled: mockSetBiometricEnabled,
+      resetBiometricPromptSkipped: jest.fn(),
     });
 
     await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
@@ -282,10 +284,39 @@ describe('ProfileScreen – biometric toggle', () => {
     useBiometricStore.mockReturnValue({
       biometricEnabled: true,
       setBiometricEnabled: mockSetBiometricEnabled,
+      resetBiometricPromptSkipped: jest.fn(),
     });
 
     await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
     fireEvent.press(screen.getByTestId('row-BiometricAuth'));
     expect(mockSetBiometricEnabled).toHaveBeenCalledWith(false);
+  });
+
+  it('calls resetBiometricPromptSkipped when toggling biometrics on', async () => {
+    const mockResetPromptSkipped = jest.fn();
+    const { useBiometricStore } = jest.requireMock('../../../store/biometricStore');
+    useBiometricStore.mockReturnValue({
+      biometricEnabled: false,
+      setBiometricEnabled: jest.fn(),
+      resetBiometricPromptSkipped: mockResetPromptSkipped,
+    });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    fireEvent.press(screen.getByTestId('row-BiometricAuth'));
+    expect(mockResetPromptSkipped).toHaveBeenCalled();
+  });
+
+  it('does not call resetBiometricPromptSkipped when toggling biometrics off', async () => {
+    const mockResetPromptSkipped = jest.fn();
+    const { useBiometricStore } = jest.requireMock('../../../store/biometricStore');
+    useBiometricStore.mockReturnValue({
+      biometricEnabled: true,
+      setBiometricEnabled: jest.fn(),
+      resetBiometricPromptSkipped: mockResetPromptSkipped,
+    });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    fireEvent.press(screen.getByTestId('row-BiometricAuth'));
+    expect(mockResetPromptSkipped).not.toHaveBeenCalled();
   });
 });
