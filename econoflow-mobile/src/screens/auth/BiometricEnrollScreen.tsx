@@ -7,7 +7,6 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootParamList } from '../../navigation/AppNavigator';
-import { useAuthStore } from '../../store/authStore';
 import { useBiometricStore } from '../../store/biometricStore';
 import { GlassScreen } from '../../components/common/GlassScreen';
 import { GlassCard } from '../../components/common/GlassCard';
@@ -18,33 +17,19 @@ type Props = NativeStackScreenProps<RootParamList, 'BiometricEnroll'>;
 export const BiometricEnrollScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
   const { dark, ink, ink2 } = useAuroraSkin();
-  const { needsOnboarding } = useAuthStore();
   const { biometricPromptSkipped, setBiometricEnabled, setBiometricPromptSkipped } = useBiometricStore();
   const [checked, setChecked] = useState(false);
-  const [hydrated, setHydrated] = useState(useBiometricStore.persist.hasHydrated());
 
-  useEffect(() => {
-    const unsub = useBiometricStore.persist.onFinishHydration(() => setHydrated(true));
-    // Re-check in case hydration completed between render and effect body
-    if (useBiometricStore.persist.hasHydrated()) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setHydrated(true);
-    }
-    return unsub;
-  }, []);
-
-  const navigateAway = useCallback((target: 'Main' | 'Onboarding' | 'BiometricGate') => {
-    navigation.reset({ index: 0, routes: [{ name: target }] });
+  const navigateToGate = useCallback(() => {
+    navigation.reset({ index: 0, routes: [{ name: 'BiometricGate' }] });
   }, [navigation]);
-
-  const getTarget = useCallback(() => needsOnboarding ? 'Onboarding' : 'Main', [needsOnboarding]);
 
   useEffect(() => {
     let cancelled = false;
 
     const run = async () => {
       if (biometricPromptSkipped) {
-        if (!cancelled) navigateAway(getTarget());
+        if (!cancelled) navigateToGate();
         return;
       }
 
@@ -53,7 +38,7 @@ export const BiometricEnrollScreen: React.FC<Props> = ({ navigation }) => {
 
       if (!cancelled) {
         if (!hasHardware || !isEnrolled) {
-          navigateAway(getTarget());
+          navigateToGate();
         } else {
           setChecked(true);
         }
@@ -63,19 +48,18 @@ export const BiometricEnrollScreen: React.FC<Props> = ({ navigation }) => {
     run();
 
     return () => { cancelled = true; };
-  }, [biometricPromptSkipped, navigateAway, getTarget]);
+  }, [biometricPromptSkipped, navigateToGate]);
 
   const handleEnable = () => {
     setBiometricEnabled(true);
-    navigateAway('BiometricGate');
+    navigateToGate();
   };
 
   const handleSkip = () => {
     setBiometricPromptSkipped();
-    navigateAway(getTarget());
+    navigateToGate();
   };
 
-  if (!hydrated) return null;
   if (!checked) return null;
 
   return (

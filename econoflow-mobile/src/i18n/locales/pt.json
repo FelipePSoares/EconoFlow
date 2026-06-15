@@ -616,6 +616,19 @@
   "BiometricEnrollMessage": "Aceda de forma rápida e segura à sua conta usando a sua impressão digital ou rosto.",
   "BiometricEnrollEnable": "Ativar",
   "BiometricEnrollSkip": "Agora não",
-  "BiometricErrorLockedOut": "Muitas tentativas. Use o código do seu dispositivo."
+  "BiometricErrorLockedOut": "Muitas tentativas. Use o código do seu dispositivo.",
+
+  "PinCreateTitle": "Criar PIN do App",
+  "PinCreateSubtitle": "Digite um PIN de 4 a 6 dígitos para proteger sua conta",
+  "PinConfirmTitle": "Confirme seu PIN",
+  "PinMismatch": "Os PINs não coincidem. Tente novamente.",
+  "PinEntryTitle": "Digite o PIN do App",
+  "PinEntrySubtitle": "Digite seu PIN para continuar",
+  "PinForgot": "Esqueceu o PIN?",
+  "PinAttemptsRemaining": "{{count}} tentativa(s) restante(s)",
+  "PinMaxAttempts": "Muitas tentativas incorretas. Desconectando.",
+  "PinUseInstead": "Usar PIN",
+  "PinChangeLabel": "PIN do App",
+  "PinChangeDescription": "Defina um PIN para desbloquear o app"
 }
 
