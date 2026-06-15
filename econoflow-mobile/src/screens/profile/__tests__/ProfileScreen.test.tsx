@@ -103,6 +103,13 @@ jest.mock('../../../store/authStore', () => ({
   })),
 }));
 
+jest.mock('../../../store/biometricStore', () => ({
+  useBiometricStore: jest.fn(() => ({
+    biometricEnabled: false,
+    setBiometricEnabled: jest.fn(),
+  })),
+}));
+
 jest.mock('../../../store/projectStore', () => ({
   useProjectStore: jest.fn(() => ({
     selectedProject: null,
@@ -243,5 +250,42 @@ describe('ProfileScreen – push notifications toggle', () => {
     await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
     fireEvent.press(screen.getByTestId('row-PushNotifications'));
     expect(mockUnregisterPushNotifications).toHaveBeenCalled();
+  });
+});
+
+describe('ProfileScreen – biometric toggle', () => {
+  const mockSetBiometricEnabled = jest.fn();
+
+  beforeEach(() => {
+    mockSetBiometricEnabled.mockReset();
+  });
+
+  it('renders the biometric toggle row', async () => {
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    expect(screen.getByTestId('row-BiometricAuth')).toBeTruthy();
+  });
+
+  it('calls setBiometricEnabled when toggled', async () => {
+    const { useBiometricStore } = jest.requireMock('../../../store/biometricStore');
+    useBiometricStore.mockReturnValue({
+      biometricEnabled: false,
+      setBiometricEnabled: mockSetBiometricEnabled,
+    });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    fireEvent.press(screen.getByTestId('row-BiometricAuth'));
+    expect(mockSetBiometricEnabled).toHaveBeenCalledWith(true);
+  });
+
+  it('shows toggled on when biometricEnabled is true', async () => {
+    const { useBiometricStore } = jest.requireMock('../../../store/biometricStore');
+    useBiometricStore.mockReturnValue({
+      biometricEnabled: true,
+      setBiometricEnabled: mockSetBiometricEnabled,
+    });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    fireEvent.press(screen.getByTestId('row-BiometricAuth'));
+    expect(mockSetBiometricEnabled).toHaveBeenCalledWith(false);
   });
 });

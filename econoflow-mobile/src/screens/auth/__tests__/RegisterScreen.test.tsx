@@ -77,14 +77,27 @@ jest.mock('../../../components/common/GlassScreen', () => {
   };
 });
 
+jest.mock('expo-linear-gradient', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return {
+    LinearGradient: ({ children }: { children: React.ReactNode }) =>
+      React.createElement(View, null, children),
+  };
+});
+
 jest.mock('react-native-paper', () => {
   const React = require('react');
-  const { Text } = require('react-native');
+  const { Text, View } = require('react-native');
   return {
     HelperText: ({ children }: { children: React.ReactNode }) =>
       React.createElement(Text, null, children),
     Text: ({ children }: { children: React.ReactNode }) =>
       React.createElement(Text, null, children),
+    Modal: ({ children }: { children: React.ReactNode }) =>
+      React.createElement(View, null, children),
+    Portal: ({ children }: { children: React.ReactNode }) =>
+      React.createElement(View, null, children),
   };
 });
 
@@ -112,6 +125,13 @@ const mockCaptureError = jest.fn();
 
 jest.mock('../../../monitoring/sentry', () => ({
   captureError: (...args: unknown[]) => mockCaptureError(...args),
+}));
+
+jest.mock('expo-local-authentication', () => ({
+  hasHardwareAsync: jest.fn().mockResolvedValue(true),
+  isEnrolledAsync: jest.fn().mockResolvedValue(true),
+  authenticateAsync: jest.fn().mockResolvedValue({ success: true }),
+  BiometryType: { Fingerprint: 1, FaceID: 2, Iris: 3 },
 }));
 
 jest.mock('../../../store/authStore', () => ({

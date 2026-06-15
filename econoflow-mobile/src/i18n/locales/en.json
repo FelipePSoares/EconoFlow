@@ -603,5 +603,19 @@
   "ErrorChangePasswordFailed": "Failed to change password. Please try again.",
   "ErrorChangeEmailFailed": "Failed to change email. Please try again.",
   "ErrorNewPasswordSameAsCurrent": "New password must differ from the current password.",
-  "PlaceholderConfirmNewPassword": "Confirm new password"
+  "PlaceholderConfirmNewPassword": "Confirm new password",
+
+  "BiometricAuthLabel": "Biometric Authentication",
+  "BiometricAuthDescription": "Use fingerprint or face to unlock the app",
+  "BiometricGateTitle": "Unlock EconoFlow",
+  "BiometricGateSubtitle": "Authenticate to continue",
+  "BiometricPromptReason": "Authenticate to access your finances",
+  "BiometricNotAvailable": "Biometrics not available on this device",
+  "BiometricUsePasscode": "Use device passcode",
+  "BiometricSignOut": "Sign out",
+  "BiometricEnrollTitle": "Enable biometric authentication?",
+  "BiometricEnrollMessage": "Quickly and securely access your account using your fingerprint or face.",
+  "BiometricEnrollEnable": "Enable",
+  "BiometricEnrollSkip": "Not now",
+  "BiometricErrorLockedOut": "Too many attempts. Use your device passcode."
 }

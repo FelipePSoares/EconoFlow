@@ -5,6 +5,19 @@ import { LoginScreen } from '../LoginScreen';
 
 // ─── UI infrastructure mocks ─────────────────────────────────────────────────
 
+jest.mock('@expo/vector-icons', () => ({
+  MaterialCommunityIcons: 'MaterialCommunityIcons',
+}));
+
+jest.mock('expo-linear-gradient', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return {
+    LinearGradient: ({ children }: { children: React.ReactNode }) =>
+      React.createElement(View, null, children),
+  };
+});
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (k: string) => k }),
 }));
@@ -75,12 +88,16 @@ jest.mock('../../../components/common/GlassScreen', () => {
 
 jest.mock('react-native-paper', () => {
   const React = require('react');
-  const { Text } = require('react-native');
+  const { Text, View } = require('react-native');
   return {
     HelperText: ({ children }: { children: React.ReactNode }) =>
       React.createElement(Text, null, children),
     Text: ({ children }: { children: React.ReactNode }) =>
       React.createElement(Text, null, children),
+    Modal: ({ children }: { children: React.ReactNode }) =>
+      React.createElement(View, null, children),
+    Portal: ({ children }: { children: React.ReactNode }) =>
+      React.createElement(View, null, children),
   };
 });
 
@@ -130,6 +147,12 @@ const mockCaptureError = jest.fn();
 
 jest.mock('../../../monitoring/sentry', () => ({
   captureError: (...args: unknown[]) => mockCaptureError(...args),
+}));
+
+jest.mock('expo-local-authentication', () => ({
+  hasHardwareAsync: jest.fn().mockResolvedValue(true),
+  isEnrolledAsync: jest.fn().mockResolvedValue(true),
+  authenticateAsync: jest.fn().mockResolvedValue({ success: true }),
 }));
 
 // ─── Navigation mock ──────────────────────────────────────────────────────────

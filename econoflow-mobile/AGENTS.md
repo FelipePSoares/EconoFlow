@@ -346,6 +346,22 @@ Custom tokens (`theme.customColors` from `useAppTheme()` hook):
 Package: `@sentry/react-native` (~7.11.0).
 Central module: `src/monitoring/sentry.ts` — all Sentry interactions go through here.
 
+## Biometric authentication
+
+Package: `expo-local-authentication`. Central module: `src/store/biometricStore.ts` — Zustand store
+persisted to SecureStore. Gate screen at `src/screens/auth/BiometricGateScreen.tsx`.
+
+- **Store**: `useBiometricStore()` — exposes `biometricEnabled`, `skipCount`, `setBiometricEnabled()`,
+  `incrementSkipCount()`, `resetSkipCount()`, `clearBiometric()`. Persisted to `econoflow-biometric` key.
+- **Gate flow**: `AppNavigator` renders `BiometricGateScreen` before `Main`/`Onboarding` when
+  `isAuthenticated && biometricEnabled`. Gate calls `LocalAuthentication.authenticateAsync()` and
+  navigates to `Main`/`Onboarding` on success, shows fallback (passcode / sign out) on failure.
+- **Enrollment**: `BiometricEnrollPrompt` component shown once after login/register if device
+  supports biometrics and user hasn't been prompted too many times (>3 skips).
+- **Profile toggle**: Security section in `ProfileScreen` has a `SettingToggleRow` for
+  `BiometricAuthLabel` bound to `biometricEnabled`.
+- **Cold start only**: Biometric prompt only appears on cold app start, not on foreground resume.
+
 ### Env vars
 
 | Variable | Where to set | Purpose |

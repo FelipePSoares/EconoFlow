@@ -11,6 +11,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { ProfileStackParamList } from '../../navigation/ProfileStackNavigator';
 import { useAuthStore } from '../../store/authStore';
+import { useBiometricStore } from '../../store/biometricStore';
 import { useProjectStore } from '../../store/projectStore';
 import { usePushNotifications } from '../../hooks/usePushNotifications';
 import { GlassScreen } from '../../components/common/GlassScreen';
@@ -106,6 +107,7 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { user, clearAuth } = useAuthStore();
   const { clearProject, selectedProject } = useProjectStore();
+  const { biometricEnabled, setBiometricEnabled } = useBiometricStore();
   const queryClient = useQueryClient();
   const {
     notificationsEnabled,
@@ -241,6 +243,15 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
             valueColor={user?.twoFactorEnabled ? '#0e9f6e' : undefined}
             onPress={() => navigation.navigate('TwoFactorSetup')}
             testID="row-AuthenticatorApp"
+          />
+          <SettingToggleRow
+            dark={dark} ink={ink} ink2={ink2} hair={hair}
+            icon="fingerprint"
+            label={t('BiometricAuthLabel') ?? 'Biometric Authentication'}
+            value={t('BiometricAuthDescription') ?? 'Use fingerprint or face to unlock the app'}
+            toggled={biometricEnabled}
+            onPress={() => setBiometricEnabled(!biometricEnabled)}
+            testID="row-BiometricAuth"
             isLast
           />
         </GlassCard>
