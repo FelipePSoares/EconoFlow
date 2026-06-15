@@ -10,7 +10,7 @@ describe('biometricStore', () => {
   beforeEach(() => {
     useBiometricStore.setState({
       biometricEnabled: false,
-      skipCount: 0,
+      biometricPromptSkipped: false,
     });
   });
 
@@ -18,8 +18,8 @@ describe('biometricStore', () => {
     expect(useBiometricStore.getState().biometricEnabled).toBe(false);
   });
 
-  it('defaults to skipCount 0', () => {
-    expect(useBiometricStore.getState().skipCount).toBe(0);
+  it('defaults to biometricPromptSkipped false', () => {
+    expect(useBiometricStore.getState().biometricPromptSkipped).toBe(false);
   });
 
   it('setBiometricEnabled(true) enables biometrics', () => {
@@ -33,24 +33,22 @@ describe('biometricStore', () => {
     expect(useBiometricStore.getState().biometricEnabled).toBe(false);
   });
 
-  it('incrementSkipCount increases skipCount by 1', () => {
-    useBiometricStore.getState().incrementSkipCount();
-    expect(useBiometricStore.getState().skipCount).toBe(1);
-    useBiometricStore.getState().incrementSkipCount();
-    expect(useBiometricStore.getState().skipCount).toBe(2);
+  it('setBiometricPromptSkipped sets to true', () => {
+    useBiometricStore.getState().setBiometricPromptSkipped();
+    expect(useBiometricStore.getState().biometricPromptSkipped).toBe(true);
   });
 
-  it('resetSkipCount resets to 0', () => {
-    useBiometricStore.getState().incrementSkipCount();
-    useBiometricStore.getState().resetSkipCount();
-    expect(useBiometricStore.getState().skipCount).toBe(0);
+  it('resetBiometricPromptSkipped resets to false', () => {
+    useBiometricStore.getState().setBiometricPromptSkipped();
+    useBiometricStore.getState().resetBiometricPromptSkipped();
+    expect(useBiometricStore.getState().biometricPromptSkipped).toBe(false);
   });
 
-  it('clearBiometric resets biometricEnabled and skipCount', () => {
+  it('clearBiometric resets biometricEnabled and biometricPromptSkipped', () => {
     useBiometricStore.getState().setBiometricEnabled(true);
-    useBiometricStore.getState().incrementSkipCount();
+    useBiometricStore.getState().setBiometricPromptSkipped();
     useBiometricStore.getState().clearBiometric();
     expect(useBiometricStore.getState().biometricEnabled).toBe(false);
-    expect(useBiometricStore.getState().skipCount).toBe(0);
+    expect(useBiometricStore.getState().biometricPromptSkipped).toBe(false);
   });
 });

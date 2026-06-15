@@ -14,7 +14,6 @@ import i18n from '../../i18n';
 import { AuthHero } from '../../components/auth/AuthHero';
 import { AuroraField } from '../../components/auth/AuroraField';
 import { AuroraPrimaryButton } from '../../components/auth/AuroraPrimaryButton';
-import { BiometricEnrollPrompt } from '../../components/auth/BiometricEnrollPrompt';
 import { GlassCard } from '../../components/common/GlassCard';
 import { GlassScreen } from '../../components/common/GlassScreen';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
@@ -191,7 +190,6 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-      <BiometricEnrollPrompt />
     </GlassScreen>
   );
 };

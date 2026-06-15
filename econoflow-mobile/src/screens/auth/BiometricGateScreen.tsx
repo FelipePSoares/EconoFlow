@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootParamList } from '../../navigation/AppNavigator';
 import { useAuthStore } from '../../store/authStore';
+import { useBiometricStore } from '../../store/biometricStore';
 import { GlassScreen } from '../../components/common/GlassScreen';
 import { GlassCard } from '../../components/common/GlassCard';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
@@ -18,19 +19,32 @@ export const BiometricGateScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
   const { dark, ink, ink2 } = useAuroraSkin();
   const { clearAuth, needsOnboarding } = useAuthStore();
+  const { biometricEnabled } = useBiometricStore();
   const [state, setState] = useState<'loading' | 'authenticating' | 'failed' | 'locked' | 'done'>('loading');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const getTarget = useCallback(() => needsOnboarding ? 'Onboarding' : 'Main', [needsOnboarding]);
+
   const navigateAway = useCallback(() => {
     setState('done');
-    const target = needsOnboarding ? 'Onboarding' : 'Main';
-    navigation.reset({ index: 0, routes: [{ name: target }] });
-  }, [needsOnboarding, navigation]);
+    if (!biometricEnabled) {
+      navigation.reset({ index: 0, routes: [{ name: 'BiometricEnroll' }] });
+      return;
+    }
+    navigation.reset({ index: 0, routes: [{ name: getTarget() }] });
+  }, [biometricEnabled, getTarget, navigation]);
 
   useEffect(() => {
     let cancelled = false;
 
     const run = async () => {
+      if (!biometricEnabled) {
+        if (!cancelled) {
+          navigateAway();
+        }
+        return;
+      }
+
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
 
@@ -68,7 +82,7 @@ export const BiometricGateScreen: React.FC<Props> = ({ navigation }) => {
     return () => {
       cancelled = true;
     };
-  }, [navigateAway, t]);
+  }, [navigateAway, t, biometricEnabled]);
 
   const handleSignOut = () => {
     clearAuth();

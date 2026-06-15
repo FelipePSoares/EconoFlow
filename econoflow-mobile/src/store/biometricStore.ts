@@ -16,10 +16,10 @@ const secureStorage: SecureStorage = {
 
 export interface BiometricState {
   biometricEnabled: boolean;
-  skipCount: number;
+  biometricPromptSkipped: boolean;
   setBiometricEnabled: (enabled: boolean) => void;
-  incrementSkipCount: () => void;
-  resetSkipCount: () => void;
+  setBiometricPromptSkipped: () => void;
+  resetBiometricPromptSkipped: () => void;
   clearBiometric: () => void;
 }
 
@@ -27,18 +27,18 @@ export const useBiometricStore = create<BiometricState>()(
   persist(
     (set) => ({
       biometricEnabled: false,
-      skipCount: 0,
+      biometricPromptSkipped: false,
       setBiometricEnabled: (enabled) => set({ biometricEnabled: enabled }),
-      incrementSkipCount: () => set((s) => ({ skipCount: s.skipCount + 1 })),
-      resetSkipCount: () => set({ skipCount: 0 }),
-      clearBiometric: () => set({ biometricEnabled: false, skipCount: 0 }),
+      setBiometricPromptSkipped: () => set({ biometricPromptSkipped: true }),
+      resetBiometricPromptSkipped: () => set({ biometricPromptSkipped: false }),
+      clearBiometric: () => set({ biometricEnabled: false, biometricPromptSkipped: false }),
     }),
     {
       name: 'econoflow-biometric',
       storage: createJSONStorage(() => secureStorage),
       partialize: (state) => ({
         biometricEnabled: state.biometricEnabled,
-        skipCount: state.skipCount,
+        biometricPromptSkipped: state.biometricPromptSkipped,
       }),
     }
   )

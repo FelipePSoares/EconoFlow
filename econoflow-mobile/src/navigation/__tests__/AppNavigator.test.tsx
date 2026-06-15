@@ -95,11 +95,21 @@ jest.mock('../../screens/auth/BiometricGateScreen', () => {
   };
 });
 
+jest.mock('../../screens/auth/BiometricEnrollScreen', () => {
+  const React = require('react');
+  const { Text } = require('react-native');
+  return {
+    BiometricEnrollScreen: () =>
+      React.createElement(Text, { testID: 'biometric-enroll' }, 'BiometricEnroll'),
+  };
+});
+
 // ─── Store mocks ──────────────────────────────────────────────────────────────
 
 let mockIsAuthenticated = false;
 let mockNeedsOnboarding = false;
 let mockBiometricEnabled = false;
+let mockBiometricPromptSkipped = false;
 
 jest.mock('../../store/authStore', () => ({
   useAuthStore: jest.fn(
@@ -110,8 +120,8 @@ jest.mock('../../store/authStore', () => ({
 
 jest.mock('../../store/biometricStore', () => ({
   useBiometricStore: jest.fn(
-    (selector: (s: { biometricEnabled: boolean }) => unknown) =>
-      selector({ biometricEnabled: mockBiometricEnabled }),
+    (selector: (s: { biometricEnabled: boolean; biometricPromptSkipped: boolean }) => unknown) =>
+      selector({ biometricEnabled: mockBiometricEnabled, biometricPromptSkipped: mockBiometricPromptSkipped }),
   ),
 }));
 
@@ -122,6 +132,7 @@ describe('AppNavigator', () => {
     mockIsAuthenticated = false;
     mockNeedsOnboarding = false;
     mockBiometricEnabled = false;
+    mockBiometricPromptSkipped = false;
   });
 
   it('renders AuthNavigator when not authenticated', async () => {
@@ -151,5 +162,16 @@ describe('AppNavigator', () => {
 
     await render(<AppNavigator />);
     expect(screen.getByTestId('biometric-gate')).toBeTruthy();
+  });
+
+  it('renders all authenticated screens together when authenticated', async () => {
+    mockIsAuthenticated = true;
+
+    await render(<AppNavigator />);
+
+    expect(screen.getByTestId('biometric-gate')).toBeTruthy();
+    expect(screen.getByTestId('biometric-enroll')).toBeTruthy();
+    expect(screen.getByTestId('onboarding-navigator')).toBeTruthy();
+    expect(screen.getByTestId('main-navigator')).toBeTruthy();
   });
 });
