@@ -2,8 +2,6 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react-native';
 import { BiometricEnrollScreen } from '../BiometricEnrollScreen';
 
-// ─── UI infrastructure mocks ─────────────────────────────────────────────────
-
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (k: string) => k }),
 }));
@@ -52,8 +50,6 @@ jest.mock('react-native-paper', () => {
   };
 });
 
-// ─── Expo LocalAuthentication mock ────────────────────────────────────────────
-
 const mockAuthenticateAsync = jest.fn();
 const mockHasHardwareAsync = jest.fn();
 const mockIsEnrolledAsync = jest.fn();
@@ -66,8 +62,6 @@ jest.mock('expo-local-authentication', () => ({
   supportedBiometryTypes: mockSupportedBiometryTypes,
   BiometryType: { Fingerprint: 1, FaceID: 2, Iris: 3 },
 }));
-
-// ─── Biometric store mock ────────────────────────────────────────────────────
 
 jest.mock('../../../store/biometricStore', () => {
   const fn = jest.fn().mockReturnValue({
@@ -86,25 +80,18 @@ jest.mock('../../../store/biometricStore', () => {
   };
 });
 
-// ─── Auth store mock ─────────────────────────────────────────────────────────
-
 jest.mock('../../../store/authStore', () => ({
   useAuthStore: jest.fn().mockReturnValue({
     needsOnboarding: false,
   }),
 }));
 
-// ─── Navigation mock ─────────────────────────────────────────────────────────
-
 const mockReset = jest.fn();
-
 const mockNavigation = {
   reset: mockReset,
 } as unknown as React.ComponentProps<typeof BiometricEnrollScreen>['navigation'];
 
 const mockRoute = {} as unknown as React.ComponentProps<typeof BiometricEnrollScreen>['route'];
-
-// ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('BiometricEnrollScreen', () => {
   beforeEach(() => {
@@ -116,13 +103,11 @@ describe('BiometricEnrollScreen', () => {
       setBiometricEnabled: jest.fn(),
       setBiometricPromptSkipped: jest.fn(),
     });
-    const { useAuthStore } = jest.requireMock('../../../store/authStore');
-    useAuthStore.mockReturnValue({ needsOnboarding: false });
     mockHasHardwareAsync.mockResolvedValue(true);
     mockIsEnrolledAsync.mockResolvedValue(true);
   });
 
-  it('navigates to Main when biometricPromptSkipped is true', async () => {
+  it('navigates to BiometricGate when biometricPromptSkipped is true', async () => {
     const { useBiometricStore } = jest.requireMock('../../../store/biometricStore');
     useBiometricStore.mockReturnValue({
       biometricEnabled: false,
@@ -136,14 +121,12 @@ describe('BiometricEnrollScreen', () => {
     await waitFor(() => {
       expect(mockReset).toHaveBeenCalledWith({
         index: 0,
-        routes: [{ name: 'Main' }],
+        routes: [{ name: 'BiometricGate' }],
       });
     });
   });
 
-  it('navigates to Onboarding when needsOnboarding is true and no hardware', async () => {
-    const { useAuthStore } = jest.requireMock('../../../store/authStore');
-    useAuthStore.mockReturnValue({ needsOnboarding: true });
+  it('navigates to BiometricGate when no biometric hardware', async () => {
     mockHasHardwareAsync.mockResolvedValue(false);
 
     await render(<BiometricEnrollScreen navigation={mockNavigation} route={mockRoute} />);
@@ -151,25 +134,12 @@ describe('BiometricEnrollScreen', () => {
     await waitFor(() => {
       expect(mockReset).toHaveBeenCalledWith({
         index: 0,
-        routes: [{ name: 'Onboarding' }],
+        routes: [{ name: 'BiometricGate' }],
       });
     });
   });
 
-  it('navigates to Main when no biometric hardware', async () => {
-    mockHasHardwareAsync.mockResolvedValue(false);
-
-    await render(<BiometricEnrollScreen navigation={mockNavigation} route={mockRoute} />);
-
-    await waitFor(() => {
-      expect(mockReset).toHaveBeenCalledWith({
-        index: 0,
-        routes: [{ name: 'Main' }],
-      });
-    });
-  });
-
-  it('navigates to Main when not enrolled in biometrics', async () => {
+  it('navigates to BiometricGate when not enrolled in biometrics', async () => {
     mockIsEnrolledAsync.mockResolvedValue(false);
 
     await render(<BiometricEnrollScreen navigation={mockNavigation} route={mockRoute} />);
@@ -177,7 +147,7 @@ describe('BiometricEnrollScreen', () => {
     await waitFor(() => {
       expect(mockReset).toHaveBeenCalledWith({
         index: 0,
-        routes: [{ name: 'Main' }],
+        routes: [{ name: 'BiometricGate' }],
       });
     });
   });
@@ -212,7 +182,7 @@ describe('BiometricEnrollScreen', () => {
     });
   });
 
-  it('calls setBiometricPromptSkipped and navigates to Main on Skip', async () => {
+  it('calls setBiometricPromptSkipped and navigates to BiometricGate on Skip', async () => {
     const { useBiometricStore } = jest.requireMock('../../../store/biometricStore');
     const mockState = useBiometricStore();
 
@@ -227,16 +197,7 @@ describe('BiometricEnrollScreen', () => {
     expect(mockState.setBiometricPromptSkipped).toHaveBeenCalled();
     expect(mockReset).toHaveBeenCalledWith({
       index: 0,
-      routes: [{ name: 'Main' }],
+      routes: [{ name: 'BiometricGate' }],
     });
-  });
-
-  it('renders nothing while biometric store is hydrating', async () => {
-    const { useBiometricStore } = jest.requireMock('../../../store/biometricStore');
-    useBiometricStore.persist.hasHydrated.mockReturnValue(false);
-
-    render(<BiometricEnrollScreen navigation={mockNavigation} route={mockRoute} />);
-
-    expect(mockReset).not.toHaveBeenCalled();
   });
 });

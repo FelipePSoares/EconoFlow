@@ -2,8 +2,6 @@ import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 import { AppNavigator } from '../AppNavigator';
 
-// ─── Navigation mocks ─────────────────────────────────────────────────────────
-
 jest.mock('@react-navigation/native-stack', () => {
   const React = require('react');
   const { View } = require('react-native');
@@ -60,8 +58,6 @@ jest.mock('../../components/common/GlassScreen', () => {
   };
 });
 
-// ─── Screen mocks ─────────────────────────────────────────────────────────────
-
 jest.mock('../AuthNavigator', () => ({
   AuthNavigator: () => {
     const React = require('react');
@@ -104,35 +100,50 @@ jest.mock('../../screens/auth/BiometricEnrollScreen', () => {
   };
 });
 
-// ─── Store mocks ──────────────────────────────────────────────────────────────
+jest.mock('../../screens/auth/PinSetupScreen', () => {
+  const React = require('react');
+  const { Text } = require('react-native');
+  return {
+    PinSetupScreen: () =>
+      React.createElement(Text, { testID: 'pin-setup' }, 'PinSetup'),
+  };
+});
+
+jest.mock('../../screens/auth/PinEntryScreen', () => {
+  const React = require('react');
+  const { Text } = require('react-native');
+  return {
+    PinEntryScreen: () =>
+      React.createElement(Text, { testID: 'pin-entry' }, 'PinEntry'),
+  };
+});
 
 let mockIsAuthenticated = false;
-let mockNeedsOnboarding = false;
-let mockBiometricEnabled = false;
-let mockBiometricPromptSkipped = false;
 
 jest.mock('../../store/authStore', () => ({
   useAuthStore: jest.fn(
-    (selector: (s: { isAuthenticated: boolean; needsOnboarding: boolean }) => unknown) =>
-      selector({ isAuthenticated: mockIsAuthenticated, needsOnboarding: mockNeedsOnboarding }),
+    (selector: (s: { isAuthenticated: boolean }) => unknown) =>
+      selector({ isAuthenticated: mockIsAuthenticated }),
   ),
 }));
 
 jest.mock('../../store/biometricStore', () => ({
   useBiometricStore: jest.fn(
-    (selector: (s: { biometricEnabled: boolean; biometricPromptSkipped: boolean }) => unknown) =>
-      selector({ biometricEnabled: mockBiometricEnabled, biometricPromptSkipped: mockBiometricPromptSkipped }),
+    (selector: (s: Record<string, unknown>) => unknown) =>
+      selector({ biometricEnabled: false, biometricPromptSkipped: false }),
   ),
 }));
 
-// ─── Tests ────────────────────────────────────────────────────────────────────
+jest.mock('../../store/pinStore', () => ({
+  usePinStore: jest.fn(
+    (selector: (s: { hasPin: boolean }) => unknown) =>
+      selector({ hasPin: false }),
+  ),
+}));
 
 describe('AppNavigator', () => {
   beforeEach(() => {
     mockIsAuthenticated = false;
-    mockNeedsOnboarding = false;
-    mockBiometricEnabled = false;
-    mockBiometricPromptSkipped = false;
   });
 
   it('renders AuthNavigator when not authenticated', async () => {
@@ -140,37 +151,15 @@ describe('AppNavigator', () => {
     expect(screen.getByTestId('auth-navigator')).toBeTruthy();
   });
 
-  it('renders OnboardingNavigator when authenticated and needsOnboarding', async () => {
-    mockIsAuthenticated = true;
-    mockNeedsOnboarding = true;
-
-    await render(<AppNavigator />);
-    expect(screen.getByTestId('onboarding-navigator')).toBeTruthy();
-  });
-
-  it('renders MainNavigator when authenticated and no needsOnboarding', async () => {
-    mockIsAuthenticated = true;
-    mockNeedsOnboarding = false;
-
-    await render(<AppNavigator />);
-    expect(screen.getByTestId('main-navigator')).toBeTruthy();
-  });
-
-  it('renders BiometricGate when authenticated and biometricEnabled', async () => {
-    mockIsAuthenticated = true;
-    mockBiometricEnabled = true;
-
-    await render(<AppNavigator />);
-    expect(screen.getByTestId('biometric-gate')).toBeTruthy();
-  });
-
-  it('renders all authenticated screens together when authenticated', async () => {
+  it('renders all authenticated screens when authenticated', async () => {
     mockIsAuthenticated = true;
 
     await render(<AppNavigator />);
 
     expect(screen.getByTestId('biometric-gate')).toBeTruthy();
     expect(screen.getByTestId('biometric-enroll')).toBeTruthy();
+    expect(screen.getByTestId('pin-setup')).toBeTruthy();
+    expect(screen.getByTestId('pin-entry')).toBeTruthy();
     expect(screen.getByTestId('onboarding-navigator')).toBeTruthy();
     expect(screen.getByTestId('main-navigator')).toBeTruthy();
   });

@@ -8,10 +8,14 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackScreenProps, NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { ProfileStackParamList } from '../../navigation/ProfileStackNavigator';
+import type { RootParamList } from '../../navigation/AppNavigator';
 import { useAuthStore } from '../../store/authStore';
 import { useBiometricStore } from '../../store/biometricStore';
+import { usePinStore } from '../../store/pinStore';
+import { useLockStore } from '../../store/lockStore';
 import { useProjectStore } from '../../store/projectStore';
 import { usePushNotifications } from '../../hooks/usePushNotifications';
 import { GlassScreen } from '../../components/common/GlassScreen';
@@ -108,6 +112,9 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
   const { user, clearAuth } = useAuthStore();
   const { clearProject, selectedProject } = useProjectStore();
   const { biometricEnabled, setBiometricEnabled, resetBiometricPromptSkipped } = useBiometricStore();
+  const { hasPin, clearPin } = usePinStore();
+  const { reset: resetLock } = useLockStore();
+  const rootNavigation = useNavigation<NativeStackNavigationProp<RootParamList>>();
   const queryClient = useQueryClient();
   const {
     notificationsEnabled,
@@ -119,6 +126,8 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
   const handleSignOut = async () => {
     await unregisterPushNotifications();
     queryClient.clear();
+    clearPin();
+    resetLock();
     clearAuth();
     clearProject();
   };
@@ -256,6 +265,15 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
               if (newValue) resetBiometricPromptSkipped();
             }}
             testID="row-BiometricAuth"
+          />
+          <SettingRow
+            dark={dark} ink={ink} ink2={ink2} hair={hair}
+            icon="lock-outline"
+            label={t('PinChangeLabel') ?? 'App PIN'}
+            value={hasPin ? (t('LabelEnabled') ?? 'On') : (t('LabelDisabled') ?? 'Off')}
+            valueColor={hasPin ? '#0e9f6e' : undefined}
+            onPress={() => rootNavigation.navigate('PinSetup')}
+            testID="row-ChangePin"
             isLast
           />
         </GlassCard>

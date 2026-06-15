@@ -9,6 +9,8 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootParamList } from '../../navigation/AppNavigator';
 import { useAuthStore } from '../../store/authStore';
 import { useBiometricStore } from '../../store/biometricStore';
+import { usePinStore } from '../../store/pinStore';
+import { useLockStore } from '../../store/lockStore';
 import { GlassScreen } from '../../components/common/GlassScreen';
 import { GlassCard } from '../../components/common/GlassCard';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
@@ -20,13 +22,14 @@ export const BiometricGateScreen: React.FC<Props> = ({ navigation }) => {
   const { dark, ink, ink2 } = useAuroraSkin();
   const { clearAuth, needsOnboarding } = useAuthStore();
   const { biometricEnabled } = useBiometricStore();
-  const [state, setState] = useState<'loading' | 'authenticating' | 'failed' | 'locked' | 'done'>('loading');
+  const { hasPin } = usePinStore();
+  const { setUnlocked } = useLockStore();
+  const [state, setState] = useState<'loading' | 'authenticating' | 'failed' | 'locked' | 'pin' | 'done'>('loading');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(useBiometricStore.persist.hasHydrated());
 
   useEffect(() => {
     const unsub = useBiometricStore.persist.onFinishHydration(() => setHydrated(true));
-    // Re-check in case hydration completed between render and effect body
     if (useBiometricStore.persist.hasHydrated()) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setHydrated(true);
@@ -38,30 +41,23 @@ export const BiometricGateScreen: React.FC<Props> = ({ navigation }) => {
 
   const navigateAway = useCallback(() => {
     setState('done');
-    if (!biometricEnabled) {
-      navigation.reset({ index: 0, routes: [{ name: 'BiometricEnroll' }] });
-      return;
-    }
     navigation.reset({ index: 0, routes: [{ name: getTarget() }] });
-  }, [biometricEnabled, getTarget, navigation]);
+  }, [getTarget, navigation]);
 
   useEffect(() => {
     let cancelled = false;
 
     const run = async () => {
-      if (!biometricEnabled) {
-        if (!cancelled) {
-          navigateAway();
-        }
-        return;
-      }
-
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
 
-      if (!hasHardware || !isEnrolled) {
+      if (!biometricEnabled || !hasHardware || !isEnrolled) {
         if (!cancelled) {
-          navigateAway();
+          if (hasPin) {
+            navigation.reset({ index: 0, routes: [{ name: 'PinEntry' }] });
+          } else {
+            navigation.reset({ index: 0, routes: [{ name: 'BiometricEnroll' }] });
+          }
         }
         return;
       }
@@ -79,6 +75,7 @@ export const BiometricGateScreen: React.FC<Props> = ({ navigation }) => {
       if (cancelled) return;
 
       if (result.success) {
+        setUnlocked();
         navigateAway();
       } else if (result.error === 'lockout') {
         setState('locked');
@@ -93,11 +90,15 @@ export const BiometricGateScreen: React.FC<Props> = ({ navigation }) => {
     return () => {
       cancelled = true;
     };
-  }, [navigateAway, t, biometricEnabled]);
+  }, [t, biometricEnabled, hasPin, navigation, setUnlocked, navigateAway]);
 
   const handleSignOut = () => {
     clearAuth();
     navigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
+  };
+
+  const handleUsePin = () => {
+    navigation.reset({ index: 0, routes: [{ name: 'PinEntry' }] });
   };
 
   const handleRetry = async () => {
@@ -111,6 +112,7 @@ export const BiometricGateScreen: React.FC<Props> = ({ navigation }) => {
     });
 
     if (result.success) {
+      setUnlocked();
       navigateAway();
     } else if (result.error === 'lockout') {
       setState('locked');
@@ -156,6 +158,19 @@ export const BiometricGateScreen: React.FC<Props> = ({ navigation }) => {
               <View style={styles.errorSection} testID="biometric-lockout">
                 <MaterialCommunityIcons name="lock-alert" size={32} color="#e74c3c" />
                 <Text style={styles.errorText}>{errorMessage ?? t('BiometricErrorLockedOut')}</Text>
+              </View>
+            )}
+
+            {hasPin && (
+              <View style={styles.buttonRow}>
+                <View style={styles.retryBtn} testID="biometric-use-pin">
+                  <Text
+                    style={[styles.retryText, { color: '#0f76a8' }]}
+                    onPress={handleUsePin}
+                  >
+                    {t('PinUseInstead')}
+                  </Text>
+                </View>
               </View>
             )}
 
