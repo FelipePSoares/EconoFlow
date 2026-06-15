@@ -73,12 +73,20 @@ jest.mock('expo-local-authentication', () => ({
 
 // ─── Store mocks ──────────────────────────────────────────────────────────────
 
-jest.mock('../../../store/biometricStore', () => ({
-  useBiometricStore: jest.fn().mockReturnValue({
+jest.mock('../../../store/biometricStore', () => {
+  const fn = jest.fn().mockReturnValue({
     biometricEnabled: true,
     setBiometricEnabled: jest.fn(),
-  }),
-}));
+  });
+  return {
+    useBiometricStore: Object.assign(fn, {
+      persist: {
+        hasHydrated: jest.fn().mockReturnValue(true),
+        onFinishHydration: jest.fn(),
+      },
+    }),
+  };
+});
 
 const mockClearAuth = jest.fn();
 const mockNeedsOnboarding = false;
@@ -243,5 +251,15 @@ describe('BiometricGateScreen', () => {
         routes: [{ name: 'BiometricEnroll' }],
       });
     });
+  });
+
+  it('renders nothing while biometric store is hydrating', async () => {
+    const { useBiometricStore } = jest.requireMock('../../../store/biometricStore');
+    useBiometricStore.persist.hasHydrated.mockReturnValue(false);
+
+    render(<BiometricGateScreen navigation={mockNavigation} route={mockRoute} />);
+
+    expect(mockAuthenticateAsync).not.toHaveBeenCalled();
+    expect(mockReset).not.toHaveBeenCalled();
   });
 });

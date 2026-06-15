@@ -21,6 +21,17 @@ export const BiometricEnrollScreen: React.FC<Props> = ({ navigation }) => {
   const { needsOnboarding } = useAuthStore();
   const { biometricPromptSkipped, setBiometricEnabled, setBiometricPromptSkipped } = useBiometricStore();
   const [checked, setChecked] = useState(false);
+  const [hydrated, setHydrated] = useState(useBiometricStore.persist.hasHydrated());
+
+  useEffect(() => {
+    const unsub = useBiometricStore.persist.onFinishHydration(() => setHydrated(true));
+    // Re-check in case hydration completed between render and effect body
+    if (useBiometricStore.persist.hasHydrated()) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setHydrated(true);
+    }
+    return unsub;
+  }, []);
 
   const navigateAway = useCallback((target: 'Main' | 'Onboarding' | 'BiometricGate') => {
     navigation.reset({ index: 0, routes: [{ name: target }] });
@@ -64,6 +75,7 @@ export const BiometricEnrollScreen: React.FC<Props> = ({ navigation }) => {
     navigateAway(getTarget());
   };
 
+  if (!hydrated) return null;
   if (!checked) return null;
 
   return (
