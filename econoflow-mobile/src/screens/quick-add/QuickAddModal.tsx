@@ -186,7 +186,7 @@ export const QuickAddModal: React.FC<Props> = ({
   const sym = getCurrencySymbol(currency);
 
   const [modal, dispatch] = useReducer(modalReducer, initState);
-  const selectedMonth = dateToMonth(modal.date);
+  const selectedMonth = month ?? dateToMonth(modal.date);
 
   // ── Drag-to-dismiss ───────────────────────────────────────────────────────
   // useState initializer avoids the react-hooks/refs lint error that fires when
