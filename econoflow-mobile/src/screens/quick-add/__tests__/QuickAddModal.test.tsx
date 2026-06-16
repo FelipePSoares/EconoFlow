@@ -379,6 +379,21 @@ describe('QuickAddModal — Sentry captureError', () => {
     expect(scroll.props.automaticallyAdjustKeyboardInsets).toBe(true);
   });
 
+  it('uses month prop, not date-derived month, when defaultExpenseId is set for a future month', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const useExpensesMock = jest.requireMock('../../../hooks/useExpenses') as any;
+    useExpensesMock.useExpensesForMonth.mockClear();
+
+    await act(async () => {
+      renderModal({ month: '2026-08', defaultCategoryId: 'cat-1', defaultExpenseId: 'exp-1' });
+    });
+
+    const calls = useExpensesMock.useExpensesForMonth.mock.calls;
+    const lastCall = calls[calls.length - 1];
+    // lastCall[0] = projectId, lastCall[1] = categoryId, lastCall[2] = month
+    expect(lastCall[2]).toBe('2026-08');
+  });
+
   it('wraps the panel in KeyboardAvoidingView with behavior="padding" to prevent keyboard overlap', async () => {
     await act(async () => { renderModal(); });
 
