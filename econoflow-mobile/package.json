@@ -13,7 +13,7 @@
     "@tanstack/react-query": "^5.100.14",
     "@types/react": "^19.2.15",
     "@types/react-native": "^0.72.8",
-    "axios": "^1.17.0",
+    "axios": "^1.18.1",
     "dayjs": "^1.11.21",
     "expo": "~56.0.8",
     "expo-blur": "~56.0.3",
