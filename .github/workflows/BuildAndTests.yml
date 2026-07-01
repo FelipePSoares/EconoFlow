@@ -23,7 +23,7 @@ jobs:
     timeout-minutes: 20
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
 
@@ -92,13 +92,13 @@ jobs:
 
     - name: Cache node_modules
       id: cache-node-modules-build
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: ./easyfinance.client/node_modules
         key: node-modules-${{ runner.os }}-${{ hashFiles('./easyfinance.client/package-lock.json') }}
             
     - name: Cache Cypress binary
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: ~/.cache/Cypress
         key: cypress-${{ runner.os }}-${{ hashFiles('./easyfinance.client/package-lock.json') }}
@@ -147,7 +147,7 @@ jobs:
     timeout-minutes: 20
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
@@ -161,7 +161,7 @@ jobs:
     
     - name: Cache node_modules
       id: cache-node-modules-unit
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: ./easyfinance.client/node_modules
         key: node-modules-${{ runner.os }}-${{ hashFiles('./easyfinance.client/package-lock.json') }}
@@ -240,7 +240,7 @@ jobs:
     timeout-minutes: 15
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: Detect mobile changes in PR
       id: mobile-changes
@@ -262,7 +262,7 @@ jobs:
 
     - name: Cache mobile node_modules
       if: steps.mobile-changes.outputs.mobile == 'true'
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: ./econoflow-mobile/node_modules
         key: mobile-node-modules-${{ runner.os }}-${{ hashFiles('./econoflow-mobile/package-lock.json') }}
@@ -293,7 +293,7 @@ jobs:
     timeout-minutes: 35
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
@@ -307,13 +307,13 @@ jobs:
     
     - name: Cache node_modules
       id: cache-node-modules-integration
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: ./easyfinance.client/node_modules
         key: node-modules-${{ runner.os }}-${{ hashFiles('./easyfinance.client/package-lock.json') }}
 
     - name: Cache Cypress binary
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: ~/.cache/Cypress
         key: cypress-${{ runner.os }}-${{ hashFiles('./easyfinance.client/package-lock.json') }}
