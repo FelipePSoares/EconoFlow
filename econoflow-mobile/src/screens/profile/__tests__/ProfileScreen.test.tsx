@@ -2,8 +2,6 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react-native';
 import { ProfileScreen } from '../ProfileScreen';
 
-// ─── UI infrastructure mocks ─────────────────────────────────────────────────
-
 jest.mock('@expo/vector-icons', () => ({
   MaterialCommunityIcons: 'MaterialCommunityIcons',
 }));
@@ -56,8 +54,6 @@ jest.mock('../../../components/common/GlassCard', () => {
   };
 });
 
-// ─── Notification mocks ────────────────────────────────────────────────────────
-
 const mockRegisterPushNotifications = jest.fn();
 const mockUnregisterPushNotifications = jest.fn();
 
@@ -76,11 +72,11 @@ jest.mock('../../../store/notificationStore', () => ({
   })),
 }));
 
-// ─── Store / React Query mocks ────────────────────────────────────────────────
-
 const mockClearAuth = jest.fn();
 const mockClearProject = jest.fn();
 const mockQueryClientClear = jest.fn();
+const mockClearPin = jest.fn();
+const mockResetLock = jest.fn();
 
 jest.mock('../../../store/authStore', () => ({
   useAuthStore: jest.fn(() => ({
@@ -111,6 +107,20 @@ jest.mock('../../../store/biometricStore', () => ({
   })),
 }));
 
+jest.mock('../../../store/pinStore', () => ({
+  usePinStore: jest.fn((selector?: (s: { hasPin: boolean; clearPin: typeof mockClearPin }) => unknown) => {
+    const state = { hasPin: false, clearPin: mockClearPin };
+    return selector ? selector(state) : state;
+  }),
+}));
+
+jest.mock('../../../store/lockStore', () => ({
+  useLockStore: jest.fn((selector?: (s: { reset: typeof mockResetLock }) => unknown) => {
+    const state = { reset: mockResetLock };
+    return selector ? selector(state) : state;
+  }),
+}));
+
 jest.mock('../../../store/projectStore', () => ({
   useProjectStore: jest.fn(() => ({
     selectedProject: null,
@@ -122,7 +132,13 @@ jest.mock('@tanstack/react-query', () => ({
   useQueryClient: jest.fn(() => ({ clear: mockQueryClientClear })),
 }));
 
-// ─── Navigation mock ──────────────────────────────────────────────────────────
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  return {
+    ...actual,
+    useNavigation: jest.fn(() => ({ navigate: jest.fn() })),
+  };
+});
 
 const mockNavigate = jest.fn();
 
@@ -132,13 +148,13 @@ const mockNavigation = {
 
 const mockRoute = {} as unknown as React.ComponentProps<typeof ProfileScreen>['route'];
 
-// ─── Tests ────────────────────────────────────────────────────────────────────
-
 describe('ProfileScreen – sign out', () => {
   beforeEach(() => {
     mockClearAuth.mockReset();
     mockClearProject.mockReset();
     mockQueryClientClear.mockReset();
+    mockClearPin.mockReset();
+    mockResetLock.mockReset();
     mockNavigate.mockReset();
     mockRegisterPushNotifications.mockReset();
     mockUnregisterPushNotifications.mockReset();
@@ -173,6 +189,15 @@ describe('ProfileScreen – sign out', () => {
     fireEvent.press(screen.getByText('ButtonSignOut'));
     await waitFor(() => {
       expect(mockUnregisterPushNotifications).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('calls clearPin and resetLock when the sign-out button is pressed', async () => {
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    fireEvent.press(screen.getByText('ButtonSignOut'));
+    await waitFor(() => {
+      expect(mockClearPin).toHaveBeenCalledTimes(1);
+      expect(mockResetLock).toHaveBeenCalledTimes(1);
     });
   });
 });
@@ -318,5 +343,12 @@ describe('ProfileScreen – biometric toggle', () => {
     await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
     fireEvent.press(screen.getByTestId('row-BiometricAuth'));
     expect(mockResetPromptSkipped).not.toHaveBeenCalled();
+  });
+});
+
+describe('ProfileScreen – PIN settings', () => {
+  it('renders the change PIN row', async () => {
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    expect(screen.getByTestId('row-ChangePin')).toBeTruthy();
   });
 });

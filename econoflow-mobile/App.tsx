@@ -16,6 +16,9 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { AppNavigator } from './src/navigation/AppNavigator';
+import { useAppLock } from './src/hooks/useAppLock';
+import { useLockStore } from './src/store/lockStore';
+import { LockOverlay } from './src/components/common/LockOverlay';
 
 // Initialise Sentry before any React rendering.
 // Disabled in dev builds; enabled in production releases.
@@ -116,6 +119,10 @@ function App() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
+  useAppLock();
+
+  const isLocked = useLockStore((s) => s.isLocked);
+
   // Hide the splash screen on first layout.
   // Add any async startup awaits inside this callback before hideAsync()
   // if you need to load fonts / prefetch data before the UI appears.
@@ -128,16 +135,19 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <PaperProvider theme={isDark ? paperDarkTheme : paperLightTheme}>
           <SafeAreaProvider>
-            <NavigationContainer
-              ref={navigationRef}
-              theme={isDark ? navDarkTheme : navLightTheme}
-              onReady={() => {
-                navigationIntegration.registerNavigationContainer(navigationRef);
-              }}
-            >
-              <StatusBar style={isDark ? 'light' : 'dark'} />
-              <AppNavigator />
-            </NavigationContainer>
+            <View style={{ flex: 1 }}>
+              <NavigationContainer
+                ref={navigationRef}
+                theme={isDark ? navDarkTheme : navLightTheme}
+                onReady={() => {
+                  navigationIntegration.registerNavigationContainer(navigationRef);
+                }}
+              >
+                <StatusBar style={isDark ? 'light' : 'dark'} />
+                <AppNavigator />
+              </NavigationContainer>
+              {isLocked && <LockOverlay />}
+            </View>
           </SafeAreaProvider>
         </PaperProvider>
       </QueryClientProvider>

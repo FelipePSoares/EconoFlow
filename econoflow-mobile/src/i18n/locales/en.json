@@ -617,5 +617,18 @@
   "BiometricEnrollMessage": "Quickly and securely access your account using your fingerprint or face.",
   "BiometricEnrollEnable": "Enable",
   "BiometricEnrollSkip": "Not now",
-  "BiometricErrorLockedOut": "Too many attempts. Use your device passcode."
+  "BiometricErrorLockedOut": "Too many attempts. Use your device passcode.",
+
+  "PinCreateTitle": "Create App PIN",
+  "PinCreateSubtitle": "Enter a 4 to 6 digit PIN to protect your account",
+  "PinConfirmTitle": "Confirm your PIN",
+  "PinMismatch": "PINs do not match. Try again.",
+  "PinEntryTitle": "Enter App PIN",
+  "PinEntrySubtitle": "Enter your PIN to continue",
+  "PinForgot": "Forgot PIN?",
+  "PinAttemptsRemaining": "{{count}} attempt(s) remaining",
+  "PinMaxAttempts": "Too many incorrect attempts. Signing out.",
+  "PinUseInstead": "Use PIN instead",
+  "PinChangeLabel": "App PIN",
+  "PinChangeDescription": "Set a PIN to unlock the app"
 }
