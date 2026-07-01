@@ -81,7 +81,7 @@
     "@react-native/jest-preset": "^0.85.3",
     "@testing-library/react-native": "^14.0.0",
     "@types/jest": "29.5.14",
-    "@types/node": "^25.9.1",
+    "@types/node": "^26.1.0",
     "@types/react-native-vector-icons": "^6.4.18",
     "@typescript-eslint/eslint-plugin": "^8.60.0",
     "@typescript-eslint/parser": "^8.61.0",
