@@ -31,7 +31,7 @@
     "@angular/service-worker": "22.0.4",
     "@angular/ssr": "22.0.4",
     "@eslint/js": "^10.0.1",
-    "@ngx-translate/core": "^17.0.0",
+    "@ngx-translate/core": "^18.0.0",
     "bootstrap": "^5.3.8",
     "bootstrap-icons": "^1.13.1",
     "canvas-confetti": "^1.9.4",
