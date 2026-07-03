@@ -4,7 +4,7 @@
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisLevel>latest</AnalysisLevel>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <WarningsNotAsErrors>$(WarningsNotAsErrors);CS8632;CS8625;CS8618;CS8602;CS8600;CS8601;CS8604;CS8629;CS8767;CS8616</WarningsNotAsErrors>
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);CS8632;CS8625;CS8618;CS8602;CS8600;CS8601;CS8604;CS8629;CS8767;CS8616;NU1510</WarningsNotAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
