@@ -63,7 +63,7 @@
     "@types/node": "^26.0.1",
     "@types/qrcode": "^1.5.6",
     "angular-eslint": "22.0.0",
-    "cypress": "^15.18.0",
+    "cypress": "^15.18.1",
     "eslint": "^10.6.0",
     "jasmine-core": "~6.3.0",
     "karma": "~6.4.4",
