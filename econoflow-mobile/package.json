@@ -18,7 +18,7 @@
     "expo": "~57.0.1",
     "expo-blur": "~56.0.3",
     "expo-clipboard": "^56.0.4",
-    "expo-crypto": "~56.0.4",
+    "expo-crypto": "~57.0.0",
     "expo-device": "~56.0.4",
     "expo-linear-gradient": "^56.0.4",
     "expo-local-authentication": "~56.0.4",
