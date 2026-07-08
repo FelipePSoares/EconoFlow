@@ -20,7 +20,7 @@
     "expo-clipboard": "^56.0.4",
     "expo-crypto": "~56.0.4",
     "expo-device": "~56.0.4",
-    "expo-linear-gradient": "^56.0.4",
+    "expo-linear-gradient": "^57.0.0",
     "expo-local-authentication": "~56.0.4",
     "expo-notifications": "~57.0.2",
     "expo-secure-store": "^56.0.4",
