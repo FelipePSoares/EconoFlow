@@ -28,7 +28,7 @@ jobs:
         fetch-depth: 0
 
     - name: Install Node.js
-      uses: actions/setup-node@v6
+      uses: actions/setup-node@v7
       with:
         node-version: '22.x'
 
@@ -155,7 +155,7 @@ jobs:
         dotnet-version: 10.0.x
 
     - name: Install Node.js
-      uses: actions/setup-node@v6
+      uses: actions/setup-node@v7
       with:
         node-version: '22.x'
     
@@ -256,7 +256,7 @@ jobs:
 
     - name: Install Node.js
       if: steps.mobile-changes.outputs.mobile == 'true'
-      uses: actions/setup-node@v6
+      uses: actions/setup-node@v7
       with:
         node-version: '22.x'
 
@@ -301,7 +301,7 @@ jobs:
         dotnet-version: 10.0.x
 
     - name: Install Node.js
-      uses: actions/setup-node@v6
+      uses: actions/setup-node@v7
       with:
         node-version: '22.x'
     

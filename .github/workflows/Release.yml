@@ -84,7 +84,7 @@ jobs:
 
     - name: Install Node.js
       if: steps.mobile-changes.outputs.mobile == 'true'
-      uses: actions/setup-node@v6
+      uses: actions/setup-node@v7
       with:
         node-version: '22.x'
 
