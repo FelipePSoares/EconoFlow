@@ -11,7 +11,7 @@
     <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="10.0.9" />
     <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="10.0.9" />
     <PackageReference Include="Smtp2Go.ApiClient" Version="0.0.5" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.19.1" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.20.0" />
     <PackageReference Include="WebPush" Version="1.0.13" />
   </ItemGroup>
 
