@@ -47,7 +47,20 @@ namespace EasyFinance.Application
             services.AddScoped<IExpenseItemService, ExpenseItemService>();
             services.AddScoped<ITaxYearService, TaxYearService>();
             services.AddScoped<IAttachmentService, AttachmentService>();
-            services.AddSingleton<IAttachmentStorageService, FileSystemAttachmentStorageService>();
+            services.AddOptions<AttachmentStorageOptions>();
+            services.AddSingleton<IMinioS3Client>(provider =>
+            {
+                var settings = provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<AttachmentStorageOptions>>().Value;
+                return MinioClientFactory.CreateS3Client(settings);
+            });
+            services.AddSingleton<IAttachmentStorageService>(provider =>
+            {
+                var options = provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<AttachmentStorageOptions>>();
+
+                IMinioS3Client minioClientFactory() => provider.GetRequiredService<IMinioS3Client>();
+
+                return AttachmentStorageServiceFactory.Create(options, minioClientFactory);
+            });
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IFeatureRolloutService, FeatureRolloutService>();
             services.AddScoped<IContactService, ContactService>();
@@ -89,6 +102,12 @@ namespace EasyFinance.Application
 
             services.AddSingleton<ITemporaryAttachmentCleanupService, TemporaryAttachmentCleanupService>();
             services.AddHostedService(provider => (TemporaryAttachmentCleanupService)provider.GetRequiredService<ITemporaryAttachmentCleanupService>());
+
+            // Attachment migration (local filesystem -> object storage)
+            services.AddOptions<AttachmentMigrationOptions>();
+            services.AddScoped<AttachmentMigrationService>();
+            services.AddSingleton<FileSystemAttachmentStorageService>();
+            services.AddHostedService<AttachmentMigrationBackgroundService>();
 
             return services;
         }
