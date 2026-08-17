@@ -156,7 +156,7 @@ namespace EasyFinance.Application.Tests
                 null);
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
-            userManager.SetupGet(manager => manager.Users).Returns(users.AsQueryable().BuildMock());
+            userManager.SetupGet(manager => manager.Users).Returns(users.ToList().BuildMock());
             userManager.Setup(manager => manager.GetRolesAsync(It.IsAny<User>()))
                 .ReturnsAsync([SystemRoles.BetaTester]);
 
