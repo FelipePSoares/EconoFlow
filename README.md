@@ -26,6 +26,13 @@ Try and use it in our [live](https://www.econoflow.pt) project.
 
 See [Development Guide](https://github.com/FelipePSoares/EconoFlow/blob/master/.github/CONTRIBUTING.md).
 
+## 🐳 Docker / Container
+
+The application is distributed as a single container (ASP.NET Core API + Angular SPA),
+published to the self-hosted Gitea registry (`gitea.fpssoftware.uk`) on push to `master`.
+See [docs/docker.md](docs/docker.md) for the image, required runtime environment
+variables, and the GitHub secrets used by `.github/workflows/docker-publish.yml`.
+
 ## Contributors
 
 Welcome to join us and contribute code to EconoFlow together.

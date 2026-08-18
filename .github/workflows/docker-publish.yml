@@ -1,0 +1,59 @@
+name: Docker publish
+
+# Build the EconoFlow container image (backend + frontend in one image) and
+# publish it to the self-hosted Gitea container registry:
+#   https://gitea.fpssoftware.uk/fps-software/econoflow
+# Runs on every push to master (the release path).
+
+on:
+  push:
+    branches: [ "master" ]
+
+concurrency:
+  group: docker-publish-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache Docker layers
+        uses: actions/cache@v6
+        with:
+          path: ${{ runner.temp }}/.buildx-cache
+          key: docker-buildx-${{ runner.os }}-${{ hashFiles('Dockerfile') }}
+          restore-keys: |
+            docker-buildx-${{ runner.os }}-
+
+      - name: Login to Gitea container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.GITEA_REGISTRY || 'gitea.fpssoftware.uk' }}
+          username: ${{ secrets.GITEA_REGISTRY_USERNAME }}
+          password: ${{ secrets.GITEA_REGISTRY_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          platforms: linux/amd64
+          cache-from: |
+            type=gha
+            type=local,src=${{ runner.temp }}/.buildx-cache
+          cache-to: type=local,dest=${{ runner.temp }}/.buildx-cache,mode=max
+          tags: |
+            ${{ secrets.GITEA_REGISTRY || 'gitea.fpssoftware.uk' }}/${{ secrets.GITEA_REGISTRY_OWNER || 'fps-software' }}/econoflow:${{ github.sha }}
+            ${{ secrets.GITEA_REGISTRY || 'gitea.fpssoftware.uk' }}/${{ secrets.GITEA_REGISTRY_OWNER || 'fps-software' }}/econoflow:latest
