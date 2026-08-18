@@ -2,6 +2,7 @@ using System.Net;
 using EasyFinance.Application;
 using EasyFinance.Application.BackgroundServices.AttachmentCleanup;
 using EasyFinance.Application.BackgroundServices.NotifierBackgroundService;
+using EasyFinance.Application.Features.AttachmentService;
 using EasyFinance.Application.Features.ExpoPushTokenService;
 using EasyFinance.Application.Features.FeatureRolloutService;
 using EasyFinance.Application.Features.TurnstileService;
@@ -37,6 +38,24 @@ builder.Services.Configure<ExpoPushOptions>(options =>
 });
 builder.Services.Configure<FeatureRolloutOptions>(builder.Configuration.GetSection(FeatureRolloutOptions.SectionName));
 builder.Services.Configure<TemporaryAttachmentCleanupOptions>(builder.Configuration.GetSection(TemporaryAttachmentCleanupOptions.SectionName));
+
+var attachmentStorageSettings = builder.Configuration.GetSection(AttachmentStorageOptions.SectionName).Get<AttachmentStorageOptions>() ?? new AttachmentStorageOptions();
+attachmentStorageSettings.Endpoint = Environment.GetEnvironmentVariable("S3_ENDPOINT") ?? attachmentStorageSettings.Endpoint;
+attachmentStorageSettings.AccessKey = Environment.GetEnvironmentVariable("S3_ACCESS_KEY") ?? attachmentStorageSettings.AccessKey;
+attachmentStorageSettings.SecretKey = Environment.GetEnvironmentVariable("S3_SECRET_KEY") ?? attachmentStorageSettings.SecretKey;
+attachmentStorageSettings.Bucket = Environment.GetEnvironmentVariable("S3_BUCKET") ?? attachmentStorageSettings.Bucket;
+builder.Services.Configure<AttachmentStorageOptions>(options =>
+{
+    options.Provider = attachmentStorageSettings.Provider;
+    options.LocalRootPath = attachmentStorageSettings.LocalRootPath;
+    options.Endpoint = attachmentStorageSettings.Endpoint;
+    options.AccessKey = attachmentStorageSettings.AccessKey;
+    options.SecretKey = attachmentStorageSettings.SecretKey;
+    options.Bucket = attachmentStorageSettings.Bucket;
+    options.UseSsl = attachmentStorageSettings.UseSsl;
+    options.Region = attachmentStorageSettings.Region;
+});
+builder.Services.Configure<AttachmentMigrationOptions>(builder.Configuration.GetSection(AttachmentMigrationOptions.SectionName));
 
 var turnstileSettings = builder.Configuration.GetSection(TurnstileSettings.SectionName).Get<TurnstileSettings>() ?? new TurnstileSettings();
 turnstileSettings.SecretKey = Environment.GetEnvironmentVariable("EconoFlow_TURNSTILE_SECRET_KEY") ?? turnstileSettings.SecretKey;

@@ -383,7 +383,22 @@ EasyFinance.Server/
 Cleanup job (7-day TTL) deletes orphaned IsTemporary attachments.
 ```
 
-`IAttachmentStorageService` abstracts the storage backend. The current implementation (`FileSystemAttachmentStorageService`) writes to disk; swapping to S3 requires only a new implementation registered in DI.
+`IAttachmentStorageService` abstracts the storage backend. The default implementation (`FileSystemAttachmentStorageService`) writes to disk. A second implementation (`MinioAttachmentStorageService`) writes to any S3-compatible object storage (MinIO) via a decoupled `IMinioS3Client` adapter — swapping to Amazon S3 later requires only a new `IMinioS3Client` implementation.
+
+The active provider is selected via `AttachmentStorage:Provider` (`FileSystem` default, `Minio` opt-in). Object keys are identical in both backends (`yyyy/MM/dd/{guid}{ext}`), so existing `StorageKey` values in the database map 1:1 to MinIO object names with no schema change.
+
+An optional one-shot migration job (`AttachmentMigrationBackgroundService` + `AttachmentMigrationService`) copies existing local files into the object storage under their original keys. See the cutover runbook below.
+
+#### Cutover runbook (local disk → MinIO)
+
+1. **Deploy with the current provider** — keep `AttachmentStorage:Provider=FileSystem` and ensure `EconoFlow_ATTACHMENTS_ROOT_PATH` still points at the existing local attachments folder.
+2. **Configure MinIO** via environment variables (`S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_BUCKET`). These must be set in the host environment only — never committed to the repository.
+3. **Dry-run the migration** — set `AttachmentStorage:Migration:Enabled=true` and `DryRun=true`, deploy, and read the logged summary (`Total`/`Migrated`/`AlreadyPresent`/`Failed`) to confirm the counts look right without copying anything.
+4. **Run the real migration** — set `DryRun=false`, redeploy/restart. The job is idempotent (skips objects already in the bucket) and resumable across restarts.
+5. **Verify** the logged `Migrated` + `AlreadyPresent` equals the total attachment row count in the database.
+6. **Switch the provider** — set `AttachmentStorage:Provider=Minio` and restart. Uploads now go straight to MinIO; downloads (still proxied through the backend) read from MinIO.
+7. **Smoke test** — upload a temporary attachment, attach it to an expense, download it, and delete it.
+8. **Archive the local folder** — after a soak period, back up and remove the old local attachments directory.
 
 ---
 
@@ -618,7 +633,11 @@ Variables marked **required** will throw at startup (or on first use) if absent.
 | `EconoFlow_KEY_ENCRYPT_ACTIVE` | optional | Enable AES key encryption for ASP.NET Data Protection | encryption disabled |
 | `EconoFlow_BETA_TESTER_ADMIN_KEY` | optional | Auth key to grant the BetaTester role via `/api/AccessControl/beta` | endpoint returns 403 for all callers |
 | `EconoFlow_PUBLIC_BASE_URL` | optional | Public base URL used in email unsubscribe links | `https://www.econoflow.pt` |
-| `EconoFlow_ATTACHMENTS_ROOT_PATH` | optional | Root directory for file attachment storage | `AppContext.BaseDirectory/Attachments` |
+| `EconoFlow_ATTACHMENTS_ROOT_PATH` | optional | Root directory for file attachment storage (used by `FileSystem` provider and as the migration source) | `AppContext.BaseDirectory/Attachments` |
+| `S3_ENDPOINT` | optional* | S3-compatible endpoint hostname (scheme optional, e.g. `minio-api.fpssoftware.uk`) — *required when `AttachmentStorage.Provider=Minio` | — |
+| `S3_ACCESS_KEY` | optional* | S3 access key — *required when `Provider=Minio` | — |
+| `S3_SECRET_KEY` | optional* | S3 secret key — *required when `Provider=Minio` | — |
+| `S3_BUCKET` | optional* | S3 bucket name — *required when `Provider=Minio` | — |
 | `EconoFlow_WEB_PUSH_PUBLIC_KEY` | optional | VAPID public key override (overrides `appsettings.json`) | value from `appsettings.json` |
 | `EconoFlow_WEB_PUSH_PRIVATE_KEY` | optional | VAPID private key override (overrides `appsettings.json`) | value from `appsettings.json` |
 | `EconoFlow_UNSUBSCRIBE_HMAC_SECRET` | **required** (prod) | HMAC-SHA256 key for email unsubscribe link signatures — DEBUG builds fall back to a hardcoded dev value | — (throws `InvalidOperationException` in non-DEBUG builds) |
@@ -638,6 +657,13 @@ Variables marked **required** will throw at startup (or on first use) if absent.
 | `TemporaryAttachmentCleanup.ExpirationHours` | `168` | 7-day TTL for temp attachments |
 | `TemporaryAttachmentCleanup.CleanupIntervalHours` | `168` | Cleanup job frequency |
 | `TemporaryAttachmentCleanup.BatchSize` | `500` | Files deleted per cleanup run |
+| `AttachmentStorage.Provider` | `FileSystem` | Storage backend: `FileSystem` or `Minio` |
+| `AttachmentStorage.Endpoint` | — | MinIO endpoint hostname (scheme optional) |
+| `AttachmentStorage.Bucket` | — | MinIO bucket name |
+| `AttachmentStorage.UseSsl` | `true` | Use HTTPS to reach MinIO |
+| `AttachmentStorage:Migration.Enabled` | `false` | Enable the one-shot local→MinIO migration job |
+| `AttachmentStorage:Migration.DryRun` | `false` | Report only, copy nothing |
+| `AttachmentStorage:Migration.BatchSize` | `500` | Attachments processed per migration run |
 | `FeatureRollout.EnabledForAllUsers` | `"WebPush"` | Feature flags available to everyone |
 | `FeatureRollout.EnabledForBetaTesters` | `"WebPush, PwaInstall"` | Additional flags for beta testers |
 

@@ -38,6 +38,7 @@ msbuild.wrn
 
 logs/
 TestResults/
+.reasonix/
 
 EasyFinance.Infrastructure/ValidationMessages.Designer.cs
 
