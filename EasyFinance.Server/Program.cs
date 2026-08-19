@@ -172,6 +172,16 @@ try
     app.UseDefaultFiles();
     app.UseStaticFiles();
 
+    // Kubernetes health probes reach the container over plain HTTP (TLS is terminated
+    // upstream). Answer them with a real health result here so the HTTPS-redirect
+    // middleware below cannot divert them to 307 -> a non-listening HTTPS port, which
+    // would keep the container permanently un-Ready.
+    app.MapWhen(
+        ctx => HealthCheckPathPolicy.IsHealthProbePath(ctx.Request.Path)
+               && !string.Equals(ctx.Request.Scheme, "https", StringComparison.OrdinalIgnoreCase),
+        healthProbeApplication => healthProbeApplication.Run(
+            ctx => HealthProbeResponseWriter.WriteHealthProbeAsync(ctx)));
+
     app.UseHttpsRedirection();
 
     app.UseAuthentication();
@@ -187,14 +197,14 @@ try
     // liveness: the process is up and can respond to HTTP requests.
     // Predicate = _ => false means no dependency checks run; it returns Healthy
     // whenever the process can serve requests.
-    app.MapHealthChecks("/api/health/live", new HealthCheckOptions
+    app.MapHealthChecks(HealthCheckPathPolicy.LivePath, new HealthCheckOptions
     {
-        Predicate = _ => false,
+        Predicate = HealthCheckPathPolicy.LivenessPredicate,
     });
 
     // readiness: the application is ready to serve traffic only when all
     // its dependency checks (SQL Server, S3/Minio storage) pass.
-    app.MapHealthChecks("/api/health/ready");
+    app.MapHealthChecks(HealthCheckPathPolicy.ReadyPath);
 
     app.MapControllers();
 
