@@ -185,6 +185,14 @@ so they pass through the Angular dev-server proxy (`src/proxy.conf.js` for the
 | `/api/health/live`  | Liveness — returns `200 OK` as long as the process is alive and can serve HTTP requests (`Predicate = _ => false`, no dependency checks). | none            |
 | `/api/health/ready` | Readiness — returns `200 OK` only when all registered dependency checks pass, otherwise `503 Service Unavailable`. | SQL Server (`AspNetCore.HealthChecks.SqlServer`), S3/Minio storage (`S3StorageHealthCheck`). |
 
+Because TLS is terminated upstream (Traefik), Kubernetes probes reach the container
+over plain HTTP. `MapWhen(HealthCheckPathPolicy.IsHealthProbePath && scheme != "https")`
+routes those probes into `HealthProbeResponseWriter` **before** `UseHttpsRedirection`,
+so they are answered with a real 200/503 instead of a 307 to a non-listening HTTPS
+port (which would keep the container permanently un-Ready). Path/predicate definitions
+live in `EasyFinance.Server/HealthChecks/HealthCheckPathPolicy.cs` and are shared with
+the `MapHealthChecks` endpoints so the two probes cannot drift apart.
+
 The S3 check (`EasyFinance.Server/HealthChecks/S3StorageHealthCheck.cs`):
 - Returns **Healthy** when the configured storage provider is `FileSystem` (no external dependency).
 - For the `Minio` provider, it verifies connectivity by calling `EnsureBucketExistsAsync` on the configured bucket.
@@ -200,15 +208,16 @@ The S3 check (`EasyFinance.Server/HealthChecks/S3StorageHealthCheck.cs`):
 4  UseSwagger/UseSwaggerUI          ← dev only
 5  UseMigration()                   ← auto-apply EF migrations on startup (prod only)
 6  UseDefaultFiles() + UseStaticFiles()
-7  UseHttpsRedirection()
-8  UseAuthentication()
-9  UseCorrelationId()               ← sets/reads X-Correlation-Id header
-10 UseAuthorization()
-11 UseProjectAuthorization()        ← role check for every {projectId} route
-12 UseLocationMiddleware()          ← sets culture from user preference
-13 MapHealthChecks("/api/health/live")  ← liveness; no dependency checks
-14 MapHealthChecks("/api/health/ready") ← readiness; SQL Server + S3 storage
-15 MapControllers()
+7  MapWhen(IsHealthProbePath && !https) → HealthProbeResponseWriter   ← answers probes over plain HTTP so UseHttpsRedirection cannot 307 them
+8  UseHttpsRedirection()
+9  UseAuthentication()
+10 UseCorrelationId()               ← sets/reads X-Correlation-Id header
+11 UseAuthorization()
+12 UseProjectAuthorization()        ← role check for every {projectId} route
+13 UseLocationMiddleware()          ← sets culture from user preference
+14 MapHealthChecks("/api/health/live")  ← liveness; no dependency checks
+15 MapHealthChecks("/api/health/ready") ← readiness; SQL Server + S3 storage
+16 MapControllers()
 ```
 
 ---

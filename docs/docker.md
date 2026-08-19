@@ -87,6 +87,14 @@ proxy (`src/proxy.conf.js` `/api` context) and any ingress rule forwarding
 | `/api/health/live`  | `200 OK` when the process is alive               | livenessProbe |
 | `/api/health/ready` | `200 OK` when SQL Server and S3/Minio are reachable; `503` otherwise | readinessProbe |
 
+The container listens on plain HTTP (`ASPNETCORE_URLS=http://+:8080`) — TLS is
+terminated upstream (Traefik). To stop the global HTTPS-redirect middleware from
+answering these probes with a `307` (which would keep the container permanently
+`un-Ready`), health-probe requests over plain HTTP are handled by
+`HealthProbeResponseWriter` (see `EasyFinance.Server/HealthChecks/`) before the
+redirect middleware runs. The recognised probe paths live in
+`HealthCheckPathPolicy` (`/api/health/live`, `/api/health/ready`).
+
 Example Kubernetes probes:
 
 ```yaml
