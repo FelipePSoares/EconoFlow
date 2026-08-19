@@ -29,7 +29,7 @@
     "i18next": "^26.3.4",
     "jwt-decode": "^4.0.0",
     "react": "19.2.7",
-    "react-hook-form": "^7.76.1",
+    "react-hook-form": "^7.85.0",
     "react-i18next": "^17.0.8",
     "react-native": "0.86.0",
     "react-native-paper": "^5.15.3",
