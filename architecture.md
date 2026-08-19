@@ -163,14 +163,34 @@ All repositories are lazily initialized inside `UnitOfWork`. `CommitAsync()` is 
 ASP.NET Core 8 host. Everything in this layer is infrastructure for the HTTP boundary.
 
 #### Startup (`Program.cs`) — service registration order
-1. `AddPersistenceServices(configuration)` — registers DbContext, repositories, UoW.
+1. `AddPersistenceServices(configuration)` — registers DbContext, repositories, UoW, and health checks (SQL Server check in non-Debug builds).
 2. `AddApplicationServices()` — registers all application-layer services, background services, channels.
-3. Options: `NotifierFallbackOptions`, `WebPushOptions`, `FeatureRolloutOptions`, `TemporaryAttachmentCleanupOptions`.
-4. `AddAuthenticationServices(configuration, environment)` — JWT bearer, Identity, token providers.
-5. `AddControllers` with global `[Authorize]` filter.
-6. `AddSingleton<IApiService, Smtp2GoApiService>()` — e-mail dispatch.
-7. `UseSerilog()` to BetterStack.
-8. `AddDataProtection().PersistKeysToDbContext<MyKeysContext>()` (non-dev).
+3. **Health checks**: `AddHealthChecks().AddCheck<S3StorageHealthCheck>("s3_storage")` — S3/Minio dependency (readiness).
+4. Options: `NotifierFallbackOptions`, `WebPushOptions`, `FeatureRolloutOptions`, `TemporaryAttachmentCleanupOptions`.
+5. `AddAuthenticationServices(configuration, environment)` — JWT bearer, Identity, token providers.
+6. `AddControllers` with global `[Authorize]` filter.
+7. `AddSingleton<IApiService, Smtp2GoApiService>()` — e-mail dispatch.
+8. `UseSerilog()` to BetterStack.
+9. `AddDataProtection().PersistKeysToDbContext<MyKeysContext>()` (non-dev).
+
+#### Health / Kubernetes probes
+
+The server exposes two health-check endpoints consumed by Kubernetes for
+`livenessProbe` and `readinessProbe`. They are mapped under `/api/health/*`
+so they pass through the Angular dev-server proxy (`src/proxy.conf.js` for the
+`/api` context) and any ingress rule that forwards `/api/*` to the backend:
+
+| Endpoint         | Purpose                                                                 | Checks                                   |
+|------------------|-------------------------------------------------------------------------|------------------------------------------|
+| `/api/health/live`  | Liveness — returns `200 OK` as long as the process is alive and can serve HTTP requests (`Predicate = _ => false`, no dependency checks). | none            |
+| `/api/health/ready` | Readiness — returns `200 OK` only when all registered dependency checks pass, otherwise `503 Service Unavailable`. | SQL Server (`AspNetCore.HealthChecks.SqlServer`), S3/Minio storage (`S3StorageHealthCheck`). |
+
+The S3 check (`EasyFinance.Server/HealthChecks/S3StorageHealthCheck.cs`):
+- Returns **Healthy** when the configured storage provider is `FileSystem` (no external dependency).
+- For the `Minio` provider, it verifies connectivity by calling `EnsureBucketExistsAsync` on the configured bucket.
+- Returns **Unhealthy** with the exception detail when S3 is unreachable, or when the Minio bucket is not set.
+
+
 
 #### Middleware Pipeline (order matters)
 ```
@@ -186,7 +206,9 @@ ASP.NET Core 8 host. Everything in this layer is infrastructure for the HTTP bou
 10 UseAuthorization()
 11 UseProjectAuthorization()        ← role check for every {projectId} route
 12 UseLocationMiddleware()          ← sets culture from user preference
-13 MapControllers()
+13 MapHealthChecks("/api/health/live")  ← liveness; no dependency checks
+14 MapHealthChecks("/api/health/ready") ← readiness; SQL Server + S3 storage
+15 MapControllers()
 ```
 
 ---
