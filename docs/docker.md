@@ -95,6 +95,17 @@ answering these probes with a `307` (which would keep the container permanently
 redirect middleware runs. The recognised probe paths live in
 `HealthCheckPathPolicy` (`/api/health/live`, `/api/health/ready`).
 
+For all non-probe traffic, the app honours the proxied scheme via
+`UseForwardedHeaders` (runs first). It trusts `X-Forwarded-Proto`/`X-Forwarded-For`
+only from the networks in `ForwardedHeaders:KnownNetworks`
+(default `10.42.0.0/16`, the k3s pod CIDR; override with
+`ForwardedHeaders__KnownNetworks__0=…` env vars when the cluster uses different
+CIDRs or the proxy runs with `hostNetwork`). This makes HSTS, HTTPS redirects for
+direct HTTP access, callback URLs and client-IP logging behave correctly behind
+Traefik. The health-probe bypass above remains necessary: kubelet probes reach the
+pod directly without forwarded headers and from an untrusted source, so they would
+otherwise still be 307-redirected by `UseHttpsRedirection`.
+
 Example Kubernetes probes:
 
 ```yaml
