@@ -198,26 +198,50 @@ The S3 check (`EasyFinance.Server/HealthChecks/S3StorageHealthCheck.cs`):
 - For the `Minio` provider, it verifies connectivity by calling `EnsureBucketExistsAsync` on the configured bucket.
 - Returns **Unhealthy** with the exception detail when S3 is unreachable, or when the Minio bucket is not set.
 
+### Forwarded headers (proxy behind Traefik)
+
+TLS is terminated at the Traefik Ingress and the container listens on plain HTTP, so
+without extra configuration the app would treat every request as `http`. That breaks
+HSTS, `UseHttpsRedirection` (307 loops for API POSTs such as `/api/AccessControl/register`),
+callback/absolute-URL generation (`Request.Scheme`) and client-IP logging.
+
+`app.UseForwardedHeaders()` runs **first** in the pipeline and honours
+`X-Forwarded-Proto` / `X-Forwarded-For` **only from a trusted proxy network** (spoofing
+protection). Trusted networks come from `ForwardedHeaders:KnownNetworks` in
+`appsettings.json`/env (`ForwardedHeaders__KnownNetworks__0=…`), defaulting to the k3s
+pod CIDR `10.42.0.0/16` (the loopback `127.0.0.0/8` is always trusted by the
+framework). Configuration lives in
+`EasyFinance.Server/Extensions/ForwardedHeadersExtensions.cs`.
+
+> **Why the health-probe bypass above is still needed.** The two mechanisms cover
+> different traffic. Kubelet liveness/readiness probes hit the pod IP directly — they
+> carry no `X-Forwarded-*` headers and their source is **not** in the trusted network,
+> so `UseForwardedHeaders` leaves them as `http` and, without the `MapWhen` bypass,
+> `UseHttpsRedirection` would 307 them again. Forwarded headers fix *external* traffic
+> routed through Traefik; the probe bypass fixes *direct-to-pod* kubelet probes. Both
+> are required.
+
 
 
 #### Middleware Pipeline (order matters)
 ```
-1  UseSerilogRequestLogging()
-2  UseCustomExceptionHandler()      ← catches unhandled exceptions → 500
-3  UseSafeHeaders()                 ← security headers (HSTS, CSP, …)
-4  UseSwagger/UseSwaggerUI          ← dev only
-5  UseMigration()                   ← auto-apply EF migrations on startup (prod only)
-6  UseDefaultFiles() + UseStaticFiles()
-7  MapWhen(IsHealthProbePath && !https) → HealthProbeResponseWriter   ← answers probes over plain HTTP so UseHttpsRedirection cannot 307 them
-8  UseHttpsRedirection()
-9  UseAuthentication()
-10 UseCorrelationId()               ← sets/reads X-Correlation-Id header
-11 UseAuthorization()
-12 UseProjectAuthorization()        ← role check for every {projectId} route
-13 UseLocationMiddleware()          ← sets culture from user preference
-14 MapHealthChecks("/api/health/live")  ← liveness; no dependency checks
-15 MapHealthChecks("/api/health/ready") ← readiness; SQL Server + S3 storage
-16 MapControllers()
+1  UseForwardedHeaders()            ← honour X-Forwarded-Proto/For from trusted proxies FIRST so all later middleware see the real scheme/IP
+2  UseSerilogRequestLogging()
+3  UseCustomExceptionHandler()      ← catches unhandled exceptions → 500
+4  UseSafeHeaders()                 ← security headers (HSTS, CSP, …)
+5  UseSwagger/UseSwaggerUI          ← dev only
+6  UseMigration()                   ← auto-apply EF migrations on startup (prod only)
+7  UseDefaultFiles() + UseStaticFiles()
+8  MapWhen(IsHealthProbePath && !https) → HealthProbeResponseWriter   ← answers probes over plain HTTP so UseHttpsRedirection cannot 307 them
+9  UseHttpsRedirection()
+10 UseAuthentication()
+11 UseCorrelationId()               ← sets/reads X-Correlation-Id header
+12 UseAuthorization()
+13 UseProjectAuthorization()        ← role check for every {projectId} route
+14 UseLocationMiddleware()          ← sets culture from user preference
+15 MapHealthChecks("/api/health/live")  ← liveness; no dependency checks
+16 MapHealthChecks("/api/health/ready") ← readiness; SQL Server + S3 storage
+17 MapControllers()
 ```
 
 ---

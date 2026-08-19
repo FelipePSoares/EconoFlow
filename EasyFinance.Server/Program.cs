@@ -18,6 +18,7 @@ using EasyFinance.Server.MiddleWare;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -30,6 +31,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddApplicationServices();
+
+// Honour X-Forwarded-Proto/X-Forwarded-For from the upstream Traefik Ingress
+// (TLS termination) so HSTS, UseHttpsRedirection, callback URLs and logging
+// see the real scheme and client IP instead of a 307 loop back to the same URL.
+builder.Services.AddForwardedHeadersServices(builder.Configuration);
 
 // Register the S3/Minio health check (readiness probe dependency).
 builder.Services.AddHealthChecks()
@@ -149,6 +155,7 @@ async Task EnsureSystemRolesAsync(IServiceProvider services)
 try
 {
     var app = builder.Build();
+    app.UseForwardedHeaders();
     app.UseSerilogRequestLogging();
     app.UseCustomExceptionHandler();
 
