@@ -75,6 +75,37 @@ The default `AttachmentStorage:Provider` is `FileSystem`, writing under the app
 base directory. The image declares `VOLUME ["/app/attachments"]` — mount a
 persistent volume there to keep uploads across restarts.
 
+## Health check probes
+
+The container exposes two HTTP endpoints for Kubernetes health probes. They
+are mapped under `/api/health/*` so they pass through the Angular dev-server
+proxy (`src/proxy.conf.js` `/api` context) and any ingress rule forwarding
+`/api/*` to the backend:
+
+| Endpoint            | Status                          | Probe type   |
+|---------------------|---------------------------------|--------------|
+| `/api/health/live`  | `200 OK` when the process is alive               | livenessProbe |
+| `/api/health/ready` | `200 OK` when SQL Server and S3/Minio are reachable; `503` otherwise | readinessProbe |
+
+Example Kubernetes probes:
+
+```yaml
+livenessProbe:
+  httpGet:
+    path: /api/health/live
+    port: 8080
+  initialDelaySeconds: 10
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /api/health/ready
+    port: 8080
+  initialDelaySeconds: 10
+  periodSeconds: 10
+```
+
+
 ## GitHub secrets (for the publish workflow)
 
 `.github/workflows/docker-publish.yml` runs on **push to `master`** and pushes

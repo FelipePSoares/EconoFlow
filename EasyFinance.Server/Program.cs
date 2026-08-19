@@ -12,10 +12,12 @@ using EasyFinance.Persistence;
 using EasyFinance.Persistence.DatabaseContext;
 using EasyFinance.Server.Config;
 using EasyFinance.Server.Extensions;
+using EasyFinance.Server.HealthChecks;
 using EasyFinance.Server.Middleware;
 using EasyFinance.Server.MiddleWare;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -28,6 +30,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddApplicationServices();
+
+// Register the S3/Minio health check (readiness probe dependency).
+builder.Services.AddHealthChecks()
+    .AddCheck<S3StorageHealthCheck>("s3_storage", tags: new[] { "storage", "s3" });
+
 builder.Services.Configure<NotifierFallbackOptions>(builder.Configuration.GetSection(NotifierFallbackOptions.SectionName));
 builder.Services.Configure<WebPushOptions>(builder.Configuration.GetSection(WebPushOptions.SectionName));
 var expoPushSettings = builder.Configuration.GetSection(ExpoPushOptions.SectionName).Get<ExpoPushOptions>() ?? new ExpoPushOptions();
@@ -173,6 +180,21 @@ try
     app.UseProjectAuthorization();
 
     app.UseLocationMiddleware();
+
+    // Kubernete probes. Exposed under /api/health/* so the Angular dev-server
+    // proxy (src/proxy.conf.js) and ingress rules that forward /api/* can
+    // reach them.
+    // liveness: the process is up and can respond to HTTP requests.
+    // Predicate = _ => false means no dependency checks run; it returns Healthy
+    // whenever the process can serve requests.
+    app.MapHealthChecks("/api/health/live", new HealthCheckOptions
+    {
+        Predicate = _ => false,
+    });
+
+    // readiness: the application is ready to serve traffic only when all
+    // its dependency checks (SQL Server, S3/Minio storage) pass.
+    app.MapHealthChecks("/api/health/ready");
 
     app.MapControllers();
 

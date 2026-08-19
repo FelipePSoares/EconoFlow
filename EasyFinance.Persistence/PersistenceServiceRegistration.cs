@@ -25,9 +25,12 @@ namespace EasyFinance.Persistence
 
             services.AddDbContext<MyKeysContext>(
                 options => options.UseSqlServer(connectionString));
+#endif
 
-            services.AddHealthChecks()
-                .AddSqlServer(connectionString);
+            var healthChecksBuilder = services.AddHealthChecks();
+
+#if !DEBUG
+            healthChecksBuilder.AddSqlServer(connectionString);
 #endif
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
