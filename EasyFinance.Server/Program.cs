@@ -156,7 +156,10 @@ try
 {
     var app = builder.Build();
     app.UseForwardedHeaders();
-    app.UseSerilogRequestLogging();
+    // Log only real API traffic in the request-completion log, keeping health
+    // probes, root, and static/Swagger noise silent (see RequestLoggingPathPolicy).
+    app.UseSerilogRequestLogging(options =>
+        options.GetLevel = RequestLoggingPathPolicy.GetLevel);
     app.UseCustomExceptionHandler();
 
     app.UseSafeHeaders();
