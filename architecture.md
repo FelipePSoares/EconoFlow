@@ -721,6 +721,7 @@ Variables marked **required** will throw at startup (or on first use) if absent.
 | `AttachmentStorage:Migration.BatchSize` | `500` | Attachments processed per migration run |
 | `FeatureRollout.EnabledForAllUsers` | `"WebPush"` | Feature flags available to everyone |
 | `FeatureRollout.EnabledForBetaTesters` | `"WebPush, PwaInstall"` | Additional flags for beta testers |
+| `Serilog:WriteTo[:Console/File].Args.formatter` | `EasyFinance.Server.Logging.EconoFlowJsonFormatter` | Console/File sinks use `EconoFlowJsonFormatter` (compact CLEF-like JSON) — it always writes the level (`@l`) and the fully rendered message (`@m`) beside the template (`@mt`) so log level and readable messages survive in Grafana. The stock `CompactJsonFormatter` drops both. |
 
 ---
 
