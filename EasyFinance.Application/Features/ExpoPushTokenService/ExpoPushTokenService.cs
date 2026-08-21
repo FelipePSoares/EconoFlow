@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Domain.Account;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 using Microsoft.EntityFrameworkCore;
 
 namespace EasyFinance.Application.Features.ExpoPushTokenService

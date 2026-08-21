@@ -105,6 +105,9 @@ jobs:
 
     - name: Restore dependencies
       run: dotnet restore EasyFinance.Server/EasyFinance.Server.csproj
+      env:
+        GITEA_NUGET_USERNAME: ${{ secrets.GITEA_NUGET_USERNAME }}
+        GITEA_NUGET_TOKEN: ${{ secrets.GITEA_NUGET_TOKEN }}
 
     - name: Check code formatting
       run: dotnet format EasyFinance.Server/EasyFinance.Server.csproj --verify-no-changes --no-restore
@@ -120,6 +123,9 @@ jobs:
         dotnet restore EasyFinance.Domain.Tests/EasyFinance.Domain.Tests.csproj
         dotnet restore EasyFinance.Application.Tests/EasyFinance.Application.Tests.csproj
         dotnet restore EasyFinance.Server.Tests/EasyFinance.Server.Tests.csproj
+      env:
+        GITEA_NUGET_USERNAME: ${{ secrets.GITEA_NUGET_USERNAME }}
+        GITEA_NUGET_TOKEN: ${{ secrets.GITEA_NUGET_TOKEN }}
 
     - name: Build test projects
       run: |

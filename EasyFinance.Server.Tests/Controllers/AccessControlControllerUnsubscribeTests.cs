@@ -4,8 +4,9 @@ using EasyFinance.Application.Features.NotificationService;
 using EasyFinance.Application.Features.TurnstileService;
 using EasyFinance.Application.Features.UserService;
 using EasyFinance.Domain.AccessControl;
-using EasyFinance.Infrastructure.Authentication;
-using EasyFinance.Infrastructure.DTOs;
+using EasyFinance.Common.Tests;
+using FpsSoftware.Chassis;
+using FpsSoftware.Chassis;
 using EasyFinance.Server.Controllers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -60,7 +61,7 @@ namespace EasyFinance.Server.Tests.Controllers
                 linkGenerator: Mock.Of<LinkGenerator>(),
                 accessControlService: Mock.Of<IAccessControlService>(),
                 featureRolloutService: Mock.Of<IFeatureRolloutService>(),
-                tokenSettings: new TokenSettings { SecretKey = Guid.NewGuid().ToString() },
+                tokenSettings: new JwtTokenSettings { SecretKey = Guid.NewGuid().ToString() },
                 notificationService: Mock.Of<INotificationService>(),
                 turnstileService: Mock.Of<ITurnstileService>(),
                 turnstileSettings: Options.Create(new TurnstileSettings()),

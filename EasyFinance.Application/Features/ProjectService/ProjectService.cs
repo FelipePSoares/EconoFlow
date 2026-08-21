@@ -11,7 +11,7 @@ using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Financial;
 using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;

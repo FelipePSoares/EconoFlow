@@ -13,7 +13,7 @@ using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Account;
 using EasyFinance.Domain.Financial;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.EntityFrameworkCore;

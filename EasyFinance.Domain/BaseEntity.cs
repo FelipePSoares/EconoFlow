@@ -1,5 +1,5 @@
 using System;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 
 namespace EasyFinance.Domain
 {

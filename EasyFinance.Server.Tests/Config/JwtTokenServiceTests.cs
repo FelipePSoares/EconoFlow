@@ -3,27 +3,38 @@ using System.Security.Claims;
 using AutoFixture;
 using EasyFinance.Common.Tests;
 using EasyFinance.Domain.AccessControl;
-using EasyFinance.Infrastructure.Authentication;
-using EasyFinance.Server.Config;
 using FluentAssertions;
+using FpsSoftware.Chassis;
 using Microsoft.IdentityModel.Tokens;
 
 namespace EasyFinance.Server.Tests.Config
 {
-    public class TokenUtilTests : BaseTests
+    public class JwtTokenServiceTests : BaseTests
     {
         private readonly JwtSecurityTokenHandler jwtHandler;
 
-        public TokenUtilTests()
+        public JwtTokenServiceTests()
         {
             this.jwtHandler = new JwtSecurityTokenHandler();
         }
 
+        private static IReadOnlyCollection<Claim> BuildUserClaims(User user, IReadOnlyCollection<Claim> extraClaims)
+        {
+            var claims = new List<Claim>
+            {
+                new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new(ClaimTypes.GivenName, user.FirstName ?? ""),
+                new(ClaimTypes.Surname, user.LastName ?? ""),
+            };
+            claims.AddRange(extraClaims);
+            return claims;
+        }
+
         [Fact]
-        public void GetToken_SuccessScenario_ShouldReturnToken()
+        public void CreateToken_SuccessScenario_ShouldReturnToken()
         {
             // Arrange
-            var tokenSettings = new TokenSettings
+            var tokenSettings = new JwtTokenSettings
             {
                 SecretKey = Guid.NewGuid().ToString(),
             };
@@ -31,21 +42,21 @@ namespace EasyFinance.Server.Tests.Config
             var roleClaims = new List<Claim>();
 
             // Act
-            var token = TokenUtil.GetToken(tokenSettings, user, roleClaims);
+            var token = JwtTokenService.CreateToken(tokenSettings, BuildUserClaims(user, roleClaims));
 
             // Assert
             token.Should().NotBeNull();
         }
 
         [Fact]
-        public void GetToken_tokensettingsInformed_ShouldReturnTokenWithCorrectInformation()
+        public void CreateToken_tokensettingsInformed_ShouldReturnTokenWithCorrectInformation()
         {
             // Arrange
             var audience = "http://localhost:8080";
             var issuer = "http://localhost:8080";
             var tokenExpireSeconds = 5;
 
-            var tokenSettings = new TokenSettings
+            var tokenSettings = new JwtTokenSettings
             {
                 SecretKey = Guid.NewGuid().ToString(),
                 Audience = audience,
@@ -56,7 +67,7 @@ namespace EasyFinance.Server.Tests.Config
             var roleClaims = new List<Claim>();
 
             // Act
-            var token = TokenUtil.GetToken(tokenSettings, user, roleClaims);
+            var token = JwtTokenService.CreateToken(tokenSettings, BuildUserClaims(user, roleClaims));
 
             // Assert
             token.Should().NotBeNull();
@@ -76,12 +87,12 @@ namespace EasyFinance.Server.Tests.Config
         }
 
         [Fact]
-        public void GetToken_RoleClaimsInformed_ShouldReturnTokenWithRoleClaims()
+        public void CreateToken_RoleClaimsInformed_ShouldReturnTokenWithRoleClaims()
         {
             // Arrange
             var claimValue = Guid.NewGuid().ToString();
 
-            var tokenSettings = new TokenSettings
+            var tokenSettings = new JwtTokenSettings
             {
                 SecretKey = Guid.NewGuid().ToString(),
             };
@@ -92,7 +103,7 @@ namespace EasyFinance.Server.Tests.Config
             };
 
             // Act
-            var token = TokenUtil.GetToken(tokenSettings, user, roleClaims);
+            var token = JwtTokenService.CreateToken(tokenSettings, BuildUserClaims(user, roleClaims));
 
             // Assert
             token.Should().NotBeNull();
@@ -104,10 +115,10 @@ namespace EasyFinance.Server.Tests.Config
 
         [Theory]
         [MemberData(nameof(TokenInfoData))]
-        public void GetToken_UserInformed_ShouldReturnTokenClaimsWithCorrectInformation(User user, string expectedValue, string claimType)
+        public void CreateToken_UserInformed_ShouldReturnTokenClaimsWithCorrectInformation(User user, string expectedValue, string claimType)
         {
             // Arrange
-            var tokenSettings = new TokenSettings
+            var tokenSettings = new JwtTokenSettings
             {
                 SecretKey = Guid.NewGuid().ToString(),
             };
@@ -115,7 +126,7 @@ namespace EasyFinance.Server.Tests.Config
             var roleClaims = new List<Claim>();
 
             // Act
-            var token = TokenUtil.GetToken(tokenSettings, user, roleClaims);
+            var token = JwtTokenService.CreateToken(tokenSettings, BuildUserClaims(user, roleClaims));
 
             // Assert
             token.Should().NotBeNull();
@@ -129,11 +140,11 @@ namespace EasyFinance.Server.Tests.Config
         public void GetPrincipalFromExpiredToken_ValidToken_ShouldReturnIsAuthenticatedTrue()
         {
             // Arrange
-            TokenSettings tokenSettings = GenerateTokenSettings();
+            JwtTokenSettings tokenSettings = GenerateTokenSettings();
             string token = GenerateToken(tokenSettings);
 
             // Act
-            var principal = TokenUtil.GetPrincipalFromExpiredToken(tokenSettings, token);
+            var principal = JwtTokenService.GetPrincipalFromExpiredToken(tokenSettings, token);
 
             // Assert
             principal.Identity.Should().NotBeNull();
@@ -144,13 +155,13 @@ namespace EasyFinance.Server.Tests.Config
         public void GetPrincipalFromExpiredToken_InvalidIssuer_ShouldThrowInvalidIssuerException()
         {
             // Arrange
-            TokenSettings tokenSettings = GenerateTokenSettings();
+            JwtTokenSettings tokenSettings = GenerateTokenSettings();
             string token = GenerateToken(tokenSettings);
 
             tokenSettings.Issuer = "Teste";
 
             // Act
-            Action action = () => TokenUtil.GetPrincipalFromExpiredToken(tokenSettings, token);
+            Action action = () => JwtTokenService.GetPrincipalFromExpiredToken(tokenSettings, token);
 
             // Assert
             action.Should().ThrowExactly<SecurityTokenInvalidIssuerException>();
@@ -160,13 +171,13 @@ namespace EasyFinance.Server.Tests.Config
         public void GetPrincipalFromExpiredToken_InvalidAudience_ShouldThrowInvalidAudienceException()
         {
             // Arrange
-            TokenSettings tokenSettings = GenerateTokenSettings();
+            JwtTokenSettings tokenSettings = GenerateTokenSettings();
             string token = GenerateToken(tokenSettings);
 
             tokenSettings.Audience = "Teste";
 
             // Act
-            Action action = () => TokenUtil.GetPrincipalFromExpiredToken(tokenSettings, token);
+            Action action = () => JwtTokenService.GetPrincipalFromExpiredToken(tokenSettings, token);
 
             // Assert
             action.Should().ThrowExactly<SecurityTokenInvalidAudienceException>();
@@ -188,22 +199,22 @@ namespace EasyFinance.Server.Tests.Config
             return jwtSecurityToken.Claims.First(claim => claim.Type == claimType);
         }
 
-        private string GenerateToken(TokenSettings tokenSettings)
+        private string GenerateToken(JwtTokenSettings tokenSettings)
         {
             var user = new User();
             var roleClaims = new List<Claim>();
 
-            var token = TokenUtil.GetToken(tokenSettings, user, roleClaims);
+            var token = JwtTokenService.CreateToken(tokenSettings, BuildUserClaims(user, roleClaims));
             return token;
         }
 
-        private TokenSettings GenerateTokenSettings()
+        private JwtTokenSettings GenerateTokenSettings()
         {
             var audience = "http://localhost:8080";
             var issuer = "http://localhost:8080";
             var tokenExpireSeconds = 1;
 
-            var tokenSettings = new TokenSettings
+            var tokenSettings = new JwtTokenSettings
             {
                 SecretKey = Guid.NewGuid().ToString(),
                 Audience = audience,

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Financial;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 using Microsoft.AspNetCore.JsonPatch;
 
 namespace EasyFinance.Application.Features.IncomeService

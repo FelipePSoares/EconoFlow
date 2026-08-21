@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Domain.Financial;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 using Microsoft.AspNetCore.JsonPatch;
 
 namespace EasyFinance.Application.Features.CategoryService

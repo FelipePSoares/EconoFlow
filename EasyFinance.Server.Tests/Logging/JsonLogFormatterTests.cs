@@ -1,5 +1,5 @@
 using System.Text.Json;
-using EasyFinance.Server.Logging;
+using FpsSoftware.Chassis;
 using FluentAssertions;
 using Serilog.Events;
 using Serilog.Parsing;
@@ -14,7 +14,7 @@ namespace EasyFinance.Server.Tests.Logging;
 /// </summary>
 public class JsonLogFormatterTests
 {
-    private static readonly EconoFlowJsonFormatter Formatter = new();
+    private static readonly ChassisJsonFormatter Formatter = new();
 
     private static LogEvent CreateEvent(
         LogEventLevel level,

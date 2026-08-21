@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using EasyFinance.Application.DTOs.Support;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Support;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 
 namespace EasyFinance.Application.Features.SupportService
 {

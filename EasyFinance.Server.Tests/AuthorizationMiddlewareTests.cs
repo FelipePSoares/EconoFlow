@@ -5,7 +5,7 @@ using EasyFinance.Application.DTOs.FinancialProject;
 using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Domain.AccessControl;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 using EasyFinance.Server.MiddleWare;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;

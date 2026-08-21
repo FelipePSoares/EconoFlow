@@ -2,7 +2,7 @@ using System;
 using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 
 namespace EasyFinance.Domain.AccessControl
 {

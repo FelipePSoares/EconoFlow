@@ -79,7 +79,7 @@ Infrastructure  (no dependencies)
 
 The only layer with no upstream project dependencies. Holds shared primitives used across all other layers:
 
-- **`AppResponse` / `AppResponse<T>`** — universal result type used at every layer boundary.
+- **`AppResponse` / `AppResponse<T>`** — universal result type used at every layer boundary, now provided by the **`fpssoftware.chassis`** NuGet package (namespace `FpsSoftware.Chassis`).
   ```csharp
   // Factory methods
   AppResponse.Success()                         // void success

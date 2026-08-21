@@ -9,7 +9,7 @@ using EasyFinance.Application.Features.FeatureRolloutService;
 using EasyFinance.Application.Features.WebPushService;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

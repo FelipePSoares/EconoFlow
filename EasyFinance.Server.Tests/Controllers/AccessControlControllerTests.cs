@@ -9,8 +9,9 @@ using EasyFinance.Application.Features.UserService;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Common.Tests.AccessControl;
 using EasyFinance.Domain.AccessControl;
-using EasyFinance.Infrastructure.Authentication;
-using EasyFinance.Infrastructure.DTOs;
+using EasyFinance.Common.Tests;
+using FpsSoftware.Chassis;
+using FpsSoftware.Chassis;
 using EasyFinance.Server.Controllers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -30,13 +31,13 @@ namespace EasyFinance.Server.Tests.Controllers
         private readonly Mock<UserManager<User>> _userManagerMock;
         private readonly Mock<IAccessControlService> accessControlService;
         private readonly AccessControlController _controller;
-        private readonly TokenSettings tokenSettings;
+        private readonly JwtTokenSettings tokenSettings;
 
         public AccessControlControllerTests()
         {
             _userStoreMock = new Mock<IUserStore<User>>();
             var emailSenderMock = new Mock<IEmailSender<User>>();
-            this.tokenSettings = new TokenSettings()
+            this.tokenSettings = new JwtTokenSettings()
             {
                 SecretKey = Guid.NewGuid().ToString()
             };

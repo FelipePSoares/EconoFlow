@@ -9,7 +9,7 @@ using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Financial;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 

@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EasyFinance.Application.DTOs.Account;
 using EasyFinance.Domain.Account;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 
 namespace EasyFinance.Application.Features.NotificationService
 {

@@ -15,7 +15,7 @@ using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Account;
 using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;

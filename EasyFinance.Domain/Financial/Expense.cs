@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 
 namespace EasyFinance.Domain.Financial
 {

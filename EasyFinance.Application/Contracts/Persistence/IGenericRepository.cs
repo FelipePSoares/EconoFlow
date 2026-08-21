@@ -1,6 +1,6 @@
 using System.Linq;
 using EasyFinance.Domain;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 
 namespace EasyFinance.Application.Contracts.Persistence
 {

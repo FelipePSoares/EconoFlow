@@ -7,7 +7,7 @@ using EasyFinance.Application.DTOs.FinancialProject;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 using Microsoft.EntityFrameworkCore;
 
 namespace EasyFinance.Application.Features.TaxYearService

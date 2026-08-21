@@ -1,7 +1,7 @@
 using System;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 
 namespace EasyFinance.Domain.Account
 {

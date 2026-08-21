@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using EasyFinance.Application.DTOs.BackgroundService.Notification;
 using EasyFinance.Application.Features.NotificationService;
 using EasyFinance.Domain.Account;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

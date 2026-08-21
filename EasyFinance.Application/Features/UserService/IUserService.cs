@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using EasyFinance.Domain.AccessControl;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 
 namespace EasyFinance.Application.Features.UserService
 {

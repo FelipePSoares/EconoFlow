@@ -10,7 +10,7 @@ using EasyFinance.Common.Tests.FinancialProject;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Account;
 using EasyFinance.Domain.Financial;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;

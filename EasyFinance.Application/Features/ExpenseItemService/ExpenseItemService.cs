@@ -8,7 +8,7 @@ using EasyFinance.Application.Features.NotificationService;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Account;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 

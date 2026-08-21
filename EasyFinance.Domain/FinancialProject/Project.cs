@@ -4,8 +4,7 @@ using System.Linq;
 using EasyFinance.Domain.Financial;
 using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.DTOs;
-using EasyFinance.Infrastructure.Extensions;
+using FpsSoftware.Chassis;
 using EasyFinance.Infrastructure.Validators;
 
 namespace EasyFinance.Domain.FinancialProject

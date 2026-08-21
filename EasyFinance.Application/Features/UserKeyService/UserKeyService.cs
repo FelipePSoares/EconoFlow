@@ -2,7 +2,7 @@ using System;
 using System.Security.Cryptography;
 using System.Text;
 using EasyFinance.Application.DTOs.Encryption;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 
 namespace EasyFinance.Application.Features.UserKeyService
 {

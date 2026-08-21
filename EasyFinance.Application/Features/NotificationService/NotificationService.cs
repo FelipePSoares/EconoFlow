@@ -10,7 +10,7 @@ using EasyFinance.Application.DTOs.BackgroundService.Notification;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.Account;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 using Microsoft.EntityFrameworkCore;
 
 namespace EasyFinance.Application.Features.NotificationService

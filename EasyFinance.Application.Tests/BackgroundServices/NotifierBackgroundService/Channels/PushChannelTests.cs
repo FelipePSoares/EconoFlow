@@ -7,7 +7,7 @@ using EasyFinance.Common.Tests;
 using EasyFinance.Common.Tests.AccessControl;
 using EasyFinance.Domain.Account;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;

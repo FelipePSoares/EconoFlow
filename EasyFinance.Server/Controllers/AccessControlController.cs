@@ -18,8 +18,7 @@ using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Account;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.Authentication;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 using EasyFinance.Server.Config;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -46,7 +45,7 @@ namespace EasyFinance.Server.Controllers
         LinkGenerator linkGenerator,
         IAccessControlService accessControlService,
         IFeatureRolloutService featureRolloutService,
-        TokenSettings tokenSettings,
+        JwtTokenSettings tokenSettings,
         INotificationService notificationService,
         ITurnstileService turnstileService,
         IOptions<TurnstileSettings> turnstileSettings,
@@ -78,7 +77,7 @@ namespace EasyFinance.Server.Controllers
         private readonly LinkGenerator linkGenerator = linkGenerator;
         private readonly IAccessControlService accessControlService = accessControlService;
         private readonly IFeatureRolloutService featureRolloutService = featureRolloutService;
-        private readonly TokenSettings tokenSettings = tokenSettings;
+        private readonly JwtTokenSettings tokenSettings = tokenSettings;
         private readonly INotificationService notificationService = notificationService;
         private readonly ITurnstileService turnstileService = turnstileService;
         private readonly ILogger<AccessControlController> logger = logger;
@@ -1057,7 +1056,7 @@ namespace EasyFinance.Server.Controllers
             ClaimsPrincipal principal;
             try
             {
-                principal = TokenUtil.GetPrincipalFromExpiredToken(this.tokenSettings, accessToken);
+                principal = JwtTokenService.GetPrincipalFromExpiredToken(this.tokenSettings, accessToken);
             }
             catch (SecurityTokenException ex)
             {
@@ -1101,10 +1100,16 @@ namespace EasyFinance.Server.Controllers
         private async Task<(string AccessToken, string RefreshToken)> GenerateTokenAsync(User user, string correlationId, IList<string> roleNames = null)
         {
             var userRoles = roleNames ?? await this.userManager.GetRolesAsync(user);
-            var claims = userRoles.Select(userRole => new Claim(ClaimTypes.Role, userRole)).ToList();
+            var claims = new List<Claim>
+            {
+                new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new(ClaimTypes.GivenName, user.FirstName ?? ""),
+                new(ClaimTypes.Surname, user.LastName ?? ""),
+            };
+            claims.AddRange(userRoles.Select(userRole => new Claim(ClaimTypes.Role, userRole)));
             claims.Add(new Claim(correlationIdClaimType, correlationId ?? Guid.NewGuid().ToString(), ClaimValueTypes.String));
 
-            var token = TokenUtil.GetToken(tokenSettings, user, claims);
+            var token = JwtTokenService.CreateToken(tokenSettings, claims);
             var refreshToken = await userManager.GenerateUserTokenAsync(user, this.tokenProvider, this.tokenPurpose);
             await userManager.SetAuthenticationTokenAsync(user, this.tokenProvider, this.tokenPurpose, refreshToken);
 

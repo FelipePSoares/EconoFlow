@@ -13,7 +13,7 @@ using EasyFinance.Application.Features.FeatureRolloutService;
 using EasyFinance.Application.Features.NotificationMessageResolver;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Account;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

@@ -5,7 +5,7 @@ using System.Linq;
 using EasyFinance.Domain.Account;
 using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 using Microsoft.AspNetCore.Identity;
 
 namespace EasyFinance.Domain.AccessControl

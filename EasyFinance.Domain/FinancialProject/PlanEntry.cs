@@ -1,6 +1,6 @@
 using System;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 
 namespace EasyFinance.Domain.FinancialProject
 {
