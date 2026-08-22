@@ -13,6 +13,7 @@ using EasyFinance.Application.Features.FeatureRolloutService;
 using EasyFinance.Application.Features.NotificationMessageResolver;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Account;
+using EasyFinance.Domain.Shared;
 using FpsSoftware.Chassis;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -238,7 +239,7 @@ namespace EasyFinance.Application.Features.WebPushService
 
             var client = new WebPushClient();
             var payloadJson = JsonSerializer.Serialize(payload, serializerOptions);
-            var utcNow = DateTime.UtcNow;
+            var utcNow = SystemClock.UtcNowDateTime;
             var successfulDeliveries = 0;
             var failedDeliveries = 0;
             var subscriptionsToUpdate = new List<WebPushSubscription>(subscriptions.Count);

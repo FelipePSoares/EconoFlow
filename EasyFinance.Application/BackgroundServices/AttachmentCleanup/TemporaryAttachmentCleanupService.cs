@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.Features.AttachmentService;
+using EasyFinance.Domain.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -37,7 +38,7 @@ namespace EasyFinance.Application.BackgroundServices.AttachmentCleanup
 
             var expirationHours = Math.Max(1, options.ExpirationHours);
             var batchSize = Math.Max(1, options.BatchSize);
-            var cutoffDate = DateTime.UtcNow.AddHours(-expirationHours);
+            var cutoffDate = SystemClock.UtcNowDateTime.AddHours(-expirationHours);
 
             using var scope = this.serviceScopeFactory.CreateScope();
             var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();

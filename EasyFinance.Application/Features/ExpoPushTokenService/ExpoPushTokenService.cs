@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Domain.Account;
+using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
 using FpsSoftware.Chassis;
 using Microsoft.EntityFrameworkCore;
@@ -59,7 +60,7 @@ namespace EasyFinance.Application.Features.ExpoPushTokenService
             if (existing.UserId != userId)
                 return AppResponse.Error("forbidden", ValidationMessages.ExpoPushTokenNotOwned);
 
-            existing.Revoke(DateTime.UtcNow);
+            existing.Revoke(SystemClock.UtcNowDateTime);
             await unitOfWork.CommitAsync();
             return AppResponse.Success();
         }

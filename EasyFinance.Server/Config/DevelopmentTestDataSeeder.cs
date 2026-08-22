@@ -4,6 +4,7 @@ using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Account;
 using EasyFinance.Domain.Financial;
 using EasyFinance.Domain.FinancialProject;
+using EasyFinance.Domain.Shared;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,7 +17,7 @@ namespace EasyFinance.Server.Config
             using var serviceScope = services.CreateScope();
             var unitOfWork = serviceScope.ServiceProvider.GetRequiredService<IUnitOfWork>();
             var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<User>>();
-            var today = DateOnly.FromDateTime(DateTime.Today);
+            var today = SystemClock.TodayDate;
             var random = new Random(20260223);
 
             DateOnly DateInMonth(DateOnly date, int day)

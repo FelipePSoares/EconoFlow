@@ -108,6 +108,17 @@ public abstract class BaseEntity
 
 Every entity implements `Validate` and self-validates on every mutation. Setters are `private`; mutation is only through `SetXxx()` methods.
 
+#### Time abstraction (`SystemClock`)
+
+All "now"/"today" logic reads through a single static clock in `EasyFinance.Domain.Shared.SystemClock`, which wraps the BCL `TimeProvider` and defaults to `TimeProvider.System`. Domain entities, Application services, Persistence query filters and `UnitOfWork.CommitAsync`, and Server seeders all use `SystemClock` instead of calling `DateTime.Now/UtcNow/Today` directly. This makes date/time-dependent behaviour deterministic in tests:
+
+- `SystemClock.UtcNow` → `DateTimeOffset` (UTC)
+- `SystemClock.UtcNowDateTime` → `DateTime` with `Kind = Utc`
+- `SystemClock.TodayDate` → today's `DateOnly` (UTC)
+- `SystemClock.Provider` → the active `TimeProvider` (settable; tests can supply a deterministic `FakeTimeProvider`, and `SystemClock.Reset()` restores the system clock)
+
+Tests derive relative dates (e.g. "today + 2 days") from the same `SystemClock` source so production validation and test fixtures always agree regardless of local timezone or day-overflow.
+
 #### Key Entities
 
 | Entity | Namespace | Notable Points |

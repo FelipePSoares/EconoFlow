@@ -4,6 +4,7 @@ using AutoFixture;
 using EasyFinance.Common.Tests.AccessControl;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Financial;
+using EasyFinance.Domain.Shared;
 
 namespace EasyFinance.Common.Tests.Financial
 {
@@ -16,8 +17,8 @@ namespace EasyFinance.Common.Tests.Financial
         {
             this.entity = baseFinancial;
             this.entity.SetName(Fixture.Create<string>());
-            var today = DateTime.Today;
-            this.entity.SetDate(new DateOnly(today.Year, today.Month, today.Day));
+            var today = SystemClock.TodayDate;
+            this.entity.SetDate(today);
             this.entity.SetAmount(Fixture.Create<decimal>());
             this.entity.SetCreatedBy(new UserBuilder().Build());
         }

@@ -55,11 +55,5 @@ namespace EasyFinance.Domain.Tests.Financial
 
             action.Should().Throw<ArgumentNullException>().WithParameterName("expenses");
         }
-
-        public static TheoryData<DateTime> InvalidDates =>
-            [
-                DateTime.Now.AddDays(1),
-                DateTime.Now.AddYears(-200)
-            ];
     }
 }

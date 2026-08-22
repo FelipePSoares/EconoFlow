@@ -9,6 +9,7 @@ using EasyFinance.Application.DTOs.Account;
 using EasyFinance.Application.DTOs.BackgroundService.Notification;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.Account;
+using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
 using FpsSoftware.Chassis;
 using Microsoft.EntityFrameworkCore;
@@ -147,7 +148,7 @@ namespace EasyFinance.Application.Features.NotificationService
 
         public async Task<AppResponse<Notification>> TryClaimEmailDeliveryAsync(Guid notificationId, TimeSpan leaseDuration, CancellationToken stoppingToken)
         {
-            var utcNow = DateTime.UtcNow;
+            var utcNow = SystemClock.UtcNowDateTime;
             var lockUntil = utcNow.Add(leaseDuration);
             int affectedRows;
             try
@@ -209,7 +210,7 @@ namespace EasyFinance.Application.Features.NotificationService
 
         public async Task<AppResponse<ICollection<Guid>>> GetEmailDeliveryCandidatesAsync(int batchSize, CancellationToken stoppingToken)
         {
-            var utcNow = DateTime.UtcNow;
+            var utcNow = SystemClock.UtcNowDateTime;
 
             var notificationIds = await this.unitOfWork.NotificationRepository
                 .NoTrackable()

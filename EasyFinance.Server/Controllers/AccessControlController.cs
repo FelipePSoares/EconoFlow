@@ -19,7 +19,6 @@ using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Account;
 using EasyFinance.Infrastructure;
 using FpsSoftware.Chassis;
-using EasyFinance.Server.Config;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
@@ -29,7 +28,6 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Serilog;
 
 
 namespace EasyFinance.Server.Controllers
@@ -240,7 +238,7 @@ namespace EasyFinance.Server.Controllers
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex, "Failed to accept invitation for user {User}", user.Id);
+                    logger.LogError(ex, "Failed to accept invitation for user {User}", user.Id);
                 }
             }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
 using FpsSoftware.Chassis;
 
@@ -18,7 +19,7 @@ namespace EasyFinance.Domain.Financial
             ICollection<Attachment> attachments = default)
         {
             SetName(name);
-            SetDate(date == default ? DateOnly.FromDateTime(DateTime.Today) : date);
+            SetDate(date == default ? SystemClock.TodayDate : date);
             SetAmount(amount);
             SetCreatedBy(createdBy ?? new User());
             SetAttachments(attachments ?? []);
@@ -37,7 +38,7 @@ namespace EasyFinance.Domain.Financial
             {
                 var response = AppResponse.Success();
 
-                if (Date < DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-5)))
+                if (Date < SystemClock.TodayDate.AddYears(-5))
                     response.AddErrorMessage(nameof(Date), string.Format(ValidationMessages.CantAddExpenseOlderThanYears, 5));
 
                 if (Amount < 0)

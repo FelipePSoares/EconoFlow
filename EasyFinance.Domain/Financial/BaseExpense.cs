@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
 using FpsSoftware.Chassis;
 
@@ -42,7 +43,7 @@ namespace EasyFinance.Domain.Financial
                 if (Items.Any(item => Date.Year != item.Date.Year || Date.Month != item.Date.Month))
                     response.AddErrorMessage(nameof(Date), ValidationMessages.CantAddExpenseItemWithDifferentYearOrMonthFromExpense);
 
-                if (Date > DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddDays(1)) && Amount > 0 && Items.Count == 0)
+                if (Date > SystemClock.TodayDate.AddDays(1) && Amount > 0 && Items.Count == 0)
                     response.AddErrorMessage(nameof(Date), ValidationMessages.CantAddFutureExpense);
 
                 return response;

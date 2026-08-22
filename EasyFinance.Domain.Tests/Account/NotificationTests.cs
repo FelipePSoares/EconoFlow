@@ -1,6 +1,7 @@
 using EasyFinance.Common.Tests;
 using EasyFinance.Common.Tests.AccessControl;
 using EasyFinance.Domain.Account;
+using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
 using FluentAssertions;
 
@@ -134,9 +135,9 @@ namespace EasyFinance.Domain.Tests.Account
 
         public static TheoryData<DateOnly> OlderDates2 =>
             [
-                DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddDays(-1)),
-                DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-1)),
-                DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-5))
+                SystemClock.TodayDate.AddDays(-1),
+                SystemClock.TodayDate.AddYears(-1),
+                SystemClock.TodayDate.AddYears(-5)
             ];
     }
 }

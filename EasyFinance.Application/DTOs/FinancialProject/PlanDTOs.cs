@@ -1,5 +1,6 @@
 using System;
 using EasyFinance.Domain.FinancialProject;
+using EasyFinance.Domain.Shared;
 
 namespace EasyFinance.Application.DTOs.FinancialProject
 {
@@ -25,7 +26,7 @@ namespace EasyFinance.Application.DTOs.FinancialProject
 
     public class PlanEntryRequestDTO
     {
-        public DateOnly Date { get; set; } = DateOnly.FromDateTime(DateTime.UtcNow);
+        public DateOnly Date { get; set; } = SystemClock.TodayDate;
         public decimal AmountSigned { get; set; }
         public string Note { get; set; } = string.Empty;
     }

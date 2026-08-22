@@ -1,4 +1,5 @@
 using EasyFinance.Domain.Account;
+using EasyFinance.Domain.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,7 +11,7 @@ namespace EasyFinance.Persistence.Mapping.Account
         {
             builder.ToTable("Notifications");
 
-            builder.HasQueryFilter(n => !n.IsRead && (!n.ExpiresAt.HasValue || n.ExpiresAt.Value > DateOnly.FromDateTime(DateTime.UtcNow)));
+            builder.HasQueryFilter(n => !n.IsRead && (!n.ExpiresAt.HasValue || n.ExpiresAt.Value > SystemClock.TodayDate));
 
             builder.Property(p => p.Type);
             builder.Property(p => p.Category);

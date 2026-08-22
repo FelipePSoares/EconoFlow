@@ -198,19 +198,21 @@ namespace EasyFinance.Domain.Tests.Financial
 
         public static TheoryData<DateOnly, DateOnly> DifferentDateBetweenExpenseAndExpenseItem => new()
             {
-                { DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddMonths(-2)), DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddMonths(-1)) },
-                { DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-1)), DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-2)) },
-                { DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-2)), DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddYears(-1)) }
+                { SystemClock.TodayDate.AddMonths(-2), SystemClock.TodayDate.AddMonths(-1) },
+                { SystemClock.TodayDate.AddYears(-1), SystemClock.TodayDate.AddYears(-2) },
+                { SystemClock.TodayDate.AddYears(-2), SystemClock.TodayDate.AddYears(-1) }
             };
 
         [Fact]
         public void SetBudget_WithFutureDate_AddItem_ShouldBeTrue()
         {
             // Arrange
-            var today = DateTime.Today;
-            // Use AddDays to avoid day-overflow at end of month (e.g. March 31 + 2 = day 33)
-            var expenseDate = DateOnly.FromDateTime(today.AddDays(2));
-            var maxAllowedItemDate = DateOnly.FromDateTime(today.AddDays(1)); // max allowed by "no future item" rule
+            // Derive both expense and item dates from the same DateTime.Today value used by
+            // validation (SystemClock), so the test is deterministic regardless of local timezone
+            // or day-overflow at the end of the month (e.g. March 31 + 2 = day 33).
+            var today = SystemClock.TodayDate;
+            var maxAllowedItemDate = today.AddDays(1); // max allowed by the "no future item" rule
+            var expenseDate = today.AddDays(2);
 
             // If today+2 crossed into the next month, use today+1 as expense and today as item
             // so that both stay in the same month without violating the future-date rule.
@@ -218,7 +220,7 @@ namespace EasyFinance.Domain.Tests.Financial
             if (expenseDate.Year != maxAllowedItemDate.Year || expenseDate.Month != maxAllowedItemDate.Month)
             {
                 expenseDate = maxAllowedItemDate;
-                itemDate = DateOnly.FromDateTime(today);
+                itemDate = today;
             }
             else
             {
@@ -246,9 +248,8 @@ namespace EasyFinance.Domain.Tests.Financial
         public void SetBudget_WithFutureDate_NoExpense_ShouldBeFalse()
         {
             // Arrange
-            var today = DateTime.Today;
-            // Use AddDays to avoid day-overflow at end of month (e.g. March 31 + 2 = day 33)
-            var expense = new ExpenseBuilder().SetBudget(20).AddDate(DateOnly.FromDateTime(today.AddDays(2))).Build();
+            var today = SystemClock.TodayDate;
+            var expense = new ExpenseBuilder().SetBudget(20).AddDate(today.AddDays(2)).Build();
 
             // Act
             var result = expense.Validate;

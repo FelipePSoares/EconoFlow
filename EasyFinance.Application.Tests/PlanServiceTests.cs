@@ -4,6 +4,7 @@ using EasyFinance.Application.Features.PlanService;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Common.Tests;
 using EasyFinance.Domain.FinancialProject;
+using EasyFinance.Domain.Shared;
 using FluentAssertions;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.Extensions.DependencyInjection;
@@ -319,7 +320,7 @@ namespace EasyFinance.Application.Tests
 
             var response = await planService.AddEntryAsync(this.project1.Id, createdPlan.Data.Id, new PlanEntryRequestDTO
             {
-                Date = DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddDays(2)),
+                Date = SystemClock.TodayDate.AddDays(2),
                 AmountSigned = 100m,
                 Note = "Invalid future date"
             });

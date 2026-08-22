@@ -6,6 +6,7 @@ using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.DTOs.FinancialProject;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.FinancialProject;
+using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
 using FpsSoftware.Chassis;
 using Microsoft.EntityFrameworkCore;
@@ -90,7 +91,7 @@ namespace EasyFinance.Application.Features.TaxYearService
                 .SelectMany(p => p.Categories.SelectMany(c => c.Expenses.Where(e => !e.IsDeleted).Select(e => e.Date)))
                 .ToListAsync();
 
-            var currentPeriod = TaxYearCalculator.GetPeriod(project, DateOnly.FromDateTime(DateTime.UtcNow.Date));
+            var currentPeriod = TaxYearCalculator.GetPeriod(project, SystemClock.TodayDate);
 
             if (expenseDates.Count == 0)
                 return AppResponse<ICollection<TaxYearPeriodResponseDTO>>.Success([currentPeriod.ToDTO()]);

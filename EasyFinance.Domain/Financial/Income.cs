@@ -41,7 +41,7 @@ namespace EasyFinance.Domain.Financial
                         nameof(Name),
                         PropertyMaxLengths.GetMaxLength(PropertyType.IncomeName)));
 
-                if (Date > DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddDays(1)) && Amount > 0)
+                if (Date > SystemClock.TodayDate.AddDays(1) && Amount > 0)
                     response.AddErrorMessage(nameof(Date), ValidationMessages.CantAddFutureIncome);
 
                 return response;
