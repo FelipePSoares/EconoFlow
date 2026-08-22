@@ -114,6 +114,9 @@ jobs:
 
     - name: Check for vulnerable NuGet packages
       run: dotnet list EasyFinance.Server/EasyFinance.Server.csproj package --vulnerable --include-transitive
+      env:
+        GITEA_NUGET_USERNAME: ${{ secrets.GITEA_NUGET_USERNAME }}
+        GITEA_NUGET_TOKEN: ${{ secrets.GITEA_NUGET_TOKEN }}
 
     - name: Build backend application
       run: dotnet build EasyFinance.Server/EasyFinance.Server.csproj --configuration Debug --no-restore
