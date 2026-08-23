@@ -8,7 +8,7 @@ namespace EasyFinance.Common.Tests
 {
     public static class TokenFactory
     {
-        public static string CreateAccessToken(JwtTokenSettings settings, User user, IReadOnlyCollection<Claim> extraClaims = null)
+        public static string CreateAccessToken(JwtTokenSettings settings, User user, IReadOnlyCollection<Claim>? extraClaims = null)
         {
             var claims = new List<Claim>
             {
