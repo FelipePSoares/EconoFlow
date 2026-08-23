@@ -173,7 +173,8 @@ try
     else
     {
         app.UseHsts();
-        app.UseSecurityPolicy();
+        app.UseSecurityPolicy(
+            SecurityPolicyOptionsFactory.Create(app.Environment));
         app.UseMigration();
         EnsureSystemRolesAsync(app.Services).GetAwaiter().GetResult();
     }
