@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 using EasyFinance.Application.DTOs.BackgroundService.Notification;
 using EasyFinance.Application.Features.NotificationService;
 using EasyFinance.Domain.Account;
-using EasyFinance.Infrastructure.DTOs;
+using EasyFinance.Domain.Shared;
+using FpsSoftware.Chassis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -27,17 +28,17 @@ namespace EasyFinance.Application.BackgroundServices.NotifierBackgroundService
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             var interval = TimeSpan.FromSeconds(Math.Max(1, fallbackOptions.IntervalSeconds));
-            var nextFallbackRun = DateTime.UtcNow;
+            var nextFallbackRun = SystemClock.UtcNowDateTime;
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                if (DateTime.UtcNow >= nextFallbackRun)
+                if (SystemClock.UtcNowDateTime >= nextFallbackRun)
                 {
                     await ProcessFallbackBatchAsync(stoppingToken);
-                    nextFallbackRun = DateTime.UtcNow.Add(interval);
+                    nextFallbackRun = SystemClock.UtcNowDateTime.Add(interval);
                 }
 
-                var delay = nextFallbackRun - DateTime.UtcNow;
+                var delay = nextFallbackRun - SystemClock.UtcNowDateTime;
                 if (delay < TimeSpan.Zero)
                     delay = TimeSpan.Zero;
 

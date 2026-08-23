@@ -4,6 +4,7 @@ using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Account;
 using EasyFinance.Domain.Financial;
 using EasyFinance.Domain.FinancialProject;
+using EasyFinance.Domain.Shared;
 using EasyFinance.Domain.Support;
 using EasyFinance.Persistence.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
@@ -68,7 +69,7 @@ namespace EasyFinance.Persistence.Repositories
 
         public async Task CommitAsync()
         {
-            var currentDateTime = DateTime.Now;
+            var currentDateTime = SystemClock.UtcNowDateTime;
             var entries = this.context.ChangeTracker.Entries();
 
             // get a list of all Modified entries which implement the BaseEntity

@@ -50,6 +50,9 @@ jobs:
           file: ./Dockerfile
           push: true
           platforms: linux/amd64
+          build-args: |
+            GITEA_NUGET_USERNAME=${{ secrets.GITEA_NUGET_USERNAME }}
+            GITEA_NUGET_TOKEN=${{ secrets.GITEA_NUGET_TOKEN }}
           cache-from: |
             type=gha
             type=local,src=${{ runner.temp }}/.buildx-cache

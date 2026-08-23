@@ -1,5 +1,5 @@
 using System.Net;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EasyFinance.Server.Controllers

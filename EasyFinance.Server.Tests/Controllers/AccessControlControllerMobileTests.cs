@@ -6,7 +6,8 @@ using EasyFinance.Application.Features.NotificationService;
 using EasyFinance.Application.Features.TurnstileService;
 using EasyFinance.Application.Features.UserService;
 using EasyFinance.Domain.AccessControl;
-using EasyFinance.Infrastructure.Authentication;
+using EasyFinance.Common.Tests;
+using FpsSoftware.Chassis;
 using EasyFinance.Server.Config;
 using EasyFinance.Server.Controllers;
 using Microsoft.AspNetCore.Http;
@@ -30,7 +31,7 @@ namespace EasyFinance.Server.Tests.Controllers
         private readonly Mock<SignInManager<User>> signInManagerMock;
         private readonly Mock<IAccessControlService> accessControlServiceMock;
         private readonly AccessControlController controller;
-        private readonly TokenSettings tokenSettings;
+        private readonly JwtTokenSettings tokenSettings;
 
         public AccessControlControllerMobileTests()
         {
@@ -42,7 +43,7 @@ namespace EasyFinance.Server.Tests.Controllers
                 EmailConfirmed = true
             };
 
-            this.tokenSettings = new TokenSettings { SecretKey = Guid.NewGuid().ToString() };
+            this.tokenSettings = new JwtTokenSettings { SecretKey = Guid.NewGuid().ToString() };
 
             var userStoreMock = new Mock<IUserStore<User>>();
             this.userManagerMock = new Mock<UserManager<User>>(
@@ -180,7 +181,7 @@ namespace EasyFinance.Server.Tests.Controllers
         [Fact]
         public async Task MobileRefreshTokenAsync_WhenUserContextNotFound_ReturnsUnauthorized()
         {
-            var accessToken = TokenUtil.GetToken(this.tokenSettings, this.user, new List<Claim>());
+            var accessToken = TokenFactory.CreateAccessToken(this.tokenSettings, this.user, new List<Claim>());
             this.accessControlServiceMock
                 .Setup(x => x.GetRefreshTokenContextAsync(this.user.Id))
                 .ReturnsAsync((RefreshTokenContextDTO?)null);
@@ -197,7 +198,7 @@ namespace EasyFinance.Server.Tests.Controllers
         [Fact]
         public async Task MobileRefreshTokenAsync_WhenUserIsDisabled_ReturnsUnauthorized()
         {
-            var accessToken = TokenUtil.GetToken(this.tokenSettings, this.user, new List<Claim>());
+            var accessToken = TokenFactory.CreateAccessToken(this.tokenSettings, this.user, new List<Claim>());
             var disabledUser = new User(firstName: "John", lastName: "Doe", enabled: false) { Id = this.user.Id };
             this.accessControlServiceMock
                 .Setup(x => x.GetRefreshTokenContextAsync(this.user.Id))
@@ -215,7 +216,7 @@ namespace EasyFinance.Server.Tests.Controllers
         [Fact]
         public async Task MobileRefreshTokenAsync_WhenRefreshTokenIsInvalid_ReturnsUnauthorized()
         {
-            var accessToken = TokenUtil.GetToken(this.tokenSettings, this.user, new List<Claim>());
+            var accessToken = TokenFactory.CreateAccessToken(this.tokenSettings, this.user, new List<Claim>());
             this.accessControlServiceMock
                 .Setup(x => x.GetRefreshTokenContextAsync(this.user.Id))
                 .ReturnsAsync(new RefreshTokenContextDTO(this.user, []));
@@ -235,7 +236,7 @@ namespace EasyFinance.Server.Tests.Controllers
         [Fact]
         public async Task MobileRefreshTokenAsync_WhenAllValid_ReturnsNewAccessAndRefreshTokens()
         {
-            var accessToken = TokenUtil.GetToken(this.tokenSettings, this.user, new List<Claim>());
+            var accessToken = TokenFactory.CreateAccessToken(this.tokenSettings, this.user, new List<Claim>());
             this.accessControlServiceMock
                 .Setup(x => x.GetRefreshTokenContextAsync(this.user.Id))
                 .ReturnsAsync(new RefreshTokenContextDTO(this.user, []));
@@ -288,7 +289,7 @@ namespace EasyFinance.Server.Tests.Controllers
             payload.RefreshToken.ShouldNotBeNullOrEmpty();
         }
 
-        private AccessControlController CreateControllerWithTurnstile(ITurnstileService turnstileService, TokenSettings tokenSettings)
+        private AccessControlController CreateControllerWithTurnstile(ITurnstileService turnstileService, JwtTokenSettings tokenSettings)
         {
             var controllerWithCaptcha = new AccessControlController(
                 userManager: this.userManagerMock.Object,

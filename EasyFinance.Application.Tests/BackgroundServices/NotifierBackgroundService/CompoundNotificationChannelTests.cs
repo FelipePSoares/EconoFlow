@@ -2,7 +2,7 @@ using EasyFinance.Application.BackgroundServices.NotifierBackgroundService;
 using EasyFinance.Application.BackgroundServices.NotifierBackgroundService.Channels;
 using EasyFinance.Common.Tests;
 using EasyFinance.Common.Tests.AccessControl;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 using Microsoft.Extensions.Logging;
 using Moq;
 

@@ -1,6 +1,7 @@
 using System;
+using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 
 namespace EasyFinance.Domain.FinancialProject
 {
@@ -38,7 +39,7 @@ namespace EasyFinance.Domain.FinancialProject
                 if (Date == DateOnly.MinValue)
                     response.AddErrorMessage(nameof(Date), ValidationMessages.InvalidDate);
 
-                if (Date > DateOnly.FromDateTime(DateTime.Today.ToUniversalTime().AddDays(1)))
+                if (Date > SystemClock.TodayDate.AddDays(1))
                     response.AddErrorMessage(nameof(Date), ValidationMessages.CantAddFuturePlanEntry);
 
                 if (AmountSigned == 0)

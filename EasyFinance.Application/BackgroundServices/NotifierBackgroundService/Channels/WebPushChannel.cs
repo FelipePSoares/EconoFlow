@@ -2,7 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EasyFinance.Application.Features.WebPushService;
 using EasyFinance.Domain.Account;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 using Microsoft.Extensions.Logging;
 
 namespace EasyFinance.Application.BackgroundServices.NotifierBackgroundService.Channels

@@ -1,12 +1,9 @@
 using System.Net;
 using System.Security.Claims;
-using EasyFinance.Application.DTOs.AccessControl;
-using EasyFinance.Application.DTOs.FinancialProject;
 using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Domain.AccessControl;
-using EasyFinance.Infrastructure.DTOs;
-using EasyFinance.Server.MiddleWare;
+using EasyFinance.Server.Middleware;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Moq;

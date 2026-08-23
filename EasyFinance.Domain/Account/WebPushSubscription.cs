@@ -1,6 +1,7 @@
 using System;
+using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 
 namespace EasyFinance.Domain.Account
 {
@@ -26,7 +27,7 @@ namespace EasyFinance.Domain.Account
             SetAuth(auth);
             SetDeviceType(deviceType);
             SetUserAgent(userAgent);
-            MarkAsUsed(DateTime.UtcNow);
+            MarkAsUsed(SystemClock.UtcNowDateTime);
             Activate();
         }
 
@@ -35,7 +36,7 @@ namespace EasyFinance.Domain.Account
         public string P256dh { get; private set; } = string.Empty;
         public string Auth { get; private set; } = string.Empty;
         public string UserAgent { get; private set; } = string.Empty;
-        public DateTime LastUsedAt { get; private set; } = DateTime.UtcNow;
+        public DateTime LastUsedAt { get; private set; } = SystemClock.UtcNowDateTime;
         public DateTime? RevokedAt { get; private set; }
         public WebPushDeviceType DeviceType { get; private set; } = WebPushDeviceType.Browser;
 
@@ -134,7 +135,7 @@ namespace EasyFinance.Domain.Account
             SetDeviceType(deviceType);
             SetUserAgent(userAgent);
             Activate();
-            MarkAsUsed(DateTime.UtcNow);
+            MarkAsUsed(SystemClock.UtcNowDateTime);
         }
     }
 }

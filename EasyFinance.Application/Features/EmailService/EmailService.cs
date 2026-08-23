@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using EasyFinance.Application.DTOs.BackgroundService.Email;
 using EasyFinance.Application.Features.UserService;
 using EasyFinance.Domain.AccessControl;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 using EasyFinance.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;

@@ -143,7 +143,7 @@ public override AppResponse Validate {
 
 ### AppResponse Pattern
 
-`AppResponse` / `AppResponse<T>` (in `EasyFinance.Infrastructure.DTOs`) is the universal result type used across all layers. Services return `AppResponse<T>`, and `BaseController.ValidateResponse()` translates it into the appropriate HTTP status code or a 400 with structured error messages. Never throw exceptions for expected business failures — return `AppResponse.Error(...)` instead.
+`AppResponse` / `AppResponse<T>` (in `FpsSoftware.Chassis`, delivered via the private `fpssoftware.chassis` NuGet package) is the universal result type used across all layers. Services return `AppResponse<T>`, and `BaseController.ValidateResponse()` translates it into the appropriate HTTP status code or a 400 with structured error messages. Never throw exceptions for expected business failures — return `AppResponse.Error(...)` instead. Reusable middleware, JSON helpers, and JWT plumbing also come from `fpssoftware.chassis` (repo: `FelipePSoares/chassis`, feed: `https://gitea.fpssoftware.uk/api/packages/fps-software/nuget/index.json`).
 
 ### Repository / Unit of Work
 

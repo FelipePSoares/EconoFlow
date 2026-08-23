@@ -4,7 +4,7 @@ using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Domain.AccessControl;
 
-namespace EasyFinance.Server.MiddleWare
+namespace EasyFinance.Server.Middleware
 {
     public class ProjectAuthorizationMiddleware
     {

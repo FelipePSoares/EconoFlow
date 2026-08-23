@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using EasyFinance.Domain.Shared;
 
 namespace EasyFinance.Application.Features.AttachmentService
 {
@@ -23,7 +24,7 @@ namespace EasyFinance.Application.Features.AttachmentService
             ArgumentNullException.ThrowIfNull(content);
 
             var extension = Path.GetExtension(fileName);
-            var storageKey = $"{DateTime.UtcNow:yyyy/MM/dd}/{Guid.NewGuid():N}{extension}";
+            var storageKey = $"{SystemClock.UtcNow:yyyy/MM/dd}/{Guid.NewGuid():N}{extension}";
             var fullPath = ResolveStoragePath(storageKey);
 
             var directoryPath = Path.GetDirectoryName(fullPath);

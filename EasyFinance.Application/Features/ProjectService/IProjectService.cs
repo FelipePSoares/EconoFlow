@@ -6,7 +6,7 @@ using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.DTOs.FinancialProject;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.FinancialProject;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 using Microsoft.AspNetCore.JsonPatch;
 
 namespace EasyFinance.Application.Features.ProjectService

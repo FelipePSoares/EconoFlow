@@ -14,8 +14,9 @@ using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Account;
 using EasyFinance.Domain.FinancialProject;
+using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -64,7 +65,7 @@ namespace EasyFinance.Application.Features.UserService
                     new Claim("userId", user.Id.ToString()),
                     new Claim("action", "confirm_delete")
                 ]),
-                Expires = DateTime.UtcNow.AddMinutes(2), // Token valid for 2 minutes
+                Expires = SystemClock.UtcNowDateTime.AddMinutes(2), // Token valid for 2 minutes
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 

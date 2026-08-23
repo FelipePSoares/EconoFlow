@@ -2,7 +2,7 @@ using System;
 using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 
 namespace EasyFinance.Domain.AccessControl
 {
@@ -28,9 +28,9 @@ namespace EasyFinance.Domain.AccessControl
         public Role Role { get; private set; }
         public Guid Token { get; private set; } = Guid.NewGuid();
         public bool Accepted { get; private set; }
-        public DateTime SentAt { get; private set; } = DateTime.UtcNow;
+        public DateTime SentAt { get; private set; } = SystemClock.UtcNowDateTime;
         public DateTime? AcceptedAt { get; private set; }
-        public DateTime ExpiryDate { get; private set; } = DateTime.UtcNow.AddDays(7);
+        public DateTime ExpiryDate { get; private set; } = SystemClock.UtcNowDateTime.AddDays(7);
         public bool InvitationEmailSent { get; private set; }
 
         public override AppResponse Validate
@@ -64,11 +64,11 @@ namespace EasyFinance.Domain.AccessControl
 
         public AppResponse SetAccepted()
         {
-            if (ExpiryDate < DateTime.UtcNow)
+            if (ExpiryDate < SystemClock.UtcNowDateTime)
                 return AppResponse.Error(nameof(ExpiryDate), ValidationMessages.CantAcceptExpiredInvitation);
 
             Accepted = true;
-            AcceptedAt = DateTime.UtcNow;
+            AcceptedAt = SystemClock.UtcNowDateTime;
 
             return AppResponse.Success();
         }

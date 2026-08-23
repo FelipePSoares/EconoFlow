@@ -107,7 +107,8 @@ dotnet ef migrations add {Name} --context EasyFinanceDatabaseContext --project E
 ### Architecture pitfalls
 
 - **Infrastructure** targets `netstandard2.1` (shared primitives). All other layers target `net8.0`.
-- **AppResponse<T>** (`EasyFinance.Infrastructure.DTOs`) is the universal return type. Never throw for expected business failures; return `AppResponse.Error(...)`.
+- **`fpssoftware.chassis`** (private NuGet, `https://gitea.fpssoftware.uk/api/packages/fps-software/nuget/index.json`) holds application-agnostic building blocks: `AppResponse`/`AppMessage`/`Paging`/`AddPrefix`, `ChassisJsonFormatter`, `FlagsEnumArrayConverter`, generic middleware (correlation id, exception, localization, safe headers, security policy), and `JwtTokenService`/`JwtTokenSettings`/`AddChassisJwtAuthentication`. See `FelipePSoares/chassis`.
+- **AppResponse<T>** (`FpsSoftware.Chassis`) is the universal return type. Never throw for expected business failures; return `AppResponse.Error(...)`.
 - **Entity mutation**: private setters + `SetXxx()` methods only. Never assign properties directly.
 - **No AutoMapper**. Manual extension methods in `EasyFinance.Application/Mappers/` (`.ToDTO()`, `.ToEntity()`).
 - **Validation messages** live in `.resx` files in `EasyFinance.Infrastructure`, accessed via auto-generated `ValidationMessages` / `NotificationMessages` static classes. `ValidationMessages.Designer.cs` is gitignored (generated at build).

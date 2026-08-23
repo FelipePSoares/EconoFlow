@@ -1,5 +1,6 @@
 using System;
-using EasyFinance.Infrastructure.DTOs;
+using EasyFinance.Domain.Shared;
+using FpsSoftware.Chassis;
 
 namespace EasyFinance.Domain
 {
@@ -19,8 +20,8 @@ namespace EasyFinance.Domain
         }
 
         public Guid Id { get; private set; } = default;
-        public DateTime CreatedDate { get; private set; } = DateTime.Now;
-        public DateTime ModifiedAt { get; private set; } = DateTime.Now;
+        public DateTime CreatedDate { get; private set; } = SystemClock.UtcNowDateTime;
+        public DateTime ModifiedAt { get; private set; } = SystemClock.UtcNowDateTime;
 
         public void SetCreatedDate(DateTime createdDate) => CreatedDate = createdDate;
         public void SetModifiedAt(DateTime modifiedAt) => ModifiedAt = modifiedAt;

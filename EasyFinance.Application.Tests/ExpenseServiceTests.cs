@@ -10,7 +10,8 @@ using EasyFinance.Common.Tests.FinancialProject;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Account;
 using EasyFinance.Domain.Financial;
-using EasyFinance.Infrastructure.DTOs;
+using EasyFinance.Domain.Shared;
+using FpsSoftware.Chassis;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
@@ -304,7 +305,7 @@ namespace EasyFinance.Application.Tests
 
             await unitOfWork.CommitAsync();
 
-            var itemDate = DateOnly.FromDateTime(DateTime.Today);
+            var itemDate = SystemClock.TodayDate;
             var patch = new JsonPatchDocument<ExpenseRequestDTO>();
             patch.Operations.Add(new Operation<ExpenseRequestDTO>(
                 "add", "/items/-", null,

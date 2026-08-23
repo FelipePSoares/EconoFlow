@@ -1,8 +1,8 @@
 using System.Text;
 using EasyFinance.Domain.AccessControl;
-using EasyFinance.Infrastructure.Authentication;
 using EasyFinance.Persistence.DatabaseContext;
 using EasyFinance.Server.Extensions;
+using FpsSoftware.Chassis;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -13,7 +13,7 @@ namespace EasyFinance.Server.Middleware
     {
         public static IServiceCollection AddAuthenticationServices(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
         {
-            var tokenSettings = configuration.GetSection("TokenSettings").Get<TokenSettings>() ?? default!;
+            var tokenSettings = configuration.GetSection("TokenSettings").Get<JwtTokenSettings>() ?? default!;
 
             tokenSettings.SecretKey = environment.IsDevelopment() ? "TestEnvironmentKeyNotUseInProduction" : Environment.GetEnvironmentVariable("EconoFlow_TOKEN_SECRET_KEY") ?? tokenSettings.SecretKey;
             tokenSettings.Issuer = Environment.GetEnvironmentVariable("EconoFlow_ISSUER") ?? tokenSettings.Issuer;

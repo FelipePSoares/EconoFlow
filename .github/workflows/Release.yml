@@ -33,6 +33,9 @@ jobs:
 
       - name: Publish
         run: dotnet publish EasyFinance.Server/EasyFinance.Server.csproj --configuration Release -p:IncludeSpaProject=true
+        env:
+          GITEA_NUGET_USERNAME: ${{ secrets.GITEA_NUGET_USERNAME }}
+          GITEA_NUGET_TOKEN: ${{ secrets.GITEA_NUGET_TOKEN }}
 
       - name: Archive publish files
         uses: actions/upload-artifact@v7

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using EasyFinance.Application.DTOs.AccessControl;
 using EasyFinance.Domain.AccessControl;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 using Microsoft.AspNetCore.JsonPatch;
 
 #nullable enable

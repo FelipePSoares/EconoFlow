@@ -1,6 +1,6 @@
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Domain;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 using Microsoft.EntityFrameworkCore;
 
 namespace EasyFinance.Persistence.Repositories

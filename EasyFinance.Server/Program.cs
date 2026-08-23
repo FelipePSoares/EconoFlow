@@ -14,11 +14,10 @@ using EasyFinance.Server.Config;
 using EasyFinance.Server.Extensions;
 using EasyFinance.Server.HealthChecks;
 using EasyFinance.Server.Middleware;
-using EasyFinance.Server.MiddleWare;
+using FpsSoftware.Chassis;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -174,7 +173,7 @@ try
     else
     {
         app.UseHsts();
-        app.UseSecutiryPolicy();
+        app.UseSecurityPolicy();
         app.UseMigration();
         EnsureSystemRolesAsync(app.Services).GetAwaiter().GetResult();
     }

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 
 namespace EasyFinance.Domain.FinancialProject
 {

@@ -4,7 +4,7 @@ using EasyFinance.Application.Features.EmailService;
 using EasyFinance.Common.Tests;
 using EasyFinance.Common.Tests.AccessControl;
 using EasyFinance.Domain.Account;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;

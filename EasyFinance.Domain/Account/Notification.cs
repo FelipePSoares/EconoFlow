@@ -1,7 +1,8 @@
 using System;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
-using EasyFinance.Infrastructure.DTOs;
+using FpsSoftware.Chassis;
 
 namespace EasyFinance.Domain.Account
 {
@@ -69,7 +70,7 @@ namespace EasyFinance.Domain.Account
                 if (!string.IsNullOrEmpty(ActionLabelCode) && ActionLabelCode.Length > 100)
                     response.AddErrorMessage(nameof(ActionLabelCode), string.Format(ValidationMessages.PropertyMaxLength, nameof(ActionLabelCode), 100));
 
-                if (ExpiresAt.HasValue && ExpiresAt.Value <= DateOnly.FromDateTime(DateTime.UtcNow))
+                if (ExpiresAt.HasValue && ExpiresAt.Value <= SystemClock.TodayDate)
                     response.AddErrorMessage(nameof(ExpiresAt), ValidationMessages.ExpirationShouldBeFutureDate);
 
                 if (User.Id == Guid.Empty)
