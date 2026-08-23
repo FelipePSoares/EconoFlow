@@ -14,7 +14,7 @@ namespace EasyFinance.Application.Features.AttachmentService
         {
             var settings = options?.Value ?? new AttachmentStorageOptions();
 
-            if (string.Equals(settings.Provider, MinioProvider, StringComparison.OrdinalIgnoreCase))
+            if (IsMinioConfigured(settings))
             {
                 if (string.IsNullOrWhiteSpace(settings.Bucket))
                     throw new InvalidOperationException("Attachment storage bucket name is required when using the Minio provider.");
@@ -32,6 +32,26 @@ namespace EasyFinance.Application.Features.AttachmentService
             }
 
             throw new InvalidOperationException($"Unknown attachment storage provider '{settings.Provider}'.");
+        }
+
+        /// <summary>
+        /// The Minio provider is used when explicitly configured, or when the storage
+        /// is still the default (FileSystem) but an S3 endpoint and bucket are present.
+        /// The latter lets S3 configuration (S3_ENDPOINT / S3_BUCKET) activate Minio
+        /// without an explicit AttachmentStorage__Provider override.
+        /// </summary>
+        public static bool IsMinioConfigured(AttachmentStorageOptions settings)
+        {
+            if (settings == null)
+                return false;
+
+            if (string.Equals(settings.Provider, MinioProvider, StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            return (string.IsNullOrWhiteSpace(settings.Provider)
+                    || string.Equals(settings.Provider, FileSystemProvider, StringComparison.OrdinalIgnoreCase))
+                   && !string.IsNullOrWhiteSpace(settings.Endpoint)
+                   && !string.IsNullOrWhiteSpace(settings.Bucket);
         }
     }
 }

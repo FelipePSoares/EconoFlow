@@ -18,12 +18,13 @@ namespace EasyFinance.Server.Tests.HealthChecks
         private static IOptions<AttachmentStorageOptions> CreateOptions(
             string provider,
             string bucket = "test-bucket",
-            string endpoint = "localhost:9000")
+            string endpoint = "localhost:9000",
+            bool s3Configured = false)
             => Options.Create(new AttachmentStorageOptions
             {
                 Provider = provider,
-                Bucket = bucket,
-                Endpoint = endpoint,
+                Bucket = s3Configured ? bucket : string.Empty,
+                Endpoint = s3Configured ? endpoint : string.Empty,
             });
 
         private static IServiceProvider CreateServiceProvider(Mock<IMinioS3Client> minioClientMock) =>
@@ -75,7 +76,7 @@ namespace EasyFinance.Server.Tests.HealthChecks
                 .Returns(Task.CompletedTask);
             var check = new S3StorageHealthCheck(
                 CreateServiceProvider(minioClientMock),
-                CreateOptions("Minio"));
+                CreateOptions("Minio", s3Configured: true));
 
             // Act
             var result = await check.CheckHealthAsync(CreateContext(), CancellationToken.None);
@@ -95,7 +96,7 @@ namespace EasyFinance.Server.Tests.HealthChecks
                 .ThrowsAsync(new InvalidOperationException("S3 endpoint unreachable"));
             var check = new S3StorageHealthCheck(
                 CreateServiceProvider(minioClientMock),
-                CreateOptions("Minio"));
+                CreateOptions("Minio", s3Configured: true));
 
             // Act
             var result = await check.CheckHealthAsync(CreateContext(), CancellationToken.None);
@@ -113,6 +114,45 @@ namespace EasyFinance.Server.Tests.HealthChecks
             var check = new S3StorageHealthCheck(
                 CreateServiceProvider(minioClientMock),
                 CreateOptions("Minio", bucket: string.Empty));
+
+            // Act
+            var result = await check.CheckHealthAsync(CreateContext(), CancellationToken.None);
+
+            // Assert
+            result.Status.ShouldBe(HealthStatus.Unhealthy);
+            minioClientMock.Verify(x => x.EnsureBucketExistsAsync(It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task CheckHealth_DefaultProviderWithS3EndpointConfigured_ShouldVerifyS3()
+        {
+            // Arrange: Provider still the FileSystem default but an S3 endpoint/bucket
+            // are configured, so the effective provider is Minio.
+            var minioClientMock = new Mock<IMinioS3Client>();
+            minioClientMock
+                .Setup(x => x.EnsureBucketExistsAsync("test-bucket"))
+                .Returns(Task.CompletedTask);
+            var check = new S3StorageHealthCheck(
+                CreateServiceProvider(minioClientMock),
+                CreateOptions("FileSystem", s3Configured: true));
+
+            // Act
+            var result = await check.CheckHealthAsync(CreateContext(), CancellationToken.None);
+
+            // Assert
+            result.Status.ShouldBe(HealthStatus.Healthy);
+            minioClientMock.Verify(x => x.EnsureBucketExistsAsync("test-bucket"), Times.Once);
+        }
+
+        [Fact]
+        public async Task CheckHealth_PartialS3Config_ShouldBeUnhealthy()
+        {
+            // Only an Endpoint is set (Bucket missing): Minio cannot activate, so
+            // uploads would silently fall back to disk. Surface the misconfiguration.
+            var minioClientMock = new Mock<IMinioS3Client>();
+            var check = new S3StorageHealthCheck(
+                CreateServiceProvider(minioClientMock),
+                CreateOptions("FileSystem", s3Configured: true, bucket: string.Empty));
 
             // Act
             var result = await check.CheckHealthAsync(CreateContext(), CancellationToken.None);
