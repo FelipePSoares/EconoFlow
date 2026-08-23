@@ -1,11 +1,9 @@
-using System.Text;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Persistence.DatabaseContext;
 using EasyFinance.Server.Extensions;
 using FpsSoftware.Chassis;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EasyFinance.Server.Middleware
 {
@@ -18,12 +16,13 @@ namespace EasyFinance.Server.Middleware
             tokenSettings.SecretKey = environment.IsDevelopment() ? "TestEnvironmentKeyNotUseInProduction" : Environment.GetEnvironmentVariable("EconoFlow_TOKEN_SECRET_KEY") ?? tokenSettings.SecretKey;
             tokenSettings.Issuer = Environment.GetEnvironmentVariable("EconoFlow_ISSUER") ?? tokenSettings.Issuer;
             tokenSettings.Audience = Environment.GetEnvironmentVariable("EconoFlow_AUDIENCE") ?? tokenSettings.Audience;
-            services.AddSingleton(tokenSettings);
 
+            // Application-specific Identity wiring stays in EconoFlow (user type, stores,
+            // roles, claims factory, API endpoints are business/domain concerns).
             services.AddAuthorizationBuilder();
             services.AddHttpContextAccessor();
 
-            services.AddIdentityCore<User>()
+            var identityBuilder = services.AddIdentityCore<User>()
                 .AddSignInManager()
                 .AddRoles<IdentityRole<Guid>>()
                 .AddEntityFrameworkStores<EasyFinanceDatabaseContext>()
@@ -57,44 +56,8 @@ namespace EasyFinance.Server.Middleware
                 options.TokenLifespan = TimeSpan.FromSeconds(tokenSettings.RefreshTokenExpireSeconds);
             });
 
-            services
-                .AddAuthentication(config =>
-                {
-                    config.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                    config.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                    config.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-                })
-                .AddJwtBearer(config =>
-                {
-                    config.RequireHttpsMetadata = true;
-                    config.SaveToken = true;
-                    config.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenSettings.SecretKey)),
-                        ValidateIssuer = !string.IsNullOrEmpty(tokenSettings.Issuer),
-                        ValidIssuer = tokenSettings.Issuer,
-                        ValidateAudience = !string.IsNullOrEmpty(tokenSettings.Audience),
-                        ValidAudience = tokenSettings.Audience,
-                        ClockSkew = TimeSpan.Zero
-                    };
-                    config.Events = new JwtBearerEvents
-                    {
-                        OnMessageReceived = context =>
-                        {
-                            // Check if token comes from Authorization header
-                            var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
-                            if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
-                                context.Token = authHeader.Substring("Bearer ".Length).Trim();
-                            // Fallback: get token from cookie
-                            else if (context.Request.Cookies.ContainsKey("AuthToken"))
-                                context.Token = context.Request.Cookies["AuthToken"];
-
-                            return Task.CompletedTask;
-                        }
-                    };
-
-                });
+            // Generic JWT bearer setup comes from the fpssoftware.chassis package.
+            services.AddChassisJwtBearer(tokenSettings, accessTokenCookieName: "AuthToken");
 
             return services;
         }
