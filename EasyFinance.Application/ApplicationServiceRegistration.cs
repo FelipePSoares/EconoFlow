@@ -27,6 +27,7 @@ using EasyFinance.Application.Features.UserKeyService;
 using EasyFinance.Application.Features.UserService;
 using EasyFinance.Application.Features.WebPushService;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace EasyFinance.Application
 {
@@ -51,7 +52,8 @@ namespace EasyFinance.Application
             services.AddSingleton<IMinioS3Client>(provider =>
             {
                 var settings = provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<AttachmentStorageOptions>>().Value;
-                return MinioClientFactory.CreateS3Client(settings);
+                var logger = provider.GetRequiredService<ILoggerFactory>().CreateLogger<MinioS3ClientAdapter>();
+                return MinioClientFactory.CreateS3Client(settings, logger);
             });
             services.AddSingleton<IAttachmentStorageService>(provider =>
             {

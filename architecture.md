@@ -2,7 +2,7 @@
 
 ## 1. High-Level Overview
 
-EconoFlow is a full-stack financial planning application composed of three clients (Angular SPA, React Native mobile app, PWA) sharing a single ASP.NET Core 8 API backed by SQL Server.
+EconoFlow is a full-stack financial planning application composed of three clients (Angular SPA, React Native mobile app, PWA) sharing a single ASP.NET Core 10 API backed by SQL Server.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -16,7 +16,7 @@ EconoFlow is a full-stack financial planning application composed of three clien
             │   HTTPS / JWT     │                   │
             ▼                   ▼                   ▼
 ┌───────────────────────────────────────────────────────────────┐
-│  ASP.NET Core 8  (EasyFinance.Server)                         │
+│  ASP.NET Core 10  (EasyFinance.Server)                        │
 │  ┌─────────────────────────────────────────────────────────┐  │
 │  │  Middleware Pipeline                                     │  │
 │  │  Serilog → CustomExceptionHandler → SafeHeaders →        │  │
@@ -45,10 +45,10 @@ EconoFlow is a full-stack financial planning application composed of three clien
 ```
 EconoFlow/
 ├── EasyFinance.Infrastructure/   # netstandard2.1 — DTOs, validation, shared primitives
-├── EasyFinance.Domain/           # net8.0 — entities, business rules
-├── EasyFinance.Application/      # net8.0 — services, mappers, contracts, background jobs
-├── EasyFinance.Persistence/      # net8.0 — EF Core, DbContext, repositories, migrations
-├── EasyFinance.Server/           # net8.0 — ASP.NET controllers, middleware, JWT, startup
+├── EasyFinance.Domain/           # net10.0 — entities, business rules
+├── EasyFinance.Application/      # net10.0 — services, mappers, contracts, background jobs
+├── EasyFinance.Persistence/      # net10.0 — EF Core, DbContext, repositories, migrations
+├── EasyFinance.Server/           # net10.0 — ASP.NET controllers, middleware, JWT, startup
 ├── EasyFinance.Common.Tests/     # Shared test builders and helpers
 ├── EasyFinance.Domain.Tests/
 ├── EasyFinance.Application.Tests/
@@ -171,7 +171,7 @@ All repositories are lazily initialized inside `UnitOfWork`. `CommitAsync()` is 
 
 ### 3.5 Server (`EasyFinance.Server`)
 
-ASP.NET Core 8 host. Everything in this layer is infrastructure for the HTTP boundary.
+ASP.NET Core 10 host. Everything in this layer is infrastructure for the HTTP boundary.
 
 #### Startup (`Program.cs`) — service registration order
 1. `AddPersistenceServices(configuration)` — registers DbContext, repositories, UoW, and health checks (SQL Server check in non-Debug builds).

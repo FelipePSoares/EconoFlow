@@ -69,7 +69,7 @@ Public name **EconoFlow**, internal codebase name **EasyFinance** — appears in
 
 | Directory | Stack |
 |-----------|-------|
-| `EasyFinance.*` (6 csproj) | ASP.NET Core 8 Clean Architecture |
+| `EasyFinance.*` (6 csproj) | ASP.NET Core 10 Clean Architecture |
 | `easyfinance.client/` | Angular 21 SPA |
 | `econoflow-mobile/` | React Native 0.85 + Expo SDK 56 |
 
@@ -95,7 +95,7 @@ dotnet list package --vulnerable --include-transitive # NuGet vulnerability scan
 
 ### CI / Pipelines
 
-- `global.json` pins SDK to 8.0.x to avoid issues with .NET 10 runner pre-installs
+- `global.json` pins the SDK to 10.0.0 (`rollForward: latestMajor`)
 - All `dotnet restore` / `dotnet build` / `dotnet test` commands target explicit `.csproj` files (never the `.sln`) to skip `easyfinance.client.esproj` which has no target framework
 - `EASBuild.yml` is mobile-only and not affected
 
@@ -106,7 +106,7 @@ dotnet ef migrations add {Name} --context EasyFinanceDatabaseContext --project E
 
 ### Architecture pitfalls
 
-- **Infrastructure** targets `netstandard2.1` (shared primitives). All other layers target `net8.0`.
+- **Infrastructure** targets `netstandard2.1` (shared primitives). All other layers target `net10.0`.
 - **`fpssoftware.chassis`** (private NuGet, `https://gitea.fpssoftware.uk/api/packages/fps-software/nuget/index.json`) holds application-agnostic building blocks: `AppResponse`/`AppMessage`/`Paging`/`AddPrefix`, `ChassisJsonFormatter`, `FlagsEnumArrayConverter`, generic middleware (correlation id, exception, localization, safe headers, security policy), and `JwtTokenService`/`JwtTokenSettings`/`AddChassisJwtAuthentication`. See `FelipePSoares/chassis`.
 - **AppResponse<T>** (`FpsSoftware.Chassis`) is the universal return type. Never throw for expected business failures; return `AppResponse.Error(...)`.
 - **Entity mutation**: private setters + `SetXxx()` methods only. Never assign properties directly.

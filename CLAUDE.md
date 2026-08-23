@@ -61,7 +61,7 @@ Once all tests are green and lint is clean, spawn the `codereview` subagent (def
 
 ## Project Overview
 
-EconoFlow (codebase name: EasyFinance) is a personal/company budget tracking application. It uses an ASP.NET Core 8 backend serving an Angular 21 SPA frontend, backed by SQL Server via EF Core.
+EconoFlow (codebase name: EasyFinance) is a personal/company budget tracking application. It uses an ASP.NET Core 10 backend serving an Angular 21 SPA frontend, backed by SQL Server via EF Core.
 
 ---
 
@@ -110,13 +110,13 @@ The solution follows Clean Architecture with a strict dependency direction:
 ```
 EasyFinance.Infrastructure  (netstandard2.1 — shared primitives, no dependencies)
         ↓
-EasyFinance.Domain          (net8.0 — entities, business rules)
+EasyFinance.Domain          (net10.0 — entities, business rules)
         ↓
-EasyFinance.Application     (net8.0 — services, DTOs, mappers, contracts)
+EasyFinance.Application     (net10.0 — services, DTOs, mappers, contracts)
         ↓
-EasyFinance.Persistence     (net8.0 — EF Core, repositories, migrations)
+EasyFinance.Persistence     (net10.0 — EF Core, repositories, migrations)
         ↓
-EasyFinance.Server          (net8.0 — ASP.NET controllers, middleware, startup)
+EasyFinance.Server          (net10.0 — ASP.NET controllers, middleware, startup)
         ↓
 easyfinance.client          (Angular 21 SPA — embedded as SPA proxy in dev)
 ```
