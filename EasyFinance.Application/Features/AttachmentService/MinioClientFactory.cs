@@ -6,6 +6,9 @@ namespace EasyFinance.Application.Features.AttachmentService
     public static class MinioClientFactory
     {
         public static IMinioS3Client CreateS3Client(AttachmentStorageOptions settings)
+            => CreateS3Client(settings, logger: null);
+
+        public static IMinioS3Client CreateS3Client(AttachmentStorageOptions settings, Microsoft.Extensions.Logging.ILogger<MinioS3ClientAdapter>? logger)
         {
             if (settings == null)
                 throw new ArgumentNullException(nameof(settings));
@@ -25,7 +28,7 @@ namespace EasyFinance.Application.Features.AttachmentService
             if (!string.IsNullOrWhiteSpace(settings.Region))
                 minioClient = minioClient.WithRegion(settings.Region);
 
-            return new MinioS3ClientAdapter(minioClient.Build());
+            return new MinioS3ClientAdapter(minioClient.Build(), logger);
         }
 
         public static string NormalizeEndpoint(string endpoint)
