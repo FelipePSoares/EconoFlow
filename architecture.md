@@ -239,21 +239,28 @@ framework). Configuration lives in
 1  UseForwardedHeaders()            ← honour X-Forwarded-Proto/For from trusted proxies FIRST so all later middleware see the real scheme/IP
 2  UseSerilogRequestLogging()
 3  UseCustomExceptionHandler()      ← catches unhandled exceptions → 500
-4  UseSafeHeaders()                 ← security headers (HSTS, CSP, …)
-5  UseSwagger/UseSwaggerUI          ← dev only
-6  UseMigration()                   ← auto-apply EF migrations on startup (prod only)
-7  UseDefaultFiles() + UseStaticFiles()
-8  MapWhen(IsHealthProbePath && !https) → HealthProbeResponseWriter   ← answers probes over plain HTTP so UseHttpsRedirection cannot 307 them
-9  UseHttpsRedirection()
-10 UseAuthentication()
-11 UseCorrelationId()               ← sets/reads X-Correlation-Id header
-12 UseAuthorization()
-13 UseProjectAuthorization()        ← role check for every {projectId} route
-14 UseLocationMiddleware()          ← sets culture from user preference
-15 MapHealthChecks("/api/health/live")  ← liveness; no dependency checks
-16 MapHealthChecks("/api/health/ready") ← readiness; SQL Server + S3 storage
-17 MapControllers()
+4  UseSafeHeaders()                 ← security headers (HSTS, …)
+5  UseSecurityPolicy(SecurityPolicyOptionsFactory.Create(env))  ← prod only: SPA CSP + nonce
+6  UseSwagger/UseSwaggerUI          ← dev only
+7  UseMigration()                   ← auto-apply EF migrations on startup (prod only)
+8  UseDefaultFiles() + UseStaticFiles()
+9  MapWhen(IsHealthProbePath && !https) → HealthProbeResponseWriter   ← answers probes over plain HTTP so UseHttpsRedirection cannot 307 them
+10 UseHttpsRedirection()
+11 UseAuthentication()
+12 UseCorrelationId()               ← sets/reads X-Correlation-Id header
+13 UseAuthorization()
+14 UseProjectAuthorization()        ← role check for every {projectId} route
+15 UseLocationMiddleware()          ← sets culture from user preference
+16 MapHealthChecks("/api/health/live")  ← liveness; no dependency checks
+17 MapHealthChecks("/api/health/ready") ← readiness; SQL Server + S3 storage
+18 MapControllers()
 ```
+
+`SecurityPolicyMiddleware` (from `fpssoftware.chassis`) is the SPA CSP fallback: for non-API, non-asset
+routes it reads `wwwroot/index.html` through `SecurityPolicyOptionsFactory.Create(env)` (backed by the
+content-root `IFileProvider`) and serves it with a per-request nonce substituted into `{{nonce}}` and a
+full `Content-Security-Policy` header (Turnstile, Google Fonts, fonts.gstatic, `connect-src` for the API,
+etc.). If the index document is not servable, the middleware falls through to `UseDefaultFiles()/UseStaticFiles()`.
 
 ---
 
