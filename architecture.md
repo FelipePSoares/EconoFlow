@@ -458,7 +458,7 @@ Cleanup job (7-day TTL) deletes orphaned IsTemporary attachments.
 
 `IAttachmentStorageService` abstracts the storage backend. The default implementation (`FileSystemAttachmentStorageService`) writes to disk. A second implementation (`MinioAttachmentStorageService`) writes to any S3-compatible object storage (MinIO) via a decoupled `IMinioS3Client` adapter — swapping to Amazon S3 later requires only a new `IMinioS3Client` implementation.
 
-The active provider is selected via `AttachmentStorage:Provider` (`FileSystem` default, `Minio` opt-in). Object keys are identical in both backends (`yyyy/MM/dd/{guid}{ext}`), so existing `StorageKey` values in the database map 1:1 to MinIO object names with no schema change.
+The active provider is selected via `AttachmentStorage:Provider` (`FileSystem` default, `Minio` opt-in). Setting the S3 configuration alone is enough to activate `Minio`: when `AttachmentStorage:Provider` is still the default (`FileSystem`) but both an S3 `Endpoint` and `Bucket` are present, `AttachmentStorageServiceFactory.IsMinioConfigured` treats the effective provider as `Minio`. The same check drives the `S3StorageHealthCheck` readiness probe; a partial S3 configuration (endpoint or bucket set, but not both) is reported as Unhealthy because uploads would otherwise silently fall back to the file system. Object keys are identical in both backends (`yyyy/MM/dd/{guid}{ext}`), so existing `StorageKey` values in the database map 1:1 to MinIO object names with no schema change.
 
 An optional one-shot migration job (`AttachmentMigrationBackgroundService` + `AttachmentMigrationService`) copies existing local files into the object storage under their original keys. See the cutover runbook below.
 
