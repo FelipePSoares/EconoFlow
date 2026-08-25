@@ -23,7 +23,7 @@
     "expo-linear-gradient": "^57.0.0",
     "expo-local-authentication": "~56.0.4",
     "expo-notifications": "~57.0.2",
-    "expo-secure-store": "^56.0.4",
+    "expo-secure-store": "^57.0.1",
     "expo-splash-screen": "^56.0.10",
     "expo-status-bar": "~56.0.4",
     "i18next": "^26.3.4",
