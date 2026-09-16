@@ -37,7 +37,7 @@ jobs:
             docker-buildx-${{ runner.os }}-
 
       - name: Login to Gitea container registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ${{ secrets.GITEA_REGISTRY || 'gitea.fpssoftware.uk' }}
           username: ${{ secrets.GITEA_REGISTRY_USERNAME }}
