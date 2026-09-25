@@ -180,7 +180,7 @@ ASP.NET Core 10 host. Everything in this layer is infrastructure for the HTTP bo
 4. Options: `NotifierFallbackOptions`, `WebPushOptions`, `FeatureRolloutOptions`, `TemporaryAttachmentCleanupOptions`.
 5. `AddAuthenticationServices(configuration, environment)` — JWT bearer, Identity, token providers.
 6. `AddControllers` with global `[Authorize]` filter.
-7. `AddSingleton<IApiService, Smtp2GoApiService>()` — e-mail dispatch.
+7. SMTP e-mail: `SmtpSettings.Resolve(configuration, Environment.GetEnvironmentVariable)` — environment variables win over the `Smtp` section — then a non-Development fail-fast when the settings are incomplete, followed by `Configure<SmtpSettings>()`. `ISmtpClientFactory`/`ISmtpEmailSender` are registered by `AddApplicationServices()`.
 8. `UseSerilog()` to BetterStack.
 9. `AddDataProtection().PersistKeysToDbContext<MyKeysContext>()` (non-dev).
 
@@ -364,7 +364,9 @@ Caller → Channel<EmailRequest>.Writer.WriteAsync()
                 ↓  (unbounded channel, async consumer)
        EmailBackgroundService.ExecuteAsync()
                 ↓
-       Smtp2GoApiService.SendAsync()
+       SmtpEmailSender.SendAsync()      ← SmtpSettings (SMTP_* environment variables)
+                ↓
+       MailKit SmtpClient  →  SMTP server (implicit TLS / STARTTLS + AUTH)
 ```
 
 ### 6.2 `NotifierBackgroundService`
@@ -403,8 +405,8 @@ Tick → find Attachments where IsTemporary=true AND CreatedDate < (now - Expira
 ```
 INotificationChannel
       │
-      ├── EmailChannel            → IEmailService → Channel<EmailRequest> → Smtp2Go
-      ├── SmsChannel              → IApiService (Smtp2Go SMS)
+      ├── EmailChannel            → IEmailService → Channel<EmailRequest> → SMTP (MailKit)
+      ├── SmsChannel              → not implemented yet (logs a warning)
       ├── PushChannel             → App push (native)
       ├── WebPushChannel          → WebPush library (VAPID)
       └── CompoundNotificationChannel  ← aggregates 1..N channels
@@ -433,7 +435,7 @@ EasyFinance.Server/
 - Subject extracted from the HTML `<title>` tag.
 - Dynamic tokens replaced with `(string token, string replaceWith)[]` pairs before dispatch.
 - Falls back to `en` if a localized template is missing.
-- In development, `DevEmailSender` logs the e-mail body to the console; `Smtp2GoApiService` is used in production.
+- In development, `DevEmailSender` logs the e-mail body to the console instead of sending it; in production `EmailSender` queues the rendered e-mail and `EmailBackgroundService` delivers it through the SMTP server configured by the `SMTP_*` environment variables.
 
 ---
 
@@ -698,7 +700,14 @@ Variables marked **required** will throw at startup (or on first use) if absent.
 | `EconoFlow_TOKEN_SECRET_KEY` | **required** | JWT signing key (HS256) | — |
 | `EconoFlow_ISSUER` | **required** | JWT `iss` claim | — |
 | `EconoFlow_AUDIENCE` | **required** | JWT `aud` claim | — |
-| `SMTP2GO_API_KEY` | **required** | SMTP2Go email service API key — process throws `InvalidOperationException` on startup if missing | — |
+| `SMTP_HOST` | **required** | SMTP server host name for outbound e-mail (e.g. `smtp.example.com`) — the process throws `InvalidOperationException` on startup when the SMTP settings are incomplete | — |
+| `SMTP_USERNAME` | **required** | SMTP authentication user | — |
+| `SMTP_PASSWORD` | **required** | SMTP authentication password (supply from a Kubernetes Secret) | — |
+| `SMTP_PORT` | optional | SMTP server port | `587` |
+| `SMTP_SECURE_SOCKET` | optional | TLS mode: `Auto`, `None`, `StartTls` or `SslOnConnect` | `Auto` |
+| `SMTP_FROM_ADDRESS` | optional | From address used for every outbound e-mail | `noreply@econoflow.pt` |
+| `SMTP_FROM_NAME` | optional | Display name shown next to `SMTP_FROM_ADDRESS` | `NoReply EconoFlow` |
+| `SMTP_TIMEOUT_SECONDS` | optional | Timeout applied to SMTP connect/authenticate/send | `30` |
 | `EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN` | **required** | Signs account-deletion confirmation tokens — throws on every DELETE `/api/AccessControl` call if missing | — |
 | `EconoFlow_TURNSTILE_SECRET_KEY` | optional | Cloudflare Turnstile server-side secret | `""` (captcha always passes) |
 | `EconoFlow_TURNSTILE_SITE_KEY` | optional | Cloudflare Turnstile site key returned to clients | `""` |
@@ -737,6 +746,12 @@ Variables marked **required** will throw at startup (or on first use) if absent.
 | `AttachmentStorage:Migration.Enabled` | `false` | Enable the one-shot local→MinIO migration job |
 | `AttachmentStorage:Migration.DryRun` | `false` | Report only, copy nothing |
 | `AttachmentStorage:Migration.BatchSize` | `500` | Attachments processed per migration run |
+| `Smtp.Host` | — | SMTP server host (overridden by `SMTP_HOST`) |
+| `Smtp.Port` | `587` | SMTP server port (overridden by `SMTP_PORT`) |
+| `Smtp.SecureSocket` | `Auto` | `Auto`, `None`, `StartTls` or `SslOnConnect` (overridden by `SMTP_SECURE_SOCKET`) |
+| `Smtp.FromAddress` | `noreply@econoflow.pt` | From address for every outbound e-mail (overridden by `SMTP_FROM_ADDRESS`) |
+| `Smtp.FromName` | `NoReply EconoFlow` | From display name (overridden by `SMTP_FROM_NAME`) |
+| `Smtp.TimeoutSeconds` | `30` | SMTP operation timeout in seconds (overridden by `SMTP_TIMEOUT_SECONDS`) |
 | `FeatureRollout.EnabledForAllUsers` | `"WebPush"` | Feature flags available to everyone |
 | `FeatureRollout.EnabledForBetaTesters` | `"WebPush, PwaInstall"` | Additional flags for beta testers |
 | `Serilog:WriteTo[:Console/File].Args.formatter` | `EasyFinance.Server.Logging.EconoFlowJsonFormatter` | Console/File sinks use `EconoFlowJsonFormatter` (compact CLEF-like JSON) — it always writes the level (`@l`) and the fully rendered message (`@m`) beside the template (`@mt`) so log level and readable messages survive in Grafana. The stock `CompactJsonFormatter` drops both. |

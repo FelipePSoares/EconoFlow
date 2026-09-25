@@ -72,7 +72,7 @@ namespace EasyFinance.Server.Config
         }
 
         private static EmailRequest CreateEmail(string toEmail, string subject, string bodyHtml)
-            => new(bodyHtml, subject, "NoReply Econoflow <noreply@econoflow.pt>", toEmail);
+            => new(bodyHtml, subject, toEmail);
 
         private static string LoadHtmlTemplate(EmailTemplates templateName, params (string token, string replaceWith)[] tokens)
         {

@@ -538,7 +538,7 @@ The Smart Setup creates these categories with the given budget allocation percen
 - **Database**: SQL Server (EF Core 8 with migrations).
 - **Authentication**: ASP.NET Core Identity + custom JWT issuance.
 - **File storage**: Cloud object storage (provider abstracted via `StorageKey`; S3-compatible assumed).
-- **E-mail**: Configurable SMTP / transactional e-mail provider.
+- **E-mail**: SMTP delivery (MailKit) with every setting — host, port, credentials, TLS mode, from address/name and timeout — supplied through environment variables (`SMTP_*`) so it is configured like the rest of the deployment.
 - **CAPTCHA**: Cloudflare Turnstile server-side validation.
 - **Web Push**: VAPID keys generated at startup; stored in configuration.
 

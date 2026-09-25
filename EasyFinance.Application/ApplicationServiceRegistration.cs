@@ -67,6 +67,8 @@ namespace EasyFinance.Application
             services.AddScoped<IFeatureRolloutService, FeatureRolloutService>();
             services.AddScoped<IContactService, ContactService>();
             services.AddScoped<IEmailService, EmailService>();
+            services.AddSingleton<ISmtpClientFactory, MailKitSmtpClientFactory>();
+            services.AddSingleton<ISmtpEmailSender, SmtpEmailSender>();
             services.AddScoped<INotificationService, NotificationService>();
             services.AddSingleton<INotificationMessageResolver, NotificationMessageResolver>();
             services.AddScoped<IWebPushService, WebPushService>();

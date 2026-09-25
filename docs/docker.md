@@ -37,13 +37,16 @@ docker run --rm -p 8080:8080 \
   -e EconoFlow_ISSUER='https://econoflow.pt' \
   -e EconoFlow_AUDIENCE='https://econoflow.pt' \
   -e EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN='<secret>' \
-  -e SMTP2GO_API_KEY='<key>' \
+  -e SMTP_HOST='smtp.example.com' \
+  -e SMTP_USERNAME='<smtp user>' \
+  -e SMTP_PASSWORD='<smtp password>' \
   econoflow:test
 ```
 
 > The container image itself ships **no** configuration values. At startup the
 > app **throws** if required production env vars are missing (e.g.
-> `SMTP2GO_API_KEY`, `EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN`), so a deployer
+> `SMTP_HOST`, `SMTP_USERNAME`, `SMTP_PASSWORD`,
+> `EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN`), so a deployer
 > must supply them (SealedSecret / k8s Secret, etc.).
 
 ## Runtime environment variables
@@ -59,7 +62,10 @@ production build), in addition to `appsettings.json`:
 | `EconoFlow_ISSUER` | JWT issuer. | no (falls back to config) |
 | `EconoFlow_AUDIENCE` | JWT audience. | no (falls back to config) |
 | `EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN` | Secret for account-delete tokens — the controller throws if missing. | **yes** |
-| `SMTP2GO_API_KEY` | Outbound email — `Program.cs` throws in non-Development if missing. | **yes** |
+| `SMTP_HOST` / `SMTP_USERNAME` / `SMTP_PASSWORD` | Outbound e-mail over SMTP — `Program.cs` throws in non-Development when the SMTP settings are incomplete. | **yes** |
+| `SMTP_PORT` / `SMTP_SECURE_SOCKET` | SMTP port (default `587`) and TLS mode: `Auto`, `None`, `StartTls` or `SslOnConnect` (default `Auto`). | no |
+| `SMTP_FROM_ADDRESS` / `SMTP_FROM_NAME` | From address/name used for every outbound e-mail (defaults `noreply@econoflow.pt` / `NoReply EconoFlow`). | no |
+| `SMTP_TIMEOUT_SECONDS` | Timeout for SMTP connect/authenticate/send, in seconds (default `30`). | no |
 | `S3_ENDPOINT` / `S3_ACCESS_KEY` / `S3_SECRET_KEY` / `S3_BUCKET` | MinIO/S3 attachment storage (when `AttachmentStorage:Provider` is `Minio`). | when Minio |
 | `EconoFlow_TURNSTILE_SECRET_KEY` / `EconoFlow_TURNSTILE_SITE_KEY` | Cloudflare Turnstile. | when used |
 | `EconoFlow_EXPO_PUSH_ACCESS_TOKEN` | Expo push notifications. | when used |
