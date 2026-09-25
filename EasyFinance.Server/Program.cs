@@ -3,6 +3,7 @@ using EasyFinance.Application;
 using EasyFinance.Application.BackgroundServices.AttachmentCleanup;
 using EasyFinance.Application.BackgroundServices.NotifierBackgroundService;
 using EasyFinance.Application.Features.AttachmentService;
+using EasyFinance.Application.Features.EmailService;
 using EasyFinance.Application.Features.ExpoPushTokenService;
 using EasyFinance.Application.Features.FeatureRolloutService;
 using EasyFinance.Application.Features.TurnstileService;
@@ -23,7 +24,6 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Newtonsoft.Json.Converters;
 using Serilog;
-using Smtp2Go.Api;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -104,11 +104,27 @@ builder.Services.AddControllers(config =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwagger();
 
-var smtp2GoApiKey = Environment.GetEnvironmentVariable("SMTP2GO_API_KEY");
-if (!builder.Environment.IsDevelopment() && string.IsNullOrEmpty(smtp2GoApiKey))
-    throw new InvalidOperationException("SMTP2GO_API_KEY environment variable is required");
-builder.Services.AddSingleton<IApiService, Smtp2GoApiService>(x
-    => new Smtp2GoApiService(smtp2GoApiKey ?? string.Empty));
+// Outbound e-mail (SMTP). Every value can be overridden through an environment
+// variable so a Kubernetes deployment only needs environment/Secret
+// configuration: SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD,
+// SMTP_SECURE_SOCKET, SMTP_FROM_ADDRESS, SMTP_FROM_NAME, SMTP_TIMEOUT_SECONDS
+// (see SmtpSettings).
+var smtpSettings = SmtpSettings.Resolve(builder.Configuration, Environment.GetEnvironmentVariable);
+var smtpValidation = smtpSettings.Validate;
+if (!builder.Environment.IsDevelopment() && smtpValidation.Failed)
+    throw new InvalidOperationException($"Invalid SMTP configuration: {string.Join(" ", smtpValidation.Messages.Select(message => message.Description))}");
+
+builder.Services.Configure<SmtpSettings>(options =>
+{
+    options.Host = smtpSettings.Host;
+    options.Port = smtpSettings.Port;
+    options.Username = smtpSettings.Username;
+    options.Password = smtpSettings.Password;
+    options.SecureSocket = smtpSettings.SecureSocket;
+    options.FromAddress = smtpSettings.FromAddress;
+    options.FromName = smtpSettings.FromName;
+    options.TimeoutSeconds = smtpSettings.TimeoutSeconds;
+});
 
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
