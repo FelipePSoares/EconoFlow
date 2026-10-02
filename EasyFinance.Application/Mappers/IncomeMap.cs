@@ -20,7 +20,8 @@ namespace EasyFinance.Application.Mappers
                 Id = income.Id,
                 Name = income.Name,
                 Amount = income.Amount,
-                Date = income.Date
+                Date = income.Date,
+                Attachments = income.Attachments.ToAttachmentDTO()
             };
         }
 
@@ -32,7 +33,8 @@ namespace EasyFinance.Application.Mappers
             {
                 Name = income.Name,
                 Amount = income.Amount,
-                Date = income.Date
+                Date = income.Date,
+                TemporaryAttachmentIds = []
             };
         }
 

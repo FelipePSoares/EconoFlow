@@ -5,10 +5,10 @@ import { useProjectStore } from '../store/projectStore';
 import { addBreadcrumb } from '../monitoring/sentry';
 import { queryClient } from './queryClient';
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://localhost:7003';
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://localhost:7003';
 
 export const apiClient = axios.create({
-  baseURL: BASE_URL,
+  baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -88,7 +88,7 @@ apiClient.interceptors.response.use(
 
     try {
       const response = await axios.post<{ accessToken: string; refreshToken: string }>(
-        `${BASE_URL}/api/AccessControl/mobile/refresh-token`,
+        `${API_BASE_URL}/api/AccessControl/mobile/refresh-token`,
         {
           accessToken: useAuthStore.getState().accessToken,
           refreshToken,

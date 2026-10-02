@@ -1,4 +1,5 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NgClass } from '@angular/common';
 import { AfterViewInit, Component, DestroyRef, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -16,12 +17,15 @@ import { Moment } from 'moment';
 import { IncomeService } from '../../../core/services/income.service';
 import { IncomeDto } from '../models/income-dto';
 import { IncomePatchModel } from '../models/income-patch-model';
+import { Attachment } from '../../../core/models/attachment';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { formatDate, toLocalDate, toUtcMomentDate } from '../../../core/utils/date';
 import { minDateValidator, getMinAllowedDate } from '../../../core/utils/custom-validators/min-date-validator';
 import { GlobalService } from '../../../core/services/global.service';
 import { CurrentDateService } from '../../../core/services/current-date.service';
+import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.component';
+import { ATTACHMENT_ACCEPT_ATTRIBUTE, validateAttachmentFile } from '../../../core/utils/attachment-policy';
 
 @Component({
     selector: 'app-add-income',
@@ -34,6 +38,7 @@ import { CurrentDateService } from '../../../core/services/current-date.service'
     MatIconModule,
     MatDatepickerModule,
     CurrencyMaskModule,
+    NgClass,
     TranslateModule
 ],
     templateUrl: './add-income.component.html',
@@ -49,10 +54,13 @@ export class AddIncomeComponent implements OnInit, AfterViewInit {
   private dateAdapter = inject(DateAdapter<Date>);
   private translateService = inject(TranslateService);
   private destroyRef = inject(DestroyRef);
+  private snackBar = inject(SnackbarComponent);
 
   private currentDate!: Moment;
   private editingIncome: IncomeDto | null = null;
+
   incomeForm!: FormGroup;
+  readonly attachmentAccept = ATTACHMENT_ACCEPT_ATTRIBUTE;
   isSaving = false;
   httpErrors = false;
   errors!: Record<string, string[]>;
@@ -75,7 +83,14 @@ export class AddIncomeComponent implements OnInit, AfterViewInit {
   @Output()
   canceled = new EventEmitter<void>();
 
+  attachments: Attachment[] = [];
+  pendingAttachments: Attachment[] = [];
+  attachmentUploadPercent = 0;
+  isAttachmentOperationInProgress = false;
+
   @ViewChild('nameInput') nameInput?: ElementRef<HTMLInputElement>;
+
+  @ViewChild('attachmentInput') attachmentInput?: ElementRef<HTMLInputElement>;
 
   constructor() {
     this.thousandSeparator = this.globalService.groupSeparator;
@@ -93,6 +108,9 @@ export class AddIncomeComponent implements OnInit, AfterViewInit {
     this.editingIncome = this.income && !this.isNewEntity(this.income.id)
       ? structuredClone(this.income)
       : null;
+
+    this.attachments = this.editingIncome?.attachments ?? [];
+    this.pendingAttachments = [];
 
     const initialDate = this.editingIncome?.date
       ? toUtcMomentDate(this.editingIncome.date)
@@ -133,6 +151,10 @@ export class AddIncomeComponent implements OnInit, AfterViewInit {
       updatedIncome.name = name;
       updatedIncome.date = toLocalDate(date);
       updatedIncome.amount = parsedAmount;
+      updatedIncome.temporaryAttachmentIds = [
+        ...(this.editingIncome.temporaryAttachmentIds ?? []),
+        ...this.pendingAttachments.map(attachment => attachment.id)
+      ];
 
       const patch = compare(
         IncomePatchModel.fromIncome(this.editingIncome),
@@ -164,7 +186,9 @@ export class AddIncomeComponent implements OnInit, AfterViewInit {
       id: '',
       name: name,
       date: date as unknown as Date,
-      amount: parsedAmount
+      amount: parsedAmount,
+      attachments: [],
+      temporaryAttachmentIds: this.pendingAttachments.map(attachment => attachment.id)
     }) as IncomeDto;
 
     this.incomeService.add(this.projectId, newIncome).subscribe({
@@ -183,6 +207,108 @@ export class AddIncomeComponent implements OnInit, AfterViewInit {
 
   getFormFieldErrors(fieldName: string): string[] {
     return this.errorMessageService.getFormFieldErrors(this.incomeForm, fieldName);
+  }
+
+  async onAttachmentsSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+
+    if (files.length === 0) {
+      return;
+    }
+
+    this.isAttachmentOperationInProgress = true;
+    this.attachmentUploadPercent = 0;
+
+    try {
+      for (const file of files) {
+        if (!this.isAttachmentAllowed(file)) {
+          continue;
+        }
+
+        await this.uploadTemporaryAttachment(file);
+      }
+    } finally {
+      this.isAttachmentOperationInProgress = false;
+      this.attachmentUploadPercent = 0;
+
+      if (this.attachmentInput?.nativeElement) {
+        this.attachmentInput.nativeElement.value = '';
+      }
+    }
+  }
+
+  removeAttachment(attachment: Attachment): void {
+    if (attachment.isTemporary || this.pendingAttachments.some(pending => pending.id === attachment.id)) {
+      this.pendingAttachments = this.pendingAttachments.filter(pending => pending.id !== attachment.id);
+      return;
+    }
+
+    const incomeId = this.editingIncome?.id;
+    if (!incomeId) {
+      return;
+    }
+
+    this.incomeService.removeAttachment(this.projectId, incomeId, attachment.id).subscribe({
+      next: () => {
+        this.attachments = this.attachments.filter(existing => existing.id !== attachment.id);
+
+        if (this.editingIncome) {
+          this.editingIncome.attachments = this.attachments;
+        }
+      },
+      error: () => this.snackBar.openErrorSnackbar(this.translateService.instant('IncomeAttachmentDeleteFailed'))
+    });
+  }
+
+  getAttachmentDownloadUrl(attachment: Attachment): string | null {
+    const incomeId = this.editingIncome?.id;
+
+    if (!incomeId || !attachment.id || attachment.isTemporary) {
+      return null;
+    }
+
+    return this.incomeService.getAttachmentDownloadUrl(this.projectId, incomeId, attachment.id);
+  }
+
+  get attachmentProgressWidthClass(): string {
+    return 'progress-width-' + Math.round(this.attachmentUploadPercent / 5) * 5;
+  }
+
+  private isAttachmentAllowed(file: File): boolean {
+    const rejection = validateAttachmentFile(file);
+
+    if (rejection === 'invalidType') {
+      this.snackBar.openErrorSnackbar(this.translateService.instant('IncomeAttachmentInvalidFileType'));
+      return false;
+    }
+
+    if (rejection === 'tooLarge') {
+      this.snackBar.openErrorSnackbar(this.translateService.instant('IncomeAttachmentFileSizeExceeded'));
+      return false;
+    }
+
+    return true;
+  }
+
+  private uploadTemporaryAttachment(file: File): Promise<void> {
+    return new Promise<void>(resolve => {
+      this.incomeService.uploadTemporaryAttachmentWithProgress(this.projectId, file).subscribe({
+        next: state => {
+          if (state.kind === 'progress') {
+            this.attachmentUploadPercent = state.percent;
+            return;
+          }
+
+          this.pendingAttachments = [...this.pendingAttachments, state.body];
+        },
+        error: () => {
+          this.snackBar.openErrorSnackbar(this.translateService.instant('IncomeAttachmentUploadFailed'));
+          resolve();
+        },
+        complete: () => resolve()
+      });
+    });
   }
 
   get name() {

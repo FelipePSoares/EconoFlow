@@ -208,6 +208,30 @@ export const IncomeListScreen: React.FC<Props> = ({ route, navigation }) => {
                         <Text style={[styles.groupSub, { color: ink2 }]}>{dateStr}</Text>
                       </View>
 
+                      {canEdit && (
+                        <TouchableOpacity
+                          testID="income-attachments-button"
+                          style={styles.groupAction}
+                          accessibilityRole="button"
+                          accessibilityLabel={t('Attachments')}
+                          onPress={() => navigation.navigate('RecordAttachments', {
+                            kind: 'income',
+                            id: item.id,
+                            month,
+                            title: item.name,
+                          })}
+                        >
+                          <View style={styles.attachmentAction}>
+                            <MaterialCommunityIcons name="paperclip" size={18} color={customColors.income} />
+                            {(item.attachments?.length ?? 0) > 0 && (
+                              <Text style={[styles.attachmentCount, { color: customColors.income }]}>
+                                {item.attachments.length}
+                              </Text>
+                            )}
+                          </View>
+                        </TouchableOpacity>
+                      )}
+
                       <Text style={[styles.groupAmt, { color: customColors.income }]}>
                         +{sym} {fmt(item.amount)}
                       </Text>
@@ -291,4 +315,6 @@ const styles = StyleSheet.create({
   groupSub:    { fontSize: 11.5 },
   groupAmt:    { fontSize: 13.5, fontWeight: '800' },
   groupAction: { padding: 4 },
+  attachmentAction: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  attachmentCount: { fontSize: 11.5, fontWeight: '800' },
 });

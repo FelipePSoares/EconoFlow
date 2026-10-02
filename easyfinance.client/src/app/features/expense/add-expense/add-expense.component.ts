@@ -31,6 +31,7 @@ import { CategoryDto } from '../../category/models/category-dto';
 import { MatSelect, MatSelectModule } from '@angular/material/select';
 import { AttachmentType } from '../../../core/enums/attachment-type';
 import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.component';
+import { ATTACHMENT_ACCEPT_ATTRIBUTE, validateAttachmentFile } from '../../../core/utils/attachment-policy';
 import { Expense } from '../../../core/models/expense';
 import { ProjectService } from '../../../core/services/project.service';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -60,17 +61,6 @@ import { PageModalComponent, PageModalDialogData } from '../../../core/component
     styleUrl: './add-expense.component.css'
 })
 export class AddExpenseComponent implements OnInit, AfterViewInit {
-  private readonly maxAttachmentSizeBytes = 10 * 1024 * 1024;
-  private readonly allowedProofMimeTypes = [
-    'application/pdf',
-    'image/jpeg',
-    'image/jpg',
-    'image/png',
-    'image/webp',
-    'image/heic',
-    'image/heif'
-  ];
-
   private expenseService = inject(ExpenseService);
   private categoryService = inject(CategoryService);
   private router = inject(Router);
@@ -92,6 +82,7 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
   private initialCategoryId: string | null = null;
   deductibleProofAttachment: ExpenseAttachmentDto | null = null;
   pendingDeductibleProofAttachment: ExpenseAttachmentDto | null = null;
+  readonly attachmentAccept = ATTACHMENT_ACCEPT_ATTRIBUTE;
   pendingDeductibleProofFileName: string | null = null;
   expenseForm!: FormGroup;
   categories: CategoryDto[] = [];
@@ -410,13 +401,15 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
     if (!file)
       return;
 
-    if (!this.allowedProofMimeTypes.includes(file.type)) {
+    const rejection = validateAttachmentFile(file);
+
+    if (rejection === 'invalidType') {
       this.snackBar.openErrorSnackbar(this.translateService.instant('DeductibleProofInvalidFileType'));
       inputElement.value = '';
       return;
     }
 
-    if (file.size > this.maxAttachmentSizeBytes) {
+    if (rejection === 'tooLarge') {
       this.snackBar.openErrorSnackbar(this.translateService.instant('DeductibleProofFileSizeExceeded'));
       inputElement.value = '';
       return;

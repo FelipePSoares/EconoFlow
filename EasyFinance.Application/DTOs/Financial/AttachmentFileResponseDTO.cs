@@ -2,7 +2,7 @@ using System.IO;
 
 namespace EasyFinance.Application.DTOs.Financial
 {
-    public class ExpenseAttachmentFileResponseDTO
+    public class AttachmentFileResponseDTO
     {
         public string Name { get; set; } = string.Empty;
         public string ContentType { get; set; } = "application/octet-stream";

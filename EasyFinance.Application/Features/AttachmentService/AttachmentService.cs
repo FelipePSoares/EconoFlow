@@ -31,7 +31,7 @@ namespace EasyFinance.Application.Features.AttachmentService
             this.logger = logger;
         }
 
-        public async Task<AppResponse<ExpenseAttachmentResponseDTO>> UploadTemporaryAttachmentAsync(
+        public async Task<AppResponse<AttachmentResponseDTO>> UploadTemporaryAttachmentAsync(
             User user,
             Guid projectId,
             Stream content,
@@ -43,14 +43,14 @@ namespace EasyFinance.Application.Features.AttachmentService
             var safeContentType = NormalizeContentType(contentType);
             var validationResponse = ValidateTemporaryUploadInput(user, projectId, content, safeContentType, size, attachmentType);
             if (validationResponse.Failed)
-                return AppResponse<ExpenseAttachmentResponseDTO>.Error(validationResponse.Messages);
+                return AppResponse<AttachmentResponseDTO>.Error(validationResponse.Messages);
 
             var projectExists = await this.unitOfWork.ProjectRepository
                 .NoTrackable()
                 .AnyAsync(project => project.Id == projectId);
 
             if (!projectExists)
-                return AppResponse<ExpenseAttachmentResponseDTO>.Error(nameof(projectId), ValidationMessages.ProjectNotFound);
+                return AppResponse<AttachmentResponseDTO>.Error(nameof(projectId), ValidationMessages.ProjectNotFound);
 
             var safeFileName = NormalizeFileName(fileName);
 
@@ -75,12 +75,12 @@ namespace EasyFinance.Application.Features.AttachmentService
                 if (saveAttachmentResponse.Failed)
                 {
                     await SafeDeleteFileAsync(createdStorageKey);
-                    return AppResponse<ExpenseAttachmentResponseDTO>.Error(saveAttachmentResponse.Messages);
+                    return AppResponse<AttachmentResponseDTO>.Error(saveAttachmentResponse.Messages);
                 }
 
                 await this.unitOfWork.CommitAsync();
 
-                return AppResponse<ExpenseAttachmentResponseDTO>.Success(temporaryAttachment.ToExpenseAttachmentDTO());
+                return AppResponse<AttachmentResponseDTO>.Success(temporaryAttachment.ToAttachmentDTO());
             }
             catch
             {
@@ -223,7 +223,7 @@ namespace EasyFinance.Application.Features.AttachmentService
             return AppResponse.Success();
         }
 
-        public async Task<AppResponse<ExpenseAttachmentResponseDTO>> UploadExpenseAttachmentAsync(
+        public async Task<AppResponse<AttachmentResponseDTO>> UploadExpenseAttachmentAsync(
             User user,
             Guid projectId,
             Guid categoryId,
@@ -237,7 +237,7 @@ namespace EasyFinance.Application.Features.AttachmentService
             var safeContentType = NormalizeContentType(contentType);
             var validationResponse = ValidateUploadInput(user, projectId, categoryId, expenseId, content, safeContentType, size, attachmentType);
             if (validationResponse.Failed)
-                return AppResponse<ExpenseAttachmentResponseDTO>.Error(validationResponse.Messages);
+                return AppResponse<AttachmentResponseDTO>.Error(validationResponse.Messages);
 
             var expense = await GetExpenseAsync(projectId, categoryId, expenseId, trackChanges: true);
 
@@ -275,7 +275,7 @@ namespace EasyFinance.Application.Features.AttachmentService
                 if (saveAttachmentResponse.Failed)
                 {
                     await SafeDeleteFileAsync(createdStorageKey);
-                    return AppResponse<ExpenseAttachmentResponseDTO>.Error(saveAttachmentResponse.Messages);
+                    return AppResponse<AttachmentResponseDTO>.Error(saveAttachmentResponse.Messages);
                 }
 
                 await this.unitOfWork.CommitAsync();
@@ -283,7 +283,7 @@ namespace EasyFinance.Application.Features.AttachmentService
                 if (existingDeductibleProof != null)
                     await SafeDeleteFileAsync(existingDeductibleProof.StorageKey);
 
-                return AppResponse<ExpenseAttachmentResponseDTO>.Success(attachment.ToExpenseAttachmentDTO());
+                return AppResponse<AttachmentResponseDTO>.Success(attachment.ToAttachmentDTO());
             }
             catch
             {
@@ -292,7 +292,7 @@ namespace EasyFinance.Application.Features.AttachmentService
             }
         }
 
-        public async Task<AppResponse<ExpenseAttachmentResponseDTO>> UploadExpenseItemAttachmentAsync(
+        public async Task<AppResponse<AttachmentResponseDTO>> UploadExpenseItemAttachmentAsync(
             User user,
             Guid projectId,
             Guid categoryId,
@@ -307,10 +307,10 @@ namespace EasyFinance.Application.Features.AttachmentService
             var safeContentType = NormalizeContentType(contentType);
             var validationResponse = ValidateUploadInput(user, projectId, categoryId, expenseId, content, safeContentType, size, attachmentType);
             if (validationResponse.Failed)
-                return AppResponse<ExpenseAttachmentResponseDTO>.Error(validationResponse.Messages);
+                return AppResponse<AttachmentResponseDTO>.Error(validationResponse.Messages);
 
             if (expenseItemId == Guid.Empty)
-                return AppResponse<ExpenseAttachmentResponseDTO>.Error(nameof(expenseItemId), ValidationMessages.InvalidExpenseItemId);
+                return AppResponse<AttachmentResponseDTO>.Error(nameof(expenseItemId), ValidationMessages.InvalidExpenseItemId);
 
             var expenseItem = await GetExpenseItemAsync(projectId, categoryId, expenseId, expenseItemId, trackChanges: true);
 
@@ -338,12 +338,12 @@ namespace EasyFinance.Application.Features.AttachmentService
                 if (saveAttachmentResponse.Failed)
                 {
                     await SafeDeleteFileAsync(createdStorageKey);
-                    return AppResponse<ExpenseAttachmentResponseDTO>.Error(saveAttachmentResponse.Messages);
+                    return AppResponse<AttachmentResponseDTO>.Error(saveAttachmentResponse.Messages);
                 }
 
                 await this.unitOfWork.CommitAsync();
 
-                return AppResponse<ExpenseAttachmentResponseDTO>.Success(attachment.ToExpenseAttachmentDTO());
+                return AppResponse<AttachmentResponseDTO>.Success(attachment.ToAttachmentDTO());
             }
             catch
             {
@@ -352,14 +352,14 @@ namespace EasyFinance.Application.Features.AttachmentService
             }
         }
 
-        public async Task<AppResponse<ExpenseAttachmentFileResponseDTO>> GetExpenseAttachmentAsync(
+        public async Task<AppResponse<AttachmentFileResponseDTO>> GetExpenseAttachmentAsync(
             Guid projectId,
             Guid categoryId,
             Guid expenseId,
             Guid attachmentId)
         {
             if (attachmentId == Guid.Empty)
-                return AppResponse<ExpenseAttachmentFileResponseDTO>.Error(nameof(attachmentId), ValidationMessages.InvalidAttachmentId);
+                return AppResponse<AttachmentFileResponseDTO>.Error(nameof(attachmentId), ValidationMessages.InvalidAttachmentId);
 
             var expense = await GetExpenseAsync(projectId, categoryId, expenseId, trackChanges: false);
             var attachment = expense.Attachments.FirstOrDefault(a => a.Id == attachmentId)
@@ -367,7 +367,7 @@ namespace EasyFinance.Application.Features.AttachmentService
 
             var stream = await this.attachmentStorageService.OpenReadAsync(attachment.StorageKey);
 
-            return AppResponse<ExpenseAttachmentFileResponseDTO>.Success(new ExpenseAttachmentFileResponseDTO()
+            return AppResponse<AttachmentFileResponseDTO>.Success(new AttachmentFileResponseDTO()
             {
                 Name = attachment.Name,
                 ContentType = attachment.ContentType,
@@ -375,7 +375,7 @@ namespace EasyFinance.Application.Features.AttachmentService
             });
         }
 
-        public async Task<AppResponse<ExpenseAttachmentFileResponseDTO>> GetExpenseItemAttachmentAsync(
+        public async Task<AppResponse<AttachmentFileResponseDTO>> GetExpenseItemAttachmentAsync(
             Guid projectId,
             Guid categoryId,
             Guid expenseId,
@@ -383,10 +383,10 @@ namespace EasyFinance.Application.Features.AttachmentService
             Guid attachmentId)
         {
             if (expenseItemId == Guid.Empty)
-                return AppResponse<ExpenseAttachmentFileResponseDTO>.Error(nameof(expenseItemId), ValidationMessages.InvalidExpenseItemId);
+                return AppResponse<AttachmentFileResponseDTO>.Error(nameof(expenseItemId), ValidationMessages.InvalidExpenseItemId);
 
             if (attachmentId == Guid.Empty)
-                return AppResponse<ExpenseAttachmentFileResponseDTO>.Error(nameof(attachmentId), ValidationMessages.InvalidAttachmentId);
+                return AppResponse<AttachmentFileResponseDTO>.Error(nameof(attachmentId), ValidationMessages.InvalidAttachmentId);
 
             var expenseItem = await GetExpenseItemAsync(projectId, categoryId, expenseId, expenseItemId, trackChanges: false);
             var attachment = expenseItem.Attachments.FirstOrDefault(a => a.Id == attachmentId)
@@ -394,7 +394,7 @@ namespace EasyFinance.Application.Features.AttachmentService
 
             var stream = await this.attachmentStorageService.OpenReadAsync(attachment.StorageKey);
 
-            return AppResponse<ExpenseAttachmentFileResponseDTO>.Success(new ExpenseAttachmentFileResponseDTO()
+            return AppResponse<AttachmentFileResponseDTO>.Success(new AttachmentFileResponseDTO()
             {
                 Name = attachment.Name,
                 ContentType = attachment.ContentType,
@@ -441,6 +441,153 @@ namespace EasyFinance.Application.Features.AttachmentService
                 ?? throw new KeyNotFoundException(ValidationMessages.AttachmentNotFound);
 
             expenseItem.RemoveAttachment(attachment);
+            this.unitOfWork.AttachmentRepository.Delete(attachment);
+            await this.unitOfWork.CommitAsync();
+            await SafeDeleteFileAsync(attachment.StorageKey);
+
+            return AppResponse.Success();
+        }
+
+        public async Task<AppResponse> LinkTemporaryAttachmentsToIncomeAsync(
+            Income income,
+            User user,
+            ICollection<Guid> temporaryAttachmentIds)
+        {
+            if (temporaryAttachmentIds == null || temporaryAttachmentIds.Count == 0)
+                return AppResponse.Success();
+
+            if (income == null)
+                return AppResponse.Error(nameof(income), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(income)));
+
+            if (user == null)
+                return AppResponse.Error(nameof(user), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(user)));
+
+            var temporaryIds = temporaryAttachmentIds
+                .Where(id => id != Guid.Empty)
+                .Distinct()
+                .ToList();
+
+            if (temporaryIds.Count == 0)
+                return AppResponse.Success();
+
+            var temporaryAttachments = await this.unitOfWork.AttachmentRepository
+                .Trackable()
+                .Include(attachment => attachment.CreatedBy)
+                .Where(attachment =>
+                    temporaryIds.Contains(attachment.Id) &&
+                    attachment.IsTemporary &&
+                    attachment.ExpenseId == null &&
+                    attachment.ExpenseItemId == null &&
+                    attachment.IncomeId == null &&
+                    attachment.CreatedBy.Id == user.Id)
+                .ToListAsync();
+
+            if (temporaryAttachments.Count != temporaryIds.Count)
+                return AppResponse.Error(nameof(temporaryAttachmentIds), ValidationMessages.TemporaryAttachmentNotFoundOrInvalid);
+
+            foreach (var temporaryAttachment in temporaryAttachments)
+            {
+                temporaryAttachment.SetIsTemporary(false);
+                temporaryAttachment.SetExpenseId(null);
+                temporaryAttachment.SetExpenseItemId(null);
+
+                // Adding to the income's collection lets EF assign the IncomeId foreign key when
+                // the caller commits, so the income and its attachments are persisted together.
+                income.AddAttachment(temporaryAttachment);
+            }
+
+            return AppResponse.Success();
+        }
+
+        public async Task<AppResponse<AttachmentResponseDTO>> UploadIncomeAttachmentAsync(
+            User user,
+            Guid projectId,
+            Guid incomeId,
+            Stream content,
+            string fileName,
+            string contentType,
+            long size)
+        {
+            var safeContentType = NormalizeContentType(contentType);
+            var validationResponse = ValidateIncomeUploadInput(user, projectId, incomeId, content, safeContentType, size);
+            if (validationResponse.Failed)
+                return AppResponse<AttachmentResponseDTO>.Error(validationResponse.Messages);
+
+            var income = await GetIncomeAsync(projectId, incomeId, trackChanges: true);
+
+            var safeFileName = NormalizeFileName(fileName);
+
+            if (content.CanSeek)
+                content.Seek(0, SeekOrigin.Begin);
+
+            string createdStorageKey = null;
+            try
+            {
+                createdStorageKey = await this.attachmentStorageService.SaveAsync(content, safeFileName);
+
+                var attachment = new Attachment(
+                    name: safeFileName,
+                    contentType: safeContentType,
+                    size: size,
+                    storageKey: createdStorageKey,
+                    attachmentType: AttachmentType.General,
+                    incomeId: income.Id,
+                    createdBy: user);
+
+                income.AddAttachment(attachment);
+                var saveAttachmentResponse = this.unitOfWork.AttachmentRepository.InsertOrUpdate(attachment);
+                if (saveAttachmentResponse.Failed)
+                {
+                    await SafeDeleteFileAsync(createdStorageKey);
+                    return AppResponse<AttachmentResponseDTO>.Error(saveAttachmentResponse.Messages);
+                }
+
+                await this.unitOfWork.CommitAsync();
+
+                return AppResponse<AttachmentResponseDTO>.Success(attachment.ToAttachmentDTO());
+            }
+            catch
+            {
+                await SafeDeleteFileAsync(createdStorageKey);
+                throw;
+            }
+        }
+
+        public async Task<AppResponse<AttachmentFileResponseDTO>> GetIncomeAttachmentAsync(
+            Guid projectId,
+            Guid incomeId,
+            Guid attachmentId)
+        {
+            if (attachmentId == Guid.Empty)
+                return AppResponse<AttachmentFileResponseDTO>.Error(nameof(attachmentId), ValidationMessages.InvalidAttachmentId);
+
+            var income = await GetIncomeAsync(projectId, incomeId, trackChanges: false);
+            var attachment = income.Attachments.FirstOrDefault(a => a.Id == attachmentId)
+                ?? throw new KeyNotFoundException(ValidationMessages.AttachmentNotFound);
+
+            var stream = await this.attachmentStorageService.OpenReadAsync(attachment.StorageKey);
+
+            return AppResponse<AttachmentFileResponseDTO>.Success(new AttachmentFileResponseDTO()
+            {
+                Name = attachment.Name,
+                ContentType = attachment.ContentType,
+                Content = stream
+            });
+        }
+
+        public async Task<AppResponse> DeleteIncomeAttachmentAsync(
+            Guid projectId,
+            Guid incomeId,
+            Guid attachmentId)
+        {
+            if (attachmentId == Guid.Empty)
+                return AppResponse.Error(nameof(attachmentId), ValidationMessages.InvalidAttachmentId);
+
+            var income = await GetIncomeAsync(projectId, incomeId, trackChanges: true);
+            var attachment = income.Attachments.FirstOrDefault(a => a.Id == attachmentId)
+                ?? throw new KeyNotFoundException(ValidationMessages.AttachmentNotFound);
+
+            income.RemoveAttachment(attachment);
             this.unitOfWork.AttachmentRepository.Delete(attachment);
             await this.unitOfWork.CommitAsync();
             await SafeDeleteFileAsync(attachment.StorageKey);
@@ -510,6 +657,34 @@ namespace EasyFinance.Application.Features.AttachmentService
             return response;
         }
 
+        private static AppResponse ValidateIncomeUploadInput(
+            User user,
+            Guid projectId,
+            Guid incomeId,
+            Stream content,
+            string contentType,
+            long size)
+        {
+            var response = AppResponse.Success();
+
+            if (user == null)
+                response.AddErrorMessage(nameof(user), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(user)));
+            if (projectId == Guid.Empty)
+                response.AddErrorMessage(nameof(projectId), ValidationMessages.InvalidProjectId);
+            if (incomeId == Guid.Empty)
+                response.AddErrorMessage(nameof(incomeId), ValidationMessages.InvalidIncomeId);
+            if (content == null)
+                response.AddErrorMessage(nameof(content), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(content)));
+            if (size <= 0)
+                response.AddErrorMessage(nameof(size), ValidationMessages.AttachmentFileIsEmpty);
+            if (size > AttachmentUploadPolicy.MaxAttachmentSizeBytes)
+                response.AddErrorMessage(nameof(size), string.Format(ValidationMessages.AttachmentFileSizeExceeded, AttachmentUploadPolicy.MaxAttachmentSizeBytes / (1024 * 1024)));
+            if (!AttachmentUploadPolicy.IsAllowedContentType(contentType))
+                response.AddErrorMessage(nameof(contentType), string.Format(ValidationMessages.AttachmentContentTypeNotSupported, AttachmentUploadPolicy.AllowedContentTypesDescription));
+
+            return response;
+        }
+
         private async Task<Expense> GetExpenseAsync(Guid projectId, Guid categoryId, Guid expenseId, bool trackChanges)
         {
             var projectQuery = trackChanges
@@ -541,6 +716,21 @@ namespace EasyFinance.Application.Features.AttachmentService
                 .FirstOrDefaultAsync();
 
             return expenseItem ?? throw new KeyNotFoundException(ValidationMessages.ExpenseItemNotFound);
+        }
+
+        private async Task<Income> GetIncomeAsync(Guid projectId, Guid incomeId, bool trackChanges)
+        {
+            var projectQuery = trackChanges
+                ? this.unitOfWork.ProjectRepository.Trackable()
+                : this.unitOfWork.ProjectRepository.NoTrackable();
+
+            var income = await projectQuery
+                .Where(project => project.Id == projectId)
+                .SelectMany(project => project.Incomes.Where(income => income.Id == incomeId))
+                .Include(income => income.Attachments)
+                .FirstOrDefaultAsync();
+
+            return income ?? throw new KeyNotFoundException(ValidationMessages.IncomeNotFound);
         }
 
         private static string NormalizeFileName(string fileName)

@@ -1,4 +1,5 @@
 import { Income } from "src/app/core/models/income";
+import { Attachment } from "src/app/core/models/attachment";
 import { toLocalDate } from "src/app/core/utils/date";
 
 export class IncomeDto {
@@ -6,6 +7,8 @@ export class IncomeDto {
   name!: string;
   date!: Date;
   amount!: number;
+  attachments!: Attachment[];
+  temporaryAttachmentIds!: string[];
 
   static fromIncome(income: Income): IncomeDto {
     const dto = new IncomeDto();
@@ -13,6 +16,8 @@ export class IncomeDto {
     dto.name = income.name;
     dto.date = toLocalDate(income.date);
     dto.amount = income.amount;
+    dto.attachments = income.attachments ?? [];
+    dto.temporaryAttachmentIds = income.temporaryAttachmentIds ?? [];
     return dto;
   }
 

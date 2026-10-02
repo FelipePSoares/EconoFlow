@@ -196,3 +196,29 @@ describe('i18n locale completeness', () => {
     expect((pt as LocaleMap)['ErrorNewPasswordSameAsCurrent']).toBeTruthy();
   });
 });
+
+describe('i18n attachment keys', () => {
+  const attachmentKeys = [
+    'Attachments',
+    'LabelAddAttachment',
+    'LabelNoAttachments',
+    'AttachmentUploadFailed',
+    'AttachmentDeleteFailed',
+    'AttachmentOpenFailed',
+    'AttachmentFileSizeExceeded',
+    'AttachmentInvalidFileType',
+    'AttachmentChooseFile',
+    'AttachmentTakePhoto',
+    'ConfirmDeleteAttachment',
+  ];
+
+  attachmentKeys.forEach((key) => {
+    it(`en.json contains ${key}`, () => {
+      expect((en as LocaleMap)[key]).toBeTruthy();
+    });
+
+    it(`pt.json contains ${key}`, () => {
+      expect((pt as LocaleMap)[key]).toBeTruthy();
+    });
+  });
+});

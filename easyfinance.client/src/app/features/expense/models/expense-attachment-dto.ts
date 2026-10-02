@@ -1,4 +1,4 @@
-import { ExpenseAttachment } from "src/app/core/models/expense-attachment";
+import { Attachment } from "src/app/core/models/attachment";
 import { AttachmentType } from "../../../core/enums/attachment-type";
 
 export class ExpenseAttachmentDto {
@@ -9,7 +9,7 @@ export class ExpenseAttachmentDto {
   attachmentType!: AttachmentType;
   isTemporary!: boolean;
 
-  static fromExpenseAttachment(attachment: ExpenseAttachment): ExpenseAttachmentDto {
+  static fromExpenseAttachment(attachment: Attachment): ExpenseAttachmentDto {
     const dto = new ExpenseAttachmentDto();
     dto.id = attachment.id;
     dto.name = attachment.name;

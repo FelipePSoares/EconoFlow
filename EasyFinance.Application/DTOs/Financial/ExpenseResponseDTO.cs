@@ -7,6 +7,6 @@ namespace EasyFinance.Application.DTOs.Financial
     {
         public Guid Id { get; set; }
         public int Budget { get; set; }
-        public ICollection<ExpenseAttachmentResponseDTO> Attachments { get; set; } = new List<ExpenseAttachmentResponseDTO>();
+        public ICollection<AttachmentResponseDTO> Attachments { get; set; } = new List<AttachmentResponseDTO>();
     }
 }
