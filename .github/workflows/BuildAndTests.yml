@@ -240,8 +240,7 @@ jobs:
 
     - name: Run npm audit
       if: always()
-      continue-on-error: true
-      run: npm audit --audit-level=high
+      run: node ../scripts/audit-gate.mjs .
       working-directory: ./easyfinance.client
 
   mobile-check:
@@ -260,8 +259,11 @@ jobs:
             - 'econoflow-mobile/src/**'
             - 'econoflow-mobile/App.tsx'
             - 'econoflow-mobile/package.json'
+            - 'econoflow-mobile/package-lock.json'
             - 'econoflow-mobile/tsconfig.json'
             - 'econoflow-mobile/.eslintrc.js'
+            - 'scripts/audit-gate.mjs'
+            - 'docs/security-exceptions.md'
 
     - name: Install Node.js
       if: steps.mobile-changes.outputs.mobile == 'true'
@@ -294,6 +296,11 @@ jobs:
     - name: Run mobile unit tests
       if: steps.mobile-changes.outputs.mobile == 'true'
       run: npm test
+      working-directory: ./econoflow-mobile
+
+    - name: Run mobile dependency audit gate
+      if: steps.mobile-changes.outputs.mobile == 'true'
+      run: node ../scripts/audit-gate.mjs .
       working-directory: ./econoflow-mobile
 
   integration-tests:

@@ -790,7 +790,40 @@ Coverage target: ≥ 80% for all backend layers.
 
 ---
 
-## 15. Local Development Setup
+## 15. Dependency Security
+
+All third-party dependencies are scanned on every pull request in
+`.github/workflows/BuildAndTests.yml`:
+
+| Ecosystem | Gate | Where |
+|-----------|------|-------|
+| npm (`easyfinance.client`) | `node ../scripts/audit-gate.mjs .` | `unit-tests` job |
+| npm (`econoflow-mobile`) | `node ../scripts/audit-gate.mjs .` | `mobile-check` job |
+| NuGet | `dotnet list … package --vulnerable --include-transitive` | `build` job |
+
+`scripts/audit-gate.mjs` runs `npm audit --json` and **fails the build** for every
+`high` or `critical` advisory that is not recorded in
+[`docs/security-exceptions.md`](docs/security-exceptions.md). The exceptions file
+is the only accepted allow-list, and each row must state why the advisory cannot
+be patched from inside this repository (no fixed release upstream, or a fixed
+release that is ESM-only or otherwise incompatible with the current dependency
+chain). Prefer upgrading over adding a row.
+
+Because several of these advisories sit in packages whose own ranges exclude the
+patched release (`glob` pins `brace-expansion@^1.1.7`, `express` requests
+`qs@^6.14.0`, `@expo/plist` requests `@xmldom/xmldom@^0.8.8`), the patched
+releases are forced through the npm `overrides` block in each `package.json`.
+The lock files remain the authority for what installs, so `npm ci` — used by both
+CI and the production `Dockerfile` — reproduces the audited tree exactly.
+
+At the time of writing the deployed artefacts ship no vulnerable npm runtime code:
+the container runs the ASP.NET Core server and serves the pre-built Angular
+*browser* bundle from `wwwroot`, so the Angular SSR entry point, `express`, `qs`,
+`piscina`, `fast-uri`, `hono` and `js-yaml` never execute in production.
+
+---
+
+## 16. Local Development Setup
 
 ```bash
 # 1. Trust the .NET dev certificate (once per machine)

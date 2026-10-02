@@ -40,6 +40,10 @@ logs/
 TestResults/
 .reasonix/
 
+# Windows ACL repair artefacts produced by the DSH sandbox diagnostic
+.acl-recovery/
+.npm-cache/
+
 EasyFinance.Infrastructure/ValidationMessages.Designer.cs
 
 easyfinance.client/cypress/screenshots
