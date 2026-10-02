@@ -510,7 +510,9 @@ Configuration in `appsettings.json`:
 
 ## 11. Frontend — Angular SPA
 
-**Stack**: Angular 21, standalone components, Angular Material, `@ngx-translate`, `ng2-charts`, Moment.js adapter.
+**Stack**: Angular 22, standalone components, Angular Material, `@ngx-translate`, `ng2-charts`, Moment.js adapter.
+
+**Change detection is zoneless.** Angular 22 enables zoneless change detection by default and `app.config.ts` does not opt back into zone-based CD, so although `zone.js` is still bundled via `angular.json` it no longer drives change detection. Components use `ChangeDetectionStrategy.Eager` (checked whenever a tick's traversal reaches them, but they never *schedule* a tick themselves), which means **any state mutated outside an Angular-managed event — an RxJS/HTTP subscription callback, `setTimeout`, a promise continuation, a native listener — must be followed by `this.cdr.detectChanges()`** (`ChangeDetectorRef`), or the DOM will not repaint. Signal writes are the exception: they schedule their own tick. Incidental ticks do exist — `AsyncPipe`, `markForCheck`, and Material overlays (`ApplicationRef.attachView`) all schedule one — so the omission is easy to miss until a flow (like an upload whose success snackbar is suppressed) has no other tick source. This trap caused a real CI failure in the income attachment upload flow; `add-expense.component.ts` is the reference implementation, and its upload/delete/save handlers call `detectChanges()` after every async mutation.
 
 **Attachment upload policy**: the expense, expense-item and income upload surfaces all validate through `core/utils/attachment-policy.ts` (`MAX_ATTACHMENT_SIZE_BYTES`, `ALLOWED_ATTACHMENT_MIME_TYPES`, `validateAttachmentFile`, `ATTACHMENT_ACCEPT_ATTRIBUTE`), a client-side mirror of the backend `AttachmentUploadPolicy`. The client check is advisory — it only fails fast before spending bandwidth — and the server re-validates every upload.
 

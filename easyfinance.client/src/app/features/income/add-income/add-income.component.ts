@@ -1,6 +1,6 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgClass } from '@angular/common';
-import { AfterViewInit, Component, DestroyRef, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { compare } from 'fast-json-patch';
@@ -55,6 +55,7 @@ export class AddIncomeComponent implements OnInit, AfterViewInit {
   private translateService = inject(TranslateService);
   private destroyRef = inject(DestroyRef);
   private snackBar = inject(SnackbarComponent);
+  private cdr = inject(ChangeDetectorRef);
 
   private currentDate!: Moment;
   private editingIncome: IncomeDto | null = null;
@@ -87,6 +88,7 @@ export class AddIncomeComponent implements OnInit, AfterViewInit {
   pendingAttachments: Attachment[] = [];
   attachmentUploadPercent = 0;
   isAttachmentOperationInProgress = false;
+  private pendingUploads: File[] = [];
 
   @ViewChild('nameInput') nameInput?: ElementRef<HTMLInputElement>;
 
@@ -209,7 +211,7 @@ export class AddIncomeComponent implements OnInit, AfterViewInit {
     return this.errorMessageService.getFormFieldErrors(this.incomeForm, fieldName);
   }
 
-  async onAttachmentsSelected(event: Event): Promise<void> {
+  onAttachmentsSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const files = Array.from(input.files ?? []);
 
@@ -217,24 +219,63 @@ export class AddIncomeComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    const acceptedFiles = files.filter(file => this.isAttachmentAllowed(file));
+
+    if (acceptedFiles.length === 0) {
+      this.clearAttachmentInput();
+      return;
+    }
+
+    this.pendingUploads = acceptedFiles;
     this.isAttachmentOperationInProgress = true;
     this.attachmentUploadPercent = 0;
+    this.cdr.detectChanges();
 
-    try {
-      for (const file of files) {
-        if (!this.isAttachmentAllowed(file)) {
-          continue;
+    this.uploadNextAttachment();
+  }
+
+  private uploadNextAttachment(): void {
+    const file = this.pendingUploads.shift();
+
+    if (!file) {
+      this.finishAttachmentUploads();
+      return;
+    }
+
+    this.incomeService.uploadTemporaryAttachmentWithProgress(this.projectId, file).subscribe({
+      next: state => {
+        if (state.kind === 'progress') {
+          this.attachmentUploadPercent = state.percent;
+          this.cdr.detectChanges();
+          return;
         }
 
-        await this.uploadTemporaryAttachment(file);
-      }
-    } finally {
-      this.isAttachmentOperationInProgress = false;
-      this.attachmentUploadPercent = 0;
+        this.pendingAttachments = [...this.pendingAttachments, state.body];
+        this.attachmentUploadPercent = 100;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.snackBar.openErrorSnackbar(this.translateService.instant('IncomeAttachmentUploadFailed'));
 
-      if (this.attachmentInput?.nativeElement) {
-        this.attachmentInput.nativeElement.value = '';
-      }
+        // Keep going: one rejected file must not silently drop the rest of the selection.
+        // When the queue drains, uploadNextAttachment() runs finishAttachmentUploads().
+        this.uploadNextAttachment();
+      },
+      complete: () => this.uploadNextAttachment()
+    });
+  }
+
+  private finishAttachmentUploads(): void {
+    this.pendingUploads = [];
+    this.isAttachmentOperationInProgress = false;
+    this.attachmentUploadPercent = 0;
+    this.clearAttachmentInput();
+    this.cdr.detectChanges();
+  }
+
+  private clearAttachmentInput(): void {
+    if (this.attachmentInput?.nativeElement) {
+      this.attachmentInput.nativeElement.value = '';
     }
   }
 
@@ -256,8 +297,13 @@ export class AddIncomeComponent implements OnInit, AfterViewInit {
         if (this.editingIncome) {
           this.editingIncome.attachments = this.attachments;
         }
+
+        this.cdr.detectChanges();
       },
-      error: () => this.snackBar.openErrorSnackbar(this.translateService.instant('IncomeAttachmentDeleteFailed'))
+      error: () => {
+        this.snackBar.openErrorSnackbar(this.translateService.instant('IncomeAttachmentDeleteFailed'));
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -289,26 +335,6 @@ export class AddIncomeComponent implements OnInit, AfterViewInit {
     }
 
     return true;
-  }
-
-  private uploadTemporaryAttachment(file: File): Promise<void> {
-    return new Promise<void>(resolve => {
-      this.incomeService.uploadTemporaryAttachmentWithProgress(this.projectId, file).subscribe({
-        next: state => {
-          if (state.kind === 'progress') {
-            this.attachmentUploadPercent = state.percent;
-            return;
-          }
-
-          this.pendingAttachments = [...this.pendingAttachments, state.body];
-        },
-        error: () => {
-          this.snackBar.openErrorSnackbar(this.translateService.instant('IncomeAttachmentUploadFailed'));
-          resolve();
-        },
-        complete: () => resolve()
-      });
-    });
   }
 
   get name() {

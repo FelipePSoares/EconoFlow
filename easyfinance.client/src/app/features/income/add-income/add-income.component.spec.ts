@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { HttpEventType } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { MAT_MOMENT_DATE_FORMATS, provideMomentDateAdapter } from '@angular/material-moment-adapter';
@@ -171,50 +171,104 @@ describe('AddIncomeComponent attachments', () => {
     expect(fixture.nativeElement.querySelector('[data-testid="income-attachments-input"]')).not.toBeNull();
   });
 
-  it('should upload every selected file as a temporary attachment', async () => {
+  it('should upload every selected file as a temporary attachment', () => {
     setupComponent();
 
     const first = new File(['first'], 'payslip-1.pdf', { type: 'application/pdf' });
     const second = new File(['second'], 'payslip-2.pdf', { type: 'application/pdf' });
 
-    await component.onAttachmentsSelected(selectFiles(first, second));
+    component.onAttachmentsSelected(selectFiles(first, second));
+    fixture.detectChanges();
 
     expect(incomeServiceMock.uploadTemporaryAttachmentWithProgress).toHaveBeenCalledWith('project-1', first);
     expect(incomeServiceMock.uploadTemporaryAttachmentWithProgress).toHaveBeenCalledWith('project-1', second);
     expect(component.pendingAttachments.map(attachment => attachment.id)).toEqual(['temp-1', 'temp-2']);
   });
 
-  it('should reject an unsupported file type without uploading', async () => {
+  // The component must repaint itself from inside the upload callbacks — no test-side
+  // detectChanges() here, otherwise a missing ChangeDetectorRef.detectChanges() goes unnoticed.
+  it('should render the pending attachment and clear the in-progress state after the upload responds', () => {
+    setupComponent();
+
+    component.onAttachmentsSelected(selectFiles(new File(['x'], 'payslip.pdf', { type: 'application/pdf' })));
+
+    expect(component.pendingAttachments.length).toBe(1);
+    expect(component.isAttachmentOperationInProgress).toBeFalse();
+    expect(fixture.nativeElement.querySelector('[data-testid="income-attachment-pending"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="income-attachments-progress"]')).toBeNull();
+  });
+
+  it('should keep uploading the remaining files when one fails', () => {
+    setupComponent();
+
+    incomeServiceMock.uploadTemporaryAttachmentWithProgress.and.returnValues(
+      throwError(() => new Error('upload failed')),
+      of({ type: HttpEventType.Response, body: buildAttachment('temp-2', 'payslip-2.pdf', true) } as any)
+    );
+
+    component.onAttachmentsSelected(selectFiles(
+      new File(['a'], 'payslip-1.pdf', { type: 'application/pdf' }),
+      new File(['b'], 'payslip-2.pdf', { type: 'application/pdf' })
+    ));
+
+    expect(snackbarMock.openErrorSnackbar).toHaveBeenCalledWith('IncomeAttachmentUploadFailed');
+    expect(component.pendingAttachments.map(attachment => attachment.id)).toEqual(['temp-2']);
+    expect(component.isAttachmentOperationInProgress).toBeFalse();
+    expect(fixture.nativeElement.querySelector('[data-testid="income-attachments-progress"]')).toBeNull();
+  });
+
+  it('should clear the in-progress state when every upload fails', () => {
+    setupComponent();
+
+    incomeServiceMock.uploadTemporaryAttachmentWithProgress.and.returnValue(
+      throwError(() => new Error('upload failed'))
+    );
+
+    component.onAttachmentsSelected(selectFiles(
+      new File(['a'], 'payslip-1.pdf', { type: 'application/pdf' }),
+      new File(['b'], 'payslip-2.pdf', { type: 'application/pdf' })
+    ));
+
+    expect(incomeServiceMock.uploadTemporaryAttachmentWithProgress).toHaveBeenCalledTimes(2);
+    expect(snackbarMock.openErrorSnackbar).toHaveBeenCalledWith('IncomeAttachmentUploadFailed');
+    expect(component.pendingAttachments).toEqual([]);
+    expect(component.isAttachmentOperationInProgress).toBeFalse();
+  });
+
+  it('should reject an unsupported file type without uploading', () => {
     setupComponent();
 
     const file = new File(['plain'], 'notes.txt', { type: 'text/plain' });
 
-    await component.onAttachmentsSelected(selectFiles(file));
+    component.onAttachmentsSelected(selectFiles(file));
+    fixture.detectChanges();
 
     expect(incomeServiceMock.uploadTemporaryAttachmentWithProgress).not.toHaveBeenCalled();
     expect(component.pendingAttachments).toEqual([]);
     expect(snackbarMock.openErrorSnackbar).toHaveBeenCalledWith('IncomeAttachmentInvalidFileType');
   });
 
-  it('should reject a file larger than the maximum allowed size without uploading', async () => {
+  it('should reject a file larger than the maximum allowed size without uploading', () => {
     setupComponent();
 
     const oversized = new File(['x'], 'huge.pdf', { type: 'application/pdf' });
     Object.defineProperty(oversized, 'size', { value: 11 * 1024 * 1024, configurable: true });
 
-    await component.onAttachmentsSelected(selectFiles(oversized));
+    component.onAttachmentsSelected(selectFiles(oversized));
+    fixture.detectChanges();
 
     expect(incomeServiceMock.uploadTemporaryAttachmentWithProgress).not.toHaveBeenCalled();
     expect(snackbarMock.openErrorSnackbar).toHaveBeenCalledWith('IncomeAttachmentFileSizeExceeded');
   });
 
-  it('should report the unsupported type when a file is both unsupported and oversized', async () => {
+  it('should report the unsupported type when a file is both unsupported and oversized', () => {
     setupComponent();
 
     const file = new File(['x'], 'huge.txt', { type: 'text/plain' });
     Object.defineProperty(file, 'size', { value: 11 * 1024 * 1024, configurable: true });
 
-    await component.onAttachmentsSelected(selectFiles(file));
+    component.onAttachmentsSelected(selectFiles(file));
+    fixture.detectChanges();
 
     expect(snackbarMock.openErrorSnackbar).toHaveBeenCalledWith('IncomeAttachmentInvalidFileType');
     expect(snackbarMock.openErrorSnackbar).not.toHaveBeenCalledWith('IncomeAttachmentFileSizeExceeded');
