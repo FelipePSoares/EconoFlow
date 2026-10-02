@@ -5,6 +5,7 @@ import { DateAdapter } from '@angular/material/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialogRef } from '@angular/material/dialog';
 import { MatDialog } from '@angular/material/dialog';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { NavigationEnd, Router, UrlSegment } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -25,6 +26,7 @@ import { UserProjectDto } from '../../project/models/user-project-dto';
 import { AddIncomeComponent } from '../add-income/add-income.component';
 import { PlanAllocationDialogComponent } from '../plan-allocation-dialog/plan-allocation-dialog.component';
 import { IncomeDto } from '../models/income-dto';
+import { Attachment } from '../../../core/models/attachment';
 
 @Component({
   selector: 'app-list-incomes',
@@ -37,6 +39,7 @@ import { IncomeDto } from '../models/income-dto';
     CurrencyFormatPipe,
     AddIncomeComponent,
     SwipeDeleteRowComponent,
+    MatMenuModule,
     TranslateModule
   ],
   templateUrl: './list-incomes.component.html',
@@ -156,6 +159,11 @@ export class ListIncomesComponent implements OnInit {
 
   isEditingIncome(income: IncomeDto): boolean {
     return this.editingIncomeId === income.id;
+  }
+
+  /** Direct download of an income's attachment, so the list does not require opening the editor. */
+  getAttachmentDownloadUrl(income: IncomeDto, attachment: Attachment): string {
+    return this.incomeService.getAttachmentDownloadUrl(this.projectId, income.id, attachment.id);
   }
 
   swipeDelete(income: IncomeDto): void {

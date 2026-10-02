@@ -95,9 +95,14 @@
               <div
                 class="progress-bar progress-bar-striped progress-bar-animated"
                 [ngClass]="attachmentProgressWidthClass"
-                role="progressbar"></div>
+                role="progressbar"
+                [attr.aria-valuenow]="attachmentUploadPercent"
+                aria-valuemin="0"
+                aria-valuemax="100"></div>
             </div>
-            <small>{{ 'IncomeAttachmentUploading' | translate }}</small>
+            <small data-testid="income-attachments-progress-label">
+              {{ 'IncomeAttachmentUploading' | translate }}@if (attachmentUploadPercent > 0) { ({{ attachmentUploadPercent }}%) }
+            </small>
           </div>
         }
       </section>
