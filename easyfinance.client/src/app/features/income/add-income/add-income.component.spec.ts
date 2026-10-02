@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { HttpEventType } from '@angular/common/http';
+import type { UploadState } from '../../../core/types/upload-state';
 import { Router } from '@angular/router';
 import { MAT_MOMENT_DATE_FORMATS, provideMomentDateAdapter } from '@angular/material-moment-adapter';
 import { TranslateModule } from '@ngx-translate/core';
@@ -183,6 +184,32 @@ describe('AddIncomeComponent attachments', () => {
     expect(incomeServiceMock.uploadTemporaryAttachmentWithProgress).toHaveBeenCalledWith('project-1', first);
     expect(incomeServiceMock.uploadTemporaryAttachmentWithProgress).toHaveBeenCalledWith('project-1', second);
     expect(component.pendingAttachments.map(attachment => attachment.id)).toEqual(['temp-1', 'temp-2']);
+  });
+
+  it('should show the upload progress while the request is in flight', () => {
+    setupComponent();
+
+    const uploads = new Subject<UploadState<Attachment>>();
+    incomeServiceMock.uploadTemporaryAttachmentWithProgress.and.returnValue(uploads.asObservable());
+
+    component.onAttachmentsSelected(selectFiles(new File(['x'], 'payslip.pdf', { type: 'application/pdf' })));
+
+    uploads.next({ kind: 'progress', percent: 50 });
+
+    const progressBar = fixture.nativeElement.querySelector(
+      '[data-testid="income-attachments-progress"] .progress-bar'
+    );
+    expect(progressBar).not.toBeNull();
+    expect(progressBar.className).toContain('progress-width-50');
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="income-attachments-progress-label"]').textContent
+    ).toContain('50%');
+
+    uploads.next({ kind: 'done', body: buildAttachment('temp-1', 'payslip.pdf', true) });
+    uploads.complete();
+
+    expect(fixture.nativeElement.querySelector('[data-testid="income-attachments-progress"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="income-attachment-pending"]')).not.toBeNull();
   });
 
   // The component must repaint itself from inside the upload callbacks — no test-side

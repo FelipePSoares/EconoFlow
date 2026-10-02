@@ -136,6 +136,7 @@
   "IncomeAttachmentInvalidFileType": "Unsupported file type. Please use PDF or image files.",
   "IncomeAttachmentFileSizeExceeded": "File is too large. Maximum size is 10 MB.",
   "ButtonEditIncome": "Edit income",
+  "LabelDownloadAttachments": "Download attachments",
   "Can't add an expense item with different year or month from expense": "Can't add an expense item with different year or month from expense",
   "Category not found.": "Category not found.",
   "Expense not found.": "Expense not found.",
