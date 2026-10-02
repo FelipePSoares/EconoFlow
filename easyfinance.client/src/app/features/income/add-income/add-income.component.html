@@ -42,6 +42,66 @@
         }
       </mat-form-field>
 
+      <!-- Attachments -->
+      <section class="income-attachments-section mb-3 text-start" data-testid="income-attachments-section">
+        <p class="mb-2 fw-semibold">{{ 'IncomeAttachmentsOptional' | translate }}</p>
+
+        @for (attachment of attachments; track attachment.id) {
+          <div class="income-attachment-existing mb-2" data-testid="income-attachment-existing">
+            <span class="me-2">{{ attachment.name }}</span>
+            @if (getAttachmentDownloadUrl(attachment); as downloadUrl) {
+              <a [href]="downloadUrl" target="_blank" rel="noopener noreferrer" data-testid="income-attachment-download-link">
+                {{ 'ButtonDownload' | translate }}
+              </a>
+            }
+            <button
+              type="button"
+              class="btn btn-outline-danger btn-sm ms-2"
+              data-testid="income-attachment-remove-button"
+              [disabled]="isSaving || isAttachmentOperationInProgress"
+              (click)="removeAttachment(attachment)">
+              {{ 'ButtonRemove' | translate }}
+            </button>
+          </div>
+        }
+
+        @for (attachment of pendingAttachments; track attachment.id) {
+          <div class="income-attachment-pending mb-2" data-testid="income-attachment-pending">
+            <span>{{ attachment.name }}</span>
+            <button
+              type="button"
+              class="btn btn-outline-danger btn-sm ms-2"
+              data-testid="income-attachment-remove-button"
+              [disabled]="isSaving || isAttachmentOperationInProgress"
+              (click)="removeAttachment(attachment)">
+              {{ 'ButtonRemove' | translate }}
+            </button>
+          </div>
+        }
+
+        <input
+          #attachmentInput
+          type="file"
+          multiple
+          class="form-control"
+          data-testid="income-attachments-input"
+          [accept]="attachmentAccept"
+          [disabled]="isSaving || isAttachmentOperationInProgress"
+          (change)="onAttachmentsSelected($event)" />
+
+        @if (isAttachmentOperationInProgress) {
+          <div class="mt-2" data-testid="income-attachments-progress">
+            <div class="progress">
+              <div
+                class="progress-bar progress-bar-striped progress-bar-animated"
+                [ngClass]="attachmentProgressWidthClass"
+                role="progressbar"></div>
+            </div>
+            <small>{{ 'IncomeAttachmentUploading' | translate }}</small>
+          </div>
+        }
+      </section>
+
       <!-- General Error Display -->
       @if (httpErrors && errors['general']) {
         <div>
@@ -55,7 +115,7 @@
         <button mat-stroked-button type="button" (click)="cancel()">
           {{ 'ButtonCancel' | translate }}
         </button>
-        <button mat-raised-button color="primary" type="submit" [disabled]="incomeForm.invalid || isSaving">
+        <button mat-raised-button color="primary" type="submit" [disabled]="incomeForm.invalid || isSaving || isAttachmentOperationInProgress">
           {{ (isEditing ? 'ButtonSave' : 'ButtonCreate') | translate }}
         </button>
       </div>

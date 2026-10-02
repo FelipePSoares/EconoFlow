@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { IncomeListScreen } from '../IncomeListScreen';
 
 // ─── Sentry mock ──────────────────────────────────────────────────────────────
@@ -71,8 +71,12 @@ jest.mock('../../../components/common/ErrorBanner', () => ({
   ErrorBanner: () => null,
 }));
 
+const renderSwipeableRow = (props: { children?: React.ReactNode }) =>
+  React.createElement(require('react-native').View, null, props.children ?? null);
+
 const MockSwipeableRow = jest.fn(
-  (_props: { onAction?: () => void; disabled?: boolean; [key: string]: unknown }) => null,
+  (props: { onAction?: () => void; disabled?: boolean; children?: React.ReactNode; [key: string]: unknown }) =>
+    renderSwipeableRow(props),
 );
 jest.mock('../../../components/common/SwipeableRow', () => ({
   SwipeableRow: (props: unknown) => MockSwipeableRow(props as Record<string, unknown>),
@@ -149,8 +153,10 @@ jest.mock('../../../hooks/useIncomes', () => ({
 // ─── Navigation mock ──────────────────────────────────────────────────────────
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 const mockNavigation = {
   goBack: mockGoBack,
+  navigate: mockNavigate,
 } as unknown as React.ComponentProps<typeof IncomeListScreen>['navigation'];
 
 const mockRoute = {
@@ -316,5 +322,83 @@ describe('IncomeListScreen — captureError', () => {
     });
 
     expect(mockCaptureError).not.toHaveBeenCalled();
+  });
+});
+
+// ─── Attachments entry point ──────────────────────────────────────────────────
+
+describe('IncomeListScreen — attachments entry point', () => {
+  const setIncomes = (incomes: unknown[]) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/useIncomes') as any).useIncomesForMonth.mockReturnValue({
+      data: incomes,
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+  };
+
+  const setRole = (role: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../store/projectStore') as any).useProjectStore.mockReturnValue({
+      selectedProject: { project: { id: 'proj-1' }, role },
+      currency: 'EUR',
+    });
+  };
+
+  const attachment = {
+    id: 'att-1',
+    name: 'payslip.pdf',
+    contentType: 'application/pdf',
+    size: 2048,
+    attachmentType: 'General',
+    isTemporary: false,
+  };
+
+  beforeEach(() => {
+    // The captureError suite resets this mock, so restore the children-rendering
+    // implementation before rendering rows.
+    MockSwipeableRow.mockReset();
+    MockSwipeableRow.mockImplementation(renderSwipeableRow as never);
+    mockNavigate.mockReset();
+    setRole('Manager');
+    setIncomes([MOCK_INCOME]);
+  });
+
+  it('navigates to the attachments screen with the income payload', async () => {
+    await render(<IncomeListScreen navigation={mockNavigation} route={mockRoute} />);
+
+    await fireEvent.press(screen.getByTestId('income-attachments-button'));
+
+    expect(mockNavigate).toHaveBeenCalledWith('RecordAttachments', {
+      kind: 'income',
+      id: 'inc-1',
+      month: '2024-01',
+      title: 'Salary',
+    });
+  });
+
+  it('hides the attachments entry point from viewers', async () => {
+    setRole('Viewer');
+
+    await render(<IncomeListScreen navigation={mockNavigation} route={mockRoute} />);
+
+    expect(screen.queryByTestId('income-attachments-button')).toBeNull();
+  });
+
+  it('shows the attachment count when the income has attachments', async () => {
+    setIncomes([{ ...MOCK_INCOME, attachments: [attachment] }]);
+
+    await render(<IncomeListScreen navigation={mockNavigation} route={mockRoute} />);
+
+    expect(screen.getByText('1')).toBeTruthy();
+  });
+
+  it('renders no attachment count when the income has none', async () => {
+    await render(<IncomeListScreen navigation={mockNavigation} route={mockRoute} />);
+
+    expect(screen.queryByText('1')).toBeNull();
   });
 });

@@ -3,7 +3,7 @@ using EasyFinance.Domain.Financial;
 
 namespace EasyFinance.Application.DTOs.Financial
 {
-    public class ExpenseAttachmentResponseDTO
+    public class AttachmentResponseDTO
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;

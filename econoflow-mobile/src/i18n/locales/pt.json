@@ -629,6 +629,19 @@
   "PinMaxAttempts": "Muitas tentativas incorretas. Desconectando.",
   "PinUseInstead": "Usar PIN",
   "PinChangeLabel": "PIN do App",
-  "PinChangeDescription": "Defina um PIN para desbloquear o app"
+  "PinChangeDescription": "Defina um PIN para desbloquear o app",
+  "ButtonConfirm": "Confirmar",
+  "LabelUploading": "Enviando…",
+  "Attachments": "Anexos",
+  "LabelAddAttachment": "Adicionar anexo",
+  "LabelNoAttachments": "Ainda não há anexos",
+  "AttachmentUploadFailed": "Falha ao enviar o anexo. Tente novamente.",
+  "AttachmentDeleteFailed": "Falha ao remover o anexo. Tente novamente.",
+  "AttachmentOpenFailed": "Falha ao abrir o anexo. Tente novamente.",
+  "AttachmentFileSizeExceeded": "Arquivo muito grande. O tamanho máximo é 10 MB.",
+  "AttachmentInvalidFileType": "Tipo de arquivo não suportado. Use PDF ou imagem.",
+  "AttachmentChooseFile": "Escolher arquivo",
+  "AttachmentTakePhoto": "Tirar ou escolher foto",
+  "ConfirmDeleteAttachment": "Remover este anexo? Esta ação não pode ser desfeita."
 }
 

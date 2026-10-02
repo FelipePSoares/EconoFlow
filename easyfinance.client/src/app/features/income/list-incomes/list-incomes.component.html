@@ -56,11 +56,17 @@
                         </div>
                       </div>
 
+                      @if (income.attachments?.length) {
+                        <span class="income-attachment-flag me-2" data-testid="income-attachment-flag" [title]="'IncomeAttachmentsOptional' | translate">
+                          <i class="bi bi-paperclip me-1"></i>{{ income.attachments.length }}
+                        </span>
+                      }
+
                       @if (canAddOrEdit()) {
                         <button name="edit"
                           class="btn btn-outline-secondary btn-sm"
                           (click)="startEditIncome(income)"
-                          aria-label="Editar receita">
+                          [attr.aria-label]="'ButtonEditIncome' | translate">
                           <i class="bi bi-pencil-square"></i>
                         </button>
                       }

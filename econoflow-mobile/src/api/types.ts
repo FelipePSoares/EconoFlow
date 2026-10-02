@@ -85,18 +85,25 @@ export interface ExpenseItem {
   attachments: ExpenseAttachment[];
 }
 
-export interface ExpenseAttachment {
+export type AttachmentType = 'General' | 'DeductibleProof';
+
+export interface Attachment {
   id: string;
   name: string;
   contentType: string;
   size: number;
+  attachmentType: AttachmentType;
+  isTemporary: boolean;
 }
+
+export type ExpenseAttachment = Attachment;
 
 export interface Income {
   id: string;
   name: string;
   date: string;
   amount: number;
+  attachments: Attachment[];
 }
 
 export interface PatchOperation {
@@ -126,6 +133,7 @@ export interface CreateIncomeRequest {
   name: string;
   date: string;
   amount: number;
+  temporaryAttachmentIds?: string[];
 }
 
 export interface Plan {

@@ -266,6 +266,25 @@ export const ExpenseListScreen: React.FC<Props> = ({ route, navigation }) => {
 
                     {canEdit && (
                       <TouchableOpacity
+                        testID={`expense-attachments-${expense.id}`}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('Attachments')}
+                        onPress={() => navigation.navigate('RecordAttachments', {
+                          kind: 'expense',
+                          id: expense.id,
+                          categoryId,
+                          month,
+                          title: expense.name,
+                        })}
+                        hitSlop={6}
+                        style={styles.groupAction}
+                      >
+                        <MaterialCommunityIcons name="paperclip" size={16} color={ink2} />
+                      </TouchableOpacity>
+                    )}
+
+                    {canEdit && (
+                      <TouchableOpacity
                           onPress={() => setQuickAdd({
                             visible: true,
                             editMode: {
@@ -454,7 +473,7 @@ const ExpenseItemRow: React.FC<ItemRowProps> = ({
   const date = fromDateOnly(item.date);
   const dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   const fmt = (n: number) => formatAmount(n, i18n.language);
-  const hasProof = item.attachments.length > 0;
+  const hasProof = (item.attachments?.length ?? 0) > 0;
 
   return (
     <SwipeableRow

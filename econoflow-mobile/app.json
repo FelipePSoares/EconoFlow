@@ -59,6 +59,14 @@
           "organization": "econoflow",
           "project": "econoflow"
         }
+      ],
+      "expo-sharing",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "EconoFlow uses your photo library so you can attach payslips and receipts.",
+          "cameraPermission": "EconoFlow uses the camera so you can photograph payslips and receipts."
+        }
       ]
     ],
     "extra": {

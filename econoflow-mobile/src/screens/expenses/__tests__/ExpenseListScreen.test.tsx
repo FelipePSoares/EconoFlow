@@ -177,8 +177,10 @@ jest.mock('../../../hooks/useExpenses', () => ({
 // ─── Navigation mock ──────────────────────────────────────────────────────────
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 const mockNavigation = {
   goBack: mockGoBack,
+  navigate: mockNavigate,
 } as unknown as React.ComponentProps<typeof ExpenseListScreen>['navigation'];
 
 const mockRoute = {
@@ -478,5 +480,57 @@ describe('ExpenseListScreen — captureError', () => {
     });
 
     expect(mockCaptureError).not.toHaveBeenCalled();
+  });
+});
+
+// ─── Attachments entry point ──────────────────────────────────────────────────
+
+describe('ExpenseListScreen — attachments entry point', () => {
+  const setExpenses = (expenses: Expense[]) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../hooks/useExpenses') as any).useExpensesForMonth.mockReturnValue({
+      data: expenses,
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+  };
+
+  const setRole = (role: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../store/projectStore') as any).useProjectStore.mockReturnValue({
+      selectedProject: { project: { id: 'proj-1' }, role },
+      currency: 'EUR',
+    });
+  };
+
+  beforeEach(() => {
+    mockNavigate.mockReset();
+    setRole('Manager');
+    setExpenses([MOCK_EXPENSE]);
+  });
+
+  it('navigates to the attachments screen with the expense payload', async () => {
+    await render(<ExpenseListScreen navigation={mockNavigation} route={mockRoute} />);
+
+    await fireEvent.press(screen.getByTestId('expense-attachments-exp-1'));
+
+    expect(mockNavigate).toHaveBeenCalledWith('RecordAttachments', {
+      kind: 'expense',
+      id: 'exp-1',
+      categoryId: 'cat-1',
+      month: '2024-01',
+      title: 'Lunch',
+    });
+  });
+
+  it('hides the attachments entry point from viewers', async () => {
+    setRole('Viewer');
+
+    await render(<ExpenseListScreen navigation={mockNavigation} route={mockRoute} />);
+
+    expect(screen.queryByTestId('expense-attachments-exp-1')).toBeNull();
   });
 });

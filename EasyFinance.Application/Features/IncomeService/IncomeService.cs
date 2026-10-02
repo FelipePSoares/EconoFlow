@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.DTOs.Financial;
+using EasyFinance.Application.Features.AttachmentService;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Financial;
@@ -18,11 +19,13 @@ namespace EasyFinance.Application.Features.IncomeService
     public class IncomeService : IIncomeService
     {
         private readonly IUnitOfWork unitOfWork;
+        private readonly IAttachmentService attachmentService;
         private readonly ILogger<IncomeService> logger;
 
-        public IncomeService(IUnitOfWork unitOfWork, ILogger<IncomeService> logger)
+        public IncomeService(IUnitOfWork unitOfWork, IAttachmentService attachmentService, ILogger<IncomeService> logger)
         {
             this.unitOfWork = unitOfWork;
+            this.attachmentService = attachmentService;
             this.logger = logger;
         }
 
@@ -47,6 +50,7 @@ namespace EasyFinance.Application.Features.IncomeService
                 .ProjectRepository
                 .NoTrackable()
                 .Include(p => p.Incomes.Where(e => e.Date >= from && e.Date < to))
+                    .ThenInclude(income => income.Attachments)
                 .FirstOrDefault(p => p.Id == projectId)
                 .Incomes
                 .ToDTO()
@@ -71,19 +75,23 @@ namespace EasyFinance.Application.Features.IncomeService
 
         public AppResponse<IncomeResponseDTO> GetById(Guid incomeId)
         {
-            var result = unitOfWork.IncomeRepository.Trackable().FirstOrDefault(p => p.Id == incomeId);
+            var result = unitOfWork.IncomeRepository
+                .Trackable()
+                .Include(e => e.Attachments)
+                .FirstOrDefault(p => p.Id == incomeId);
 
             return AppResponse<IncomeResponseDTO>.Success(result.ToDTO());
         }
 
-        public async Task<AppResponse<IncomeResponseDTO>> CreateAsync(User user, Guid projectId, Income income)
+        public async Task<AppResponse<IncomeResponseDTO>> CreateAsync(User user, Guid projectId, IncomeRequestDTO incomeDto)
         {
-            if (income == default)
-                return AppResponse<IncomeResponseDTO>.Error(code: nameof(income), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(income)));
+            if (incomeDto == default)
+                return AppResponse<IncomeResponseDTO>.Error(code: nameof(incomeDto), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(incomeDto)));
 
             if (user == default)
                 return AppResponse<IncomeResponseDTO>.Error(code: nameof(user), description: string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(user)));
 
+            var income = incomeDto.FromDTO();
             income.SetCreatedBy(user);
 
             var project = unitOfWork.ProjectRepository.Trackable().Include(p => p.Incomes).FirstOrDefault(p => p.Id == projectId);
@@ -98,9 +106,24 @@ namespace EasyFinance.Application.Features.IncomeService
             if (savedProject.Failed)
                 return AppResponse<IncomeResponseDTO>.Error(savedProject.Messages);
 
+            // Link before the single commit so a rejected attachment id never leaves a persisted
+            // income behind for the caller to duplicate on retry.
+            var linkResponse = await this.attachmentService.LinkTemporaryAttachmentsToIncomeAsync(
+                income,
+                user,
+                incomeDto.TemporaryAttachmentIds);
+
+            if (linkResponse.Failed)
+                return AppResponse<IncomeResponseDTO>.Error(linkResponse.Messages);
+
             await unitOfWork.CommitAsync();
 
-            return AppResponse<IncomeResponseDTO>.Success(income.ToDTO());
+            var persistedIncome = await this.unitOfWork.IncomeRepository
+                .NoTrackable()
+                .Include(e => e.Attachments)
+                .FirstOrDefaultAsync(e => e.Id == income.Id);
+
+            return AppResponse<IncomeResponseDTO>.Success(persistedIncome.ToDTO());
         }
 
         public async Task<AppResponse<IncomeResponseDTO>> UpdateAsync(Income income)
@@ -117,7 +140,7 @@ namespace EasyFinance.Application.Features.IncomeService
             return AppResponse<IncomeResponseDTO>.Success(income.ToDTO());
         }
 
-        public async Task<AppResponse<IncomeResponseDTO>> UpdateAsync(Guid incomeId, JsonPatchDocument<IncomeRequestDTO> incomeDto)
+        public async Task<AppResponse<IncomeResponseDTO>> UpdateAsync(User user, Guid projectId, Guid incomeId, JsonPatchDocument<IncomeRequestDTO> incomeDto)
         {
             var existingIncome = unitOfWork.IncomeRepository
                 .Trackable()
@@ -131,7 +154,25 @@ namespace EasyFinance.Application.Features.IncomeService
 
             dto.FromDTO(existingIncome);
 
-            return await UpdateAsync(existingIncome);
+            // Same reasoning as CreateAsync: link before the single commit of this write path.
+            var linkResponse = await this.attachmentService.LinkTemporaryAttachmentsToIncomeAsync(
+                existingIncome,
+                user,
+                dto.TemporaryAttachmentIds);
+
+            if (linkResponse.Failed)
+                return AppResponse<IncomeResponseDTO>.Error(linkResponse.Messages);
+
+            var updateResponse = await UpdateAsync(existingIncome);
+            if (updateResponse.Failed)
+                return updateResponse;
+
+            var persistedIncome = await this.unitOfWork.IncomeRepository
+                .NoTrackable()
+                .Include(e => e.Attachments)
+                .FirstOrDefaultAsync(e => e.Id == incomeId);
+
+            return AppResponse<IncomeResponseDTO>.Success(persistedIncome.ToDTO());
         }
 
         public async Task<AppResponse> DeleteAsync(Guid incomeId)

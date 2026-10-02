@@ -9,6 +9,7 @@ import { ExpenseFormScreen } from '../screens/expenses/ExpenseFormScreen';
 import { AddCategoryScreen } from '../screens/expenses/AddCategoryScreen';
 import { IncomeListScreen } from '../screens/incomes/IncomeListScreen';
 import { IncomeFormScreen } from '../screens/incomes/IncomeFormScreen';
+import { RecordAttachmentsScreen } from '../screens/attachments/RecordAttachmentsScreen';
 import { NotificationListScreen } from '../screens/notifications/NotificationListScreen';
 
 export type OverviewStackParamList = {
@@ -44,6 +45,13 @@ export type OverviewStackParamList = {
       amount: number;
       date: string;
     };
+  };
+  RecordAttachments: {
+    kind: 'income' | 'expense';
+    id: string;
+    categoryId?: string;
+    month: string;
+    title: string;
   };
 };
 
@@ -98,6 +106,11 @@ export const OverviewStackNavigator: React.FC = () => {
         name="IncomeForm"
         component={IncomeFormScreen}
         options={{ title: t('Income') }}
+      />
+      <Stack.Screen
+        name="RecordAttachments"
+        component={RecordAttachmentsScreen}
+        options={{ title: t('Attachments') }}
       />
       <Stack.Screen name="NotificationCentre" component={NotificationListScreen} />
     </Stack.Navigator>

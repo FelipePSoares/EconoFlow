@@ -2,9 +2,12 @@ import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { SUPPRESS_SUCCESS_NOTIFICATION } from '../interceptor/http-request-interceptor';
 import { Injectable, inject } from '@angular/core';
 import { Income } from '../models/income';
-import { Observable, map } from 'rxjs';
+import { Attachment } from '../models/attachment';
+import { Observable, filter, map } from 'rxjs';
 import { Operation } from 'fast-json-patch';
 import { formatDate } from '../utils/date';
+import { UploadState } from '../types/upload-state';
+import { mapUploadState } from '../utils/map-upload-state';
 
 @Injectable({
   providedIn: 'root'
@@ -57,5 +60,33 @@ export class IncomeService {
     return this.http.put('/api/projects/' + projectId + '/incomes/' + id + '/restore', null, {
       observe: 'response'
     }).pipe(map(res => res.ok));
+  }
+
+  uploadTemporaryAttachmentWithProgress(projectId: string, file: File): Observable<UploadState<Attachment>> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return this.http.post<Attachment>('/api/projects/' + projectId + '/incomes/temporary-attachments', formData, {
+      observe: 'events',
+      reportProgress: true,
+      responseType: 'json',
+      context: new HttpContext().set(SUPPRESS_SUCCESS_NOTIFICATION, true)
+    }).pipe(
+      map(event => mapUploadState(event, file.size)),
+      filter((state): state is UploadState<Attachment> => state !== null)
+    );
+  }
+
+  removeAttachment(projectId: string, incomeId: string, attachmentId: string): Observable<boolean> {
+    return this.http.delete(
+      '/api/projects/' + projectId + '/incomes/' + incomeId + '/attachments/' + attachmentId,
+      {
+        observe: 'response',
+        context: new HttpContext().set(SUPPRESS_SUCCESS_NOTIFICATION, true)
+      }).pipe(map(res => res.ok));
+  }
+
+  getAttachmentDownloadUrl(projectId: string, incomeId: string, attachmentId: string): string {
+    return '/api/projects/' + projectId + '/incomes/' + incomeId + '/attachments/' + attachmentId;
   }
 }
