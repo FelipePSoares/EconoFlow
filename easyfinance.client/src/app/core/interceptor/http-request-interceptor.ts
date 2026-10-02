@@ -55,13 +55,15 @@ export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
         return;
 
       const translateService = injector.get(TranslateService);
+      const suppressSuccessNotification = req.context.get(SUPPRESS_SUCCESS_NOTIFICATION);
+
       if (event.status === 201 && event.url?.includes('support')) {
         snackBar.openSuccessSnackbar(translateService.instant('MessageSuccess'));
-      } else if (event.status === 201) {
+      } else if (event.status === 201 && !suppressSuccessNotification) {
         snackBar.openSuccessSnackbar(translateService.instant('CreatedSuccess'));
       }
 
-      if (req.method === 'DELETE' && event.status === 200 && !req.context.get(SUPPRESS_SUCCESS_NOTIFICATION)) {
+      if (req.method === 'DELETE' && event.status === 200 && !suppressSuccessNotification) {
         snackBar.openSuccessSnackbar(translateService.instant('DeletedSuccess'));
       }
     }),

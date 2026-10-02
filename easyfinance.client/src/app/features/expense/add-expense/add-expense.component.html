@@ -103,7 +103,7 @@
             type="file"
             class="form-control"
             data-testid="deductible-proof-input"
-            accept=".pdf,image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif"
+            [accept]="attachmentAccept"
             [disabled]="isSaving || isProofOperationInProgress || !canUploadDeductibleProof"
             (change)="onDeductibleProofSelected($event)" />
 

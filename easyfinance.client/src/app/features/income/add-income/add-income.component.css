@@ -1,0 +1,11 @@
+.income-attachments-section {
+  border: 1px solid var(--app-border-color);
+  border-radius: 8px;
+  padding: 12px;
+  background-color: var(--app-surface-alt);
+}
+
+.income-attachment-existing,
+.income-attachment-pending {
+  font-size: 0.95rem;
+}

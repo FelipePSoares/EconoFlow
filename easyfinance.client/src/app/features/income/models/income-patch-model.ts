@@ -6,6 +6,7 @@ export class IncomePatchModel {
   name!: string;
   date!: string;
   amount!: number;
+  temporaryAttachmentIds!: string[];
 
   static fromIncome(income: IncomeDto): IncomePatchModel {
     const model = new IncomePatchModel();
@@ -13,6 +14,7 @@ export class IncomePatchModel {
     model.name = income.name ?? '';
     model.date = toDateOnlyString(income.date);
     model.amount = income.amount ?? 0;
+    model.temporaryAttachmentIds = income.temporaryAttachmentIds ?? [];
     return model;
   }
 }

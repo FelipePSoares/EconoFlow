@@ -35,6 +35,7 @@ import { AttachmentType } from '../../../core/enums/attachment-type';
 import { ProjectService } from '../../../core/services/project.service';
 import { ProjectTaxYearSettings } from '../../../core/models/project-tax-year-settings';
 import { computeTaxYearPeriod, hasTaxYearRuleConfigured } from '../../../core/utils/tax-year';
+import { ATTACHMENT_ACCEPT_ATTRIBUTE, validateAttachmentFile } from '../../../core/utils/attachment-policy';
 import { ConfigureTaxYearRuleDialogComponent } from '../../../core/components/configure-tax-year-rule-dialog/configure-tax-year-rule-dialog.component';
 import { PageModalComponent, PageModalDialogData } from '../../../core/components/page-modal/page-modal.component';
 
@@ -59,17 +60,6 @@ import { PageModalComponent, PageModalDialogData } from '../../../core/component
     styleUrl: './add-expense-item.component.css'
 })
 export class AddExpenseItemComponent implements OnInit, AfterViewInit {
-  private readonly maxAttachmentSizeBytes = 10 * 1024 * 1024;
-  private readonly allowedProofMimeTypes = [
-    'application/pdf',
-    'image/jpeg',
-    'image/jpg',
-    'image/png',
-    'image/webp',
-    'image/heic',
-    'image/heif'
-  ];
-
   private expenseService = inject(ExpenseService);
   private categoryService = inject(CategoryService);
   private router = inject(Router);
@@ -95,6 +85,7 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
   deductibleProofAttachment: ExpenseAttachmentDto | null = null;
   pendingDeductibleProofAttachment: ExpenseAttachmentDto | null = null;
   pendingDeductibleProofFileName: string | null = null;
+  readonly attachmentAccept = ATTACHMENT_ACCEPT_ATTRIBUTE;
   expenseItemForm!: FormGroup;
   categories: CategoryDto[] = [];
   expenses: ExpenseDto[] = [];
@@ -557,13 +548,15 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
     if (!file)
       return;
 
-    if (!this.allowedProofMimeTypes.includes(file.type)) {
+    const rejection = validateAttachmentFile(file);
+
+    if (rejection === 'invalidType') {
       this.snackBar.openErrorSnackbar(this.translateService.instant('DeductibleProofInvalidFileType'));
       inputElement.value = '';
       return;
     }
 
-    if (file.size > this.maxAttachmentSizeBytes) {
+    if (rejection === 'tooLarge') {
       this.snackBar.openErrorSnackbar(this.translateService.instant('DeductibleProofFileSizeExceeded'));
       inputElement.value = '';
       return;

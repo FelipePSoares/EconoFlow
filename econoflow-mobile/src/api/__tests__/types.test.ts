@@ -1,4 +1,4 @@
-import type { ExpenseItem, ExpenseAttachment } from '../types';
+import type { Attachment, ExpenseItem, ExpenseAttachment, Income } from '../types';
 
 describe('ExpenseItem type', () => {
   it('includes isDeductible field', () => {
@@ -12,6 +12,7 @@ describe('ExpenseItem type', () => {
   it('includes attachments field compatible with ExpenseAttachment[]', () => {
     const attachment: ExpenseAttachment = {
       id: 'a1', name: 'receipt.pdf', contentType: 'application/pdf', size: 1024,
+      attachmentType: 'DeductibleProof', isTemporary: false,
     };
     const item: ExpenseItem = {
       id: 'i2', name: 'Proof item', date: '2024-01-01', amount: 25,
@@ -27,5 +28,29 @@ describe('ExpenseItem type', () => {
       isDeductible: false, attachments: [],
     };
     expect(item.attachments).toHaveLength(0);
+  });
+});
+
+describe('Attachment type', () => {
+  it('carries the attachment type and temporary flag returned by the API', () => {
+    const attachment: Attachment = {
+      id: 'a1', name: 'payslip.pdf', contentType: 'application/pdf', size: 2048,
+      attachmentType: 'General', isTemporary: false,
+    };
+    expect(attachment.attachmentType).toBe('General');
+    expect(attachment.isTemporary).toBe(false);
+  });
+});
+
+describe('Income type', () => {
+  it('exposes the attachments returned by the API', () => {
+    const income: Income = {
+      id: 'inc-1', name: 'Salary', date: '2024-01-01', amount: 2500,
+      attachments: [{
+        id: 'a1', name: 'payslip.pdf', contentType: 'application/pdf', size: 2048,
+        attachmentType: 'General', isTemporary: false,
+      }],
+    };
+    expect(income.attachments).toHaveLength(1);
   });
 });

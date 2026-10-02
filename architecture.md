@@ -442,21 +442,31 @@ EasyFinance.Server/
 ## 9. File Attachments
 
 ```
-┌──────────┐  Upload temp file   ┌─────────────────────────┐
-│  Client  │ ─────────────────► │ POST /temporary-attachments│
-└──────────┘                     └─────────────┬───────────┘
+┌──────────┐  Upload temp file   ┌───────────────────────────────┐
+│  Client  │ ─────────────────► │ POST /temporary-attachments     │
+└──────────┘                     └─────────────┬─────────────────┘
                                                │ IAttachmentStorageService.SaveAsync()
                                                │ Attachment { IsTemporary=true }
                                                ▼
                                        File system / cloud storage
                                                │
-                  POST /{expenseId}/attachments (link)
+                  POST /{expenseId}/attachments or /{incomeId}/attachments (link)
                                │
                                ▼
-                   Attachment { IsTemporary=false, ExpenseId=… }
+                   Attachment { IsTemporary=false, ExpenseId=… | IncomeId=… }
 
 Cleanup job (7-day TTL) deletes orphaned IsTemporary attachments.
 ```
+
+An `Attachment` has exactly one parent: an `Expense`, an `ExpenseItem`, or an `Income` (enforced by `Attachment.Validate`). The parent kinds differ in policy:
+
+| Parent | Route prefix | Attachment types | Cardinality |
+|--------|--------------|------------------|-------------|
+| `Expense` | `api/Projects/{projectId}/Categories/{categoryId}/Expenses` | `General`, `DeductibleProof` | Unlimited `General`; at most one `DeductibleProof` (enforced by the filtered unique index on `(ExpenseId, AttachmentType)`) |
+| `ExpenseItem` | `.../Expenses/{expenseId}/ExpenseItems` | `General`, `DeductibleProof` | Unlimited |
+| `Income` | `api/Projects/{projectId}/Incomes` | `General` only (no deductible-proof concept) | Unlimited — uploading never replaces an earlier file |
+
+Each parent exposes the same four routes: `POST .../temporary-attachments`, `POST .../{id}/attachments`, `GET .../{id}/attachments/{attachmentId}`, `DELETE .../{id}/attachments/{attachmentId}`. Web clients link files at save time through `temporaryAttachmentIds` on the create/`PATCH` payload; the mobile client uploads straight onto an existing record.
 
 `IAttachmentStorageService` abstracts the storage backend. The default implementation (`FileSystemAttachmentStorageService`) writes to disk. A second implementation (`MinioAttachmentStorageService`) writes to any S3-compatible object storage (MinIO) via a decoupled `IMinioS3Client` adapter — swapping to Amazon S3 later requires only a new `IMinioS3Client` implementation.
 
@@ -500,7 +510,11 @@ Configuration in `appsettings.json`:
 
 ## 11. Frontend — Angular SPA
 
-**Stack**: Angular 21, standalone components, Angular Material, `@ngx-translate`, `ng2-charts`, Moment.js adapter.
+**Stack**: Angular 22, standalone components, Angular Material, `@ngx-translate`, `ng2-charts`, Moment.js adapter.
+
+**Change detection is zoneless.** Angular 22 enables zoneless change detection by default and `app.config.ts` does not opt back into zone-based CD, so although `zone.js` is still bundled via `angular.json` it no longer drives change detection. Components use `ChangeDetectionStrategy.Eager` (checked whenever a tick's traversal reaches them, but they never *schedule* a tick themselves), which means **any state mutated outside an Angular-managed event — an RxJS/HTTP subscription callback, `setTimeout`, a promise continuation, a native listener — must be followed by `this.cdr.detectChanges()`** (`ChangeDetectorRef`), or the DOM will not repaint. Signal writes are the exception: they schedule their own tick. Incidental ticks do exist — `AsyncPipe`, `markForCheck`, and Material overlays (`ApplicationRef.attachView`) all schedule one — so the omission is easy to miss until a flow (like an upload whose success snackbar is suppressed) has no other tick source. This trap caused a real CI failure in the income attachment upload flow; `add-expense.component.ts` is the reference implementation, and its upload/delete/save handlers call `detectChanges()` after every async mutation.
+
+**Attachment upload policy**: the expense, expense-item and income upload surfaces all validate through `core/utils/attachment-policy.ts` (`MAX_ATTACHMENT_SIZE_BYTES`, `ALLOWED_ATTACHMENT_MIME_TYPES`, `validateAttachmentFile`, `ATTACHMENT_ACCEPT_ATTRIBUTE`), a client-side mirror of the backend `AttachmentUploadPolicy`. The client check is advisory — it only fails fast before spending bandwidth — and the server re-validates every upload.
 
 ### Bootstrap chain
 
@@ -554,7 +568,7 @@ Translation JSON files live under `src/assets/i18n/{lang}.json`. All user-visibl
 
 ## 12. Frontend — React Native Mobile App
 
-**Stack**: React Native 0.85, Expo 56, React Navigation, React Query, Zustand, react-native-paper (MD3), axios, react-i18next, react-hook-form.
+**Stack**: React Native 0.86, Expo SDK 57 (`newArchEnabled: false`), React Navigation, React Query, Zustand, react-native-paper (MD3), axios, react-i18next, react-hook-form. Attachments add four native modules — `expo-document-picker`, `expo-image-picker`, `expo-file-system` (`/legacy` API) and `expo-sharing` — installed with `npx expo install`. Their `app.json` config-plugin entries (permission strings) only take effect in a dev client or standalone build, so attachment flows must be verified on `npx expo run:*` or an EAS build. See `econoflow-mobile/AGENTS.md`.
 
 ### State layers
 
@@ -587,7 +601,9 @@ AppNavigator
   │     └── TwoFactorScreen
   └── MainNavigator (bottom tabs)
         ├── Categories tab  → CategoryListScreen → ExpenseListScreen → ExpenseFormScreen
+        │                                                         └─► RecordAttachmentsScreen
         ├── Incomes tab     → IncomeListScreen → IncomeFormScreen
+        │                                     └─► RecordAttachmentsScreen
         ├── Overview tab    → MonthlyOverviewScreen
         ├── Plans tab       → PlansStackNavigator
         │                         ├── PlanListScreen

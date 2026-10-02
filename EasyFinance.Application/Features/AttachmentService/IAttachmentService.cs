@@ -11,7 +11,7 @@ namespace EasyFinance.Application.Features.AttachmentService
 {
     public interface IAttachmentService
     {
-        Task<AppResponse<ExpenseAttachmentResponseDTO>> UploadTemporaryAttachmentAsync(
+        Task<AppResponse<AttachmentResponseDTO>> UploadTemporaryAttachmentAsync(
             User user,
             Guid projectId,
             Stream content,
@@ -35,7 +35,7 @@ namespace EasyFinance.Application.Features.AttachmentService
             Guid expenseItemId,
             ICollection<Guid> temporaryAttachmentIds);
 
-        Task<AppResponse<ExpenseAttachmentResponseDTO>> UploadExpenseAttachmentAsync(
+        Task<AppResponse<AttachmentResponseDTO>> UploadExpenseAttachmentAsync(
             User user,
             Guid projectId,
             Guid categoryId,
@@ -46,7 +46,7 @@ namespace EasyFinance.Application.Features.AttachmentService
             long size,
             AttachmentType attachmentType);
 
-        Task<AppResponse<ExpenseAttachmentResponseDTO>> UploadExpenseItemAttachmentAsync(
+        Task<AppResponse<AttachmentResponseDTO>> UploadExpenseItemAttachmentAsync(
             User user,
             Guid projectId,
             Guid categoryId,
@@ -58,13 +58,13 @@ namespace EasyFinance.Application.Features.AttachmentService
             long size,
             AttachmentType attachmentType);
 
-        Task<AppResponse<ExpenseAttachmentFileResponseDTO>> GetExpenseAttachmentAsync(
+        Task<AppResponse<AttachmentFileResponseDTO>> GetExpenseAttachmentAsync(
             Guid projectId,
             Guid categoryId,
             Guid expenseId,
             Guid attachmentId);
 
-        Task<AppResponse<ExpenseAttachmentFileResponseDTO>> GetExpenseItemAttachmentAsync(
+        Task<AppResponse<AttachmentFileResponseDTO>> GetExpenseItemAttachmentAsync(
             Guid projectId,
             Guid categoryId,
             Guid expenseId,
@@ -82,6 +82,34 @@ namespace EasyFinance.Application.Features.AttachmentService
             Guid categoryId,
             Guid expenseId,
             Guid expenseItemId,
+            Guid attachmentId);
+
+        /// <summary>
+        /// Links already-uploaded temporary attachments to an income in the current unit of work.
+        /// Does not commit: the caller owns the single commit of the write path.
+        /// </summary>
+        Task<AppResponse> LinkTemporaryAttachmentsToIncomeAsync(
+            Income income,
+            User user,
+            ICollection<Guid> temporaryAttachmentIds);
+
+        Task<AppResponse<AttachmentResponseDTO>> UploadIncomeAttachmentAsync(
+            User user,
+            Guid projectId,
+            Guid incomeId,
+            Stream content,
+            string fileName,
+            string contentType,
+            long size);
+
+        Task<AppResponse<AttachmentFileResponseDTO>> GetIncomeAttachmentAsync(
+            Guid projectId,
+            Guid incomeId,
+            Guid attachmentId);
+
+        Task<AppResponse> DeleteIncomeAttachmentAsync(
+            Guid projectId,
+            Guid incomeId,
             Guid attachmentId);
     }
 }

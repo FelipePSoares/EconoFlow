@@ -121,9 +121,12 @@ An **Expense** belongs to a Category and records actual or planned spending.
 - An expense shall be movable between categories within the same project.
 
 #### 2.4.4 Attachments
-- Users shall upload file attachments to an expense or an expense item.
+- Users shall upload file attachments to an expense, an expense item, or an income.
 - An attachment has a `Name`, `ContentType`, `Size`, `StorageKey` (cloud reference), and `AttachmentType` (`General` or `DeductibleProof`).
-- **Temporary upload**: Users may upload a file before creating the expense record. The system stores it as a temporary attachment (`IsTemporary = true`). Once the expense is created, the user attaches the temporary files. Temporary attachments without a parent are purged by a background job.
+- Uploads shall be limited to **10 MB** and to the content types `application/pdf`, `image/jpeg`, `image/jpg`, `image/png`, `image/webp`, `image/heic` and `image/heif`. The backend is the authority and rejects anything outside that policy.
+- Income attachments are always `General`, are unlimited in number (a new upload never replaces an earlier file), and exist to store payslips, contracts and similar supporting documents.
+- An expense may hold at most one `DeductibleProof`; uploading a replacement supersedes the previous file.
+- **Temporary upload**: Users may upload a file before creating the expense or income record. The system stores it as a temporary attachment (`IsTemporary = true`). Once the record is created, the user attaches the temporary files. Temporary attachments without a parent are purged by a background job.
 - Users shall download and delete attachments.
 
 ---
@@ -136,6 +139,7 @@ An **Income** belongs to a Project (not a category) and records money received.
 - Required fields: `Name`, `Date`, `Amount`.
 - An income with a future `Date` (`> tomorrow`) and `Amount > 0` shall be rejected.
 - Income records shall be filterable by date range or by year.
+- Users shall attach an unlimited number of `General` documents (payslips, contracts) to an income, both while creating and while editing it, and shall download or delete them.
 
 ---
 
@@ -424,6 +428,10 @@ The Smart Setup creates these categories with the given budget allocation percen
 | POST   | `/api/Projects/{projectId}/Incomes`                        | Create income                 |
 | PATCH  | `/api/Projects/{projectId}/Incomes/{incomeId}`             | Update income                 |
 | DELETE | `/api/Projects/{projectId}/Incomes/{incomeId}`             | Delete income                 |
+| POST   | `/api/Projects/{projectId}/Incomes/temporary-attachments`  | Upload temporary attachment   |
+| POST   | `/api/Projects/{projectId}/Incomes/{incomeId}/attachments` | Upload attachment to income   |
+| GET    | `/api/Projects/{projectId}/Incomes/{incomeId}/attachments/{attachmentId}` | Download attachment |
+| DELETE | `/api/Projects/{projectId}/Incomes/{incomeId}/attachments/{attachmentId}` | Delete attachment   |
 
 #### Plans
 | Method | Route                                                          | Description             |
@@ -482,7 +490,7 @@ The Smart Setup creates these categories with the given budget allocation percen
 | Project Detail          | `/projects/:id`                | Dashboard: categories + incomes + plans        |
 | Category List           | `/projects/:id/categories`     | List, create, reorder, archive categories      |
 | Expense List            | `/projects/:id/categories/:cid/expenses` | List, create, edit, delete expenses  |
-| Income List             | `/projects/:id/incomes`        | List, create, edit, delete incomes             |
+| Income List             | `/projects/:id/incomes`        | List, create, edit, delete incomes and manage their attachments |
 | Plan List               | `/projects/:id/plans`          | Savings plans + entries                        |
 | User Profile            | `/profile`                     | Personal details, 2FA settings                 |
 | User Settings           | `/settings`                    | Notification preferences, language, account actions |
@@ -517,6 +525,7 @@ The Smart Setup creates these categories with the given budget allocation percen
 | IncomeFormScreen       | Create / edit income                                             |
 | MonthlyOverviewScreen  | Summary: total income, total expenses, balance                   |
 | QuickAddModal          | Bottom-sheet for rapid expense/income entry                      |
+| RecordAttachmentsScreen| List, upload, open and delete an income's or an expense's attachments |
 | ProfileScreen          | Personal details, language setting                               |
 
 ---

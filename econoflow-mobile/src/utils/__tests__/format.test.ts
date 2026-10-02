@@ -1,4 +1,4 @@
-import { formatAmount } from '../format';
+import { formatAmount, formatBytes } from '../format';
 
 describe('formatAmount', () => {
   it('uses en locale - period as decimal separator', () => {
@@ -19,5 +19,28 @@ describe('formatAmount', () => {
 
   it('formats 2 decimal places', () => {
     expect(formatAmount(10, 'en')).toBe('10.00');
+  });
+});
+
+describe('formatBytes', () => {
+  it('formats bytes', () => {
+    expect(formatBytes(512)).toBe('512 B');
+  });
+
+  it('formats kilobytes', () => {
+    expect(formatBytes(1024)).toBe('1 KB');
+  });
+
+  it('rounds kilobytes to one decimal place', () => {
+    expect(formatBytes(1536)).toBe('1.5 KB');
+  });
+
+  it('formats megabytes', () => {
+    expect(formatBytes(10 * 1024 * 1024)).toBe('10 MB');
+  });
+
+  it('handles zero and non-finite values', () => {
+    expect(formatBytes(0)).toBe('0 B');
+    expect(formatBytes(Number.NaN)).toBe('0 B');
   });
 });

@@ -15,9 +15,9 @@ namespace EasyFinance.Application.Features.IncomeService
         AppResponse<ICollection<IncomeResponseDTO>> Get(Guid projectId, DateOnly from, DateOnly to);
         Task<AppResponse<ICollection<IncomeResponseDTO>>> GetAsync(Guid projectId, int year);
         AppResponse<IncomeResponseDTO> GetById(Guid incomeId);
-        Task<AppResponse<IncomeResponseDTO>> CreateAsync(User user, Guid projectId, Income income);
+        Task<AppResponse<IncomeResponseDTO>> CreateAsync(User user, Guid projectId, IncomeRequestDTO incomeDto);
         Task<AppResponse<IncomeResponseDTO>> UpdateAsync(Income income);
-        Task<AppResponse<IncomeResponseDTO>> UpdateAsync(Guid incomeId, JsonPatchDocument<IncomeRequestDTO> incomeDto);
+        Task<AppResponse<IncomeResponseDTO>> UpdateAsync(User user, Guid projectId, Guid incomeId, JsonPatchDocument<IncomeRequestDTO> incomeDto);
         Task<AppResponse> DeleteAsync(Guid incomeId);
         Task<AppResponse> RestoreAsync(Guid incomeId);
         Task<AppResponse> RemoveLinkAsync(User user);

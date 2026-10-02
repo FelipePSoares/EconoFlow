@@ -1,4 +1,4 @@
-import { ExpenseAttachment } from "./expense-attachment";
+import { Attachment } from "./attachment";
 
 export class ExpenseItem {
   id!: string;
@@ -6,7 +6,7 @@ export class ExpenseItem {
   date!: Date;
   amount!: number;
   isDeductible!: boolean;
-  attachments!: ExpenseAttachment[];
+  attachments!: Attachment[];
   temporaryAttachmentIds!: string[];
   items!: ExpenseItem[];
 }

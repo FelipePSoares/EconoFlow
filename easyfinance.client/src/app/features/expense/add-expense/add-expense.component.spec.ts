@@ -1,4 +1,4 @@
-﻿/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
@@ -15,13 +15,20 @@ import { CurrentDateService } from '../../../core/services/current-date.service'
 import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.component';
 import { ExpenseDto } from '../models/expense-dto';
 import { AttachmentType } from '../../../core/enums/attachment-type';
+import { MAX_ATTACHMENT_SIZE_BYTES } from '../../../core/utils/attachment-policy';
 
 describe('AddExpenseComponent', () => {
   let fixture: ComponentFixture<AddExpenseComponent>;
   let component: AddExpenseComponent;
   let expenseServiceMock: jasmine.SpyObj<ExpenseService>;
+  let snackbarMock: jasmine.SpyObj<SnackbarComponent>;
 
   beforeEach(async () => {
+    snackbarMock = jasmine.createSpyObj<SnackbarComponent>('SnackbarComponent', [
+      'openSuccessSnackbar',
+      'openErrorSnackbar'
+    ]);
+
     expenseServiceMock = jasmine.createSpyObj<ExpenseService>('ExpenseService', [
       'add',
       'update',
@@ -98,14 +105,19 @@ describe('AddExpenseComponent', () => {
 
         {
           provide: SnackbarComponent,
-          useValue: {
-            openSuccessSnackbar: jasmine.createSpy('openSuccessSnackbar'),
-            openErrorSnackbar: jasmine.createSpy('openErrorSnackbar')
-          }
+          useValue: snackbarMock
         }
       ]
     }).compileComponents();
   });
+
+  const selectFiles = (...files: File[]): Event => {
+    const inputElement = document.createElement('input');
+    Object.defineProperty(inputElement, 'files', { value: files, configurable: true });
+    const changeEvent = new Event('change');
+    Object.defineProperty(changeEvent, 'target', { value: inputElement, configurable: true });
+    return changeEvent;
+  };
 
   const createExpense = (isDeductible: boolean): ExpenseDto => {
     const expense = new ExpenseDto();
@@ -195,6 +207,33 @@ describe('AddExpenseComponent', () => {
 
     const submitButton = fixture.nativeElement.querySelector('button[type=submit]') as HTMLButtonElement;
     expect(submitButton.disabled).toBeTrue();
+  });
+
+  it('should reject a proof with an unsupported content type', async () => {
+    setupComponent();
+    component.isDeductibleControl?.setValue(true);
+
+    const file = new File(['notes'], 'notes.txt', { type: 'text/plain' });
+
+    await component.onDeductibleProofSelected(selectFiles(file));
+
+    expect(snackbarMock.openErrorSnackbar).toHaveBeenCalledWith('DeductibleProofInvalidFileType');
+    expect(expenseServiceMock.uploadTemporaryAttachmentWithProgress).not.toHaveBeenCalled();
+    expect(component.pendingDeductibleProofFileName).toBeNull();
+  });
+
+  it('should reject a proof above the shared maximum size', async () => {
+    setupComponent();
+    component.isDeductibleControl?.setValue(true);
+
+    const oversized = new File(['x'], 'huge.pdf', { type: 'application/pdf' });
+    Object.defineProperty(oversized, 'size', { value: MAX_ATTACHMENT_SIZE_BYTES + 1, configurable: true });
+
+    await component.onDeductibleProofSelected(selectFiles(oversized));
+
+    expect(snackbarMock.openErrorSnackbar).toHaveBeenCalledWith('DeductibleProofFileSizeExceeded');
+    expect(expenseServiceMock.uploadTemporaryAttachmentWithProgress).not.toHaveBeenCalled();
+    expect(component.pendingDeductibleProofFileName).toBeNull();
   });
 });
 

@@ -630,5 +630,18 @@
   "PinMaxAttempts": "Too many incorrect attempts. Signing out.",
   "PinUseInstead": "Use PIN instead",
   "PinChangeLabel": "App PIN",
-  "PinChangeDescription": "Set a PIN to unlock the app"
+  "PinChangeDescription": "Set a PIN to unlock the app",
+  "ButtonConfirm": "Confirm",
+  "LabelUploading": "Uploading…",
+  "Attachments": "Attachments",
+  "LabelAddAttachment": "Add attachment",
+  "LabelNoAttachments": "No attachments yet",
+  "AttachmentUploadFailed": "Failed to upload the attachment. Please try again.",
+  "AttachmentDeleteFailed": "Failed to remove the attachment. Please try again.",
+  "AttachmentOpenFailed": "Failed to open the attachment. Please try again.",
+  "AttachmentFileSizeExceeded": "File is too large. Maximum size is 10 MB.",
+  "AttachmentInvalidFileType": "Unsupported file type. Please use PDF or image files.",
+  "AttachmentChooseFile": "Choose file",
+  "AttachmentTakePhoto": "Take or choose photo",
+  "ConfirmDeleteAttachment": "Remove this attachment? This cannot be undone."
 }

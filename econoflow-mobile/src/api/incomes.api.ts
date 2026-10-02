@@ -6,6 +6,9 @@ export const getIncomes = (projectId: string, from: string, to: string) =>
     params: { from, to },
   });
 
+export const getIncome = (projectId: string, incomeId: string) =>
+  apiClient.get<Income>(`/api/Projects/${projectId}/Incomes/${incomeId}`);
+
 export const createIncome = (projectId: string, data: CreateIncomeRequest) =>
   apiClient.post<Income>(`/api/Projects/${projectId}/Incomes`, data);
 

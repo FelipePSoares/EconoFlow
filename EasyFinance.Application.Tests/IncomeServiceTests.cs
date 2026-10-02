@@ -1,4 +1,6 @@
 using EasyFinance.Application.Contracts.Persistence;
+using EasyFinance.Application.DTOs.Financial;
+using EasyFinance.Application.Features.AttachmentService;
 using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Common.Tests;
 using EasyFinance.Domain.AccessControl;
@@ -29,7 +31,10 @@ namespace EasyFinance.Application.Tests
             this.IncomeRepository = new Mock<IGenericRepository<Income>>();
             unitOfWork.Setup(uw => uw.IncomeRepository).Returns(this.IncomeRepository.Object);
 
-            this.IncomeService = new IncomeService(unitOfWork.Object, new Mock<ILogger<IncomeService>>().Object);
+            this.IncomeService = new IncomeService(
+                unitOfWork.Object,
+                new Mock<IAttachmentService>().Object,
+                new Mock<ILogger<IncomeService>>().Object);
 
             PrepareInMemoryDatabase();
         }
@@ -40,15 +45,15 @@ namespace EasyFinance.Application.Tests
             // Arrange
             var user = new User();
             var projectId = Guid.NewGuid();
-            Income? income = default;
+            IncomeRequestDTO? incomeDto = default;
 
             // Act
-            var result = await IncomeService.CreateAsync(user, projectId, income);
+            var result = await IncomeService.CreateAsync(user, projectId, incomeDto);
 
             // Assert
             result.Succeeded.Should().BeFalse();
             result.Messages.Should().HaveCount(1);
-            result.Messages.First().Description.Should().Be(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(income)));
+            result.Messages.First().Description.Should().Be(string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(incomeDto)));
         }
 
         [Fact]
@@ -57,10 +62,10 @@ namespace EasyFinance.Application.Tests
             // Arrange
             User? user = default;
             var projectId = Guid.NewGuid();
-            var income = new Income();
+            var incomeDto = new IncomeRequestDTO();
 
             // Act
-            var result = await IncomeService.CreateAsync(user, projectId, income);
+            var result = await IncomeService.CreateAsync(user, projectId, incomeDto);
 
             // Assert
             result.Succeeded.Should().BeFalse();

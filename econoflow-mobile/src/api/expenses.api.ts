@@ -6,6 +6,11 @@ export const getExpenses = (projectId: string, categoryId: string, from: string,
     params: { from, to },
   });
 
+export const getExpense = (projectId: string, categoryId: string, expenseId: string) =>
+  apiClient.get<Expense>(
+    `/api/Projects/${projectId}/Categories/${categoryId}/Expenses/${expenseId}`
+  );
+
 export const createExpense = (
   projectId: string,
   categoryId: string,

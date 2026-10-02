@@ -1,6 +1,6 @@
 import { AttachmentType } from "../enums/attachment-type";
 
-export class ExpenseAttachment {
+export class Attachment {
   id!: string;
   name!: string;
   contentType!: string;

@@ -1,6 +1,6 @@
 # econoflow-mobile
 
-React Native 0.85 + Expo SDK 56 app. Read the exact versioned docs at https://docs.expo.dev/versions/v56.0.0/ before writing any code.
+React Native 0.86 + Expo SDK 57 app (`newArchEnabled: false`). Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before writing any code.
 
 ## Development workflow
 
@@ -50,3 +50,24 @@ Verify every item below before marking the task done — quote the offending lin
 - **i18n**: `react-i18next` with JSON files in `src/i18n/locales/`
 - **Theme hook**: `useAppTheme()` from `src/theme/useAppTheme.ts` — wraps Paper's `useTheme` with custom colour types
 - **Error handling**: `ErrorBanner` component at `src/components/common/ErrorBanner.tsx`
+
+## File attachments
+
+Attachment support uses **native modules** — verify it on a native build rather than Expo Go:
+
+| Package | Purpose |
+|---------|---------|
+| `expo-document-picker` | Choose a file (PDF or image) from device storage |
+| `expo-image-picker` | Take or choose a photo; needs the `expo-image-picker` plugin entry in `app.json` (photo + camera permission strings) |
+| `expo-file-system` | Download an attachment to the cache before opening it |
+| `expo-sharing` | Hand the downloaded file to the platform share sheet |
+
+Adding or upgrading any of these requires `npx expo install <pkg>` (it resolves the SDK-compatible version). The `app.json` config-plugin entries — including the photo/camera permission strings — only take effect in a dev client or standalone build, so verify attachment flows with `npx expo run:android` / `run:ios` (or an EAS build) rather than Expo Go.
+
+Patterns to follow:
+
+- **Upload** always goes through `src/api/attachments.api.ts`, which builds the `FormData` itself. `src/api/client.ts` sets a global `Content-Type: application/json`, so every multipart request must pass `{ headers: { 'Content-Type': 'multipart/form-data' } }` (the module's `MULTIPART_CONFIG`).
+- **Validation** mirrors the backend policy in `src/utils/attachments.ts` (`MAX_ATTACHMENT_SIZE_BYTES`, `ALLOWED_ATTACHMENT_MIME_TYPES`). The server stays the authority.
+- **Download/open** uses `src/utils/attachmentDownload.ts` (`expo-file-system/legacy` + `expo-sharing`). It sends the bearer token from `useAuthStore` explicitly because the axios refresh interceptor does not wrap native downloads — an expired token surfaces as `AttachmentOpenFailed` and the user retries.
+- **Server state** lives in the React Query hooks in `src/hooks/useAttachments.ts`; they invalidate the record query *and* the month list (plus `['categories', …]` for expense proofs, which drive the list badge).
+- **UI** is the shared `AttachmentSection` + `AttachmentPickerSheet` (`src/components/attachments/`), rendered by `RecordAttachmentsScreen` for both an income and an expense deductible proof.

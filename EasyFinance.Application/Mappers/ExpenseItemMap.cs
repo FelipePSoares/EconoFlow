@@ -22,7 +22,7 @@ namespace EasyFinance.Application.Mappers
                 Date = expenseItem.Date,
                 Amount = expenseItem.Amount,
                 IsDeductible = expenseItem.IsDeductible,
-                Attachments = expenseItem.Attachments.ToExpenseAttachmentDTO()
+                Attachments = expenseItem.Attachments.ToAttachmentDTO()
             };
         }
 

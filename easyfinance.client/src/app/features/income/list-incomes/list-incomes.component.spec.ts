@@ -78,7 +78,9 @@ describe('ListIncomesComponent', () => {
         id: 'income-1',
         name: 'Salary',
         amount: 1200,
-        date: new Date('2026-03-01')
+        date: new Date('2026-03-01'),
+        attachments: [],
+        temporaryAttachmentIds: []
       }
     ]));
     incomeServiceMock.remove.and.returnValue(of(true));

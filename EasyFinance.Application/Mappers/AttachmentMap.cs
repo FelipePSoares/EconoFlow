@@ -8,11 +8,11 @@ namespace EasyFinance.Application.Mappers
 {
     public static class AttachmentMap
     {
-        public static ICollection<ExpenseAttachmentResponseDTO> ToExpenseAttachmentDTO(this IEnumerable<Attachment> attachments)
-            => attachments?.Select(attachment => attachment.ToExpenseAttachmentDTO()).ToList()
+        public static ICollection<AttachmentResponseDTO> ToAttachmentDTO(this IEnumerable<Attachment> attachments)
+            => attachments?.Select(attachment => attachment.ToAttachmentDTO()).ToList()
                ?? [];
 
-        public static ExpenseAttachmentResponseDTO ToExpenseAttachmentDTO(this Attachment attachment)
+        public static AttachmentResponseDTO ToAttachmentDTO(this Attachment attachment)
         {
             ArgumentNullException.ThrowIfNull(attachment);
 
