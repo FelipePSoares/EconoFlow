@@ -57,9 +57,25 @@
                       </div>
 
                       @if (income.attachments?.length) {
-                        <span class="income-attachment-flag me-2" data-testid="income-attachment-flag" [title]="'IncomeAttachmentsOptional' | translate">
+                        <button type="button"
+                          class="btn btn-outline-secondary btn-sm income-attachment-flag me-2"
+                          data-testid="income-attachment-flag"
+                          [matMenuTriggerFor]="attachmentsMenu"
+                          [attr.aria-label]="'LabelDownloadAttachments' | translate"
+                          [title]="'LabelDownloadAttachments' | translate">
                           <i class="bi bi-paperclip me-1"></i>{{ income.attachments.length }}
-                        </span>
+                        </button>
+
+                        <mat-menu #attachmentsMenu="matMenu">
+                          @for (attachment of income.attachments; track attachment.id) {
+                            <a mat-menu-item
+                              data-testid="income-attachment-download"
+                              [href]="getAttachmentDownloadUrl(income, attachment)">
+                              <i class="bi bi-download me-2"></i>
+                              <span>{{ attachment.name }}</span>
+                            </a>
+                          }
+                        </mat-menu>
                       }
 
                       @if (canAddOrEdit()) {

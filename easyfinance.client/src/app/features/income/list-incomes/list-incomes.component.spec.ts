@@ -2,6 +2,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NavigationEnd, Router } from '@angular/router';
 import { provideNativeDateAdapter } from '@angular/material/core';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule } from '@ngx-translate/core';
@@ -72,7 +73,11 @@ describe('ListIncomesComponent', () => {
       }
     } as unknown as Router;
 
-    incomeServiceMock = jasmine.createSpyObj<IncomeService>('IncomeService', ['get', 'remove', 'restore']);
+    incomeServiceMock = jasmine.createSpyObj<IncomeService>('IncomeService', ['get', 'remove', 'restore', 'getAttachmentDownloadUrl']);
+    incomeServiceMock.getAttachmentDownloadUrl.and.callFake(
+      (projectId: string, incomeId: string, attachmentId: string) =>
+        '/api/projects/' + projectId + '/incomes/' + incomeId + '/attachments/' + attachmentId
+    );
     incomeServiceMock.get.and.returnValue(of([
       {
         id: 'income-1',
@@ -104,6 +109,7 @@ describe('ListIncomesComponent', () => {
       ],
       providers: [
         provideNativeDateAdapter(),
+        provideNoopAnimations(),
         {
           provide: Router,
           useValue: routerMock
@@ -287,6 +293,76 @@ describe('ListIncomesComponent', () => {
 
       expect(incomeServiceMock.restore).toHaveBeenCalledWith('project-1', 'income-1');
       expect(incomeServiceMock.get).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('attachment downloads', () => {
+    const makeAttachment = (id: string, name: string): any => ({
+      id,
+      name,
+      contentType: 'application/pdf',
+      size: 2048,
+      attachmentType: 'General',
+      isTemporary: false
+    });
+
+    const renderWithAttachments = (attachments: unknown[]): void => {
+      const income = makeIncome();
+      income.attachments = attachments as any;
+      income.temporaryAttachmentIds = [];
+
+      incomeServiceMock.get.and.returnValue(of([income]));
+
+      fixture = TestBed.createComponent(ListIncomesComponent);
+      component = fixture.componentInstance;
+      component.projectId = 'project-1';
+      fixture.detectChanges();
+    };
+
+    afterEach(() => {
+      fixture?.destroy();
+      document.querySelectorAll('.cdk-overlay-container').forEach(element => element.remove());
+    });
+
+    it('does not offer a download when the income has no attachments', () => {
+      renderWithAttachments([]);
+
+      expect(fixture.nativeElement.querySelector('[data-testid="income-attachment-flag"]')).toBeNull();
+    });
+
+    it('offers the attachment count as a download trigger', () => {
+      renderWithAttachments([makeAttachment('att-1', 'payslip-january.pdf')]);
+
+      const trigger = fixture.nativeElement.querySelector('[data-testid="income-attachment-flag"]');
+      expect(trigger).not.toBeNull();
+      expect(trigger.textContent).toContain('1');
+    });
+
+    it('lists every attachment with a download link to the backend attachment url', () => {
+      renderWithAttachments([
+        makeAttachment('att-1', 'payslip-january.pdf'),
+        makeAttachment('att-2', 'payslip-february.pdf')
+      ]);
+
+      const trigger = fixture.nativeElement.querySelector('[data-testid="income-attachment-flag"]') as HTMLButtonElement;
+      trigger.click();
+      fixture.detectChanges();
+
+      const links = Array.from(
+        document.querySelectorAll('[data-testid="income-attachment-download"]')
+      ) as HTMLAnchorElement[];
+
+      expect(links.length).toBe(2);
+      expect(links.map(link => link.textContent?.trim())).toEqual([
+        'payslip-january.pdf',
+        'payslip-february.pdf'
+      ]);
+      expect(links.map(link => link.getAttribute('href'))).toEqual([
+        '/api/projects/project-1/incomes/income-1/attachments/att-1',
+        '/api/projects/project-1/incomes/income-1/attachments/att-2'
+      ]);
+      expect(incomeServiceMock.getAttachmentDownloadUrl).toHaveBeenCalledWith('project-1', 'income-1', 'att-1');
+      expect(incomeServiceMock.getAttachmentDownloadUrl).toHaveBeenCalledWith('project-1', 'income-1', 'att-2');
     });
   });
 });
