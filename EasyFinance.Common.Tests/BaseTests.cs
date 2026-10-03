@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using AutoFixture;
 using EasyFinance.Application.Contracts.Persistence;
+using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Application.Features.AttachmentService;
+using EasyFinance.Application.Features.CallbackService;
 using EasyFinance.Application.Features.CategoryService;
+using EasyFinance.Application.Features.EmailService;
 using EasyFinance.Application.Features.ExpenseItemService;
 using EasyFinance.Application.Features.ExpenseService;
 using EasyFinance.Application.Features.IncomeService;
@@ -43,6 +46,8 @@ namespace EasyFinance.Common.Tests
         protected Project project2 = null!;
         protected Project project3 = null!;
         protected Mock<INotificationService> notificationServiceMock = new();
+        protected Mock<IEmailService> emailServiceMock = new();
+        protected Mock<ICallbackService> callbackServiceMock = new();
 
         protected Fixture Fixture
         {
@@ -73,6 +78,8 @@ namespace EasyFinance.Common.Tests
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IProjectService, ProjectService>();
+            services.AddScoped<IAccessControlReadRepository, AccessControlReadRepository>();
+            services.AddScoped<IAccessControlService, AccessControlService>();
             services.AddScoped<IPlanService, PlanService>();
             services.AddScoped<IExpenseService, ExpenseService>();
             services.AddScoped<IExpenseItemService, ExpenseItemService>();
@@ -82,6 +89,8 @@ namespace EasyFinance.Common.Tests
             services.AddScoped<IIncomeService, IncomeService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddSingleton(notificationServiceMock.Object);
+            services.AddSingleton(emailServiceMock.Object);
+            services.AddSingleton(callbackServiceMock.Object);
             services.AddLogging();
 
             services.AddIdentityCore<User>()

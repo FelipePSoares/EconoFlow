@@ -222,7 +222,7 @@ namespace EasyFinance.Server.Controllers
             if (!hasAuthorization)
                 throw new UnauthorizedAccessException();
 
-            AppResponse result = await this.accessControlService.RemoveAccessAsync(userProjectId);
+            AppResponse result = await this.accessControlService.RemoveAccessAsync(projectId, userProjectId);
 
             return ValidateResponse(result, HttpStatusCode.OK);
         }
