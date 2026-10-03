@@ -304,26 +304,31 @@ namespace EasyFinance.Application.Features.AccessControlService
             return AppResponse<IEnumerable<UserResponseDTO>>.Success(users.ToDTO());
         }
 
-        public async Task<AppResponse> RemoveAccessAsync(Guid userProjectId)
+        public async Task<AppResponse> RemoveAccessAsync(Guid projectId, Guid userProjectId)
         {
             if (userProjectId == Guid.Empty)
-                AppResponse<ExpenseResponseDTO>.Error(code: nameof(userProjectId), description: ValidationMessages.InvalidUserProjectId);
+                return AppResponse<ExpenseResponseDTO>.Error(code: nameof(userProjectId), description: ValidationMessages.InvalidUserProjectId);
 
+            // Scoped to projectId so an Admin of one project cannot revoke access in another one.
             var userProject = unitOfWork.UserProjectRepository
                 .Trackable()
                 .IgnoreQueryFilters()
                 .Include(up => up.User)
                 .Include(up => up.Project)
-                .FirstOrDefault(e => e.Id == userProjectId);
+                .FirstOrDefault(e => e.Id == userProjectId && e.Project.Id == projectId);
 
             if (userProject == null)
                 return AppResponse.Success();
 
-            if (userProject.User.DefaultProjectId == userProject.Project.Id)
+            // User is null for an invitation that was never accepted.
+            if (userProject.User != null && userProject.User.DefaultProjectId == userProject.Project.Id)
             {
                 userProject.User.SetDefaultProject(null);
                 await userManager.UpdateAsync(userProject.User);
             }
+
+            // NOTE: requirements.md:69 requires operations that would leave a project without any
+            // Admin to be rejected. That rule is not enforced on this path (pre-existing gap).
 
             unitOfWork.UserProjectRepository.Delete(userProject);
             await unitOfWork.CommitAsync();

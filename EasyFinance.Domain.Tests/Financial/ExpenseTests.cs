@@ -207,41 +207,35 @@ namespace EasyFinance.Domain.Tests.Financial
         public void SetBudget_WithFutureDate_AddItem_ShouldBeTrue()
         {
             // Arrange
-            // Derive both expense and item dates from the same DateTime.Today value used by
-            // validation (SystemClock), so the test is deterministic regardless of local timezone
-            // or day-overflow at the end of the month (e.g. March 31 + 2 = day 33).
-            var today = SystemClock.TodayDate;
-            var maxAllowedItemDate = today.AddDays(1); // max allowed by the "no future item" rule
-            var expenseDate = today.AddDays(2);
+            // Pin the clock: two days out is a valid date only because the expense carries an item,
+            // since BaseExpense rejects a future date solely when Items.Count == 0. The pinned
+            // moment is mid-month so today+1 and today+2 stay in the same month as today - deriving
+            // them from the wall clock used to roll over unevenly on the last days of a month.
+            var fakeClock = new FakeTimeProvider(new DateTimeOffset(2026, 3, 15, 12, 0, 0, TimeSpan.Zero));
+            SystemClock.Provider = fakeClock;
 
-            // If today+2 crossed into the next month, use today+1 as expense and today as item
-            // so that both stay in the same month without violating the future-date rule.
-            DateOnly itemDate;
-            if (expenseDate.Year != maxAllowedItemDate.Year || expenseDate.Month != maxAllowedItemDate.Month)
+            try
             {
-                expenseDate = maxAllowedItemDate;
-                itemDate = today;
+                var itemDate = fakeClock.TodayDate.AddDays(1); // the furthest the item rule allows
+                var expenseDate = fakeClock.TodayDate.AddDays(2);
+
+                var expense = new ExpenseBuilder().SetBudget(20).AddDate(expenseDate).Build();
+                var item = new ExpenseItemBuilder().AddDate(itemDate).AddAmount(10).Build();
+
+                // Act
+                expense.AddItem(item);
+
+                var expenseResult = expense.Validate;
+                var itemResult = item.Validate;
+
+                // Assert
+                expenseResult.Succeeded.Should().BeTrue();
+                itemResult.Succeeded.Should().BeTrue();
             }
-            else
+            finally
             {
-                itemDate = maxAllowedItemDate;
+                SystemClock.Reset();
             }
-
-            var expense = new ExpenseBuilder().SetBudget(20).AddDate(expenseDate).Build();
-
-            var item = new ExpenseItemBuilder().AddDate(itemDate).AddAmount(10).Build();
-
-            // Act
-            expense.AddItem(item);
-
-            var expenseResult = expense.Validate;
-
-            var itemResult = item.Validate;
-
-            // Assert
-            expenseResult.Succeeded.Should().BeTrue();
-
-            itemResult.Succeeded.Should().BeTrue();
         }
 
         [Fact]
