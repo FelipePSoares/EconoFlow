@@ -70,7 +70,7 @@
     "fast-json-patch": "^3.1.1",
     "jest-editor-support": "*",
     "moment": "^2.31.0",
-    "ng2-charts": "^10.0.0",
+    "ng2-charts": "^11.0.0",
     "ng2-currency-mask": "^13.0.3",
     "qrcode": "^1.5.4",
     "reflect-metadata": "^0.2.2",
