@@ -77,7 +77,7 @@
     "run-script-os": "*",
     "rxjs": "~7.8.2",
     "tslib": "^2.8.1",
-    "zone.js": "~0.16.0"
+    "zone.js": "~0.16.3"
   },
   "devDependencies": {
     "@angular/build": "22.2.1",
