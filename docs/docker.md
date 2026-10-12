@@ -57,7 +57,8 @@ production build), in addition to `appsettings.json`:
 | Variable | Purpose | Required |
 |---|---|---|
 | `ASPNETCORE_ENVIRONMENT` | Defaults to `Production` in the image. | no |
-| `EasyFinanceDB` | SQL Server connection string (Persistence uses it in `#else` build). | **yes** |
+| `EasyFinanceDB` | Database connection string. The provider is inferred from its shape (`Host=` → PostgreSQL, `Server=`/`Data Source=` → SQL Server) unless `Database__Provider` is set explicitly. | **yes** |
+| `Database__Provider` | Explicit provider selection: `PostgreSql`, `SqlServer` or `InMemory`. Overrides inference from the connection string. See "Database provider" below. | no |
 | `EconoFlow_TOKEN_SECRET_KEY` | JWT signing key (used when not `Development`). | **yes** |
 | `EconoFlow_ISSUER` | JWT issuer. | no (falls back to config) |
 | `EconoFlow_AUDIENCE` | JWT audience. | no (falls back to config) |
@@ -91,7 +92,32 @@ proxy (`src/proxy.conf.js` `/api` context) and any ingress rule forwarding
 | Endpoint            | Status                          | Probe type   |
 |---------------------|---------------------------------|--------------|
 | `/api/health/live`  | `200 OK` when the process is alive               | livenessProbe |
-| `/api/health/ready` | `200 OK` when SQL Server and S3/Minio are reachable; `503` otherwise | readinessProbe |
+| `/api/health/ready` | `200 OK` when the database and S3/Minio are reachable; `503` otherwise | readinessProbe |
+
+The readiness probe checks the database **provider the application was actually
+configured with** — PostgreSQL (`AspNetCore.HealthChecks.NpgSql`) or SQL Server
+(`AspNetCore.HealthChecks.SqlServer`). A SQL Server probe pointed at a PostgreSQL
+connection string fails at startup, so the two can no longer drift apart.
+
+### Database provider
+
+Provider selection is a **runtime** decision, not a compile-time one. It used to be an
+`#if DEBUG` branch, which meant a Debug build could not be pointed at a real database
+at all. Resolution order, highest precedence first:
+
+1. the `Database__Provider` configuration value,
+2. the shape of the `EasyFinanceDB` connection string,
+3. **in Development only**, the EF Core in-memory store.
+
+Outside Development, failing to resolve a provider **stops startup** rather than
+falling back to the in-memory store, which would appear healthy while persisting
+nothing.
+
+> The in-memory store has no migrations, so `UseMigration()` skips it; EF Core would
+> throw if asked to migrate a non-relational provider.
+
+SQL Server support is retained for the migration transition window. See
+`docs/postgres-migration/` for the PostgreSQL migration pack.
 
 The container listens on plain HTTP (`ASPNETCORE_URLS=http://+:8080`) — TLS is
 terminated upstream (Traefik). To stop the global HTTPS-redirect middleware from

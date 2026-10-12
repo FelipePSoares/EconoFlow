@@ -33,7 +33,11 @@ carried **three** projects through it successfully:
 5. **`WHITELABEL_NOTES.md`** — the worked example for a **multi-schema, multi-context**
    project. Read this one specifically if EconoFlow turns out to have more than one
    `DbContext`, because that is the case it covers.
-6. `CUTOVER.md`, `CUTOVER_PREFLIGHT.md`, `DEPLOY.md` — operational runbooks from the
+6. **`DATETIME_KIND_TRAP.md`** — the **app-side** half of `DateTime` handling, which the
+   engine docs do not cover. WhiteLabel passed every data check and then failed in
+   production on the first sale registered. EconoFlow is currently in good shape here (§3),
+   but read §1 and add the regression test in §5 — it is the one item that keeps it that way.
+7. `CUTOVER.md`, `CUTOVER_PREFLIGHT.md`, `DEPLOY.md` — operational runbooks from the
    pilot. Their **ordering** advice is the valuable part; the site-specific commands are not.
 
 ---
