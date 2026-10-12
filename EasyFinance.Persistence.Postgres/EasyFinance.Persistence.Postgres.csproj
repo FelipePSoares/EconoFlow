@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    PostgreSQL migrations for EasyFinanceDatabaseContext.
+
+    WHY THIS IS A SEPARATE PROJECT
+
+    EF Core discovers a context's migrations by scanning the assembly that holds the
+    DbContext (plus any MigrationsAssembly override). EasyFinance.Persistence already
+    contains the 36 SQL Server migrations, and EF cannot hold two *active* migration
+    sets for one context in one assembly: generating a PostgreSQL baseline into that
+    project would append to the SQL Server history instead of starting a clean one.
+
+    Keeping the PostgreSQL set here means:
+      * the SQL Server migrations stay untouched and working, so rollback stays
+        possible for the whole rollback window after cutover;
+      * the PostgreSQL history is a genuinely fresh baseline, not a re-spin of 36
+        migrations whose bodies contain nvarchar / datetime2 / SqlServer:Identity /
+        NEWID() and cannot run on PostgreSQL at all;
+      * the dialect of a generated migration is decided by which factory generated
+        it, so the two sets cannot contaminate each other.
+
+    This project is referenced by the host that applies the migrations at start-up.
+    See docs/postgres-migration/ECONOFLOW_PREFLIGHT.md section 7.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!-- A migrations-only library: nothing public is consumed from it at runtime. -->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.11">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EasyFinance.Persistence\EasyFinance.Persistence.csproj" />
+  </ItemGroup>
+
+</Project>
