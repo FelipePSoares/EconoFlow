@@ -28,7 +28,7 @@ using Serilog;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddPersistenceServices(builder.Configuration);
+builder.Services.AddPersistenceServices(builder.Configuration, isDevelopment: builder.Environment.IsDevelopment());
 builder.Services.AddApplicationServices();
 
 // Honour X-Forwarded-Proto/X-Forwarded-For from the upstream Traefik Ingress
