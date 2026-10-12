@@ -17,19 +17,23 @@ namespace EasyFinance.Persistence.Mapping.FinancialProject
             builder.Property(p => p.ExpenseId)
                 .IsRequired(false);
 
+            // Raw SQL is NOT translated by EF Core, so it must be valid on every
+            // provider. Double-quoted identifiers are accepted by both SQL Server
+            // (with QUOTED_IDENTIFIER ON, the default) and PostgreSQL; SQL Server's
+            // bracket form is a syntax error on PostgreSQL.
             builder.HasIndex(p => new { p.GroupId, p.ExpenseId })
-                .HasFilter("[ExpenseId] IS NOT NULL")
+                .HasFilter("\"ExpenseId\" IS NOT NULL")
                 .IsUnique();
 
             builder.HasIndex(p => new { p.GroupId, p.ExpenseItemId })
-                .HasFilter("[ExpenseItemId] IS NOT NULL")
+                .HasFilter("\"ExpenseItemId\" IS NOT NULL")
                 .IsUnique();
 
             builder.ToTable(tableBuilder =>
             {
                 tableBuilder.HasCheckConstraint(
                     "CK_DeductibleGroupExpenses_ExactlyOneTarget",
-                    "(([ExpenseId] IS NOT NULL AND [ExpenseItemId] IS NULL) OR ([ExpenseId] IS NULL AND [ExpenseItemId] IS NOT NULL))");
+                    "((\"ExpenseId\" IS NOT NULL AND \"ExpenseItemId\" IS NULL) OR (\"ExpenseId\" IS NULL AND \"ExpenseItemId\" IS NOT NULL))");
             });
 
             builder.HasOne(p => p.Group)

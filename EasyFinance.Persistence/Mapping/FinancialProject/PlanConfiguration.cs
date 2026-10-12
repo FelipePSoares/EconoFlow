@@ -44,9 +44,17 @@ namespace EasyFinance.Persistence.Mapping.FinancialProject
                 .HasForeignKey(entry => entry.PlanId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Raw SQL is not translated by EF Core, so it must be valid on every
+            // provider. Two changes from the original:
+            //   * double-quoted identifiers — accepted by SQL Server
+            //     (QUOTED_IDENTIFIER ON) and PostgreSQL; brackets are not;
+            //   * `"IsArchived" = FALSE` — SQL Server's `bit` accepted `= 0`, but
+            //     PostgreSQL's `boolean` rejects an integer comparison
+            //     ("operator does not exist: boolean = integer").
+            // `"Type" = 1` stays as-is: Type is an enum stored as an integer.
             builder.HasIndex(plan => new { plan.ProjectId, plan.Type })
                 .IsUnique()
-                .HasFilter("[Type] = 1 AND [IsArchived] = 0");
+                .HasFilter("\"Type\" = 1 AND \"IsArchived\" = FALSE");
         }
     }
 }
