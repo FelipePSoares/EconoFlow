@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -42,6 +42,7 @@
     <ProjectReference Include="..\EasyFinance.Common.Tests\EasyFinance.Common.Tests.csproj" />
     <ProjectReference Include="..\EasyFinance.Server\EasyFinance.Server.csproj" />
     <ProjectReference Include="..\EasyFinance.Persistence.Postgres\EasyFinance.Persistence.Postgres.csproj" />
+    <ProjectReference Include="..\tools\EconoFlow.DataMigration\EconoFlow.DataMigration.csproj" />
   </ItemGroup>
 
   <ItemGroup>

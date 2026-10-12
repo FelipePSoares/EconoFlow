@@ -60,7 +60,7 @@ internal static class MigrationPlan
     /// Tables to copy, in foreign-key dependency order.
     /// </summary>
     public static IReadOnlyList<TablePlan> Tables { get; } =
-    [
+    [
         new("dbo.AspNetRoles", "AspNetRoles",
         [
             new("ConcurrencyStamp", "ConcurrencyStamp", NpgsqlDbType.Text),
@@ -104,6 +104,28 @@ internal static class MigrationPlan
             new("SecurityStamp", "SecurityStamp", NpgsqlDbType.Text),
             new("TwoFactorEnabled", "TwoFactorEnabled", NpgsqlDbType.Boolean),
             new("UserName", "UserName", NpgsqlDbType.Text),
+        ], ["Id"]),
+        // The ASP.NET Core Data Protection key ring.
+        //
+        // This MUST be copied, and it was originally excluded on faulty reasoning. The
+        // key ring encrypts every auth cookie, antiforgery token, 2FA token and email
+        // confirmation link. Without it the new instance starts a fresh ring, every
+        // token minted by the old instance becomes undecryptable, and every signed-in
+        // user is silently logged out at cutover.
+        //
+        // The original concern was that the values might be DPAPI-encrypted and so
+        // machine-bound. They are not, in this deployment: Program.cs calls
+        // ProtectKeysWithDpapi only when OperatingSystem.IsWindows() AND
+        // EconoFlow_KEY_ENCRYPT_ACTIVE is true, and the production image is Linux.
+        // Verified against the source database - Xml is plaintext key XML
+        // ("<key id=\"...\" version=\"1\">"), not ciphertext.
+        //
+        // Placed after AspNetUsers for readability only; it has no foreign keys.
+        new("dbo.DataProtectionKeys", "DataProtectionKeys",
+        [
+            new("FriendlyName", "FriendlyName", NpgsqlDbType.Text),
+            new("Id", "Id", NpgsqlDbType.Integer),
+            new("Xml", "Xml", NpgsqlDbType.Text),
         ], ["Id"]),
         new("dbo.AspNetRoleClaims", "AspNetRoleClaims",
         [
@@ -326,11 +348,8 @@ internal static class MigrationPlan
         //   are already applied when they are not, and EF would then skip creating
         //   the application schema entirely.
         //
-        // dbo.DataProtectionKeys - key material, not application data, and
-        //   deployment-specific: it may be DPAPI-encrypted (EconoFlow_KEY_ENCRYPT_ACTIVE),
-        //   in which case a new host cannot unprotect it anyway. The application
-        //   generates its own keys on first run. Excluding it also removes the third
-        //   integer identity column, so there is no sequence to collide with.
+        // That is the ONLY exclusion. DataProtectionKeys was originally excluded too,
+        // and that was wrong - see the note on the table above.
     ];
 
     /// <summary>
@@ -340,20 +359,23 @@ internal static class MigrationPlan
     /// <para>
     /// A binary COPY inserts explicit values and never advances the backing sequence,
     /// so without this the application's next INSERT collides with an existing primary
-    /// key. Verified against the live catalog: these two are the only integer identity
-    /// columns among the copied tables. Every other key is a UUID, which has no
+    /// key. Verified against the live catalog: these three are the only integer
+    /// identity columns in the schema. Every other key is a UUID, which has no
     /// sequence and needs no entry.
     /// </para>
     ///
     /// <para>
-    /// <c>DataProtectionKeys</c> also has an identity column, but the table is excluded
-    /// from the copy, so it needs no resync.
+    /// All three are listed. <c>DataProtectionKeys</c> is included because the key ring
+    /// is copied: without the resync the application's next newly generated key would
+    /// collide with a migrated one, which surfaces as an insert failure on the first
+    /// request that rotates the ring.
     /// </para>
     /// </summary>
     public static IReadOnlyDictionary<string, string> SequencesToResync { get; } = new Dictionary<string, string>
     {
         ["AspNetRoleClaims"] = "Id",
-        ["AspNetUserClaims"] = "Id"
+        ["AspNetUserClaims"] = "Id",
+        ["DataProtectionKeys"] = "Id"
     };
 
     /// <summary>

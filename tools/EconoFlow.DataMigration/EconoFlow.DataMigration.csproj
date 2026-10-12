@@ -22,8 +22,9 @@
 
     TWO CONTEXTS, TWO UNITS OF WORK: the engine migrates exactly ONE context per
     profile, and EconoFlow has two (EasyFinanceDatabaseContext, MyKeysContext). The
-    MyKeys context is Data Protection keys — infrastructure, not application data —
-    and is deliberately NOT migrated by this tool; see MigrationPlan.cs for why.
+    MyKeys context is the Data Protection key ring. Its table IS migrated - losing it
+    would log out every signed-in user at cutover - but through this plan like any
+    other table, not as a second profile. See MigrationPlan.cs.
   -->
 
   <PropertyGroup>
@@ -42,6 +43,16 @@
     -->
     <IsPackable>false</IsPackable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      The migration plan is a plain data structure with no runtime dependencies, so
+      the test suite asserts it directly: which tables are copied, which are excluded,
+      and which sequences are resynced. A wrong exclusion here is invisible until
+      cutover, which is exactly the kind of mistake a test should catch.
+    -->
+    <InternalsVisibleTo Include="EasyFinance.Server.Tests" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="fpssoftware.datamigration" Version="1.1.3" />
