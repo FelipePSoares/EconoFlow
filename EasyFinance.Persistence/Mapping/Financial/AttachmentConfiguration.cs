@@ -58,9 +58,14 @@ namespace EasyFinance.Persistence.Mapping.Financial
                 .HasForeignKey(p => p.IncomeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Raw SQL is not translated by EF Core, so it must be valid on every
+            // provider: double-quoted identifiers are accepted by both SQL Server
+            // (QUOTED_IDENTIFIER ON, the default) and PostgreSQL, whereas SQL Server's
+            // bracket form is a syntax error on PostgreSQL.
+            // `AttachmentType` is an enum stored as an integer, so `= 1` is portable.
             builder.HasIndex(p => new { p.ExpenseId, p.AttachmentType })
                 .IsUnique()
-                .HasFilter("[ExpenseId] IS NOT NULL AND [AttachmentType] = 1");
+                .HasFilter("\"ExpenseId\" IS NOT NULL AND \"AttachmentType\" = 1");
         }
     }
 }

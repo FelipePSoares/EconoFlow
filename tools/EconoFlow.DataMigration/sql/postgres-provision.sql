@@ -1,0 +1,51 @@
+-- EconoFlow — PostgreSQL role + database.
+--
+-- Run once on the shared PostgreSQL cluster:
+--
+--   kubectl -n shared-services exec deploy/postgres -c postgres -- \
+--     psql -U postgres -c "CREATE ROLE econoflow LOGIN PASSWORD 'CHANGE-ME!2026';"
+--
+--   kubectl -n shared-services exec deploy/postgres -c postgres -- \
+--     psql -U postgres -c "CREATE DATABASE econoflow OWNER econoflow ENCODING 'UTF8' LC_COLLATE 'C' LC_CTYPE 'C' TEMPLATE template0;"
+--
+--   kubectl -n shared-services exec deploy/postgres -c postgres -- \
+--     psql -U postgres -d econoflow -c "CREATE EXTENSION IF NOT EXISTS citext;"
+--
+-- One role, one database, owned by that role — the same shape as every other app
+-- in this cluster (see the repo README, "Create a database + login per
+-- application"), and the same one the Move cutover used.
+--
+-- The role is BOTH the application's login and the migration's target login.
+-- The only extra credential the migration needs is the read-only SQL Server
+-- login in sqlserver-readonly-login.sql.
+--
+-- Setting LC_COLLATE/LC_CTYPE to 'C' keeps ordering deterministic and
+-- independent of the server locale, so a verification digest computed on one host
+-- matches another.
+--
+-- citext is required by the schema: DeductibleGroups.Name is citext so that
+-- "Travel" and "travel" collide as they did under SQL Server's _CI_AS collation.
+-- Without it the unique index silently accepts case-variant duplicates.
+--
+-- That is the whole setup. The tables themselves are created by the EF
+-- migrations, which the migration tool applies with `--migrate`.
+--
+-- Connection strings afterwards:
+--
+--   application (EasyFinanceDB):
+--     Host=postgres.shared-services.svc.cluster.local;Port=5432;Database=econoflow;
+--     Username=econoflow;Password=CHANGE-ME!2026
+--
+--   migration target (MIGRATION_TARGET) — the same credential:
+--     Host=postgres.shared-services.svc.cluster.local;Port=5432;Database=econoflow;
+--     Username=econoflow;Password=CHANGE-ME!2026
+--
+--   migration source (MIGRATION_SOURCE) — the read-only SQL Server login:
+--     Server=mssql.shared-services.svc.cluster.local,1433;Database=EconoFlow;
+--     User Id=econoflow_migrator;Password=CHANGE-ME!2026;TrustServerCertificate=true
+--
+-- Verify afterwards (expect: econoflow | t | f | econoflow):
+--
+--   SELECT r.rolname, r.rolcanlogin, r.rolsuper, pg_get_userbyid(d.datdba)
+--   FROM pg_roles r JOIN pg_database d ON d.datname = 'econoflow'
+--   WHERE r.rolname = 'econoflow';

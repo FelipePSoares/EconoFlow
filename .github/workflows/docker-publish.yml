@@ -3,11 +3,19 @@ name: Docker publish
 # Build the EconoFlow container image (backend + frontend in one image) and
 # publish it to the self-hosted Gitea container registry:
 #   https://gitea.fpssoftware.uk/fps-software/econoflow
+#
 # Runs on every push to master (the release path).
+#
+# workflow_dispatch exists so an image can be built from a BRANCH without merging.
+# That is what lets a PostgreSQL cutover get the new code into the registry, and
+# resolve a digest, while the deployment is still frozen on the SQL Server build.
+# It is the pattern the programme's earlier cutovers needed and did not have, and
+# its absence is why the pilot's site went down twice on a stale image.
 
 on:
   push:
     branches: [ "master" ]
+  workflow_dispatch:
 
 concurrency:
   group: docker-publish-${{ github.ref }}
@@ -43,6 +51,40 @@ jobs:
           username: ${{ secrets.GITEA_REGISTRY_USERNAME }}
           password: ${{ secrets.GITEA_REGISTRY_TOKEN }}
 
+      # The `latest` tag is what the cluster's image updater watches. Only a push to
+      # master may move it.
+      #
+      # A manual run from a branch publishes a ref-scoped tag instead, deliberately:
+      # a branch build must be able to produce an image and a digest WITHOUT becoming
+      # the image anything deploys. During a cutover freeze that distinction is the
+      # whole safety property - if a manual run moved `latest`, the digest-pinned
+      # deployment would pick up unreviewed code the instant automation resumed.
+      - name: Compute tags
+        id: tags
+        run: |
+          set -euo pipefail
+          REGISTRY="${{ secrets.GITEA_REGISTRY || 'gitea.fpssoftware.uk' }}"
+          OWNER="${{ secrets.GITEA_REGISTRY_OWNER || 'fps-software' }}"
+          IMAGE="${REGISTRY}/${OWNER}/econoflow"
+
+          # The commit SHA tag is always published: it is the immutable handle a
+          # cutover should pin, and the one whose digest gets recorded.
+          TAGS="${IMAGE}:${{ github.sha }}"
+
+          if [ "${{ github.ref }}" = "refs/heads/master" ]; then
+            TAGS="${TAGS}"$'\n'"${IMAGE}:latest"
+            echo "Release build on master: publishing :${{ github.sha }} and :latest"
+          else
+            # Ref-scoped tag: safe to build from a branch, cannot move `latest`.
+            SAFE_REF="$(echo '${{ github.ref_name }}' | tr '/' '-')"
+            TAGS="${TAGS}"$'\n'"${IMAGE}:${SAFE_REF}"
+            echo "Manual build from '${SAFE_REF}': publishing :${{ github.sha }} and :${SAFE_REF}, NOT latest"
+          fi
+
+          echo "tags<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$TAGS" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
@@ -57,6 +99,36 @@ jobs:
             type=gha
             type=local,src=${{ runner.temp }}/.buildx-cache
           cache-to: type=local,dest=${{ runner.temp }}/.buildx-cache,mode=max
-          tags: |
-            ${{ secrets.GITEA_REGISTRY || 'gitea.fpssoftware.uk' }}/${{ secrets.GITEA_REGISTRY_OWNER || 'fps-software' }}/econoflow:${{ github.sha }}
-            ${{ secrets.GITEA_REGISTRY || 'gitea.fpssoftware.uk' }}/${{ secrets.GITEA_REGISTRY_OWNER || 'fps-software' }}/econoflow:latest
+          tags: ${{ steps.tags.outputs.tags }}
+
+      # A digest-pinned Deployment does NOT follow a tag, and re-resolving it by hand
+      # during a cutover is exactly where the earlier projects lost time. Print it in
+      # the run summary so the operator records the value before the window opens.
+      - name: Record the image digest
+        run: |
+          set -euo pipefail
+          REGISTRY="${{ secrets.GITEA_REGISTRY || 'gitea.fpssoftware.uk' }}"
+          OWNER="${{ secrets.GITEA_REGISTRY_OWNER || 'fps-software' }}"
+          IMAGE="${REGISTRY}/${OWNER}/econoflow"
+
+          DIGEST="$(docker buildx imagetools inspect "${IMAGE}:${{ github.sha }}" \
+            --format '{{.Manifest.Digest}}')"
+
+          {
+            echo "## Image published"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| ref | \`${{ github.ref }}\` |"
+            echo "| commit | \`${{ github.sha }}\` |"
+            echo "| **digest** | \`${DIGEST}\` |"
+            echo "| pin as | \`${IMAGE}@${DIGEST}\` |"
+            echo ""
+            if [ "${{ github.ref }}" != "refs/heads/master" ]; then
+              echo "> Built from a branch: \`latest\` was **not** moved."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "IMAGE_DIGEST=${DIGEST}" >> "$GITHUB_ENV"
+          echo "::notice title=Image digest::${IMAGE}@${DIGEST}"
+

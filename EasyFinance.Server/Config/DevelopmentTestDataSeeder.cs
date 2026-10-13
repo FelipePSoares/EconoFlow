@@ -5,6 +5,7 @@ using EasyFinance.Domain.Account;
 using EasyFinance.Domain.Financial;
 using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Domain.Shared;
+using EasyFinance.Persistence.DatabaseContext;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,6 +13,35 @@ namespace EasyFinance.Server.Config
 {
     public static class DevelopmentTestDataSeeder
     {
+        /// <summary>
+        /// Whether seeding must be skipped for the given provider.
+        ///
+        /// <para>
+        /// The fixtures below are development scaffolding: a fixed set of users,
+        /// projects and expenses. Running them against a real database duplicates rows
+        /// over live data, or fails outright on the identities they assume are absent.
+        /// </para>
+        ///
+        /// <para>
+        /// This guard did not exist while provider selection was a compile-time
+        /// <c>#if DEBUG</c> branch: a Debug build always received the in-memory store,
+        /// so the seeder could not reach SQL Server even in principle. Once the provider
+        /// became a runtime decision, running locally with <c>EasyFinanceDB</c> set gave
+        /// Development a real PostgreSQL connection — and the seeder ran with it,
+        /// failing start-up with <c>"The value of 'IdentityUserRole&lt;Guid&gt;.UserId'
+        /// is unknown when attempting to save changes"</c>. So this is not defensive
+        /// coding; it closes a hole the provider change opened.
+        /// </para>
+        ///
+        /// <para>
+        /// Exposed as a value rather than inlined at the call site so the rule is
+        /// assertable. <c>DATETIME_KIND_TRAP.md</c> §2 records the same guard shape in
+        /// CesarBarbosa (<c>if (!database.IsRelational || DevelopmentDataSeeder.IsForced)</c>).
+        /// </para>
+        /// </summary>
+        public static bool IsUnsafeFor(DatabaseProviderInfo providerInfo)
+            => providerInfo is not null && providerInfo.IsRelational;
+
         public static async Task SeedAsync(IServiceProvider services)
         {
             using var serviceScope = services.CreateScope();

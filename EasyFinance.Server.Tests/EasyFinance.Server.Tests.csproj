@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -23,6 +23,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="10.0.11" />
     <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="10.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.11" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.11" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="10.0.11" />
     <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="10.0.11" />
@@ -40,6 +41,8 @@
   <ItemGroup>
     <ProjectReference Include="..\EasyFinance.Common.Tests\EasyFinance.Common.Tests.csproj" />
     <ProjectReference Include="..\EasyFinance.Server\EasyFinance.Server.csproj" />
+    <ProjectReference Include="..\EasyFinance.Persistence.Postgres\EasyFinance.Persistence.Postgres.csproj" />
+    <ProjectReference Include="..\tools\EconoFlow.DataMigration\EconoFlow.DataMigration.csproj" />
   </ItemGroup>
 
   <ItemGroup>

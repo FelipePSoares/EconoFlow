@@ -28,7 +28,7 @@ using Serilog;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddPersistenceServices(builder.Configuration);
+builder.Services.AddPersistenceServices(builder.Configuration, isDevelopment: builder.Environment.IsDevelopment());
 builder.Services.AddApplicationServices();
 
 // Honour X-Forwarded-Proto/X-Forwarded-For from the upstream Traefik Ingress
@@ -184,7 +184,27 @@ try
         EnsureSystemRolesAsync(app.Services).GetAwaiter().GetResult();
         app.UseSwagger();
         app.UseSwaggerUI();
-        DevelopmentTestDataSeeder.SeedAsync(app.Services).GetAwaiter().GetResult();
+
+        // Seed fixtures ONLY against the in-memory store.
+        //
+        // This used to be implicit: provider selection was a compile-time #if DEBUG
+        // branch, so a Debug build always got the in-memory store and the seeder could
+        // not reach a real database. Now that the provider is resolved at run time, a
+        // developer running locally with EasyFinanceDB set gets a real connection - and
+        // the seeder would run against it, duplicating fixtures over live rows. That
+        // was observed, not theorised: start-up failed inside SeedAsync.
+        var providerInfo = app.Services.GetRequiredService<DatabaseProviderInfo>();
+
+        if (DevelopmentTestDataSeeder.IsUnsafeFor(providerInfo))
+        {
+            Log.Information(
+                "Development seed data skipped: {Provider} is a real database.",
+                providerInfo.Provider);
+        }
+        else
+        {
+            DevelopmentTestDataSeeder.SeedAsync(app.Services).GetAwaiter().GetResult();
+        }
     }
     else
     {

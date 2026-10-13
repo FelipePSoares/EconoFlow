@@ -1,0 +1,73 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    EconoFlow's data-migration HOST.
+
+    The engine (FpsSoftware.DataMigration) is a SHARED PACKAGE, not code copied into
+    this repository. Per docs/postgres-migration/MIGRATION_TEMPLATE.md section 1, a
+    project supplies only:
+      * a MigrationProfile  (this project's values)
+      * a MigrationPlan     (the table/column map)
+      * a 10-line Program.cs
+
+    Everything else — the copy, verification, digest, sequence resync, the auto-run
+    marker, the SQL Server catalog reader — comes from the package. Do not copy engine
+    files here.
+
+    VERSION FLOOR: 1.1.3. EconoFlow has `date` columns (Incomes.Date, Expenses.Date,
+    ExpenseItems.Date, PlanEntries.Date, Notifications.ExpiresAt). In 1.1.2 and
+    earlier, DateOnly was not normalised in the verification digest, so a
+    SQL Server `date` column could never verify — it reported a MISMATCH for data that
+    was byte-identical, and no plan could work around it. Found by the Move project.
+
+    TWO CONTEXTS, TWO UNITS OF WORK: the engine migrates exactly ONE context per
+    profile, and EconoFlow has two (EasyFinanceDatabaseContext, MyKeysContext). The
+    MyKeys context is the Data Protection key ring. Its table IS migrated - losing it
+    would log out every signed-in user at cutover - but through this plan like any
+    other table, not as a second profile. See MigrationPlan.cs.
+  -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>EconoFlow.DataMigration</RootNamespace>
+    <AssemblyName>EconoFlow.DataMigration</AssemblyName>
+    <!--
+      The tool references the persistence project, which transitively pulls in
+      Microsoft.AspNetCore.Identity - so the published container needs the
+      Microsoft.AspNetCore.App shared framework, NOT mcr.microsoft.com/dotnet/runtime.
+      A build succeeds either way and then dies at start-up on the runtime image.
+      MIGRATION_TEMPLATE.md section 7 records this; the app image already uses `aspnet`.
+    -->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      The migration plan is a plain data structure with no runtime dependencies, so
+      the test suite asserts it directly: which tables are copied, which are excluded,
+      and which sequences are resynced. A wrong exclusion here is invisible until
+      cutover, which is exactly the kind of mistake a test should catch.
+    -->
+    <InternalsVisibleTo Include="EasyFinance.Server.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="fpssoftware.datamigration" Version="1.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\EasyFinance.Persistence\EasyFinance.Persistence.csproj" />
+    <!--
+      Referenced for its MIGRATIONS, not its types. The profile points EF at the
+      assembly by name ("EasyFinance.Persistence.Postgres"), and EF then loads it at
+      runtime; a plain ProjectReference is not enough on its own because nothing in
+      this project's code names a type in it, so the compiler would not copy the
+      assembly to the output directory.
+    -->
+    <ProjectReference Include="..\..\EasyFinance.Persistence.Postgres\EasyFinance.Persistence.Postgres.csproj" />
+  </ItemGroup>
+
+</Project>
