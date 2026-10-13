@@ -39,6 +39,8 @@ releases in the `overrides` block of `easyfinance.client/package.json` and
 | Brace expansion | `brace-expansion@1` → `1.1.21`, `brace-expansion@5` → `5.0.12` |
 | YAML parsing | `js-yaml@3` → `3.15.2` |
 | Datetime formatting | `moment` → `^2.31.0` |
+| IP spoofing via IPv4-mapped IPv6 trust subnets (`express` → `proxy-addr`) | `proxy-addr` → `2.0.8` |
+| Event-loop DoS through indexed source-map sections (`postcss`/`sass` → `source-map-js`) | `source-map-js` → `1.2.2` |
 | HTTP client (mobile) | `axios` → `^1.20.0` |
 | XML parsing (mobile) | `@xmldom/xmldom@0.8` → `0.8.15`, `@xmldom/xmldom@0.9` → `0.9.12` |
 | Fetch/HTTP stack (mobile) | `undici@6` → `6.29.0` |
