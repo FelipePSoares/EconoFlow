@@ -465,6 +465,40 @@ the code, and `--check-schema` found only the first.
 | Idempotency | Re-running both EF migrations: "No migrations were applied. The database is already up to date." |
 | `citext` on real migrated rows | `Health Insurance`, `health insurance` and `HEALTH INSURANCE` all return the **same single row**; inserting the case-variant violates `IX_DeductibleGroups_ProjectId_TaxYearId_Name` |
 
+### `--verify-only` against a target the application has written to
+
+**A second `--verify-only` can report MISMATCH and mean nothing is wrong.** This will
+happen to anyone who checks the target after running the application against it, which
+is exactly what the dress rehearsal requires — so it is worth stating plainly.
+
+Concretely: after logging in once as `test@test.com` against the migrated database,
+`--verify-only` reported
+
+```
+AspNetUsers         55   55   12cb3d049e425cf3 / 19cb0d93e7894a59   MISMATCH
+AspNetUserTokens    21   22   28587b63a85a76cf / 1c3b23e299a4ed82   MISMATCH
+```
+
+Both are correct behaviour, not a copy defect:
+
+| Table | What changed |
+|---|---|
+| `AspNetUserTokens` | **One extra row.** The login wrote a `RefreshToken` (Data Protection ciphertext, 240 chars) for the test user. SQL Server has `0` such rows for that user. |
+| `AspNetUsers` | Same row count, different content — the login updated the user's own columns. |
+
+The digest compares **source against target**, and the target had legitimately moved on.
+The doctor's rule: a mismatch on a target that has been *written to* is expected; the
+question is whether the difference is accounted for, not whether it exists.
+
+**`--migrate --truncate` remains the authoritative check**, because `--truncate` resets
+the target before copying. Run it and the same database reported
+`MIGRATION VERIFIED` again.
+
+> Practical consequence for the cutover: **run `--verify-only` while the application is
+> stopped**, or accept that it will diverge afterwards. During the window the app is
+> scaled to zero anyway, so this comes for free — but a rehearsal done in the other
+> order will produce a red gate that has to be reasoned away under time pressure.
+
 ### Timings
 
 | Step | Actual |
