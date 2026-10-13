@@ -601,9 +601,35 @@ Per `CUTOVER_LESSONS.md` §7, plus the two items Move added:
 - [ ] Passwords rotated; SQL Server left read-only for the rollback window
 
 > **Not yet rehearsed, and they need a live-environment dress rehearsal before the
-> window:** the `--auto` initContainer path, the migrator inside the application image,
-> and the image-digest step. Everything data- and schema-related has been rehearsed
-> against a copy of the real database.
+> window:** the `--auto` initContainer path and the image-digest step. Everything else
+> — the schema, the data, the migrator inside the application image, and the
+> application itself running against the migrated database — has been exercised.
+
+### Verified by running the application against the migrated data
+
+The check `MIGRATION_TEMPLATE.md` §6 calls *"the check that matters most"*, and the one
+no SQL-level test replaces. Run locally against `postgres:18-alpine` on 5433:
+
+| Check | Result |
+|---|---|
+| Start-up | succeeds; `Development seed data skipped: PostgreSql is a real database.` |
+| `/api/health/live` | 200 |
+| `/api/health/ready` | **Healthy / 200** — the readiness probe queried PostgreSQL |
+| `/api/Projects` unauthenticated | 401, not 500 — the request reached the data layer |
+| `POST /api/AccessControl/login` (`test@test.com`) | **200** with an `AuthToken` JWT and a `RefreshToken` cookie |
+| The `RefreshToken` cookie | value begins `CfDJ8…` — Data Protection ciphertext from the **migrated key ring**; a new row was written to `AspNetUserTokens` |
+| `GET /api/Projects` authenticated | **200 with 21 real projects** — names, currencies (EUR/USD/BRL), tax-year settings and roles all intact |
+
+That last row is the one that catches a missed query translation, and nothing was
+missed.
+
+**One regression was found and fixed by this exercise.** `DevelopmentTestDataSeeder`
+had no guard against a relational database. That was safe only by accident: the old
+`#if DEBUG` branch always handed Development the in-memory store, so the seeder could
+not reach a real database. Once the provider became a runtime decision, running with
+`EasyFinanceDB` set let it run against PostgreSQL, and start-up failed. It now exposes
+`IsUnsafeFor(DatabaseProviderInfo)` and `Program.cs` skips seeding for any relational
+provider — the guard shape `DATETIME_KIND_TRAP.md` §2 recommends.
 
 `docs/docker.md` documented the readiness probe as *"`200 OK` when SQL Server and
 S3/Minio are reachable"*. **That has been updated on this branch** to describe the
