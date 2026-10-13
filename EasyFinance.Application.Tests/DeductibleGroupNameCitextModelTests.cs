@@ -162,5 +162,53 @@ namespace EasyFinance.Application.Tests
             PostgresExtensionAnnotations(context).Should().BeEmpty(
                 "PostgreSQL-specific annotations must never reach the SQL Server model");
         }
+
+        [Fact]
+        public void EveryDeclaredCaseInsensitiveColumn_ShouldActuallyBeConfigured()
+        {
+            // Closes the drift hazard: CaseInsensitiveTextColumns is the list the
+            // configuration reads, but a list nothing verifies is still just a comment.
+            // This asserts every entry really comes out mapped to citext on PostgreSQL,
+            // so an entry that stopped having an effect fails here.
+            using var postgres = CreateContext(DatabaseProvider.PostgreSql);
+
+            var model = postgres.GetService<IDesignTimeModel>().Model;
+
+            EasyFinanceDatabaseContext.CaseInsensitiveTextColumns.Should().NotBeEmpty(
+                "the list is what ApplyProviderSpecificConfiguration iterates");
+
+            foreach (var column in EasyFinanceDatabaseContext.CaseInsensitiveTextColumns)
+            {
+                var property = model.FindEntityType(column.Entity)?
+                    .FindProperty(column.Property);
+
+                property.Should().NotBeNull(
+                    $"{column.Entity.Name}.{column.Property} is declared case-insensitive "
+                    + "but is not a mapped property");
+
+                property!.GetColumnType().Should().Be(
+                    "citext",
+                    $"{column.Entity.Name}.{column.Property} is declared case-insensitive "
+                    + "but was not configured as citext, so the declaration does nothing");
+            }
+        }
+
+        [Fact]
+        public void CaseInsensitiveColumns_ShouldNotBeConfiguredOnSqlServer()
+        {
+            // The list must be applied only under the Npgsql guard. If it leaked, SQL
+            // Server - still supported during the transition - would be asked for a type
+            // it does not have.
+            using var sqlServer = CreateContext(DatabaseProvider.SqlServer);
+
+            var model = sqlServer.GetService<IDesignTimeModel>().Model;
+
+            foreach (var column in EasyFinanceDatabaseContext.CaseInsensitiveTextColumns)
+            {
+                model.FindEntityType(column.Entity)?
+                    .FindProperty(column.Property)?
+                    .GetColumnType().Should().NotBe("citext");
+            }
+        }
     }
 }

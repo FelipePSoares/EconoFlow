@@ -14,17 +14,32 @@ namespace EasyFinance.Persistence.DatabaseContext
         IdentityDbContext<User, IdentityRole<Guid>, Guid>(options)
     {
         /// <summary>
-        /// Columns that must compare case-insensitively for equality, which SQL
+        /// A column that must compare case-insensitively for equality, which SQL
         /// Server's default <c>_CI_AS</c> collation provided implicitly and
         /// PostgreSQL's <c>text</c> does not.
+        /// </summary>
+        /// <param name="Entity">The mapped entity type.</param>
+        /// <param name="Property">The property on that type.</param>
+        public readonly record struct CaseInsensitiveColumn(Type Entity, string Property);
+
+        /// <summary>
+        /// The columns mapped to <c>citext</c> on PostgreSQL.
         ///
         /// <para>
-        /// <c>DeductibleGroups.Name</c> is the only one: it is user-supplied, it sits
-        /// in a unique index <c>(ProjectId, TaxYearId, Name)</c>, and
+        /// <c>DeductibleGroup.Name</c> is the only one: it is user-supplied, it sits in
+        /// a unique index <c>(ProjectId, TaxYearId, Name)</c>, and
         /// <c>TaxYearService.CreateDeductibleGroupAsync</c> looks a group up by name to
         /// make create idempotent. On PostgreSQL without <c>citext</c> that lookup stops
-        /// matching and the index stops rejecting, so the user silently gets a
-        /// duplicate group differing only in letter case.
+        /// matching and the index stops rejecting, so the user silently gets a duplicate
+        /// group differing only in letter case.
+        /// </para>
+        ///
+        /// <para>
+        /// This list is what <see cref="ApplyProviderSpecificConfiguration"/> reads, so
+        /// adding an entry here is the whole change — it cannot drift from the
+        /// configuration the way a documentation-only list would. The entity and property
+        /// are resolved by EF itself, so a wrong name fails at model-build time rather
+        /// than silently configuring nothing.
         /// </para>
         ///
         /// <para>
@@ -34,9 +49,9 @@ namespace EasyFinance.Persistence.DatabaseContext
         /// (<c>docs/postgres-migration/MIGRATION_TEMPLATE.md</c> §0).
         /// </para>
         /// </summary>
-        public static readonly IReadOnlyList<string> CaseInsensitiveTextColumns =
+        public static readonly IReadOnlyList<CaseInsensitiveColumn> CaseInsensitiveTextColumns =
         [
-            "DeductibleGroups.Name"
+            new(typeof(Domain.FinancialProject.DeductibleGroup), nameof(Domain.FinancialProject.DeductibleGroup.Name))
         ];
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -84,12 +99,17 @@ namespace EasyFinance.Persistence.DatabaseContext
 
             // `citext` is a PostgreSQL extension. Declaring it here — rather than only
             // in an init script — means a fresh database is creatable by EF migrations
-            // alone (MIGRATION_TEMPLATE.md §3).
+            // alone (MIGRATION_TEMPLATE.md §3). EF infers the extension from the column
+            // type below, but declaring it explicitly makes the intent readable and the
+            // generated migration self-contained.
             modelBuilder.HasPostgresExtension("citext");
 
-            modelBuilder.Entity<Domain.FinancialProject.DeductibleGroup>()
-                .Property(g => g.Name)
-                .HasColumnType("citext");
+            foreach (var column in CaseInsensitiveTextColumns)
+            {
+                modelBuilder.Entity(column.Entity)
+                    .Property(column.Property)
+                    .HasColumnType("citext");
+            }
         }
     }
 }
