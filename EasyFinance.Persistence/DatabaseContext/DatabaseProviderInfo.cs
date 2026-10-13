@@ -54,11 +54,11 @@ namespace EasyFinance.Persistence.DatabaseContext
         /// </summary>
         public bool SupportsMigrations => IsRelational;
 
+        /// <summary>
+        /// Whether the in-memory store is in use. Read by the health-check registration
+        /// and by <c>UseMigration()</c>, both of which must skip it.
+        /// </summary>
         public bool IsInMemory => Provider == DatabaseProvider.InMemory;
-
-        public bool IsSqlServer => Provider == DatabaseProvider.SqlServer;
-
-        public bool IsPostgreSql => Provider == DatabaseProvider.PostgreSql;
 
         /// <summary>
         /// The value the health check must probe with. A SQL Server probe pointed at a
