@@ -109,6 +109,12 @@ internal sealed class EconoFlowMigrationProfile : MigrationProfile
     /// <c>EasyFinance.Persistence.Postgres</c>, not the SQL Server set in
     /// <c>EasyFinance.Persistence</c>.
     /// </para>
+    ///
+    /// <para>
+    /// Returns <see cref="EasyFinanceDatabaseContext"/> only, because that is the one
+    /// context the engine migrates — the <c>MyKeys</c> set is applied as a side effect
+    /// below, for the reason given there.
+    /// </para>
     /// </summary>
     protected override DbContext CreateContext(string connectionString)
     {
@@ -118,6 +124,49 @@ internal sealed class EconoFlowMigrationProfile : MigrationProfile
                 .CommandTimeout(300))
             .Options;
 
-        return new EasyFinanceDatabaseContext(options);
+        var context = new EasyFinanceDatabaseContext(options);
+
+        // The engine migrates exactly ONE context, so the MyKeys set would silently
+        // never be applied - and the copy then fails with
+        // 'relation "DataProtectionKeys" does not exist', because the plan maps that
+        // table like any other.
+        //
+        // Reproduced in production, not theorised: the first cutover attempt applied
+        // 1 migration, created 23 tables, and died on exactly that error. The
+        // rehearsal had masked it by applying both contexts by hand with
+        // `dotnet ef database update`, which is not what the tool does.
+        ApplyMyKeysSchema(context.Database.GetDbConnection().ConnectionString);
+
+        return context;
+    }
+
+    /// <summary>
+    /// Applies the <c>MyKeysContext</c> migration set, which the engine cannot reach.
+    ///
+    /// <para>
+    /// <c>MyKeysContext</c> is the Data Protection key-ring context. Its PostgreSQL
+    /// migration lives in <c>Migrations/MyKeys/</c> of the same assembly, under its own
+    /// history table, and the engine's single-context hook means it is never applied by
+    /// <c>--migrate</c>. Without this the <c>DataProtectionKeys</c> table does not
+    /// exist and the copy fails on it — and even if the plan omitted the table, the
+    /// application would start with no key ring and log every user out.
+    /// </para>
+    ///
+    /// <para>
+    /// Idempotent: <c>Migrate()</c> is a no-op when the history is current, so this is
+    /// safe on every run.
+    /// </para>
+    /// </summary>
+    private static void ApplyMyKeysSchema(string connectionString)
+    {
+        var options = new DbContextOptionsBuilder<MyKeysContext>()
+            .UseNpgsql(connectionString, npgsql => npgsql
+                .MigrationsAssembly("EasyFinance.Persistence.Postgres")
+                .CommandTimeout(300))
+            .Options;
+
+        using var myKeysContext = new MyKeysContext(options);
+
+        myKeysContext.Database.Migrate();
     }
 }
