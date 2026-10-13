@@ -61,7 +61,7 @@ Once all tests are green and lint is clean, spawn the `codereview` subagent (def
 
 ## Project Overview
 
-EconoFlow (codebase name: EasyFinance) is a personal/company budget tracking application. It uses an ASP.NET Core 10 backend serving an Angular 21 SPA frontend, backed by SQL Server via EF Core.
+EconoFlow (codebase name: EasyFinance) is a personal/company budget tracking application. It uses an ASP.NET Core 10 backend serving an Angular 21 SPA frontend, backed by PostgreSQL (with SQL Server still supported during the migration transition window) via EF Core. The database provider is chosen at **runtime** — see [architecture.md](architecture.md#database-provider) — and the migration itself is documented in [`docs/postgres-migration/`](docs/postgres-migration/).
 
 ---
 
@@ -84,8 +84,15 @@ dotnet test EasyFinance.Application.Tests/
 dotnet test EasyFinance.Domain.Tests/
 dotnet test EasyFinance.Server.Tests/
 
-# Add an EF Core migration (when schema changes are needed)
+# Add an EF Core migration — SQL Server set
 dotnet ef migrations add {MigrationName} --context EasyFinanceDatabaseContext --project EasyFinance.Persistence --configuration release -s ./EasyFinance.Server
+
+# Add an EF Core migration — PostgreSQL set (separate assembly; see architecture.md)
+dotnet ef migrations add {MigrationName} --context EasyFinanceDatabaseContext --project EasyFinance.Persistence.Postgres --startup-project EasyFinance.Persistence.Postgres --configuration release
+
+# Run the SQL Server -> PostgreSQL data migration (local rehearsal on 5433)
+dotnet run --project tools/EconoFlow.DataMigration -- --check-schema
+dotnet run --project tools/EconoFlow.DataMigration -- --migrate --truncate
 ```
 
 ### Frontend (from `easyfinance.client/`)

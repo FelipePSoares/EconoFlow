@@ -543,8 +543,11 @@ The Smart Setup creates these categories with the given budget allocation percen
 ## 8. Infrastructure & Deployment
 
 ### 8.1 Backend
-- **Runtime**: .NET 8 (ASP.NET Core).
-- **Database**: SQL Server (EF Core 8 with migrations).
+- **Runtime**: .NET 10 (ASP.NET Core).
+- **Database**: PostgreSQL (EF Core 10 with migrations) — the target of the migration
+  documented in [`docs/postgres-migration/`](docs/postgres-migration/). SQL Server
+  remains supported at runtime for the transition window; the provider is selected at
+  startup, not at build time. See [architecture.md](architecture.md#database-provider).
 - **Authentication**: ASP.NET Core Identity + custom JWT issuance.
 - **File storage**: Cloud object storage (provider abstracted via `StorageKey`; S3-compatible assumed).
 - **E-mail**: SMTP delivery (MailKit) with every setting — host, port, credentials, TLS mode, from address/name and timeout — supplied through environment variables (`SMTP_*`) so it is configured like the rest of the deployment.

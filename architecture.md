@@ -152,6 +152,49 @@ Orchestration layer: service interfaces, their implementations, DTOs, mappers, a
 - **Connection**: `EasyFinanceDB` environment variable in production; in-memory DB in development/tests.
 - Each test run gets a unique in-memory database name to prevent state leakage across parallel tests.
 
+#### Database provider
+
+Provider selection is a **runtime** decision. It used to be a compile-time `#if DEBUG`
+branch, which made the provider a build property: a Debug build could not be pointed at
+a real database at all, and nothing kept the `DbContext`, the health check and the
+migrations pointing the same way. Resolution order, highest precedence first:
+
+1. an explicit code argument (`providerOverride`, used by tests),
+2. the `Database:Provider` configuration value — `Database__Provider` as an env var,
+3. the **shape** of the `EasyFinanceDB` connection string (`Host=` → PostgreSQL,
+   `Server=`/`Data Source=` → SQL Server),
+4. **in Development only**, the EF Core in-memory store.
+
+Outside Development an unresolvable provider **stops startup**. Falling back to the
+in-memory store would produce a pod that reports healthy while persisting nothing.
+
+`DatabaseProviderInfo` records the resolved provider as a singleton, so the health
+check and `UseMigration()` branch on the same value the `DbContext` was built with
+rather than re-deriving it. `UseMigration()` skips the in-memory store, which has no
+migrations.
+
+#### Migrations
+
+EF Core discovers a context's migrations by scanning the assembly that holds the
+`DbContext`. The SQL Server migrations live in `EasyFinance.Persistence/Migrations/`;
+the PostgreSQL set lives in **`EasyFinance.Persistence.Postgres`** as a separate
+project, because EF cannot hold two active migration sets for one context in one
+assembly. Keeping them apart also leaves the SQL Server set intact, which is what
+preserves rollback.
+
+| Context | SQL Server | PostgreSQL |
+|---|---|---|
+| `EasyFinanceDatabaseContext` | `Migrations/` | `EasyFinance.Persistence.Postgres/Migrations/` |
+| `MyKeysContext` | `Migrations/MyKeys/` | `EasyFinance.Persistence.Postgres/Migrations/MyKeys/` |
+
+#### Data migration tool (`tools/EconoFlow.DataMigration`)
+
+A small host around the shared `fpssoftware.datamigration` package, used to copy
+SQL Server data into PostgreSQL. It supplies only a profile, a plan and a `Program.cs`;
+the engine is referenced as a package, not copied in. See
+[`docs/postgres-migration/`](docs/postgres-migration/) for the procedure and the
+rehearsal evidence.
+
 #### Unit of Work & Repository
 ```csharp
 // IGenericRepository<T>
@@ -174,7 +217,7 @@ All repositories are lazily initialized inside `UnitOfWork`. `CommitAsync()` is 
 ASP.NET Core 10 host. Everything in this layer is infrastructure for the HTTP boundary.
 
 #### Startup (`Program.cs`) — service registration order
-1. `AddPersistenceServices(configuration)` — registers DbContext, repositories, UoW, and health checks (SQL Server check in non-Debug builds).
+1. `AddPersistenceServices(configuration, isDevelopment)` — resolves the database provider (see [Database provider](#database-provider)), registers the DbContexts, repositories, UoW, `DatabaseProviderInfo`, and the matching database health check.
 2. `AddApplicationServices()` — registers all application-layer services, background services, channels.
 3. **Health checks**: `AddHealthChecks().AddCheck<S3StorageHealthCheck>("s3_storage")` — S3/Minio dependency (readiness).
 4. Options: `NotifierFallbackOptions`, `WebPushOptions`, `FeatureRolloutOptions`, `TemporaryAttachmentCleanupOptions`.
@@ -194,7 +237,12 @@ so they pass through the Angular dev-server proxy (`src/proxy.conf.js` for the
 | Endpoint         | Purpose                                                                 | Checks                                   |
 |------------------|-------------------------------------------------------------------------|------------------------------------------|
 | `/api/health/live`  | Liveness — returns `200 OK` as long as the process is alive and can serve HTTP requests (`Predicate = _ => false`, no dependency checks). | none            |
-| `/api/health/ready` | Readiness — returns `200 OK` only when all registered dependency checks pass, otherwise `503 Service Unavailable`. | SQL Server (`AspNetCore.HealthChecks.SqlServer`), S3/Minio storage (`S3StorageHealthCheck`). |
+| `/api/health/ready` | Readiness — returns `200 OK` only when all registered dependency checks pass, otherwise `503 Service Unavailable`. | The **configured database provider** — PostgreSQL (`AspNetCore.HealthChecks.NpgSql`) or SQL Server (`AspNetCore.HealthChecks.SqlServer`) — plus S3/Minio storage (`S3StorageHealthCheck`). |
+
+The database probe follows whichever provider the application resolved (see
+[Database provider](#database-provider)), so the two can no longer drift apart. A SQL
+Server probe pointed at a PostgreSQL connection string fails at startup, which is why
+it is selected from `DatabaseProviderInfo` rather than hardcoded.
 
 Because TLS is terminated upstream (Traefik), Kubernetes probes reach the container
 over plain HTTP. `MapWhen(HealthCheckPathPolicy.IsHealthProbePath && scheme != "https")`
