@@ -38,6 +38,24 @@ const MUST_BE_PATCHED = [
     minimumPatchedVersion: '1.2.2',
     ghsa: 'GHSA-68fv-2mgg-jv7q',
   },
+  {
+    lockProject: 'econoflow-mobile',
+    packageName: 'compression',
+    minimumPatchedVersion: '1.8.2',
+    ghsa: 'GHSA-vc2v-76pw-4v95',
+  },
+  {
+    lockProject: 'econoflow-mobile',
+    packageName: 'shell-quote',
+    minimumPatchedVersion: '1.11.0',
+    ghsa: 'GHSA-pqg4-j6r4-53mv',
+  },
+  {
+    lockProject: 'econoflow-mobile',
+    packageName: 'source-map-js',
+    minimumPatchedVersion: '1.2.2',
+    ghsa: 'GHSA-68fv-2mgg-jv7q',
+  },
 ];
 
 function readLockFile(project) {

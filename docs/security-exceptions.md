@@ -46,6 +46,9 @@ releases in the `overrides` block of `easyfinance.client/package.json` and
 | Fetch/HTTP stack (mobile) | `undici@6` → `6.29.0` |
 | YAML parsing (mobile) | `js-yaml@3` → `3.15.2`, `js-yaml@4` → `4.3.2` |
 | Image dimension parsing (mobile) | `image-size` → `2.0.4` |
+| Response memory-leak DoS (mobile, `@expo/cli` → `compression`) | `compression` → `1.8.2` |
+| Command injection in `quote()` (mobile, `react-devtools-core` → `shell-quote`) | `shell-quote` → `1.12.0` |
+| Event-loop DoS through indexed source-map sections (mobile, `postcss` → `source-map-js`) | `source-map-js` → `1.2.2` |
 | UUID generation (mobile build tooling) | `uuid` → `11.1.1` (via the `@expo/ngrok` and `xcode` overrides) |
 
 ## Why `overrides` instead of plain dependabot bumps
