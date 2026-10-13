@@ -48,6 +48,11 @@ COPY EasyFinance.Application/EasyFinance.Application.csproj EasyFinance.Applicat
 COPY EasyFinance.Domain/EasyFinance.Domain.csproj EasyFinance.Domain/
 COPY EasyFinance.Infrastructure/EasyFinance.Infrastructure.csproj EasyFinance.Infrastructure/
 COPY EasyFinance.Persistence/EasyFinance.Persistence.csproj EasyFinance.Persistence/
+# The PostgreSQL migration set. Referenced by the data-migration host below.
+COPY EasyFinance.Persistence.Postgres/EasyFinance.Persistence.Postgres.csproj EasyFinance.Persistence.Postgres/
+# The data-migration host. Ships in this image (see the runtime stage) so the
+# cutover has no second image that can drift from the code reading that schema.
+COPY tools/EconoFlow.DataMigration/EconoFlow.DataMigration.csproj tools/EconoFlow.DataMigration/
 COPY easyfinance.client/easyfinance.client.esproj easyfinance.client/
 COPY Directory.Build.props global.json ./
 
@@ -57,12 +62,19 @@ COPY Directory.Build.props global.json ./
 # linux-x64 publish (the csproj itself only lists win-x64;win-x86).
 RUN dotnet restore EasyFinance.Server/EasyFinance.Server.csproj -r "$RUNTIME_ID"
 
+# Restore the migrator separately. It is deliberately NOT restored as part of the
+# line above: the tool depends on fpssoftware.datamigration, and keeping its
+# restore distinct means a failure here names the tool rather than the web app.
+RUN dotnet restore tools/EconoFlow.DataMigration/EconoFlow.DataMigration.csproj -r "$RUNTIME_ID"
+
 # Copy the rest of the sources needed for the build.
 COPY EasyFinance.Application/ EasyFinance.Application/
 COPY EasyFinance.Domain/ EasyFinance.Domain/
 COPY EasyFinance.Infrastructure/ EasyFinance.Infrastructure/
 COPY EasyFinance.Persistence/ EasyFinance.Persistence/
+COPY EasyFinance.Persistence.Postgres/ EasyFinance.Persistence.Postgres/
 COPY EasyFinance.Server/ EasyFinance.Server/
+COPY tools/EconoFlow.DataMigration/ tools/EconoFlow.DataMigration/
 
 # Copy the Angular SPA manifests and install its dependencies first so the
 # very large node_modules layer is cached independently of source changes.
@@ -85,6 +97,26 @@ RUN dotnet publish EasyFinance.Server/EasyFinance.Server.csproj \
     --no-restore \
     -p:IncludeSpaProject=true
 
+# Publish the data-migration host to a separate directory. It is a distinct
+# executable, not part of the app, so it must not land in wwwroot or beside the
+# web entry point.
+#
+# It publishes into THIS image rather than a second one on purpose
+# (MIGRATION_TEMPLATE.md section 7): a separate migrator image is a second
+# revision that can drift from the code reading that schema. Shipping it here
+# also solves a trap that is invisible at build time - the tool references the
+# persistence project, which transitively pulls in Microsoft.AspNetCore.Identity,
+# so it needs the Microsoft.AspNetCore.App shared framework. A
+# mcr.microsoft.com/dotnet/runtime image does NOT contain it: the build succeeds
+# and the container dies at start-up. This stage is already `aspnet`, so the
+# problem cannot arise.
+RUN dotnet publish tools/EconoFlow.DataMigration/EconoFlow.DataMigration.csproj \
+    -c Release \
+    -r "$RUNTIME_ID" \
+    --self-contained false \
+    --no-restore \
+    -o /migrator
+
 # ── Runtime stage ────────────────────────────────────────────────────────────
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
@@ -101,6 +133,12 @@ ENV ASPNETCORE_URLS=http://+:8080 \
 VOLUME ["/app/attachments"]
 
 COPY --from=build /src/EasyFinance.Server/bin/Release/net10.0/linux-x64/publish/ ./
+
+# The data-migration host. The cutover Job and the initContainer run:
+#   dotnet /app/migrator/EconoFlow.DataMigration.dll --migrate
+# It lives inside the application image so there is exactly one revision to
+# deploy, and it needs the aspnet shared framework - which this stage provides.
+COPY --from=build /migrator/ ./migrator/
 
 # Run as a non-root user for production hardening.
 USER 1654
