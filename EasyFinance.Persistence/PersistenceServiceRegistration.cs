@@ -26,6 +26,25 @@ namespace EasyFinance.Persistence
         public const string ConnectionStringVariable = "EasyFinanceDB";
 
         /// <summary>
+        /// The assembly holding the <b>PostgreSQL</b> migration set.
+        ///
+        /// <para>
+        /// Spelled out rather than referenced from
+        /// <c>EasyFinance.Persistence.Postgres.PostgresMigrations.AssemblyName</c>,
+        /// because that project already depends on this one — referencing it back would
+        /// be a cycle. The duplication is deliberate and is guarded by
+        /// <c>PostgresMigrationsAssemblyTests</c>, which loads the assembly by this name
+        /// and asserts it really contains the migrations.
+        /// </para>
+        ///
+        /// <para>
+        /// This side (SQL Server) needs no equivalent: EF defaults to the assembly that
+        /// contains the <c>DbContext</c>, and that is this one.
+        /// </para>
+        /// </summary>
+        public const string PostgresMigrationsAssembly = "EasyFinance.Persistence.Postgres";
+
+        /// <summary>
         /// Registers the persistence layer.
         ///
         /// <para>
@@ -160,12 +179,28 @@ namespace EasyFinance.Persistence
 
         private static void RegisterPostgreSql(IServiceCollection services, string connectionString)
         {
+            // MigrationsAssembly is NOT optional here. EF otherwise looks for migrations
+            // in the assembly that contains the DbContext — EasyFinance.Persistence,
+            // which holds the SQL SERVER migration set. On PostgreSQL the application
+            // then compares its model against the wrong migrations and refuses to start:
+            //
+            //   PendingModelChangesWarning: The model for context
+            //   'EasyFinanceDatabaseContext' has pending changes.
+            //
+            // That was a production outage. The design-time factories both set this, so
+            // `dotnet ef` and the data-migration tool were unaffected — which is exactly
+            // why rehearsal missed it. Only the application's own start-up path was
+            // broken, and PostgresMigrationsAssemblyTests now covers that path.
             services.AddDbContext<EasyFinanceDatabaseContext>(
                 options => options.UseNpgsql(connectionString, npgsqlOptions =>
-                    npgsqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
+                {
+                    npgsqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+                    npgsqlOptions.MigrationsAssembly(PostgresMigrationsAssembly);
+                }));
 
             services.AddDbContext<MyKeysContext>(
-                options => options.UseNpgsql(connectionString));
+                options => options.UseNpgsql(connectionString,
+                    npgsqlOptions => npgsqlOptions.MigrationsAssembly(PostgresMigrationsAssembly)));
         }
 
         /// <summary>

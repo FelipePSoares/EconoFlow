@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -58,6 +58,19 @@
     <ProjectReference Include="..\EasyFinance.Domain\EasyFinance.Domain.csproj" />
     <ProjectReference Include="..\EasyFinance.Infrastructure\EasyFinance.Infrastructure.csproj" />
     <ProjectReference Include="..\EasyFinance.Persistence\EasyFinance.Persistence.csproj" />
+    <!--
+      Referenced for its MIGRATIONS, not for a type this project uses. At runtime
+      PersistenceServiceRegistration names this assembly (MigrationsAssembly) so EF
+      finds the PostgreSQL migration set instead of defaulting to the SQL Server set
+      that lives beside the DbContexts.
+
+      A named assembly must still be PRESENT, and without this reference nothing copies
+      it into the app's output - the build succeeds, and start-up then dies with
+      FileNotFoundException: Could not load file or assembly
+      'EasyFinance.Persistence.Postgres'. It shipped that way once; PostgresMigrations
+      AssemblyTests and ContainerImageContentsTests now pin both halves.
+    -->
+    <ProjectReference Include="..\EasyFinance.Persistence.Postgres\EasyFinance.Persistence.Postgres.csproj" />
   </ItemGroup>
 
   <ItemGroup>
