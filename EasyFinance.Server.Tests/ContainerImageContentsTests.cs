@@ -108,6 +108,26 @@ namespace EasyFinance.Server.Tests
                 "the migrations project sources must be copied before publishing");
         }
 
+        [Fact]
+        public void ServerProject_ShouldReferenceThePostgresMigrationsAssembly()
+        {
+            // The application, not just the tool, needs this assembly at runtime:
+            // PersistenceServiceRegistration names it as EF's MigrationsAssembly.
+            //
+            // Naming an assembly does not load it. EasyFinance.Server referenced only
+            // EasyFinance.Persistence, so that .dll was never copied into the app's
+            // output — the build succeeded and start-up then died with
+            // 'FileNotFoundException: Could not load file or assembly
+            // EasyFinance.Persistence.Postgres'. That reached production.
+            var csproj = File.ReadAllText(
+                Path.Combine(RepoRoot(), "EasyFinance.Server", "EasyFinance.Server.csproj"));
+
+            csproj.Should().Contain(
+                "EasyFinance.Persistence.Postgres.csproj",
+                "the Server must reference the migrations project so the assembly lands "
+                + "in the app's output; without it the app cannot start on PostgreSQL");
+        }
+
         /// <summary>
         /// The workflow with its comments stripped.
         ///
