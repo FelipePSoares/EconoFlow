@@ -372,6 +372,13 @@ PostgreSQL and skip with that reason stated), 0 failing.
 
 ## 6b. The data migration, rehearsed end to end
 
+**Status: COMPLETE — 23/23 tables verified, including the Data Protection key ring.**
+
+> **Engine requirement: pssoftware.datamigration 1.1.4.** 1.1.3 reports a false
+> MISMATCH on AspNetUserTokens because text key columns were ordered by the
+> database collation, and SQL Server's _CI_AS and PostgreSQL's C disagree. See
+> [`DIGEST_COLLATION_FALSE_MISMATCH.md`](DIGEST_COLLATION_FALSE_MISMATCH.md).
+
 **Result: `MIGRATION VERIFIED` — every table matches the SQL Server source row for
 row, by SHA-256 digest. 5,196 rows in 6.2 seconds.**
 
