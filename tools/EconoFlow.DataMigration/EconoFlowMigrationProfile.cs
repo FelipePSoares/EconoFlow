@@ -24,9 +24,19 @@ internal sealed class EconoFlowMigrationProfile : MigrationProfile
     /// (<c>docs/postgres-migration/ECONOFLOW_PREFLIGHT.md</c> §10).
     ///
     /// <para>
-    /// Both contexts share this one variable. The engine migrates exactly one context
-    /// per profile, and this profile migrates <see cref="EasyFinanceDatabaseContext"/>
-    /// only — see <c>MigrationPlan.cs</c> for why <c>MyKeysContext</c> is excluded.
+    /// Both contexts share this one variable, and the engine migrates exactly one
+    /// context per profile — this profile exists to migrate
+    /// <see cref="EasyFinanceDatabaseContext"/>, because that is the context those EF
+    /// migrations belong to.
+    /// </para>
+    ///
+    /// <para>
+    /// <b>The Data Protection key ring IS migrated.</b> <c>MyKeysContext</c> has its own
+    /// PostgreSQL migration set, and its table (<c>DataProtectionKeys</c>) is copied by
+    /// this plan like any other — see <c>MigrationPlan.cs</c>. An earlier revision
+    /// excluded it, on the mistaken assumption that the values were DPAPI-encrypted and
+    /// therefore machine-bound; they are plaintext in this deployment, and excluding
+    /// them would have logged every signed-in user out at cutover.
     /// </para>
     /// </summary>
     public override string AppConnectionVariable => "EasyFinanceDB";

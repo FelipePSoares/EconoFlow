@@ -37,7 +37,7 @@ namespace EconoFlow.DataMigration;
 ///     <b>Unmapped types.</b> None. All nine distinct source types are mapped.
 ///   </item>
 ///   <item>
-///     <b>Excluded tables.</b> Two, both deliberate - see the EXCLUDED block below.
+///     <b>Excluded tables.</b> One, deliberate - see the EXCLUDED block below.
 ///   </item>
 /// </list>
 ///

@@ -40,6 +40,8 @@
     <ProjectReference Include="..\EasyFinance.Application\EasyFinance.Application.csproj" />
     <ProjectReference Include="..\EasyFinance.Common.Tests\EasyFinance.Common.Tests.csproj" />
     <ProjectReference Include="..\EasyFinance.Persistence\EasyFinance.Persistence.csproj" />
+    <!-- Referenced for its MIGRATIONS: the citext integration tests apply the PostgreSQL schema by name, and nothing in this project names a type in that assembly. -->
+    <ProjectReference Include="..\EasyFinance.Persistence.Postgres\EasyFinance.Persistence.Postgres.csproj" />
   </ItemGroup>
 
   <ItemGroup>
