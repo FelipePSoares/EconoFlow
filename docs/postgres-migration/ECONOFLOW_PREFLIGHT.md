@@ -400,7 +400,7 @@ header listed the five things it cannot know. Each was resolved:
 | **Key columns** | `AspNetUserLogins` → `(LoginProvider, ProviderKey)`; `AspNetUserRoles` → `(UserId, RoleId)`; `AspNetUserTokens` → `(UserId, LoginProvider, Name)` |
 | **Timestamps** | All 38 `datetime2`/`datetimeoffset` columns → `TimestampTz` **with a `UtcTimestamp` coercion** |
 | **Unmapped types** | None |
-| **Excluded tables** | `__EFMigrationsHistory`, `DataProtectionKeys` — reasons recorded in the plan |
+| **Excluded tables** | `__EFMigrationsHistory` only — reason recorded in the plan. `DataProtectionKeys` was excluded at first and deliberately brought back: the key ring must move, or every signed-in user is logged out at cutover (see §6b) |
 
 **Naming:** the generator emitted `"dbo.Table"` on *both* sides. SQL Server's schema
 is `dbo`; PostgreSQL's is `public` and has no `dbo`, so the source keeps the prefix

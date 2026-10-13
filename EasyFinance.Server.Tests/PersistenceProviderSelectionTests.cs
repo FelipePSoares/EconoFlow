@@ -367,5 +367,37 @@ namespace EasyFinance.Server.Tests
                     "the health check must probe the same provider the app uses");
             }
         }
+
+        [Fact]
+        public void AcceptedNames_ShouldCoverEveryProvider()
+        {
+            // AcceptedNames is what Parse consults, and what the start-up error message
+            // lists to an operator. If a provider were added without an entry here, the
+            // enum value would be selectable in code yet unreachable from configuration,
+            // and the only symptom would be "unrecognised database provider" at deploy
+            // time - a long way from the missing line.
+            var declared = Enum.GetValues<DatabaseProvider>().ToList();
+            var accepted = DatabaseProviderInfo.AcceptedNames.Values.Distinct().ToList();
+
+            accepted.Should().BeEquivalentTo(
+                declared,
+                "every DatabaseProvider value must be reachable by name from "
+                + $"{PersistenceServiceRegistration.ProviderConfigurationKey}");
+
+            // "Postgres" is a deliberate convenience alias for PostgreSql, not a typo.
+            DatabaseProviderInfo.AcceptedNames.Should().ContainKey("Postgres");
+            DatabaseProviderInfo.AcceptedNames["Postgres"].Should().Be(DatabaseProvider.PostgreSql);
+        }
+
+        [Fact]
+        public void AcceptedNames_ShouldNotCollideCaseInsensitively()
+        {
+            // The dictionary is OrdinalIgnoreCase, so two keys differing only in case
+            // would make Parse's result depend on dictionary ordering - a silent,
+            // configuration-dependent bug with no compile-time symptom.
+            DatabaseProviderInfo.AcceptedNames.Keys.Should().OnlyHaveUniqueItems(
+                "two accepted names differing only in case would collide in the "
+                + "case-insensitive lookup Parse uses");
+        }
     }
 }
