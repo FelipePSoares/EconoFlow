@@ -1,9 +1,9 @@
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace EasyFinance.Persistence.Migrations.MyKeys
+namespace EasyFinance.Persistence.MigrationsMyKeys
 {
     /// <inheritdoc />
     public partial class InitialPostgresBaseline : Migration

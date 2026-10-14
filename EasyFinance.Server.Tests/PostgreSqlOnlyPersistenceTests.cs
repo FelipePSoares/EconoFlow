@@ -158,6 +158,67 @@ namespace EasyFinance.Server.Tests
                 "each context needs its own migration for the schema to be complete");
         }
 
+        [Theory]
+        [MemberData(nameof(Contexts))]
+        public void EveryContext_ShouldDiscoverOnlyItsOwnMigration(Type contextType)
+        {
+            // THE test that matters, and the one whose absence let a real defect through.
+            //
+            // EF discovers a context's migrations by NAMESPACE PROXIMITY: it looks in the
+            // assembly for migrations in the context's own namespace subtree. When both
+            // sets were placed under EasyFinance.Persistence.Migrations, the MyKeys set
+            // became a CHILD of the application namespace - so EasyFinanceDatabaseContext
+            // claimed both migrations, recorded both ids in the history table, and
+            // MyKeysContext found nothing left to apply.
+            //
+            // The result was a fresh database with the migration history claiming success
+            // and no DataProtectionKeys table: exactly the silent failure the whole
+            // migration fought. Asserting that both migrations EXIST does not catch it -
+            // only asserting which context DISCOVERS which does.
+            using var context = BuildContext(contextType);
+
+            var discovered = context.Database.GetMigrations().ToList();
+
+            var expected = contextType == typeof(EasyFinanceDatabaseContext)
+                ? "20261012185544_InitialPostgresBaseline"
+                : "20261012190723_InitialPostgresBaseline";
+
+            discovered.Should().Equal(
+                [expected],
+                $"{contextType.Name} must discover only its own migration. Discovering the "
+                + "other context's migration makes Migrate() record it without applying it, "
+                + "which silently skips that context's whole schema");
+        }
+
+        [Fact]
+        public void TheTwoMigrationSets_ShouldLiveInSiblingNamespaces()
+        {
+            // The structural rule behind the test above. Both sets are in one assembly
+            // now, so neither namespace may be a prefix of the other - otherwise the
+            // enclosing context absorbs the nested set, which is what broke
+            // DataProtectionKeys on a fresh database.
+            var appNamespace = typeof(EasyFinanceDatabaseContext).Assembly
+                .GetTypes()
+                .First(t => t.GetCustomAttribute<MigrationAttribute>()?.Id
+                    == "20261012185544_InitialPostgresBaseline")
+                .Namespace!;
+
+            var myKeysNamespace = typeof(EasyFinanceDatabaseContext).Assembly
+                .GetTypes()
+                .First(t => t.GetCustomAttribute<MigrationAttribute>()?.Id
+                    == "20261012190723_InitialPostgresBaseline")
+                .Namespace!;
+
+            myKeysNamespace.Should().NotStartWith(
+                appNamespace + ".",
+                "a nested namespace is absorbed by the enclosing context, so its "
+                + "migration is recorded but never applied");
+
+            appNamespace.Should().NotStartWith(
+                myKeysNamespace + ".",
+                "nor the other way round");
+        }
+
         [Fact]
         public void ThereShouldBeNoSqlServerMigrationsLeft()
         {

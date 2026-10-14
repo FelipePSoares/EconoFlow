@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace EasyFinance.Persistence.Migrations.MyKeys
+namespace EasyFinance.Persistence.MigrationsMyKeys
 {
     [DbContext(typeof(MyKeysContext))]
     [Migration("20261012190723_InitialPostgresBaseline")]
