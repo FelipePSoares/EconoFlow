@@ -11,28 +11,31 @@ namespace EasyFinance.Server.Tests
     /// Guards the container image's build definition and publish workflow.
     ///
     /// <para>
-    /// These are not style checks. Both files encode facts that are invisible until a
-    /// cutover, when they are expensive:
+    /// These are not style checks. The Dockerfile encodes facts that are invisible until
+    /// a deployment, when they are expensive — so the rules are asserted here rather than
+    /// left to review.
+    /// </para>
+    ///
+    /// <para>
+    /// <b>What this class guards now.</b> The image used to carry a second executable: a
+    /// data-migration host published to <c>/app/migrator</c>, which needed an
+    /// <c>aspnet</c>-based stage rather than <c>runtime</c> because it transitively pulled
+    /// in <c>Microsoft.AspNetCore.App</c>. The migration completed and all of that was
+    /// removed — the host, the separate migrations project it loaded by name, and the
+    /// migrator stage. The tests below now assert the removal, plus the two properties
+    /// that still matter:
     /// </para>
     ///
     /// <list type="bullet">
     ///   <item>
-    ///     The data-migration host must be <b>published into the application image</b>
-    ///     at <c>/app/migrator</c>. If it is not, the cutover Job — which runs
-    ///     <c>dotnet /app/migrator/EconoFlow.DataMigration.dll</c> — fails with
-    ///     "file not found" at the worst possible moment.
+    ///     The image must not reference the deleted projects. A stale <c>COPY</c> fails
+    ///     the build, and a stale <c>ProjectReference</c> would silently reintroduce a
+    ///     dependency on code that no longer exists.
     ///   </item>
     ///   <item>
-    ///     It must ship in a stage based on <c>aspnet</c>, not <c>runtime</c>. The tool
-    ///     references the persistence project, which transitively pulls in
-    ///     <c>Microsoft.AspNetCore.Identity</c> and therefore needs the
-    ///     <c>Microsoft.AspNetCore.App</c> shared framework. A <c>runtime</c> image
-    ///     builds fine and the container dies at start-up.
-    ///   </item>
-    ///   <item>
-    ///     The PostgreSQL migrations assembly must be present next to it, because the
-    ///     profile loads it <b>by name</b> at run time. Nothing in the host's own code
-    ///     names a type in it, so a plain project reference is not enough on its own.
+    ///     The publish workflow must keep <c>workflow_dispatch</c>, so an image can be
+    ///     built from a branch without merging — and must not move <c>latest</c> when it
+    ///     is, or a branch build becomes what the cluster deploys.
     ///   </item>
     /// </list>
     /// </summary>

@@ -230,7 +230,7 @@ All repositories are lazily initialized inside `UnitOfWork`. `CommitAsync()` is 
 ASP.NET Core 10 host. Everything in this layer is infrastructure for the HTTP boundary.
 
 #### Startup (`Program.cs`) — service registration order
-1. `AddPersistenceServices(configuration, isDevelopment)` — resolves the database provider (see [Database provider](#database-provider)), registers the DbContexts, repositories, UoW, `DatabaseProviderInfo`, and the matching database health check.
+1. `AddPersistenceServices(configuration, isDevelopment)` — resolves the database provider (see [Database](#database)), registers the DbContexts, repositories, UoW, `DatabaseProviderInfo`, and the matching database health check.
 2. `AddApplicationServices()` — registers all application-layer services, background services, channels.
 3. **Health checks**: `AddHealthChecks().AddCheck<S3StorageHealthCheck>("s3_storage")` — S3/Minio dependency (readiness).
 4. Options: `NotifierFallbackOptions`, `WebPushOptions`, `FeatureRolloutOptions`, `TemporaryAttachmentCleanupOptions`.
@@ -252,10 +252,11 @@ so they pass through the Angular dev-server proxy (`src/proxy.conf.js` for the
 | `/api/health/live`  | Liveness — returns `200 OK` as long as the process is alive and can serve HTTP requests (`Predicate = _ => false`, no dependency checks). | none            |
 | `/api/health/ready` | Readiness — returns `200 OK` only when all registered dependency checks pass, otherwise `503 Service Unavailable`. | The **configured database provider** — PostgreSQL (`AspNetCore.HealthChecks.NpgSql`) or SQL Server (`AspNetCore.HealthChecks.SqlServer`) — plus S3/Minio storage (`S3StorageHealthCheck`). |
 
-The database probe follows whichever provider the application resolved (see
-[Database provider](#database-provider)), so the two can no longer drift apart. A SQL
-Server probe pointed at a PostgreSQL connection string fails at startup, which is why
-it is selected from `DatabaseProviderInfo` rather than hardcoded.
+The database probe is registered only for a relational store (see [Database](#database)),
+so it can no longer drift from the `DbContext`s. It is still selected from
+`DatabaseProviderInfo` rather than assumed: a SQL Server probe pointed at a PostgreSQL
+connection string once failed at startup, and the guard that prevented it costs nothing
+to keep.
 
 Because TLS is terminated upstream (Traefik), Kubernetes probes reach the container
 over plain HTTP. `MapWhen(HealthCheckPathPolicy.IsHealthProbePath && scheme != "https")`
