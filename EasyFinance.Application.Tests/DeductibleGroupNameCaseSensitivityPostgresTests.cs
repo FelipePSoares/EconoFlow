@@ -72,8 +72,7 @@ namespace EasyFinance.Application.Tests
             var services = new ServiceCollection();
 
             services.AddDbContext<EasyFinanceDatabaseContext>(options =>
-                options.UseNpgsql(connectionString, npgsql => npgsql
-                    .MigrationsAssembly("EasyFinance.Persistence.Postgres")));
+                options.UseNpgsql(connectionString));
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<ITaxYearService, TaxYearService>();

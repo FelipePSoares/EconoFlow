@@ -116,8 +116,9 @@ nothing.
 > The in-memory store has no migrations, so `UseMigration()` skips it; EF Core would
 > throw if asked to migrate a non-relational provider.
 
-SQL Server support is retained for the migration transition window. See
-`docs/postgres-migration/` for the PostgreSQL migration pack.
+PostgreSQL is the only database. The SQL Server provider, its migrations and the
+data-migration tooling were removed once the cutover completed, so the image carries a
+single provider and no migrator.
 
 The container listens on plain HTTP (`ASPNETCORE_URLS=http://+:8080`) — TLS is
 terminated upstream (Traefik). To stop the global HTTPS-redirect middleware from

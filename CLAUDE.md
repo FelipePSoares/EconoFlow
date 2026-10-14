@@ -61,7 +61,7 @@ Once all tests are green and lint is clean, spawn the `codereview` subagent (def
 
 ## Project Overview
 
-EconoFlow (codebase name: EasyFinance) is a personal/company budget tracking application. It uses an ASP.NET Core 10 backend serving an Angular 21 SPA frontend, backed by PostgreSQL (with SQL Server still supported during the migration transition window) via EF Core. The database provider is chosen at **runtime** — see [architecture.md](architecture.md#database-provider) — and the migration itself is documented in [`docs/postgres-migration/`](docs/postgres-migration/).
+EconoFlow (codebase name: EasyFinance) is a personal/company budget tracking application. It uses an ASP.NET Core 10 backend serving an Angular 21 SPA frontend, backed by PostgreSQL via EF Core. **PostgreSQL is the only database** — SQL Server support, its migrations and the data-migration tooling were removed when the migration completed. The store is chosen at **runtime** (PostgreSQL, or the in-memory provider the test suite uses) — see [architecture.md](architecture.md#database).
 
 ---
 
@@ -84,16 +84,16 @@ dotnet test EasyFinance.Application.Tests/
 dotnet test EasyFinance.Domain.Tests/
 dotnet test EasyFinance.Server.Tests/
 
-# Add an EF Core migration — SQL Server set
-dotnet ef migrations add {MigrationName} --context EasyFinanceDatabaseContext --project EasyFinance.Persistence --configuration release -s ./EasyFinance.Server
+# Add an EF Core migration — the application context
+dotnet ef migrations add {MigrationName} --context EasyFinanceDatabaseContext --project EasyFinance.Persistence --startup-project EasyFinance.Persistence --configuration release
 
-# Add an EF Core migration — PostgreSQL set (separate assembly; see architecture.md)
-dotnet ef migrations add {MigrationName} --context EasyFinanceDatabaseContext --project EasyFinance.Persistence.Postgres --startup-project EasyFinance.Persistence.Postgres --configuration release
-
-# Run the SQL Server -> PostgreSQL data migration (local rehearsal on 5433)
-dotnet run --project tools/EconoFlow.DataMigration -- --check-schema
-dotnet run --project tools/EconoFlow.DataMigration -- --migrate --truncate
+# Add an EF Core migration — the Data Protection key-ring context
+dotnet ef migrations add {MigrationName} --context MyKeysContext --project EasyFinance.Persistence --startup-project EasyFinance.Persistence --configuration release
 ```
+
+> Both migration sets live in `EasyFinance.Persistence/Migrations/` — PostgreSQL is the only
+> database, so there is no second set and no separate persistence project. `MigrationsAssembly`
+> is deliberately unset: the migrations sit beside the contexts, so EF's default resolves.
 
 ### Frontend (from `easyfinance.client/`)
 

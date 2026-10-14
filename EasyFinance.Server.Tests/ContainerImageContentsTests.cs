@@ -60,72 +60,53 @@ namespace EasyFinance.Server.Tests
             Path.Combine(RepoRoot(), ".github", "workflows", "docker-publish.yml"));
 
         [Fact]
-        public void Dockerfile_ShouldPublishTheDataMigrationHost()
+        public void Dockerfile_ShouldNotReferenceTheRemovedMigrationProjects()
         {
-            Dockerfile().Should().Contain(
-                "tools/EconoFlow.DataMigration/EconoFlow.DataMigration.csproj",
-                "the cutover runs the migrator from inside this image; if it is not "
-                + "published, the Job fails with 'file not found'");
-        }
-
-        [Fact]
-        public void Dockerfile_ShouldCopyTheMigratorIntoTheRuntimeImageAtAppMigrator()
-        {
+            // The migrator host and the separate PostgreSQL persistence project are gone:
+            // the data migration finished and its tooling was deleted. A Dockerfile that
+            // still COPYs them fails the build with 'not found', which is at least loud -
+            // but it would also mean the removal was incomplete.
             var dockerfile = Dockerfile();
 
-            // The copy into the runtime stage, to the path the Job and the
-            // initContainer both use.
-            dockerfile.Should().MatchRegex(
-                @"COPY\s+--from=build\s+/migrator/?\s+\./migrator/?",
-                "the migrator must land at /app/migrator, which is the path the "
-                + "cutover Job invokes");
+            dockerfile.Should().NotContain(
+                "EconoFlow.DataMigration",
+                "the data-migration host was removed once PostgreSQL became the only "
+                + "database; there is no longer a source to copy from");
+
+            dockerfile.Should().NotContain(
+                "EasyFinance.Persistence.Postgres",
+                "the separate PostgreSQL persistence project was merged into "
+                + "EasyFinance.Persistence and deleted");
         }
 
         [Fact]
-        public void Dockerfile_ShouldBaseTheMigratorRuntimeOnAspNet()
+        public void Dockerfile_ShouldNotPublishAMigratorAnyMore()
         {
-            // A runtime image lacks Microsoft.AspNetCore.App, which the tool needs
-            // transitively. This failure is invisible at build time and only appears
-            // when the container starts.
-            Dockerfile().Should().MatchRegex(
-                @"FROM\s+mcr\.microsoft\.com/dotnet/aspnet:",
-                "the tool needs the Microsoft.AspNetCore.App shared framework, so the "
-                + "image that carries it must be the aspnet one");
+            Dockerfile().Should().NotMatchRegex(
+                @"COPY\s+--from=build\s+/migrator",
+                "the runtime image no longer carries a migrator: migrations are applied "
+                + "by the application's own start-up (PersistenceServiceRegistration"
+                + ".UseMigration), which is the only path that was ever exercised and the "
+                + "one whose absence caused a production outage");
         }
 
         [Fact]
-        public void Dockerfile_ShouldCopyThePostgresMigrationsProject()
+        public void ServerProject_ShouldReferenceThePersistenceProjectThatHoldsTheMigrations()
         {
-            var dockerfile = Dockerfile();
-
-            dockerfile.Should().Contain(
-                "EasyFinance.Persistence.Postgres/EasyFinance.Persistence.Postgres.csproj",
-                "the migrations project must be restored; without it the tool cannot "
-                + "apply the PostgreSQL schema");
-
-            dockerfile.Should().Contain(
-                "COPY EasyFinance.Persistence.Postgres/ EasyFinance.Persistence.Postgres/",
-                "the migrations project sources must be copied before publishing");
-        }
-
-        [Fact]
-        public void ServerProject_ShouldReferenceThePostgresMigrationsAssembly()
-        {
-            // The application, not just the tool, needs this assembly at runtime:
-            // PersistenceServiceRegistration names it as EF's MigrationsAssembly.
-            //
-            // Naming an assembly does not load it. EasyFinance.Server referenced only
-            // EasyFinance.Persistence, so that .dll was never copied into the app's
-            // output — the build succeeded and start-up then died with
-            // 'FileNotFoundException: Could not load file or assembly
-            // EasyFinance.Persistence.Postgres'. That reached production.
+            // The migrations now live in EasyFinance.Persistence, beside the contexts, so
+            // this is the only reference the application needs. Assert it explicitly: a
+            // previous revision named an assembly it did not reference, and start-up died
+            // with FileNotFoundException after a successful build.
             var csproj = File.ReadAllText(
                 Path.Combine(RepoRoot(), "EasyFinance.Server", "EasyFinance.Server.csproj"));
 
             csproj.Should().Contain(
-                "EasyFinance.Persistence.Postgres.csproj",
-                "the Server must reference the migrations project so the assembly lands "
-                + "in the app's output; without it the app cannot start on PostgreSQL");
+                "EasyFinance.Persistence.csproj",
+                "the migrations live in this assembly now, so the Server must reference it");
+
+            csproj.Should().NotContain(
+                "EasyFinance.Persistence.Postgres",
+                "that project no longer exists");
         }
 
         /// <summary>

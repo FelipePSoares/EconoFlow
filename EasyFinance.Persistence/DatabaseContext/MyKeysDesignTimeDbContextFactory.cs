@@ -1,30 +1,28 @@
 using System;
-using EasyFinance.Persistence.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
-namespace EasyFinance.Persistence.Postgres
+namespace EasyFinance.Persistence.DatabaseContext
 {
     /// <summary>
-    /// Design-time factory for <see cref="MyKeysContext"/>, targeting the
-    /// <b>PostgreSQL</b> migration set.
+    /// Design-time factory for <see cref="MyKeysContext"/>, the Data Protection key-ring
+    /// context.
     ///
     /// <para>
-    /// This exists because the migration engine migrates <b>exactly one context per
-    /// profile</b>, so each context needs its own migration set and its own history
-    /// table. This is WhiteLabel's shape, and EconoFlow has the same two-context
-    /// structure.
+    /// This exists because EF Core migrates <b>exactly one context per command</b>, so
+    /// each context needs its own migration set and its own history table. EconoFlow has
+    /// two contexts, so it has two sets.
     /// </para>
     ///
     /// <para>
     /// A separate factory (rather than one that branches on a context name) is
-    /// deliberate: the factory is what decides the generated DDL's dialect, and the
-    /// two sets must never be able to contaminate each other.
+    /// deliberate: the factory is what decides the generated DDL's dialect, and the two
+    /// sets must never be able to contaminate each other.
     /// </para>
     ///
     /// <para>
     /// Deliberately <b>not</b> <c>#if DEBUG</c>-dependent, for the same reason as
-    /// <see cref="PostgresDesignTimeDbContextFactory"/>.
+    /// <see cref="EasyFinanceDatabaseContextFactory"/>.
     /// </para>
     ///
     /// <para>
@@ -36,22 +34,17 @@ namespace EasyFinance.Persistence.Postgres
     {
         private const string ConnectionOverrideVariable = "ECONOFLOW_DESIGN_TIME_CONNECTION";
 
-        /// <summary>
-        /// Rehearsal default, matching <see cref="PostgresDesignTimeDbContextFactory"/>.
-        /// </summary>
-        public const string DefaultConnection =
-            "Host=localhost;Port=5433;Database=econoflow_rehearsal;Username=postgres;Password=Rehearsal!Passw0rd";
-
         public MyKeysContext CreateDbContext(string[] args)
         {
             var connectionString = Environment.GetEnvironmentVariable(ConnectionOverrideVariable);
 
             if (string.IsNullOrWhiteSpace(connectionString))
-                connectionString = DefaultConnection;
+                connectionString = EasyFinanceDatabaseContextFactory.DefaultConnection;
 
+            // MigrationsAssembly is intentionally NOT set: the migrations live in this
+            // assembly, beside the context, so EF's default is already correct.
             var options = new DbContextOptionsBuilder<MyKeysContext>()
-                .UseNpgsql(connectionString, npgsql => npgsql
-                    .MigrationsAssembly(PostgresMigrations.AssemblyName))
+                .UseNpgsql(connectionString)
                 .Options;
 
             return new MyKeysContext(options);

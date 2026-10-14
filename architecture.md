@@ -152,48 +152,61 @@ Orchestration layer: service interfaces, their implementations, DTOs, mappers, a
 - **Connection**: `EasyFinanceDB` environment variable in production; in-memory DB in development/tests.
 - Each test run gets a unique in-memory database name to prevent state leakage across parallel tests.
 
-#### Database provider
+#### Database
 
-Provider selection is a **runtime** decision. It used to be a compile-time `#if DEBUG`
-branch, which made the provider a build property: a Debug build could not be pointed at
-a real database at all, and nothing kept the `DbContext`, the health check and the
-migrations pointing the same way. Resolution order, highest precedence first:
+**PostgreSQL is the only database this application has.** SQL Server support was removed
+once the migration completed; the provider package, the SQL Server migrations, the data
+migration tool and the separate `EasyFinance.Persistence.Postgres` project are all gone.
+
+Store selection is still a **runtime** decision, but it now chooses between PostgreSQL and
+the in-memory store the test suite uses — not between two databases. It used to be a
+compile-time `#if DEBUG` branch, which made the store a build property: a Debug build could
+not be pointed at a real database at all, and nothing kept the `DbContext`, the health check
+and the migrations pointing the same way. Resolution order, highest precedence first:
 
 1. an explicit code argument (`providerOverride`, used by tests),
 2. the `Database:Provider` configuration value — `Database__Provider` as an env var,
-3. the **shape** of the `EasyFinanceDB` connection string (`Host=` → PostgreSQL,
-   `Server=`/`Data Source=` → SQL Server),
+3. the **shape** of the `EasyFinanceDB` connection string (`Host=` → PostgreSQL),
 4. **in Development only**, the EF Core in-memory store.
 
-Outside Development an unresolvable provider **stops startup**. Falling back to the
-in-memory store would produce a pod that reports healthy while persisting nothing.
+Outside Development an unresolvable store **stops startup**. Falling back to the in-memory
+store would produce a pod that reports healthy while persisting nothing.
 
-`DatabaseProviderInfo` records the resolved provider as a singleton, so the health
-check and `UseMigration()` branch on the same value the `DbContext` was built with
-rather than re-deriving it. `UseMigration()` skips the in-memory store, which has no
-migrations.
+`DatabaseProviderInfo` records the resolved store as a singleton, so the health check and
+`UseMigration()` branch on the same value the `DbContext` was built with rather than
+re-deriving it. `UseMigration()` skips the in-memory store, which has no migrations.
 
 #### Migrations
 
 EF Core discovers a context's migrations by scanning the assembly that holds the
-`DbContext`. The SQL Server migrations live in `EasyFinance.Persistence/Migrations/`;
-the PostgreSQL set lives in **`EasyFinance.Persistence.Postgres`** as a separate
-project, because EF cannot hold two active migration sets for one context in one
-assembly. Keeping them apart also leaves the SQL Server set intact, which is what
-preserves rollback.
+`DbContext`. Both PostgreSQL sets live in `EasyFinance.Persistence/Migrations/` — the same
+place the SQL Server set used to be — because there is now only one provider to migrate to
+and no second set to keep them apart from.
 
-| Context | SQL Server | PostgreSQL |
-|---|---|---|
-| `EasyFinanceDatabaseContext` | `Migrations/` | `EasyFinance.Persistence.Postgres/Migrations/` |
-| `MyKeysContext` | `Migrations/MyKeys/` | `EasyFinance.Persistence.Postgres/Migrations/MyKeys/` |
+| Context | Migrations |
+|---|---|
+| `EasyFinanceDatabaseContext` | `Migrations/` |
+| `MyKeysContext` | `Migrations/MyKeys/` |
 
-#### Data migration tool (`tools/EconoFlow.DataMigration`)
+Two separate sets exist because **EF Core migrates exactly one context per command**, and
+the Data Protection key ring is its own context with its own history table. Both are applied
+by `PersistenceServiceRegistration.UseMigration()`; applying only the first leaves the
+application with no key ring, which logs every signed-in user out.
 
-A small host around the shared `fpssoftware.datamigration` package, used to copy
-SQL Server data into PostgreSQL. It supplies only a profile, a plan and a `Program.cs`;
-the engine is referenced as a package, not copied in. See
-[`docs/postgres-migration/`](docs/postgres-migration/) for the procedure and the
-rehearsal evidence.
+`MigrationsAssembly` is deliberately **not** set. It was required while the migrations lived
+in a separate project; with them beside the contexts, EF's default resolves correctly.
+Naming an assembly is also not the same as shipping it — a previous revision named a project
+it did not reference, and start-up failed with `FileNotFoundException` after a clean build.
+
+Generating a migration:
+
+```powershell
+# EasyFinanceDatabaseContext
+dotnet ef migrations add {Name} --context EasyFinanceDatabaseContext --project EasyFinance.Persistence --startup-project EasyFinance.Persistence --configuration release
+
+# MyKeysContext
+dotnet ef migrations add {Name} --context MyKeysContext --project EasyFinance.Persistence --startup-project EasyFinance.Persistence --configuration release
+```
 
 #### Unit of Work & Repository
 ```csharp

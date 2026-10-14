@@ -61,7 +61,6 @@ namespace EasyFinance.Server.Tests
 
         [Theory]
         [InlineData(DatabaseProvider.PostgreSql)]
-        [InlineData(DatabaseProvider.SqlServer)]
         public void Seeder_ShouldRefuseARelationalDatabase(DatabaseProvider provider)
         {
             var info = new DatabaseProviderInfo(provider);

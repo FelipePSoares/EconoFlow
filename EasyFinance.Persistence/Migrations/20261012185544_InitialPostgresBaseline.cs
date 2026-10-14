@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace EasyFinance.Persistence.Postgres.Migrations
+namespace EasyFinance.Persistence.Migrations
 {
     /// <inheritdoc />
     public partial class InitialPostgresBaseline : Migration

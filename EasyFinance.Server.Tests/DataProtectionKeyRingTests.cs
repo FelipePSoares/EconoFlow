@@ -44,8 +44,7 @@ namespace EasyFinance.Server.Tests
         private static MyKeysContext CreateKeysContext(string connectionString)
         {
             var options = new DbContextOptionsBuilder<MyKeysContext>()
-                .UseNpgsql(connectionString, npgsql => npgsql
-                    .MigrationsAssembly("EasyFinance.Persistence.Postgres"))
+                .UseNpgsql(connectionString)
                 .Options;
 
             return new MyKeysContext(options);
@@ -60,8 +59,7 @@ namespace EasyFinance.Server.Tests
             var services = new ServiceCollection();
             services.AddLogging();
             services.AddDbContext<MyKeysContext>(options =>
-                options.UseNpgsql(connectionString, npgsql => npgsql
-                    .MigrationsAssembly("EasyFinance.Persistence.Postgres")));
+                options.UseNpgsql(connectionString));
 
             return DataProtectionProvider.Create(
                 new DirectoryInfo(Path.GetTempPath()),

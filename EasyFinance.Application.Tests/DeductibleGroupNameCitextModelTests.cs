@@ -47,12 +47,6 @@ namespace EasyFinance.Application.Tests
                 case DatabaseProvider.PostgreSql:
                     builder.UseNpgsql("Host=localhost;Port=5433;Database=model_only;Username=x;Password=x");
                     break;
-
-                case DatabaseProvider.SqlServer:
-                    builder.UseSqlServer(
-                        "Server=localhost;Database=model_only;User Id=x;Password=x;TrustServerCertificate=true");
-                    break;
-
                 default:
                     builder.UseInMemoryDatabase("model_only");
                     break;
@@ -120,15 +114,6 @@ namespace EasyFinance.Application.Tests
         }
 
         [Fact]
-        public void Name_ShouldNotBeCitext_OnSqlServer()
-        {
-            // citext is a PostgreSQL type. Leaking it into the SQL Server model would
-            // break that provider, which is still supported during the transition - and
-            // SQL Server's _CI_AS collation already provides the behaviour for free.
-            NameColumnTypeFor(DatabaseProvider.SqlServer).Should().NotBe("citext");
-        }
-
-        [Fact]
         public void Name_ShouldConfigureCleanly_OnTheInMemoryProvider()
         {
             using var context = CreateContext(DatabaseProvider.InMemory);
@@ -152,15 +137,6 @@ namespace EasyFinance.Application.Tests
                 annotation => annotation.Contains("citext", StringComparison.Ordinal),
                 "the extension must be declared in the model so a database created by "
                 + "the EF migrations alone is usable, without a hand-run init script");
-        }
-
-        [Fact]
-        public void CitextExtension_ShouldNotBeDeclaredOnSqlServer()
-        {
-            using var context = CreateContext(DatabaseProvider.SqlServer);
-
-            PostgresExtensionAnnotations(context).Should().BeEmpty(
-                "PostgreSQL-specific annotations must never reach the SQL Server model");
         }
 
         [Fact]
@@ -190,24 +166,6 @@ namespace EasyFinance.Application.Tests
                     "citext",
                     $"{column.Entity.Name}.{column.Property} is declared case-insensitive "
                     + "but was not configured as citext, so the declaration does nothing");
-            }
-        }
-
-        [Fact]
-        public void CaseInsensitiveColumns_ShouldNotBeConfiguredOnSqlServer()
-        {
-            // The list must be applied only under the Npgsql guard. If it leaked, SQL
-            // Server - still supported during the transition - would be asked for a type
-            // it does not have.
-            using var sqlServer = CreateContext(DatabaseProvider.SqlServer);
-
-            var model = sqlServer.GetService<IDesignTimeModel>().Model;
-
-            foreach (var column in EasyFinanceDatabaseContext.CaseInsensitiveTextColumns)
-            {
-                model.FindEntityType(column.Entity)?
-                    .FindProperty(column.Property)?
-                    .GetColumnType().Should().NotBe("citext");
             }
         }
     }
