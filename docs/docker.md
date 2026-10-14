@@ -32,7 +32,7 @@ docker build -t econoflow:test .
 
 ```bash
 docker run --rm -p 8080:8080 \
-  -e EasyFinanceDB='Server=...;Database=...;User Id=sa;Password=...;TrustServerCertificate=true' \
+  -e EasyFinanceDB='Host=postgres;Port=5432;Database=econoflow;Username=econoflow;Password=...' \
   -e EconoFlow_TOKEN_SECRET_KEY='<32+ char secret>' \
   -e EconoFlow_ISSUER='https://econoflow.pt' \
   -e EconoFlow_AUDIENCE='https://econoflow.pt' \
@@ -57,8 +57,8 @@ production build), in addition to `appsettings.json`:
 | Variable | Purpose | Required |
 |---|---|---|
 | `ASPNETCORE_ENVIRONMENT` | Defaults to `Production` in the image. | no |
-| `EasyFinanceDB` | Database connection string. The provider is inferred from its shape (`Host=` → PostgreSQL, `Server=`/`Data Source=` → SQL Server) unless `Database__Provider` is set explicitly. | **yes** |
-| `Database__Provider` | Explicit provider selection: `PostgreSql`, `SqlServer` or `InMemory`. Overrides inference from the connection string. See "Database provider" below. | no |
+| `EasyFinanceDB` | PostgreSQL connection string. A `Host=` value implies PostgreSQL; anything else resolves to no provider and **stops startup** rather than connecting somewhere unintended. | **yes** |
+| `Database__Provider` | Explicit store selection: `PostgreSql` or `InMemory`. Overrides inference from the connection string. See "Database provider" below. | no |
 | `EconoFlow_TOKEN_SECRET_KEY` | JWT signing key (used when not `Development`). | **yes** |
 | `EconoFlow_ISSUER` | JWT issuer. | no (falls back to config) |
 | `EconoFlow_AUDIENCE` | JWT audience. | no (falls back to config) |
@@ -94,10 +94,11 @@ proxy (`src/proxy.conf.js` `/api` context) and any ingress rule forwarding
 | `/api/health/live`  | `200 OK` when the process is alive               | livenessProbe |
 | `/api/health/ready` | `200 OK` when the database and S3/Minio are reachable; `503` otherwise | readinessProbe |
 
-The readiness probe checks the database **provider the application was actually
-configured with** — PostgreSQL (`AspNetCore.HealthChecks.NpgSql`) or SQL Server
-(`AspNetCore.HealthChecks.SqlServer`). A SQL Server probe pointed at a PostgreSQL
-connection string fails at startup, so the two can no longer drift apart.
+The readiness probe checks the database with `AspNetCore.HealthChecks.NpgSql`, registered
+only when the store is relational. PostgreSQL is the only relational database, so there is
+no second provider to mismatch it against — but it is still selected from
+`DatabaseProviderInfo` rather than assumed, because a SQL Server probe pointed at a
+PostgreSQL connection string once failed at startup.
 
 ### Database provider
 
