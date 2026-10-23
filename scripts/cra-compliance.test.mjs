@@ -211,3 +211,20 @@ test('CodeQL ignores build output so generated files are not scanned', () => {
     );
   }
 });
+
+test('the Docker build receives the repo-level MSBuild files', () => {
+  // Directory.Build.targets carries the transitive vulnerability pins, and
+  // Directory.Build.props carries TreatWarningsAsErrors. The Dockerfile copies build
+  // inputs explicitly (there is no full-context COPY before restore), so any repo-level
+  // MSBuild file that is not listed here is silently absent from the image build - and
+  // the NuGet audit then fails the container restore with NU1903.
+  const dockerfile = read('Dockerfile');
+
+  for (const buildFile of ['Directory.Build.props', 'Directory.Build.targets', 'global.json']) {
+    assert.match(
+      dockerfile,
+      new RegExp(`^\\s*COPY\\s+.*${buildFile.replace('.', '\\.')}`, 'm'),
+      `The Dockerfile does not copy ${buildFile} into the build stage`,
+    );
+  }
+});

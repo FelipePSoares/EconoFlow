@@ -54,7 +54,11 @@ COPY EasyFinance.Persistence.Postgres/EasyFinance.Persistence.Postgres.csproj Ea
 # cutover has no second image that can drift from the code reading that schema.
 COPY tools/EconoFlow.DataMigration/EconoFlow.DataMigration.csproj tools/EconoFlow.DataMigration/
 COPY easyfinance.client/easyfinance.client.esproj easyfinance.client/
-COPY Directory.Build.props global.json ./
+# Both MSBuild files must be present before the restore: Directory.Build.props sets
+# TreatWarningsAsErrors, and Directory.Build.targets carries the transitive NuGet
+# vulnerability pins. Omitting the .targets file makes the container restore fail with
+# NU1903/NU1902 on packages the CI build has already pinned.
+COPY Directory.Build.props Directory.Build.targets global.json ./
 
 # Restore without the SPA project (it has no target framework and would break
 # a solution-level restore); the web project restores its own references.
