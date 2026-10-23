@@ -32,6 +32,7 @@ releases in the `overrides` block of `easyfinance.client/package.json` and
 | Area | Change |
 |------|--------|
 | Angular SSR | `@angular/*` `22.1.2` → `22.2.1` (SSR XSS, SSRF, DoS, router matrix-parameter DoS) |
+| Dev server (Vite) | `vite` → `8.3.5` (launch-editor command execution, `fs.existsSync` bypass on Windows, cross-origin script execution, out-of-scope file disclosure; all cover `8.3.0`–`8.3.2`) |
 | HTTP request parsing | `qs` → `6.16.0` |
 | URL parsing | `fast-uri@3` → `3.1.8`, `ip-address` → `10.7.3`, `baseline-browser-mapping` → `2.11.27`, `browserslist` → `4.29.3` |
 | Build workers | `piscina` → `5.3.2` |
