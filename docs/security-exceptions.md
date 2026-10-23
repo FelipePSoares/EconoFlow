@@ -21,6 +21,21 @@ inside this repository.
 Only the GHSA column, the severity column and the comma-separated package column
 are parsed; the last column is human-readable rationale.
 
+## Compatibility floors (not advisories)
+
+`scripts/npm-override-freshness.test.mjs` requires every `overrides` pin to sit on the
+latest published release, unless it is listed in that script's `COMPATIBILITY_FLOORS`.
+A floor records that a newer major cannot be used, and why.
+
+A floor does **not** suppress anything: the audit gate still fails on every fixable
+advisory regardless of what is in this list, so a floor can never be used to silence a
+security finding. It only stops the freshness check from demanding a bump that would
+break the build.
+
+| Package | Pinned | Latest | Why the newer release cannot be used |
+|---------|--------|--------|--------------------------------------|
+| `metro`, `metro-config`, `metro-transform-worker` | 0.84.6 | 0.87.1 | Expo SDK 57 / React Native 0.86 request the Metro 0.84 line. 0.84.6 is the first release that drops the `image-size` dependency, and `image-size` 2.x no longer accepts the file-path strings Metro passes to it, which broke `expo export` (and the Android release build). Removable once Expo ships a release on a newer Metro line. |
+
 ## Advisories that were fixed
 
 Every other advisory that was open on 2026-10-02 is fixed by pinning the patched

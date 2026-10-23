@@ -36,6 +36,44 @@ const REGISTRY = 'https://registry.npmjs.org';
 
 const skip = process.env.SKIP_REGISTRY_CHECK === '1';
 
+/**
+ * Pins that deliberately sit below the latest release because a newer major is not
+ * compatible with the toolchain that consumes them.
+ *
+ * This list is not an escape hatch for security work: an entry here does not suppress
+ * any advisory, and the audit gate still fails on every fixable one. It exists because a
+ * major bump of a transitive build tool can break the build in ways the audit database
+ * cannot describe, and pinning blindly would trade a security fix for a broken release.
+ * Each entry must name the reason and what would remove it.
+ */
+const COMPATIBILITY_FLOORS = [
+  {
+    name: 'metro',
+    reason:
+      'Metro 0.85+ is consumed only by @expo/metro and @react-native/community-cli-plugin, ' +
+      'which request the 0.84 line for Expo SDK 57 / React Native 0.86. 0.84.6 is the fix ' +
+      'release that drops the image-size dependency, whose 2.x no longer accepts the file ' +
+      'paths Metro passes to it. Remove this once Expo ships a release that pulls a newer ' +
+      'Metro line.',
+  },
+  {
+    // These two must move with metro: they are its companion packages and must stay on
+    // the same release line, so the same floor applies for the same reason.
+    name: 'metro-config',
+    reason:
+      'Companion of metro and pinned to the same 0.84.6 release; a 0.85+ metro-config would ' +
+      'be resolved alongside the 0.84 metro that Expo SDK 57 requires. Same removal condition ' +
+      'as the metro floor above.',
+  },
+  {
+    name: 'metro-transform-worker',
+    reason:
+      'Companion of metro and pinned to the same 0.84.6 release; a 0.85+ metro-transform-worker ' +
+      'would be resolved alongside the 0.84 metro that Expo SDK 57 requires. Same removal ' +
+      'condition as the metro floor above.',
+  },
+];
+
 /** Parses `name`, `name@1`, `@scope/name` and `@scope/name@0.8` into a selector. */
 function parseSelector(selector) {
   const at = selector.lastIndexOf('@');
@@ -144,11 +182,26 @@ test('every override pin is on the latest published release', { skip }, async (t
           `${pin.selector.name} has no published stable release to compare ${pin.version} against`,
         );
 
+        if (compare(pin.version, newest) >= 0) return;
+
+        // A documented compatibility floor is allowed to sit below latest, but it must
+        // say why - and it still cannot excuse an advisory, which the audit gate owns.
+        const floor = COMPATIBILITY_FLOORS.find((entry) => entry.name === pin.selector.name);
         assert.ok(
-          compare(pin.version, newest) >= 0,
+          floor,
           `${project} pins ${pin.path} to ${pin.version}, but ${newest} is the latest release` +
             `${isVersionLineSelector(pin, manifestForPackage) ? ` in major ${pin.selector.line}` : ''}. ` +
-            'Upgrade the pin - do not allow-list the advisory in docs/security-exceptions.md.',
+            'Upgrade the pin, or add a COMPATIBILITY_FLOORS entry explaining why the newer ' +
+            'release cannot be used.',
+        );
+
+        assert.ok(
+          floor.reason && floor.reason.length > 80,
+          `COMPATIBILITY_FLOORS entry for ${pin.selector.name} needs a substantive reason`,
+        );
+
+        t.diagnostic(
+          `${pin.selector.name} held at ${pin.version} (latest ${newest}): ${floor.reason}`,
         );
       });
     }
