@@ -126,8 +126,14 @@ jobs:
     - name: Check code formatting
       run: dotnet format EasyFinance.Server/EasyFinance.Server.csproj --verify-no-changes --no-restore
 
+    # Restrict the scan to nuget.org. Without --source the command runs its own restore
+    # and asks the private Gitea feed for the registration metadata of every public
+    # package id; Gitea answers 403 and the scan fails before reporting anything.
+    # <packageSourceMapping> does not govern this lookup. The audit database NuGet
+    # consults is nuget.org's and a private-feed id carries no advisory, so no coverage
+    # is lost. scripts/nuget-vulnerability-pinning.test.ps1 enforces --source.
     - name: Check for vulnerable NuGet packages
-      run: dotnet list EasyFinance.Server/EasyFinance.Server.csproj package --vulnerable --include-transitive
+      run: dotnet list EasyFinance.Server/EasyFinance.Server.csproj package --vulnerable --include-transitive --source https://api.nuget.org/v3/index.json --no-restore
       env:
         GITEA_NUGET_USERNAME: ${{ secrets.GITEA_NUGET_USERNAME }}
         GITEA_NUGET_TOKEN: ${{ secrets.GITEA_NUGET_TOKEN }}

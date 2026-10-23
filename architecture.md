@@ -848,7 +848,14 @@ All third-party dependencies are scanned on every pull request in
 | npm (`easyfinance.client`) | `node ../scripts/audit-gate.mjs .` | `unit-tests` job |
 | npm (`econoflow-mobile`) | `node ../scripts/audit-gate.mjs .` | `mobile-check` job |
 | NuGet (direct and transitive) | NuGet audit, promoted to an error by `TreatWarningsAsErrors` during restore | every `restore` step |
-| NuGet (vulnerability report) | `dotnet list … package --vulnerable --include-transitive` | `build` job |
+| NuGet (vulnerability report) | `dotnet list … package --vulnerable --include-transitive --source https://api.nuget.org/v3/index.json` | `build` job |
+
+The vulnerability report is pinned to nuget.org on purpose. That command runs its own
+restore and asks every configured feed for each package id's registration metadata, which
+`<packageSourceMapping>` does **not** govern; against the private Gitea feed it fails
+outright with `403 (Forbidden)` instead of reporting. The audit database NuGet consults is
+nuget.org's, so restricting the scan loses no coverage.
+`scripts/nuget-vulnerability-pinning.test.ps1` enforces the `--source` flag.
 
 `scripts/audit-gate.mjs` runs `npm audit --json` and **fails the build** for every
 `high` or `critical` advisory that is not recorded in
