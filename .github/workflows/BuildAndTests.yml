@@ -90,6 +90,13 @@ jobs:
       with:
         dotnet-version: 10.0.x
 
+    # nuget.config maps every package id to exactly one feed, so the private Gitea
+    # feed is never asked for public packages it cannot own (those lookups 403 and
+    # are retried, slowing every restore). This guards that mapping before the
+    # restore below pays for a broken one.
+    - name: Validate NuGet package source mapping
+      run: pwsh -NoProfile -File scripts/nuget-source-mapping.test.ps1
+
     - name: Cache node_modules
       id: cache-node-modules-build
       uses: actions/cache@v6

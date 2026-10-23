@@ -66,6 +66,14 @@ jobs:
         languages: ${{ matrix.language }}
         build-mode: ${{ matrix.build-mode }}
 
+    # The root nuget.config maps each package id to a single feed (see its
+    # <packageSourceMapping> comment): public packages must never be looked for on the
+    # private Gitea feed, and private ids must stay off nuget.org. This fails the run if
+    # that mapping regresses.
+    - name: Validate NuGet package source mapping
+      if: matrix.language == 'csharp'
+      run: pwsh -NoProfile -File scripts/nuget-source-mapping.test.ps1
+
     - name: Restore
       if: matrix.language == 'csharp'
       run: dotnet restore EasyFinance.Server/EasyFinance.Server.csproj

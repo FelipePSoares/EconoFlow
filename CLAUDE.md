@@ -152,6 +152,8 @@ public override AppResponse Validate {
 
 `AppResponse` / `AppResponse<T>` (in `FpsSoftware.Chassis`, delivered via the private `fpssoftware.chassis` NuGet package) is the universal result type used across all layers. Services return `AppResponse<T>`, and `BaseController.ValidateResponse()` translates it into the appropriate HTTP status code or a 400 with structured error messages. Never throw exceptions for expected business failures — return `AppResponse.Error(...)` instead. Reusable middleware, JSON helpers, and JWT plumbing also come from `fpssoftware.chassis` (repo: `FelipePSoares/chassis`, feed: `https://gitea.fpssoftware.uk/api/packages/fps-software/nuget/index.json`).
 
+The root `nuget.config` uses `<packageSourceMapping>` to keep that private feed out of the public-package path: `fpssoftware.*` resolves only from the Gitea feed and `*` only from nuget.org. A private package is covered automatically only when its `PackageId` starts with `fpssoftware.`; any other id would route to nuget.org and needs its own pattern. Never widen the Gitea entry to `*` — that makes NuGet ask Gitea for every public package, and each such lookup returns 403 and is retried. `scripts/nuget-source-mapping.test.ps1` enforces the mapping and runs in `BuildAndTests.yml` and `codeql.yml`.
+
 ### Repository / Unit of Work
 
 `IGenericRepository<T>` exposes `Trackable()` and `NoTrackable()` IQueryable entry points (use `NoTrackable()` for reads). All repositories are accessed through `IUnitOfWork` — call `await unitOfWork.CommitAsync()` once at the end of a write operation.

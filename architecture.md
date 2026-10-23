@@ -902,6 +902,17 @@ product?" inside the 24-hour window requires knowing what the product contains.
 These run in the `script-tests` job on every pull request via
 `node --test "scripts/*.test.mjs"`.
 
+One more guard is PowerShell, because it is about NuGet configuration rather than a
+CRA artefact, so it sits outside that glob:
+
+| Artefact | Purpose | Guarded by |
+|----------|---------|-----------|
+| `nuget.config` `<packageSourceMapping>` | Keeps the private Gitea feed out of the public-package path: `fpssoftware.*` resolves only from Gitea, everything else only from nuget.org (see the file's own comment) | `scripts/nuget-source-mapping.test.ps1` |
+
+It runs as a step in `BuildAndTests.yml` and `codeql.yml` before any restore. Without
+that mapping the restore asks Gitea for every public package id, and each of those
+lookups is a 403 that NuGet retries.
+
 ### Content-Security-Policy in development
 Production emits the CSP from `SecurityPolicyOptionsFactory` (via
 `UseSecurityPolicy`), but Development deliberately skips that middleware. So that the
