@@ -90,6 +90,20 @@ jobs:
       with:
         dotnet-version: 10.0.x
 
+    # nuget.config maps every package id to exactly one feed, so the private Gitea
+    # feed is never asked for public packages it cannot own (those lookups 403 and
+    # are retried, slowing every restore). This guards that mapping before the
+    # restore below pays for a broken one.
+    - name: Validate NuGet package source mapping
+      run: pwsh -NoProfile -File scripts/nuget-source-mapping.test.ps1
+
+    # TreatWarningsAsErrors turns NuGet audit findings into build errors, including
+    # for transitive packages that no project references directly. This checks that
+    # every known transitive advisory is still pinned at or above its first patched
+    # release, before the restore below fails on it.
+    - name: Validate NuGet vulnerability pinning
+      run: pwsh -NoProfile -File scripts/nuget-vulnerability-pinning.test.ps1
+
     - name: Cache node_modules
       id: cache-node-modules-build
       uses: actions/cache@v6
@@ -112,8 +126,14 @@ jobs:
     - name: Check code formatting
       run: dotnet format EasyFinance.Server/EasyFinance.Server.csproj --verify-no-changes --no-restore
 
+    # Restrict the scan to nuget.org. Without --source the command runs its own restore
+    # and asks the private Gitea feed for the registration metadata of every public
+    # package id; Gitea answers 403 and the scan fails before reporting anything.
+    # <packageSourceMapping> does not govern this lookup. The audit database NuGet
+    # consults is nuget.org's and a private-feed id carries no advisory, so no coverage
+    # is lost. scripts/nuget-vulnerability-pinning.test.ps1 enforces --source.
     - name: Check for vulnerable NuGet packages
-      run: dotnet list EasyFinance.Server/EasyFinance.Server.csproj package --vulnerable --include-transitive
+      run: dotnet list EasyFinance.Server/EasyFinance.Server.csproj package --vulnerable --include-transitive --source https://api.nuget.org/v3/index.json --no-restore
       env:
         GITEA_NUGET_USERNAME: ${{ secrets.GITEA_NUGET_USERNAME }}
         GITEA_NUGET_TOKEN: ${{ secrets.GITEA_NUGET_TOKEN }}
@@ -198,7 +218,7 @@ jobs:
       run: |
         COVERAGE_FILE=$(find . -name "coverage.cobertura.xml" -type f | head -1)
         if [ -z "$COVERAGE_FILE" ]; then
-          echo "::warning::No coverage.cobertura.xml file found — skipping threshold check"
+          echo "::warning::No coverage.cobertura.xml file found â€” skipping threshold check"
           exit 0
         fi
         LINE_RATE=$(grep -oP 'line-rate="\K[0-9.]+' "$COVERAGE_FILE" | head -1)
@@ -302,6 +322,33 @@ jobs:
       if: steps.mobile-changes.outputs.mobile == 'true'
       run: node ../scripts/audit-gate.mjs .
       working-directory: ./econoflow-mobile
+
+  script-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Install Node.js
+      uses: actions/setup-node@v7
+      with:
+        node-version: '22.x'
+
+    # These tests guard the repository's own policy artefacts (the CRA disclosure
+    # channel, the Article 14 runbook and the SBOM pipeline) plus the npm audit
+    # allow-list. They run in seconds and need no dependencies installed.
+    - name: Run repository policy tests
+      run: node --test "scripts/*.test.mjs"
+
+    # Every `overrides` pin must sit on the latest published release. A stale pin is how
+    # a later advisory silently re-opens on a dependency that was already "fixed" once.
+    # Needs registry.npmjs.org; the fix is always to upgrade the pin, never to allow-list.
+    - name: Verify override pins are on the latest release
+      run: node scripts/npm-override-freshness.test.mjs
+
+    - name: Verify the SBOM generator runs
+      run: node scripts/generate-sbom.mjs --skip-nuget --output sbom-smoke
 
   integration-tests:
     needs: [build]

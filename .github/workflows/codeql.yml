@@ -65,6 +65,30 @@ jobs:
       with:
         languages: ${{ matrix.language }}
         build-mode: ${{ matrix.build-mode }}
+        # The C# build writes EasyFinance.Server/bin/Release/net10.0/web.config, the IIS
+        # boilerplate the SDK copies into every publish output. CodeQL was analysing that
+        # generated copy and raising cs/web/missing-x-frame-options against it, at a path
+        # that cannot be fixed in source (bin/ is gitignored) and that is regenerated
+        # from the real web.config, which does now set the header. Scan source only.
+        config: |
+          paths-ignore:
+            - '**/bin/**'
+            - '**/obj/**'
+            - '**/node_modules/**'
+
+    # The root nuget.config maps each package id to a single feed (see its
+    # <packageSourceMapping> comment): public packages must never be looked for on the
+    # private Gitea feed, and private ids must stay off nuget.org. This fails the run if
+    # that mapping regresses.
+    - name: Validate NuGet package source mapping
+      if: matrix.language == 'csharp'
+      run: pwsh -NoProfile -File scripts/nuget-source-mapping.test.ps1
+
+    # Transitive advisories must stay pinned at or above their first patched release,
+    # or the restore below fails on NuGet audit warnings treated as errors.
+    - name: Validate NuGet vulnerability pinning
+      if: matrix.language == 'csharp'
+      run: pwsh -NoProfile -File scripts/nuget-vulnerability-pinning.test.ps1
 
     - name: Restore
       if: matrix.language == 'csharp'

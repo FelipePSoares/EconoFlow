@@ -48,6 +48,11 @@ EasyFinance.Infrastructure/ValidationMessages.Designer.cs
 
 easyfinance.client/cypress/screenshots
 
+# Generated CycloneDX SBOM output (scripts/generate-sbom.mjs). Published as a CI
+# artefact per release, never committed.
+sbom/
+sbom-smoke/
+
 # Mobile
 econoflow-mobile/node_modules/
 econoflow-mobile/.expo/

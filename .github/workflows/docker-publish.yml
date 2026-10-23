@@ -100,6 +100,35 @@ jobs:
             type=local,src=${{ runner.temp }}/.buildx-cache
           cache-to: type=local,dest=${{ runner.temp }}/.buildx-cache,mode=max
           tags: ${{ steps.tags.outputs.tags }}
+          # CRA: the image must carry a component inventory and a provenance attestation.
+          # BuildKit attaches both as attestation manifests on the pushed digest, so a
+          # deployed image can be resolved back to its components and its source commit.
+          sbom: true
+          provenance: mode=max
+
+      # The BuildKit attestation is only reachable through the registry. This copy is a
+      # standalone CycloneDX SBOM committed alongside the release artefacts so that
+      # triage does not need registry access or the buildx cache.
+      - name: Install Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22.x'
+
+      - name: Install CycloneDX
+        run: dotnet tool install --global CycloneDX --version 6.3.1
+
+      - name: Generate SBOM
+        run: node scripts/generate-sbom.mjs --output sbom
+        env:
+          GITEA_NUGET_USERNAME: ${{ secrets.GITEA_NUGET_USERNAME }}
+          GITEA_NUGET_TOKEN: ${{ secrets.GITEA_NUGET_TOKEN }}
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v7
+        with:
+          name: sbom-${{ github.sha }}
+          path: ./sbom/**/*.cdx.json
+          retention-days: 90
 
       # A digest-pinned Deployment does NOT follow a tag, and re-resolving it by hand
       # during a cutover is exactly where the earlier projects lost time. Print it in
