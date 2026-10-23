@@ -74,6 +74,12 @@ jobs:
       if: matrix.language == 'csharp'
       run: pwsh -NoProfile -File scripts/nuget-source-mapping.test.ps1
 
+    # Transitive advisories must stay pinned at or above their first patched release,
+    # or the restore below fails on NuGet audit warnings treated as errors.
+    - name: Validate NuGet vulnerability pinning
+      if: matrix.language == 'csharp'
+      run: pwsh -NoProfile -File scripts/nuget-vulnerability-pinning.test.ps1
+
     - name: Restore
       if: matrix.language == 'csharp'
       run: dotnet restore EasyFinance.Server/EasyFinance.Server.csproj

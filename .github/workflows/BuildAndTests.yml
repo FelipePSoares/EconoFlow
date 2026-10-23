@@ -1,4 +1,4 @@
-﻿# This workflow will build a .NET project
+# This workflow will build a .NET project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
 name: MR build and tests
@@ -96,6 +96,13 @@ jobs:
     # restore below pays for a broken one.
     - name: Validate NuGet package source mapping
       run: pwsh -NoProfile -File scripts/nuget-source-mapping.test.ps1
+
+    # TreatWarningsAsErrors turns NuGet audit findings into build errors, including
+    # for transitive packages that no project references directly. This checks that
+    # every known transitive advisory is still pinned at or above its first patched
+    # release, before the restore below fails on it.
+    - name: Validate NuGet vulnerability pinning
+      run: pwsh -NoProfile -File scripts/nuget-vulnerability-pinning.test.ps1
 
     - name: Cache node_modules
       id: cache-node-modules-build

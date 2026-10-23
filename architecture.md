@@ -847,7 +847,8 @@ All third-party dependencies are scanned on every pull request in
 |-----------|------|-------|
 | npm (`easyfinance.client`) | `node ../scripts/audit-gate.mjs .` | `unit-tests` job |
 | npm (`econoflow-mobile`) | `node ../scripts/audit-gate.mjs .` | `mobile-check` job |
-| NuGet | `dotnet list … package --vulnerable --include-transitive` | `build` job |
+| NuGet (direct and transitive) | NuGet audit, promoted to an error by `TreatWarningsAsErrors` during restore | every `restore` step |
+| NuGet (vulnerability report) | `dotnet list … package --vulnerable --include-transitive` | `build` job |
 
 `scripts/audit-gate.mjs` runs `npm audit --json` and **fails the build** for every
 `high` or `critical` advisory that is not recorded in
@@ -908,10 +909,39 @@ CRA artefact, so it sits outside that glob:
 | Artefact | Purpose | Guarded by |
 |----------|---------|-----------|
 | `nuget.config` `<packageSourceMapping>` | Keeps the private Gitea feed out of the public-package path: `fpssoftware.*` resolves only from Gitea, everything else only from nuget.org (see the file's own comment) | `scripts/nuget-source-mapping.test.ps1` |
+| `Directory.Build.targets` vulnerability pins | Forces transitively-flagged packages to a patched release (see below) | `scripts/nuget-vulnerability-pinning.test.ps1` |
 
-It runs as a step in `BuildAndTests.yml` and `codeql.yml` before any restore. Without
-that mapping the restore asks Gitea for every public package id, and each of those
-lookups is a 403 that NuGet retries.
+Both run as steps in `BuildAndTests.yml` and `codeql.yml` before any restore. Without the
+mapping the restore asks Gitea for every public package id, and each of those lookups is a
+403 that NuGet retries.
+
+### Transitive vulnerability pins
+
+`Directory.Build.props` sets `TreatWarningsAsErrors`, so NuGet's audit (`NU1902` moderate,
+`NU1903` high, `NU1904` critical) fails the build rather than letting a known-vulnerable
+package ship. That is the desired behaviour, but it also fails on packages **no project
+references directly**, and no project file gives an obvious place to fix those:
+
+| Requester | Transitive package | Vulnerable range |
+|-----------|--------------------|------------------|
+| `MimeKit` (via `MailKit`) | `System.Security.Cryptography.Pkcs` | 10.0.0 …= 10.0.12 |
+| `fpssoftware.chassis` | `System.Security.Cryptography.Xml` | 10.0.0 …= 10.0.12 |
+
+`Directory.Build.targets` pins both to **10.0.13**, the first release outside every affected
+range. Two details matter and are easy to get wrong:
+
+- The pin must use `Include`, not `Update`. An `Update` transform only runs against an item
+  that already exists, and a transitive package has no `PackageReference` item of its own, so
+  `Update` is a silent no-op that looks like a fix.
+- The pin lives in `Directory.Build.targets` rather than in a consuming project because
+  Project Reference restore writes each project its own `project.assets.json`. A pin declared
+  once at the repo root reaches every project; a per-project override fixes only the project
+  that declares it and leaves its referenced projects failing.
+
+`scripts/nuget-vulnerability-pinning.test.ps1` enforces both floors and rejects an `Update`
+style pin. When a new transitive advisory appears, pin it the same way and add its id and
+first-patched version to that script.
+
 
 ### Content-Security-Policy in development
 Production emits the CSP from `SecurityPolicyOptionsFactory` (via
