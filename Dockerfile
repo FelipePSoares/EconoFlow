@@ -31,16 +31,14 @@ ARG RUNTIME_ID=linux-x64
 
 # Credentials for the private Gitea NuGet feed (fpssoftware.chassis). They are
 # passed in from the docker-publish workflow and never baked into the image.
+#
+# PROMOTED TO ENV ON PURPOSE: the root nuget.config refers to them as
+# %GITEA_NUGET_USERNAME% / %GITEA_NUGET_TOKEN%, and NuGet only expands that indirection
+# from the process environment. A build ARG alone is not visible to the restore.
 ARG GITEA_NUGET_USERNAME
 ARG GITEA_NUGET_TOKEN
-
-# Register the private feed with the supplied credentials; the same
-# nuget.config convention (%VAR% indirection) is used by the CI restores.
-RUN dotnet nuget add source "https://gitea.fpssoftware.uk/api/packages/fps-software/nuget/index.json" \
-        --name fps-software \
-        --username "${GITEA_NUGET_USERNAME}" \
-        --password "${GITEA_NUGET_TOKEN}" \
-        --store-password-in-clear-text
+ENV GITEA_NUGET_USERNAME=${GITEA_NUGET_USERNAME} \
+    GITEA_NUGET_TOKEN=${GITEA_NUGET_TOKEN}
 
 # Restore using the project file(s) first for better layer caching.
 COPY EasyFinance.Server/EasyFinance.Server.csproj EasyFinance.Server/
@@ -58,7 +56,13 @@ COPY easyfinance.client/easyfinance.client.esproj easyfinance.client/
 # TreatWarningsAsErrors, and Directory.Build.targets carries the transitive NuGet
 # vulnerability pins. Omitting the .targets file makes the container restore fail with
 # NU1903/NU1902 on packages the CI build has already pinned.
-COPY Directory.Build.props Directory.Build.targets global.json ./
+#
+# nuget.config is the SAME file CI and local builds use: it declares both feeds, the
+# <packageSourceMapping> that keeps public packages off the private Gitea feed, and the
+# %GITEA_*% credential indirection. Without it the stage inherits a source list with no
+# mapping, and restore asks Gitea for every public package (serilog.aspnetcore,
+# swashbuckle.aspnetcore.*, ...), each of which answers 403 and is retried.
+COPY Directory.Build.props Directory.Build.targets global.json nuget.config ./
 
 # Restore without the SPA project (it has no target framework and would break
 # a solution-level restore); the web project restores its own references.

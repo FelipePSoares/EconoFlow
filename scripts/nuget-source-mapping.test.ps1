@@ -26,6 +26,12 @@
     It also flags a nested nuget.config that governs a project, because that config's
     <clear /> replaces the root source list and mappings for that subtree.
 
+    Finally it checks that the Docker build gets the same mapping: the image restores
+    from inside the build stage, where only files the Dockerfile COPYs exist. If the
+    root nuget.config is not copied there (or a later COPY brings
+    easyfinance.client/nuget.config in and overrides it), the container restore falls
+    back to an unmapped source list and asks Gitea for every public package.
+
     Exit code 0 = pass, 1 = fail. Run from the repository root:
         pwsh -File scripts/nuget-source-mapping.test.ps1
 #>
@@ -107,25 +113,45 @@ if (-not (Test-Path -LiteralPath $configPath)) {
 }
 
 # ── Nested configs ───────────────────────────────────────────────────────────
-# NuGet merges a subdirectory nuget.config with the root one, and its <clear />
-# restarts the source list (and the mapping) for everything below it. A per-directory
-# config therefore silently un-maps a subtree.
-#
-# easyfinance.client/nuget.config is a pre-existing one: it resets <packageSources> to
-# nuget.org only, and it does govern a real restore (EasyFinance.Server includes the
-# SPA esproj when BuildingInsideVisualStudio or IncludeSpaProject=true). It is harmless
-# only while everything restored under that subtree comes from a public feed, so the
-# carve-out below is conditional, not a blanket exemption: it is allowed only while no
-# project under it references a private package. Any other nested config fails outright.
-$knownNestedConfigs = @('easyfinance.client')
+# NuGet resolves its config walking up from each project and merges the files it finds.
+# A subdirectory nuget.config is only harmful when it resets the inherited state: a
+# <clear /> in <packageSources> drops BOTH the private feed and the root
+# <packageSourceMapping> for that whole subtree. A nested config that inherits (no
+# <clear />, e.g. only disabling a source) is fine and is not reported.
+foreach ($nestedConfig in @(Get-ChildItem -LiteralPath $RepositoryRoot -Recurse -Filter 'nuget.config' -File -Force |
+            Where-Object { $_.FullName -notmatch '[\\/]node_modules[\\/]' -and $_.FullName -ne $configPath })) {
 
-$nestedConfigs = @(Get-ChildItem -LiteralPath $RepositoryRoot -Recurse -Filter 'nuget.config' -File -Force |
-        Where-Object { $_.FullName -notmatch '[\\/]node_modules[\\/]' -and $_.FullName -ne $configPath })
-foreach ($nestedConfig in $nestedConfigs) {
     # Windows PowerShell 5.1 has no [System.IO.Path]::GetRelativePath.
     $parent = Split-Path -Parent $nestedConfig.FullName
     $relativeParent = $parent.Substring($RepositoryRoot.TrimEnd('\', '/').Length).TrimStart('\', '/').Replace('\', '/')
     if (-not $relativeParent) { $relativeParent = '.' }
+
+    $nestedConfiguration = $null
+    try {
+        [xml] $nestedXml = Get-Content -LiteralPath $nestedConfig.FullName -Raw -ErrorAction Stop
+        $nestedConfiguration = $nestedXml.configuration
+    }
+    catch {
+        Fail "cannot parse '$relativeParent\nuget.config': $($_.Exception.Message.Split("`n")[-1].Trim())"
+        continue
+    }
+
+    # NuGet's rule: "<clear /> present for a given node" makes it ignore previously
+    # defined values FOR THAT NODE. Clearing <packageSources> drops the private feed;
+    # clearing <packageSourceMapping> drops the root mapping, which leaves every feed
+    # unmapped — the 403 storm this whole exercise exists to stop. Both count.
+    $clearsSources = $nestedConfiguration.packageSources -and
+        @($nestedConfiguration.packageSources.clear).Count -gt 0
+    $clearsMapping = $nestedConfiguration.packageSourceMapping -and
+        @($nestedConfiguration.packageSourceMapping.clear).Count -gt 0
+
+    if (-not ($clearsSources -or $clearsMapping)) {
+        Info "'$relativeParent\nuget.config' clears neither the inherited sources nor the inherited mapping; it inherits both"
+        continue
+    }
+
+    $clearedNode = if ($clearsMapping) { 'packageSourceMapping' } else { 'packageSources' }
+
     $projectFiles = @(Get-ChildItem -LiteralPath $parent -Recurse -File -ErrorAction SilentlyContinue |
             Where-Object {
                 $_.FullName -notmatch '[\\/]node_modules[\\/]' -and
@@ -134,12 +160,12 @@ foreach ($nestedConfig in $nestedConfigs) {
             })
 
     if ($projectFiles.Count -eq 0) {
-        Info "'$relativeParent\nuget.config' exists but governs no project; it does not affect restore"
+        Info "'$relativeParent\nuget.config' clears <$clearedNode /> but governs no project; it does not affect restore"
         continue
     }
 
-    # The subtree loses the private feed entirely, so any private reference below it
-    # can never restore. Check every <PackageReference> written anywhere in it.
+    # Clearing the sources loses the private feed, so any private reference below it can
+    # never restore. Check every <PackageReference> written anywhere in it.
     $privateReferences = @()
     foreach ($projectFile in $projectFiles) {
         $references = @(Get-PackageReferences -Path $projectFile.FullName)
@@ -151,14 +177,14 @@ foreach ($nestedConfig in $nestedConfigs) {
         }
     }
 
-    if ($privateReferences.Count -gt 0) {
+    if ($clearsMapping) {
+        Fail "nested NuGet config '$relativeParent\nuget.config' clears <packageSourceMapping /> for the projects below it, leaving every feed unmapped; remove that <clear /> or fold its settings into the root nuget.config"
+    }
+    elseif ($privateReferences.Count -gt 0) {
         Fail "'$relativeParent\nuget.config' removes the private feed from that subtree, but it references private package(s): $($privateReferences -join '; ')"
     }
-    elseif ($knownNestedConfigs -contains $relativeParent) {
-        Info "'$relativeParent\nuget.config' overrides the root sources for that subtree; no private package is referenced there (known)"
-    }
     else {
-        Fail "nested NuGet config '$relativeParent\nuget.config' overrides the root mapping for the projects below it; remove it or fold its settings into the root nuget.config"
+        Fail "nested NuGet config '$relativeParent\nuget.config' clears <packageSources /> for the projects below it; remove its <clear /> so it inherits the root mapping, or fold its settings into the root nuget.config"
     }
 }
 
@@ -394,6 +420,138 @@ foreach ($packageId in $allPackages) {
         Fail "public package '$packageId' is eligible on 'fps-software': the private feed would be asked for it"
     }
 }
+
+# ── The Docker build must restore with this mapping ──────────────────────────
+# The image restores inside its build stage, where only COPYed files exist. NuGet
+# resolves its config walking up from each project, so a nuget.config further down
+# the tree wins for that subtree: copying it in after the root one silently replaces
+# the mapping. Both directions are checked here.
+function Test-DockerMapping {
+    $dockerfilePath = Join-Path $RepositoryRoot 'Dockerfile'
+    if (-not (Test-Path -LiteralPath $dockerfilePath)) {
+        # This repository ships a container image (see docker-publish.yml); a missing
+        # Dockerfile means the check cannot prove anything, so treat it as a failure
+        # rather than silently passing a restore path that may then flood Gitea.
+        Fail 'no Dockerfile found: the container restore path is unverified (scripts/nuget-source-mapping.test.ps1 expects one)'
+        return
+    }
+
+    # Drop continuation lines and comments so each instruction is one line.
+    try {
+        $lines = @(Get-Content -LiteralPath $dockerfilePath -ErrorAction Stop)
+    }
+    catch {
+        Fail "cannot read the Dockerfile: $($_.Exception.Message)"
+        return
+    }
+    $instructions = @()
+    $buffer = ''
+    foreach ($line in $lines) {
+        $trimmed = $line.Trim()
+        if ($trimmed.StartsWith('#')) { continue }
+        if ($trimmed.EndsWith('\')) { $buffer += $trimmed.TrimEnd('\') + ' '; continue }
+        $complete = ($buffer + $trimmed).Trim()
+        $buffer = ''
+        if ($complete) { $instructions += $complete }
+    }
+
+    # Everything the build stage receives, as '<context path> -> <image path>'.
+    # A directory source carries EVERYTHING below it, which is where a nested
+    # nuget.config hides: 'COPY easyfinance.client/ ...' brings
+    # easyfinance.client/nuget.config along without naming it.
+    $copied = @()
+    $firstRestoreIndex = $null
+    for ($index = 0; $index -lt $instructions.Count; $index++) {
+        $instruction = $instructions[$index]
+        # A restore boundary: an explicit restore/publish, or a build/test that restores
+        # implicitly. Anything before the first one is present when NuGet resolves config.
+        if ($instruction -match '^RUN\s.*\bdotnet\s+(restore|publish|build|test|run)\b' -and $null -eq $firstRestoreIndex) {
+            $firstRestoreIndex = $index
+        }
+        if ($instruction -notmatch '^COPY\s+(?<rest>.+)$') { continue }
+        $rest = $Matches['rest']
+        # 'COPY --from=<stage> ...' copies out of another stage, not the build context.
+        if ($rest -match '--from=') { continue }
+        # Split on whitespace: a context path with spaces is legal (Docker also accepts
+        # JSON-array form, which no instruction here uses).
+        $tokens = @($rest -split '\s+' | Where-Object { $_ -and -not $_.StartsWith('--') })
+        if ($tokens.Count -lt 2) { continue }
+        $destination = $tokens[-1]
+        foreach ($source in $tokens[0..($tokens.Count - 2)]) {
+            # A leading './' is a prefix, not a character set: do not use TrimStart.
+            $contextPath = if ($source.StartsWith('./')) { $source.Substring(2) } else { $source }
+            $copied += [pscustomobject]@{ Source = $contextPath; Destination = $destination; Index = $index; IsDirectory = $false }
+
+            $absolute = Join-Path $RepositoryRoot $contextPath.TrimEnd('/')
+            if (Test-Path -LiteralPath $absolute -PathType Container) {
+                foreach ($nestedConfig in @(Get-ChildItem -LiteralPath $absolute -Recurse -Filter 'nuget.config' -File -Force -ErrorAction SilentlyContinue |
+                            Where-Object { $_.FullName -notmatch '[\\/]node_modules[\\/]' })) {
+                    $relative = $nestedConfig.FullName.Substring($RepositoryRoot.TrimEnd('\', '/').Length).TrimStart('\', '/').Replace('\', '/')
+                    $copied += [pscustomobject]@{ Source = $relative; Destination = $destination; Index = $index; IsDirectory = $true }
+                }
+            }
+        }
+    }
+
+    $rootConfigCopied = @($copied | Where-Object { $_.Source -eq 'nuget.config' })
+    $nestedCopied = @($copied | Where-Object { $_.Source -match 'nuget\.config$' -and $_.Source -ne 'nuget.config' })
+
+    if ($rootConfigCopied.Count -eq 0) {
+        Fail 'Dockerfile does not COPY nuget.config into the build stage: the container restore has no packageSourceMapping and asks Gitea for every public package'
+    }
+    else {
+        Pass 'Dockerfile copies nuget.config into the build stage'
+    }
+
+    foreach ($copy in $nestedCopied) {
+        # Harmless when the config inherits (no <clear />): NuGet merges it with the root
+        # and keeps the root sources and mapping. Harmful only when it resets state AND
+        # is present during a restore.
+        $nestedResets = $false
+        try {
+            [xml] $nestedXml = Get-Content -LiteralPath (Join-Path $RepositoryRoot $copy.Source) -Raw -ErrorAction Stop
+            $nestedConfiguration = $nestedXml.configuration
+            # Only <packageSources> and <packageSourceMapping> can un-map a subtree.
+            # A <clear /> inside <disabledPackageSources> merely re-enables inherited
+            # sources, so it is deliberately not treated as a reset.
+            $nestedResets = ($nestedConfiguration.packageSources -and @($nestedConfiguration.packageSources.clear).Count -gt 0) -or
+                ($nestedConfiguration.packageSourceMapping -and @($nestedConfiguration.packageSourceMapping.clear).Count -gt 0)
+        }
+        catch {
+            # The nested-config scan above already reported an unparsable file.
+            continue
+        }
+
+        if (-not $nestedResets) {
+            Info "'$($copy.Source)' reaches the build stage but clears nothing; it inherits the root sources and mapping"
+            continue
+        }
+
+        # The question is "is this config present when a restore runs?", i.e. does its
+        # COPY come before the FIRST restore — not whether the root config came first.
+        $landsBeforeRestore = $null -ne $firstRestoreIndex -and $copy.Index -lt $firstRestoreIndex
+        if ($landsBeforeRestore) {
+            Fail "Dockerfile copies '$($copy.Source)' into the build stage before the first restore, and that config resets the inherited sources or mapping for that subtree; the container restore then loses the mapping"
+        }
+        else {
+            Info "'$($copy.Source)' reaches the build stage only after the first restore; it cannot affect it"
+        }
+    }
+
+    # Registering the feed by command writes the user-level config, which carries no
+    # mapping; it only makes sense when the root config is not copied.
+    if ($rootConfigCopied.Count -gt 0) {
+        $addSource = @($instructions | Where-Object { $_ -match 'dotnet nuget add source' })
+        if ($addSource.Count -gt 0) {
+            Fail 'Dockerfile registers the feed with "dotnet nuget add source", which writes an unmapped user-level config; copy nuget.config instead'
+        }
+        else {
+            Pass 'Dockerfile does not register an unmapped user-level feed'
+        }
+    }
+}
+
+Test-DockerMapping
 
 if ($failures.Count -gt 0) {
     Write-Host ""
