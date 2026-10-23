@@ -166,6 +166,8 @@ the image to the registry. It needs these repository secrets:
 |---|---|
 | `GITEA_REGISTRY_USERNAME` | Gitea user used to log in to the registry (`docker/login-action`). |
 | `GITEA_REGISTRY_TOKEN` | Gitea token for that user with `read:package` / `write:package` scopes. |
+| `GITEA_NUGET_USERNAME` | Gitea user passed to the build stage as a build arg, for the private `fpssoftware.*` NuGet packages. |
+| `GITEA_NUGET_TOKEN` | Token for that user with `read:package`, used by the NuGet restore inside the image build. |
 
 Optional overrides (defaults shown):
 
@@ -181,3 +183,29 @@ The image is tagged `gitea.fpssoftware.uk/<owner>/econoflow:<git-sha>` and
 > Token**, selecting the `read:package` and `write:package` scopes. Add
 > `GITEA_REGISTRY_USERNAME` and `GITEA_REGISTRY_TOKEN` as GitHub Actions
 > secrets in the EconoFlow repository.
+
+### NuGet feeds inside the image build
+
+The build stage restores packages, so it needs the same NuGet configuration as CI:
+the root `nuget.config` is `COPY`'d into the stage, and it is the single place that
+declares the feeds, the `<packageSourceMapping>` and the `%GITEA_NUGET_*%` credential
+indirection. `GITEA_NUGET_USERNAME` / `GITEA_NUGET_TOKEN` are promoted to `ENV` in the
+Dockerfile because NuGet resolves that indirection from the process environment.
+
+Do not replace the `COPY` with `dotnet nuget add source`: that writes the user-level
+config, which carries no `<packageSourceMapping>`, so the restore asks the private Gitea
+feed for every public package. Those lookups return 403, are retried, and eventually
+fail the restore with `NU1301`.
+`scripts/nuget-source-mapping.test.ps1` fails the build if that regression reappears.
+
+> **Known exposure, not introduced here:** the token is passed as a build arg, and
+> `docker-publish.yml` builds with `provenance: mode=max` and a `type=local,...,mode=max`
+> buildx cache. BuildKit records build-arg values in provenance attestations and cache
+> metadata, so the token is visible to anyone who can read the attestation or the cache.
+> It is scoped to the build stage (the `runtime` image is a separate `FROM` and never
+> sees it). The hardened form is a BuildKit secret:
+> `RUN --mount=type=secret,id=gitea_nuget_token ...` fed from
+> `secrets: gitea_nuget_token=${{ secrets.GITEA_NUGET_TOKEN }}`, which keeps the value
+> out of both the image and the provenance. Doing that also means writing the
+> credentials into `nuget.config` at restore time rather than relying on `%VAR%`
+> expansion.
