@@ -26,6 +26,11 @@
               "src/manifest.webmanifest",
               "src/manifest.dark.webmanifest",
               "src/robots.txt",
+              {
+                "glob": "security.txt",
+                "input": "src/.well-known",
+                "output": "/.well-known/"
+              },
               "src/sitemap.xml",
               "src/llms.txt",
               "src/llms-full.txt",
