@@ -65,6 +65,16 @@ jobs:
       with:
         languages: ${{ matrix.language }}
         build-mode: ${{ matrix.build-mode }}
+        # The C# build writes EasyFinance.Server/bin/Release/net10.0/web.config, the IIS
+        # boilerplate the SDK copies into every publish output. CodeQL was analysing that
+        # generated copy and raising cs/web/missing-x-frame-options against it, at a path
+        # that cannot be fixed in source (bin/ is gitignored) and that is regenerated
+        # from the real web.config, which does now set the header. Scan source only.
+        config: |
+          paths-ignore:
+            - '**/bin/**'
+            - '**/obj/**'
+            - '**/node_modules/**'
 
     # The root nuget.config maps each package id to a single feed (see its
     # <packageSourceMapping> comment): public packages must never be looked for on the

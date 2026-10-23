@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
 /**
  * Fails when an `overrides` pin is no longer on the latest published release.
  *
@@ -69,11 +69,28 @@ function compare(a, b) {
 
 const registryCache = new Map();
 
+/**
+ * Builds the registry path segment for a package name.
+ *
+ * The npm registry keeps the scope slash literal and percent-encodes the rest, so
+ * `@angular/core` maps to `@angular%2Fcore`. Encoding the whole name and then undoing
+ * one slash is wrong: `String.replace` with a string pattern only replaces the FIRST
+ * occurrence, so any further slash stays encoded. Splitting on the separator and
+ * encoding each segment avoids a partial replacement entirely.
+ */
+function encodePackageName(name) {
+  if (!name.startsWith('@')) return encodeURIComponent(name);
+
+  const [scope, ...rest] = name.slice(1).split('/');
+  const encodedScope = encodeURIComponent(scope);
+  if (!rest.length) return `@${encodedScope}`;
+
+  return `@${encodedScope}%2F${rest.map((segment) => encodeURIComponent(segment)).join('%2F')}`;
+}
+
 async function fetchPackage(name) {
   if (registryCache.has(name)) return registryCache.get(name);
-  const encoded = name.startsWith('@')
-    ? `@${encodeURIComponent(name.slice(1)).replace('%2F', '/')}`
-    : encodeURIComponent(name);
+  const encoded = encodePackageName(name);
 
   const response = await fetch(`${REGISTRY}/${encoded}`, {
     headers: { accept: 'application/vnd.npm.install-v1+json' },
@@ -136,4 +153,18 @@ test('every override pin is on the latest published release', { skip }, async (t
       });
     }
   }
+});
+
+// ── Registry URL construction ────────────────────────────────────────────────
+
+test('registry paths keep every slash of a scoped package name', () => {
+  // npm registry paths keep the scope slash literal and percent-encode the rest:
+  // @angular/core -> @angular%2Fcore. Encoding the whole name and then undoing one
+  // slash with String.replace only fixes the FIRST occurrence, so a name with more
+  // than one slash would stay partially encoded and 404.
+  assert.equal(encodePackageName('@angular/core'), '@angular%2Fcore');
+  assert.equal(encodePackageName('@a/b'), '@a%2Fb');
+  assert.equal(encodePackageName('@a/b/c'), '@a%2Fb%2Fc');
+  assert.equal(encodePackageName('follow-redirects'), 'follow-redirects');
+  assert.equal(encodePackageName('@scope/name with spaces'), '@scope%2Fname%20with%20spaces');
 });

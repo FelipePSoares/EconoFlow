@@ -195,3 +195,19 @@ test('web.config sets clickjacking protection', () => {
     'web.config does not set the X-Frame-Options header',
   );
 });
+
+test('CodeQL ignores build output so generated files are not scanned', () => {
+  // The SDK copies web.config into bin/Release on every build. CodeQL analysed that
+  // generated copy and raised cs/web/missing-x-frame-options against a path that bin/
+  // gitignores and that no commit can fix - it is regenerated from the source
+  // web.config. Scanning source only keeps the alert meaningful.
+  const codeql = read('.github/workflows/codeql.yml');
+
+  assert.match(codeql, /paths-ignore:/, 'codeql.yml does not exclude build output from analysis');
+  for (const pattern of ['**/bin/**', '**/obj/**', '**/node_modules/**']) {
+    assert.ok(
+      codeql.includes(pattern),
+      `codeql.yml paths-ignore is missing ${pattern}`,
+    );
+  }
+});
