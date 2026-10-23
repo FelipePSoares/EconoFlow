@@ -341,6 +341,12 @@ jobs:
     - name: Run repository policy tests
       run: node --test "scripts/*.test.mjs"
 
+    # Every `overrides` pin must sit on the latest published release. A stale pin is how
+    # a later advisory silently re-opens on a dependency that was already "fixed" once.
+    # Needs registry.npmjs.org; the fix is always to upgrade the pin, never to allow-list.
+    - name: Verify override pins are on the latest release
+      run: node scripts/npm-override-freshness.test.mjs
+
     - name: Verify the SBOM generator runs
       run: node scripts/generate-sbom.mjs --skip-nuget --output sbom-smoke
 
