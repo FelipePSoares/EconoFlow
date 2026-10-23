@@ -44,6 +44,25 @@ jobs:
           path: ./EasyFinance.Server/bin/Release/net10.0/publish/
           retention-days: 5
 
+      # The SBOM is what lets us answer "is this CVE affecting our product?" inside the
+      # 24-hour CRA Article 14 early-warning window. It is generated per release and kept
+      # with the release artefacts, not regenerated on demand.
+      - name: Install CycloneDX
+        run: dotnet tool install --global CycloneDX --version 6.3.1
+
+      - name: Generate SBOM
+        run: node scripts/generate-sbom.mjs --output sbom
+        env:
+          GITEA_NUGET_USERNAME: ${{ secrets.GITEA_NUGET_USERNAME }}
+          GITEA_NUGET_TOKEN: ${{ secrets.GITEA_NUGET_TOKEN }}
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v7
+        with:
+          name: sbom
+          path: ./sbom/**/*.cdx.json
+          retention-days: 90
+
       - name: Replace values on appsettings.json
         shell: bash
         env:
