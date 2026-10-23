@@ -175,3 +175,23 @@ test('the release workflows publish an SBOM artefact', () => {
     );
   }
 });
+
+// ── IIS host configuration ───────────────────────────────────────────────────
+
+test('web.config sets clickjacking protection', () => {
+  // CodeQL (cs/web/missing-x-frame-options) flags the deployed IIS configuration when
+  // it carries neither X-Frame-Options nor a CSP frame-ancestors directive. The SPA's
+  // own CSP sets frame-ancestors, but that only covers responses the app itself writes:
+  // anything IIS serves directly - error pages, static files, a redirect before the
+  // request reaches the pipeline - would be framable. The header belongs here too.
+  const webConfigPath = 'EasyFinance.Server/web.config';
+  assert.ok(existsSync(resolve(repositoryRoot, webConfigPath)), `${webConfigPath} is missing`);
+
+  const webConfig = read(webConfigPath);
+
+  assert.match(
+    webConfig,
+    /<add\s+name="X-Frame-Options"\s+value="(DENY|SAMEORIGIN)"/i,
+    'web.config does not set the X-Frame-Options header',
+  );
+});
