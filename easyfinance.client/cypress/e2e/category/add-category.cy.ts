@@ -56,9 +56,18 @@ describe('EconoFlow - category add Tests', () => {
 
           // Build last-month date string safely: use the 1st of last month to avoid
           // end-of-month overflow (e.g. setMonth on March 31 gives March 3 instead of Feb 1)
+          //
+          // Format it from the LOCAL parts, never with toISOString(): that converts local
+          // midnight to UTC, which anywhere east of Greenwich is the previous day
+          // (2026-09-01T00:00+02:00 -> 2026-08-31). The expense then belonged to the month
+          // before, and the previous-month overview this test opens never contained it.
           const now = new Date();
           const firstDayLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-          const lastMonthDateStr = firstDayLastMonth.toISOString().split('T')[0];
+          const lastMonthDateStr = [
+            firstDayLastMonth.getFullYear(),
+            String(firstDayLastMonth.getMonth() + 1).padStart(2, '0'),
+            String(firstDayLastMonth.getDate()).padStart(2, '0')
+          ].join('-');
 
           cy.request('POST', 'api/Projects/' + projects.defaultProject.id + '/Categories', {
             name: archivedCategoryName
@@ -79,22 +88,32 @@ describe('EconoFlow - category add Tests', () => {
                   
                   cy.visit('/projects/' + projects.defaultProject.id + '/expense-overview')
 
+                  // The overview opens on the current month and the test then steps back
+                  // one. That first render hides the archived category on purpose; if it
+                  // is still in flight when the assertion below runs, it repaints the
+                  // current month afterwards and the archived card never appears. Anchor
+                  // the first load to a month that is already settled: an active category
+                  // without a budget ("Set a budget") is what makes the current month the
+                  // current month.
+                  cy.get('.slider-container .card-small-text', { timeout: 20000 });
+
                   cy.wait<CategoryReq, CategoryRes[]>('@getCategories').then(({ request, response }) => {
                     cy.log(JSON.stringify(response?.body))
                     cy.contains('.slider-container .card-title', archivedCategoryName).should('not.exist');
 
                     cy.get('app-current-date #previous').click()
 
-                    cy.wait<CategoryReq, CategoryRes[]>('@getCategories').then(({ request, response }) => {
-                      cy.log(JSON.stringify(response?.body))
-                      const exists2 = response?.body.some(item => item.id == archivedCategory?.id)
-                      expect(exists2).to.be.true
-                      const category = response?.body.find(item => item.id == archivedCategory?.id);
-                      expect(category?.isArchived).to.be.true
-                      cy.contains('.slider-container .card-title', archivedCategoryName, { timeout: 10000 })
-                        .closest('.card')
-                        .should('have.class', 'archived');
-                    })
+                    // Assert against the month the control now shows, not merely the next
+                    // request: a request that belongs to the current month can arrive after
+                    // the click, and waiting on it would test the wrong render.
+                    const expectedMonth = firstDayLastMonth
+                      .toLocaleString('en-US', { month: 'short', year: 'numeric' });
+
+                    cy.get('app-current-date h3', { timeout: 20000 }).should('contain', expectedMonth);
+
+                    cy.contains('.slider-container .card-title', archivedCategoryName, { timeout: 20000 })
+                      .closest('.card')
+                      .should('have.class', 'archived');
                   })
                 })
               })

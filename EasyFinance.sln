@@ -21,10 +21,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasyFinance.Common.Tests", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasyFinance.Persistence", "EasyFinance.Persistence\EasyFinance.Persistence.csproj", "{56449DC9-9501-4320-A2CE-4CB66534463D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasyFinance.Persistence.Postgres", "EasyFinance.Persistence.Postgres\EasyFinance.Persistence.Postgres.csproj", "{0061C625-341D-40C4-88FE-DD2C9D52CB71}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EconoFlow.DataMigration", "tools\EconoFlow.DataMigration\EconoFlow.DataMigration.csproj", "{7B2E4A19-3C55-4D0E-9F81-A6D2B7C4E510}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyFinance.Server.Tests", "EasyFinance.Server.Tests\EasyFinance.Server.Tests.csproj", "{D7FE17B9-E78C-424B-9C5D-A285D880D284}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyFinance.Application.Tests", "EasyFinance.Application.Tests\EasyFinance.Application.Tests.csproj", "{F49F30C1-BA1D-4955-80F8-8B6C4D8705B1}"
@@ -36,14 +32,6 @@ Global
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{4D4CC4E5-D93C-4DD9-A94B-C09AB67F393D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0061C625-341D-40C4-88FE-DD2C9D52CB71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0061C625-341D-40C4-88FE-DD2C9D52CB71}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0061C625-341D-40C4-88FE-DD2C9D52CB71}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0061C625-341D-40C4-88FE-DD2C9D52CB71}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7B2E4A19-3C55-4D0E-9F81-A6D2B7C4E510}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7B2E4A19-3C55-4D0E-9F81-A6D2B7C4E510}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7B2E4A19-3C55-4D0E-9F81-A6D2B7C4E510}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7B2E4A19-3C55-4D0E-9F81-A6D2B7C4E510}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4D4CC4E5-D93C-4DD9-A94B-C09AB67F393D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4D4CC4E5-D93C-4DD9-A94B-C09AB67F393D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4D4CC4E5-D93C-4DD9-A94B-C09AB67F393D}.Release|Any CPU.Build.0 = Release|Any CPU

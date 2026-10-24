@@ -10,7 +10,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="9.0.0" />
     <PackageReference Include="coverlet.collector" Version="10.0.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -24,7 +23,6 @@
     <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="10.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.11" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.11" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="10.0.11" />
     <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="10.0.11" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.11" />
@@ -41,8 +39,6 @@
   <ItemGroup>
     <ProjectReference Include="..\EasyFinance.Common.Tests\EasyFinance.Common.Tests.csproj" />
     <ProjectReference Include="..\EasyFinance.Server\EasyFinance.Server.csproj" />
-    <ProjectReference Include="..\EasyFinance.Persistence.Postgres\EasyFinance.Persistence.Postgres.csproj" />
-    <ProjectReference Include="..\tools\EconoFlow.DataMigration\EconoFlow.DataMigration.csproj" />
   </ItemGroup>
 
   <ItemGroup>

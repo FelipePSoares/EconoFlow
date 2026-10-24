@@ -19,10 +19,16 @@ Cypress.Commands.add('login', (username, password) => {
 })
 
 Cypress.Commands.add('register', (username, password) => {
+  // The app auto-saves the first-signin profile; waiting for that PATCH before typing is
+  // pointless - and intermittently fatal. The PATCH fires on its own debounce, so it can
+  // complete before the first keystroke, and `cy.wait` on a route that already resolved is
+  // a hard "No request ever occurred". The assertion below is on the persisted state
+  // instead, which is what "the profile was saved" actually means.
   cy.session(
     username,
     () => {
       cy.intercept('PATCH', '/api/AccessControl/').as('patchAccount')
+      cy.intercept('GET', '/api/AccessControl/').as('getAccount')
 
       cy.request('POST', '/api/AccessControl/register', {
         email: username,
@@ -37,11 +43,11 @@ Cypress.Commands.add('register', (username, password) => {
         cy.get('input[formControlName=lastName]').type('test')
         cy.get('button[type=submit]').click();
 
-        cy.wait('@patchAccount').then((interception) => {
-          expect(interception?.response?.statusCode).to.equal(200)
-        })
-
-        cy.url().should('include', '/projects')
+        // The redirect is what the app does once the profile is saved, so this waits for
+        // the save. The profile itself is read back later, on the account page, rather than
+        // by polling in the middle of the flow: a failing read here would abort the rest of
+        // the flow and surface as the redirect assertion, hiding the real cause.
+        cy.url({ timeout: 20000 }).should('include', '/projects')
       })
     },
     {

@@ -1,52 +1,123 @@
 name: Release
 
-permissions: read-all
+# The release pipeline for master: one run builds and pushes the application image and
+# publishes the Android APK.
+#
+# This file replaces two workflows that each published half of the release
+# (Release.yml, which built on Windows and deployed over FTP, and docker-publish.yml):
+#
+#   - The FTP/IIS deployment is gone, together with the deployment host it targeted.
+#     The image is what runs now.
+#   - The Windows `dotnet publish` is gone with it. The image's API stage performs that
+#     publish for linux-x64, so building it twice would only produce an artefact nothing
+#     consumes.
+#   - The SBOM, the image digest and the mobile build are kept: they are the parts of a
+#     release that are still needed, and they now live in one run.
+#
+# workflow_dispatch exists so a release can be built from a BRANCH without merging. It
+# publishes a ref-scoped image tag and deliberately does NOT move `latest`.
+
+permissions:
+  contents: read
 
 on:
   push:
     branches: [ "master" ]
+  workflow_dispatch:
 
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  # ── Backend: build + deploy ────────────────────────────────────────────────
-  build:
-    runs-on: windows-latest
-    timeout-minutes: 30
+  # ── Application image: build, push, attest ─────────────────────────────────
+  build-and-push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
 
     steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 10.0.x
+      - name: Checkout
+        uses: actions/checkout@v7
 
-      - name: Cache node_modules
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache Docker layers
         uses: actions/cache@v6
         with:
-          path: ./easyfinance.client/node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          path: ${{ runner.temp }}/.buildx-cache
+          key: docker-buildx-${{ runner.os }}-${{ hashFiles('Dockerfile', 'docker/**') }}
+          restore-keys: |
+            docker-buildx-${{ runner.os }}-
 
-      - name: Publish
-        run: dotnet publish EasyFinance.Server/EasyFinance.Server.csproj --configuration Release -p:IncludeSpaProject=true
-        env:
-          GITEA_NUGET_USERNAME: ${{ secrets.GITEA_NUGET_USERNAME }}
-          GITEA_NUGET_TOKEN: ${{ secrets.GITEA_NUGET_TOKEN }}
-
-      - name: Archive publish files
-        uses: actions/upload-artifact@v7
+      - name: Login to Gitea container registry
+        uses: docker/login-action@v3
         with:
-          name: publish
-          path: ./EasyFinance.Server/bin/Release/net10.0/publish/
-          retention-days: 5
+          registry: ${{ secrets.GITEA_REGISTRY || 'gitea.fpssoftware.uk' }}
+          username: ${{ secrets.GITEA_REGISTRY_USERNAME }}
+          password: ${{ secrets.GITEA_REGISTRY_TOKEN }}
 
-      # The SBOM is what lets us answer "is this CVE affecting our product?" inside the
-      # 24-hour CRA Article 14 early-warning window. It is generated per release and kept
-      # with the release artefacts, not regenerated on demand.
+      # The `latest` tag is what the cluster's image updater watches. Only a push to
+      # master may move it.
+      #
+      # A manual run from a branch publishes a ref-scoped tag instead, deliberately: a
+      # branch build must be able to produce an image and a digest WITHOUT becoming the
+      # image anything deploys.
+      - name: Compute tags
+        id: tags
+        run: |
+          set -euo pipefail
+          REGISTRY="${{ secrets.GITEA_REGISTRY || 'gitea.fpssoftware.uk' }}"
+          OWNER="${{ secrets.GITEA_REGISTRY_OWNER || 'fps-software' }}"
+          IMAGE="${REGISTRY}/${OWNER}/econoflow"
+
+          # The commit SHA tag is always published: it is the immutable handle a
+          # deployment should pin, and the one whose digest gets recorded.
+          TAGS="${IMAGE}:${{ github.sha }}"
+
+          if [ "${{ github.ref }}" = "refs/heads/master" ]; then
+            TAGS="${TAGS}"$'\n'"${IMAGE}:latest"
+            echo "Release build on master: publishing :${{ github.sha }} and :latest"
+          else
+            SAFE_REF="$(echo '${{ github.ref_name }}' | tr '/' '-')"
+            TAGS="${TAGS}"$'\n'"${IMAGE}:${SAFE_REF}"
+            echo "Manual build from '${SAFE_REF}': publishing :${{ github.sha }} and :${SAFE_REF}, NOT latest"
+          fi
+
+          echo "tags<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$TAGS" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          platforms: linux/amd64
+          build-args: |
+            GITEA_NUGET_USERNAME=${{ secrets.GITEA_NUGET_USERNAME }}
+            GITEA_NUGET_TOKEN=${{ secrets.GITEA_NUGET_TOKEN }}
+          cache-from: |
+            type=gha
+            type=local,src=${{ runner.temp }}/.buildx-cache
+          cache-to: type=local,dest=${{ runner.temp }}/.buildx-cache,mode=max
+          tags: ${{ steps.tags.outputs.tags }}
+          # CRA: the image must carry a component inventory and a provenance attestation.
+          # BuildKit attaches both as attestation manifests on the pushed digest, so a
+          # deployed image can be resolved back to its components and its source commit.
+          sbom: true
+          provenance: mode=max
+
+      # The BuildKit attestation is only reachable through the registry. This copy is a
+      # standalone CycloneDX SBOM kept with the release artefacts so that triage does not
+      # need registry access or the buildx cache - it is what answers "is this CVE
+      # affecting our product?" inside the CRA Article 14 window.
+      - name: Install Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22.x'
+
       - name: Install CycloneDX
         run: dotnet tool install --global CycloneDX --version 6.3.1
 
@@ -59,34 +130,39 @@ jobs:
       - name: Upload SBOM
         uses: actions/upload-artifact@v7
         with:
-          name: sbom
+          name: sbom-${{ github.sha }}
           path: ./sbom/**/*.cdx.json
           retention-days: 90
 
-      - name: Replace values on appsettings.json
-        shell: bash
-        env:
-          TOKEN: ${{ secrets.BETTERSTACK_SOURCE_TOKEN }}
-          ENDPOINT: ${{ secrets.BETTERSTACK_ENDPOINT }}
+      # A digest-pinned Deployment does NOT follow a tag, and re-resolving it by hand is
+      # where time is lost. Print it in the run summary so it is recorded with the release.
+      - name: Record the image digest
         run: |
-          FILE="${{ github.workspace }}/EasyFinance.Server/bin/Release/net10.0/publish/appsettings.json"
-          if [ ! -f "$FILE" ]; then
-            echo "File not found: $FILE"
-            exit 1
-          fi
+          set -euo pipefail
+          REGISTRY="${{ secrets.GITEA_REGISTRY || 'gitea.fpssoftware.uk' }}"
+          OWNER="${{ secrets.GITEA_REGISTRY_OWNER || 'fps-software' }}"
+          IMAGE="${REGISTRY}/${OWNER}/econoflow"
 
-          sed -i -E "s|\"sourceToken\"\s*:\s*\"[^\"]*\"|\"sourceToken\": \"${TOKEN}\"|" "$FILE"
-          sed -i -E "s|\"betterStackEndpoint\"\s*:\s*\"[^\"]*\"|\"betterStackEndpoint\": \"${ENDPOINT}\"|" "$FILE"
+          DIGEST="$(docker buildx imagetools inspect "${IMAGE}:${{ github.sha }}" \
+            --format '{{.Manifest.Digest}}')"
 
-      - name: Deploy
-        uses: ChristopheLav/iis-deploy@v1
-        with:
-          website-name: 'felipesoares-001-site2'
-          msdeploy-service-url: ${{ secrets.FTP_SERVER }}
-          msdeploy-username: ${{ secrets.FTP_USERNAME }}
-          msdeploy-password: ${{ secrets.FTP_PASSWORD }}
-          source-path: ${{ github.workspace }}\EasyFinance.Server\bin\Release\net10.0\publish\
-          skip-extra-files: 0
+          {
+            echo "## Image published"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| ref | \`${{ github.ref }}\` |"
+            echo "| commit | \`${{ github.sha }}\` |"
+            echo "| **digest** | \`${DIGEST}\` |"
+            echo "| pin as | \`${IMAGE}@${DIGEST}\` |"
+            echo ""
+            if [ "${{ github.ref }}" != "refs/heads/master" ]; then
+              echo "> Built from a branch: \`latest\` was **not** moved."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "IMAGE_DIGEST=${DIGEST}" >> "$GITHUB_ENV"
+          echo "::notice title=Image digest::${IMAGE}@${DIGEST}"
 
   # ── Mobile: standalone APK ─────────────────────────────────────────────────
   android-build:
