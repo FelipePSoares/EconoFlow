@@ -33,9 +33,15 @@ namespace EasyFinance.Server.Tests
     ///     dependency on code that no longer exists.
     ///   </item>
     ///   <item>
-    ///     The publish workflow must keep <c>workflow_dispatch</c>, so an image can be
+    ///     The release workflow must keep <c>workflow_dispatch</c>, so an image can be
     ///     built from a branch without merging — and must not move <c>latest</c> when it
     ///     is, or a branch build becomes what the cluster deploys.
+    ///   </item>
+    ///   <item>
+    ///     There must be exactly one release workflow. It used to be two — one uploading a
+    ///     Windows publish over FTP, one pushing the image — which is why this class read
+    ///     <c>docker-publish.yml</c>; the FTP host is gone and <c>Release.yml</c> now does
+    ///     both the image and the APK.
     ///   </item>
     /// </list>
     /// </summary>
@@ -60,7 +66,7 @@ namespace EasyFinance.Server.Tests
         private static string Dockerfile() => File.ReadAllText(Path.Combine(RepoRoot(), "Dockerfile"));
 
         private static string PublishWorkflow() => File.ReadAllText(
-            Path.Combine(RepoRoot(), ".github", "workflows", "docker-publish.yml"));
+            Path.Combine(RepoRoot(), ".github", "workflows", "Release.yml"));
 
         [Fact]
         public void Dockerfile_ShouldNotReferenceTheRemovedMigrationProjects()
@@ -166,6 +172,143 @@ namespace EasyFinance.Server.Tests
                 .Should().BeTrue(
                     "the workflow must compare github.ref against refs/heads/master to "
                     + "decide whether latest may move");
+        }
+    }
+
+    /// <summary>
+    /// Guards how the image serves the SPA.
+    ///
+    /// <para>
+    /// The image runs the API and nginx in one container: nginx is the front door, serves
+    /// the Angular browser bundle, and proxies <c>/api</c> to Kestrel on the loopback
+    /// interface so the SPA and the API share one origin. Each of those links is invisible
+    /// until a deployment — a missing <c>try_files</c> turns every deep link into a 404, a
+    /// missing proxy breaks every API call, and abandoning <c>ng build</c> for the SSR
+    /// pipeline ships pages that render empty.
+    /// </para>
+    /// </summary>
+    public class ContainerSpaServingTests
+    {
+        private static string RepoRoot()
+        {
+            var directory = new DirectoryInfo(AppContext.BaseDirectory);
+
+            while (directory != null)
+            {
+                if (File.Exists(Path.Combine(directory.FullName, "EasyFinance.sln")))
+                    return directory.FullName;
+
+                directory = directory.Parent;
+            }
+
+            throw new InvalidOperationException(
+                $"Could not locate the repository root above '{AppContext.BaseDirectory}'.");
+        }
+
+        private static string Read(params string[] parts) =>
+            File.ReadAllText(Path.Combine([RepoRoot(), .. parts]));
+
+        private static string Dockerfile() => Read("Dockerfile");
+
+        // The nginx site is rendered by the entrypoint from ECONOFLOW_NGINX_PORT and
+        // ECONOFLOW_API_PORT at start-up, so these are asserted against the entrypoint.
+        private static string Entrypoint() => Read("docker", "entrypoint.sh");
+
+        [Fact]
+        public void TheImage_ShouldBuildTheSpaWithTheBrowserPipeline()
+        {
+            var dockerfile = Dockerfile();
+
+            // `ng build` with the production configuration emits dist/easyfinance.client/browser.
+            // Switching to the SSR/prerender pipeline would substitute index.csr.html for every
+            // prerendered page — and its serialized state renders an empty app.
+            dockerfile.Should().Contain(
+                "ng build --configuration production",
+                "the image must ship the browser build, not the SSR/prerender output");
+
+            dockerfile.Should().Contain(
+                "dist/easyfinance.client/browser/",
+                "the browser bundle is what nginx serves");
+        }
+
+        [Fact]
+        public void TheImage_ShouldRunNginxInFrontOfTheApi()
+        {
+            var dockerfile = Dockerfile();
+
+            dockerfile.Should().Contain(
+                "econoflow-entrypoint",
+                "the container needs the entrypoint that starts and supervises both services");
+
+            // The API's binding is applied by the entrypoint, not as an ENV in the Dockerfile:
+            // the entrypoint is what knows the port and starts Kestrel on it. Being an ENV
+            // would also let an operator widen it to 0.0.0.0, exposing the API next to nginx.
+            Entrypoint().Should().Contain(
+                "ASPNETCORE_URLS=\"http://127.0.0.1:${API_PORT}\"",
+                "Kestrel must bind the loopback interface, so only nginx is reachable");
+
+            dockerfile.Should().Contain(
+                "EXPOSE 8080",
+                "nginx listens on 8080 and is the container's only public port");
+
+            dockerfile.Should().Contain(
+                "tini",
+                "an init process is what stops both services on a container stop and "
+                + "propagates either one exiting");
+        }
+
+        [Fact]
+        public void Nginx_ShouldServeDeepLinksFromTheSpaShell()
+        {
+            Entrypoint().Should().MatchRegex(
+                @"try_files\s+\\\$uri\s+\\\$uri/index\.html\s+/index\.html",
+                "an Angular route has no file of its own; without the index.html fallback "
+                + "every hard refresh on a deep link answers 404");
+        }
+
+        [Fact]
+        public void Nginx_ShouldProxyTheApiToTheLoopbackApi()
+        {
+            var conf = Entrypoint();
+
+            conf.Should().Contain(
+                "proxy_pass http://econoflow_api/api/",
+                "the SPA calls /api on its own origin; nginx is what forwards that to Kestrel");
+
+            conf.Should().Contain(
+                "server 127.0.0.1:${API_PORT}",
+                "the upstream must be the loopback API, on the port the entrypoint gives Kestrel");
+        }
+
+        [Fact]
+        public void Nginx_ShouldForwardTheProxiedScheme()
+        {
+            // The application enables Hsts() and UseHttpsRedirection() and honours
+            // UseForwardedHeaders. Without X-Forwarded-Proto every request looks like plain
+            // HTTP, so the API would redirect the SPA's own API calls to https://...:443.
+            Entrypoint().Should().Contain(
+                "proxy_set_header X-Forwarded-Proto \\$scheme",
+                "the API must see the scheme the browser used, not the internal hop");
+        }
+
+        [Fact]
+        public void Nginx_ShouldNeverCacheTheServiceWorkersOrTheShell()
+        {
+            // A cached index.html or service worker pins an installed PWA to the previous
+            // deploy: the app would keep loading stale hashed bundles forever.
+            var conf = Entrypoint();
+
+            foreach (var protectedPath in new[] { "/index.html", "/ngsw-worker.js", "/ngsw.json", "/service-worker.js" })
+            {
+                conf.Should().Contain(
+                    protectedPath,
+                    $"{protectedPath} must be addressed explicitly so it can be marked no-store");
+            }
+
+            Regex.Matches(conf, @"add_header Cache-Control ""no-store""")
+                .Count.Should().BeGreaterThanOrEqualTo(
+                    4,
+                    "each of the shell and the three service-worker entry points must be no-store");
         }
     }
 

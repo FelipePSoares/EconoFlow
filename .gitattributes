@@ -1,0 +1,7 @@
+# Line endings are preserved for files whose bytes matter to the consumer.
+#
+# The container entrypoint is executed by /bin/sh inside a Linux image. With
+# core.autocrlf=true (the default on Windows) git would store and check it out with CRLF,
+# and the container would fail at start-up with a message that has nothing to do with the
+# script ("not found" pointing at the shebang).
+docker/*.sh text eol=lf

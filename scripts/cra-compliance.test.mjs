@@ -17,7 +17,7 @@
  */
 
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
@@ -165,15 +165,38 @@ test('the SBOM generator documents every component population', () => {
   }
 });
 
-test('the release workflows publish an SBOM artefact', () => {
-  for (const workflow of ['Release.yml', 'docker-publish.yml']) {
-    const path = `.github/workflows/${workflow}`;
-    assert.match(
-      read(path),
-      /sbom/i,
-      `${path} does not produce or publish an SBOM, so a release has no component inventory`,
-    );
-  }
+test('the release workflow publishes an SBOM artefact for the image it pushes', () => {
+  // There is one release workflow now: it builds and pushes the application image AND
+  // publishes the SBOM. The SBOM used to live in two workflows because the image and the
+  // (now removed) FTP deployment were released by different files; keeping this assertion
+  // on the single workflow is what stops that inventory from being lost in a merge.
+  const path = '.github/workflows/Release.yml';
+  const workflow = read(path);
+
+  assert.match(
+    workflow,
+    /sbom/i,
+    `${path} does not produce or publish an SBOM, so a release has no component inventory`,
+  );
+
+  assert.match(
+    workflow,
+    /docker\/build-push-action/,
+    `${path} no longer builds and pushes the image, so the SBOM it publishes would describe nothing released`,
+  );
+
+  // A second publisher of the same image would reintroduce the split this consolidated.
+  const publishers = readdirSync(resolve(repositoryRoot, '.github', 'workflows'))
+    .filter(workflowFile => workflowFile.endsWith('.yml'))
+    .filter(workflowFile => /docker\/build-push-action|buildx build/.test(
+      read(`.github/workflows/${workflowFile}`),
+    ));
+
+  assert.deepEqual(
+    publishers,
+    ['Release.yml'],
+    'exactly one workflow may build and push the application image',
+  );
 });
 
 // ── IIS host configuration ───────────────────────────────────────────────────
