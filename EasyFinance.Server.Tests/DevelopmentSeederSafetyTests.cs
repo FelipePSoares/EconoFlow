@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using EasyFinance.Persistence;
 using EasyFinance.Persistence.DatabaseContext;
@@ -90,6 +91,101 @@ namespace EasyFinance.Server.Tests
             ((bool)method.Invoke(null, new object[] { info })!).Should().BeFalse(
                 "the in-memory store is where the seeder is meant to run; a guard that "
                 + "blocked it would remove the feature rather than protect the database");
+        }
+
+        /// <summary>
+        /// The branch that runs Development against a real database.
+        ///
+        /// <para>
+        /// The tests above pin the guard; this one pins the <i>wiring</i>. The guard was
+        /// correct and still never ran for a PostgreSQL Development deployment, because
+        /// <c>Program.cs</c> applies the migrations and creates the system roles only in
+        /// the <c>else</c> of <c>if (IsDevelopment())</c>. Development therefore started
+        /// against a schema-less database and failed on <c>relation "AspNetRoles" does not
+        /// exist</c> — reproduced by running the application with
+        /// <c>ASPNETCORE_ENVIRONMENT=Development</c> and <c>EasyFinanceDB</c> pointing at a
+        /// fresh PostgreSQL.
+        /// </para>
+        ///
+        /// <para>
+        /// This is asserted against <c>Program.cs</c> rather than by starting the host: the
+        /// ordering is the property under test, and a source assertion states it without
+        /// standing up a web server and a database for every test run.
+        /// </para>
+        /// </summary>
+        [Fact]
+        public void Program_ShouldMigrateTheDatabaseInDevelopmentToo()
+        {
+            var program = File.ReadAllText(Path.Combine(RepoRoot(), "EasyFinance.Server", "Program.cs"));
+
+            // Isolate the Development branch: everything between `if (IsDevelopment())`
+            // and the `else` that follows it.
+            var developmentFlag = program.IndexOf(
+                "if (app.Environment.IsDevelopment())",
+                StringComparison.Ordinal);
+
+            developmentFlag.Should().BeGreaterThan(
+                -1,
+                "Program.cs is expected to branch on the environment");
+
+            var developmentBranch = program.Substring(developmentFlag);
+
+            var elseIndex = developmentBranch.IndexOf("\n    else", StringComparison.Ordinal);
+
+            elseIndex.Should().BeGreaterThan(
+                -1,
+                "the Development branch is expected to be followed by an else");
+
+            developmentBranch = developmentBranch.Substring(0, elseIndex);
+
+            developmentBranch.Should().Contain(
+                "UseMigration",
+                "a Development deployment configured with EasyFinanceDB (Host=...) runs "
+                + "DevelopmentTestDataSeeder, which itself insists it is skipped for a "
+                + "relational store — so the schema has to be migrated there as well, or "
+                + "start-up dies on a missing table");
+        }
+
+        /// <summary>
+        /// The Cypress suite's premise.
+        ///
+        /// <para>
+        /// Every spec except the three mocked auth ones signs in as
+        /// <c>test@test.com</c> / <c>Passw0rd!</c> — the fixture user that only
+        /// <c>DevelopmentTestDataSeeder</c> creates. Pointing Development at PostgreSQL
+        /// therefore skips seeding and the suite can no longer authenticate, which is
+        /// precisely the scenario this branch has to be tested in. The seeder must be
+        /// re-enablable for a local database, explicitly and never for the in-memory store
+        /// or in production.
+        /// </para>
+        /// </summary>
+        [Fact]
+        public void Seeder_ShouldBeExplicitlyOptInForALocalDatabase()
+        {
+            var program = File.ReadAllText(Path.Combine(RepoRoot(), "EasyFinance.Server", "Program.cs"));
+
+            program.Should().Contain(
+                "EconoFlow_SEED_DEVELOPMENT_DATA",
+                "Development against Docker PostgreSQL skips the fixtures, so the Cypress "
+                + "suite (which logs in as the seeded test@test.com) cannot run against the "
+                + "only database the application has unless seeding can be requested "
+                + "explicitly for a local database");
+        }
+
+        private static string RepoRoot()
+        {
+            var directory = new DirectoryInfo(AppContext.BaseDirectory);
+
+            while (directory != null)
+            {
+                if (File.Exists(Path.Combine(directory.FullName, "EasyFinance.sln")))
+                    return directory.FullName;
+
+                directory = directory.Parent;
+            }
+
+            throw new InvalidOperationException(
+                $"Could not locate the repository root above '{AppContext.BaseDirectory}'.");
         }
 
         [Fact]

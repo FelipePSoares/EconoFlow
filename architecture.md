@@ -176,6 +176,13 @@ store would produce a pod that reports healthy while persisting nothing.
 `UseMigration()` branch on the same value the `DbContext` was built with rather than
 re-deriving it. `UseMigration()` skips the in-memory store, which has no migrations.
 
+Both environments apply the migrations at startup — Development included, so that running
+the app with `EasyFinanceDB` set against a fresh PostgreSQL creates the schema. The
+Development fixtures are skipped for a relational store, because they are scaffolding
+rather than application data; set `EconoFlow_SEED_DEVELOPMENT_DATA=true` to seed a
+throwaway local database, which is what the Cypress suite needs in order to sign in as its
+fixture user. The variable has no effect outside Development.
+
 #### Migrations
 
 EF Core discovers a context's migrations by scanning the assembly that holds the

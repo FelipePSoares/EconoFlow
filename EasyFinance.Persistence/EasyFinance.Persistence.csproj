@@ -12,6 +12,18 @@
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.12" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.11" />
     <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="10.0.11" />
+    <!--
+      The EF Core tools (dotnet ef) refuse to run against a startup project that does
+      not reference this package. It used to arrive transitively from the deleted
+      EasyFinance.Persistence.Postgres project, so nobody referenced it explicitly;
+      without it the design-time factories import this project's OWN
+      Microsoft.EntityFrameworkCore.Design namespace and compile fine, while
+      `dotnet ef migrations add` stops at the design-package check.
+    -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.11">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.11" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="10.0.11" />
     <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="10.0.11" />
