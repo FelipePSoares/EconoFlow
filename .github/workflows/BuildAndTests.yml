@@ -355,6 +355,25 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 35
 
+    # PostgreSQL is the only database the application has, so the end-to-end suite runs
+    # against it rather than the in-memory store. Without this the job exercised a store
+    # that is never deployed — and could not see a PostgreSQL-only regression, because
+    # the in-memory fixtures carry different dates than the ones the specs reason about.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: econoflow
+          POSTGRES_PASSWORD: econoflow
+          POSTGRES_DB: econoflow
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
     steps:
     - uses: actions/checkout@v7
 
@@ -405,6 +424,13 @@ jobs:
       run: dotnet run --project ./EasyFinance.Server --configuration Debug --no-build --no-restore -p:IncludeSpaProject=true --urls https://localhost:7003/ &
       env:
         EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN: ci-integration-test-placeholder-secret-key-32chars
+        # Point the application at the PostgreSQL service above. A Host= connection
+        # string is what makes Development ask for PostgreSQL instead of falling back
+        # to the in-memory store.
+        EasyFinanceDB: Host=localhost;Port=5432;Database=econoflow;Username=econoflow;Password=econoflow
+        # The fixtures are skipped for a real database by design, but every spec signs
+        # in as the seeded test@test.com, so this run asks for them explicitly.
+        EconoFlow_SEED_DEVELOPMENT_DATA: "true"
 
     - name: Wait for servers to be ready
       run: |

@@ -168,4 +168,93 @@ namespace EasyFinance.Server.Tests
                     + "decide whether latest may move");
         }
     }
+
+    /// <summary>
+    /// Guards the Cypress job's database, which was silently the wrong one.
+    ///
+    /// <para>
+    /// <c>integration-tests</c> starts the application and runs <c>npx cypress run</c>
+    /// against it — but it exported no <c>EasyFinanceDB</c>, so the job ran in
+    /// Development against the <i>in-memory</i> store. PostgreSQL is the only database
+    /// the application has, so the end-to-end suite could not detect a PostgreSQL
+    /// regression at all: the month-scoping defects found while consolidating the
+    /// persistence layer pass in CI because the in-memory fixtures carry different
+    /// dates.
+    /// </para>
+    ///
+    /// <para>
+    /// These are assertions on the workflow file because the alternative — starting a
+    /// container and a host inside a unit test — would put a database in every developer's
+    /// test run to prove something the YAML already states.
+    /// </para>
+    /// </summary>
+    public class CypressWorkflowDatabaseTests
+    {
+        private static string RepoRoot()
+        {
+            var directory = new DirectoryInfo(AppContext.BaseDirectory);
+
+            while (directory != null)
+            {
+                if (File.Exists(Path.Combine(directory.FullName, "EasyFinance.sln")))
+                    return directory.FullName;
+
+                directory = directory.Parent;
+            }
+
+            throw new InvalidOperationException(
+                $"Could not locate the repository root above '{AppContext.BaseDirectory}'.");
+        }
+
+        private static string IntegrationJob()
+        {
+            var workflow = File.ReadAllText(
+                Path.Combine(RepoRoot(), ".github", "workflows", "BuildAndTests.yml"));
+
+            var jobStart = workflow.IndexOf("  integration-tests:", StringComparison.Ordinal);
+
+            jobStart.Should().BeGreaterThan(-1, "the workflow is expected to have an integration-tests job");
+
+            var nextJob = workflow.IndexOf("\n  script-tests:", StringComparison.Ordinal);
+
+            if (nextJob < 0 || nextJob < jobStart)
+                nextJob = workflow.Length;
+
+            return workflow.Substring(jobStart, nextJob - jobStart);
+        }
+
+        [Fact]
+        public void CypressJob_ShouldRunAgainstPostgreSql()
+        {
+            var job = IntegrationJob();
+
+            job.Should().Contain(
+                "EasyFinanceDB",
+                "the Cypress job must point the application at PostgreSQL; without it "
+                + "Development falls back to the in-memory store, which has no schema "
+                + "and no migrations, so the job cannot exercise the production database");
+        }
+
+        [Fact]
+        public void CypressJob_ShouldStartAPostgreSqlService()
+        {
+            var job = IntegrationJob();
+
+            job.Should().MatchRegex(
+                @"(?m)^\s{4}services:\s*$",
+                "a PostgreSQL service container is what makes EasyFinanceDB reachable");
+        }
+
+        [Fact]
+        public void CypressJob_ShouldSeedItsFixtureUserExplicitly()
+        {
+            // The fixtures are skipped for a relational store, but every Cypress spec
+            // signs in as the seeded test@test.com. Pointing the job at PostgreSQL
+            // without this variable fails the whole suite at login.
+            IntegrationJob().Should().Contain(
+                "EconoFlow_SEED_DEVELOPMENT_DATA",
+                "the Cypress suite depends on the development fixtures, which are "
+                + "skipped by default for a real database");
+        }
+    }
 }
