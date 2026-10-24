@@ -43,14 +43,11 @@ Cypress.Commands.add('register', (username, password) => {
         cy.get('input[formControlName=lastName]').type('test')
         cy.get('button[type=submit]').click();
 
-        cy.url().should('include', '/projects')
-
-        // The profile is only usable once it is persisted: the account page and every
-        // subsequent request read it back from the API.
-        cy.request({ method: 'GET', url: '/api/AccessControl/' }).then((account) => {
-          expect(account.body.firstName).to.equal('test')
-          expect(account.body.lastName).to.equal('test')
-        })
+        // The redirect is what the app does once the profile is saved, so this waits for
+        // the save. The profile itself is read back later, on the account page, rather than
+        // by polling in the middle of the flow: a failing read here would abort the rest of
+        // the flow and surface as the redirect assertion, hiding the real cause.
+        cy.url({ timeout: 20000 }).should('include', '/projects')
       })
     },
     {

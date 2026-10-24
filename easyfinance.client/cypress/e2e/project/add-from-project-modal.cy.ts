@@ -88,7 +88,14 @@ describe('EconoFlow - global add modal tests', () => {
       .should('have.length.greaterThan', 0);
 
     if (optionText) {
-      cy.contains(`${openPanelSelector} mat-option`, optionText).click({ force: true });
+      // The option label is the expense NAME, and names repeat inside a month (the month
+      // dataset has one "Housing", one "Rent" per month, and so on). `cy.contains` resolves
+      // to "Too many elements found" because it requires a single match; take the first
+      // option whose text is the wanted label instead.
+      cy.get(`${openPanelSelector} mat-option`)
+        .filter((_, option) => (option.textContent ?? '').trim() === optionText)
+        .first()
+        .click({ force: true });
       cy.get(dialogSelector).find(selectLocator).should('contain', optionText);
       return;
     }
