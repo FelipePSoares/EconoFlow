@@ -17,11 +17,23 @@ describe('EconoFlow - global add modal tests', () => {
     cy.get('.global-add-button .dropdown-menu.show').should('be.visible');
 
     cy.get('.global-add-button .dropdown-menu.show .dropdown-item').then(($items) => {
+      // Match on the translated label, not on the action id. The labels are "Income",
+      // "Expense" and "Expense Item", so an exact comparison with the lowercase id
+      // 'expense item' never matched; the helper selected nothing, Cypress skipped the
+      // click on `undefined`, and each "expense item" test silently reopened whichever
+      // modal the previous test had used - which is why they asserted against another
+      // component's month-scoped expense request.
       const target = Array.from($items).find(item =>
-        item.textContent?.trim().toLowerCase() === action
+        item.textContent?.trim().toLowerCase() === action.toLowerCase()
       );
 
-      expect(target, `visible dropdown item for action "${action}"`).to.not.equal(undefined);
+      expect(
+        target,
+        `visible dropdown item for action "${action}" (items: ${
+          Array.from($items).map(item => item.textContent?.trim()).join(' | ')
+        })`
+      ).to.not.equal(undefined);
+
       cy.wrap(target as HTMLElement).click({ force: true });
     });
 
@@ -225,6 +237,12 @@ describe('EconoFlow - global add modal tests', () => {
 
           openGlobalAddModal('expense item');
           cy.wait('@getModalCategories');
+
+          // The expense-item form opens on today's date, not on the month the overview is
+          // showing, so the parent expenses of the selected month only load once the date
+          // is set to that month - as a user would. Assertions on the request only make
+          // sense after it.
+          updateFormDate(toDateFromMonth(monthValue));
 
           selectMaterialOption('categoryId', category.name);
 
