@@ -68,3 +68,36 @@ Cypress.Commands.add('waitForLoader', () => {
     expect($body.find('.cssload-container:visible').length).to.equal(0);
   });
 });
+
+/**
+ * Clicks an element once the loading overlay is not covering it.
+ *
+ * `waitForLoader` only proves the overlay is absent at the moment it is checked. The page
+ * can render, then start a background refresh whose overlay covers the element again, so a
+ * plain sequence of "wait for loader, wait for element, click" still intermittently fails
+ * with "is being covered by another element".
+ *
+ * Cypress refuses to click a covered element, so retrying the click is what waits for the
+ * overlay to actually be gone: the first attempt that runs while the list is idle succeeds.
+ */
+Cypress.Commands.add('clickWhenLoaderGone' as unknown as keyof Cypress.Chainable, ((selector: string) => {
+  cy.get(selector, { timeout: 20000 }).should('have.length.at.least', 1);
+
+  // Retry the click while the loading overlay covers the element. Cypress refuses to click
+  // a covered element, so the first attempt that runs while the list is idle succeeds.
+  const click = (attempt: number): void => {
+    cy.get(selector).first().click({ timeout: 20000 }).then(
+      () => undefined,
+      (error: Error) => {
+        if (attempt >= 5 || !/covered by another element/i.test(error.message)) {
+          throw error;
+        }
+
+        cy.wait(500);
+        click(attempt + 1);
+      }
+    );
+  };
+
+  click(0);
+}) as unknown as () => void);
