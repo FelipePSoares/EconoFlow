@@ -389,6 +389,25 @@ namespace EasyFinance.Server.Tests
         }
 
         [Fact]
+        public void CypressJob_ShouldRunThePostgresEngineVersionProductionRuns()
+        {
+            // The suite exists to catch regressions in the database the application is
+            // deployed against. Running it on 16 while production runs 18 would prove
+            // nothing about the deployed engine, and a floating tag such as `16-alpine`
+            // would move without anyone deciding to.
+            const string productionImage =
+                "postgres:18-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2";
+
+            IntegrationJob().Should().Contain(
+                $"image: {productionImage}",
+                "the CI database must be the image production runs, pinned by digest");
+
+            IntegrationJob().Should().NotContain(
+                "postgres:16",
+                "the suite would then validate an engine version that is not deployed");
+        }
+
+        [Fact]
         public void CypressJob_ShouldSeedItsFixtureUserExplicitly()
         {
             // The fixtures are skipped for a relational store, but every Cypress spec

@@ -359,9 +359,13 @@ jobs:
     # against it rather than the in-memory store. Without this the job exercised a store
     # that is never deployed — and could not see a PostgreSQL-only regression, because
     # the in-memory fixtures carry different dates than the ones the specs reason about.
+    #
+    # The image is pinned to the digest production runs, not to a minor tag: a suite that
+    # passes on 16 says nothing about the engine that is deployed on 18, and `16-alpine`
+    # would silently track a moving tag. Move this digest only together with production.
     services:
       postgres:
-        image: postgres:16-alpine
+        image: postgres:18-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2
         env:
           POSTGRES_USER: econoflow
           POSTGRES_PASSWORD: econoflow
