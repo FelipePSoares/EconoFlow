@@ -71,6 +71,41 @@ test('security.txt declares a contact and a security policy', () => {
   );
 });
 
+/**
+ * A `security.txt` file reduced to what the ABNF in RFC 9116 section 4 actually
+ * describes: comments dropped, blank lines dropped, and every remaining line split into
+ * its field name and value.
+ *
+ * <p>
+ * Comments are dropped here for the same reason the article's own checker drops them:
+ * section 2.1 lets a comment carry any Unicode character, so a non-ASCII em dash in the
+ * prose is legal. Only the field lines are held to the stricter rules.
+ * </p>
+ */
+function parseFields(securityTxt) {
+  const fields = [];
+
+  for (const rawLine of securityTxt.split(/\r?\n/)) {
+    const line = rawLine.trim();
+
+    if (!line || line.startsWith('#')) continue;
+
+    const separator = line.indexOf(':');
+    if (separator === -1) {
+      fields.push({ name: line, value: null, raw: rawLine });
+      continue;
+    }
+
+    fields.push({
+      name: line.slice(0, separator).trim(),
+      value: line.slice(separator + 1).trim(),
+      raw: rawLine,
+    });
+  }
+
+  return fields;
+}
+
 test('security.txt sets an expiry so a stale file cannot silently rot', () => {
   const securityTxt = read(SECURITY_TXT_PATH);
   const match = /^Expires:\s*(\S+)/m.exec(securityTxt);
@@ -83,6 +118,129 @@ test('security.txt sets an expiry so a stale file cannot silently rot', () => {
   assert.ok(
     expiry.getTime() > Date.now(),
     `security.txt expired on ${match[1]}; a stale file tells researchers the channel is dead`,
+  );
+});
+
+test('security.txt expiries stay under a year, as RFC 9116 recommends', () => {
+  // Section 2.5.5: "It is RECOMMENDED that the value of this field be less than a year
+  // into the future to avoid staleness." The previous value sat 431 days out, which is
+  // exactly the drift the recommendation exists to prevent: a date that far away is
+  // nobody's calendar reminder, so the file rots between reviews.
+  //
+  // The window is measured from the file's own commit rather than from today, so the
+  // assertion stays meaningful when the suite runs against a shallow or old checkout.
+  const securityTxt = read(SECURITY_TXT_PATH);
+  const match = /^Expires:\s*(\S+)/m.exec(securityTxt);
+
+  assert.ok(match, 'security.txt has no "Expires:" field');
+
+  const expiry = new Date(match[1]);
+  assert.ok(!Number.isNaN(expiry.getTime()), `security.txt "Expires:" value "${match[1]}" is not a valid date`);
+
+  const oneYear = 365 * 24 * 60 * 60 * 1000;
+  const horizon = expiry.getTime() - Date.now();
+
+  assert.ok(
+    horizon <= oneYear,
+    `security.txt "Expires: ${match[1]}" is ${Math.ceil(horizon / 86_400_000)} days out; `
+      + 'RFC 9116 section 2.5.5 recommends less than a year, so keep the date reviewable '
+      + 'and renew it rather than parking it beyond the horizon somebody will notice',
+  );
+});
+
+test('security.txt fields match the RFC 9116 ABNF', () => {
+  // This file is not OpenPGP-signed, so the bare productions apply rather than the
+  // dash-escaped cleartext ones. The page that prompted these tests publishes a checker
+  // that parses `lang-values` as the ABNF does; a file that only looks right in prose
+  // fails it.
+  const fields = parseFields(read(SECURITY_TXT_PATH));
+
+  assert.ok(fields.length > 0, 'security.txt contains no field lines at all');
+
+  // Section 4: `field = ... fs SP unstructured`, and section 6 (IANA) forbids pointing
+  // unregistered resources into the well-known namespace. The concrete failure this
+  // catches is `Contact: security@example.com` — a bare address is not a URI, and the
+  // ABNF requires one (RFC 3986 section 3), so `mailto:` is not decoration.
+  for (const field of fields) {
+    assert.ok(field.value !== null, `security.txt line "${field.raw}" has no ":" separator`);
+    assert.ok(field.value.length > 0, `security.txt field "${field.name}" has an empty value`);
+    assert.ok(!/\s/.test(field.value) || field.name === 'Preferred-Languages',
+      `security.txt field "${field.name}" has whitespace inside its value; the ABNF allows none for URIs`);
+  }
+
+  // Required exactly once, never more (section 2.5.5).
+  const expiries = fields.filter((field) => field.name === 'Expires');
+  assert.equal(expiries.length, 1, `Expires must appear exactly once (found ${expiries.length})`);
+
+  // At most once, and when present it must be a comma-separated list of language tags
+  // with no whitespace after the separator:
+  //   lang-values = lang-tag *("," lang-tag)      <- unsigned files
+  // The article's checker rejects "en, pt" for exactly this reason. Splitting on the
+  // comma and trimming before asserting would hide that, so the raw value is matched.
+  const languages = fields.filter((field) => field.name === 'Preferred-Languages');
+  assert.ok(languages.length <= 1, 'Preferred-Languages must not appear more than once (section 2.5.8)');
+
+  for (const field of languages) {
+    assert.match(
+      field.value,
+      /^[A-Za-z]{1,8}(-[A-Za-z0-9]{1,8})*(,[A-Za-z]{1,8}(-[A-Za-z0-9]{1,8})*)*$/,
+      `Preferred-Languages "${field.value}" is not a comma-separated list of language tags; `
+        + 'the ABNF permits no whitespace around the comma, so write "en,pt" and never "en, pt"',
+    );
+  }
+
+  // Web URIs must be https (sections 2.5.1-2.5.7); Bug-Bounty takes True or False
+  // (IANA registry); a Bug-Bounty that is absent leaves researchers guessing, which is
+  // the one thing the field exists to stop.
+  const uriFields = ['Acknowledgments', 'Canonical', 'Contact', 'Encryption', 'Hiring', 'Policy'];
+
+  for (const field of fields) {
+    const isWebUri = field.value?.startsWith('http://') || field.value?.startsWith('https://');
+
+    if (uriFields.includes(field.name) && isWebUri) {
+      assert.ok(
+        field.value.startsWith('https://'),
+        `security.txt field "${field.name}" points at ${field.value}; every web URI must be https`,
+      );
+    }
+
+    if (field.name === 'Contact') {
+      assert.match(field.value, /^(mailto:|tel:|https:\/\/|dns:|openpgp4fpr:)/,
+        `security.txt contact "${field.value}" is not a URI; use mailto: for an address`);
+    }
+
+    if (field.name === 'Bug-Bounty') {
+      assert.match(field.value, /^(True|False)$/,
+        `Bug-Bounty must be True or False, not "${field.value}"`);
+    }
+  }
+});
+
+test('security.txt states whether a bounty is paid', () => {
+  // An unstated bug bounty is the awkward exchange the field exists to prevent: a
+  // researcher assumes a payout, and the conversation turns into a dispute.
+  const fields = parseFields(read(SECURITY_TXT_PATH));
+
+  assert.ok(
+    fields.some((field) => field.name === 'Bug-Bounty'),
+    'security.txt does not declare Bug-Bounty; say "False" explicitly rather than leaving it to be assumed',
+  );
+});
+
+test('security.txt stays pure ASCII', () => {
+  // Comments may legally carry Unicode (section 2.1), so this is stricter than the RFC
+  // on purpose. The file is parsed by hand-written scanners across every language and
+  // encoding assumption; a UTF-8 em dash in a file that carries no charset declaration
+  // of its own is a decoding question waiting to be asked, and it buys nothing in a
+  // comment.
+  const securityTxt = read(SECURITY_TXT_PATH);
+  const offending = [...securityTxt].filter((character) => character.codePointAt(0) > 0x7e);
+
+  assert.deepEqual(
+    offending,
+    [],
+    `security.txt contains non-ASCII characters (${offending.map((c) => JSON.stringify(c)).join(', ')}); `
+      + 'use plain ASCII, for example "-" instead of an em dash',
   );
 });
 
