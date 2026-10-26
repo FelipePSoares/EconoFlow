@@ -228,16 +228,15 @@ namespace EasyFinance.Server.Tests
         [Fact]
         public async Task TheDevStackConfiguration_ShouldTrustTheContainerProxy()
         {
-            // docker-compose.dev.yml runs the application behind nginx inside the image, and
-            // behind Docker's port forwarding after that. It has to configure
-            // ForwardedHeaders__KnownProxies/__KnownNetworks, or every request that arrives
-            // over plain HTTP is answered with a 307 to https://<host>/ and nothing loads -
-            // appsettings.json trusts only the cluster CIDR (10.42.0.0/16), which no local
-            // request comes from.
+            // docker-compose.dev.yml runs the application behind Docker's port forwarding, and
+            // whatever reverse proxy a developer puts in front of it. It has to configure
+            // ForwardedHeaders__KnownProxies/__KnownNetworks, or a deployment that relies on the
+            // forwarded scheme sees plain HTTP - appsettings.json trusts only the cluster CIDR
+            // (10.42.0.0/16), which no local request comes from.
             //
             // The compose file is the source, so the check is textual; this test then applies
             // exactly those values to the real options type and asserts the outcome that
-            // matters: the proxied scheme is honoured from the address nginx uses.
+            // matters: the proxied scheme is honoured from the address the hop arrives from.
             var compose = File.ReadAllText(Path.Combine(RepoRoot(), "docker-compose.dev.yml"));
             var settings = new Dictionary<string, string?>();
 
@@ -246,7 +245,7 @@ namespace EasyFinance.Server.Tests
 
             settings.Should().NotBeEmpty(
                 "the dev stack must configure the forwarded-headers middleware, or the app "
-                + "redirects every plain-HTTP request to HTTPS");
+                + "never sees the scheme a proxy in front of it terminated");
 
             var configuration = new ConfigurationBuilder().AddInMemoryCollection(settings).Build();
             var services = new ServiceCollection();
@@ -256,8 +255,7 @@ namespace EasyFinance.Server.Tests
 
             // The compose file cannot express a KnownProxies list through this options type -
             // the middleware reads KnownProxies separately - so assert the network form, which
-            // is what GetKnownNetworks parses, and that the peer nginx proxies from is inside
-            // it.
+            // is what GetKnownNetworks parses, and that the hop into the container is inside it.
             var options = services.BuildServiceProvider()
                 .GetRequiredService<IOptions<ForwardedHeadersOptions>>().Value;
 
@@ -266,7 +264,7 @@ namespace EasyFinance.Server.Tests
 
             options.KnownIPNetworks.Should().Contain(
                 network => network.Contains(IPAddress.Loopback),
-                "the request reaches Kestrel over nginx on the loopback address");
+                "the request reaches Kestrel from loopback through Docker's port forwarding");
 
             var provider = services.BuildServiceProvider();
             var builder = new ApplicationBuilder(provider);
@@ -305,7 +303,7 @@ namespace EasyFinance.Server.Tests
         [Fact]
         public void KnownProxiesFromConfiguration_ShouldBeBound()
         {
-            // The dev stack publishes the app behind nginx on loopback. Options binding is what
+            // The dev stack publishes the app behind Docker's port forwarding. Options binding is what
             // carries ForwardedHeaders__KnownProxies__0 into the middleware, so confirm the
             // binder sees it; a value it cannot bind would be silently absent.
             var configuration = new ConfigurationBuilder()

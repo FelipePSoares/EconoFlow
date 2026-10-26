@@ -12,9 +12,9 @@
 # easyfinance.client (`npx cypress run`) instead of testing by hand - that is what the
 # suite is for, and it needs nothing more than this stack.
 #
-# Why a separate Dockerfile: the release image is Production-only and refuses to start
-# without SMTP credentials and a JWT secret, and it never seeds the fixtures. The image here
-# is built by docker/Dockerfile.dev; see docs/docker.md.
+# The application is ONE process (see docker/Dockerfile.dev): it serves the SPA and the API
+# on the same port, so this file publishes two ports of one server rather than routing
+# anything between them.
 #
 # Ports are published on the loopback interface only, and the database is seeded with known
 # credentials: nothing about this stack is meant to be reachable from the network.
@@ -62,18 +62,11 @@ services:
         condition: service_healthy
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      # A second nginx server block on 7003, so the API is reachable on the same port the
-      # local `dotnet run` workflow uses.
-      - ECONOFLOW_API_PORT=7003
-      # The application always runs behind a proxy here: nginx inside the image, and then
-      # Docker's port forwarding. Without a trusted proxy the application sees plain HTTP
-      # and answers every request with a 307 to https://...:443.
-      #
-      # Both the proxy and the network form are set. Either alone would be surprising:
-      # ASP.NET matches the immediate peer of this hop (nginx on loopback), and Docker's
-      # bridge network is what the hop happens over.
+      # The application runs behind a proxy here: Docker's own port forwarding, and
+      # whatever reverse proxy a developer puts in front of it. The network form is the one
+      # that matters, because the hop into the container is not from loopback and
+      # appsettings.json trusts only the cluster CIDR (10.42.0.0/16).
       - ForwardedHeaders__KnownNetworks__0=0.0.0.0/0
-      - ForwardedHeaders__KnownProxies__0=127.0.0.1
       # This stack serves plain HTTP only, so there is no HTTPS endpoint to redirect to.
       # 0 disables UseHttpsRedirection; without it every request is answered with a 307 to
       # https://<host>/ (port 443, the production ingress) and nothing loads.
@@ -96,18 +89,17 @@ services:
       # its default base URL work unchanged. Override it when 4200 is taken - and point
       # Cypress at the new port with CYPRESS_BASE_URL.
       - "127.0.0.1:${ECONOFLOW_DEV_WEB_PORT:-4200}:4200"
-      # The API on the port `dotnet run` uses, for curl or a direct look at the endpoints.
-      # The SPA's own API calls go through 4200, not this one. Kestrel itself listens on
-      # 8081 inside the container, behind nginx.
+      # The API on the port `dotnet run` uses, for curl or a direct look at the endpoints -
+      # and the port the mobile emulator is pointed at. The SPA's own API calls go through
+      # 4200, not this one.
       - "127.0.0.1:${ECONOFLOW_DEV_API_PORT:-7003}:7003"
     volumes:
       - attachments:/app/attachments
     healthcheck:
       # The same two probes as the image, repeated because a compose `test` replaces the
-      # image's HEALTHCHECK rather than adding to it. The SPA probe follows
-      # ECONOFLOW_NGINX_PORT; the API probe goes straight to Kestrel on 8081, so a stack
-      # whose API died is unhealthy even while nginx keeps answering on 4200.
-      test: ["CMD-SHELL", "curl -fsS -o /dev/null \"http://127.0.0.1:${ECONOFLOW_NGINX_PORT:-4200}/\" && curl -fsS -o /dev/null http://127.0.0.1:8081/api/health/live"]
+      # image's HEALTHCHECK rather than adding to it: the SPA shell, and the API's liveness
+      # on its own port. A server that started without wwwroot fails the first one.
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:4200/ && wget -q -O /dev/null http://127.0.0.1:7003/api/health/live || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 30

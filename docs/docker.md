@@ -9,27 +9,34 @@ workflow publishes it to the self-hosted Gitea container registry.
 - **Location:** `gitea.fpssoftware.uk/fps-software/econoflow`
 - **Build:** `Dockerfile` at the repository root.
 - **Content:** a **single** image runs both the ASP.NET Core API and the
-  Angular SPA. The Angular client calls the backend over **relative**
-  `/api/...` URLs on the same origin, and the `easyfinance.client` esproj
-  publishes the browser build into `wwwroot`, which the server serves via
-  `UseDefaultFiles()` / `UseStaticFiles()`.
-- **Base images:** `.NET 10 SDK` to build, `.NET 10 ASP.NET Runtime` to run.
+  Angular SPA — as **one process**. The Angular client calls the backend over
+  **relative** `/api/...` URLs on the same origin, the browser bundle is copied
+  into the server's `wwwroot`, and `Program.cs` serves it with
+  `UseDefaultFiles()` / `UseStaticFiles()`. Nothing sits in front of Kestrel
+  inside the container.
+- **Base images:** `.NET 10 SDK` to build, `.NET 10 ASP.NET Runtime **Alpine,
+  `-extra` variant**` to run. The `-extra` variant is the one that installs ICU and
+  tzdata; the plain `alpine` tag sets `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT` and
+  ships no zone database, which makes the first `TimeZoneInfo` lookup throw.
+  `EasyFinance.Server.csproj` sets `InvariantGlobalization`/`InvariantTimezone`
+  to `false`, which is what makes the variant's culture support usable.
 - **Platform:** `linux/amd64`, framework-dependent.
-- **Port:** nginx serves the container on plain HTTP **`8080`** (`EXPOSE 8080`).
-  TLS is terminated upstream (e.g. the Traefik ingress); the app's
-  `Hsts()` / `HttpsRedirection(HttpsPort=443)` middleware still emit the
-  correct redirection / headers because it honours the forwarded scheme.
-- **User:** runs as a non-root user (`1654`).
-- **Internal API port:** the API runs behind nginx **in the same container**, on
-  `127.0.0.1:8081` (`docker/entrypoint.sh`). The two must differ: they share a
-  network namespace, so an API on `8080` loses the bind to nginx and the container
-  exits with `Failed to bind to address http://127.0.0.1:8080: address already in
-  use`.
-- **Overriding the ports:** `ECONOFLOW_NGINX_PORT` (nginx) and `ECONOFLOW_API_PORT`
-  (the API) are both honoured. Set **both or neither** — the healthcheck reads
-  `ECONOFLOW_NGINX_PORT` too, so a container whose nginx moved without the variable
-  is reported unhealthy even though it serves requests. The entrypoint refuses to
-  start if the two are equal, since only one of them can own the socket.
+- **Port:** Kestrel listens on plain HTTP **`8080`** (`ASPNETCORE_HTTP_PORTS=8080`,
+  `EXPOSE 8080`). The SPA and `/api` share it, which is the origin the Angular
+  client requires. TLS is terminated upstream (the Traefik ingress), and the app's
+  `UseHttpsRedirection` / `Hsts()` middleware honour the forwarded scheme.
+- **User:** runs as the base image's non-root user (`APP_UID`, 1654).
+- **Health check:** one probe, two facts — `/api/health/live` answers *and*
+  `/index.html` is served. A container whose `wwwroot` was empty would otherwise
+  report healthy while every page 404s.
+
+> **Why there is no nginx.** The image used to run nginx and Kestrel side by side
+> under an entrypoint script that rendered the nginx site from the environment at
+> start-up. None of it was load-bearing: the SPA and the API already share a
+> process, the ingress supplies `X-Forwarded-Proto`, and a single process needs no
+> supervisor. The cost was real — the public port was nginx's, Kestrel hid on 8081,
+> and a front door that kept answering 502s made a dead API look like a network
+> problem.
 
 ### Building locally
 
@@ -65,11 +72,25 @@ used — and exercised by the end-to-end suite — without installing a database
 nothing else: the suite runs on your machine with `npx cypress run`, from
 `easyfinance.client`, exactly as the `integration-tests` job does in CI.
 
-The image is `docker/Dockerfile.dev`. It is the same single-image layout as the release image
-(the API behind nginx, serving the production browser bundle), but run with
-`ASPNETCORE_ENVIRONMENT=Development`: migrations are applied at start-up, the sample data is
+The image is `docker/Dockerfile.dev`. It is the release image plus the two things Development
+needs — the environment and `DEBUG` — instead of a second copy of the whole layout: it imports
+the shared `econoflow:base` stage, republishes the API, and runs
+`ASPNETCORE_ENVIRONMENT=Development` so migrations are applied at start-up, the sample data is
 seeded, e-mail is a no-op and Swagger is served. The release image cannot do this job — it is
 Production-only and refuses to start without SMTP credentials and a JWT secret.
+
+The stack's one process listens on **two ports**, both published:
+
+```bash
+# 1. the shared base stages (the SDK, the Node.js client build and the NuGet restore)
+docker build -t econoflow:base .
+
+# 2. the Development image on top of them
+docker compose -f docker-compose.dev.yml build
+```
+
+A Dockerfile can only import another image's **final** stage, which is why the shared half is
+published as `econoflow:base` rather than `FROM <stage of ../Dockerfile>`.
 
 ### Setup
 
@@ -88,7 +109,11 @@ cp .env.example .env
 ### Run
 
 ```bash
-# start PostgreSQL and the application (builds the image the first time)
+# the shared base stages, first or after any source change to the API
+docker build -t econoflow:base --build-arg GITEA_NUGET_USERNAME="$GITEA_NUGET_USERNAME" \
+  --secret id=gitea_nuget_token,src=<file-with-the-token> .
+
+# start PostgreSQL and the application
 docker compose -f docker-compose.dev.yml up --build -d
 
 # both services should report healthy
@@ -130,9 +155,10 @@ Use this instead of clicking through the app by hand: it is faster and it is wha
 ### Why one origin
 
 The Angular client calls the API with bare `/api/...` URLs and relies on sharing an origin
-with it. The stack preserves that (nginx serves the bundle and proxies `/api` to Kestrel), so
-nothing on the client needs a stack-specific configuration and the suite runs against the same
-bundle the release image serves.
+with it. The stack preserves that because the SPA and the API are the **same server**: the
+browser bundle is served from `wwwroot` over the same port the API listens on, so nothing on
+the client needs a stack-specific configuration and the suite runs against the same bundle the
+release image serves.
 
 ### Ports in use
 
@@ -146,30 +172,25 @@ ECONOFLOW_DEV_WEB_PORT=4300 ECONOFLOW_DEV_API_PORT=7300 \
 CYPRESS_BASE_URL=http://localhost:4300 npx cypress run
 ```
 
-Inside the container three ports are bound: `ECONOFLOW_NGINX_PORT` (nginx, the SPA origin,
-4200), `ECONOFLOW_API_PORT` (nginx, the API's own port, 7003) and
-`ECONOFLOW_API_UPSTREAM_PORT` (Kestrel, 8081). Only the first two are published and
-exposed, and the entrypoint refuses to start if any two are equal.
-
-The two healthcheck probes are not the same kind of thing: the SPA probe reads
-`ECONOFLOW_NGINX_PORT`, so moving the SPA origin moves it, while the API probe always goes
-straight to Kestrel on `8081` and is not affected by either variable. That is deliberate — a
-stack whose API died is then reported unhealthy instead of passing on nginx's answer alone.
-Separately, requests to the API's own port (`7003`) are served by nginx's
-`ECONOFLOW_API_PORT` block.
+Inside the container the single Kestrel process binds both (`ASPNETCORE_URLS` in
+`docker/Dockerfile.dev`): 4200 is the SPA origin, 7003 is the API on its own. There is no
+hidden third port — the 8081 the stack used to have was Kestrel's, back when nginx owned the
+published ones.
 
 ### Notes
 
-* The image ships the full time-zone database (the Debian-based runtime, not Alpine) and runs
-  with `TZ` set to your local time zone: the application derives "today" and month boundaries
-  from the clock, and they must line up with the browser's. Override with `TZ=...`.
+* The image runs on the Alpine `-extra` runtime, which carries ICU and the full time-zone
+  database, and sets `TZ` to your local time zone: the application derives "today" and month
+  boundaries from the clock, and they must line up with the browser's. Override with `TZ=...`.
+  The plain `alpine` tag has neither, and would silently run on UTC while throwing on the first
+  culture-aware call.
 * The stack keeps its state in the `postgres-data` and `attachments` volumes. The seeding
   cannot run twice against a non-empty database, so after changing seed code start from a
   clean database with `down -v`.
-* The image publishes a **Release** build with `DefineConstants=DEBUG`. That define is not
-  cosmetic: `GenericRepository.Insert` only tracks the entity `#if DEBUG`, and the sample data
-  is Insert-only, so a plain Release build silently seeds nothing and then fails on the first
-  save that references it.
+* The image publishes a **Release** build with `DefineConstants=DEBUG`. `GenericRepository.Insert`
+  only tracks the entity `#if DEBUG`, and a plain Release build makes every Insert a no-op. The
+  seeder no longer goes through it — it adds its fixture graph to the change tracker itself —
+  but the define stays so a fixture that still used Insert could not be silently skipped.
 * The PostgreSQL image is pinned to the same digest the `integration-tests` CI job runs.
   `EasyFinance.Server.Tests/DevStackTests.cs` keeps the two in step.
 
@@ -224,6 +245,21 @@ no second provider to mismatch it against â€” but it is still selected from
 `DatabaseProviderInfo` rather than assumed, because a SQL Server probe pointed at a
 PostgreSQL connection string once failed at startup.
 
+### Seeding Development data
+
+`DevelopmentTestDataSeeder` writes its fixtures through the `DbContext`'s change tracker, not
+through `IGenericRepository.Insert`. That is not a style choice: `Insert` only calls `Add()`
+under `#if DEBUG`, so in a Release build — which every image is — the repository call is a
+no-op. The fixtures reference each other (a user's default project, a project's categories), so
+the missing principal surfaced the first time they were written to PostgreSQL:
+`FK_AspNetUsers_Projects_DefaultProjectId`. `Program.cs` treats a failed seed as fatal at
+start-up, so the container exited, restarted, seeded nothing again, and exited again — the
+stack looked up while its API was never reachable.
+
+The whole fixture is now one `SaveChangesAsync`, so a failure leaves no half-seeded database
+behind and every row in it — including the seeded `test@test.com` the suite signs in as —
+actually exists.
+
 ### Database provider
 
 Provider selection is a **runtime** decision, not a compile-time one. It used to be an
@@ -245,12 +281,11 @@ PostgreSQL is the only database. The SQL Server provider, its migrations and the
 data-migration tooling were removed once the cutover completed, so the image carries a
 single provider and no migrator.
 
-The container answers on plain HTTP (nginx on `8080`, proxying to the API on
-`127.0.0.1:8081`) â€” TLS is terminated upstream (Traefik). To stop the global
-HTTPS-redirect middleware from answering these probes with a `307` (which would keep
-the container permanently `un-Ready`), health-probe requests over plain HTTP are
-handled by `HealthProbeResponseWriter` (see `EasyFinance.Server/HealthChecks/`) before
-the redirect middleware runs. The recognised probe paths live in
+The container answers on plain HTTP (`Kestrel` on `8080`); TLS is terminated upstream
+(Traefik). To stop the global HTTPS-redirect middleware from answering these probes with a
+`307` (which would keep the container permanently `un-Ready`), health-probe requests over
+plain HTTP are handled by `HealthProbeResponseWriter` (see `EasyFinance.Server/HealthChecks/`)
+before the redirect middleware runs. The recognised probe paths live in
 `HealthCheckPathPolicy` (`/api/health/live`, `/api/health/ready`).
 
 For all non-probe traffic, the app honours the proxied scheme via
