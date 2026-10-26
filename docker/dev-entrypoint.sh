@@ -17,8 +17,11 @@
 set -eu
 
 SPA_PORT="${ECONOFLOW_NGINX_PORT:-4200}"
-API_PORT="${ECONOFLOW_API_PORT:-8080}"
-API_UPSTREAM_PORT="${ECONOFLOW_API_UPSTREAM_PORT:-8080}"
+API_PORT="${ECONOFLOW_API_PORT:-7003}"
+# Kestrel's port. It must differ from both nginx listen ports: these three are sockets in
+# one container, and any two sharing a value means the second bind fails and the stack
+# never comes up.
+API_UPSTREAM_PORT="${ECONOFLOW_API_UPSTREAM_PORT:-8081}"
 
 API_PID=
 NGINX_PID=
@@ -31,6 +34,18 @@ stop_all() {
 }
 
 trap 'stop_all; exit 143' TERM INT
+
+# An override can make two of the three ports equal. Check it here, where the cause is
+# still visible: the failure itself surfaces as "address already in use" from whichever
+# process lost the bind, which points at a port and not at these variables.
+if [ "${SPA_PORT}" = "${API_PORT}" ] \
+    || [ "${SPA_PORT}" = "${API_UPSTREAM_PORT}" ] \
+    || [ "${API_PORT}" = "${API_UPSTREAM_PORT}" ]; then
+    echo "econoflow-entrypoint-dev: the SPA (${SPA_PORT}), API (${API_PORT}) and upstream" >&2
+    echo "econoflow-entrypoint-dev: (${API_UPSTREAM_PORT}) ports must all differ; they run" >&2
+    echo "econoflow-entrypoint-dev: in one container and each needs its own socket." >&2
+    exit 1
+fi
 
 # nginx -g uses "daemon off" so it stays in the foreground under tini, where its exit status
 # is observable. The listen ports and the API upstream come from the environment at start-up.

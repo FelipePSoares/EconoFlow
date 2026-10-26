@@ -97,12 +97,17 @@ services:
       # Cypress at the new port with CYPRESS_BASE_URL.
       - "127.0.0.1:${ECONOFLOW_DEV_WEB_PORT:-4200}:4200"
       # The API on the port `dotnet run` uses, for curl or a direct look at the endpoints.
-      # The SPA's own API calls go through 4200, not this one.
+      # The SPA's own API calls go through 4200, not this one. Kestrel itself listens on
+      # 8081 inside the container, behind nginx.
       - "127.0.0.1:${ECONOFLOW_DEV_API_PORT:-7003}:7003"
     volumes:
       - attachments:/app/attachments
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://127.0.0.1:4200/ && curl -fsS -o /dev/null http://127.0.0.1:8080/api/health/live"]
+      # The same two probes as the image, repeated because a compose `test` replaces the
+      # image's HEALTHCHECK rather than adding to it. The SPA probe follows
+      # ECONOFLOW_NGINX_PORT; the API probe goes straight to Kestrel on 8081, so a stack
+      # whose API died is unhealthy even while nginx keeps answering on 4200.
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null \"http://127.0.0.1:${ECONOFLOW_NGINX_PORT:-4200}/\" && curl -fsS -o /dev/null http://127.0.0.1:8081/api/health/live"]
       interval: 10s
       timeout: 5s
       retries: 30

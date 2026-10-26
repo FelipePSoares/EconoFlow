@@ -11,8 +11,15 @@ set -eu
 
 # nginx is the container's entry point on this port. The API is bound to the loopback
 # interface so it is never reachable from outside the container.
+#
+# THE TWO PORTS MUST DIFFER. Both processes run in this one container, so they share a
+# network namespace: if the API's port equals nginx's, nginx takes it first and Kestrel
+# dies at start-up with
+#   Failed to bind to address http://127.0.0.1:8080: address already in use
+# and the container exits before it can ever be ready. The API therefore runs on 8081,
+# one above the published port, which nothing else here listens on or exposes.
 NGINX_PORT="${ECONOFLOW_NGINX_PORT:-8080}"
-API_PORT="${ECONOFLOW_API_PORT:-8080}"
+API_PORT="${ECONOFLOW_API_PORT:-8081}"
 
 API_PID=
 NGINX_PID=
@@ -25,6 +32,15 @@ stop_all() {
 }
 
 trap 'stop_all; exit 143' TERM INT
+
+# An override can reintroduce the collision above. Check it here, where the cause is
+# still visible: once Kestrel is running, "address already in use" is what an operator
+# sees, and nothing in that message points at these two variables.
+if [ "${NGINX_PORT}" = "${API_PORT}" ]; then
+    echo "econoflow-entrypoint: ECONOFLOW_NGINX_PORT and ECONOFLOW_API_PORT are both ${NGINX_PORT}." >&2
+    echo "econoflow-entrypoint: nginx and the API run in the same container, so they need different ports." >&2
+    exit 1
+fi
 
 # nginx -g uses "daemon off" so it stays in the foreground under tini, where its exit status
 # is observable. The listen port and the API upstream come from the environment at start-up.

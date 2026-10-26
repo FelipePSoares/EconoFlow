@@ -281,10 +281,19 @@ namespace EasyFinance.Server.Tests
         public void DevelopmentImage_ShouldExposeThePortsTheComposeFilePublishes()
         {
             // Publishing a port the container does not listen on fails at request time
-            // instead of at `up` time, which is much harder to diagnose.
-            DevImage().Should().Contain(
+            // instead of at `up` time, which is much harder to diagnose. These two are
+            // exactly the ports the compose file publishes, and both are nginx: 4200 the
+            // SPA origin, 7003 the API's own port. Kestrel's port is not exposed - it is
+            // reachable only through the proxy.
+            var devImage = DevImage();
+
+            devImage.Should().Contain(
+                "EXPOSE 4200 7003",
+                "4200 is the SPA origin; 7003 is the API port compose publishes");
+
+            devImage.Should().NotContain(
                 "EXPOSE 4200 8080",
-                "4200 is the SPA origin; 8080 is the API");
+                "no process in this container listens on 8080 since Kestrel moved to 8081");
         }
 
         [Fact]
