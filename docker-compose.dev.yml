@@ -83,6 +83,10 @@ services:
       # what the end-to-end suite signs in as.
       - EconoFlow_SEED_DEVELOPMENT_DATA=true
       - EasyFinanceDB=Host=postgres;Port=5432;Database=econoflow;Username=econoflow;Password=econoflow
+      # The account-delete endpoint reads this and answers 500 without it, so the end-to-end
+      # suite's delete-user tests cannot pass while it is unset. CI supplies the same
+      # placeholder; it protects nothing here because the database is throwaway.
+      - EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN=ci-integration-test-placeholder-secret-key-32chars
       # The local zone, not UTC: the application derives "today", month boundaries and the
       # seeded dates from the clock, and they must line up with the browser's.
       - TZ=${TZ:-Europe/Vienna}

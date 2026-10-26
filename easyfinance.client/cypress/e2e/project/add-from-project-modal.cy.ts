@@ -504,17 +504,20 @@ describe('EconoFlow - global add modal tests', () => {
 
           cy.intercept({ method: 'GET', url: categoriesEndpointRegex }).as('getModalCategories');
 
-          // Three separate aliases, one per month the form can ask for. A single
-          // `@getMonthlyExpenses` alias cannot tell them apart: selecting the category
-          // raises the request for the month the form opened on, and that one is delayed
-          // below, so the first `cy.wait` after the date change consumed the *old* month's
-          // response and every assertion after it compared against the wrong month.
+          // One alias per month, because a single alias cannot tell them apart. The form
+          // raises a request for the month it is showing every time the date changes, and
+          // today's month is a third one besides the two below - so `cy.wait` on a shared
+          // alias satisfied itself with whichever response arrived first, and the assertions
+          // after it compared against the wrong month.
+          const monthAlias = (from: string, fallback: string): string => {
+            if (from === monthWithBounds.from) return 'getMonthlyExpensesWith';
+            if (from === monthWithoutBounds.from) return 'getMonthlyExpensesWithout';
+            return fallback;
+          };
+
           cy.intercept('GET', `**/projects/${project.id}/categories/${category.id}/expenses?*`, (req) => {
             const params = new URL(req.url).searchParams;
-            const from = params.get('from');
-
-            req.alias = 'getMonthlyExpenses';
-
+            req.alias = monthAlias(params.get('from') ?? '', 'getMonthlyExpensesOther');
             req.continue();
           });
 
@@ -529,14 +532,15 @@ describe('EconoFlow - global add modal tests', () => {
           // anything is asserted: that is the month whose response is deliberately delayed.
           updateFormDate(toDateFromMonth(monthWithExpenses));
 
-          cy.wait('@getMonthlyExpenses').then(({ response }) => {
+          cy.wait('@getMonthlyExpensesWith').then(({ request, response }) => {
+            expect(new URL(request.url).searchParams.get('from')).to.equal(monthWithBounds.from);
             expect(response?.statusCode).to.equal(200);
             expect((response?.body ?? []).length).to.be.greaterThan(0);
           });
 
           updateFormDate(toDateFromMonth(monthWithoutExpenses));
 
-          cy.wait('@getMonthlyExpenses').then(({ request, response }) => {
+          cy.wait('@getMonthlyExpensesWithout').then(({ request, response }) => {
             const params = new URL(request.url).searchParams;
             expect(params.get('from')).to.equal(monthWithoutBounds.from);
             expect(params.get('to')).to.equal(monthWithoutBounds.to);
@@ -547,12 +551,12 @@ describe('EconoFlow - global add modal tests', () => {
           cy.get('[data-testid="no-parent-expense-message"]').should('be.visible');
           cy.get('mat-select[formControlName="expenseId"]').should('have.attr', 'aria-disabled', 'true');
 
-          // Change the date straight back to the month with expenses. The earlier response
-          // for this month was delayed, and the point of the test is that the component shows
-          // the latest answer, not whichever response happened to arrive last.
+          // Change the date straight back to the month with expenses. The point of the test
+          // is that the component shows the latest answer, not whichever response happened
+          // to arrive last.
           updateFormDate(toDateFromMonth(monthWithExpenses));
 
-          cy.wait('@getMonthlyExpenses').then(({ request, response }) => {
+          cy.wait('@getMonthlyExpensesWith').then(({ request, response }) => {
             const params = new URL(request.url).searchParams;
             expect(params.get('from')).to.equal(monthWithBounds.from);
             expect(params.get('to')).to.equal(monthWithBounds.to);
