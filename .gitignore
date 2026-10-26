@@ -5,6 +5,12 @@ project.lock.json
 *.pyc
 nupkg/
 
+# Local credentials for docker-compose.cypress.yml (the private Gitea NuGet feed).
+# Copy .env.example to .env and fill it in - never commit .env.
+.env
+.env.*
+!.env.example
+
 # Visual Studio Code
 .vscode
 

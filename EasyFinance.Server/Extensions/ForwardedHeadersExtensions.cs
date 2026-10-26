@@ -18,6 +18,13 @@ namespace EasyFinance.Server.Extensions
         /// <summary>
         /// Registers ForwardedHeadersOptions: honour Proto+For headers and trust the
         /// proxy networks from configuration (ForwardedHeaders:KnownNetworks).
+        ///
+        /// <para>
+        /// The defaults are cleared before the configured networks are added. ASP.NET starts
+        /// from a loopback-only list, and <c>PostConfigure</c> narrows the lists further;
+        /// adding to the default would leave whatever the framework trusts in place next to
+        /// the configured proxies, so what is trusted here is exactly what was configured.
+        /// </para>
         /// </summary>
         public static IServiceCollection AddForwardedHeadersServices(
             this IServiceCollection services,
@@ -26,8 +33,14 @@ namespace EasyFinance.Server.Extensions
             services.Configure<ForwardedHeadersOptions>(options =>
             {
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+                options.KnownIPNetworks.Clear();
+                options.KnownProxies.Clear();
+
                 foreach (var network in GetKnownNetworks(configuration))
                     options.KnownIPNetworks.Add(network);
+
+                foreach (var proxy in GetKnownProxies(configuration))
+                    options.KnownProxies.Add(proxy);
             });
 
             return services;
@@ -54,6 +67,36 @@ namespace EasyFinance.Server.Extensions
             }
 
             return networks;
+        }
+
+        /// <summary>
+        /// Reads ForwardedHeaders:KnownProxies (one address per item, e.g. "127.0.0.1") from
+        /// configuration. Invalid entries are skipped.
+        ///
+        /// <para>
+        /// Read here rather than through options binding: the middleware's post-configure step
+        /// replaces the proxy lists with its own defaults unless it can see what was
+        /// configured, so a value that only exists in configuration is never trusted. Every
+        /// deployment behind a reverse proxy needs one of the two forms, and the single-host
+        /// form is the one a container stack can express.
+        /// </para>
+        /// </summary>
+        public static IReadOnlyList<System.Net.IPAddress> GetKnownProxies(IConfiguration configuration)
+        {
+            var proxies = new List<System.Net.IPAddress>();
+            var section = configuration.GetSection("ForwardedHeaders:KnownProxies");
+
+            foreach (var child in section.GetChildren())
+            {
+                var value = child.Value;
+                if (string.IsNullOrWhiteSpace(value))
+                    continue;
+
+                if (System.Net.IPAddress.TryParse(value, out var address))
+                    proxies.Add(address);
+            }
+
+            return proxies;
         }
     }
 }

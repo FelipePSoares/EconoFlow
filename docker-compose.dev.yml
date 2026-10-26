@@ -1,0 +1,110 @@
+# EconoFlow — local development stack.
+#
+# PostgreSQL 18 and the application, so it can be run and exercised locally without
+# installing a database or publishing the SPA. This is the Development build of the product:
+# the fixture data is seeded, e-mail is a no-op and Swagger is served.
+#
+#   docker compose -f docker-compose.dev.yml up --build -d   # start the stack
+#   docker compose -f docker-compose.dev.yml logs -f app     # follow the application
+#   docker compose -f docker-compose.dev.yml down -v         # stop, and drop the data
+#
+# Run it, click through the application, then run the end-to-end suite against it from
+# easyfinance.client (`npx cypress run`) instead of testing by hand - that is what the
+# suite is for, and it needs nothing more than this stack.
+#
+# Why a separate Dockerfile: the release image is Production-only and refuses to start
+# without SMTP credentials and a JWT secret, and it never seeds the fixtures. The image here
+# is built by docker/Dockerfile.dev; see docs/docker.md.
+#
+# Ports are published on the loopback interface only, and the database is seeded with known
+# credentials: nothing about this stack is meant to be reachable from the network.
+name: econoflow-dev
+
+services:
+  postgres:
+    # The engine the integration-tests job runs, pinned by digest, so a local run and CI
+    # can never disagree about PostgreSQL. Moving it is a decision - made in both files.
+    image: postgres:18-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2
+    environment:
+      POSTGRES_USER: econoflow
+      POSTGRES_PASSWORD: econoflow
+      POSTGRES_DB: econoflow
+    # Not published by default: the application reaches it over the compose network.
+    # Uncomment to inspect the database from the host with psql or a GUI.
+    # ports:
+    #   - "127.0.0.1:${ECONOFLOW_DEV_DB_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      # pg_isready answers 0 as soon as the server accepts connections, which is the state
+      # the application needs: it applies the EF migrations at start-up.
+      test: ["CMD-SHELL", "pg_isready -U econoflow -d econoflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    restart: unless-stopped
+
+  app:
+    build:
+      # The whole repository is the build context: the image compiles both the SPA and the
+      # API from source, exactly like the release image.
+      context: .
+      dockerfile: docker/Dockerfile.dev
+      args:
+        # The private fpssoftware.* packages come from the Gitea feed. nuget.config declares
+        # that feed's credentials as environment variables, and NuGet refuses an empty
+        # password, so the build needs a token: put it in .env (see .env.example).
+        GITEA_NUGET_USERNAME: ${GITEA_NUGET_USERNAME:-}
+        GITEA_NUGET_TOKEN: ${GITEA_NUGET_TOKEN:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      # A second nginx server block on 7003, so the API is reachable on the same port the
+      # local `dotnet run` workflow uses.
+      - ECONOFLOW_API_PORT=7003
+      # The application always runs behind a proxy here: nginx inside the image, and then
+      # Docker's port forwarding. Without a trusted proxy the application sees plain HTTP
+      # and answers every request with a 307 to https://...:443.
+      #
+      # Both the proxy and the network form are set. Either alone would be surprising:
+      # ASP.NET matches the immediate peer of this hop (nginx on loopback), and Docker's
+      # bridge network is what the hop happens over.
+      - ForwardedHeaders__KnownNetworks__0=0.0.0.0/0
+      - ForwardedHeaders__KnownProxies__0=127.0.0.1
+      # This stack serves plain HTTP only, so there is no HTTPS endpoint to redirect to.
+      # 0 disables UseHttpsRedirection; without it every request is answered with a 307 to
+      # https://<host>/ (port 443, the production ingress) and nothing loads.
+      - HttpsRedirection__HttpsPort=0
+      # Development seeds nothing against a real database unless asked: the fixtures are
+      # development scaffolding. This stack is a throwaway database, and the seeded user is
+      # what the end-to-end suite signs in as.
+      - EconoFlow_SEED_DEVELOPMENT_DATA=true
+      - EasyFinanceDB=Host=postgres;Port=5432;Database=econoflow;Username=econoflow;Password=econoflow
+      # The local zone, not UTC: the application derives "today", month boundaries and the
+      # seeded dates from the clock, and they must line up with the browser's.
+      - TZ=${TZ:-Europe/Vienna}
+    ports:
+      # The SPA and /api on one origin, which is what the Angular client requires (it calls
+      # bare /api URLs). 4200 is also the port `ng serve` uses, so the end-to-end suite and
+      # its default base URL work unchanged. Override it when 4200 is taken - and point
+      # Cypress at the new port with CYPRESS_BASE_URL.
+      - "127.0.0.1:${ECONOFLOW_DEV_WEB_PORT:-4200}:4200"
+      # The API on the port `dotnet run` uses, for curl or a direct look at the endpoints.
+      # The SPA's own API calls go through 4200, not this one.
+      - "127.0.0.1:${ECONOFLOW_DEV_API_PORT:-7003}:7003"
+    volumes:
+      - attachments:/app/attachments
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://127.0.0.1:4200/ && curl -fsS -o /dev/null http://127.0.0.1:8080/api/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 180s
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  attachments:

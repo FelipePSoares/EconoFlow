@@ -1,0 +1,182 @@
+# EconoFlow — the Development image docker-compose.dev.yml runs
+#
+# The release image (../Dockerfile) is Production-only: it refuses to start without SMTP
+# credentials and a JWT secret, and it never seeds the sample data. Running the application
+# locally needs exactly the opposite, so this image is the same single-image layout - the
+# API and the Angular SPA behind one origin - with a Development configuration:
+#
+#   API : `Development` -> EF migrations applied at start-up, the sample-data seeding, the
+#                          no-op e-mail sender and Swagger
+#   SPA : the production browser bundle, unchanged - you can try the same bundle the
+#         release image serves, not a dev-server build
+#
+# The Angular client calls the API with bare /api URLs and relies on sharing an origin with
+# it. This image makes that true the same way the release image does - nginx serves the bundle
+# and proxies /api to Kestrel - so the end-to-end suite needs no client-side configuration
+# and runs against the deployed bundle. The only difference is the port nginx listens on.
+#
+# ── Stage: client ───────────────────────────────────────────────────────────────────────
+# The .NET SDK image does NOT bundle Node.js, but the Angular build needs npm + the
+# Angular CLI, so Node.js (LTS 22, matching the CI node-version) is installed here.
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS client
+WORKDIR /src
+
+ARG NODE_MAJOR=22
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl ca-certificates \
+    && curl -fsSL "https://deb.nodesource.com/setup_${NODE_MAJOR}.x" | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/* \
+    && npm --version && node --version
+
+# Manifests first, so the large node_modules layer is cached independently of source
+# changes. `scripts/` carries the sitemap prebuild step.
+COPY easyfinance.client/package.json easyfinance.client/package-lock.json easyfinance.client/scripts/ ./easyfinance.client/
+WORKDIR /src/easyfinance.client
+RUN npm ci
+
+COPY easyfinance.client/ ./
+
+# The same command and configuration as the release image: one bundle, both stacks.
+RUN npx ng build --configuration production
+
+# ── Stage: api ──────────────────────────────────────────────────────────────────────────
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS api
+WORKDIR /src
+
+# A platform runtime identifier is required: the web project's csproj pins
+# RuntimeIdentifiers to win-x64;win-x86 at build time, but this is a Linux image, so
+# linux-x64 is added on the command line.
+ARG RUNTIME_ID=linux-x64
+
+# Credentials for the private Gitea NuGet feed (fpssoftware.chassis). Passed in from the
+# environment and never baked into the image.
+#
+# PROMOTED TO ENV ON PURPOSE: the root nuget.config refers to them as
+# %GITEA_NUGET_USERNAME% / %GITEA_NUGET_TOKEN%, and NuGet only expands that indirection
+# from the process environment. A build ARG alone is not visible to the restore. The
+# hardened alternative is a BuildKit secret, which takes precedence when it is mounted:
+#   docker build --secret id=gitea_nuget_token,src=<file-with-token> ...
+ARG GITEA_NUGET_USERNAME
+ARG GITEA_NUGET_TOKEN
+ENV GITEA_NUGET_USERNAME=${GITEA_NUGET_USERNAME} \
+    GITEA_NUGET_TOKEN=${GITEA_NUGET_TOKEN}
+
+# Both MSBuild files must be present before the restore: Directory.Build.props sets
+# TreatWarningsAsErrors, and Directory.Build.targets carries the transitive NuGet
+# vulnerability pins. nuget.config is the SAME file CI and local builds use: it declares
+# both feeds and the <packageSourceMapping> that keeps public packages off the private
+# Gitea feed. Do not replace it with `dotnet nuget add source` - that writes a config with
+# no mapping, so the restore asks Gitea for every public package and fails with NU1301.
+COPY Directory.Build.props Directory.Build.targets global.json nuget.config ./
+COPY EasyFinance.Server/EasyFinance.Server.csproj EasyFinance.Server/
+COPY EasyFinance.Application/EasyFinance.Application.csproj EasyFinance.Application/
+COPY EasyFinance.Domain/EasyFinance.Domain.csproj EasyFinance.Domain/
+COPY EasyFinance.Infrastructure/EasyFinance.Infrastructure.csproj EasyFinance.Infrastructure/
+COPY EasyFinance.Persistence/EasyFinance.Persistence.csproj EasyFinance.Persistence/
+
+# The private fpssoftware.* packages live on the Gitea feed, and nuget.config declares its
+# credentials as %GITEA_NUGET_USERNAME% / %GITEA_NUGET_TOKEN%. NuGet refuses to build a
+# credential from an empty value ("Value cannot be null or empty string. (Parameter
+# 'password')"), so an anonymous restore is not possible while that section exists - a token
+# is required. Both ways of supplying it are accepted, so this file serves CI (build args)
+# and local runs (a BuildKit secret, which keeps the value out of the image and the
+# provenance):
+#   docker build --secret id=gitea_nuget_token,src=<file-with-token> ...
+RUN --mount=type=secret,id=gitea_nuget_token,required=false \
+    set -eu; \
+    TOKEN="$(cat /run/secrets/gitea_nuget_token 2>/dev/null || echo "${GITEA_NUGET_TOKEN:-}")"; \
+    if [ -z "${TOKEN}" ]; then \
+      echo "The private Gitea NuGet feed needs a token for fpssoftware.chassis." >&2; \
+      echo "Set GITEA_NUGET_TOKEN (and GITEA_NUGET_USERNAME) in your environment or .env," >&2; \
+      echo "or build with --secret id=gitea_nuget_token,src=<file>." >&2; \
+      exit 1; \
+    fi; \
+    GITEA_NUGET_TOKEN="${TOKEN}" dotnet restore EasyFinance.Server/EasyFinance.Server.csproj -r "$RUNTIME_ID"
+
+# The SPA is built by the client stage and never by the esproj here, so IncludeSpaProject
+# stays off and the .csproj's esproj reference does not apply.
+COPY EasyFinance.Application/ EasyFinance.Application/
+COPY EasyFinance.Domain/ EasyFinance.Domain/
+COPY EasyFinance.Infrastructure/ EasyFinance.Infrastructure/
+COPY EasyFinance.Persistence/ EasyFinance.Persistence/
+COPY EasyFinance.Server/ EasyFinance.Server/
+
+# Release, like the published image: Development is the environment the stack runs in, not
+# a debug build. Publishing Debug here would put a different binary in front of you.
+#
+# ONE EXCEPTION, and it is not optional: GenericRepository.Insert only tracks the entity it
+# is given `#if DEBUG`. A Release build makes every Insert a no-op, which is invisible in
+# production (services persist through the DbContext change tracker and InsertOrUpdate) but
+# fatal for the Development sample data, whose seeds are Insert-only: against PostgreSQL the
+# seeder then fails with a foreign key violation as soon as it saves the user. Defining DEBUG
+# for the publish gives the insertion calls the same behaviour a local `dotnet run` has.
+RUN dotnet publish EasyFinance.Server/EasyFinance.Server.csproj \
+    -c Release \
+    -p:DefineConstants=DEBUG \
+    -r "$RUNTIME_ID" \
+    --self-contained false \
+    --no-restore
+
+# ── Stage: runtime ─────────────────────────────────────────────────────────────────────
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+WORKDIR /app
+
+# Development, so the sample data is seeded and the app runs its Development pipeline. TZ is
+# the developer's own zone: dates are derived from the clock, so the container's "today" has
+# to be the browser's. This is the Debian-based runtime on purpose - it carries the full
+# time-zone database, which the alpine tag does not, and an unresolvable TZ silently means
+# UTC.
+ENV ASPNETCORE_ENVIRONMENT=Development \
+    DOTNET_ENVIRONMENT=Development \
+    TZ=Europe/Vienna
+
+# Attachments default to the FileSystem provider. The service creates its files, but not
+# the directory itself, so a missing mount turns every upload into a 500. Pre-created and
+# owned by the runtime user; the compose file mounts a volume here.
+RUN mkdir -p /app/attachments && chown 1654:1654 /app/attachments
+VOLUME ["/app/attachments"]
+
+# nginx serves the SPA and proxies /api to the API on the loopback interface, exactly as
+# in the release image. curl is what gives the container its health check.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends nginx tini curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -f /etc/nginx/sites-enabled/default
+
+COPY --from=api /src/EasyFinance.Server/bin/Release/net10.0/linux-x64/publish/ /app/api/
+COPY --from=client /src/easyfinance.client/dist/easyfinance.client/browser/ /usr/share/nginx/html/
+COPY docker/dev-entrypoint.sh /usr/local/bin/econoflow-entrypoint-dev
+
+# The nginx main config keeps nginx in the foreground (the entrypoint supervises it), sends
+# its logs to the container's stdout/stderr, keeps every temp path under /tmp, and includes
+# the site the entrypoint renders from its environment at start-up.
+RUN mkdir -p /tmp/client_body /tmp/proxy /tmp/fastcgi /tmp/uwsgi /tmp/scgi \
+    && chown 1654:1654 /tmp/client_body /tmp/proxy /tmp/fastcgi /tmp/uwsgi /tmp/scgi \
+    && printf '%s\n' \
+    'worker_processes auto;' \
+    'error_log /dev/stderr warn;' \
+    'pid /tmp/nginx.pid;' \
+    'events { worker_connections 1024; }' \
+    'http {' \
+    '    include /etc/nginx/mime.types;' \
+    '    default_type application/octet-stream;' \
+    '    access_log /dev/stdout;' \
+    '    sendfile on;' \
+    '    include /tmp/econoflow-site.conf;' \
+    '}' > /usr/share/nginx/econoflow-main.conf \
+    && chmod +x /usr/local/bin/econoflow-entrypoint-dev \
+    && chown -R 1654:1654 /app /usr/share/nginx /usr/share/nginx/html
+
+USER 1654
+
+# 4200 is the origin the SPA is served from, and the port the end-to-end suite and `ng serve`
+# use, so nothing needs a stack-specific URL. 8080 stays because it is the release image's
+# port; the API is also reachable on 7003 (see dev-entrypoint.sh).
+EXPOSE 4200 8080
+
+# Both halves: the SPA shell and the API's liveness probe.
+HEALTHCHECK --interval=10s --timeout=5s --start-period=180s --retries=30 \
+    CMD ["sh", "-c", "curl -fsS -o /dev/null http://127.0.0.1:4200/ && curl -fsS -o /dev/null http://127.0.0.1:8080/api/health/live"]
+
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/econoflow-entrypoint-dev"]

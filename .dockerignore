@@ -23,3 +23,8 @@
 **/values.dev.yaml
 LICENSE
 README.md
+
+# Developer-specific backend settings (contain local certificate paths and passwords). It is
+# git-ignored and must not be baked into any image either: its Windows-only Kestrel
+# certificate path makes the Linux container fail to start.
+**/appsettings.Development.json

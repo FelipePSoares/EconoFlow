@@ -144,7 +144,15 @@ builder.Services.AddHsts(options =>
 builder.Services.AddHttpsRedirection(options =>
 {
     options.RedirectStatusCode = (int)HttpStatusCode.TemporaryRedirect;
-    options.HttpsPort = 443;
+
+    // 443 is right behind a TLS-terminating ingress, which is the only deployment this
+    // matters for. A local run serves plain HTTP on one port, where redirecting to 443
+    // answers every request with a 307 to a port nothing listens on - so the port is
+    // configurable, and 0 disables the redirect outright (the middleware's documented
+    // "no HTTPS endpoint here" value).
+    options.HttpsPort = int.TryParse(builder.Configuration["HttpsRedirection:HttpsPort"], out var httpsPort)
+        ? (httpsPort > 0 ? httpsPort : null)
+        : 443;
 });
 
 if (!builder.Environment.IsDevelopment())

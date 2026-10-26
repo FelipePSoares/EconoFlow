@@ -1,4 +1,4 @@
-# EconoFlow — Docker container & registry publishing
+# EconoFlow â€” Docker container & registry publishing
 
 This describes the production **container image** for EconoFlow: what it
 contains, the runtime configuration it needs, and how the GitHub Actions
@@ -20,7 +20,7 @@ workflow publishes it to the self-hosted Gitea container registry.
   `Hsts()` / `HttpsRedirection(HttpsPort=443)` middleware still emit the
   correct redirection / headers because it honours the forwarded scheme.
 - **User:** runs as a non-root user (`1654`).
-- **HTTP port** is `8080` — `EXPOSE 8080`.
+- **HTTP port** is `8080` â€” `EXPOSE 8080`.
 
 ### Building locally
 
@@ -49,6 +49,109 @@ docker run --rm -p 8080:8080 \
 > `EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN`), so a deployer
 > must supply them (SealedSecret / k8s Secret, etc.).
 
+## Local development stack
+
+`docker-compose.dev.yml` runs **PostgreSQL 18 and the application** locally, so the app can be
+used — and exercised by the end-to-end suite — without installing a database. It hosts
+nothing else: the suite runs on your machine with `npx cypress run`, from
+`easyfinance.client`, exactly as the `integration-tests` job does in CI.
+
+The image is `docker/Dockerfile.dev`. It is the same single-image layout as the release image
+(the API behind nginx, serving the production browser bundle), but run with
+`ASPNETCORE_ENVIRONMENT=Development`: migrations are applied at start-up, the sample data is
+seeded, e-mail is a no-op and Swagger is served. The release image cannot do this job — it is
+Production-only and refuses to start without SMTP credentials and a JWT secret.
+
+### Setup
+
+The application's NuGet restore needs the private `fpssoftware.*` feed, and `nuget.config`
+declares that feed's credentials as environment variables (NuGet rejects an empty password),
+so the build needs a Gitea token. Copy `.env.example` to `.env` — which is git-ignored — and
+fill it in:
+
+```bash
+cp .env.example .env
+# edit .env:
+#   GITEA_NUGET_USERNAME=<your gitea user>
+#   GITEA_NUGET_TOKEN=<token with the read:package scope>
+```
+
+### Run
+
+```bash
+# start PostgreSQL and the application (builds the image the first time)
+docker compose -f docker-compose.dev.yml up --build -d
+
+# both services should report healthy
+docker compose -f docker-compose.dev.yml ps
+
+# follow the application's log
+docker compose -f docker-compose.dev.yml logs -f app
+
+# stop everything, and drop the database and uploaded files
+docker compose -f docker-compose.dev.yml down -v
+```
+
+| URL | What |
+|---|---|
+| <http://localhost:4200> | The SPA **and** `/api` on one origin — open this to use the app |
+| <http://localhost:7003> | The API on its own, for `curl` or a direct look at an endpoint |
+| <http://localhost:4200/swagger> | Swagger UI (Development only) |
+
+Both ports are published on `127.0.0.1` only.
+
+The sample data is seeded on the first start (`EconoFlow_SEED_DEVELOPMENT_DATA=true`), and
+the seeded user is the one the suite signs in as:
+
+* `test@test.com` / `Passw0rd!` — owner of the seeded `Family` project.
+
+### Run the end-to-end suite against it
+
+Once the stack is up, `npx cypress run` from `easyfinance.client` works unchanged: the suite
+visits `http://localhost:4200` by default, and that is the origin the stack publishes.
+
+```bash
+cd easyfinance.client
+npx cypress run     # headless
+npx cypress open    # interactive
+```
+
+Use this instead of clicking through the app by hand: it is faster and it is what CI runs.
+
+### Why one origin
+
+The Angular client calls the API with bare `/api/...` URLs and relies on sharing an origin
+with it. The stack preserves that (nginx serves the bundle and proxies `/api` to Kestrel), so
+nothing on the client needs a stack-specific configuration and the suite runs against the same
+bundle the release image serves.
+
+### Ports in use
+
+4200 and 7003 are the ports `ng serve` and `dotnet run` use, so **stop those before starting
+the stack**. Both are overridable:
+
+```bash
+ECONOFLOW_DEV_WEB_PORT=4300 ECONOFLOW_DEV_API_PORT=7300 \
+  docker compose -f docker-compose.dev.yml up --build -d
+
+CYPRESS_BASE_URL=http://localhost:4300 npx cypress run
+```
+
+### Notes
+
+* The image ships the full time-zone database (the Debian-based runtime, not Alpine) and runs
+  with `TZ` set to your local time zone: the application derives "today" and month boundaries
+  from the clock, and they must line up with the browser's. Override with `TZ=...`.
+* The stack keeps its state in the `postgres-data` and `attachments` volumes. The seeding
+  cannot run twice against a non-empty database, so after changing seed code start from a
+  clean database with `down -v`.
+* The image publishes a **Release** build with `DefineConstants=DEBUG`. That define is not
+  cosmetic: `GenericRepository.Insert` only tracks the entity `#if DEBUG`, and the sample data
+  is Insert-only, so a plain Release build silently seeds nothing and then fails on the first
+  save that references it.
+* The PostgreSQL image is pinned to the same digest the `integration-tests` CI job runs.
+  `EasyFinance.Server.Tests/DevStackTests.cs` keeps the two in step.
+
 ## Runtime environment variables
 
 The server reads its configuration from these environment variables (Release /
@@ -62,15 +165,15 @@ production build), in addition to `appsettings.json`:
 | `EconoFlow_TOKEN_SECRET_KEY` | JWT signing key (used when not `Development`). | **yes** |
 | `EconoFlow_ISSUER` | JWT issuer. | no (falls back to config) |
 | `EconoFlow_AUDIENCE` | JWT audience. | no (falls back to config) |
-| `EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN` | Secret for account-delete tokens — the controller throws if missing. | **yes** |
-| `SMTP_HOST` / `SMTP_USERNAME` / `SMTP_PASSWORD` | Outbound e-mail over SMTP — `Program.cs` throws in non-Development when the SMTP settings are incomplete. | **yes** |
+| `EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN` | Secret for account-delete tokens â€” the controller throws if missing. | **yes** |
+| `SMTP_HOST` / `SMTP_USERNAME` / `SMTP_PASSWORD` | Outbound e-mail over SMTP â€” `Program.cs` throws in non-Development when the SMTP settings are incomplete. | **yes** |
 | `SMTP_PORT` / `SMTP_SECURE_SOCKET` | SMTP port (default `587`) and TLS mode: `Auto`, `None`, `StartTls` or `SslOnConnect` (default `Auto`). | no |
 | `SMTP_FROM_ADDRESS` / `SMTP_FROM_NAME` | From address/name used for every outbound e-mail (defaults `noreply@econoflow.pt` / `NoReply EconoFlow`). | no |
 | `SMTP_TIMEOUT_SECONDS` | Timeout for SMTP connect/authenticate/send, in seconds (default `30`). | no |
 | `S3_ENDPOINT` / `S3_ACCESS_KEY` / `S3_SECRET_KEY` / `S3_BUCKET` | MinIO/S3 attachment storage (when `AttachmentStorage:Provider` is `Minio`). | when Minio |
 | `EconoFlow_TURNSTILE_SECRET_KEY` / `EconoFlow_TURNSTILE_SITE_KEY` | Cloudflare Turnstile. | when used |
 | `EconoFlow_EXPO_PUSH_ACCESS_TOKEN` | Expo push notifications. | when used |
-| `EconoFlow_KEY_ENCRYPT_ACTIVE` | Enables DPAPI key protection (Windows only — not applicable to the Linux image). | no |
+| `EconoFlow_KEY_ENCRYPT_ACTIVE` | Enables DPAPI key protection (Windows only â€” not applicable to the Linux image). | no |
 
 Other sections (`WebPush:PublicKey/PrivateKey`, `Serilog:WriteTo:BetterStack`
 `sourceToken`/`betterStackEndpoint`) are configured either via `appsettings.json`
@@ -79,7 +182,7 @@ overrides or future env/config substitution by the deployer.
 ### Persistent volume
 
 The default `AttachmentStorage:Provider` is `FileSystem`, writing under the app
-base directory. The image declares `VOLUME ["/app/attachments"]` — mount a
+base directory. The image declares `VOLUME ["/app/attachments"]` â€” mount a
 persistent volume there to keep uploads across restarts.
 
 ## Health check probes
@@ -96,7 +199,7 @@ proxy (`src/proxy.conf.js` `/api` context) and any ingress rule forwarding
 
 The readiness probe checks the database with `AspNetCore.HealthChecks.NpgSql`, registered
 only when the store is relational. PostgreSQL is the only relational database, so there is
-no second provider to mismatch it against — but it is still selected from
+no second provider to mismatch it against â€” but it is still selected from
 `DatabaseProviderInfo` rather than assumed, because a SQL Server probe pointed at a
 PostgreSQL connection string once failed at startup.
 
@@ -121,7 +224,7 @@ PostgreSQL is the only database. The SQL Server provider, its migrations and the
 data-migration tooling were removed once the cutover completed, so the image carries a
 single provider and no migrator.
 
-The container listens on plain HTTP (`ASPNETCORE_URLS=http://+:8080`) — TLS is
+The container listens on plain HTTP (`ASPNETCORE_URLS=http://+:8080`) â€” TLS is
 terminated upstream (Traefik). To stop the global HTTPS-redirect middleware from
 answering these probes with a `307` (which would keep the container permanently
 `un-Ready`), health-probe requests over plain HTTP are handled by
@@ -133,7 +236,7 @@ For all non-probe traffic, the app honours the proxied scheme via
 `UseForwardedHeaders` (runs first). It trusts `X-Forwarded-Proto`/`X-Forwarded-For`
 only from the networks in `ForwardedHeaders:KnownNetworks`
 (default `10.42.0.0/16`, the k3s pod CIDR; override with
-`ForwardedHeaders__KnownNetworks__0=…` env vars when the cluster uses different
+`ForwardedHeaders__KnownNetworks__0=â€¦` env vars when the cluster uses different
 CIDRs or the proxy runs with `hostNetwork`). This makes HSTS, HTTPS redirects for
 direct HTTP access, callback URLs and client-IP logging behave correctly behind
 Traefik. The health-probe bypass above remains necessary: kubelet probes reach the
@@ -181,7 +284,7 @@ Optional overrides (defaults shown):
 The image is tagged `gitea.fpssoftware.uk/<owner>/econoflow:<git-sha>` and
 `...:latest`.
 
-> Create the Gitea token at **User Settings → Applications → Generate New
+> Create the Gitea token at **User Settings â†’ Applications â†’ Generate New
 > Token**, selecting the `read:package` and `write:package` scopes. Add
 > `GITEA_REGISTRY_USERNAME` and `GITEA_REGISTRY_TOKEN` as GitHub Actions
 > secrets in the EconoFlow repository.
