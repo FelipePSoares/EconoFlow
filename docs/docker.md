@@ -15,12 +15,21 @@ workflow publishes it to the self-hosted Gitea container registry.
   `UseDefaultFiles()` / `UseStaticFiles()`.
 - **Base images:** `.NET 10 SDK` to build, `.NET 10 ASP.NET Runtime` to run.
 - **Platform:** `linux/amd64`, framework-dependent.
-- **Port:** listens on plain HTTP **`8080`** (`ASPNETCORE_URLS=http://+:8080`).
+- **Port:** nginx serves the container on plain HTTP **`8080`** (`EXPOSE 8080`).
   TLS is terminated upstream (e.g. the Traefik ingress); the app's
   `Hsts()` / `HttpsRedirection(HttpsPort=443)` middleware still emit the
   correct redirection / headers because it honours the forwarded scheme.
 - **User:** runs as a non-root user (`1654`).
-- **HTTP port** is `8080` â€” `EXPOSE 8080`.
+- **Internal API port:** the API runs behind nginx **in the same container**, on
+  `127.0.0.1:8081` (`docker/entrypoint.sh`). The two must differ: they share a
+  network namespace, so an API on `8080` loses the bind to nginx and the container
+  exits with `Failed to bind to address http://127.0.0.1:8080: address already in
+  use`.
+- **Overriding the ports:** `ECONOFLOW_NGINX_PORT` (nginx) and `ECONOFLOW_API_PORT`
+  (the API) are both honoured. Set **both or neither** — the healthcheck reads
+  `ECONOFLOW_NGINX_PORT` too, so a container whose nginx moved without the variable
+  is reported unhealthy even though it serves requests. The entrypoint refuses to
+  start if the two are equal, since only one of them can own the socket.
 
 ### Building locally
 
@@ -137,6 +146,18 @@ ECONOFLOW_DEV_WEB_PORT=4300 ECONOFLOW_DEV_API_PORT=7300 \
 CYPRESS_BASE_URL=http://localhost:4300 npx cypress run
 ```
 
+Inside the container three ports are bound: `ECONOFLOW_NGINX_PORT` (nginx, the SPA origin,
+4200), `ECONOFLOW_API_PORT` (nginx, the API's own port, 7003) and
+`ECONOFLOW_API_UPSTREAM_PORT` (Kestrel, 8081). Only the first two are published and
+exposed, and the entrypoint refuses to start if any two are equal.
+
+The two healthcheck probes are not the same kind of thing: the SPA probe reads
+`ECONOFLOW_NGINX_PORT`, so moving the SPA origin moves it, while the API probe always goes
+straight to Kestrel on `8081` and is not affected by either variable. That is deliberate — a
+stack whose API died is then reported unhealthy instead of passing on nginx's answer alone.
+Separately, requests to the API's own port (`7003`) are served by nginx's
+`ECONOFLOW_API_PORT` block.
+
 ### Notes
 
 * The image ships the full time-zone database (the Debian-based runtime, not Alpine) and runs
@@ -224,12 +245,12 @@ PostgreSQL is the only database. The SQL Server provider, its migrations and the
 data-migration tooling were removed once the cutover completed, so the image carries a
 single provider and no migrator.
 
-The container listens on plain HTTP (`ASPNETCORE_URLS=http://+:8080`) â€” TLS is
-terminated upstream (Traefik). To stop the global HTTPS-redirect middleware from
-answering these probes with a `307` (which would keep the container permanently
-`un-Ready`), health-probe requests over plain HTTP are handled by
-`HealthProbeResponseWriter` (see `EasyFinance.Server/HealthChecks/`) before the
-redirect middleware runs. The recognised probe paths live in
+The container answers on plain HTTP (nginx on `8080`, proxying to the API on
+`127.0.0.1:8081`) â€” TLS is terminated upstream (Traefik). To stop the global
+HTTPS-redirect middleware from answering these probes with a `307` (which would keep
+the container permanently `un-Ready`), health-probe requests over plain HTTP are
+handled by `HealthProbeResponseWriter` (see `EasyFinance.Server/HealthChecks/`) before
+the redirect middleware runs. The recognised probe paths live in
 `HealthCheckPathPolicy` (`/api/health/live`, `/api/health/ready`).
 
 For all non-probe traffic, the app honours the proxied scheme via

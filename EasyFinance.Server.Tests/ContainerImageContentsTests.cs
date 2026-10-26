@@ -313,6 +313,312 @@ namespace EasyFinance.Server.Tests
     }
 
     /// <summary>
+    /// Guards the two processes inside the image against each other's ports.
+    ///
+    /// <para>
+    /// nginx is the container's front door and Kestrel runs behind it <i>in the same
+    /// container</i>, so the API's loopback port must differ from the port nginx listens
+    /// on. When the two defaults collided, both processes were started against 8080,
+    /// nginx won the bind, and Kestrel died at start-up with
+    /// <c>Failed to bind to address http://127.0.0.1:8080: address already in use</c> -
+    /// a message that blames a port and says nothing about the real problem.
+    /// </para>
+    ///
+    /// <para>
+    /// The collision is invisible in review because each number looks reasonable on its
+    /// own: 8080 is the app's public port, and 8080 is also the default application port.
+    /// It is only visible by comparing the two defaults, which is what these tests do.
+    /// </para>
+    /// </summary>
+    public class ContainerPortAllocationTests
+    {
+        private static string RepoRoot()
+        {
+            var directory = new DirectoryInfo(AppContext.BaseDirectory);
+
+            while (directory != null)
+            {
+                if (File.Exists(Path.Combine(directory.FullName, "EasyFinance.sln")))
+                    return directory.FullName;
+
+                directory = directory.Parent;
+            }
+
+            throw new InvalidOperationException(
+                $"Could not locate the repository root above '{AppContext.BaseDirectory}'.");
+        }
+
+        private static string Read(params string[] parts) =>
+            File.ReadAllText(Path.Combine([RepoRoot(), .. parts]));
+
+        private static string Dockerfile() => Read("Dockerfile");
+
+        private static string Entrypoint() => Read("docker", "entrypoint.sh");
+
+        private static string DevEntrypoint() => Read("docker", "dev-entrypoint.sh");
+
+        /// <summary>
+        /// The value a <c>NAME="${OVERRIDE:-fallback}"</c> assignment resolves to.
+        /// </summary>
+        private static int PortDefault(string script, string variable, string file)
+        {
+            var match = Regex.Match(
+                script,
+                $@"(?m)^\s*{Regex.Escape(variable)}=""\$\{{[A-Za-z_]+:-(\d+)\}}""");
+
+            match.Success.Should().BeTrue(
+                $"{file} must assign {variable} from an environment override with a default");
+
+            return int.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        [Fact]
+        public void TheApiAndNginx_ShouldNotShareAPortByDefault()
+        {
+            // With no operator override both defaults apply, so this is the arrangement
+            // every deployment gets. Equal values mean the API can never start.
+            var apiPort = PortDefault(Entrypoint(), "API_PORT", "docker/entrypoint.sh");
+            var nginxPort = PortDefault(Entrypoint(), "NGINX_PORT", "docker/entrypoint.sh");
+
+            apiPort.Should().NotBe(
+                nginxPort,
+                "nginx and Kestrel share one network namespace; on the same port the second "
+                + "bind fails and the container exits before it can ever become ready");
+        }
+
+        [Fact]
+        public void TheApi_ShouldBindTheLoopbackInterfaceOnAPortOfItsOwn()
+        {
+            var apiPort = PortDefault(Entrypoint(), "API_PORT", "docker/entrypoint.sh");
+
+            // The exact lines, not a pattern: the port Kestrel binds and the port nginx
+            // proxies to must come from the same variable, or an override creates a
+            // mismatch in one place and not the other.
+            Entrypoint().Should().Contain(
+                "ASPNETCORE_URLS=\"http://127.0.0.1:${API_PORT}\"");
+
+            Entrypoint().Should().Contain(
+                "server 127.0.0.1:${API_PORT}");
+
+            apiPort.Should().NotBe(
+                8080,
+                "8080 is nginx's public listen port; the API behind it needs a port of its own");
+        }
+
+        [Fact]
+        public void Nginx_ShouldKeepListeningOnThePublishedPort()
+        {
+            // The image's published contract is 8080: the deployment repo's containerPort
+            // and probes use it, and the docs' `docker run -p 8080:8080` relies on it. That
+            // port is fixed, so the API is the side that moves when they would collide.
+            PortDefault(Entrypoint(), "NGINX_PORT", "docker/entrypoint.sh")
+                .Should().Be(8080, "8080 is the image's published port");
+
+            Dockerfile().Should().Contain("EXPOSE 8080");
+        }
+
+        /// <summary>
+        /// The healthcheck command line, narrowed to the line that carries the probe.
+        /// </summary>
+        private static string HealthcheckCommand(string dockerfile)
+        {
+            // The command may be split over lines with a trailing backslash, so search all
+            // of the CMD / HEALTHCHECK text rather than a single trimmed line.
+            var lines = dockerfile
+                .Split('\n', StringSplitOptions.None)
+                .Select(line => line.Trim())
+                .Where(line => line.Contains("health/live", StringComparison.Ordinal)
+                    || line.StartsWith("CMD", StringComparison.Ordinal));
+
+            var command = string.Join(" ", lines);
+
+            command.Should().NotBeEmpty("the image must declare a healthcheck that probes the API");
+
+            return command;
+        }
+
+        [Fact]
+        public void TheImageHealthcheck_ShouldProbeThePortNginxListensOn()
+        {
+            // Two failures are guarded here, and only the strong one survives an override:
+            //
+            //   * a probe on a port nginx does not listen on at all (the start-up bug seen
+            //     one step later in the container's life), and
+            //   * a probe that spells the default out, so ECONOFLOW_NGINX_PORT moves nginx
+            //     and leaves the container reporting itself unhealthy while serving fine -
+            //     a knob docs/docker.md advertises.
+            var nginxPort = PortDefault(Entrypoint(), "NGINX_PORT", "docker/entrypoint.sh");
+            var command = HealthcheckCommand(Dockerfile());
+
+            // The strong property: the port is read from the environment, not typed in.
+            var marker = "$" + "{ECONOFLOW_NGINX_PORT";
+
+            command.Should().Contain(
+                marker,
+                "the probe must follow ECONOFLOW_NGINX_PORT; a typed-in port stops being right "
+                + "the moment the entrypoint's default or an override changes it");
+
+            nginxPort.Should().Be(
+                8080,
+                "the entrypoint's default is asserted here too, so a change to either side of "
+                + "the contract is caught rather than only the difference between them");
+        }
+
+        [Fact]
+        public void TheDevStack_ShouldKeepItsThreeListenersOnDistinctPorts()
+        {
+            // The Cypress stack runs three listeners in one container: nginx for the SPA,
+            // nginx again for the API's own port, and Kestrel upstream of both. Any two
+            // sharing a default is the same start-up failure this class guards.
+            var spaPort = PortDefault(DevEntrypoint(), "SPA_PORT", "docker/dev-entrypoint.sh");
+            var apiPort = PortDefault(DevEntrypoint(), "API_PORT", "docker/dev-entrypoint.sh");
+            var upstreamPort = PortDefault(
+                DevEntrypoint(), "API_UPSTREAM_PORT", "docker/dev-entrypoint.sh");
+
+            new[] { spaPort, apiPort, upstreamPort }
+                .Should().OnlyHaveUniqueItems(
+                    "each listener binds its own socket in the same container");
+        }
+
+        [Fact]
+        public void TheDevStack_ShouldWireEachVariableToItsOwnListener()
+        {
+            // Distinct defaults are not enough: swapping two of these variables keeps all
+            // three unique while pointing Kestrel and nginx at each other's ports. Each
+            // listener must name the variable that describes it.
+            var dev = DevEntrypoint();
+
+            dev.Should().Contain(
+                "listen ${SPA_PORT}",
+                "the SPA origin is the server block nginx serves the shell on");
+
+            dev.Should().Contain(
+                "listen ${API_PORT}",
+                "the API's own server block is what tools reach on 7003");
+
+            dev.Should().Contain(
+                "ASPNETCORE_URLS=\"http://127.0.0.1:${API_UPSTREAM_PORT}\"",
+                "Kestrel must bind the port nginx proxies to, not one of the listen ports");
+
+            dev.Should().Contain(
+                "server 127.0.0.1:${API_UPSTREAM_PORT}",
+                "the upstream must be the port Kestrel actually binds");
+        }
+
+        [Fact]
+        public void TheDevHealthchecks_ShouldProbePortsThatActuallyServe()
+        {
+            // The healthcheck is the other place the API's port is written down, in a
+            // different file from the entrypoint. When it named the old 8080 it probed a
+            // port nothing listens on, so the stack would have reported itself unhealthy
+            // while serving requests normally.
+            //
+            // Both probes are pinned to their literal port as well as to the entrypoint's
+            // value: an assertion that compares the file against the same variable it reads
+            // the number from passes for ANY number, including one nothing binds. The literals
+            // are what turn a dead port into a failure.
+            var devEntrypoint = DevEntrypoint();
+            var upstreamPort = PortDefault(devEntrypoint, "API_UPSTREAM_PORT", "docker/dev-entrypoint.sh");
+            var spaPort = PortDefault(devEntrypoint, "SPA_PORT", "docker/dev-entrypoint.sh");
+
+            foreach (var (file, contents) in new[]
+            {
+                ("docker/Dockerfile.dev", Read("docker", "Dockerfile.dev")),
+                ("docker-compose.dev.yml", Read("docker-compose.dev.yml")),
+            })
+            {
+                contents.Should().Contain(
+                    $"${{ECONOFLOW_NGINX_PORT:-{spaPort}",
+                    $"{file}: the SPA probe must follow ECONOFLOW_NGINX_PORT, so moving the "
+                    + "SPA origin moves the probe with it");
+
+                contents.Should().Contain(
+                    $"127.0.0.1:{upstreamPort}/api/health/live",
+                    $"{file}: the API probe must target Kestrel, which the entrypoint starts on "
+                    + $"{upstreamPort}; a probe on any other port never answers");
+            }
+
+            // The two numbers the probes spell out must be the ones the entrypoint uses.
+            // This is what catches the port moving in one file and not the other.
+            upstreamPort.Should().Be(8081, "Kestrel's port in this stack");
+            spaPort.Should().Be(4200, "the SPA origin in this stack");
+        }
+
+        [Fact]
+        public void TheDevEntrypoint_ShouldRejectAnOverrideThatCollidesThePorts()
+        {
+            // The three-way analogue of the release-entrypoint guard. Without it, pointing
+            // any two of the three variables at one port reproduces the original start-up
+            // failure, and the operator sees only whichever process lost the bind.
+            var devEntrypoint = DevEntrypoint();
+
+            foreach (var (left, right) in new[]
+            {
+                ("SPA_PORT", "API_PORT"),
+                ("SPA_PORT", "API_UPSTREAM_PORT"),
+                ("API_PORT", "API_UPSTREAM_PORT"),
+            })
+            {
+                devEntrypoint.Should().Contain(
+                    $"${{{left}}}\" = \"${{{right}}}",
+                    $"the {left} and {right} collision must be detected");
+            }
+
+            // The check must run before either process is started, or the failure it is
+            // meant to explain has already happened.
+            var guard = devEntrypoint.IndexOf("\"${SPA_PORT}\" = \"${API_PORT}\"", StringComparison.Ordinal);
+            var apiStart = devEntrypoint.IndexOf("dotnet EasyFinance.Server.dll", StringComparison.Ordinal);
+            var nginxStart = devEntrypoint.IndexOf(
+                "nginx -c /usr/share/nginx/econoflow-main.conf", StringComparison.Ordinal);
+
+            guard.Should().BeGreaterThan(-1);
+            guard.Should().BeLessThan(apiStart, "the check must precede starting the API");
+            guard.Should().BeLessThan(nginxStart, "the check must precede starting nginx");
+        }
+
+        [Fact]
+        public void TheReleaseEntrypointGuard_ShouldBeTestedAgainstTheSameVariablesItUses()
+        {
+            // The release guard compares NGINX_PORT with API_PORT, so a collision set through
+            // ECONOFLOW_NGINX_PORT / ECONOFLOW_API_PORT is caught at start-up. Assert that
+            // the comparisons are on those two variables and no others: a guard that
+            // compared, say, NGINX_PORT with itself would be vacuous.
+            var entrypoint = Entrypoint();
+
+            entrypoint.Should().Contain(
+                "\"${NGINX_PORT}\" = \"${API_PORT}\"",
+                "the guard must compare the two ports that are actually bound");
+
+            PortDefault(entrypoint, "NGINX_PORT", "docker/entrypoint.sh")
+                .Should().NotBe(PortDefault(entrypoint, "API_PORT", "docker/entrypoint.sh"));
+        }
+
+        [Fact]
+        public void TheEntrypoint_ShouldRejectAnOverrideThatCollidesThePorts()
+        {
+            // Setting both variables to one value is the other way to reach the failure,
+            // and the operator doing it cannot see the consequence: they are changing a
+            // port, not removing a process. Refusing to start names the cause instead.
+            var entrypoint = Entrypoint();
+
+            entrypoint.Should().MatchRegex(
+                @"if\s+\[\s*""\$\{NGINX_PORT\}""\s*=\s*""\$\{API_PORT\}""\s*\]",
+                "the entrypoint must detect the collision before starting either process");
+
+            // The check must run before the first service is launched, or the API has
+            // already failed by the time it is made.
+            var guard = entrypoint.IndexOf("${NGINX_PORT}\" = \"${API_PORT}", StringComparison.Ordinal);
+            var apiStart = entrypoint.IndexOf("dotnet EasyFinance.Server.dll", StringComparison.Ordinal);
+            var nginxStart = entrypoint.IndexOf(
+                "nginx -c /usr/share/nginx/econoflow-main.conf", StringComparison.Ordinal);
+
+            guard.Should().BeGreaterThan(-1);
+            guard.Should().BeLessThan(apiStart, "the check must precede starting the API");
+            guard.Should().BeLessThan(nginxStart, "the check must precede starting nginx");
+        }
+    }
+
+    /// <summary>
     /// Guards the Cypress job's database, which was silently the wrong one.
     ///
     /// <para>

@@ -1,4 +1,4 @@
-# EconoFlow â€” the deployed application image
+# EconoFlow — the deployed application image
 #
 # This is the image the cluster runs: the ASP.NET Core API and the Angular SPA in one
 # container, published by .github/workflows/Release.yml.
@@ -14,7 +14,7 @@
 # the application honours through UseForwardedHeaders, so the SPA and the API share one
 # origin (no CORS, no separate cookie domain).
 #
-# â”€â”€ Stage: client â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Stage: client ──────────────────────────────────────────────────────────────
 # The .NET SDK image does NOT bundle Node.js, but the Angular build needs npm + the
 # Angular CLI, so Node.js (LTS 22, matching the CI node-version) is installed here.
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS client
@@ -39,7 +39,7 @@ COPY easyfinance.client/ ./
 # Angular 22 writes the browser bundle to dist/easyfinance.client/browser.
 RUN npx ng build --configuration production
 
-# â”€â”€ Stage: api â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Stage: api ─────────────────────────────────────────────────────────────────
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS api
 WORKDIR /src
 
@@ -101,7 +101,7 @@ RUN dotnet publish EasyFinance.Server/EasyFinance.Server.csproj \
     --self-contained false \
     --no-restore
 
-# â”€â”€ Stage: runtime â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Stage: runtime ─────────────────────────────────────────────────────────────
 # One image, two services (API and nginx), started by the entrypoint. An init process is
 # the container's PID 1 so that stopping it stops both children, and either child exiting
 # stops the container and is reported - a container whose nginx died must not keep
@@ -151,6 +151,6 @@ USER 1654
 EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-    CMD ["sh", "-c", "wget -q -O /dev/null http://127.0.0.1:8080/api/health/live || exit 1"]
+    CMD ["sh", "-c", "wget -q -O /dev/null \"http://127.0.0.1:${ECONOFLOW_NGINX_PORT:-8080}/api/health/live\" || exit 1"]
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/econoflow-entrypoint"]

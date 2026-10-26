@@ -171,12 +171,20 @@ RUN mkdir -p /tmp/client_body /tmp/proxy /tmp/fastcgi /tmp/uwsgi /tmp/scgi \
 USER 1654
 
 # 4200 is the origin the SPA is served from, and the port the end-to-end suite and `ng serve`
-# use, so nothing needs a stack-specific URL. 8080 stays because it is the release image's
-# port; the API is also reachable on 7003 (see dev-entrypoint.sh).
-EXPOSE 4200 8080
+# use, so nothing needs a stack-specific URL. 7003 is the API's own port, which compose
+# publishes. Kestrel (8081) is nginx's upstream and is not exposed: reaching it directly
+# would bypass the proxy the SPA's own requests go through.
+EXPOSE 4200 7003
 
 # Both halves: the SPA shell and the API's liveness probe.
+#
+# The SPA probe follows ECONOFLOW_NGINX_PORT, the variable the entrypoint renders nginx's
+# first `listen` from, so moving that port moves the probe with it. The API probe does NOT
+# go through nginx: it targets Kestrel directly on its loopback port. That is deliberate -
+# it separates "nginx is up" from "the API is up", so a stack that answers on 4200 but
+# whose Kestrel died is reported unhealthy rather than healthy. The cost is that this port
+# is written here as well as in the entrypoint; the tests tie the two together.
 HEALTHCHECK --interval=10s --timeout=5s --start-period=180s --retries=30 \
-    CMD ["sh", "-c", "curl -fsS -o /dev/null http://127.0.0.1:4200/ && curl -fsS -o /dev/null http://127.0.0.1:8080/api/health/live"]
+    CMD ["sh", "-c", "curl -fsS -o /dev/null \"http://127.0.0.1:${ECONOFLOW_NGINX_PORT:-4200}/\" && curl -fsS -o /dev/null http://127.0.0.1:8081/api/health/live"]
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/econoflow-entrypoint-dev"]
