@@ -4,7 +4,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 import { ProjectService } from '../../services/project.service';
 import { ErrorMessageService } from '../../services/error-message.service';
@@ -22,7 +22,8 @@ import { ApiErrorResponse } from '../../models/error';
     MatInputModule,
     MatSelectModule,
     MatButtonModule,
-    TranslateModule
+    TranslateDirective,
+    TranslatePipe
   ],
   templateUrl: './configure-tax-year-rule-dialog.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,

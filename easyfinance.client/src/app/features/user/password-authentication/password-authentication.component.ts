@@ -1,7 +1,7 @@
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Component, inject, NgZone, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIcon } from "@angular/material/icon";
@@ -22,10 +22,11 @@ type TwoFactorSecureActionType = 'disable' | 'regenerate';
   imports: [
     FormsModule,
     ReactiveFormsModule,
-    TranslateModule,
     MatFormFieldModule,
     MatInputModule,
-    MatIcon
+    MatIcon,
+    TranslateDirective,
+    TranslatePipe
   ],
   templateUrl: './password-authentication.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,

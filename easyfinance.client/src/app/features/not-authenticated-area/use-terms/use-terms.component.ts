@@ -1,12 +1,12 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateDirective } from '@ngx-translate/core';
 import { GlobalService } from '../../../core/services/global.service';
 
 @Component({
   selector: 'app-use-terms',
   imports: [
-    TranslateModule
-  ],
+  TranslateDirective
+],
   templateUrl: './use-terms.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './use-terms.component.css'

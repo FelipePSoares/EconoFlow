@@ -1,7 +1,7 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Observable, filter, map, startWith } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { NotificationService } from '../../services/notification.service';
 import { Notification } from '../../models/notification';
 import { NavigationEnd, Router } from '@angular/router';
@@ -10,7 +10,8 @@ import { NavigationEnd, Router } from '@angular/router';
   selector: 'app-sticky-notifications',
   imports: [
     AsyncPipe,
-    TranslateModule
+    TranslateDirective,
+    TranslatePipe
   ],
   templateUrl: './sticky-notifications.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,

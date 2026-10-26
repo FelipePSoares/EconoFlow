@@ -5,7 +5,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatButtonModule } from '@angular/material/button';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { Plan } from '../../../core/models/plan';
 import { PlanEntryRequest } from '../../../core/models/plan-entry';
 import { PlanType } from '../../../core/enums/plan-type';
@@ -25,8 +25,9 @@ import { IncomeDto } from '../models/income-dto';
     MatSelectModule,
     MatSliderModule,
     MatButtonModule,
-    TranslateModule,
-    CurrencyFormatPipe
+    CurrencyFormatPipe,
+    TranslateDirective,
+    TranslatePipe
   ],
   templateUrl: './plan-allocation-dialog.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,

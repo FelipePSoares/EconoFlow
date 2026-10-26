@@ -4,7 +4,7 @@ import { CurrencyPipe } from '@angular/common';
 import { convertToParamMap, ActivatedRoute, Router } from '@angular/router';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { BehaviorSubject, of, throwError } from 'rxjs';
-import { TranslateModule } from '@ngx-translate/core';
+import { provideTranslateService } from '@ngx-translate/core';
 import { AnnualOverviewComponent } from './annual-overview.component';
 import { ProjectService } from '../../../core/services/project.service';
 import { IncomeService } from '../../../core/services/income.service';
@@ -85,8 +85,7 @@ describe('AnnualOverviewComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [
-        AnnualOverviewComponent,
-        TranslateModule.forRoot()
+        AnnualOverviewComponent
       ],
       providers: [
         {
@@ -125,7 +124,8 @@ describe('AnnualOverviewComponent', () => {
           }
         },
         CurrencyPipe,
-        provideNativeDateAdapter()
+        provideNativeDateAdapter(),
+        ...provideTranslateService()
       ]
     }).compileComponents();
 

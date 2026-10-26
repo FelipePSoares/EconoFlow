@@ -1,12 +1,13 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-offline',
   imports: [
     RouterLink,
-    TranslateModule
+    TranslateDirective,
+    TranslatePipe
   ],
   templateUrl: './offline.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,

@@ -1,13 +1,14 @@
 import { isPlatformBrowser } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, inject, NgZone, OnDestroy, PLATFORM_ID, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-index',
   imports: [
     RouterLink,
-    TranslateModule
+    TranslateDirective,
+    TranslatePipe
   ],
   templateUrl: './index.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,

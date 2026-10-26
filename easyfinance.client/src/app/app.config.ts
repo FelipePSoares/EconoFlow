@@ -1,6 +1,6 @@
 import { ApplicationConfig, CSP_NONCE, DOCUMENT, isDevMode } from '@angular/core';
 import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateLoader, provideTranslateService } from '@ngx-translate/core';
 import { provideClientHydration, withEventReplay, withNoIncrementalHydration } from '@angular/platform-browser';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { HttpClient, provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
@@ -9,7 +9,7 @@ import { routes } from './features/app-routing.module';
 import { HttpRequestInterceptor } from './core/interceptor/http-request-interceptor';
 import { LoadingInterceptor } from './core/interceptor/loading.interceptor';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
-import { importProvidersFrom, inject } from '@angular/core';
+import { inject } from '@angular/core';
 import { GlobalService } from './core/services/global.service';
 import { TranslateHttpLoader } from './core/utils/loaders/translate-http-loader';
 import { LanguageInterceptor } from './core/interceptor/language-interceptor';
@@ -27,16 +27,14 @@ export const appConfig: ApplicationConfig = {
       withInMemoryScrolling({ scrollPositionRestoration: 'top' })
     ),
     provideMomentDateAdapter(MAT_MOMENT_DATE_FORMATS, { useUtc: true }),
-    importProvidersFrom(
-      TranslateModule.forRoot({
-        loader: {
-          provide: TranslateLoader,
-          useFactory: (http: HttpClient) => new TranslateHttpLoader(http),
-          deps: [HttpClient]
-        },
-        fallbackLang: 'en'
-      })
-    ),
+    provideTranslateService({
+      loader: {
+        provide: TranslateLoader,
+        useFactory: (http: HttpClient) => new TranslateHttpLoader(http),
+        deps: [HttpClient]
+      },
+      fallbackLang: 'en'
+    }),
     provideHttpClient(withXhr(), 
       withInterceptors([
         HttpRequestInterceptor,

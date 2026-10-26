@@ -2,7 +2,7 @@
 import { Component, OnInit, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { passwordMatchValidator } from '../../../core/utils/custom-validators/password-match-validator';
@@ -18,12 +18,13 @@ import { TurnstileWidgetComponent } from '../../../core/components/turnstile-wid
     imports: [
     FormsModule,
     ReactiveFormsModule,
-    TranslateModule,
     MatFormFieldModule,
     MatInputModule,
     MatIcon,
     ReturnButtonComponent,
-    TurnstileWidgetComponent
+    TurnstileWidgetComponent,
+    TranslateDirective,
+    TranslatePipe
 ],
     templateUrl: './recovery.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,

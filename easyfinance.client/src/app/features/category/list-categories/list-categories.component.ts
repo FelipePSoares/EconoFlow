@@ -9,7 +9,7 @@ import { MatButton } from "@angular/material/button";
 import { MatError, MatFormField, MatLabel } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { CategoryDto } from '../models/category-dto';
 import { CategoryService } from '../../../core/services/category.service';
 import { SwipeDeleteRowComponent } from '../../../core/components/swipe-delete-row/swipe-delete-row.component';
@@ -36,7 +36,8 @@ import { DefaultCategory } from '../../../core/models/default-category';
       MatAutocompleteModule,
       DragDropModule,
       SwipeDeleteRowComponent,
-      TranslateModule
+      TranslateDirective,
+      TranslatePipe
     ],
     templateUrl: './list-categories.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,

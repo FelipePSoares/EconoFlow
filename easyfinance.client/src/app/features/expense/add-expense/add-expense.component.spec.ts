@@ -5,7 +5,7 @@ import { of } from 'rxjs';
 import { HttpEventType } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { provideNativeDateAdapter } from '@angular/material/core';
-import { TranslateModule } from '@ngx-translate/core';
+import { provideTranslateService } from '@ngx-translate/core';
 import { AddExpenseComponent } from './add-expense.component';
 import { ExpenseService } from '../../../core/services/expense.service';
 import { CategoryService } from '../../../core/services/category.service';
@@ -59,7 +59,6 @@ describe('AddExpenseComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         AddExpenseComponent,
-        TranslateModule.forRoot(),
         NoopAnimationsModule
       ],
       providers: [
@@ -106,7 +105,8 @@ describe('AddExpenseComponent', () => {
         {
           provide: SnackbarComponent,
           useValue: snackbarMock
-        }
+        },
+        ...provideTranslateService()
       ]
     }).compileComponents();
   });

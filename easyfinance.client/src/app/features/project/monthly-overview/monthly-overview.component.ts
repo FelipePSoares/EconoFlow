@@ -3,7 +3,7 @@ import { AfterViewInit, Component, DestroyRef, inject, Input, OnInit, PLATFORM_I
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ChartData, ChartOptions, TooltipItem } from 'chart.js';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { BaseChartDirective } from 'ng2-charts';
 import { filter, forkJoin } from 'rxjs';
 import { Category } from '../../../core/models/category';
@@ -37,11 +37,12 @@ interface ExpenseEntry {
   selector: 'app-monthly-overview',
   imports: [
     CommonModule,
-    TranslateModule,
     BaseChartDirective,
     CurrencyFormatPipe,
     ReturnButtonComponent,
-    CurrentDateComponent
+    CurrentDateComponent,
+    TranslateDirective,
+    TranslatePipe
   ],
   providers: [CurrencyFormatPipe],
   templateUrl: './monthly-overview.component.html',

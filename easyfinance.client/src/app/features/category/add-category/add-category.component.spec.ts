@@ -3,7 +3,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { Subject, of } from 'rxjs';
 import { Router, ActivatedRoute } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { provideTranslateService } from '@ngx-translate/core';
 import { AddCategoryComponent } from './add-category.component';
 import { CategoryService } from '../../../core/services/category.service';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
@@ -31,7 +31,6 @@ describe('AddCategoryComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         AddCategoryComponent,
-        TranslateModule.forRoot(),
         NoopAnimationsModule
       ],
       providers: [
@@ -44,7 +43,8 @@ describe('AddCategoryComponent', () => {
             getFormFieldErrors: () => [],
             setFormErrors: jasmine.createSpy('setFormErrors')
           }
-        }
+        },
+        ...provideTranslateService()
       ]
     }).compileComponents();
 

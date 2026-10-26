@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, inject, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { CurrencyFormatPipe } from '../../utils/pipes/currency-format.pipe';
 import { CurrentDateService } from '../../services/current-date.service';
 import { GlobalService } from '../../services/global.service';
@@ -11,7 +11,8 @@ import { GlobalService } from '../../services/global.service';
   imports: [
     CommonModule,
     CurrencyFormatPipe,
-    TranslateModule
+    TranslateDirective,
+    TranslatePipe
   ],
   templateUrl: './budget-bar.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,

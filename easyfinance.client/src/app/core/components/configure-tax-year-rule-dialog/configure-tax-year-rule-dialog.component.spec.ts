@@ -1,6 +1,6 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { TranslateModule } from '@ngx-translate/core';
+import { provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 import { ConfigureTaxYearRuleDialogComponent } from './configure-tax-year-rule-dialog.component';
 import { ProjectService } from '../../services/project.service';
@@ -15,7 +15,6 @@ describe('ConfigureTaxYearRuleDialogComponent - months locale', () => {
     await TestBed.configureTestingModule({
       imports: [
         ConfigureTaxYearRuleDialogComponent,
-        TranslateModule.forRoot(),
         NoopAnimationsModule
       ],
       providers: [
@@ -32,7 +31,8 @@ describe('ConfigureTaxYearRuleDialogComponent - months locale', () => {
         {
           provide: ErrorMessageService,
           useValue: {}
-        }
+        },
+        ...provideTranslateService()
       ]
     }).compileComponents();
 

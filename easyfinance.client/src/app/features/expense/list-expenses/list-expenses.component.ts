@@ -6,7 +6,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { NavigationEnd, Router, UrlSegment } from '@angular/router';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
 import { Observable } from 'rxjs/internal/Observable';
 import { map } from 'rxjs/internal/operators/map';
@@ -42,7 +42,8 @@ import { ExpenseItemDto } from '../models/expense-item-dto';
     AddExpenseItemComponent,
     SwipeDeleteRowComponent,
     MatCardModule,
-    TranslateModule
+    TranslateDirective,
+    TranslatePipe
   ],
   templateUrl: './list-expenses.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,

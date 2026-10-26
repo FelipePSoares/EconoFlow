@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { Router } from '@angular/router';
 import { provideNativeDateAdapter } from '@angular/material/core';
-import { TranslateModule } from '@ngx-translate/core';
+import { provideTranslateService } from '@ngx-translate/core';
 import { ProjectOverviewComponent } from './project-overview.component';
 import { PlanType } from '../../../core/enums/plan-type';
 import { ProjectService } from '../../../core/services/project.service';
@@ -70,8 +70,7 @@ describe('ProjectOverviewComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [
-        ProjectOverviewComponent,
-        TranslateModule.forRoot()
+        ProjectOverviewComponent
       ],
       providers: [
         provideNativeDateAdapter(),
@@ -180,7 +179,8 @@ describe('ProjectOverviewComponent', () => {
           useValue: {
             currentDate: new Date('2026-03-01T12:00:00')
           }
-        }
+        },
+        ...provideTranslateService()
       ]
     }).compileComponents();
 

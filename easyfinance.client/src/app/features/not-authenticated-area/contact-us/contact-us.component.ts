@@ -1,5 +1,5 @@
 import { Component, ViewChild, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UserService } from 'src/app/core/services/user.service';
 
@@ -18,12 +18,13 @@ import { TurnstileWidgetComponent } from 'src/app/core/components/turnstile-widg
 @Component({
   selector: 'app-contact-us',
   imports: [
-    TranslateModule,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    TurnstileWidgetComponent
+    TurnstileWidgetComponent,
+    TranslateDirective,
+    TranslatePipe
 ],
   templateUrl: './contact-us.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,

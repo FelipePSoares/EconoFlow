@@ -5,7 +5,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSliderModule } from '@angular/material/slider';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { MatIcon } from '@angular/material/icon';
@@ -33,11 +33,12 @@ import { CurrentDateService } from '../../../core/services/current-date.service'
     MatSliderModule,
     MatCardModule,
     MatTooltipModule,
-    TranslateModule,
     CurrencyMaskModule,
     CurrencyFormatPipe,
     MatIcon,
-    MatButtonModule
+    MatButtonModule,
+    TranslateDirective,
+    TranslatePipe
   ],
   templateUrl: './smart-setup.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,

@@ -13,7 +13,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { DateAdapter } from '@angular/material/core';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { Moment } from 'moment';
 import { ExpenseService } from '../../../core/services/expense.service';
 import { ExpenseDto } from '../models/expense-dto';
@@ -54,7 +54,8 @@ import { PageModalComponent, PageModalDialogData } from '../../../core/component
     CurrencyMaskModule,
     MatSelectModule,
     NgClass,
-    TranslateModule
+    TranslateDirective,
+    TranslatePipe
 ],
     templateUrl: './add-expense.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,

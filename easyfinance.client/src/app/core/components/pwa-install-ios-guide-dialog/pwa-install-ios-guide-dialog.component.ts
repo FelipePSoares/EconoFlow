@@ -2,14 +2,15 @@ import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-pwa-install-ios-guide-dialog',
   imports: [
     MatButtonModule,
     MatIconModule,
-    TranslateModule
+    TranslateDirective,
+    TranslatePipe
   ],
   templateUrl: './pwa-install-ios-guide-dialog.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
