@@ -1,22 +1,23 @@
-# EconoFlow — the deployed application image
+# EconoFlow — the deployed application image.
 #
-# This is the image the cluster runs: the ASP.NET Core API and the Angular SPA in one
-# container, published by .github/workflows/Release.yml.
+# One process: the ASP.NET Core server. It serves the Angular SPA from its own wwwroot and
+# answers the API on the same port, which is what the application already did (`dotnet run`
+# serves both), so nothing else has to sit in front of it.
 #
-#   API      : an ASP.NET Core runtime. The application applies the EF Core migrations
-#              itself at start-up (PersistenceServiceRegistration.UseMigration), so the
-#              image needs no migrator executable and no SDK.
-#   SPA      : an nginx runtime. easyfinance.client is built for the browser (the
-#              production SSR / prerender pipeline emits _nonserializable state that would
-#              render every page empty) and nginx serves it, proxying /api to the API.
+# This used to be an nginx + Kestrel pair under an entrypoint that wrote the nginx site from
+# the environment at start-up. None of that was load-bearing:
 #
-# nginx also terminates the HTTP hop between the two: it forwards X-Forwarded-Proto, which
-# the application honours through UseForwardedHeaders, so the SPA and the API share one
-# origin (no CORS, no separate cookie domain).
+#   * The Angular client calls the API with bare /api URLs on its own origin, and both halves
+#     are served by the same server, so the shared origin comes for free.
+#   * TLS is terminated by the cluster ingress (Traefik), which sets X-Forwarded-Proto; the
+#     application honours it through UseForwardedHeaders. nginx only forwarded a hop that no
+#     longer exists.
+#   * The entrypoint's real job was hiding port 8081 from the outside and restarting the pair
+#     when either died. A single process needs neither.
 #
 # ── Stage: client ──────────────────────────────────────────────────────────────
-# The .NET SDK image does NOT bundle Node.js, but the Angular build needs npm + the
-# Angular CLI, so Node.js (LTS 22, matching the CI node-version) is installed here.
+# The .NET SDK image does NOT bundle Node.js, but the Angular build needs npm + the Angular
+# CLI, so Node.js (LTS 22, matching the CI node-version) is installed here.
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS client
 WORKDIR /src
 
@@ -36,7 +37,8 @@ RUN npm ci
 
 COPY easyfinance.client/ ./
 
-# Angular 22 writes the browser bundle to dist/easyfinance.client/browser.
+# The browser pipeline, not the SSR/prerender one: the prerendered pages carry serialized
+# state that renders an empty app, and nothing here needs server-side rendering.
 RUN npx ng build --configuration production
 
 # ── Stage: api ─────────────────────────────────────────────────────────────────
@@ -102,55 +104,45 @@ RUN dotnet publish EasyFinance.Server/EasyFinance.Server.csproj \
     --no-restore
 
 # ── Stage: runtime ─────────────────────────────────────────────────────────────
-# One image, two services (API and nginx), started by the entrypoint. An init process is
-# the container's PID 1 so that stopping it stops both children, and either child exiting
-# stops the container and is reported - a container whose nginx died must not keep
-# answering health probes from the API alone.
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+# The `-extra` variant of the Alpine runtime-deps image is the one that carries ICU and the
+# time-zone database. The plain `alpine` tag has neither and sets
+# DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true, which makes the first TimeZoneInfo lookup throw.
+# The application formats dates for the user's culture and derives "today" from the clock, so
+# it needs the extra variant - not just a smaller base image than the Debian one.
+#
+# (The Server project sets InvariantGlobalization/InvariantTimezone to false. That property
+# wins over the base image's variable; the variant is what makes the switch actually work.)
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine-extra AS runtime
 WORKDIR /app
 
-# The API binds loopback only: nginx is the container's single entry point, on port 8080.
-ENV ASPNETCORE_ENVIRONMENT=Production \
-    TZ=UTC
+# The SPA lives in the web root the application already serves: Program.cs calls
+# UseDefaultFiles()/UseStaticFiles(), which resolve from here.
+COPY --from=client /src/easyfinance.client/dist/easyfinance.client/browser/ /app/wwwroot/
+COPY --from=api /src/EasyFinance.Server/bin/Release/net10.0/linux-x64/publish/ /app/
+
+# The JIT wants a writable temporary directory even when nothing in the code asks for one.
+RUN mkdir -p /app/attachments /app/tmp \
+    && chown -R "$APP_UID" /app /app/attachments /app/tmp
 
 # Attachments default to the FileSystem provider writing under the app base directory.
 # Mount a volume here to keep uploads across restarts.
 VOLUME ["/app/attachments"]
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends nginx tini \
-    && rm -rf /var/lib/apt/lists/* \
-    && rm -f /etc/nginx/sites-enabled/default
+ENV ASPNETCORE_ENVIRONMENT=Production \
+    ASPNETCORE_HTTP_PORTS=8080 \
+    TMPDIR=/app/tmp \
+    TZ=UTC
 
-COPY --from=api /src/EasyFinance.Server/bin/Release/net10.0/linux-x64/publish/ /app/api/
-COPY --from=client /src/easyfinance.client/dist/easyfinance.client/browser/ /usr/share/nginx/html/
-COPY docker/entrypoint.sh /usr/local/bin/econoflow-entrypoint
+# Non-root: the published application belongs to the user the base image already declares
+# and container runtimes map by default.
+USER $APP_UID
 
-# nginx's stock config starts a daemon and writes its pid file where the image user cannot;
-# this main config keeps nginx in the foreground (the entrypoint supervises it), sends its
-# logs to the container's stdout/stderr, keeps every temp path under /tmp, and includes the
-# site the entrypoint renders from its environment at start-up.
-RUN mkdir -p /tmp/client_body /tmp/proxy /tmp/fastcgi /tmp/uwsgi /tmp/scgi \
-    && chown 1654:1654 /tmp/client_body /tmp/proxy /tmp/fastcgi /tmp/uwsgi /tmp/scgi \
-    && printf '%s\n' \
-    'worker_processes auto;' \
-    'error_log /dev/stderr warn;' \
-    'pid /tmp/nginx.pid;' \
-    'events { worker_connections 1024; }' \
-    'http {' \
-    '    include /etc/nginx/mime.types;' \
-    '    default_type application/octet-stream;' \
-    '    access_log /dev/stdout;' \
-    '    sendfile on;' \
-    '    include /tmp/econoflow-site.conf;' \
-    '}' > /usr/share/nginx/econoflow-main.conf \
-    && chmod +x /usr/local/bin/econoflow-entrypoint \
-    && chown -R 1654:1654 /app /usr/share/nginx /usr/share/nginx/html
-
-USER 1654
 EXPOSE 8080
 
+# One probe, two facts: the API answers, and the SPA shell was actually shipped. A Kestrel
+# that started without wwwroot would pass an API-only check, and the container would look
+# healthy while every page 404s. BusyBox wget is in the base image, so this adds no package.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-    CMD ["sh", "-c", "wget -q -O /dev/null \"http://127.0.0.1:${ECONOFLOW_NGINX_PORT:-8080}/api/health/live\" || exit 1"]
+    CMD ["/bin/sh", "-c", "wget -q -O /dev/null http://127.0.0.1:8080/api/health/live && wget -q -O /dev/null http://127.0.0.1:8080/index.html || exit 1"]
 
-ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/econoflow-entrypoint"]
+ENTRYPOINT ["dotnet", "EasyFinance.Server.dll"]

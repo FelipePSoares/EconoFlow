@@ -172,6 +172,40 @@ namespace EasyFinance.Server.Tests
                 + "explicitly for a local database");
         }
 
+        [Fact]
+        public void Seeder_ShouldTrackTheEntitiesItInserts()
+        {
+            // THE BUG THAT MADE THE DOCKER STACK'S API USELESS.
+            //
+            // GenericRepository.Insert only calls Add() under `#if DEBUG`, so in a Release
+            // build - which is what every image is - the repository "inserts" are no-ops. The
+            // fixtures assume otherwise: the project, categories and user rows exist only if
+            // the change tracker picked them up. Against the in-memory store the missing
+            // principal was invisible (no foreign keys); against PostgreSQL the project was
+            // never written, and the last line of the seeder - setting the user's default
+            // project - failed with
+            //   FK_AspNetUsers_Projects_DefaultProjectId
+            // Program.cs catches that as a fatal start-up error and the process exits. The
+            // container then restarts, seeds nothing again, and exits again, so the stack
+            // answers 502 through its front door for as long as it is up.
+            //
+            // A seeder that builds a graph referencing entities it just created must not depend
+            // on an `#if DEBUG` branch to make them exist.
+            var seederPath = Path.Combine(
+                RepoRoot(), "EasyFinance.Server", "Config", "DevelopmentTestDataSeeder.cs");
+
+            var seeder = File.ReadAllText(seederPath);
+
+            seeder.Should().NotContain(
+                "Repository.Insert(",
+                "the sample data is written through the change tracker, whose Add() is not "
+                + "compiled out of Release builds");
+
+            seeder.Should().Contain(
+                "context.Add(",
+                "the seeder reaches the change tracker through the database context directly");
+        }
+
         private static string RepoRoot()
         {
             var directory = new DirectoryInfo(AppContext.BaseDirectory);

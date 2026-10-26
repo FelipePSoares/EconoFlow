@@ -1,5 +1,4 @@
 using System.Globalization;
-using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Account;
 using EasyFinance.Domain.Financial;
@@ -42,10 +41,33 @@ namespace EasyFinance.Server.Config
         public static bool IsUnsafeFor(DatabaseProviderInfo providerInfo)
             => providerInfo is not null && providerInfo.IsRelational;
 
+        /// <summary>
+        /// Writes the development fixtures.
+        ///
+        /// <para>
+        /// <b>The fixtures are added to the change tracker, never through
+        /// <c>IGenericRepository.Insert</c>.</b> That method calls <c>Add()</c> only under
+        /// <c>#if DEBUG</c> and returns the entity untouched in a Release build, which is what
+        /// every image is. A graph that references entities it has just "inserted" then loses
+        /// its principals: against the in-memory store nothing noticed, because that store has
+        /// no foreign keys. Against PostgreSQL the project was never written, and the last
+        /// line — setting the user's default project — failed with
+        /// <c>FK_AspNetUsers_Projects_DefaultProjectId</c>. <c>Program.cs</c> catches that as a
+        /// fatal start-up error, so the container restarted, seeded nothing again, and exited
+        /// again: the stack served 502 until the fixture's fixed user was removed.
+        /// </para>
+        ///
+        /// <para>
+        /// Adding through the context is what the production services rely on as well
+        /// (<c>InsertOrUpdate</c> tracks), so the fixtures take the same path the application
+        /// does. The single <c>SaveChangesAsync</c> at the end also makes the whole fixture a
+        /// single transaction, so a failure leaves no half-seeded database behind.
+        /// </para>
+        /// </summary>
         public static async Task SeedAsync(IServiceProvider services)
         {
             using var serviceScope = services.CreateScope();
-            var unitOfWork = serviceScope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+            var context = serviceScope.ServiceProvider.GetRequiredService<EasyFinanceDatabaseContext>();
             var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<User>>();
             var today = SystemClock.TodayDate;
             var random = new Random(20260223);
@@ -84,26 +106,26 @@ namespace EasyFinance.Server.Config
             await userManager.CreateAsync(user2, "Passw0rd!");
 
             var notification = new Notification(user, "WelcomeMessage", NotificationType.Information, NotificationCategory.System, limitNotificationChannels: NotificationChannels.InApp);
-            unitOfWork.NotificationRepository.Insert(notification);
+            context.Add(notification);
             var notification2 = new Notification(user, "ConfirmEmailMessage", NotificationType.EmailConfirmation, NotificationCategory.Security, "ButtonConfirmEmail", NotificationChannels.InApp, isSticky: true, isActionRequired: true);
-            unitOfWork.NotificationRepository.Insert(notification2);
+            context.Add(notification2);
             var notification3 = new Notification(user, "LanguagePreferenceNowAvailableMessage", NotificationType.Information, NotificationCategory.System, "ButtonMyProfile", NotificationChannels.InApp);
-            unitOfWork.NotificationRepository.Insert(notification3);
+            context.Add(notification3);
             var notification5 = new Notification(user, "TwoFactorNowAvailableAnnouncementMessage", NotificationType.Information, NotificationCategory.Security, "ButtonConfigureTwoFactor", metadata: $"{{\"firstName\":\"{user.FirstName}\"}}", isSticky: false);
             notification5.MarkEmailAsSent();
-            unitOfWork.NotificationRepository.Insert(notification5);
+            context.Add(notification5);
             var notification6 = new Notification(user, "EnableTwoFactorRecommendationMessage", NotificationType.Information, NotificationCategory.Security, "ButtonConfigureTwoFactor", NotificationChannels.InApp, isSticky: false);
-            unitOfWork.NotificationRepository.Insert(notification6);
+            context.Add(notification6);
 
             var income = new Income("Investiments", today, 3000, user);
             income.SetId(new Guid("0bb277f9-a858-4306-148f-08dcf739f7a1"));
-            unitOfWork.IncomeRepository.Insert(income);
+            context.Add(income);
 
             var income2 = new Income("Investiments", today.AddMonths(-1), 3000, user);
-            unitOfWork.IncomeRepository.Insert(income2);
+            context.Add(income2);
 
             var expense = new Expense("Rent", today, 700, user, budget: 700, isDeductible: true);
-            unitOfWork.ExpenseRepository.Insert(expense);
+            context.Add(expense);
 
             var expense2 = new Expense("Groceries", today, 0, user, budget: 450);
             var expenseItem = new ExpenseItem("Pingo Doce", today, 100, user, isDeductible: true);
@@ -112,13 +134,13 @@ namespace EasyFinance.Server.Config
             expense2.SetId(new Guid("75436cec-70f6-420f-ee8a-08dce6424079"));
             expense2.AddItem(expenseItem);
             expense2.AddItem(expenseItem2);
-            unitOfWork.ExpenseRepository.Insert(expense2);
+            context.Add(expense2);
 
             var category = new Category("Fixed Costs", displayOrder: 0);
             category.SetId(new Guid("ac795272-1ee2-456c-1fa2-08dcbc8250c1"));
             category.AddExpense(expense);
             category.AddExpense(expense2);
-            unitOfWork.CategoryRepository.Insert(category);
+            context.Add(category);
 
             var ri = new RegionInfo("pt");
             var project = new Project(name: "Family", preferredCurrency: ri.ISOCurrencySymbol);
@@ -126,7 +148,7 @@ namespace EasyFinance.Server.Config
             project.AddIncome(income);
             project.AddIncome(income2);
             project.AddCategory(category);
-            unitOfWork.ProjectRepository.Insert(project);
+            context.Add(project);
 
             var defaultCategoryRecommendations = Category.GetAllDefaultCategories().ToArray();
             var categoriesByName = new Dictionary<string, Category>(StringComparer.OrdinalIgnoreCase)
@@ -146,7 +168,7 @@ namespace EasyFinance.Server.Config
                 var recommendedCategory = new Category(name: recommendedCategoryName, displayOrder: categoryIndex);
                 categoriesByName[recommendedCategoryName] = recommendedCategory;
                 project.AddCategory(recommendedCategory);
-                unitOfWork.CategoryRepository.Insert(recommendedCategory);
+                context.Add(recommendedCategory);
             }
 
             const int monthsToSeed = 18;
@@ -158,12 +180,12 @@ namespace EasyFinance.Server.Config
                 var salaryAmount = Math.Round((5200m + random.Next(-120, 180)) * trendFactor, 2);
                 var salary = new Income("Primary Salary", DateInMonth(monthDate, 5), salaryAmount, user);
                 project.AddIncome(salary);
-                unitOfWork.IncomeRepository.Insert(salary);
+                context.Add(salary);
 
                 var dividendsAmount = Math.Round((260m + random.Next(-35, 70)) * trendFactor, 2);
                 var dividends = new Income("Dividends", DateInMonth(monthDate, 24), dividendsAmount, user);
                 project.AddIncome(dividends);
-                unitOfWork.IncomeRepository.Insert(dividends);
+                context.Add(dividends);
 
                 decimal bonusAmount = 0m;
                 if (monthDate.Month % 3 == 0)
@@ -171,7 +193,7 @@ namespace EasyFinance.Server.Config
                     bonusAmount = Math.Round((950m + random.Next(0, 550)) * trendFactor, 2);
                     var quarterlyBonus = new Income("Quarterly Bonus", DateInMonth(monthDate, 18), bonusAmount, user);
                     project.AddIncome(quarterlyBonus);
-                    unitOfWork.IncomeRepository.Insert(quarterlyBonus);
+                    context.Add(quarterlyBonus);
                 }
 
                 decimal freelanceAmount = 0m;
@@ -180,7 +202,7 @@ namespace EasyFinance.Server.Config
                     freelanceAmount = Math.Round((420m + random.Next(0, 460)) * trendFactor, 2);
                     var freelance = new Income("Freelance Work", DateInMonth(monthDate, 12), freelanceAmount, user);
                     project.AddIncome(freelance);
-                    unitOfWork.IncomeRepository.Insert(freelance);
+                    context.Add(freelance);
                 }
 
                 var annualIncomeForBudget = (salaryAmount + dividendsAmount + (bonusAmount / 3m) + (freelanceAmount / 2m)) * 12m;
@@ -248,20 +270,20 @@ namespace EasyFinance.Server.Config
                         }
 
                         targetCategory.AddExpense(seededExpense);
-                        unitOfWork.ExpenseRepository.Insert(seededExpense);
+                        context.Add(seededExpense);
                     }
                 }
             }
 
             var userProject = new UserProject(user, project, Role.Admin);
             userProject.SetAccepted();
-            unitOfWork.UserProjectRepository.Insert(userProject);
+            context.Add(userProject);
 
             var userProject2 = new UserProject(user2, project, Role.Manager);
             userProject2.SetAccepted();
-            unitOfWork.UserProjectRepository.Insert(userProject2);
+            context.Add(userProject2);
 
-            await unitOfWork.CommitAsync();
+            await context.SaveChangesAsync();
 
             user.SetDefaultProject(project.Id);
             await userManager.UpdateAsync(user);

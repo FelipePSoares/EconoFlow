@@ -1,10 +1,15 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <RuntimeIdentifiers>win-x64;win-x86</RuntimeIdentifiers>
     <Nullable>disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <InvariantGlobalization>false</InvariantGlobalization>
+    <!-- The Alpine runtime image sets DOTNET_SYSTEM_GLOBALIZATION_INVARIANT; this property
+         overrides it, and InvariantTimezone keeps TimeZoneInfo from throwing when the image has
+         no zone database. Both are false because the application formats money and dates for
+         the user's culture and computes "today" from the clock. -->
+    <InvariantTimezone>false</InvariantTimezone>
     <SpaRoot>..\easyfinance.client</SpaRoot>
     <SpaProxyLaunchCommand>npm start</SpaProxyLaunchCommand>
     <SpaProxyServerUrl>https://localhost:4200</SpaProxyServerUrl>

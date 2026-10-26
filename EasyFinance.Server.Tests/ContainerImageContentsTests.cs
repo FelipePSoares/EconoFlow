@@ -12,7 +12,7 @@ namespace EasyFinance.Server.Tests
     ///
     /// <para>
     /// These are not style checks. The Dockerfile encodes facts that are invisible until
-    /// a deployment, when they are expensive — so the rules are asserted here rather than
+    /// a deployment, when they are expensive â€” so the rules are asserted here rather than
     /// left to review.
     /// </para>
     ///
@@ -21,7 +21,7 @@ namespace EasyFinance.Server.Tests
     /// data-migration host published to <c>/app/migrator</c>, which needed an
     /// <c>aspnet</c>-based stage rather than <c>runtime</c> because it transitively pulled
     /// in <c>Microsoft.AspNetCore.App</c>. The migration completed and all of that was
-    /// removed — the host, the separate migrations project it loaded by name, and the
+    /// removed â€” the host, the separate migrations project it loaded by name, and the
     /// migrator stage. The tests below now assert the removal, plus the two properties
     /// that still matter:
     /// </para>
@@ -34,12 +34,12 @@ namespace EasyFinance.Server.Tests
     ///   </item>
     ///   <item>
     ///     The release workflow must keep <c>workflow_dispatch</c>, so an image can be
-    ///     built from a branch without merging — and must not move <c>latest</c> when it
+    ///     built from a branch without merging â€” and must not move <c>latest</c> when it
     ///     is, or a branch build becomes what the cluster deploys.
     ///   </item>
     ///   <item>
-    ///     There must be exactly one release workflow. It used to be two — one uploading a
-    ///     Windows publish over FTP, one pushing the image — which is why this class read
+    ///     There must be exactly one release workflow. It used to be two â€” one uploading a
+    ///     Windows publish over FTP, one pushing the image â€” which is why this class read
     ///     <c>docker-publish.yml</c>; the FTP host is gone and <c>Release.yml</c> now does
     ///     both the image and the APK.
     ///   </item>
@@ -124,7 +124,7 @@ namespace EasyFinance.Server.Tests
         /// <para>
         /// Load-bearing: a plain "does the file contain this string" check is satisfied
         /// by a <i>comment</i> mentioning it. Verified by removing the real
-        /// <c>workflow_dispatch</c> trigger while leaving the comment in place — the
+        /// <c>workflow_dispatch</c> trigger while leaving the comment in place â€” the
         /// naive check still passed, which is a false negative in a guard whose whole
         /// job is to catch that removal.
         /// </para>
@@ -175,16 +175,17 @@ namespace EasyFinance.Server.Tests
         }
     }
 
+
     /// <summary>
     /// Guards how the image serves the SPA.
     ///
     /// <para>
-    /// The image runs the API and nginx in one container: nginx is the front door, serves
-    /// the Angular browser bundle, and proxies <c>/api</c> to Kestrel on the loopback
-    /// interface so the SPA and the API share one origin. Each of those links is invisible
-    /// until a deployment — a missing <c>try_files</c> turns every deep link into a 404, a
-    /// missing proxy breaks every API call, and abandoning <c>ng build</c> for the SSR
-    /// pipeline ships pages that render empty.
+    /// One process. The Server already serves the Angular bundle through
+    /// <c>UseDefaultFiles()</c> / <c>UseStaticFiles()</c>, and the application calls the API
+    /// with bare <c>/api/...</c> URLs on its own origin, so nothing between the browser and
+    /// Kestrel was ever needed. The image used to run nginx behind an entrypoint that wrote
+    /// its configuration from the environment at start-up; that only relocated the public
+    /// port and hid a dead API behind a front door that kept answering.
     /// </para>
     /// </summary>
     public class ContainerSpaServingTests
@@ -210,9 +211,23 @@ namespace EasyFinance.Server.Tests
 
         private static string Dockerfile() => Read("Dockerfile");
 
-        // The nginx site is rendered by the entrypoint from ECONOFLOW_NGINX_PORT and
-        // ECONOFLOW_API_PORT at start-up, so these are asserted against the entrypoint.
-        private static string Entrypoint() => Read("docker", "entrypoint.sh");
+        /// <summary>
+        /// The Dockerfile's instructions, with every comment line removed.
+        ///
+        /// <para>
+        /// Load-bearing, for the same reason as <c>WorkflowWithoutComments</c> in
+        /// <see cref="ContainerImageContentsTests"/>: the Dockerfile documents what was
+        /// removed, so "does the file mention nginx" is answered yes by the explanation of why
+        /// nginx is gone. The guards below assert on what the build does.
+        /// </para>
+        /// </summary>
+        private static string DockerfileInstructions(string dockerfile) =>
+            string.Join(
+                "\n",
+                dockerfile
+                    .Split('\n')
+                    .Select(line => line.TrimEnd())
+                    .Where(line => !line.TrimStart().StartsWith("#", StringComparison.Ordinal)));
 
         [Fact]
         public void TheImage_ShouldBuildTheSpaWithTheBrowserPipeline()
@@ -220,401 +235,163 @@ namespace EasyFinance.Server.Tests
             var dockerfile = Dockerfile();
 
             // `ng build` with the production configuration emits dist/easyfinance.client/browser.
-            // Switching to the SSR/prerender pipeline would substitute index.csr.html for every
-            // prerendered page — and its serialized state renders an empty app.
+            // That directory is copied into the Server's wwwroot, which is where
+            // UseStaticFiles() serves it from.
             dockerfile.Should().Contain(
                 "ng build --configuration production",
                 "the image must ship the browser build, not the SSR/prerender output");
 
             dockerfile.Should().Contain(
-                "dist/easyfinance.client/browser/",
-                "the browser bundle is what nginx serves");
+                "wwwroot",
+                "the Angular bundle is served by the Server from wwwroot, not by a web server "
+                + "next to it");
         }
 
         [Fact]
-        public void TheImage_ShouldRunNginxInFrontOfTheApi()
+        public void TheImage_ShouldRunOneProcessAndNoEntrypoint()
         {
+            // Everything the entrypoint supervised (a second process, a rendered web-server
+            // configuration, a port-collision guard) exists only because there were two
+            // processes. One process needs none of it.
+            //
+            // The check runs against the instructions only: this file explains at length what
+            // was removed, and a plain "does it contain nginx" check is satisfied by that
+            // prose - the same false negative the workflow guards run into.
+            var instructions = DockerfileInstructions(Dockerfile());
+
+            foreach (var removed in new[] { "nginx", "tini", "entrypoint" })
+            {
+                instructions.Should().NotContain(
+                    removed,
+                    $"{removed} is part of the two-process layout: the Server serves the SPA "
+                    + "itself, so there is nothing for a front door or an init process to do");
+            }
+
+            // The dev image is dockered from this one, so the folder stays - but the entrypoint
+            // scripts it used to hold are gone.
+            foreach (var script in new[] { "entrypoint.sh", "dev-entrypoint.sh" })
+            {
+                File.Exists(Path.Combine(RepoRoot(), "docker", script)).Should().BeFalse(
+                    $"{script} supervised the second process; there is no second process");
+            }
+
+            instructions.Should().Contain(
+                "ENTRYPOINT [\"dotnet\", \"EasyFinance.Server.dll\"]",
+                "Kestrel is PID 1 of the container, so a stop reaches it directly");
+        }
+
+        [Fact]
+        public void TheImage_ShouldListenOnOnePort()
+        {
+            // The port the deployment already targets: the k8s probes and `docker run -p
+            // 8080:8080` from the docs. The SPA and /api share it because they share the
+            // process.
             var dockerfile = Dockerfile();
 
             dockerfile.Should().Contain(
-                "econoflow-entrypoint",
-                "the container needs the entrypoint that starts and supervises both services");
+                "ASPNETCORE_HTTP_PORTS=8080",
+                "Kestrel is the container's only listener, on the published port");
+        }
 
-            // The API's binding is applied by the entrypoint, not as an ENV in the Dockerfile:
-            // the entrypoint is what knows the port and starts Kestrel on it. Being an ENV
-            // would also let an operator widen it to 0.0.0.0, exposing the API next to nginx.
-            Entrypoint().Should().Contain(
-                "ASPNETCORE_URLS=\"http://127.0.0.1:${API_PORT}\"",
-                "Kestrel must bind the loopback interface, so only nginx is reachable");
+        [Fact]
+        public void TheImage_ShouldRunOnTheAlpineRuntime()
+        {
+            // The ASP.NET runtime image shipped in place of the Debian one. The Alpine variant
+            // carries no time-zone database and no ICU, which is why the image takes the
+            // `-extra` tag - see AlpineRuntimeTests for why the application needs both.
+            var instructions = DockerfileInstructions(Dockerfile());
+
+            instructions.Should().Contain(
+                "FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine-extra",
+                "the runtime stage must be the small Alpine variant");
+        }
+
+        [Fact]
+        public void TheImage_ShouldProbeTheSpaAndTheApi()
+        {
+            // One probe is enough for a single process, but it has to prove both halves: a
+            // live Kestrel answers /api/health/live even when the SPA was never copied into
+            // wwwroot, and the container would then look healthy while every page 404s.
+            var instructions = DockerfileInstructions(Dockerfile());
+
+            instructions.Should().Contain(
+                "HEALTHCHECK",
+                "the image must declare a health check so the deployment can tell a dead "
+                + "instance from a live one");
+
+            var healthcheck = instructions
+                .Split('\n')
+                .FirstOrDefault(line => line.TrimStart().StartsWith("CMD", StringComparison.Ordinal))
+                ?? string.Empty;
+
+            healthcheck.Should().Contain(
+                "/api/health/live",
+                "the probe must prove the API answers");
+
+            healthcheck.Should().Contain(
+                "/index.html",
+                "and that the SPA shell is served, which a healthy API alone does not prove");
+        }
+
+        [Fact]
+        public void TheImage_ShouldDropRoot()
+        {
+            // The published application writes attachments under its base directory and needs
+            // nothing else; running as the image's own APP_UID keeps that writable without
+            // handing the process root.
+            var dockerfile = Dockerfile();
 
             dockerfile.Should().Contain(
-                "EXPOSE 8080",
-                "nginx listens on 8080 and is the container's only public port");
+                "USER $APP_UID",
+                "the runtime user is the non-root one declared by the ASP.NET image");
 
+            // The base directory has to belong to that user or applying the EF migrations
+            // cannot write and every upload turns into a 500.
             dockerfile.Should().Contain(
-                "tini",
-                "an init process is what stops both services on a container stop and "
-                + "propagates either one exiting");
+                "chown -R \"$APP_UID\"",
+                "the published application must be owned by the runtime user");
         }
 
         [Fact]
-        public void Nginx_ShouldServeDeepLinksFromTheSpaShell()
+        public void TheDevImage_ShouldDifferFromTheReleaseImageOnlyWhereDevelopmentNeedsIt()
         {
-            Entrypoint().Should().MatchRegex(
-                @"try_files\s+\\\$uri\s+\\\$uri/index\.html\s+/index\.html",
-                "an Angular route has no file of its own; without the index.html fallback "
-                + "every hard refresh on a deep link answers 404");
-        }
-
-        [Fact]
-        public void Nginx_ShouldProxyTheApiToTheLoopbackApi()
-        {
-            var conf = Entrypoint();
-
-            conf.Should().Contain(
-                "proxy_pass http://econoflow_api/api/",
-                "the SPA calls /api on its own origin; nginx is what forwards that to Kestrel");
-
-            conf.Should().Contain(
-                "server 127.0.0.1:${API_PORT}",
-                "the upstream must be the loopback API, on the port the entrypoint gives Kestrel");
-        }
-
-        [Fact]
-        public void Nginx_ShouldForwardTheProxiedScheme()
-        {
-            // The application enables Hsts() and UseHttpsRedirection() and honours
-            // UseForwardedHeaders. Without X-Forwarded-Proto every request looks like plain
-            // HTTP, so the API would redirect the SPA's own API calls to https://...:443.
-            Entrypoint().Should().Contain(
-                "proxy_set_header X-Forwarded-Proto \\$scheme",
-                "the API must see the scheme the browser used, not the internal hop");
-        }
-
-        [Fact]
-        public void Nginx_ShouldNeverCacheTheServiceWorkersOrTheShell()
-        {
-            // A cached index.html or service worker pins an installed PWA to the previous
-            // deploy: the app would keep loading stale hashed bundles forever.
-            var conf = Entrypoint();
-
-            foreach (var protectedPath in new[] { "/index.html", "/ngsw-worker.js", "/ngsw.json", "/service-worker.js" })
-            {
-                conf.Should().Contain(
-                    protectedPath,
-                    $"{protectedPath} must be addressed explicitly so it can be marked no-store");
-            }
-
-            Regex.Matches(conf, @"add_header Cache-Control ""no-store""")
-                .Count.Should().BeGreaterThanOrEqualTo(
-                    4,
-                    "each of the shell and the three service-worker entry points must be no-store");
-        }
-    }
-
-    /// <summary>
-    /// Guards the two processes inside the image against each other's ports.
-    ///
-    /// <para>
-    /// nginx is the container's front door and Kestrel runs behind it <i>in the same
-    /// container</i>, so the API's loopback port must differ from the port nginx listens
-    /// on. When the two defaults collided, both processes were started against 8080,
-    /// nginx won the bind, and Kestrel died at start-up with
-    /// <c>Failed to bind to address http://127.0.0.1:8080: address already in use</c> -
-    /// a message that blames a port and says nothing about the real problem.
-    /// </para>
-    ///
-    /// <para>
-    /// The collision is invisible in review because each number looks reasonable on its
-    /// own: 8080 is the app's public port, and 8080 is also the default application port.
-    /// It is only visible by comparing the two defaults, which is what these tests do.
-    /// </para>
-    /// </summary>
-    public class ContainerPortAllocationTests
-    {
-        private static string RepoRoot()
-        {
-            var directory = new DirectoryInfo(AppContext.BaseDirectory);
-
-            while (directory != null)
-            {
-                if (File.Exists(Path.Combine(directory.FullName, "EasyFinance.sln")))
-                    return directory.FullName;
-
-                directory = directory.Parent;
-            }
-
-            throw new InvalidOperationException(
-                $"Could not locate the repository root above '{AppContext.BaseDirectory}'.");
-        }
-
-        private static string Read(params string[] parts) =>
-            File.ReadAllText(Path.Combine([RepoRoot(), .. parts]));
-
-        private static string Dockerfile() => Read("Dockerfile");
-
-        private static string Entrypoint() => Read("docker", "entrypoint.sh");
-
-        private static string DevEntrypoint() => Read("docker", "dev-entrypoint.sh");
-
-        /// <summary>
-        /// The value a <c>NAME="${OVERRIDE:-fallback}"</c> assignment resolves to.
-        /// </summary>
-        private static int PortDefault(string script, string variable, string file)
-        {
-            var match = Regex.Match(
-                script,
-                $@"(?m)^\s*{Regex.Escape(variable)}=""\$\{{[A-Za-z_]+:-(\d+)\}}""");
-
-            match.Success.Should().BeTrue(
-                $"{file} must assign {variable} from an environment override with a default");
-
-            return int.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
-        }
-
-        [Fact]
-        public void TheApiAndNginx_ShouldNotShareAPortByDefault()
-        {
-            // With no operator override both defaults apply, so this is the arrangement
-            // every deployment gets. Equal values mean the API can never start.
-            var apiPort = PortDefault(Entrypoint(), "API_PORT", "docker/entrypoint.sh");
-            var nginxPort = PortDefault(Entrypoint(), "NGINX_PORT", "docker/entrypoint.sh");
-
-            apiPort.Should().NotBe(
-                nginxPort,
-                "nginx and Kestrel share one network namespace; on the same port the second "
-                + "bind fails and the container exits before it can ever become ready");
-        }
-
-        [Fact]
-        public void TheApi_ShouldBindTheLoopbackInterfaceOnAPortOfItsOwn()
-        {
-            var apiPort = PortDefault(Entrypoint(), "API_PORT", "docker/entrypoint.sh");
-
-            // The exact lines, not a pattern: the port Kestrel binds and the port nginx
-            // proxies to must come from the same variable, or an override creates a
-            // mismatch in one place and not the other.
-            Entrypoint().Should().Contain(
-                "ASPNETCORE_URLS=\"http://127.0.0.1:${API_PORT}\"");
-
-            Entrypoint().Should().Contain(
-                "server 127.0.0.1:${API_PORT}");
-
-            apiPort.Should().NotBe(
-                8080,
-                "8080 is nginx's public listen port; the API behind it needs a port of its own");
-        }
-
-        [Fact]
-        public void Nginx_ShouldKeepListeningOnThePublishedPort()
-        {
-            // The image's published contract is 8080: the deployment repo's containerPort
-            // and probes use it, and the docs' `docker run -p 8080:8080` relies on it. That
-            // port is fixed, so the API is the side that moves when they would collide.
-            PortDefault(Entrypoint(), "NGINX_PORT", "docker/entrypoint.sh")
-                .Should().Be(8080, "8080 is the image's published port");
-
-            Dockerfile().Should().Contain("EXPOSE 8080");
-        }
-
-        /// <summary>
-        /// The healthcheck command line, narrowed to the line that carries the probe.
-        /// </summary>
-        private static string HealthcheckCommand(string dockerfile)
-        {
-            // The command may be split over lines with a trailing backslash, so search all
-            // of the CMD / HEALTHCHECK text rather than a single trimmed line.
-            var lines = dockerfile
-                .Split('\n', StringSplitOptions.None)
-                .Select(line => line.Trim())
-                .Where(line => line.Contains("health/live", StringComparison.Ordinal)
-                    || line.StartsWith("CMD", StringComparison.Ordinal));
-
-            var command = string.Join(" ", lines);
-
-            command.Should().NotBeEmpty("the image must declare a healthcheck that probes the API");
-
-            return command;
-        }
-
-        [Fact]
-        public void TheImageHealthcheck_ShouldProbeThePortNginxListensOn()
-        {
-            // Two failures are guarded here, and only the strong one survives an override:
-            //
-            //   * a probe on a port nginx does not listen on at all (the start-up bug seen
-            //     one step later in the container's life), and
-            //   * a probe that spells the default out, so ECONOFLOW_NGINX_PORT moves nginx
-            //     and leaves the container reporting itself unhealthy while serving fine -
-            //     a knob docs/docker.md advertises.
-            var nginxPort = PortDefault(Entrypoint(), "NGINX_PORT", "docker/entrypoint.sh");
-            var command = HealthcheckCommand(Dockerfile());
-
-            // The strong property: the port is read from the environment, not typed in.
-            var marker = "$" + "{ECONOFLOW_NGINX_PORT";
-
-            command.Should().Contain(
-                marker,
-                "the probe must follow ECONOFLOW_NGINX_PORT; a typed-in port stops being right "
-                + "the moment the entrypoint's default or an override changes it");
-
-            nginxPort.Should().Be(
-                8080,
-                "the entrypoint's default is asserted here too, so a change to either side of "
-                + "the contract is caught rather than only the difference between them");
-        }
-
-        [Fact]
-        public void TheDevStack_ShouldKeepItsThreeListenersOnDistinctPorts()
-        {
-            // The Cypress stack runs three listeners in one container: nginx for the SPA,
-            // nginx again for the API's own port, and Kestrel upstream of both. Any two
-            // sharing a default is the same start-up failure this class guards.
-            var spaPort = PortDefault(DevEntrypoint(), "SPA_PORT", "docker/dev-entrypoint.sh");
-            var apiPort = PortDefault(DevEntrypoint(), "API_PORT", "docker/dev-entrypoint.sh");
-            var upstreamPort = PortDefault(
-                DevEntrypoint(), "API_UPSTREAM_PORT", "docker/dev-entrypoint.sh");
-
-            new[] { spaPort, apiPort, upstreamPort }
-                .Should().OnlyHaveUniqueItems(
-                    "each listener binds its own socket in the same container");
-        }
-
-        [Fact]
-        public void TheDevStack_ShouldWireEachVariableToItsOwnListener()
-        {
-            // Distinct defaults are not enough: swapping two of these variables keeps all
-            // three unique while pointing Kestrel and nginx at each other's ports. Each
-            // listener must name the variable that describes it.
-            var dev = DevEntrypoint();
+            // The two Dockerfiles described the same layout twice, and drifted: one set of
+            // tests guarded nginx in the release image while another guarded it in the dev
+            // image. Docker cannot share stages across Dockerfiles - only another image's
+            // final stage can be imported - so the stages are repeated on purpose, and the
+            // guards below are what keep the repetition honest: same runtime, same ports
+            // scheme, and nothing between the browser and Kestrel in either image.
+            var dev = Read("docker", "Dockerfile.dev");
+            var release = Read("Dockerfile");
 
             dev.Should().Contain(
-                "listen ${SPA_PORT}",
-                "the SPA origin is the server block nginx serves the shell on");
+                "ASPNETCORE_ENVIRONMENT=Development",
+                "Development is what seeds the fixtures and replaces e-mail with a no-op sender");
 
             dev.Should().Contain(
-                "listen ${API_PORT}",
-                "the API's own server block is what tools reach on 7003");
+                "-p:DefineConstants=DEBUG",
+                "a Release build without DEBUG turns GenericRepository.Insert into a no-op");
+
+            // Both images run the same base images and the same bundle pipeline. A dev image
+            // built from a different runtime is a stack whose behaviour differs from the
+            // deployed one in ways nobody is testing.
+            dev.Should().Contain(
+                "mcr.microsoft.com/dotnet/aspnet:10.0-alpine-extra",
+                "the Development image must run the runtime the release image ships");
 
             dev.Should().Contain(
-                "ASPNETCORE_URLS=\"http://127.0.0.1:${API_UPSTREAM_PORT}\"",
-                "Kestrel must bind the port nginx proxies to, not one of the listen ports");
+                "ng build --configuration production",
+                "the stack serves the bundle the release image serves");
 
-            dev.Should().Contain(
-                "server 127.0.0.1:${API_UPSTREAM_PORT}",
-                "the upstream must be the port Kestrel actually binds");
-        }
+            // No second process in the dev image either: the reason nginx was removed applies
+            // twice over in a stack that is meant to behave like production.
+            DockerfileInstructions(dev).Should().NotContain(
+                "nginx",
+                "the SPA is served by the server itself in both images");
 
-        [Fact]
-        public void TheDevHealthchecks_ShouldProbePortsThatActuallyServe()
-        {
-            // The healthcheck is the other place the API's port is written down, in a
-            // different file from the entrypoint. When it named the old 8080 it probed a
-            // port nothing listens on, so the stack would have reported itself unhealthy
-            // while serving requests normally.
-            //
-            // Both probes are pinned to their literal port as well as to the entrypoint's
-            // value: an assertion that compares the file against the same variable it reads
-            // the number from passes for ANY number, including one nothing binds. The literals
-            // are what turn a dead port into a failure.
-            var devEntrypoint = DevEntrypoint();
-            var upstreamPort = PortDefault(devEntrypoint, "API_UPSTREAM_PORT", "docker/dev-entrypoint.sh");
-            var spaPort = PortDefault(devEntrypoint, "SPA_PORT", "docker/dev-entrypoint.sh");
-
-            foreach (var (file, contents) in new[]
-            {
-                ("docker/Dockerfile.dev", Read("docker", "Dockerfile.dev")),
-                ("docker-compose.dev.yml", Read("docker-compose.dev.yml")),
-            })
-            {
-                contents.Should().Contain(
-                    $"${{ECONOFLOW_NGINX_PORT:-{spaPort}",
-                    $"{file}: the SPA probe must follow ECONOFLOW_NGINX_PORT, so moving the "
-                    + "SPA origin moves the probe with it");
-
-                contents.Should().Contain(
-                    $"127.0.0.1:{upstreamPort}/api/health/live",
-                    $"{file}: the API probe must target Kestrel, which the entrypoint starts on "
-                    + $"{upstreamPort}; a probe on any other port never answers");
-            }
-
-            // The two numbers the probes spell out must be the ones the entrypoint uses.
-            // This is what catches the port moving in one file and not the other.
-            upstreamPort.Should().Be(8081, "Kestrel's port in this stack");
-            spaPort.Should().Be(4200, "the SPA origin in this stack");
-        }
-
-        [Fact]
-        public void TheDevEntrypoint_ShouldRejectAnOverrideThatCollidesThePorts()
-        {
-            // The three-way analogue of the release-entrypoint guard. Without it, pointing
-            // any two of the three variables at one port reproduces the original start-up
-            // failure, and the operator sees only whichever process lost the bind.
-            var devEntrypoint = DevEntrypoint();
-
-            foreach (var (left, right) in new[]
-            {
-                ("SPA_PORT", "API_PORT"),
-                ("SPA_PORT", "API_UPSTREAM_PORT"),
-                ("API_PORT", "API_UPSTREAM_PORT"),
-            })
-            {
-                devEntrypoint.Should().Contain(
-                    $"${{{left}}}\" = \"${{{right}}}",
-                    $"the {left} and {right} collision must be detected");
-            }
-
-            // The check must run before either process is started, or the failure it is
-            // meant to explain has already happened.
-            var guard = devEntrypoint.IndexOf("\"${SPA_PORT}\" = \"${API_PORT}\"", StringComparison.Ordinal);
-            var apiStart = devEntrypoint.IndexOf("dotnet EasyFinance.Server.dll", StringComparison.Ordinal);
-            var nginxStart = devEntrypoint.IndexOf(
-                "nginx -c /usr/share/nginx/econoflow-main.conf", StringComparison.Ordinal);
-
-            guard.Should().BeGreaterThan(-1);
-            guard.Should().BeLessThan(apiStart, "the check must precede starting the API");
-            guard.Should().BeLessThan(nginxStart, "the check must precede starting nginx");
-        }
-
-        [Fact]
-        public void TheReleaseEntrypointGuard_ShouldBeTestedAgainstTheSameVariablesItUses()
-        {
-            // The release guard compares NGINX_PORT with API_PORT, so a collision set through
-            // ECONOFLOW_NGINX_PORT / ECONOFLOW_API_PORT is caught at start-up. Assert that
-            // the comparisons are on those two variables and no others: a guard that
-            // compared, say, NGINX_PORT with itself would be vacuous.
-            var entrypoint = Entrypoint();
-
-            entrypoint.Should().Contain(
-                "\"${NGINX_PORT}\" = \"${API_PORT}\"",
-                "the guard must compare the two ports that are actually bound");
-
-            PortDefault(entrypoint, "NGINX_PORT", "docker/entrypoint.sh")
-                .Should().NotBe(PortDefault(entrypoint, "API_PORT", "docker/entrypoint.sh"));
-        }
-
-        [Fact]
-        public void TheEntrypoint_ShouldRejectAnOverrideThatCollidesThePorts()
-        {
-            // Setting both variables to one value is the other way to reach the failure,
-            // and the operator doing it cannot see the consequence: they are changing a
-            // port, not removing a process. Refusing to start names the cause instead.
-            var entrypoint = Entrypoint();
-
-            entrypoint.Should().MatchRegex(
-                @"if\s+\[\s*""\$\{NGINX_PORT\}""\s*=\s*""\$\{API_PORT\}""\s*\]",
-                "the entrypoint must detect the collision before starting either process");
-
-            // The check must run before the first service is launched, or the API has
-            // already failed by the time it is made.
-            var guard = entrypoint.IndexOf("${NGINX_PORT}\" = \"${API_PORT}", StringComparison.Ordinal);
-            var apiStart = entrypoint.IndexOf("dotnet EasyFinance.Server.dll", StringComparison.Ordinal);
-            var nginxStart = entrypoint.IndexOf(
-                "nginx -c /usr/share/nginx/econoflow-main.conf", StringComparison.Ordinal);
-
-            guard.Should().BeGreaterThan(-1);
-            guard.Should().BeLessThan(apiStart, "the check must precede starting the API");
-            guard.Should().BeLessThan(nginxStart, "the check must precede starting nginx");
+            release.Should().NotContain(
+                "DefineConstants=DEBUG",
+                "DEBUG is a Development-only define");
         }
     }
 
@@ -626,15 +403,7 @@ namespace EasyFinance.Server.Tests
     /// against it — but it exported no <c>EasyFinanceDB</c>, so the job ran in
     /// Development against the <i>in-memory</i> store. PostgreSQL is the only database
     /// the application has, so the end-to-end suite could not detect a PostgreSQL
-    /// regression at all: the month-scoping defects found while consolidating the
-    /// persistence layer pass in CI because the in-memory fixtures carry different
-    /// dates.
-    /// </para>
-    ///
-    /// <para>
-    /// These are assertions on the workflow file because the alternative — starting a
-    /// container and a host inside a unit test — would put a database in every developer's
-    /// test run to prove something the YAML already states.
+    /// regression at all.
     /// </para>
     /// </summary>
     public class CypressWorkflowDatabaseTests

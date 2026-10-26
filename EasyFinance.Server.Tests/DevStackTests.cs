@@ -55,6 +55,22 @@ namespace EasyFinance.Server.Tests
         private static string DevImage() => Read("docker", "Dockerfile.dev");
 
         /// <summary>
+        /// The image definition with its comment lines removed.
+        ///
+        /// <para>
+        /// Load-bearing: both Dockerfiles explain in prose what was removed and why, so a plain
+        /// "does it contain nginx" check is answered by the explanation. These guards are about
+        /// what the build runs.
+        /// </para>
+        /// </summary>
+        private static string DevImageInstructions() =>
+            string.Join(
+                "\n",
+                DevImage()
+                    .Split('\n')
+                    .Where(line => !line.TrimStart().StartsWith("#", StringComparison.Ordinal)));
+
+        /// <summary>
         /// The compose file with its comments stripped.
         ///
         /// <para>
@@ -184,6 +200,28 @@ namespace EasyFinance.Server.Tests
         }
 
         [Fact]
+        public void Compose_ShouldPublishTwoPortsOfOneProcess()
+        {
+            // Both published ports belong to the single Kestrel process: the SPA and /api share
+            // one origin on 4200, and the API answers on 7003 as well so `curl` and the mobile
+            // emulator reach the endpoints without a proxy in between. It used to be two
+            // listeners of nginx in front of a third (Kestrel on 8081), which is why the
+            // compose file carried a port that nothing published.
+            var compose = ComposeWithoutComments();
+
+            compose.Should().NotContain(
+                "8081",
+                "there is no hidden backend port any more; 8081 was Kestrel's while nginx "
+                + "owned the published ones");
+
+            // The proxy in between is gone, so nothing configures an nginx upstream any more:
+            // the API port is Kestrel's own listen port.
+            Compose().Should().NotContain(
+                "API" + "_PORT=" + "7003",
+                "7003 is a listen port now, not the port of an upstream behind another server");
+        }
+
+        [Fact]
         public void Compose_ShouldKeepTheDatabaseAndUploads()
         {
             // A `docker compose up` must not discard the sample data or the uploaded
@@ -249,59 +287,64 @@ namespace EasyFinance.Server.Tests
         {
             var dockerfile = DevImage();
 
+            // Docker cannot share stages across Dockerfiles, so the client stage is repeated -
+            // but it is the SAME command against the same lockfile, and the bundle goes to
+            // wwwroot where the server serves it. What must not come back is a second server
+            // owning the origin.
             dockerfile.Should().Contain(
                 "ng build --configuration production",
                 "the stack should serve the browser bundle the release image serves");
 
             dockerfile.Should().Contain(
-                "dist/easyfinance.client/browser/",
-                "the browser bundle is what the web server serves");
+                "/app/wwwroot/",
+                "the SPA's own origin is the server's web root, or the browser cannot reach /api");
 
-            // The Angular client calls the API with bare /api URLs and relies on sharing an
-            // origin with it. The stack preserves that, so nothing on the client needs a
-            // stack-specific configuration and the suite works unchanged.
-            Read("docker", "dev-entrypoint.sh").Should().Contain(
-                "proxy_pass http://econoflow_api/api/",
-                "the SPA's own origin must answer /api, or the browser cannot call it");
+            DevImageInstructions().Should().NotContain(
+                "nginx",
+                "no proxy sits between the browser and Kestrel");
         }
 
         [Fact]
         public void DevelopmentImage_ShouldShipAFullTimeZoneDatabase()
         {
             // The clock decides which month "today" falls in, and the seeded and
-            // browser-created data is dated relative to it. A container without the time zone
-            // database (the alpine runtime) cannot resolve its TZ, silently runs on UTC, and
-            // dates land in the wrong month for part of every day in time zones ahead of it.
-            DevImage().Should().NotContain(
-                "mcr.microsoft.com/dotnet/aspnet:10.0-alpine",
-                "the alpine runtime has no tzdata, which shifts every date relative to 'now'");
+            // browser-created data is dated relative to it. The plain Alpine runtime cannot
+            // resolve its TZ (no zone database) and silently runs on UTC, so dates land in the
+            // wrong month for part of every day in zones ahead of it. The -extra variant is
+            // what carries the database, and the dev image has to use it too.
+            DevImage().Should().Contain(
+                "alpine-extra",
+                "the Alpine runtime has no time-zone database, and the image is Alpine now");
         }
 
         [Fact]
-        public void DevelopmentImage_ShouldExposeThePortsTheComposeFilePublishes()
+        public void DevelopmentImage_ShouldListenOnThePortsTheComposeFilePublishes()
         {
             // Publishing a port the container does not listen on fails at request time
             // instead of at `up` time, which is much harder to diagnose. These two are
-            // exactly the ports the compose file publishes, and both are nginx: 4200 the
-            // SPA origin, 7003 the API's own port. Kestrel's port is not exposed - it is
-            // reachable only through the proxy.
+            // exactly the ports the compose file publishes. Both are bound by the same
+            // Kestrel process: 4200 the SPA origin, 7003 the API's own port.
             var devImage = DevImage();
+
+            devImage.Should().Contain(
+                "ASPNETCORE_URLS=http://+:4200;http://+:7003",
+                "Kestrel binds both published ports; nothing proxies to it any more");
 
             devImage.Should().Contain(
                 "EXPOSE 4200 7003",
                 "4200 is the SPA origin; 7003 is the API port compose publishes");
 
             devImage.Should().NotContain(
-                "EXPOSE 4200 8080",
-                "no process in this container listens on 8080 since Kestrel moved to 8081");
+                "8081",
+                "8081 was Kestrel's port behind nginx, which no longer exists");
         }
 
         [Fact]
         public void DevelopmentImage_ShouldCreateTheAttachmentsDirectory()
         {
             // The FileSystem attachment provider writes its files but does not create the
-            // directory, and the image runs as a non-root user. A missing, unowned directory
-            // turns every upload into a 500.
+            // directory, and the image runs as the base image's non-root user. A missing,
+            // unowned directory turns every upload into a 500.
             var dockerfile = DevImage();
 
             dockerfile.Should().Contain(
@@ -309,7 +352,7 @@ namespace EasyFinance.Server.Tests
                 "the provider expects the directory to exist");
 
             dockerfile.Should().Contain(
-                "chown 1654:1654 /app/attachments",
+                "chown -R \"$APP_UID\" /app /app/attachments",
                 "the runtime user must be able to write there");
         }
 
