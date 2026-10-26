@@ -1,10 +1,11 @@
 Contact: mailto:contact@econoflow.pt
-Expires: 2027-12-31T23:59:59.000Z
-Preferred-Languages: en, pt
+Expires: 2027-10-01T23:59:59.000Z
+Preferred-Languages: en,pt
 Canonical: https://econoflow.pt/.well-known/security.txt
 Policy: https://github.com/FelipePSoares/EconoFlow/blob/master/SECURITY.md
+Bug-Bounty: False
 
-# EconoFlow (Regulation (EU) 2024/2847, Cyber Resilience Act) — coordinated
+# EconoFlow (Regulation (EU) 2024/2847, Cyber Resilience Act) - coordinated
 # vulnerability disclosure contact.
 #
 # This file is served at https://econoflow.pt/.well-known/security.txt and is
@@ -13,5 +14,9 @@ Policy: https://github.com/FelipePSoares/EconoFlow/blob/master/SECURITY.md
 # exploited vulnerabilities to the relevant CSIRT through ENISA's Single
 # Reporting Platform within 24 hours of becoming aware.
 #
-# Review the Expires field every year. RFC 9116 treats this file as stale after
-# the date below, and scripts/cra-compliance.test.mjs fails once it has passed.
+# Review the Expires field every year. RFC 9116 recommends an expiry less than a
+# year out and treats the file as stale after the date below, so
+# scripts/cra-compliance.test.mjs fails once it has passed or moved beyond a
+# year. Keep this file pure ASCII and the field values free of whitespace: the
+# RFC 9116 grammar permits neither a space after the comma in
+# Preferred-Languages nor non-ASCII in a field value.

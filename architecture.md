@@ -932,12 +932,21 @@ product?" inside the 24-hour window requires knowing what the product contains.
 | Artefact | Purpose | Guarded by |
 |----------|---------|-----------|
 | `SECURITY.md` | Coordinated vulnerability disclosure policy (Annex I, Part II, point 2) | `scripts/cra-compliance.test.mjs` |
-| `easyfinance.client/src/.well-known/security.txt` | RFC 9116 reporting channel, served at `/.well-known/security.txt` | same |
+| `easyfinance.client/src/.well-known/security.txt` | RFC 9116 reporting channel, served at `/.well-known/security.txt` | same (ABNF shape, expiry horizon, ASCII-only) |
 | `docs/cra-incident-reporting.md` | Article 14 runbook and report templates | same |
 | `scripts/generate-sbom.mjs` | Release SBOM | same |
 
 These run in the `script-tests` job on every pull request via
 `node --test "scripts/*.test.mjs"`.
+
+`security.txt` is held to the RFC 9116 ABNF rather than to "the fields look plausible".
+Three rules are easy to break by hand and are asserted directly: `Expires` stays less than
+a year out (section 2.5.5 — a date beyond that horizon is nobody's reminder, so the file
+rots), `Preferred-Languages` carries no whitespace after its comma (the unsigned
+`lang-values` production has none), and the file is pure ASCII (comments may legally carry
+Unicode, but a file that declares no charset of its own should not depend on an encoding
+guess). Neither `Canonical` nor a PGP signature is required here: the file is unsigned, so
+`Canonical` records the served URL without claiming tamper protection.
 
 One more guard is PowerShell, because it is about NuGet configuration rather than a
 CRA artefact, so it sits outside that glob:
