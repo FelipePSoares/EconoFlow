@@ -7,8 +7,8 @@ using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.Features.AttachmentService;
 using EasyFinance.Domain.Financial;
 using FluentAssertions;
-using Moq;
 using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace EasyFinance.Application.Tests
 {

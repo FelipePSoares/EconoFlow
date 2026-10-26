@@ -1,15 +1,11 @@
+import { dayOfMonth, IsolatedProject, Month, monthOf } from '../../support/isolated-project';
+
 describe('EconoFlow - expense item list Tests', () => {
   interface ExpensePatchOperation {
     op: string;
     path: string;
     value?: boolean | number | string | string[] | null;
   }
-
-  const buildDateVariants = (value: Date, locale: string): string[] => {
-    const fullYear = value.toLocaleDateString(locale, { year: 'numeric', month: 'numeric', day: 'numeric' });
-    const shortYear = value.toLocaleDateString(locale, { year: '2-digit', month: 'numeric', day: 'numeric' });
-    return Array.from(new Set([fullYear, shortYear]));
-  };
 
   const toDateKey = (value: unknown): string | null => {
     if (!value) {
@@ -24,11 +20,33 @@ describe('EconoFlow - expense item list Tests', () => {
     return `${parsed.getFullYear()}-${parsed.getMonth()}-${parsed.getDate()}`;
   };
 
-  let selectedExpenseId = '';
-  let editedExpenseItemId = '';
+  /**
+   * A date as the material datepicker input accepts it.
+   *
+   * The input renders `M/D/YYYY` for en (it shows `10/8/2026`); typing any other order
+   * leaves the control invalid, no PATCH is sent, and the test then fails on a missing
+   * request instead of on the behaviour it checks.
+   */
+  const typedDate = (month: Month, day: number): string =>
+    new Date(month.year, month.month - 1, day)
+      .toLocaleDateString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric' });
+
+  /**
+   * The project, category and expense this spec works on.
+   *
+   * It used to open the seeded "Family" project and look for an expense called
+   * "Groceries", editing "the last item" of it. Every test then depended on how many
+   * items that shared expense happened to have and on their order - and the earlier
+   * tests in this file were themselves adding, re-dating and renaming items.
+   */
+  let projectId = '';
+  let categoryId = '';
+  let expenseId = '';
+  let itemIds: string[] = [];
+  let thisMonth: Month;
 
   beforeEach(() => {
-    cy.intercept('GET', '**/expenses?*').as('getExpense')
+    thisMonth = monthOf(new Date());
 
     cy.fixture('users').then((users) => {
       const user = users.testUser;
@@ -36,47 +54,44 @@ describe('EconoFlow - expense item list Tests', () => {
       cy.intercept('PATCH', '**/expenses/*').as('patchExpenses')
       cy.login(user.username, user.password)
 
-      cy.fixture('projects').then((projects) => {
-        const project = projects.defaultProject;
-        cy.fixture('categories').then((categories) => {
-          cy.fixture('expenses').then((expenses) => {
-            const defaultExpense = expenses.defaultExpense;
-            const category = categories.defaultCategory;
+      // One expense dated the 8th, then its two items added the way the application adds
+      // them: a PATCH whose `items` array is the full list. Creating an expense with
+      // nested `items` is rejected (the items carry their creator as a required field),
+      // so this follows the path the UI itself uses.
+      cy.createIsolatedProject([], { days: [{ month: thisMonth, day: 8 }] }).then((project: IsolatedProject) => {
+        projectId = project.id;
+        categoryId = project.category.id;
+        expenseId = project.expenses[0].id;
 
-            cy.visit('/projects/' + project.id + '/categories/' + category.id + '/expenses')
+        cy.request('PATCH', `/api/Projects/${projectId}/Categories/${categoryId}/Expenses/${expenseId}`, [
+          {
+            op: 'add',
+            path: '/items',
+            value: [
+              { name: 'First item', date: dayOfMonth(thisMonth, 9), amount: 100 },
+              { name: 'Second item', date: dayOfMonth(thisMonth, 10), amount: 200 }
+            ]
+          }
+        ]).then(({ status, body }) => {
+          expect(status, 'adding the expense items').to.equal(200);
 
-            cy.wait<ExpenseReq, ExpenseRes[]>('@getExpense').then(({ response }) => {
-              console.log(response?.body);
-              const index = response?.body.findIndex(element => element.name === defaultExpense.name);
-              const selectedExpense = index !== undefined && index > -1
-                ? response?.body[index]
-                : undefined;
+          itemIds = (body.items as { id: string }[]).map(item => item.id);
+          expect(itemIds, 'the expense has its two items').to.have.length(2);
 
-              selectedExpenseId = selectedExpense?.id ?? '';
-              editedExpenseItemId = selectedExpense?.items?.at(-1)?.id ?? '';
+          cy.visit(`/projects/${projectId}/categories/${categoryId}/expenses`);
 
-              cy.get('.btn-link').eq(index).click()
-            })
-          })
+          // Expand the expense once the list has settled.
+          //
+          // The loading overlay can appear *after* the rows do - the page renders, then a
+          // background refresh starts, and the overlay covers the row again. Waiting for the
+          // spinner to be absent and for the row to exist does not cover that order, and the
+          // click lands under the overlay ("is being covered by another element").
+          cy.clickWhenLoaderGone('.btn-link')
+
+
         })
       })
     })
-  })
-
-  afterEach(function () {
-    if (this.currentTest.title === 'should update date after success update') {
-      if (new Date().getDate() == 1) {
-        let formattedDate = ''
-        cy.get('button[name=edit]').first().click()
-        const today = new Date()
-
-        cy.window().then((win) => {
-          const locale = win.localStorage.getItem('language-key') || win.navigator.language || 'en-US'
-          formattedDate = today.toLocaleDateString(locale)
-          cy.get('input[formControlName=date]').clear().type(`${formattedDate}{enter}`)
-        })
-      }
-    }
   })
 
   it('should update name after success update', () => {
@@ -86,73 +101,57 @@ describe('EconoFlow - expense item list Tests', () => {
     cy.intercept('GET', '**/expenses*').as('getExpenses')
     cy.get('input[formControlName=name]').clear().type(`${value}{enter}`)
 
-    cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ response }) => {
+    cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
       expect(response?.statusCode).to.equal(200)
+      expect(request.url, 'the edited expense').to.include(`/expenses/${expenseId}`)
 
       cy.wait('@getExpenses')
 
-      cy.get('.name-sub').contains(`${value}`)
+      cy.get('.name-sub').should('contain', value)
     })
   })
 
   it('should update date after success update', () => {
-    const firstDayCandidate = new Date();
-    firstDayCandidate.setDate(1);
-    const secondDayCandidate = new Date();
-    secondDayCandidate.setDate(2);
+    // The parent expense is on the 8th, so the item can move to the 7th and stay inside the
+    // same month. A date in another month is rejected by the backend - that is the point of
+    // the next test, not of this one.
+    const targetDay = 7;
+    const targetIso = dayOfMonth(thisMonth, targetDay);
 
-    cy.get('button[name=edit-sub]').last().click()
+    cy.get('button[name=edit-sub]').first().click()
 
     cy.intercept('GET', '**/expenses*').as('getExpenses')
 
-    if (new Date().getDate() == 1)
-      cy.get('input[formControlName=amount]').clear().type(`0`)
-
-    cy.window().then((win) => {
-      const locale = win.localStorage.getItem('language-key') || win.navigator.language || 'en-US'
-      const firstDayVariants = buildDateVariants(firstDayCandidate, locale)
-
-      cy.get('input[formControlName=date]').invoke('val').then((currentValue) => {
-        const currentDateValue = String(currentValue ?? '').trim()
-        const shouldUseSecondDay = firstDayVariants.includes(currentDateValue)
-        const targetDate = shouldUseSecondDay ? secondDayCandidate : firstDayCandidate
-
-        cy.get('input[formControlName=date]').clear().type(`${targetDate.toLocaleDateString(locale)}{enter}`)
-      })
-    })
+    cy.get('input[formControlName=date]').clear().type(`${typedDate(thisMonth, targetDay)}{enter}`)
 
     cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
       expect(response?.statusCode).to.equal(200)
-      const operations = request.body as ExpensePatchOperation[];
+      const operations = request.body as unknown as ExpensePatchOperation[];
       const dateOperation = operations.find(operation => /\/items\/\d+\/date$/i.test(operation.path));
-      const expectedDateKey = toDateKey(dateOperation?.value);
 
-      expect(expectedDateKey).to.not.equal(null);
-      expect(selectedExpenseId).to.not.equal('');
-      expect(editedExpenseItemId).to.not.equal('');
+      expect(toDateKey(dateOperation?.value), 'the PATCH carries the date').to.not.equal(null);
+      expect(String(dateOperation?.value).slice(0, 10), 'the PATCH persists the chosen day')
+        .to.equal(targetIso);
 
       cy.wait<ExpenseReq, ExpenseRes[]>('@getExpenses').then(({ response: getExpensesResponse }) => {
-        const updatedExpense = getExpensesResponse?.body.find(expense => expense.id === selectedExpenseId);
-        expect(updatedExpense).to.not.equal(undefined);
-        const updatedItem = updatedExpense?.items.find(item => item.id === editedExpenseItemId) as (ExpenseRes['items'][number] & { date?: string | Date }) | undefined;
-        const updatedDateKey = toDateKey(updatedItem?.date);
-        expect(updatedDateKey).to.equal(expectedDateKey);
+        const updatedExpense = getExpensesResponse?.body.find(expense => expense.id === expenseId);
+        expect(updatedExpense, 'the edited expense').to.not.equal(undefined);
+
+        const updatedItem = updatedExpense?.items.find(item => toDateKey((item as { date?: string | Date }).date) === toDateKey(targetIso));
+        expect(updatedItem, `an item is now dated ${targetIso}`).to.not.equal(undefined);
       })
     })
   })
 
   it('should show error after failed update', () => {
-    const today = new Date()
-    today.setMonth(today.getMonth() + 1);
-    let formattedDate = ''
+    // An expense item cannot be moved to a different month than its parent expense.
+    const nextMonth: Month = thisMonth.month === 12
+      ? { year: thisMonth.year + 1, month: 1 }
+      : { year: thisMonth.year, month: thisMonth.month + 1 };
 
     cy.get('button[name=edit-sub]').first().click()
 
-    cy.window().then((win) => {
-      const locale = win.localStorage.getItem('language-key') || win.navigator.language || 'en-US'
-      formattedDate = today.toLocaleDateString(locale)
-      cy.get('input[formControlName=date]').clear().type(`${formattedDate}{enter}`)
-    })
+    cy.get('input[formControlName=date]').clear().type(`${typedDate(nextMonth, 1)}{enter}`)
 
     cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ response }) => {
       expect(response?.statusCode).to.equal(400)
@@ -182,19 +181,19 @@ describe('EconoFlow - expense item list Tests', () => {
 
     cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
       expect(response?.statusCode).to.equal(200)
-      const operations = request.body as ExpensePatchOperation[];
+      const operations = request.body as unknown as ExpensePatchOperation[];
       const amountOperation = operations.find(operation => /\/items\/\d+\/amount$/i.test(operation.path));
       const targetAmount = Number(amountOperation?.value);
       const itemIndexMatch = amountOperation?.path.match(/\/items\/(\d+)\/amount/i);
       const itemIndex = itemIndexMatch ? Number(itemIndexMatch[1]) : -1;
-      const expenseId = request.url.match(/\/expenses\/([^/?]+)/)?.[1] ?? '';
+      const editedExpenseId = request.url.match(/\/expenses\/([^/?]+)/)?.[1] ?? '';
 
       expect(Number.isFinite(targetAmount)).to.equal(true);
       expect(itemIndex).to.be.greaterThan(-1);
-      expect(expenseId).to.not.equal('');
+      expect(editedExpenseId, 'the edited expense').to.equal(expenseId);
 
       cy.wait<ExpenseReq, ExpenseRes[]>('@getExpenses').then(({ response: getExpensesResponse }) => {
-        const updatedExpense = getExpensesResponse?.body.find(expense => expense.id === expenseId);
+        const updatedExpense = getExpensesResponse?.body.find(expense => expense.id === editedExpenseId);
         expect(updatedExpense).to.not.equal(undefined);
         expect(updatedExpense?.items[itemIndex]?.amount).to.equal(targetAmount);
       })

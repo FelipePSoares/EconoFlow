@@ -1,6 +1,6 @@
 using System.Text.Json;
-using FpsSoftware.Chassis;
 using FluentAssertions;
+using FpsSoftware.Chassis;
 using Serilog.Events;
 using Serilog.Parsing;
 

@@ -45,8 +45,7 @@ namespace EasyFinance.Persistence.DatabaseContext
         /// <para>
         /// Do NOT extend this list casually. <c>citext</c> cannot be combined with
         /// <c>pg_trgm</c> operator classes, so a <c>citext</c> column loses its trigram
-        /// search path — the correct choice is per column, not global
-        /// (<c>docs/postgres-migration/MIGRATION_TEMPLATE.md</c> §0).
+        /// search path — the correct choice is per column, not global.
         /// </para>
         /// </summary>
         public static readonly IReadOnlyList<CaseInsensitiveColumn> CaseInsensitiveTextColumns =

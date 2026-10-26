@@ -27,6 +27,11 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Opt-in switch for the Development fixtures (see the Development branch below): the
+// Cypress suite signs in as the fixture user, so a local PostgreSQL database needs them
+// seeded. Read as a constant so the name cannot drift between the guard and this comment.
+const string SeedDevelopmentDataVariable = "EconoFlow_SEED_DEVELOPMENT_DATA";
+
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddPersistenceServices(builder.Configuration, isDevelopment: builder.Environment.IsDevelopment());
 builder.Services.AddApplicationServices();
@@ -139,7 +144,15 @@ builder.Services.AddHsts(options =>
 builder.Services.AddHttpsRedirection(options =>
 {
     options.RedirectStatusCode = (int)HttpStatusCode.TemporaryRedirect;
-    options.HttpsPort = 443;
+
+    // 443 is right behind a TLS-terminating ingress, which is the only deployment this
+    // matters for. A local run serves plain HTTP on one port, where redirecting to 443
+    // answers every request with a 307 to a port nothing listens on - so the port is
+    // configurable, and 0 disables the redirect outright (the middleware's documented
+    // "no HTTPS endpoint here" value).
+    options.HttpsPort = int.TryParse(builder.Configuration["HttpsRedirection:HttpsPort"], out var httpsPort)
+        ? (httpsPort > 0 ? httpsPort : null)
+        : 443;
 });
 
 if (!builder.Environment.IsDevelopment())
@@ -181,25 +194,44 @@ try
 
     if (app.Environment.IsDevelopment())
     {
+        // A Development run can be pointed at a real database (EasyFinanceDB=Host=...),
+        // which is how the Cypress suite is exercised against PostgreSQL. Two things
+        // follow, and both used to be handled only for the in-memory store:
+        //
+        //   1. the schema has to exist before the roles below are queried - without
+        //      this, start-up died on `relation "AspNetRoles" does not exist`;
+        //   2. the fixtures below are skipped for a relational store, because they are
+        //      development scaffolding (fixed users, projects and expenses) rather than
+        //      application data.
+        app.UseMigration();
+
         EnsureSystemRolesAsync(app.Services).GetAwaiter().GetResult();
         app.UseSwagger();
         app.UseSwaggerUI();
 
-        // Seed fixtures ONLY against the in-memory store.
+        // Seed fixtures against the in-memory store, as before.
         //
-        // This used to be implicit: provider selection was a compile-time #if DEBUG
-        // branch, so a Debug build always got the in-memory store and the seeder could
-        // not reach a real database. Now that the provider is resolved at run time, a
-        // developer running locally with EasyFinanceDB set gets a real connection - and
-        // the seeder would run against it, duplicating fixtures over live rows. That
-        // was observed, not theorised: start-up failed inside SeedAsync.
+        // The fixtures are skipped for a real database unless explicitly requested, and
+        // the request must be opt-in: they would duplicate rows over live data, or fail
+        // outright on the identities they assume are absent. But skipping them by
+        // default makes a local PostgreSQL database - the only production database there
+        // is - impossible to use with the Cypress suite, which signs in as the seeded
+        // test@test.com. EconoFlow_SEED_DEVELOPMENT_DATA=true makes that possible for a
+        // throwaway local database; the flag can never make production seed, because
+        // this branch is Development-only.
         var providerInfo = app.Services.GetRequiredService<DatabaseProviderInfo>();
+        var seedingRequested = string.Equals(
+            Environment.GetEnvironmentVariable(SeedDevelopmentDataVariable),
+            "true",
+            StringComparison.OrdinalIgnoreCase);
 
-        if (DevelopmentTestDataSeeder.IsUnsafeFor(providerInfo))
+        if (DevelopmentTestDataSeeder.IsUnsafeFor(providerInfo) && !seedingRequested)
         {
             Log.Information(
-                "Development seed data skipped: {Provider} is a real database.",
-                providerInfo.Provider);
+                "Development seed data skipped: {Provider} is a real database. Set {Variable}=true "
+                + "to seed a throwaway local database (for example, to run the Cypress suite).",
+                providerInfo.Provider,
+                SeedDevelopmentDataVariable);
         }
         else
         {

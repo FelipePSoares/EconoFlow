@@ -17,11 +17,23 @@ describe('EconoFlow - global add modal tests', () => {
     cy.get('.global-add-button .dropdown-menu.show').should('be.visible');
 
     cy.get('.global-add-button .dropdown-menu.show .dropdown-item').then(($items) => {
+      // Match on the translated label, not on the action id. The labels are "Income",
+      // "Expense" and "Expense Item", so an exact comparison with the lowercase id
+      // 'expense item' never matched; the helper selected nothing, Cypress skipped the
+      // click on `undefined`, and each "expense item" test silently reopened whichever
+      // modal the previous test had used - which is why they asserted against another
+      // component's month-scoped expense request.
       const target = Array.from($items).find(item =>
-        item.textContent?.trim().toLowerCase() === action
+        item.textContent?.trim().toLowerCase() === action.toLowerCase()
       );
 
-      expect(target, `visible dropdown item for action "${action}"`).to.not.equal(undefined);
+      expect(
+        target,
+        `visible dropdown item for action "${action}" (items: ${
+          Array.from($items).map(item => item.textContent?.trim()).join(' | ')
+        })`
+      ).to.not.equal(undefined);
+
       cy.wrap(target as HTMLElement).click({ force: true });
     });
 
@@ -36,7 +48,12 @@ describe('EconoFlow - global add modal tests', () => {
 
     cy.get(dialogSelector).should('be.visible');
 
+    // The form is taller than the dialog, so the dialog content scrolls - and a field below
+    // the fold fails `be.visible` even though nothing is wrong with it. Setting the date
+    // first also renders the "no parent expense" message, which pushes the category field
+    // further down. Scroll it into view the way a user would before interacting with it.
     cy.get(dialogSelector).find(selectLocator, { timeout: 10000 })
+      .scrollIntoView()
       .should('be.visible')
       .and('not.have.attr', 'aria-disabled', 'true');
 
@@ -76,7 +93,14 @@ describe('EconoFlow - global add modal tests', () => {
       .should('have.length.greaterThan', 0);
 
     if (optionText) {
-      cy.contains(`${openPanelSelector} mat-option`, optionText).click({ force: true });
+      // The option label is the expense NAME, and names repeat inside a month (the month
+      // dataset has one "Housing", one "Rent" per month, and so on). `cy.contains` resolves
+      // to "Too many elements found" because it requires a single match; take the first
+      // option whose text is the wanted label instead.
+      cy.get(`${openPanelSelector} mat-option`)
+        .filter((_, option) => (option.textContent ?? '').trim() === optionText)
+        .first()
+        .click({ force: true });
       cy.get(dialogSelector).find(selectLocator).should('contain', optionText);
       return;
     }
@@ -147,7 +171,12 @@ describe('EconoFlow - global add modal tests', () => {
     cy.window().then((win) => {
       const locale = win.localStorage.getItem('language-key') || win.navigator.language || 'en-US';
       const formattedDate = date.toLocaleDateString(locale);
-      cy.get('input[formControlName="date"]').clear().type(formattedDate).blur();
+
+      // Typing alone does not commit the date: the material input keeps the typed text but
+      // only hands it to the form control on blur, so the form still holds the date it
+      // opened with and the month-scoped request it raises belongs to the wrong month.
+      // `{enter}` closes the picker; `blur` is what the form actually reacts to.
+      cy.get('input[formControlName="date"]').clear().type(`${formattedDate}{enter}`).blur();
     });
   };
 
@@ -225,6 +254,12 @@ describe('EconoFlow - global add modal tests', () => {
 
           openGlobalAddModal('expense item');
           cy.wait('@getModalCategories');
+
+          // The expense-item form opens on today's date, not on the month the overview is
+          // showing, so the parent expenses of the selected month only load once the date
+          // is set to that month - as a user would. Assertions on the request only make
+          // sense after it.
+          updateFormDate(toDateFromMonth(monthValue));
 
           selectMaterialOption('categoryId', category.name);
 
@@ -468,19 +503,23 @@ describe('EconoFlow - global add modal tests', () => {
           const monthWithoutBounds = toMonthBounds(toDateFromMonth(monthWithoutExpenses));
 
           cy.intercept({ method: 'GET', url: categoriesEndpointRegex }).as('getModalCategories');
+
+          // One alias per month, because a single alias cannot tell them apart. The form
+          // raises a request for the month it is showing every time the date changes, and
+          // today's month is a third one besides the two below - so `cy.wait` on a shared
+          // alias satisfied itself with whichever response arrived first, and the assertions
+          // after it compared against the wrong month.
+          const monthAlias = (from: string, fallback: string): string => {
+            if (from === monthWithBounds.from) return 'getMonthlyExpensesWith';
+            if (from === monthWithoutBounds.from) return 'getMonthlyExpensesWithout';
+            return fallback;
+          };
+
           cy.intercept('GET', `**/projects/${project.id}/categories/${category.id}/expenses?*`, (req) => {
             const params = new URL(req.url).searchParams;
-            const from = params.get('from');
-
-            if (from === monthWithBounds.from) {
-              req.continue((res) => {
-                res.setDelay(1200);
-              });
-              return;
-            }
-
+            req.alias = monthAlias(params.get('from') ?? '', 'getMonthlyExpensesOther');
             req.continue();
-          }).as('getMonthlyExpenses');
+          });
 
           cy.visit(`/projects/${project.id}/overview/monthly?month=${monthWithExpenses}`);
 
@@ -488,9 +527,20 @@ describe('EconoFlow - global add modal tests', () => {
           cy.wait('@getModalCategories');
 
           selectMaterialOption('categoryId', category.name);
+
+          // The form opened on today's date, so put it on the month that has expenses before
+          // anything is asserted: that is the month whose response is deliberately delayed.
+          updateFormDate(toDateFromMonth(monthWithExpenses));
+
+          cy.wait('@getMonthlyExpensesWith').then(({ request, response }) => {
+            expect(new URL(request.url).searchParams.get('from')).to.equal(monthWithBounds.from);
+            expect(response?.statusCode).to.equal(200);
+            expect((response?.body ?? []).length).to.be.greaterThan(0);
+          });
+
           updateFormDate(toDateFromMonth(monthWithoutExpenses));
 
-          cy.wait('@getMonthlyExpenses').then(({ request, response }) => {
+          cy.wait('@getMonthlyExpensesWithout').then(({ request, response }) => {
             const params = new URL(request.url).searchParams;
             expect(params.get('from')).to.equal(monthWithoutBounds.from);
             expect(params.get('to')).to.equal(monthWithoutBounds.to);
@@ -501,7 +551,12 @@ describe('EconoFlow - global add modal tests', () => {
           cy.get('[data-testid="no-parent-expense-message"]').should('be.visible');
           cy.get('mat-select[formControlName="expenseId"]').should('have.attr', 'aria-disabled', 'true');
 
-          cy.wait('@getMonthlyExpenses').then(({ request, response }) => {
+          // Change the date straight back to the month with expenses. The point of the test
+          // is that the component shows the latest answer, not whichever response happened
+          // to arrive last.
+          updateFormDate(toDateFromMonth(monthWithExpenses));
+
+          cy.wait('@getMonthlyExpensesWith').then(({ request, response }) => {
             const params = new URL(request.url).searchParams;
             expect(params.get('from')).to.equal(monthWithBounds.from);
             expect(params.get('to')).to.equal(monthWithBounds.to);
@@ -509,8 +564,8 @@ describe('EconoFlow - global add modal tests', () => {
             expect((response?.body ?? []).length).to.be.greaterThan(0);
           });
 
-          cy.get('[data-testid="no-parent-expense-message"]').should('be.visible');
-          cy.get('mat-select[formControlName="expenseId"]').should('have.attr', 'aria-disabled', 'true');
+          cy.get('mat-select[formControlName="expenseId"]').should('have.attr', 'aria-disabled', 'false');
+          cy.get('[data-testid="no-parent-expense-message"]').should('not.exist');
         });
       });
     });

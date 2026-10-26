@@ -2,7 +2,7 @@
 
 ## 1. High-Level Overview
 
-EconoFlow is a full-stack financial planning application composed of three clients (Angular SPA, React Native mobile app, PWA) sharing a single ASP.NET Core 10 API backed by SQL Server.
+EconoFlow is a full-stack financial planning application composed of three clients (Angular SPA, React Native mobile app, PWA) sharing a single ASP.NET Core 10 API backed by PostgreSQL.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -30,10 +30,10 @@ EconoFlow is a full-stack financial planning application composed of three clien
 │  │  Services    │  │               │  │                    │  │
 │  └──────────────┘  └───────┬───────┘  └────────────────────┘  │
 └──────────────────────────── │ ────────────────────────────────┘
-                              │  EF Core (SQL Server)
+                              │  EF Core (PostgreSQL)
                               ▼
                     ┌──────────────────────┐
-                    │  SQL Server           │
+                    │  PostgreSQL           │
                     │  + Data Protection DB │
                     └──────────────────────┘
 ```
@@ -152,48 +152,76 @@ Orchestration layer: service interfaces, their implementations, DTOs, mappers, a
 - **Connection**: `EasyFinanceDB` environment variable in production; in-memory DB in development/tests.
 - Each test run gets a unique in-memory database name to prevent state leakage across parallel tests.
 
-#### Database provider
+#### Database
 
-Provider selection is a **runtime** decision. It used to be a compile-time `#if DEBUG`
-branch, which made the provider a build property: a Debug build could not be pointed at
-a real database at all, and nothing kept the `DbContext`, the health check and the
-migrations pointing the same way. Resolution order, highest precedence first:
+**PostgreSQL is the only database this application has.** SQL Server support was removed
+once the migration completed; the provider package, the SQL Server migrations, the data
+migration tool and the separate `EasyFinance.Persistence.Postgres` project are all gone.
+
+Store selection is still a **runtime** decision, but it now chooses between PostgreSQL and
+the in-memory store the test suite uses — not between two databases. It used to be a
+compile-time `#if DEBUG` branch, which made the store a build property: a Debug build could
+not be pointed at a real database at all, and nothing kept the `DbContext`, the health check
+and the migrations pointing the same way. Resolution order, highest precedence first:
 
 1. an explicit code argument (`providerOverride`, used by tests),
 2. the `Database:Provider` configuration value — `Database__Provider` as an env var,
-3. the **shape** of the `EasyFinanceDB` connection string (`Host=` → PostgreSQL,
-   `Server=`/`Data Source=` → SQL Server),
+3. the **shape** of the `EasyFinanceDB` connection string (`Host=` → PostgreSQL),
 4. **in Development only**, the EF Core in-memory store.
 
-Outside Development an unresolvable provider **stops startup**. Falling back to the
-in-memory store would produce a pod that reports healthy while persisting nothing.
+Outside Development an unresolvable store **stops startup**. Falling back to the in-memory
+store would produce a pod that reports healthy while persisting nothing.
 
-`DatabaseProviderInfo` records the resolved provider as a singleton, so the health
-check and `UseMigration()` branch on the same value the `DbContext` was built with
-rather than re-deriving it. `UseMigration()` skips the in-memory store, which has no
-migrations.
+`DatabaseProviderInfo` records the resolved store as a singleton, so the health check and
+`UseMigration()` branch on the same value the `DbContext` was built with rather than
+re-deriving it. `UseMigration()` skips the in-memory store, which has no migrations.
+
+Both environments apply the migrations at startup — Development included, so that running
+the app with `EasyFinanceDB` set against a fresh PostgreSQL creates the schema. The
+Development fixtures are skipped for a relational store, because they are scaffolding
+rather than application data; set `EconoFlow_SEED_DEVELOPMENT_DATA=true` to seed a
+throwaway local database, which is what the Cypress suite needs in order to sign in as its
+fixture user. The variable has no effect outside Development.
 
 #### Migrations
 
 EF Core discovers a context's migrations by scanning the assembly that holds the
-`DbContext`. The SQL Server migrations live in `EasyFinance.Persistence/Migrations/`;
-the PostgreSQL set lives in **`EasyFinance.Persistence.Postgres`** as a separate
-project, because EF cannot hold two active migration sets for one context in one
-assembly. Keeping them apart also leaves the SQL Server set intact, which is what
-preserves rollback.
+`DbContext`. Both PostgreSQL sets live in `EasyFinance.Persistence/` — beside the contexts,
+the same place the SQL Server set used to be — because there is now only one provider to
+migrate to.
 
-| Context | SQL Server | PostgreSQL |
-|---|---|---|
-| `EasyFinanceDatabaseContext` | `Migrations/` | `EasyFinance.Persistence.Postgres/Migrations/` |
-| `MyKeysContext` | `Migrations/MyKeys/` | `EasyFinance.Persistence.Postgres/Migrations/MyKeys/` |
+They sit in **sibling** folders, and that is deliberate:
 
-#### Data migration tool (`tools/EconoFlow.DataMigration`)
+| Context | Migrations |
+|---|---|
+| `EasyFinanceDatabaseContext` | `Migrations/` |
+| `MyKeysContext` | `MigrationsMyKeys/` |
 
-A small host around the shared `fpssoftware.datamigration` package, used to copy
-SQL Server data into PostgreSQL. It supplies only a profile, a plan and a `Program.cs`;
-the engine is referenced as a package, not copied in. See
-[`docs/postgres-migration/`](docs/postgres-migration/) for the procedure and the
-rehearsal evidence.
+`MigrationsMyKeys/` is a sibling of `Migrations/`, **not** a child of it. Nesting it inside
+would make its namespace a prefix of the application set's namespace, and EF's discovery
+scan can then attribute the nested migration to the enclosing context — which records that
+migration in the shared history table **without applying its DDL**, silently skipping the
+whole schema. Keeping the two namespaces disjoint removes the possibility.
+
+Two separate sets exist at all because **EF Core migrates exactly one context per command**,
+and the Data Protection key ring is its own context with its own history table. Both are
+applied by `PersistenceServiceRegistration.UseMigration()`; applying only the first leaves the
+application with no key ring, which logs every signed-in user out.
+
+`MigrationsAssembly` is deliberately **not** set. It was required while the migrations lived
+in a separate project; with them beside the contexts, EF's default resolves correctly.
+Naming an assembly is also not the same as shipping it — a previous revision named a project
+it did not reference, and start-up failed with `FileNotFoundException` after a clean build.
+
+Generating a migration:
+
+```powershell
+# EasyFinanceDatabaseContext
+dotnet ef migrations add {Name} --context EasyFinanceDatabaseContext --project EasyFinance.Persistence --startup-project EasyFinance.Persistence --configuration release
+
+# MyKeysContext
+dotnet ef migrations add {Name} --context MyKeysContext --project EasyFinance.Persistence --startup-project EasyFinance.Persistence --configuration release
+```
 
 #### Unit of Work & Repository
 ```csharp
@@ -217,7 +245,7 @@ All repositories are lazily initialized inside `UnitOfWork`. `CommitAsync()` is 
 ASP.NET Core 10 host. Everything in this layer is infrastructure for the HTTP boundary.
 
 #### Startup (`Program.cs`) — service registration order
-1. `AddPersistenceServices(configuration, isDevelopment)` — resolves the database provider (see [Database provider](#database-provider)), registers the DbContexts, repositories, UoW, `DatabaseProviderInfo`, and the matching database health check.
+1. `AddPersistenceServices(configuration, isDevelopment)` — resolves the database provider (see [Database](#database)), registers the DbContexts, repositories, UoW, `DatabaseProviderInfo`, and the matching database health check.
 2. `AddApplicationServices()` — registers all application-layer services, background services, channels.
 3. **Health checks**: `AddHealthChecks().AddCheck<S3StorageHealthCheck>("s3_storage")` — S3/Minio dependency (readiness).
 4. Options: `NotifierFallbackOptions`, `WebPushOptions`, `FeatureRolloutOptions`, `TemporaryAttachmentCleanupOptions`.
@@ -237,12 +265,13 @@ so they pass through the Angular dev-server proxy (`src/proxy.conf.js` for the
 | Endpoint         | Purpose                                                                 | Checks                                   |
 |------------------|-------------------------------------------------------------------------|------------------------------------------|
 | `/api/health/live`  | Liveness — returns `200 OK` as long as the process is alive and can serve HTTP requests (`Predicate = _ => false`, no dependency checks). | none            |
-| `/api/health/ready` | Readiness — returns `200 OK` only when all registered dependency checks pass, otherwise `503 Service Unavailable`. | The **configured database provider** — PostgreSQL (`AspNetCore.HealthChecks.NpgSql`) or SQL Server (`AspNetCore.HealthChecks.SqlServer`) — plus S3/Minio storage (`S3StorageHealthCheck`). |
+| `/api/health/ready` | Readiness — returns `200 OK` only when all registered dependency checks pass, otherwise `503 Service Unavailable`. | PostgreSQL (`AspNetCore.HealthChecks.NpgSql`, registered only for a relational store) plus S3/Minio storage (`S3StorageHealthCheck`). |
 
-The database probe follows whichever provider the application resolved (see
-[Database provider](#database-provider)), so the two can no longer drift apart. A SQL
-Server probe pointed at a PostgreSQL connection string fails at startup, which is why
-it is selected from `DatabaseProviderInfo` rather than hardcoded.
+The database probe is registered only for a relational store (see [Database](#database)),
+so it can no longer drift from the `DbContext`s. It is still selected from
+`DatabaseProviderInfo` rather than assumed: a SQL Server probe pointed at a PostgreSQL
+connection string once failed at startup, and the guard that prevented it costs nothing
+to keep.
 
 Because TLS is terminated upstream (Traefik), Kubernetes probes reach the container
 over plain HTTP. `MapWhen(HealthCheckPathPolicy.IsHealthProbePath && scheme != "https")`
@@ -300,7 +329,7 @@ framework). Configuration lives in
 14 UseProjectAuthorization()        ← role check for every {projectId} route
 15 UseLocationMiddleware()          ← sets culture from user preference
 16 MapHealthChecks("/api/health/live")  ← liveness; no dependency checks
-17 MapHealthChecks("/api/health/ready") ← readiness; SQL Server + S3 storage
+17 MapHealthChecks("/api/health/ready") ← readiness; PostgreSQL + S3 storage
 18 MapControllers()
 ```
 
@@ -760,7 +789,7 @@ Variables marked **required** will throw at startup (or on first use) if absent.
 
 | Variable | Required | Purpose | Default if absent |
 |----------|----------|---------|-------------------|
-| `EasyFinanceDB` | **required** | SQL Server connection string | — |
+| `EasyFinanceDB` | **required** | PostgreSQL connection string | — |
 | `EconoFlow_TOKEN_SECRET_KEY` | **required** | JWT signing key (HS256) | — |
 | `EconoFlow_ISSUER` | **required** | JWT `iss` claim | — |
 | `EconoFlow_AUDIENCE` | **required** | JWT `aud` claim | — |

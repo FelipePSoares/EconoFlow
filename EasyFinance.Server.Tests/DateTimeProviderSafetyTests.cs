@@ -21,11 +21,10 @@ namespace EasyFinance.Server.Tests
     /// type 'timestamp with time zone', only UTC is supported.
     /// </code>
     ///
-    /// SQL Server accepted all three Kinds silently, so this class of defect is
-    /// invisible until the provider changes — and then it surfaces in production on
-    /// whichever code path touches a timestamp column first. It has already taken a
-    /// live site down once on this programme (see
-    /// <c>docs/postgres-migration/DATETIME_KIND_TRAP.md</c>).
+    /// SQL Server accepted all three Kinds silently, so this class of defect was
+    /// invisible until the provider changed — and then it surfaces in production on
+    /// whichever code path touches a timestamp column first. It took a live site down
+    /// once on this programme.
     ///
     /// Every timestamp in this solution is produced by
     /// <see cref="EasyFinance.Domain.Shared.SystemClock"/>, which returns Kind=Utc.

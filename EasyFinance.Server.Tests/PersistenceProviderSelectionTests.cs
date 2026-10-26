@@ -66,7 +66,6 @@ namespace EasyFinance.Server.Tests
 
         [Theory]
         [InlineData(DatabaseProvider.InMemory, "InMemory")]
-        [InlineData(DatabaseProvider.SqlServer, "SqlServer")]
         [InlineData(DatabaseProvider.PostgreSql, "Npgsql")]
         public void AddPersistenceServices_ShouldBuildTheContextWithTheConfiguredProvider(
             DatabaseProvider provider,
@@ -91,7 +90,6 @@ namespace EasyFinance.Server.Tests
 
         [Theory]
         [InlineData(DatabaseProvider.InMemory)]
-        [InlineData(DatabaseProvider.SqlServer)]
         [InlineData(DatabaseProvider.PostgreSql)]
         public void DatabaseProviderInfo_ShouldAgreeWithTheContextItWasRegisteredWith(DatabaseProvider provider)
         {
@@ -237,9 +235,12 @@ namespace EasyFinance.Server.Tests
         }
 
         [Fact]
-        public void AddPersistenceServices_ShouldInferSqlServerFromAConnectionString()
+        public void AddPersistenceServices_ShouldRefuseASqlServerConnectionString()
         {
-            // The shape of the pre-migration production connection string.
+            // The exact shape that used to be production. It must now FAIL rather than
+            // resolve to a provider: SQL Server is retired, and the old inference rule
+            // would otherwise select a provider the application can no longer build a
+            // context for — a startup crash a long way from the cause.
             var services = new ServiceCollection();
             services.AddLogging();
 
@@ -247,17 +248,18 @@ namespace EasyFinance.Server.Tests
             {
                 Environment.SetEnvironmentVariable(
                     PersistenceServiceRegistration.ConnectionStringVariable,
-                    "Server=localhost,14330;Database=EasyFinanceDB;User Id=sa;Password=test;TrustServerCertificate=true");
+                    "Server=mssql.shared-services.svc.cluster.local,1433;Database=econoflow;User Id=x;Password=y;TrustServerCertificate=true");
 
-                services.AddPersistenceServices(
+                var act = () => services.AddPersistenceServices(
                     ConfigurationWith(provider: null),
                     providerOverride: null,
                     isDevelopment: false);
 
-                using var serviceProvider = services.BuildServiceProvider();
-
-                serviceProvider.GetRequiredService<DatabaseProviderInfo>().Provider
-                    .Should().Be(DatabaseProvider.SqlServer);
+                act.Should().Throw<InvalidOperationException>()
+                    .WithMessage(
+                        "*No database provider could be resolved*",
+                        "a SQL Server connection string is no longer a provider this "
+                        + "application can use, and silence would aim it at nothing");
             });
         }
 
@@ -285,8 +287,6 @@ namespace EasyFinance.Server.Tests
         [InlineData("PostgreSql", DatabaseProvider.PostgreSql)]
         [InlineData("postgresql", DatabaseProvider.PostgreSql)]
         [InlineData("Postgres", DatabaseProvider.PostgreSql)]
-        [InlineData("SqlServer", DatabaseProvider.SqlServer)]
-        [InlineData("sqlserver", DatabaseProvider.SqlServer)]
         [InlineData("InMemory", DatabaseProvider.InMemory)]
         public void ProviderNames_ShouldParseCaseInsensitively(string configured, DatabaseProvider expected)
         {
@@ -305,7 +305,6 @@ namespace EasyFinance.Server.Tests
 
         [Theory]
         [InlineData(DatabaseProvider.InMemory, false, false)]
-        [InlineData(DatabaseProvider.SqlServer, true, true)]
         [InlineData(DatabaseProvider.PostgreSql, true, true)]
         public void DatabaseProviderInfo_ShouldReportRelationalCapabilities(
             DatabaseProvider provider,
@@ -350,21 +349,6 @@ namespace EasyFinance.Server.Tests
                 Environment.SetEnvironmentVariable(
                     PersistenceServiceRegistration.ConnectionStringVariable,
                     previous);
-            }
-        }
-
-        [Fact]
-        public void HealthCheckProvider_ShouldAlwaysMatchTheResolvedProvider()
-        {
-            // A SQL Server probe against a PostgreSQL connection string fails at
-            // startup, so this must never be hardcoded.
-            foreach (var provider in Enum.GetValues<DatabaseProvider>())
-            {
-                var info = new DatabaseProviderInfo(provider);
-
-                info.HealthCheckProvider.Should().Be(
-                    provider,
-                    "the health check must probe the same provider the app uses");
             }
         }
 

@@ -92,7 +92,7 @@ namespace EasyFinance.Server.Tests
                 "raw SQL fragments are not translated by EF Core, so bracket identifier "
                 + "quoting fails on PostgreSQL with 'syntax error at or near \"[\"'. "
                 + "Use double-quoted identifiers, which both providers accept ("
-                + "docs/postgres-migration/MIGRATION_TEMPLATE.md §4). Offending fragments:\n"
+                + "raw SQL must be valid on PostgreSQL). Offending fragments:\n"
                 + string.Join("\n", offences));
         }
 

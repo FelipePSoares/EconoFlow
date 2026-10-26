@@ -1,3 +1,5 @@
+import { dayOfMonth, IsolatedExpense, IsolatedProject, Month, monthOf } from '../../support/isolated-project';
+
 describe('EconoFlow - expense list Tests', () => {
     interface ExpensePatchOperation {
       op: string;
@@ -11,40 +13,54 @@ describe('EconoFlow - expense list Tests', () => {
       return Array.from(new Set([fullYear, shortYear]));
     };
 
+    /**
+     * The project this spec works on.
+     *
+     * It used to be the seeded "Family" project, shared by every spec and every run: each
+     * test renamed and re-dated "the first expense", so the order and the dates the later
+     * tests saw depended on what the earlier ones had just done. Here the spec owns the
+     * project, the category, and exactly three expenses in the current month.
+     */
+    let projectId = '';
+    let categoryId = '';
+    let expenseIds: string[] = [];
+    let thisMonth: Month;
+
     beforeEach(() => {
+      thisMonth = monthOf(new Date());
+
       cy.fixture('users').then((users) => {
         const user = users.testUser;
-  
+
         cy.intercept('PATCH', '**/expenses/*').as('patchExpenses')
         cy.login(user.username, user.password)
 
-        cy.fixture('projects').then((projects) => {
-            const project = projects.defaultProject;
-            cy.fixture('categories').then((categories) => {
-              const category = categories.defaultCategory;
-          
-              cy.visit('/projects/' + project.id + '/categories/' + category.id + '/expenses')
-            })
+        cy.createIsolatedProject([], {
+          days: [8, 9, 10].map(day => ({ month: thisMonth, day }))
+        }).then((project: IsolatedProject) => {
+          projectId = project.id;
+          categoryId = project.category.id;
+          expenseIds = project.expenses.map((expense: IsolatedExpense) => expense.id);
+
+          cy.visit(`/projects/${projectId}/categories/${categoryId}/expenses`);
         })
       })
     })
 
-    afterEach(function() {
-      if (this.currentTest.title === 'should update date after success update') {
-        if (new Date().getDate() == 1) {
-          let formattedDate = ''
-          cy.get('button[name=edit]').first().click()
-          const today = new Date()
+    /**
+     * A date as the material datepicker input accepts it for the current locale.
+     *
+     * The input renders `M/D/YYYY` for `en` (it showed `10/8/2026`), and typing any other
+     * order leaves the control invalid - the typed value is rejected, no PATCH is sent, and
+     * the test fails on a missing request rather than on the behaviour it is checking.
+     */
+    const typedDate = (month: Month, day: number): string =>
+      new Date(month.year, month.month - 1, day)
+        .toLocaleDateString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric' });
 
-          cy.window().then((win) => {
-            const locale = win.localStorage.getItem('language-key') || win.navigator.language || 'en-US'
-            formattedDate = today.toLocaleDateString(locale)
-            cy.get('input[formControlName=date]').clear().type(`${formattedDate}{enter}`)
-          })
-        }
-      }
-    })
-  
+    /** The expense the list shows first, which is the one every test edits. */
+    const firstExpenseId = (): string => expenseIds[0];
+
     it('should update name after success update', () => {
       const value = `name_${Math.random()}`;
 
@@ -52,86 +68,96 @@ describe('EconoFlow - expense list Tests', () => {
       cy.intercept('GET', '**/expenses*').as('getExpenses')
       cy.get('input[formControlName=name]').clear().type(`${value}{enter}`)
 
-      cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ response }) => {
+      cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(200)
+        expect(request.url, 'the edited expense').to.include(`/expenses/${firstExpenseId()}`)
 
         cy.wait('@getExpenses')
 
-        cy.get('.name').first().contains(`${value}`)
+        cy.get('.name').first().should('contain', value)
       })
     })
-  
+
     it('should update date after success update', () => {
-      const firstDayCandidate = new Date();
-      firstDayCandidate.setDate(1);
-      const secondDayCandidate = new Date();
-      secondDayCandidate.setDate(2);
-      let targetDate = firstDayCandidate;
-      let expectedDates: string[] = []
+      // The three expenses are on the 8th, 9th and 10th, so moving the first one to the
+      // 11th keeps every test's "first row" the same and stays inside the month the list
+      // shows - a date outside the month would filter the expense out of the list instead
+      // of reordering it.
+      const targetDay = 11;
+      const targetIso = dayOfMonth(thisMonth, targetDay);
 
       cy.get('button[name=edit]').first().click()
       cy.intercept('GET', '**/expenses*').as('getExpenses')
 
-      if (new Date().getDate() == 1)
-        cy.get('input[formControlName=amount]').clear().type(`0`)
+      cy.get('input[formControlName=date]')
+        .clear()
+        .type(`${typedDate(thisMonth, targetDay)}{enter}`)
 
-      cy.window().then((win) => {
-        const locale = win.localStorage.getItem('language-key') || win.navigator.language || 'en-US'
-        const firstDayVariants = buildDateVariants(firstDayCandidate, locale)
-
-        cy.get('input[formControlName=date]').invoke('val').then((currentValue) => {
-          const currentDateValue = String(currentValue ?? '').trim()
-          targetDate = firstDayVariants.includes(currentDateValue) ? secondDayCandidate : firstDayCandidate
-          expectedDates = buildDateVariants(targetDate, locale)
-          cy.get('input[formControlName=date]').clear().type(`${targetDate.toLocaleDateString(locale)}{enter}`)
-        })
-      })
-
-      cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ response }) => {
+      cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(200)
 
-        cy.wait('@getExpenses')
+        const operations = request.body as unknown as ExpensePatchOperation[]
+        const dateOperation = operations.find(operation => operation.path?.toLowerCase() === '/date')
 
-        cy.get('.date').first().invoke('text').then((text) => {
-          const hasExpectedDate = expectedDates.some(date => text.includes(date))
-          expect(hasExpectedDate).to.equal(true)
+        expect(dateOperation, 'the PATCH carries the date').to.not.equal(undefined)
+        expect(String(dateOperation?.value).slice(0, 10), 'the PATCH persists the chosen day')
+          .to.equal(targetIso)
+
+        cy.wait('@getExpenses')
+      })
+
+      // The expense is still in the month, so it is still listed: its row now shows the new
+      // day. The rendered format is locale-dependent, so the day is read back through the
+      // element's own date text rather than compared as a literal string.
+      cy.window().then((win) => {
+        const locale = win.localStorage.getItem('language-key') || win.navigator.language || 'en-US'
+        const formatted = new Date(thisMonth.year, thisMonth.month - 1, targetDay)
+
+        return cy.get('.date').should(($dates) => {
+          const texts = $dates.toArray().map(el => el.textContent?.trim() ?? '')
+          const expectedShapes = buildDateVariants(formatted, locale)
+
+          expect(
+            texts.some(text => expectedShapes.some(shape => text.includes(shape))),
+            `one row shows ${expectedShapes.join(' / ')}; rows: ${texts.join(' | ')}`
+          ).to.equal(true)
         })
       })
     })
-  
+
     it('should show error after failed update', () => {
-      const today = new Date()
-      today.setMonth(today.getMonth() + 1);
-      let formattedDate = ''
+      // The backend refuses an amount on an expense dated in the future.
+      const nextMonth: Month = thisMonth.month === 12
+        ? { year: thisMonth.year + 1, month: 1 }
+        : { year: thisMonth.year, month: thisMonth.month + 1 };
 
       cy.get('button[name=edit]').first().click()
 
       cy.get('input[formControlName=amount]').clear().type(`2`)
 
-      cy.window().then((win) => {
-        const locale = win.localStorage.getItem('language-key') || win.navigator.language || 'en-US'
-        formattedDate = today.toLocaleDateString(locale)
-        cy.get('input[formControlName=date]').clear().type(`${formattedDate}{enter}`)
-      })
+      cy.get('input[formControlName=date]')
+        .clear()
+        .type(`${typedDate(nextMonth, 1)}{enter}`)
 
       cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ response }) => {
         expect(response?.statusCode).to.equal(400)
         cy.get('mat-error').should('have.text', 'A future expense can\u0027t have a amount')
       })
     })
-  
+
     it('should update budget after success update', () => {
       const value = Math.floor(Math.random() * 1000);
 
       cy.get('button[name=edit]').first().click()
       cy.get('input[formControlName=budget]').clear().type(`${value}{enter}`)
-      
-      cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ response }) => {
+
+      cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(200)
-        cy.get('.budget').first().contains(`${value}`)
+        expect(request.url, 'the edited expense').to.include(`/expenses/${firstExpenseId()}`)
+        cy.get('.budget').first().should('contain', `${value}`)
       })
     })
-  
+
     it('should update amount after success update', () => {
       let value = 12345;
       const fallbackValue = 23456;
@@ -150,16 +176,16 @@ describe('EconoFlow - expense list Tests', () => {
 
         cy.get('input[formControlName=amount]').clear().type(`${value}{enter}`)
       })
-      
+
       cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
         expect(response?.statusCode).to.equal(200)
-        const operations = request.body as ExpensePatchOperation[];
+        const operations = request.body as unknown as ExpensePatchOperation[];
         const amountOperation = operations.find(operation => operation.path?.toLowerCase() === '/amount');
         const targetAmount = Number(amountOperation?.value);
         const expenseId = request.url.match(/\/expenses\/([^/?]+)/)?.[1] ?? '';
 
         expect(Number.isFinite(targetAmount)).to.equal(true);
-        expect(expenseId).to.not.equal('');
+        expect(expenseId).to.equal(firstExpenseId());
 
         cy.wait<ExpenseReq, ExpenseRes[]>('@getExpenses').then(({ response: getExpensesResponse }) => {
           const updatedExpense = getExpensesResponse?.body.find(expense => expense.id === expenseId);

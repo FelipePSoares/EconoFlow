@@ -16,6 +16,10 @@
 // Import commands.js using ES2015 syntax:
 import './commands'
 
+// The project factory the data-dependent specs use, so none of them shares the seeded
+// project with any other spec (or any other run).
+import './isolated-project'
+
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
 
