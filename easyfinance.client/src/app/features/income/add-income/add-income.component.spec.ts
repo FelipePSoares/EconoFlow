@@ -6,7 +6,7 @@ import { HttpEventType } from '@angular/common/http';
 import type { UploadState } from '../../../core/types/upload-state';
 import { Router } from '@angular/router';
 import { MAT_MOMENT_DATE_FORMATS, provideMomentDateAdapter } from '@angular/material-moment-adapter';
-import { TranslateModule } from '@ngx-translate/core';
+import { provideTranslateService } from '@ngx-translate/core';
 import { AddIncomeComponent } from './add-income.component';
 import { IncomeService } from '../../../core/services/income.service';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
@@ -78,7 +78,6 @@ describe('AddIncomeComponent attachments', () => {
     await TestBed.configureTestingModule({
       imports: [
         AddIncomeComponent,
-        TranslateModule.forRoot(),
         NoopAnimationsModule
       ],
       providers: [
@@ -118,7 +117,8 @@ describe('AddIncomeComponent attachments', () => {
         {
           provide: SnackbarComponent,
           useValue: snackbarMock
-        }
+        },
+        ...provideTranslateService()
       ]
     }).compileComponents();
   });

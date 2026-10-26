@@ -6,7 +6,7 @@ import { HttpEventType } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { provideMomentDateAdapter, MAT_MOMENT_DATE_FORMATS } from '@angular/material-moment-adapter';
 import { MatDialog } from '@angular/material/dialog';
-import { TranslateModule } from '@ngx-translate/core';
+import { provideTranslateService } from '@ngx-translate/core';
 import { AddExpenseItemComponent } from './add-expense-item.component';
 import { ExpenseService } from '../../../core/services/expense.service';
 import { CategoryService } from '../../../core/services/category.service';
@@ -55,10 +55,10 @@ describe('AddExpenseItemComponent deductible proof validation', () => {
     await TestBed.configureTestingModule({
       imports: [
         AddExpenseItemComponent,
-        TranslateModule.forRoot(),
         NoopAnimationsModule
       ],
       providers: [
+        ...provideTranslateService(),
         provideMomentDateAdapter(MAT_MOMENT_DATE_FORMATS, { useUtc: true }),
         { provide: ExpenseService, useValue: expenseServiceMock },
         { provide: CategoryService, useValue: { get: () => of([]) } },
@@ -82,7 +82,7 @@ describe('AddExpenseItemComponent deductible proof validation', () => {
           }
         },
         { provide: CurrentDateService, useValue: { currentDate: new Date('2026-03-01T00:00:00Z') } },
-        { provide: SnackbarComponent, useValue: snackbarMock }
+        { provide: SnackbarComponent, useValue: snackbarMock },
       ]
     }).compileComponents();
   });

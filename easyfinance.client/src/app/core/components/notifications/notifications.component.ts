@@ -1,7 +1,7 @@
 import { Component, ElementRef, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { map, Observable } from 'rxjs';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { NotificationService } from '../../services/notification.service';
 import { Notification } from '../../models/notification';
 
@@ -9,7 +9,8 @@ import { Notification } from '../../models/notification';
   selector: 'app-notifications',
   imports: [
     AsyncPipe,
-    TranslateModule
+    TranslateDirective,
+    TranslatePipe
   ],
   templateUrl: './notifications.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,

@@ -67,7 +67,7 @@
     "@angular/service-worker": "22.2.3",
     "@angular/ssr": "22.2.4",
     "@eslint/js": "^10.0.1",
-    "@ngx-translate/core": "^17.0.0",
+    "@ngx-translate/core": "^18.0.0",
     "bootstrap": "^5.3.8",
     "bootstrap-icons": "^1.13.1",
     "canvas-confetti": "^1.9.4",
@@ -77,14 +77,14 @@
     "fast-json-patch": "^3.1.1",
     "jest-editor-support": "*",
     "moment": "^2.31.0",
-    "ng2-charts": "^10.0.0",
+    "ng2-charts": "^11.0.0",
     "ng2-currency-mask": "^13.0.3",
     "qrcode": "^1.5.4",
     "reflect-metadata": "^0.2.2",
     "run-script-os": "*",
     "rxjs": "~7.8.2",
     "tslib": "^2.8.1",
-    "zone.js": "~0.16.0"
+    "zone.js": "~0.16.3"
   },
   "devDependencies": {
     "@angular/build": "22.2.4",
@@ -95,19 +95,19 @@
     "@types/chart.js": "^4.0.1",
     "@types/crypto-js": "^4.2.2",
     "@types/express": "^5.0.6",
-    "@types/jasmine": "~6.0.0",
-    "@types/node": "^26.1.1",
+    "@types/jasmine": "~7.0.0",
+    "@types/node": "^26.6.5",
     "@types/qrcode": "^1.5.6",
-    "angular-eslint": "22.1.0",
-    "cypress": "^15.19.0",
-    "eslint": "^10.8.0",
+    "angular-eslint": "22.6.0",
+    "cypress": "^16.2.0",
+    "eslint": "^10.13.0",
     "jasmine-core": "~6.3.0",
     "karma": "~6.4.4",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.1",
     "karma-jasmine": "~5.1.0",
-    "karma-jasmine-html-reporter": "~2.2.0",
+    "karma-jasmine-html-reporter": "~2.3.0",
     "typescript": "^6.0.3",
-    "typescript-eslint": "8.65.0"
+    "typescript-eslint": "8.72.0"
   }
 }

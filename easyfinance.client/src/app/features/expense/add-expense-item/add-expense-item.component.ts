@@ -14,7 +14,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
 import { Moment } from 'moment';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { ExpenseService } from '../../../core/services/expense.service';
 import { ExpenseItemDto } from '../models/expense-item-dto';
 import { ExpenseDto } from '../models/expense-dto';
@@ -53,7 +53,8 @@ import { PageModalComponent, PageModalDialogData } from '../../../core/component
     CurrencyMaskModule,
     MatSelectModule,
     NgClass,
-    TranslateModule
+    TranslateDirective,
+    TranslatePipe
 ],
     templateUrl: './add-expense-item.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,

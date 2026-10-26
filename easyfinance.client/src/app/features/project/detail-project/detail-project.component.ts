@@ -7,7 +7,7 @@ import { NavigationEnd, Router, UrlSegment } from '@angular/router';
 import { BehaviorSubject, filter, map, Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { CategoryService } from '../../../core/services/category.service';
@@ -36,7 +36,8 @@ import { TransactionDto } from '../models/transaction-dto';
       CurrencyFormatPipe,
       MatButtonModule,
       MatTableModule,
-      TranslateModule
+      TranslateDirective,
+      TranslatePipe
     ],
     providers: [CurrencyFormatPipe],
     templateUrl: './detail-project.component.html',

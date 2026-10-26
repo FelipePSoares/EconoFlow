@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SimpleChange } from '@angular/core';
-import { TranslateModule } from '@ngx-translate/core';
+import { provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 import { PlanType } from '../../../core/enums/plan-type';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
@@ -46,8 +46,7 @@ describe('AddEditPlanComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [
-        AddEditPlanComponent,
-        TranslateModule.forRoot()
+        AddEditPlanComponent
       ],
       providers: [
         {
@@ -70,7 +69,8 @@ describe('AddEditPlanComponent', () => {
             groupSeparator: ',',
             decimalSeparator: '.'
           }
-        }
+        },
+        ...provideTranslateService()
       ]
     }).compileComponents();
 

@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient, withXhr } from '@angular/common/http';
-import { TranslateModule } from '@ngx-translate/core';
+import { provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 import { AccessControlProjectComponent } from './access-control-project.component';
 import { GlobalService } from '../../../core/services/global.service';
@@ -42,15 +42,15 @@ describe('AccessControlProjectComponent - remove user', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
-        AccessControlProjectComponent,
-        TranslateModule.forRoot()
+        AccessControlProjectComponent
       ],
       providers: [
+        ...provideTranslateService(),
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         { provide: LocalService, useValue: { getData: () => of(undefined), saveData: () => of(undefined), removeData: () => undefined } },
         { provide: UserService, useValue: { searchUser: () => of([]) } },
-        { provide: GlobalService, useValue: {} }
+        { provide: GlobalService, useValue: {} },
       ]
     }).compileComponents();
 

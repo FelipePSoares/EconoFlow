@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MAT_MOMENT_DATE_FORMATS, provideMomentDateAdapter } from '@angular/material-moment-adapter';
-import { TranslateModule } from '@ngx-translate/core';
+import { provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 import { CurrentDateService } from '../../../core/services/current-date.service';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
@@ -26,8 +26,7 @@ describe('AddPlanEntryComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [
-        AddPlanEntryComponent,
-        TranslateModule.forRoot()
+        AddPlanEntryComponent
       ],
       providers: [
         provideMomentDateAdapter(MAT_MOMENT_DATE_FORMATS, { useUtc: true }),
@@ -57,7 +56,8 @@ describe('AddPlanEntryComponent', () => {
           useValue: {
             currentDate: new Date('2026-03-12T12:00:00')
           }
-        }
+        },
+        ...provideTranslateService()
       ]
     }).compileComponents();
 

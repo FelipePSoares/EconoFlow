@@ -7,7 +7,7 @@ import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/com
 import { ProjectService } from '../../services/project.service';
 import { Project } from '../../models/project';
 import { UserProject } from '../../models/user-project';
-import { TranslateModule } from '@ngx-translate/core';
+import { provideTranslateService } from '@ngx-translate/core';
 
 describe('CurrencyFormatPipe', () => {
   let projectService: ProjectService;
@@ -21,7 +21,6 @@ describe('CurrencyFormatPipe', () => {
 
     TestBed.configureTestingModule({
       imports: [
-        TranslateModule.forRoot()
       ],
       providers: [
         ProjectService,
@@ -30,7 +29,8 @@ describe('CurrencyFormatPipe', () => {
         GlobalService,
         HttpTestingController,
         CurrencyPipe,
-        CurrencyFormatPipe
+        CurrencyFormatPipe,
+        ...provideTranslateService()
       ]
     });
 

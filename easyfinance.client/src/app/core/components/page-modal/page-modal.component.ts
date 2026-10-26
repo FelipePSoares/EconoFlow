@@ -4,7 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogContent, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { filter, Subscription } from 'rxjs';
 
 export interface PageModalDialogData {
@@ -23,7 +23,8 @@ export interface PageModalDialogData {
     MatIconModule,
     MatDialogContent,
     RouterOutlet,
-    TranslateModule
+    TranslateDirective,
+    TranslatePipe
 ],
   templateUrl: './page-modal.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,

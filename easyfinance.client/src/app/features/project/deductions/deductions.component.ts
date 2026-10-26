@@ -11,7 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { Router } from '@angular/router';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 import {
@@ -61,9 +61,10 @@ interface DeductibleEntry {
     MatButtonModule,
     MatIconModule,
     DragDropModule,
-    TranslateModule,
     ReturnButtonComponent,
-    CurrencyFormatPipe
+    CurrencyFormatPipe,
+    TranslateDirective,
+    TranslatePipe
   ],
   providers: [CurrencyFormatPipe],
   templateUrl: './deductions.component.html',
