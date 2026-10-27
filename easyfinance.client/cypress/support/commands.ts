@@ -1,6 +1,4 @@
 Cypress.Commands.add('login', (username, password) => {
-  Cypress.env('authCredentials', { username, password });
-
   cy.session([username, password], () => {
     cy.request('POST', '/api/AccessControl/login', {
       email: username,
