@@ -191,9 +191,9 @@ jobs:
           base64 -w0 "$BOM" > bom.b64
           jq -n \
             --arg name "EconoFlow" \
-            --arg version "latest" \
+            --arg version "${GITHUB_SHA}" \
             --rawfile bom bom.b64 \
-            '{projectName: $name, projectVersion: $version, autoCreate: true, bom: $bom}' \
+            '{projectName: $name, projectVersion: $version, autoCreate: true, isLatest: true, bom: $bom}' \
             > payload.json
 
           curl --fail-with-body --silent --show-error \
