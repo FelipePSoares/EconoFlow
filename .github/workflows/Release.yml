@@ -164,6 +164,44 @@ jobs:
           echo "IMAGE_DIGEST=${DIGEST}" >> "$GITHUB_ENV"
           echo "::notice title=Image digest::${IMAGE}@${DIGEST}"
 
+      # Publish the BOM to Dependency-Track so new CVEs are matched against what we ship.
+      # Master only: a branch build must not create or overwrite project versions in
+      # the portfolio.
+      - name: Publish SBOM to Dependency-Track
+        if: github.ref == 'refs/heads/master'
+        env:
+          DTRACK_URL: https://dtrack.fpssoftware.uk
+          DTRACK_API_KEY: ${{ secrets.DTRACK_API_KEY }}
+        run: |
+          set -euo pipefail
+
+          # A BOM upload replaces the components of the target project version, so
+          # several files would silently overwrite each other. Fail instead.
+          mapfile -t BOMS < <(find sbom -name '*.cdx.json' -type f)
+          if [ "${#BOMS[@]}" -ne 1 ]; then
+            echo "::error::Expected exactly one CycloneDX file in ./sbom, found ${#BOMS[@]}:"
+            printf '  %s\n' "${BOMS[@]}"
+            exit 1
+          fi
+
+          # The BOM travels as a base64 string inside the JSON body. The payload is built
+          # in a file because it is too large to pass as a command-line argument.
+          base64 -w0 "${BOMS[0]}" > bom.b64
+          jq -n \
+            --arg name "EconoFlow" \
+            --arg version "latest" \
+            --rawfile bom bom.b64 \
+            '{projectName: $name, projectVersion: $version, autoCreate: true, bom: $bom}' \
+            > payload.json
+
+          curl --fail-with-body --silent --show-error \
+            --retry 3 --retry-all-errors \
+            -X PUT "${DTRACK_URL}/api/v1/bom" \
+            -H "X-Api-Key: ${DTRACK_API_KEY}" \
+            -H "Content-Type: application/json" \
+            --data @payload.json
+          echo
+
   # ── Mobile: standalone APK ─────────────────────────────────────────────────
   android-build:
     runs-on: ubuntu-latest
