@@ -4,16 +4,10 @@
     "slug": "econoflow-mobile",
     "owner": "econoflow",
     "scheme": "econoflow",
-    "newArchEnabled": false,
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "icon": "./assets/icon-512x512.png",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#061e33"
-    },
     "android": {
       "googleServicesFile": "./google-services.json",
       "package": "pt.econoflow.mobile",
@@ -21,11 +15,6 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon-512x512.png",
         "backgroundColor": "#0f76a8"
-      },
-      "splash": {
-        "image": "./assets/splash.png",
-        "resizeMode": "contain",
-        "backgroundColor": "#061e33"
       }
     },
     "ios": {
@@ -67,7 +56,8 @@
           "photosPermission": "EconoFlow uses your photo library so you can attach payslips and receipts.",
           "cameraPermission": "EconoFlow uses the camera so you can photograph payslips and receipts."
         }
-      ]
+      ],
+      "expo-font"
     ],
     "extra": {
       "eas": {
