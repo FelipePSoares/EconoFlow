@@ -18,15 +18,30 @@ jest.mock('../../api/client', () => ({
   },
 }));
 
-jest.mock('expo-notifications', () => ({
-  getPermissionsAsync: jest.fn(),
-  requestPermissionsAsync: jest.fn(),
-  getExpoPushTokenAsync: jest.fn(),
-}));
+const mockGetPermissionsAsync = jest.fn();
+const mockRequestPermissionsAsync = jest.fn();
+const mockGetExpoPushTokenAsync = jest.fn();
+let loadCount = 0;
+
+// A factory spy stands in for the real module on purpose: the real one throws for the
+// missing ExpoTopicSubscriptionModule native module on import, so it cannot be resolved.
+jest.mock('expo-notifications', () => {
+  loadCount += 1;
+  return {
+    getPermissionsAsync: (...args: unknown[]) => mockGetPermissionsAsync(...args),
+    requestPermissionsAsync: (...args: unknown[]) => mockRequestPermissionsAsync(...args),
+    getExpoPushTokenAsync: (...args: unknown[]) => mockGetExpoPushTokenAsync(...args),
+  };
+});
 
 const mockIsDevice = { current: true };
 jest.mock('expo-device', () => ({
   get isDevice() { return mockIsDevice.current; },
+}));
+
+const mockIsRunningInExpoGo = { current: false };
+jest.mock('expo', () => ({
+  get isRunningInExpoGo() { return () => mockIsRunningInExpoGo.current; },
 }));
 
 const mockCaptureError = jest.fn();
@@ -38,13 +53,30 @@ jest.mock('react-native', () => ({
   Platform: { OS: 'android' },
 }));
 
-describe('registerPushNotificationsAsync', () => {
-  const setExpoPushToken = jest.fn();
-  const setNotificationsEnabled = jest.fn();
+const setExpoPushToken = jest.fn();
+const setNotificationsEnabled = jest.fn();
+const clearNotificationState = jest.fn();
 
+describe('module loading', () => {
+  it('does not resolve expo-notifications when the hook module is loaded', () => {
+    // Regression guard for expo/expo#52175: Expo Go on Android never registers
+    // ExpoTopicSubscriptionModule, and expo-notifications calls requireNativeModule
+    // at import time, so loading the package at boot red-screens the app.
+    //
+    // `loadCount` is only bumped by the mock's factory. A static `import` in
+    // usePushNotifications.ts is hoisted above this file's jest.mock calls by the test
+    // transform, so the real module gets evaluated for real instead of the factory
+    // running — and the package then throws on the missing native module.
+    expect(loadCount).toBe(0);
+    expect(mockGetPermissionsAsync).toBeDefined();
+  });
+});
+
+describe('registerPushNotificationsAsync', () => {
   beforeEach(() => {
     useNotificationStore.setState({ expoPushToken: null, notificationsEnabled: false });
     mockIsDevice.current = true;
+    mockIsRunningInExpoGo.current = false;
     jest.clearAllMocks();
   });
 
@@ -62,23 +94,17 @@ describe('registerPushNotificationsAsync', () => {
   });
 
   it('requests permissions, gets push token, calls API, and calls setters', async () => {
-    const expoNotifications = jest.requireMock('expo-notifications') as {
-      getPermissionsAsync: jest.Mock;
-      requestPermissionsAsync: jest.Mock;
-      getExpoPushTokenAsync: jest.Mock;
-    };
-
-    expoNotifications.getPermissionsAsync.mockResolvedValue({ status: 'undetermined' });
-    expoNotifications.requestPermissionsAsync.mockResolvedValue({ status: 'granted' });
-    expoNotifications.getExpoPushTokenAsync.mockResolvedValue({ data: 'ExponentPushToken[abc]' });
+    mockGetPermissionsAsync.mockResolvedValue({ status: 'undetermined' });
+    mockRequestPermissionsAsync.mockResolvedValue({ status: 'granted' });
+    mockGetExpoPushTokenAsync.mockResolvedValue({ data: 'ExponentPushToken[abc]' });
 
     (NotificationsApi.registerExpoPushToken as jest.Mock).mockResolvedValue({ data: {} });
 
     await registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled);
 
-    expect(expoNotifications.getPermissionsAsync).toHaveBeenCalled();
-    expect(expoNotifications.requestPermissionsAsync).toHaveBeenCalled();
-    expect(expoNotifications.getExpoPushTokenAsync).toHaveBeenCalled();
+    expect(mockGetPermissionsAsync).toHaveBeenCalled();
+    expect(mockRequestPermissionsAsync).toHaveBeenCalled();
+    expect(mockGetExpoPushTokenAsync).toHaveBeenCalled();
     expect(NotificationsApi.registerExpoPushToken).toHaveBeenCalledWith(
       'ExponentPushToken[abc]',
       expect.any(String),
@@ -87,14 +113,20 @@ describe('registerPushNotificationsAsync', () => {
     expect(setNotificationsEnabled).toHaveBeenCalledWith(true);
   });
 
-  it('captures error to Sentry when permission is denied after request', async () => {
-    const expoNotifications = jest.requireMock('expo-notifications') as {
-      getPermissionsAsync: jest.Mock;
-      requestPermissionsAsync: jest.Mock;
-    };
+  it('loads expo-notifications lazily when the flow runs', async () => {
+    mockGetPermissionsAsync.mockResolvedValue({ status: 'granted' });
+    mockGetExpoPushTokenAsync.mockResolvedValue({ data: 'ExponentPushToken[abc]' });
+    (NotificationsApi.registerExpoPushToken as jest.Mock).mockResolvedValue({ data: {} });
 
-    expoNotifications.getPermissionsAsync.mockResolvedValue({ status: 'undetermined' });
-    expoNotifications.requestPermissionsAsync.mockResolvedValue({ status: 'denied' });
+    await registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled);
+
+    // The factory runs the first time the flow reaches it — never at module load.
+    expect(loadCount).toBe(1);
+  });
+
+  it('captures error to Sentry when permission is denied after request', async () => {
+    mockGetPermissionsAsync.mockResolvedValue({ status: 'undetermined' });
+    mockRequestPermissionsAsync.mockResolvedValue({ status: 'denied' });
 
     await registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled);
 
@@ -107,17 +139,12 @@ describe('registerPushNotificationsAsync', () => {
   });
 
   it('captures error to Sentry and retries permission when previously denied', async () => {
-    const expoNotifications = jest.requireMock('expo-notifications') as {
-      getPermissionsAsync: jest.Mock;
-      requestPermissionsAsync: jest.Mock;
-    };
-
-    expoNotifications.getPermissionsAsync.mockResolvedValue({ status: 'denied' });
-    expoNotifications.requestPermissionsAsync.mockResolvedValue({ status: 'denied' });
+    mockGetPermissionsAsync.mockResolvedValue({ status: 'denied' });
+    mockRequestPermissionsAsync.mockResolvedValue({ status: 'denied' });
 
     await registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled);
 
-    expect(expoNotifications.requestPermissionsAsync).toHaveBeenCalled();
+    expect(mockRequestPermissionsAsync).toHaveBeenCalled();
     expect(mockCaptureError).toHaveBeenCalledWith(
       expect.objectContaining({ message: expect.stringContaining('permission not granted') }),
       { screen: 'usePushNotifications', action: 'register' },
@@ -126,14 +153,8 @@ describe('registerPushNotificationsAsync', () => {
   });
 
   it('captures error to Sentry and disables notifications when API fails', async () => {
-    const expoNotifications = jest.requireMock('expo-notifications') as {
-      getPermissionsAsync: jest.Mock;
-      requestPermissionsAsync: jest.Mock;
-      getExpoPushTokenAsync: jest.Mock;
-    };
-
-    expoNotifications.getPermissionsAsync.mockResolvedValue({ status: 'granted' });
-    expoNotifications.getExpoPushTokenAsync.mockResolvedValue({ data: 'ExponentPushToken[abc]' });
+    mockGetPermissionsAsync.mockResolvedValue({ status: 'granted' });
+    mockGetExpoPushTokenAsync.mockResolvedValue({ data: 'ExponentPushToken[abc]' });
 
     const apiError = new Error('API error');
     (NotificationsApi.registerExpoPushToken as jest.Mock).mockRejectedValue(apiError);
@@ -147,15 +168,10 @@ describe('registerPushNotificationsAsync', () => {
   });
 
   it('captures error when getExpoPushTokenAsync throws', async () => {
-    const expoNotifications = jest.requireMock('expo-notifications') as {
-      getPermissionsAsync: jest.Mock;
-      getExpoPushTokenAsync: jest.Mock;
-    };
-
-    expoNotifications.getPermissionsAsync.mockResolvedValue({ status: 'granted' });
+    mockGetPermissionsAsync.mockResolvedValue({ status: 'granted' });
 
     const tokenError = new Error('Expo push service unreachable');
-    expoNotifications.getExpoPushTokenAsync.mockRejectedValue(tokenError);
+    mockGetExpoPushTokenAsync.mockRejectedValue(tokenError);
 
     await expect(
       registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled),
@@ -167,12 +183,8 @@ describe('registerPushNotificationsAsync', () => {
   });
 
   it('captures error when getPermissionsAsync throws', async () => {
-    const expoNotifications = jest.requireMock('expo-notifications') as {
-      getPermissionsAsync: jest.Mock;
-    };
-
     const permError = new Error('Native module error');
-    expoNotifications.getPermissionsAsync.mockRejectedValue(permError);
+    mockGetPermissionsAsync.mockRejectedValue(permError);
 
     await expect(
       registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled),
@@ -182,11 +194,53 @@ describe('registerPushNotificationsAsync', () => {
     expect(setNotificationsEnabled).toHaveBeenCalledWith(false);
     expect(NotificationsApi.registerExpoPushToken).not.toHaveBeenCalled();
   });
+
+  it('does not attempt a push registration in Expo Go on Android', async () => {
+    // Expo Go cannot register ExpoTopicSubscriptionModule, so the lazy load still throws
+    // there. The guard must stop the flow before that, so no secondary
+    // "Cannot read property 'getPermissionsAsync' of undefined" is reported as well.
+    mockIsRunningInExpoGo.current = true;
+    const loadsBefore = loadCount;
+
+    await expect(
+      registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled),
+    ).resolves.toBeUndefined();
+
+    expect(loadCount).toBe(loadsBefore);
+    expect(setExpoPushToken).not.toHaveBeenCalled();
+    expect(setNotificationsEnabled).not.toHaveBeenCalled();
+    expect(NotificationsApi.registerExpoPushToken).not.toHaveBeenCalled();
+  });
+
+  it('captures error when expo-notifications cannot be loaded', async () => {
+    // Mirrors a device where the native module is missing at call time; the flow must
+    // surface that as a normal registration failure instead of throwing out of the caller.
+    let attempted: typeof import('../usePushNotifications') | undefined;
+
+    jest.isolateModules(() => {
+      // A throwing factory would also blow up the implicit import of `expo-device`,
+      // masking what this test asserts; an empty module reproduces the same
+      // "undefined native API" shape the missing native module produces on a device.
+      jest.doMock('expo-notifications', () => ({}));
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      attempted = require('../usePushNotifications') as typeof import('../usePushNotifications');
+    });
+
+    await expect(
+      (attempted as typeof import('../usePushNotifications')).registerPushNotificationsAsync(
+        setExpoPushToken,
+        setNotificationsEnabled,
+      ),
+    ).resolves.toBeUndefined();
+
+    // Must not be a TypeError from dereferencing the missing module: the guard stops the
+    // undefined shape before it is ever used.
+    expect(setExpoPushToken).not.toHaveBeenCalled();
+    expect(NotificationsApi.registerExpoPushToken).not.toHaveBeenCalled();
+  });
 });
 
 describe('unregisterPushNotificationsAsync', () => {
-  const clearNotificationState = jest.fn();
-
   beforeEach(() => {
     useNotificationStore.setState({ expoPushToken: null, notificationsEnabled: false });
     mockIsDevice.current = true;
