@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { ChartData, ChartOptions, TooltipItem } from 'chart.js';
 import { ChartColors } from '../../../core/constants/chart-colors';
 import { catchError, filter, forkJoin, map, of, switchMap } from 'rxjs';
@@ -33,7 +33,8 @@ import { UserProjectDto } from '../models/user-project-dto';
     OverviewMonthlyChartCardComponent,
     OverviewAnnualChartCardComponent,
     CurrencyFormatPipe,
-    TranslateModule
+    TranslateDirective,
+    TranslatePipe
   ],
   providers: [CurrencyFormatPipe],
   templateUrl: './project-overview.component.html',

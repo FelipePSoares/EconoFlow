@@ -24,6 +24,13 @@ updates:
         patterns:
           - "jasmine*"
           - "karma*"
+      # Everything not claimed by the groups above lands in one weekly PR instead of one PR per
+      # package, so a routine refresh can be reviewed and merged in a single pass.
+      angular-minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
 
   - package-ecosystem: "npm"
     directory: "/econoflow-mobile"
@@ -48,6 +55,13 @@ updates:
       types:
         patterns:
           - "@types/*"
+      # Keep the Expo native modules on the SDK 57 versions of `bundledNativeModules.json`;
+      # minor/patch bumps of everything else arrive together in one PR.
+      mobile-minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
 
   - package-ecosystem: "nuget"
     directory: "/"
@@ -74,6 +88,11 @@ updates:
       dotnet-tools:
         patterns:
           - "dotnet-ef"
+      dotnet-minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
 
   - package-ecosystem: "github-actions"
     directory: "/"

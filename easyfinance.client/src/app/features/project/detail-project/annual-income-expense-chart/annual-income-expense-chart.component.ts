@@ -2,11 +2,11 @@ import { AfterViewInit, Component, inject, Input, PLATFORM_ID, ChangeDetectionSt
 import { isPlatformBrowser } from '@angular/common';
 import { ChartData, ChartOptions } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-annual-income-expense-chart',
-  imports: [BaseChartDirective, TranslateModule],
+  imports: [BaseChartDirective, TranslateDirective, TranslatePipe],
   templateUrl: './annual-income-expense-chart.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './annual-income-expense-chart.component.css'

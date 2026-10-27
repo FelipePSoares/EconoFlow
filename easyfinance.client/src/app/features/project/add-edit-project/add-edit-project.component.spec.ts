@@ -1,6 +1,6 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { TranslateModule } from '@ngx-translate/core';
+import { provideTranslateService } from '@ngx-translate/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { of } from 'rxjs';
@@ -19,7 +19,6 @@ describe('AddEditProjectComponent - months locale', () => {
     await TestBed.configureTestingModule({
       imports: [
         AddEditProjectComponent,
-        TranslateModule.forRoot(),
         NoopAnimationsModule
       ],
       providers: [
@@ -50,7 +49,8 @@ describe('AddEditProjectComponent - months locale', () => {
         {
           provide: ErrorMessageService,
           useValue: {}
-        }
+        },
+        ...provideTranslateService()
       ]
     }).compileComponents();
 

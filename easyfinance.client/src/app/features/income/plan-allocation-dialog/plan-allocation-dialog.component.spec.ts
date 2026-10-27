@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { TranslateModule } from '@ngx-translate/core';
+import { provideTranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 import { PlanType } from '../../../core/enums/plan-type';
 import { Plan } from '../../../core/models/plan';
@@ -55,8 +55,7 @@ describe('PlanAllocationDialogComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [
-        PlanAllocationDialogComponent,
-        TranslateModule.forRoot()
+        PlanAllocationDialogComponent
       ],
       providers: [
         { provide: PlanService, useValue: planServiceMock },
@@ -70,7 +69,8 @@ describe('PlanAllocationDialogComponent', () => {
             groupSeparator: ',',
             decimalSeparator: '.'
           }
-        }
+        },
+        ...provideTranslateService()
       ]
     }).compileComponents();
   });

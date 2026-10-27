@@ -5,7 +5,7 @@ import { provideNativeDateAdapter } from '@angular/material/core';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { TranslateModule } from '@ngx-translate/core';
+import { provideTranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, Subject, of, EMPTY } from 'rxjs';
 import { PlanType } from '../../../core/enums/plan-type';
 import { Plan } from '../../../core/models/plan';
@@ -104,8 +104,7 @@ describe('ListIncomesComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [
-        ListIncomesComponent,
-        TranslateModule.forRoot()
+        ListIncomesComponent
       ],
       providers: [
         provideNativeDateAdapter(),
@@ -159,7 +158,8 @@ describe('ListIncomesComponent', () => {
           useValue: {
             currentDate: new Date('2026-03-12T12:00:00')
           }
-        }
+        },
+        ...provideTranslateService()
       ]
     }).compileComponents();
 

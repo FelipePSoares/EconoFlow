@@ -10,7 +10,7 @@ import { Observable } from 'rxjs/internal/Observable';
 import { AuthService } from '../core/services/auth.service';
 import { NavBarComponent } from '../core/components/nav-bar/nav-bar.component';
 import { SpinnerComponent } from '../core/components/spinner/spinner.component';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { VersionCheckService } from '../core/services/version-check.service';
 import { CanonicalService } from '../core/services/canonical.service';
 import { AddButtonComponent } from '../core/components/add-button/add-button.component';
@@ -38,9 +38,10 @@ import { ProjectOverviewRefreshService } from '../core/services/project-overview
     RouterOutlet,
     NavBarComponent,
     SpinnerComponent,
-    TranslateModule,
     FormsModule,
-    AddButtonComponent
+    AddButtonComponent,
+    TranslateDirective,
+    TranslatePipe
   ],
   templateUrl: './app.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,

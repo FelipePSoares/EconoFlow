@@ -7,7 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIcon } from "@angular/material/icon";
 
 import confetti from 'canvas-confetti';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
 import { passwordMatchValidator } from '../../../core/utils/custom-validators/password-match-validator';
 import { ApiErrorResponse } from '../../../core/models/error';
@@ -25,8 +25,9 @@ import { TurnstileWidgetComponent } from '../../../core/components/turnstile-wid
     MatFormFieldModule,
     MatInputModule,
     MatIcon,
-    TranslateModule,
-    TurnstileWidgetComponent
+    TurnstileWidgetComponent,
+    TranslateDirective,
+    TranslatePipe
 ],
     templateUrl: './register.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,

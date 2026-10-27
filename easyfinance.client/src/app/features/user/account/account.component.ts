@@ -9,7 +9,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSlideToggleChange, MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { Router } from '@angular/router';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { UserService } from '../../../core/services/user.service';
 import { DeleteUser, User } from '../../../core/models/user';
 
@@ -34,8 +34,9 @@ import { PrivacyModeService } from '../../../core/services/privacy-mode.service'
     MatButtonModule,
     MatSelectModule,
     MatOptionModule,
-    TranslateModule,
-    MatSlideToggleModule
+    MatSlideToggleModule,
+    TranslateDirective,
+    TranslatePipe
   ],
   templateUrl: './account.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,

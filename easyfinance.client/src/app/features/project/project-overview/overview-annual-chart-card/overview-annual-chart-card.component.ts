@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { ChartData, ChartOptions } from 'chart.js';
 import { BudgetBarComponent } from '../../../../core/components/budget-bar/budget-bar.component';
 import { AnnualIncomeExpenseChartComponent } from '../../detail-project/annual-income-expense-chart/annual-income-expense-chart.component';
@@ -9,9 +9,10 @@ import { AnnualIncomeExpenseChartComponent } from '../../detail-project/annual-i
   selector: 'app-overview-annual-chart-card',
   imports: [
     CommonModule,
-    TranslateModule,
     BudgetBarComponent,
-    AnnualIncomeExpenseChartComponent
+    AnnualIncomeExpenseChartComponent,
+    TranslateDirective,
+    TranslatePipe
   ],
   templateUrl: './overview-annual-chart-card.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,

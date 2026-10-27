@@ -6,7 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { take } from 'rxjs';
 import { PlanType } from '../../../core/enums/plan-type';
 import { ApiErrorResponse } from '../../../core/models/error';
@@ -27,7 +27,8 @@ import { PlanPatchModel } from '../models/plan-patch-model';
     MatSelectModule,
     MatButtonModule,
     CurrencyMaskModule,
-    TranslateModule
+    TranslateDirective,
+    TranslatePipe
   ],
   templateUrl: './add-edit-plan.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,

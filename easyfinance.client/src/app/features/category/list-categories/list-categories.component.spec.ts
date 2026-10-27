@@ -3,7 +3,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { Subject, of, BehaviorSubject, EMPTY } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { provideTranslateService } from '@ngx-translate/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ListCategoriesComponent } from './list-categories.component';
@@ -67,7 +67,6 @@ describe('ListCategoriesComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         ListCategoriesComponent,
-        TranslateModule.forRoot(),
         NoopAnimationsModule
       ],
       providers: [
@@ -86,7 +85,8 @@ describe('ListCategoriesComponent', () => {
             getFormFieldErrors: () => [],
             setFormErrors: jasmine.createSpy('setFormErrors')
           }
-        }
+        },
+        ...provideTranslateService()
       ]
     }).compileComponents();
 

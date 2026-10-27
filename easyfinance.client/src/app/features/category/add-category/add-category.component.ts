@@ -7,7 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CategoryService } from '../../../core/services/category.service';
 import { CategoryDto } from '../models/category-dto';
@@ -25,7 +25,8 @@ import { DefaultCategory } from '../../../core/models/default-category';
         MatAutocompleteModule,
         MatInputModule,
         MatFormFieldModule,
-        TranslateModule
+        TranslateDirective,
+        TranslatePipe
     ],
     templateUrl: './add-category.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,

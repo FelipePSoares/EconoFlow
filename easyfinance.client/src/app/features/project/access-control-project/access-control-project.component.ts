@@ -9,7 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { compare, Operation } from 'fast-json-patch';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { ProjectService } from '../../../core/services/project.service';
 import { UserProjectDto } from '../models/user-project-dto';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
@@ -31,7 +31,8 @@ import { conditionalEmailValidator } from '../../../core/utils/custom-validators
     MatFormFieldModule,
     MatSelectModule,
     MatIconModule,
-    TranslateModule
+    TranslateDirective,
+    TranslatePipe
   ],
   templateUrl: './access-control-project.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,

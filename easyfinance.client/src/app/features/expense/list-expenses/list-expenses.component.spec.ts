@@ -4,7 +4,7 @@ import { NavigationEnd, Router } from '@angular/router';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { TranslateModule } from '@ngx-translate/core';
+import { provideTranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, Subject, of, EMPTY } from 'rxjs';
 import { CategoryService } from '../../../core/services/category.service';
 import { CurrentDateService } from '../../../core/services/current-date.service';
@@ -93,8 +93,7 @@ describe('ListExpensesComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [
-        ListExpensesComponent,
-        TranslateModule.forRoot()
+        ListExpensesComponent
       ],
       providers: [
         provideNativeDateAdapter(),
@@ -124,7 +123,8 @@ describe('ListExpensesComponent', () => {
         {
           provide: CurrentDateService,
           useValue: { currentDate: new Date('2026-03-12T12:00:00') }
-        }
+        },
+        ...provideTranslateService()
       ]
     }).compileComponents();
 

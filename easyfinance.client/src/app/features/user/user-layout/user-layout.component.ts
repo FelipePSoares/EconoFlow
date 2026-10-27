@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { UserService } from '../../../core/services/user.service';
 
 @Component({
@@ -9,7 +9,8 @@ import { UserService } from '../../../core/services/user.service';
     RouterOutlet,
     RouterLink,
     RouterLinkActive,
-    TranslateModule
+    TranslateDirective,
+    TranslatePipe
   ],
   templateUrl: './user-layout.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,

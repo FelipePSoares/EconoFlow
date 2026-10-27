@@ -8,7 +8,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { NavigationEnd, Router, UrlSegment } from '@angular/router';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { BehaviorSubject, Observable, filter, map } from 'rxjs';
 import { Role } from '../../../core/enums/Role';
 import { Plan } from '../../../core/models/plan';
@@ -40,7 +40,8 @@ import { Attachment } from '../../../core/models/attachment';
     AddIncomeComponent,
     SwipeDeleteRowComponent,
     MatMenuModule,
-    TranslateModule
+    TranslateDirective,
+    TranslatePipe
   ],
   templateUrl: './list-incomes.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,

@@ -8,7 +8,7 @@ import { take } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIcon } from "@angular/material/icon";
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { User } from '../../../core/models/user';
 import { ThemeService } from '../../../core/services/theme.service';
@@ -28,8 +28,9 @@ interface SignInCredentials {
       MatFormFieldModule,
       MatInputModule,
       MatIcon,
-      TranslateModule,
-      TurnstileWidgetComponent
+      TurnstileWidgetComponent,
+      TranslateDirective,
+      TranslatePipe
     ],
     templateUrl: './login.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,

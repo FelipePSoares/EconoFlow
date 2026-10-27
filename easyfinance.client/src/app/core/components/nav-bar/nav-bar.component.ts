@@ -2,7 +2,7 @@ import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Observable, combineLatest, map } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { UserService } from '../../services/user.service';
 import { ProjectService } from '../../services/project.service';
 import { Project } from '../../models/project';
@@ -18,10 +18,11 @@ import { ThemeService } from '../../services/theme.service';
   imports: [
     AsyncPipe,
     RouterLink,
-    TranslateModule,
     RouterLinkActive,
     NotificationsComponent,
-    StickyNotificationsComponent
+    StickyNotificationsComponent,
+    TranslateDirective,
+    TranslatePipe
   ],
   templateUrl: './nav-bar.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,

@@ -7,7 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { Moment } from 'moment';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { PlanEntryRequest } from '../../../core/models/plan-entry';
 import { CurrentDateService } from '../../../core/services/current-date.service';
@@ -30,7 +30,8 @@ type PlanEntryAction = 'add' | 'remove';
     MatDatepickerModule,
     MatButtonModule,
     CurrencyMaskModule,
-    TranslateModule
+    TranslateDirective,
+    TranslatePipe
   ],
   templateUrl: './add-plan-entry.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,

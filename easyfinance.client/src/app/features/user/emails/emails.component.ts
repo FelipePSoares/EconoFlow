@@ -1,7 +1,7 @@
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -17,9 +17,10 @@ import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.co
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    TranslateModule,
     MatFormFieldModule,
     MatInputModule,
+    TranslateDirective,
+    TranslatePipe
   ],
   templateUrl: './emails.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,

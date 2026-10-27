@@ -12,7 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { DateAdapter } from '@angular/material/core';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { Moment } from 'moment';
 import { IncomeService } from '../../../core/services/income.service';
 import { IncomeDto } from '../models/income-dto';
@@ -39,7 +39,8 @@ import { ATTACHMENT_ACCEPT_ATTRIBUTE, validateAttachmentFile } from '../../../co
     MatDatepickerModule,
     CurrencyMaskModule,
     NgClass,
-    TranslateModule
+    TranslateDirective,
+    TranslatePipe
 ],
     templateUrl: './add-income.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,

@@ -5,7 +5,7 @@ import { DateAdapter } from '@angular/material/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
 import { NavigationEnd, Router, UrlSegment } from '@angular/router';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { BehaviorSubject, Observable, filter, map } from 'rxjs';
 import { ConfirmDialogComponent } from '../../../core/components/confirm-dialog/confirm-dialog.component';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
@@ -32,7 +32,8 @@ import { PlanDto } from '../models/plan-dto';
     CurrencyFormatPipe,
     AddEditPlanComponent,
     AddPlanEntryComponent,
-    TranslateModule
+    TranslateDirective,
+    TranslatePipe
   ],
   templateUrl: './income-plan-mode.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,

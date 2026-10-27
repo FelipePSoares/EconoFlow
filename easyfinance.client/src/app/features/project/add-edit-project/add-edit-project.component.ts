@@ -8,7 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 
 import { compare } from 'fast-json-patch';
 import { Router } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import confetti from 'canvas-confetti';
 import { MatDialogRef } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
@@ -33,7 +33,8 @@ import { GlobalService } from '../../../core/services/global.service';
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    TranslateModule
+    TranslateDirective,
+    TranslatePipe
 ],
   templateUrl: './add-edit-project.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
