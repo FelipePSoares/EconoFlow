@@ -7,8 +7,56 @@
 
 ```powershell
 cd econoflow-mobile
-npx expo start
+npx expo start --tunnel -c
 ```
+
+`.env.local` is applied when Metro serves the bundle, and it currently points at
+`https://localhost:7003`. That address is unreachable from Expo Go on a physical phone, so for a
+phone run point it at production instead — `.env.local` is git-ignored:
+
+```env
+EXPO_PUBLIC_API_URL=https://econoflow.pt
+```
+
+Restart Metro after changing it (there is no hot-reload for `EXPO_PUBLIC_*`). This is why the
+production domain is one env line away rather than a code change.
+
+**A local backend running on your machine is not reachable from the phone.** Two independent
+things have to change:
+
+1. **`appsettings.Development.json`** binds `https://0.0.0.0:7003` (already set up for the
+   emulator), but the app under `econoflow.dev` publishes it as `127.0.0.1:7003` — Docker Desktop
+   forwards to loopback only. `127.0.0.1` is not an address a phone can connect to.
+2. **Windows Firewall** blocks inbound TCP 7003 on a `Public` network profile (Wi-Fi usually is),
+   so even a 0.0.0.0-bound process is unreachable from the LAN.
+
+If you really need the phone talking to the local backend:
+
+```powershell
+# terminal 1 — backend on every interface
+dotnet run --project ./EasyFinance.Server --urls https://0.0.0.0:7003/
+
+# terminal 2 — allow the LAN in on the Wi-Fi profile (admin shell)
+New-NetFirewallRule -DisplayName "EconoFlow API 7003" -Direction Inbound -Protocol TCP `
+  -LocalPort 7003 -Action Allow -Profile Private
+
+# terminal 3 — point the app at the host's LAN IP (phone must be on the same Wi-Fi)
+# .env.local: EXPO_PUBLIC_API_URL=https://192.168.0.234:7003
+```
+
+Android then rejects `devcert-emulator.pfx` (its SANs are `10.0.2.2`, `127.0.0.1`, `localhost`) with
+`ERR_CERT_COMMON_NAME_INVALID`, so the phone needs one of:
+
+- a per-network dev cert whose SAN includes the LAN IP **and** an Android trust anchor for it
+  (Expo Go does not read user-installed CAs, so this effectively means a dev build), or
+- a public-CA certificate for the LAN IP, or
+- `adb reverse tcp:7003 tcp:7003` plus `EXPO_PUBLIC_API_URL=https://localhost:7003` — this gives
+  the phone a tunnel over USB, and the only extra step is trusting the dev cert (Installed CA on
+  the phone; Expo Go still won't accept it).
+
+Against production, none of this applies: `https://econoflow.pt` has a real certificate.
+
+---
 
 ## Run on connected device / emulator
 

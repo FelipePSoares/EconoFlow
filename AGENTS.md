@@ -71,7 +71,7 @@ Public name **EconoFlow**, internal codebase name **EasyFinance** — appears in
 |-----------|-------|
 | `EasyFinance.*` (6 csproj) | ASP.NET Core 10 Clean Architecture |
 | `easyfinance.client/` | Angular 21 SPA |
-| `econoflow-mobile/` | React Native 0.85 + Expo SDK 56 |
+| `econoflow-mobile/` | React Native 0.88 + Expo SDK 58 |
 
 ---
 
