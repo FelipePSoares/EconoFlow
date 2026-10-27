@@ -175,18 +175,20 @@ jobs:
         run: |
           set -euo pipefail
 
-          # A BOM upload replaces the components of the target project version, so
-          # several files would silently overwrite each other. Fail instead.
-          mapfile -t BOMS < <(find sbom -name '*.cdx.json' -type f)
-          if [ "${#BOMS[@]}" -ne 1 ]; then
-            echo "::error::Expected exactly one CycloneDX file in ./sbom, found ${#BOMS[@]}:"
-            printf '  %s\n' "${BOMS[@]}"
-            exit 1
-          fi
+          BOM="sbom/econoflow.cdx.json"
+          test -s "$BOM" || { echo "::error::$BOM is missing or empty"; exit 1; }
+
+          # Show what is being uploaded, and refuse to replace the project's
+          # components with an empty BOM.
+          COUNT="$(jq '.components | length' "$BOM")"
+          echo "Components in $BOM: ${COUNT}"
+          jq -r '[.components[]?.purl // empty | capture("^pkg:(?<t>[^/]+)/").t]
+                 | group_by(.) | map("  \(.[0]): \(length)") | .[]' "$BOM"
+          [ "$COUNT" -gt 0 ] || { echo "::error::BOM has no components"; exit 1; }
 
           # The BOM travels as a base64 string inside the JSON body. The payload is built
           # in a file because it is too large to pass as a command-line argument.
-          base64 -w0 "${BOMS[0]}" > bom.b64
+          base64 -w0 "$BOM" > bom.b64
           jq -n \
             --arg name "EconoFlow" \
             --arg version "latest" \
