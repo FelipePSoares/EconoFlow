@@ -122,7 +122,7 @@ export const IncomeFormScreen: React.FC<Props> = ({ route, navigation }) => {
 
       <Button
         mode="contained"
-        onPress={handleSubmit(onSubmit)}
+        onPress={handleSubmit(onSubmit) as unknown as () => void}
         loading={isMutating}
         disabled={isMutating}
         style={styles.button}

@@ -185,7 +185,7 @@ export const ExpenseFormScreen: React.FC<Props> = ({ route, navigation }) => {
         )}
       />
 
-      <Button mode="contained" onPress={handleSubmit(onSubmit)} loading={isMutating} disabled={isMutating} style={styles.button}>
+      <Button mode="contained" onPress={handleSubmit(onSubmit) as unknown as () => void} loading={isMutating} disabled={isMutating} style={styles.button}>
         {isEdit ? (t('ButtonSave') ?? 'Save') : (t('ButtonAdd') ?? 'Add')}
       </Button>
       <Button mode="text" onPress={() => navigation.goBack()} style={styles.link}>

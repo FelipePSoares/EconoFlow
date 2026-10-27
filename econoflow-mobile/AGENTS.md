@@ -1,6 +1,10 @@
 # econoflow-mobile
 
-React Native 0.86 + Expo SDK 57 app (`newArchEnabled: false`). Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before writing any code.
+React Native 0.88 + Expo SDK 58. Read the exact versioned docs at https://docs.expo.dev/versions/v58.0.0/ before writing any code.
+
+The New Architecture is the only supported one — React Native 0.82+ cannot disable it, and Expo removed the `newArchEnabled` app-config key in SDK 55, so `app.json` must not set it (expo-doctor fails the schema check if it does).
+
+**Never import `expo-notifications` at module scope.** Expo Go on Android does not register `ExpoTopicSubscriptionModule`, and the package resolves it with `requireNativeModule` on import ([expo/expo#52175](https://github.com/expo/expo/issues/52175)), so a top-level import red-screens the whole app on startup. `src/hooks/usePushNotifications.ts` loads it with `require('expo-notifications')` inside the flow instead — keep it that way, and lazy-load any other package you import from `AppNavigator`'s graph whose native module Expo Go omits. Push registration still cannot work in Expo Go on Android by design; test it on a dev build.
 
 ## Development workflow
 

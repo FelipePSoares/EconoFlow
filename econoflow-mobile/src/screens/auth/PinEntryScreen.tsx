@@ -5,7 +5,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { RootParamList } from '../../navigation/AppNavigator';
+import type { SessionParamList } from '../../navigation/SessionNavigator';
 import { usePinStore } from '../../store/pinStore';
 import { useLockStore } from '../../store/lockStore';
 import { useAuthStore } from '../../store/authStore';
@@ -14,7 +14,7 @@ import { GlassScreen } from '../../components/common/GlassScreen';
 import { GlassCard } from '../../components/common/GlassCard';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
 
-type Props = NativeStackScreenProps<RootParamList, 'PinEntry'>;
+type Props = NativeStackScreenProps<SessionParamList, 'PinEntry'>;
 
 const PIN_LENGTH_MAX = 6;
 const MAX_ATTEMPTS = 5;
@@ -63,11 +63,11 @@ export const PinEntryScreen: React.FC<Props> = ({ navigation }) => {
   const verifyingRef = useRef(false);
 
   const handleForgotPin = useCallback(() => {
+    // Clearing the auth state is enough: `AppGate` swaps to the auth tree on its own.
     clearBiometric();
     clearPin();
     clearAuth();
-    navigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
-  }, [clearBiometric, clearPin, clearAuth, navigation]);
+  }, [clearBiometric, clearPin, clearAuth]);
 
   const handleDigit = useCallback(async (digit: string) => {
     if (verifyingRef.current) return;

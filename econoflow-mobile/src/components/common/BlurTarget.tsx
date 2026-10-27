@@ -17,6 +17,7 @@
  */
 import React from 'react';
 import { View, ViewProps } from 'react-native';
+import type { ViewInstance } from 'react-native';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyComponent = React.ComponentType<any>;
@@ -39,13 +40,13 @@ const NativeBlurTargetView = loadNativeBlurTarget();
  * its ref to the native ExpoBlurTargetView node.
  *
  * Usage (Android):
- *   const ref = useRef<View>(null);
+ *   const ref = useRef<ViewInstance>(null);
  *   <BlurTarget ref={ref} style={StyleSheet.absoluteFill} pointerEvents="none">
  *     <Background />
  *   </BlurTarget>
  *   <BlurView blurTarget={ref} blurMethod="dimezisBlurViewSdk31Plus" ... />
  */
-export const BlurTarget = React.forwardRef<View, ViewProps>(function BlurTarget(props, ref) {
+export const BlurTarget = React.forwardRef<ViewInstance, ViewProps>(function BlurTarget(props, ref) {
   if (NativeBlurTargetView) {
     return <NativeBlurTargetView ref={ref} {...props} />;
   }

@@ -13,7 +13,9 @@ import { useForm, Controller, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { CommonActions } from '@react-navigation/native';
 import type { OnboardingParamList } from '../../navigation/OnboardingNavigator';
+import type { SessionParamList } from '../../navigation/SessionNavigator';
 import { useUpdateProfile } from '../../hooks/useUpdateProfile';
 import { registerPushNotificationsAsync } from '../../hooks/usePushNotifications';
 import { captureError } from '../../monitoring/sentry';
@@ -43,13 +45,14 @@ const SUPPORTED_LANGUAGES = [
   { code: 'pt', label: 'Português' },
 ];
 
-export const ProfileSetupScreen: React.FC<Props> = () => {
+export const ProfileSetupScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
   const { dark, ink, ink2 } = useAuroraSkin();
   const insets = useSafeAreaInsets();
   const [error, setError] = useState<string | null>(null);
   const [langOpen, setLangOpen] = useState(false);
 
+  // Hooks must run unconditionally in the component body, never inside a callback.
   const updateProfile = useUpdateProfile();
   const setOpenCreateProjectOnStart = useAuthStore((s) => s.setOpenCreateProjectOnStart);
 
@@ -83,6 +86,15 @@ export const ProfileSetupScreen: React.FC<Props> = () => {
 
       const { setExpoPushToken, setNotificationsEnabled } = useNotificationStore.getState();
       registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled);
+
+      // Onboarding is terminal: there is no back button, and AppGate only swaps
+      // Onboarding → Main when `needsOnboarding` flips. The PATCH response alone does not
+      // guarantee that re-render (an account that already has a firstName keeps
+      // `needsOnboarding === false`), so leave the stack explicitly or the user sits on
+      // this screen forever.
+      navigation.getParent<NativeStackNavigationProp<SessionParamList>>()?.dispatch(
+        CommonActions.reset({ index: 0, routes: [{ name: 'Main' }] }),
+      );
     } catch (err) {
       captureError(err, { screen: 'ProfileSetupScreen', action: 'setupProfile' });
       setOpenCreateProjectOnStart(false);

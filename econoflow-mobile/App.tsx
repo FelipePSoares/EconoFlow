@@ -15,7 +15,7 @@ import { Provider as PaperProvider, MD3LightTheme, MD3DarkTheme } from 'react-na
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
-import { AppNavigator } from './src/navigation/AppNavigator';
+import { AppGate } from './src/navigation/AppGate';
 import { useAppLock } from './src/hooks/useAppLock';
 import { useLockStore } from './src/store/lockStore';
 import { LockOverlay } from './src/components/common/LockOverlay';
@@ -144,7 +144,7 @@ function App() {
                 }}
               >
                 <StatusBar style={isDark ? 'light' : 'dark'} />
-                <AppNavigator />
+                <AppGate />
               </NavigationContainer>
               {isLocked && <LockOverlay />}
             </View>

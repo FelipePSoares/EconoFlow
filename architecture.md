@@ -645,7 +645,7 @@ Translation JSON files live under `src/assets/i18n/{lang}.json`. All user-visibl
 
 ## 12. Frontend — React Native Mobile App
 
-**Stack**: React Native 0.86, Expo SDK 57 (`newArchEnabled: false`), React Navigation, React Query, Zustand, react-native-paper (MD3), axios, react-i18next, react-hook-form. Attachments add four native modules — `expo-document-picker`, `expo-image-picker`, `expo-file-system` (`/legacy` API) and `expo-sharing` — installed with `npx expo install`. Their `app.json` config-plugin entries (permission strings) only take effect in a dev client or standalone build, so attachment flows must be verified on `npx expo run:*` or an EAS build. See `econoflow-mobile/AGENTS.md`.
+**Stack**: React Native 0.88, Expo SDK 58 (New Architecture only — React Native 0.82+ cannot disable it, and `newArchEnabled` was removed from the app config in SDK 55), React Navigation, React Query, Zustand, react-native-paper (MD3), axios, react-i18next, react-hook-form. Attachments add four native modules — `expo-document-picker`, `expo-image-picker`, `expo-file-system` (`/legacy` API) and `expo-sharing` — installed with `npx expo install`. Their `app.json` config-plugin entries (permission strings) only take effect in a dev client or standalone build, so attachment flows must be verified on `npx expo run:*` or an EAS build. See `econoflow-mobile/AGENTS.md`.
 
 ### State layers
 

@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import type { TextInputInstance, ViewInstance } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -67,7 +68,7 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
   fillColor,
   trackColor,
 }) => {
-  const wrapperRef = useRef<View>(null);
+  const wrapperRef = useRef<ViewInstance>(null);
   const widthRef = useRef(0);
   const pageXRef = useRef(0);
   const fillPct = Math.min(100, Math.max(0, value));
@@ -152,8 +153,8 @@ export const SmartSetupScreen: React.FC<Props> = ({ navigation, route }) => {
   const [error, setError] = useState<string | null>(null);
 
   const initialized = useRef(false);
-  const annualIncomeInputRef = useRef<TextInput>(null);
-  const emergencyInputRef = useRef<TextInput>(null);
+  const annualIncomeInputRef = useRef<TextInputInstance>(null);
+  const emergencyInputRef = useRef<TextInputInstance>(null);
 
   const { currency } = useProjectStore();
   const setHideTabBar = useUIStore((s) => s.setHideTabBar);

@@ -5,13 +5,13 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { RootParamList } from '../../navigation/AppNavigator';
+import type { SessionParamList } from '../../navigation/SessionNavigator';
 import { usePinStore } from '../../store/pinStore';
 import { GlassScreen } from '../../components/common/GlassScreen';
 import { GlassCard } from '../../components/common/GlassCard';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
 
-type Props = NativeStackScreenProps<RootParamList, 'PinSetup'>;
+type Props = NativeStackScreenProps<SessionParamList, 'PinSetup'>;
 
 const PIN_LENGTH_MIN = 4;
 const PIN_LENGTH_MAX = 6;
