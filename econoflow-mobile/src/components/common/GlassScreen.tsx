@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
+import type { ViewInstance } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { AuroraMesh } from './AuroraMesh';
 import { BlurTarget } from './BlurTarget';
@@ -13,7 +14,7 @@ interface Props {
 
 export const GlassScreen: React.FC<Props> = ({ dark, children, intensity }) => {
   const blur = intensity ?? 100;
-  const blurTargetRef = useRef<View>(null);
+  const blurTargetRef = useRef<ViewInstance>(null);
   const bg = dark ? '#061e33' : '#e6eff6';
 
   // Semi-transparent tint layered over the blur — deepens the frosted-glass effect

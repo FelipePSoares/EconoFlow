@@ -129,6 +129,8 @@ describe('PinEntryScreen', () => {
     expect(mockClearBiometric).toHaveBeenCalled();
     expect(mockClearPin).toHaveBeenCalled();
     expect(mockClearAuth).toHaveBeenCalled();
-    expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: 'Auth' }] });
+    // Auth is not a route on the session navigator: AppGate swaps to the auth tree once
+    // the store reports signed-out, so no navigation call is expected here.
+    expect(mockReset).not.toHaveBeenCalledWith({ index: 0, routes: [{ name: 'Auth' }] });
   });
 });

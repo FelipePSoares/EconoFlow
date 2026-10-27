@@ -144,7 +144,7 @@ export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
                 </View>
               </View>
             </GlassCard>
-          ) : null
+          ) : undefined
         }
         renderItem={({ item, index }) => (
           <CategoryCard
@@ -182,7 +182,7 @@ export const CategoryListScreen: React.FC<Props> = ({ route, navigation }) => {
                 icon="plus"
               />
             </View>
-          ) : null
+          ) : undefined
         }
         contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 16 }]}
         refreshControl={

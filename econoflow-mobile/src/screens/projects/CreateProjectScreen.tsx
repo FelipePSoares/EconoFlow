@@ -18,7 +18,7 @@ import { CommonActions } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
 import type { ProjectStackParamList } from '../../navigation/ProjectStackNavigator';
-import type { RootParamList } from '../../navigation/AppNavigator';
+import type { SessionParamList } from '../../navigation/SessionNavigator';
 import { useCreateProject } from '../../hooks/useProjects';
 import { putTaxYearSettings } from '../../api/projects.api';
 import { captureError } from '../../monitoring/sentry';
@@ -345,7 +345,7 @@ export const CreateProjectScreen: React.FC<Props> = ({ navigation, route }) => {
               onPress={() =>
                 navigation
                   .getParent()
-                  ?.getParent<NativeStackNavigationProp<RootParamList>>()
+                  ?.getParent<NativeStackNavigationProp<SessionParamList>>()
                   ?.dispatch(
                     CommonActions.reset({ index: 0, routes: [{ name: 'Main' }] }),
                   )

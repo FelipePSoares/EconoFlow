@@ -4,6 +4,7 @@ import {
   ScrollView, ActivityIndicator, KeyboardAvoidingView,
   useColorScheme, useWindowDimensions, PanResponder, Animated,
 } from 'react-native';
+import type { TextInputInstance } from 'react-native';
 import { Text, HelperText } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -199,7 +200,7 @@ export const QuickAddModal: React.FC<Props> = ({
   // ref access).
   const [dismissCount, setDismissCount] = useState(0);
 
-  const amountInputRef = useRef<TextInput>(null);
+  const amountInputRef = useRef<TextInputInstance>(null);
 
   useEffect(() => {
     if (dismissCount === 0) return;
@@ -762,7 +763,7 @@ export const QuickAddModal: React.FC<Props> = ({
 
             {/* Submit */}
             <TouchableOpacity
-              onPress={handleSubmit(onSubmit)}
+              onPress={handleSubmit(onSubmit) as unknown as () => void}
               disabled={isPending || !canSubmit}
               activeOpacity={0.85}
               style={[styles.submitWrap, (!canSubmit || isPending) && { opacity: 0.48 }]}

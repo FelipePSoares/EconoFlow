@@ -104,7 +104,7 @@ export const PlanListScreen: React.FC<Props> = ({ navigation }) => {
                 icon="plus"
               />
             </View>
-          ) : null
+          ) : undefined
         }
         contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 24 }]}
         refreshControl={

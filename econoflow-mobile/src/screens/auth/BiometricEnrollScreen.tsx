@@ -6,13 +6,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { RootParamList } from '../../navigation/AppNavigator';
+import type { SessionParamList } from '../../navigation/SessionNavigator';
 import { useBiometricStore } from '../../store/biometricStore';
 import { GlassScreen } from '../../components/common/GlassScreen';
 import { GlassCard } from '../../components/common/GlassCard';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
 
-type Props = NativeStackScreenProps<RootParamList, 'BiometricEnroll'>;
+type Props = NativeStackScreenProps<SessionParamList, 'BiometricEnroll'>;
 
 export const BiometricEnrollScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();

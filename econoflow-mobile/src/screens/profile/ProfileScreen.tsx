@@ -11,7 +11,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackScreenProps, NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { ProfileStackParamList } from '../../navigation/ProfileStackNavigator';
-import type { RootParamList } from '../../navigation/AppNavigator';
+import type { SessionParamList } from '../../navigation/SessionNavigator';
 import { useAuthStore } from '../../store/authStore';
 import { useBiometricStore } from '../../store/biometricStore';
 import { usePinStore } from '../../store/pinStore';
@@ -114,7 +114,7 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
   const { biometricEnabled, setBiometricEnabled, resetBiometricPromptSkipped } = useBiometricStore();
   const { hasPin, clearPin } = usePinStore();
   const { reset: resetLock } = useLockStore();
-  const rootNavigation = useNavigation<NativeStackNavigationProp<RootParamList>>();
+  const rootNavigation = useNavigation<NativeStackNavigationProp<SessionParamList>>();
   const queryClient = useQueryClient();
   const {
     notificationsEnabled,

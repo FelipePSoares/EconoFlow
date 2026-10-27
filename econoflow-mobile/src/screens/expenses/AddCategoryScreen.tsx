@@ -140,7 +140,7 @@ export const AddCategoryScreen: React.FC<Props> = ({ route, navigation }) => {
         {/* ── Submit button ───────────────────────────────────────────── */}
         <Button
           mode="contained"
-          onPress={handleSubmit(onSubmit)}
+          onPress={handleSubmit(onSubmit) as unknown as () => void}
           loading={isMutating}
           disabled={isMutating}
           style={styles.submitBtn}

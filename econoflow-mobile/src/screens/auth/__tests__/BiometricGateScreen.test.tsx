@@ -195,7 +195,7 @@ describe('BiometricGateScreen', () => {
     });
   });
 
-  it('navigates to Auth on sign out', async () => {
+  it('signs out without navigating', async () => {
     mockAuthenticateAsync.mockResolvedValue({ success: false, error: 'user_cancel' });
 
     await render(<BiometricGateScreen navigation={mockNavigation} route={mockRoute} />);
@@ -207,11 +207,11 @@ describe('BiometricGateScreen', () => {
     fireEvent.press(screen.getByText('BiometricSignOut'));
 
     await waitFor(() => {
-      expect(mockReset).toHaveBeenCalledWith({
-        index: 0,
-        routes: [{ name: 'Auth' }],
-      });
+      expect(mockClearAuth).toHaveBeenCalled();
     });
+    // Auth is not a route on the session navigator: AppGate swaps to the auth tree once
+    // the store reports signed-out, so no navigation call is expected here.
+    expect(mockReset).not.toHaveBeenCalledWith({ index: 0, routes: [{ name: 'Auth' }] });
   });
 
   it('navigates to PinEntry when biometrics not available and hasPin', async () => {

@@ -154,12 +154,20 @@ jest.mock('../../../store/authStore', () => ({
 // ─── Navigation mock ──────────────────────────────────────────────────────────
 
 const mockNavigate = jest.fn();
+const mockReset = jest.fn();
+const mockGetParent = jest.fn();
 
 const mockNavigation = {
   navigate: mockNavigate,
   goBack: jest.fn(),
   dispatch: jest.fn(),
+  reset: mockReset,
+  getParent: mockGetParent,
 } as unknown as React.ComponentProps<typeof ProfileSetupScreen>['navigation'];
+
+// The root navigator handed back by `getParent()`; Onboarding sits one level below it.
+const mockRootDispatch = jest.fn();
+mockGetParent.mockReturnValue({ dispatch: mockRootDispatch });
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
@@ -167,6 +175,10 @@ describe('ProfileSetupScreen', () => {
   beforeEach(() => {
     mockMutateAsync.mockReset();
     mockNavigate.mockReset();
+    mockReset.mockReset();
+    mockRootDispatch.mockReset();
+    mockGetParent.mockReset();
+    mockGetParent.mockReturnValue({ dispatch: mockRootDispatch });
     mockSetOpenCreateProjectOnStart.mockReset();
     mockCaptureError.mockReset();
     mockRegisterPushNotificationsAsync.mockReset();
@@ -176,6 +188,48 @@ describe('ProfileSetupScreen', () => {
       setExpoPushToken: jest.fn(),
       setNotificationsEnabled: jest.fn(),
     });
+  });
+
+  /**
+   * Onboarding has no exit of its own: AppGate only swaps Onboarding → Main when
+   * `needsOnboarding` flips, which a PATCH alone does not guarantee. Submitting the
+   * profile therefore has to leave the stack deterministically, or the app sits on this
+   * screen forever.
+   */
+  it('navigates to Main after the profile is saved', async () => {
+    mockMutateAsync.mockResolvedValue({});
+
+    await render(<ProfileSetupScreen navigation={mockNavigation} />);
+
+    await fireEvent.changeText(screen.getByTestId('PlaceholderFirstName'), 'John');
+    await fireEvent.changeText(screen.getByTestId('PlaceholderLastName'), 'Doe');
+    await fireEvent.press(screen.getByTestId('ButtonSaveAndContinue'));
+
+    await waitFor(() => {
+      expect(mockRootDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: expect.stringMatching(/RESET/),
+          payload: expect.objectContaining({
+            routes: [{ name: 'Main' }],
+          }),
+        }),
+      );
+    });
+  });
+
+  it('does not leave onboarding when the profile save fails', async () => {
+    mockMutateAsync.mockRejectedValue(new Error('Network error'));
+
+    await render(<ProfileSetupScreen navigation={mockNavigation} />);
+
+    await fireEvent.changeText(screen.getByTestId('PlaceholderFirstName'), 'John');
+    await fireEvent.changeText(screen.getByTestId('PlaceholderLastName'), 'Doe');
+    await fireEvent.press(screen.getByTestId('ButtonSaveAndContinue'));
+
+    await waitFor(() => {
+      expect(mockSetOpenCreateProjectOnStart).toHaveBeenCalledWith(false);
+    });
+    expect(mockRootDispatch).not.toHaveBeenCalled();
   });
 
   it('renders first name, last name, and language fields', async () => {
