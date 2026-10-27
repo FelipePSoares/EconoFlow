@@ -33,7 +33,7 @@
     "@angular/service-worker": "22.2.3",
     "@angular/ssr": "22.2.4",
     "@modelcontextprotocol/server": "2.4.0",
-    "baseline-browser-mapping": "2.11.33",
+    "baseline-browser-mapping": "2.11.34",
     "body-parser@1": "1.20.9",
     "body-parser@2": "2.4.0",
     "brace-expansion@1": "1.1.21",
