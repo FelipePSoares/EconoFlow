@@ -34,7 +34,28 @@ const string SeedDevelopmentDataVariable = "EconoFlow_SEED_DEVELOPMENT_DATA";
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddPersistenceServices(builder.Configuration, isDevelopment: builder.Environment.IsDevelopment());
-builder.Services.AddApplicationServices();
+
+// Every environment-supplied secret, resolved and validated up front on the same terms as
+// SMTP further down: a misconfigured deployment must refuse to start, rather than start and
+// fail in front of a user, or quietly use a published development value. Development keeps
+// working defaults; nothing else does. AddRequiredSecrets then publishes the validated
+// values to the environment and to the services that consume them.
+var secrets = RequiredSecrets.ResolveAll(
+    builder.Environment.IsDevelopment(),
+    Environment.GetEnvironmentVariable,
+    builder.Configuration);
+builder.Services.AddRequiredSecrets(
+    builder.Environment,
+    secrets,
+    Environment.SetEnvironmentVariable,
+    Environment.GetEnvironmentVariable,
+    builder.Configuration);
+
+// The user-key salt comes from that resolution: the application layer cannot know whether
+// it runs in Development, so it must never fall back to a literal of its own.
+builder.Services.AddApplicationServices(secrets[RequiredSecrets.UserKeySaltName]
+    ?? throw new InvalidOperationException(
+        $"Invalid secret configuration: {RequiredSecrets.Find(RequiredSecrets.UserKeySaltName)!.DescribeFailure(null)}"));
 
 // Honour X-Forwarded-Proto/X-Forwarded-For from the upstream Traefik Ingress
 // (TLS termination) so HSTS, UseHttpsRedirection, callback URLs and logging

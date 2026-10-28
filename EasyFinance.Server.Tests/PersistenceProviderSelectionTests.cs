@@ -28,6 +28,7 @@ namespace EasyFinance.Server.Tests
     /// fails at startup in production and passes every unit test that does not check.
     /// </para>
     /// </summary>
+    [Collection(PersistenceTestEnvironment.CollectionName)]
     public class PersistenceProviderSelectionTests : IDisposable
     {
         private readonly string? originalConnectionString;

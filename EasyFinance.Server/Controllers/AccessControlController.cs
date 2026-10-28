@@ -18,6 +18,7 @@ using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Account;
 using EasyFinance.Infrastructure;
+using EasyFinance.Server.Config;
 using FpsSoftware.Chassis;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -47,6 +48,7 @@ namespace EasyFinance.Server.Controllers
         INotificationService notificationService,
         ITurnstileService turnstileService,
         IOptions<TurnstileSettings> turnstileSettings,
+        IOptions<UserSecretOptions> userSecretOptions,
         ILogger<AccessControlController> logger) : BaseController
     {
         private readonly string tokenProvider = "REFRESHTOKENPROVIDER";
@@ -78,6 +80,7 @@ namespace EasyFinance.Server.Controllers
         private readonly JwtTokenSettings tokenSettings = tokenSettings;
         private readonly INotificationService notificationService = notificationService;
         private readonly ITurnstileService turnstileService = turnstileService;
+        private readonly IOptions<UserSecretOptions> userSecretOptions = userSecretOptions;
         private readonly ILogger<AccessControlController> logger = logger;
 
         [HttpGet]
@@ -176,7 +179,9 @@ namespace EasyFinance.Server.Controllers
             if (user == null)
                 return BadRequest(ValidationMessages.UserNotFound);
 
-            var secretKey = Environment.GetEnvironmentVariable("EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN") ?? throw new Exception("Secret key for delete token can't be loaded.");
+            // Resolved and validated at start-up (see RequiredSecrets): a deployment without
+            // this key never reaches this action, so there is nothing left to fail on here.
+            var secretKey = this.userSecretOptions.Value.DeleteTokenSecret;
 
             if (string.IsNullOrEmpty(request?.ConfirmationToken))
             {

@@ -8,7 +8,9 @@ namespace EasyFinance.Application.Features.UserKeyService
 {
     public class UserKeyService(string salt) : IUserKeyService
     {
-        private readonly string salt = salt;
+        private readonly string salt = string.IsNullOrWhiteSpace(salt)
+            ? throw new ArgumentException("A user key salt is required; it is validated at start-up.", nameof(salt))
+            : salt;
 
         public AppResponse<UserKeyResponseDTO> GenerateUserKey(string userId)
         {

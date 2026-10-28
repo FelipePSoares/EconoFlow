@@ -246,14 +246,41 @@ ASP.NET Core 10 host. Everything in this layer is infrastructure for the HTTP bo
 
 #### Startup (`Program.cs`) — service registration order
 1. `AddPersistenceServices(configuration, isDevelopment)` — resolves the database provider (see [Database](#database)), registers the DbContexts, repositories, UoW, `DatabaseProviderInfo`, and the matching database health check.
-2. `AddApplicationServices()` — registers all application-layer services, background services, channels.
-3. **Health checks**: `AddHealthChecks().AddCheck<S3StorageHealthCheck>("s3_storage")` — S3/Minio dependency (readiness).
-4. Options: `NotifierFallbackOptions`, `WebPushOptions`, `FeatureRolloutOptions`, `TemporaryAttachmentCleanupOptions`.
-5. `AddAuthenticationServices(configuration, environment)` — JWT bearer, Identity, token providers.
-6. `AddControllers` with global `[Authorize]` filter.
-7. SMTP e-mail: `SmtpSettings.Resolve(configuration, Environment.GetEnvironmentVariable)` — environment variables win over the `Smtp` section — then a non-Development fail-fast when the settings are incomplete, followed by `Configure<SmtpSettings>()`. `ISmtpClientFactory`/`ISmtpEmailSender` are registered by `AddApplicationServices()`.
-8. `UseSerilog()` to BetterStack.
-9. `AddDataProtection().PersistKeysToDbContext<MyKeysContext>()` (non-dev).
+2. **Required secrets** (see below) — `RequiredSecrets.ResolveAll(...)` then `AddRequiredSecrets(...)`.
+3. `AddApplicationServices(userKeySalt)` — registers all application-layer services, background services, channels. Takes the user-key salt from step 2; it has no default of its own.
+4. **Health checks**: `AddHealthChecks().AddCheck<S3StorageHealthCheck>("s3_storage")` — S3/Minio dependency (readiness).
+5. Options: `NotifierFallbackOptions`, `WebPushOptions`, `FeatureRolloutOptions`, `TemporaryAttachmentCleanupOptions`.
+6. `AddAuthenticationServices(configuration, environment)` — JWT bearer, Identity, token providers.
+7. `AddControllers` with global `[Authorize]` filter.
+8. SMTP e-mail: `SmtpSettings.Resolve(configuration, Environment.GetEnvironmentVariable)` — environment variables win over the `Smtp` section — then a non-Development fail-fast when the settings are incomplete, followed by `Configure<SmtpSettings>()`. `ISmtpClientFactory`/`ISmtpEmailSender` are registered by `AddApplicationServices()`.
+9. `UseSerilog()` to BetterStack.
+10. `AddDataProtection().PersistKeysToDbContext<MyKeysContext>()` (non-dev).
+
+#### Required secrets (start-up validation)
+
+CRA Annex I, Part I, point 2(1) — secure-by-default configuration. Every
+environment-supplied secret is resolved and validated **once, before the host is built**,
+on the same terms as SMTP: a missing or unusable secret fails the start-up outside
+Development, and never fails later in front of a user. `EasyFinance.Server/Config/RequiredSecret.cs`
+holds the rules; `RequiredSecretsRegistration.AddRequiredSecrets` applies them.
+
+| Secret | Development without it | Outside Development without it | Minimum |
+|--------|------------------------|-------------------------------|---------|
+| `EconoFlow_TOKEN_SECRET_KEY` | AuthenticationMiddleware's development key (unchanged) | **start-up fails** | 32 chars |
+| `EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN` | `RequiredSecrets.DevelopmentDeleteTokenSecret` | **start-up fails** | 32 chars |
+| `EconoFlow_USER_KEY_SALT` | `RequiredSecrets.DevelopmentUserKeySalt` | **start-up fails** | 32 chars |
+| `EconoFlow_UNSUBSCRIBE_HMAC_SECRET` | UserService's `#if DEBUG` fallback (unchanged) | **start-up fails** | 32 chars |
+
+- A value that is **present but too short is rejected**, not passed through: that is how the
+  original defects behaved (started fine, broke later).
+- Every unusable secret is reported in **one** failure message, naming the variable and its
+  length — never the value, because start-up failures are logged.
+- Validated values are published to the process environment and, for the delete-token key,
+  to `UserSecretOptions` so `AccessControlController` never re-reads the environment.
+- `EconoFlow_TOKEN_SECRET_KEY` has a `TokenSettings:SecretKey` configuration fallback for
+  deployments that configure it through ASP.NET configuration; it has no development
+  default, because overriding `AuthenticationMiddleware`'s key would issue tokens the
+  authentication setup cannot validate.
 
 #### Health / Kubernetes probes
 
@@ -787,10 +814,14 @@ Package: `expo-local-authentication`. Central module: `src/store/biometricStore.
 
 Variables marked **required** will throw at startup (or on first use) if absent.
 
+The four secrets marked **required** below are all validated together before the host is
+built, so a deployment missing any of them refuses to start with one message naming every
+one of them — see [Required secrets](#required-secrets-start-up-validation).
+
 | Variable | Required | Purpose | Default if absent |
 |----------|----------|---------|-------------------|
 | `EasyFinanceDB` | **required** | PostgreSQL connection string | — |
-| `EconoFlow_TOKEN_SECRET_KEY` | **required** | JWT signing key (HS256) | — |
+| `EconoFlow_TOKEN_SECRET_KEY` | **required** | JWT signing key (HS256) — validated at start-up outside Development, minimum 32 characters; also read from `TokenSettings:SecretKey` | — (Development keeps `AuthenticationMiddleware`'s development key) |
 | `EconoFlow_ISSUER` | **required** | JWT `iss` claim | — |
 | `EconoFlow_AUDIENCE` | **required** | JWT `aud` claim | — |
 | `SMTP_HOST` | **required** | SMTP server host name for outbound e-mail (e.g. `smtp.example.com`) — the process throws `InvalidOperationException` on startup when the SMTP settings are incomplete | — |
@@ -801,7 +832,7 @@ Variables marked **required** will throw at startup (or on first use) if absent.
 | `SMTP_FROM_ADDRESS` | optional | From address used for every outbound e-mail | `noreply@econoflow.pt` |
 | `SMTP_FROM_NAME` | optional | Display name shown next to `SMTP_FROM_ADDRESS` | `NoReply EconoFlow` |
 | `SMTP_TIMEOUT_SECONDS` | optional | Timeout applied to SMTP connect/authenticate/send | `30` |
-| `EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN` | **required** | Signs account-deletion confirmation tokens — throws on every DELETE `/api/AccessControl` call if missing | — |
+| `EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN` | **required** | Signs account-deletion confirmation tokens — validated at start-up, minimum 32 characters (it used to throw on every DELETE `/api/AccessControl` call instead) | — (Development falls back to a committed value) |
 | `EconoFlow_TURNSTILE_SECRET_KEY` | optional | Cloudflare Turnstile server-side secret | `""` (captcha always passes) |
 | `EconoFlow_TURNSTILE_SITE_KEY` | optional | Cloudflare Turnstile site key returned to clients | `""` |
 | `X-Client-Type` request header | — | Custom header set by the mobile app (`"mobile"`). Controllers skip Turnstile validation when present. | Set by `apiClient` interceptor in the mobile app |
@@ -815,7 +846,8 @@ Variables marked **required** will throw at startup (or on first use) if absent.
 | `S3_BUCKET` | optional* | S3 bucket name — *required when `Provider=Minio` | — |
 | `EconoFlow_WEB_PUSH_PUBLIC_KEY` | optional | VAPID public key override (overrides `appsettings.json`) | value from `appsettings.json` |
 | `EconoFlow_WEB_PUSH_PRIVATE_KEY` | optional | VAPID private key override (overrides `appsettings.json`) | value from `appsettings.json` |
-| `EconoFlow_UNSUBSCRIBE_HMAC_SECRET` | **required** (prod) | HMAC-SHA256 key for email unsubscribe link signatures — DEBUG builds fall back to a hardcoded dev value | — (throws `InvalidOperationException` in non-DEBUG builds) |
+| `EconoFlow_USER_KEY_SALT` | **required** | Salt hashed into every client-side user encryption key — validated at start-up, minimum 32 characters | — (Development falls back to `RequiredSecrets.DevelopmentUserKeySalt`) |
+| `EconoFlow_UNSUBSCRIBE_HMAC_SECRET` | **required** | HMAC-SHA256 key for email unsubscribe link signatures — validated at start-up, minimum 32 characters; DEBUG builds still fall back to a hardcoded dev value | — (throws `InvalidOperationException` in non-DEBUG builds at start-up) |
 | `EXPO_PUBLIC_API_URL` | optional | Mobile app API base URL | `https://localhost:7003` |
 | `EXPO_PUBLIC_SENTRY_DSN` | optional | Mobile Sentry ingest endpoint — public identifier, safe to commit. Sentry is disabled when absent or in dev builds. | disabled |
 
