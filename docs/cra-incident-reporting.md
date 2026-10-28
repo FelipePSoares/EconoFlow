@@ -234,9 +234,13 @@ takes to get from "aware" to a submittable early warning.
 
 | Date | Scenario | Elapsed time | Run by | What it exposed |
 |------|----------|--------------|--------|-----------------|
+| 2026-10-28 | E-mail sender-address abuse report (false positive), in-hours | 16m | Felipe P. Soares | Report did not reproduce: the envelope and header `From` are fixed server-side from SMTP configuration and no request field reaches them, so no Art. 14 trigger was found. Submission step SIMULATED — the SRP account is still not registered, which remains the binding gap. The drill also showed that recognising a *non*-trigger took most of the time; the runbook leaves that decision to the person on duty. |
 
-Nothing recorded yet. The structure above is in place; the first row has to come from an
-actual run. Until then this runbook is unproven, and the test suite says so.
+The first row is a real run, but note what it covers: an **in-hours** report that turned out
+not to be a trigger, not the out-of-hours dependency-CVE scenario described above. The
+out-of-hours scenario — a researcher reporting an exploited dependency on a Saturday at
+23:00 — has still never been rehearsed, and the 24-hour margin it is supposed to test
+remains unmeasured. The next drill must use that scenario, out of hours.
 
 ---
 
