@@ -23,7 +23,7 @@ binding today.
 |------|--------|
 | Security features in the product (Annex I, Part I) | 🟡 Strong, with hardening gaps |
 | Vulnerability handling inside the repo (Annex I, Part II) | 🟢 Largely present |
-| **Incident / vulnerability reporting (Art. 14)** | 🟡 **Runbook, templates and channel in place** — operational steps still open (#1066) |
+| **Incident / vulnerability reporting (Art. 14)** | 🟡 **Runbook populated and identified** — SRP account and drill still open (#1066) |
 | Technical documentation (Annex VII) | 🔴 Absent (#1073) |
 | SBOM | 🟢 **Generated per release** (#1065) |
 | Security update support period | 🟡 Stated in `SECURITY.md`; needs owner confirmation (#1069) |
@@ -45,9 +45,21 @@ most risk:
   during development and by the Cypress suite.
 - `scripts/cra-compliance.test.mjs` asserts all of the above in CI.
 
-**Still open and urgent:** the operational side of Article 14 — confirming the CSIRT and SRP
-access, naming the security contact, and running the out-of-hours drill. The runbook is
-written, but an untested runbook is not a reporting capability. Tracked in #1066.
+**Still open and urgent:** the operational side of Article 14. The runbook now names the
+Member State of main establishment (Portugal) and the recipient CSIRT (CERT.PT, operated by
+CNCS), names a primary
+and a backup for every reporting role, and states honestly that the product is available in
+all EU Member States (plus Brazil, and every store market for the apps). Two things are still
+missing, and the first is the one that matters:
+
+- **The ENISA SRP account does not exist yet.** Until it does, an incident cannot be reported
+  within 24 hours at all. `scripts/cra-readiness-report.mjs` prints this as a warning on every
+  CI run, because it is a fact about the world rather than a defect a commit can fix.
+- **No out-of-hours drill has been run.** The timing structure and scenario are in place; the
+  first measured row is not. The test suite fails until one is recorded, and again if the
+  most recent one is over a year old.
+
+Tracked in #1066.
 
 
 ---
@@ -100,8 +112,9 @@ Sources: [EC — CRA overview](https://digital-strategy.ec.europa.eu/en/policies
 
 ## 3. The most urgent gap: Article 14 reporting (already binding)
 
-This is the one item that is **legally due now**, and the repository contains **no
-capability for it whatsoever**.
+This is the one item that is **legally due now**. The runbook, the recipient CSIRT and the
+reporting roles are established; the account needed to actually file a report and the timing
+drill are not.
 
 Art. 14 requires, from the moment the manufacturer *becomes aware* of an actively exploited
 vulnerability or a severe security incident:
@@ -114,20 +127,28 @@ vulnerability or a severe security incident:
 | **1 month** *(after the 72 h report)* | Final report for severe incidents |
 
 Reports go once, to ENISA's SRP, addressed to the CSIRT of the Member State of the
-manufacturer's main establishment — for a Portugal-based manufacturer, the national CSIRT.
+manufacturer's main establishment. EconoFlow's main establishment is **Portugal**, so the
+recipient is **CERT.PT**, the Portuguese national CSIRT operated by the national authority
+**CNCS** (Centro Nacional de Cibersegurança). Availability is **all EU Member
+States** — the hosted service is open to anyone — plus Brazil, where the product has known
+users outside the EU.
 
 The reporting obligation **applies to products already on the market**, not only to new ones.
 Critically, it requires knowing *whether a given vulnerability affects your product* — which
-depends on an inventory of what the product contains. That inventory does not exist here.
+depends on an inventory of what the product contains. That inventory now exists:
+`scripts/generate-sbom.mjs` produces a per-release CycloneDX SBOM (see #1065).
 
 ### Required actions
 
-1. Determine the Member State of main establishment and the corresponding national CSIRT /
-   entry point; confirm access to the SRP.
-2. Write an incident-response runbook with 24 h / 72 h / 14 d / 1 month templates, an
-   on-call escalation path and a named decision-maker, tested via an out-of-hours drill.
-3. Maintain a list of Member States where each PDE is available.
-4. Establish `security@` intake monitoring that feeds the "becomes aware" trigger.
+1. ✅ Determine the Member State of main establishment (Portugal), the national CSIRT
+   (CERT.PT) and the national authority (CNCS). ⏳ **Still open:** register the ENISA SRP
+   account and confirm access for the primary and backup contacts.
+2. ✅ Write an incident-response runbook with 24 h / 72 h / 14 d / 1 month templates, an
+   on-call escalation path and a named decision-maker. ⏳ **Still open:** the out-of-hours
+   drill that proves it.
+3. ✅ Maintain a list of Member States where each PDE is available (all EU Member States, plus
+   Brazil and the mobile store markets).
+4. ✅ Establish `security@` intake monitoring that feeds the "becomes aware" trigger.
 
 ---
 
@@ -277,7 +298,7 @@ Recording these avoids re-litigating them later:
 
 | # | Action | Effort | Why now | Issue | Status |
 |---|--------|--------|---------|-------|--------|
-| 1 | Establish Art. 14 reporting runbook, CSIRT contact and access, out-of-hours drill | Days | **Binding since 2026-09-11** | #1066 | 🟡 Runbook done; operational steps open |
+| 1 | Establish Art. 14 reporting runbook, CSIRT contact and access, out-of-hours drill | Days | **Binding since 2026-09-11** | #1066 | 🟡 Runbook, CSIRT and roles done; SRP account and drill open |
 | 2 | Generate and retain CycloneDX SBOMs per release (NuGet, npm ×2, base images) | Days | Unblocks Art. 14 and Annex VII | #1065 | 🟢 Done |
 | 3 | Add `SECURITY.md`, `/.well-known/security.txt`, and a monitored intake address | Hours | Annex I Part II(2) | #1067 | 🟢 Done |
 | 4 | Fail start-up on missing/short secrets; remove the `"Development_Key"` fallback | Hours | Annex I(2)(1) | #1068 | 🔴 Open |

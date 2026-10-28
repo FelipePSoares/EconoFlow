@@ -30,6 +30,7 @@ or pull requests.**
 Report them privately to:
 
 - **E-mail:** contact@econoflow.pt, with the subject line `SECURITY`
+- **Backup:** security@econoflow.pt, if the primary address does not answer in time
 - **Encryption:** if you need to send sensitive material, ask for a PGP key in your first
   message and we will reply with one before you send any details.
 
@@ -50,6 +51,7 @@ A machine-readable copy of this reporting channel is published at
 | When | What happens |
 |------|--------------|
 | Within **1 business day** | We acknowledge receipt of your report. |
+| Within **24 hours** | If your report concerns an actively exploited vulnerability or could be a severe security incident, say so in the subject line. Our Article 14 clock starts when we become aware, so we escalate immediately rather than waiting for the next business day, including at weekends. |
 | Within **10 business days** | We confirm the vulnerability (or explain why we believe it is not one) and give you an initial estimate of the fix. |
 | When a fix is available | We release it and credit you in the release notes, unless you ask to remain anonymous. |
 | Due to regulators | Where an actively exploited vulnerability affects our product, we notify the relevant CSIRT through ENISA's Single Reporting Platform **within 24 hours** of becoming aware, then file the fuller notification **within 72 hours**, in line with Article 14 of the Cyber Resilience Act. |

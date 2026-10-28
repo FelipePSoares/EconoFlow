@@ -59,9 +59,23 @@ States where the product was made available.
 | Item | Value / action |
 |------|----------------|
 | Platform | ENISA Single Reporting Platform (SRP) |
-| Recipient CSIRT | The CSIRT of EconoFlow's Member State of main establishment |
+| Member State of main establishment | **Portugal** |
+| Recipient CSIRT | **CERT.PT** — the Portuguese national CSIRT, operated by CNCS |
+| National authority (single point of contact) | **CNCS** (Centro Nacional de Cibersegurança) |
 | Access | Use the SRP account held by the security contact; access must be confirmed **before** an incident, not during one |
 | Reference | Keep the SRP submission reference for every report; it is required for subsequent filings on the same incident |
+
+Portugal has two bodies that are easy to confuse, and the difference decides where the report
+lands. **CERT.PT** is the national CSIRT that Article 14 addresses; **CNCS** is the national
+authority and single point of contact that operates it. File through the SRP to CERT.PT. Do
+not address the report to CNCS as if it were the CSIRT.
+
+The Member State of main establishment is where EconoFlow's business entity is established.
+It is **not** where the operator happens to be living, and it is **not** where users are. That
+distinction matters here: the operator works from Austria and the product has users in Brazil,
+but the report still goes once, to the Portuguese CSIRT. Do not change this field without
+also changing "Recipient CSIRT" and the corresponding assertion in
+`scripts/cra-compliance.test.mjs`; the test holds the two together on purpose.
 
 Some Member States expose their own national entry point that forwards to the SRP. Use the
 SRP directly unless the Member State of main establishment has published an entry point.
@@ -71,9 +85,13 @@ SRP directly unless the Member State of main establishment has published an entr
 The early warning must list the Member States where the product has been made available.
 As of the last review this is:
 
-- [ ] *(to be confirmed and kept current — at minimum the Member State of main establishment
-  and every Member State where the hosted service has active users or the mobile apps are
-  distributed through the stores)*
+- **All EU Member States.** The hosted web application is open to anyone and is used from
+  several countries, so it cannot truthfully be narrowed to a list. State "all Member States"
+  in the early warning rather than enumerating guesses.
+- **Brazil** — outside the EU, but a country where the product has known active users. Name
+  it in the report as a jurisdiction with users; it is not a recipient of the notification.
+- **Any other country where the Android or iOS app is installed.** Both stores distribute
+  worldwide, so treat the mobile product as available in every market the stores reach.
 
 > **Owner:** the security contact. **Review:** quarterly, and before each release that
 > expands distribution.
@@ -153,9 +171,18 @@ zones do not block a 24-hour deadline.
 
 | Role | Primary | Backup |
 |------|---------|--------|
-| Security contact | *to be confirmed* | *to be confirmed* |
-| Incident lead | *to be confirmed* | *to be confirmed* |
-| Repository owner | *to be confirmed* | *to be confirmed* |
+| Security contact | Felipe P. Soares | `security@econoflow.pt` (monitored mailbox) |
+| Incident lead | Felipe P. Soares | `security@econoflow.pt` (monitored mailbox) |
+| Repository owner | Felipe P. Soares | `security@econoflow.pt` (monitored mailbox) |
+
+The backup is a **mailbox, not a second person**. That is a deliberate, documented weakness:
+the mailbox is monitored and alerted, so a 24-hour deadline stays reachable when the primary
+is asleep or travelling, but it does not remove the single point of failure. Replace it with
+a named second person as soon as one is available, and update this table.
+
+The operator works from Central European Time (Austria). Deadlines are counted in absolute
+hours from the moment of awareness, not in business days, so an awareness on Friday evening
+reaches its early-warning deadline on Saturday evening.
 
 ---
 
@@ -163,14 +190,57 @@ zones do not block a 24-hour deadline.
 
 These are one-off tasks that must be done while everything is calm:
 
-- [ ] Confirm the Member State of main establishment and the corresponding CSIRT.
-- [ ] Confirm SRP access for the primary and backup security contacts.
-- [ ] Keep the Member State availability list above current.
+- [x] Confirm the Member State of main establishment (Portugal), the corresponding CSIRT
+      (CERT.PT) and the national authority (CNCS).
+- [ ] Confirm SRP access for the primary and backup security contacts. **Not yet done** — see
+      the access record in section 6.1.
+- [ ] Keep the Member State availability list above current. **Still open** — review quarterly.
 - [ ] Pre-draft the early-warning and notification text from the templates in section 7.
+      **Still open** — the templates exist, the wording is not rehearsed.
 - [ ] Run an out-of-hours drill once a year: simulate "a dependency we ship is being
-      exploited" and time how long 24 hours feels in practice.
+      exploited" and time how long 24 hours feels in practice. **Still open** — see the drill
+      record in section 6.2.
 - [ ] Verify that a release's `sbom/` artefacts actually let someone answer "are we
-      affected?" for a given CVE in under an hour.
+      affected?" for a given CVE in under an hour. **Still open** — the drill is the test of
+      this.
+
+### 6.1 SRP access
+
+Until the ENISA SRP account exists, **an incident cannot be reported within 24 hours at
+all**. This is the most serious open gap in this runbook: everything else here is procedure,
+and procedure is worthless if there is no account to file from.
+
+| Item | Value |
+|------|-------|
+| Account registered | **No** — to be created by the security contact |
+| Holder (primary) | Felipe P. Soares |
+| Holder (backup) | `security@econoflow.pt` |
+| Access last verified | **never** |
+| Blocks an Art. 14 report? | **Yes** — registering the account is the highest-priority item in this document |
+
+`scripts/cra-readiness-report.mjs` reports the missing registration as a **warning** rather
+than a failure, so the gap is visible on every CI run without freezing unrelated work. A
+warning is not a substitute for the account. When it is registered, replace `No` with the
+registration date above and the warning disappears.
+
+### 6.2 Drill record
+
+The drill is run once a year and **timed**. The scenario: "a dependency we ship is being
+exploited in the wild, and a researcher reports it on a Saturday at 23:00". Time how long it
+takes to get from "aware" to a submittable early warning.
+
+`scripts/cra-compliance.test.mjs` checks this table: the most recent entry must be less than
+12 months old, and the measured duration must be filled in.
+
+| Date | Scenario | Elapsed time | Run by | What it exposed |
+|------|----------|--------------|--------|-----------------|
+| 2026-10-28 | E-mail sender-address abuse report (false positive), in-hours | 16m | Felipe P. Soares | Report did not reproduce: the envelope and header `From` are fixed server-side from SMTP configuration and no request field reaches them, so no Art. 14 trigger was found. Submission step SIMULATED — the SRP account is still not registered, which remains the binding gap. The drill also showed that recognising a *non*-trigger took most of the time; the runbook leaves that decision to the person on duty. |
+
+The first row is a real run, but note what it covers: an **in-hours** report that turned out
+not to be a trigger, not the out-of-hours dependency-CVE scenario described above. The
+out-of-hours scenario — a researcher reporting an exploited dependency on a Saturday at
+23:00 — has still never been rehearsed, and the 24-hour margin it is supposed to test
+remains unmeasured. The next drill must use that scenario, out of hours.
 
 ---
 

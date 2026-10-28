@@ -341,6 +341,14 @@ jobs:
     - name: Run repository policy tests
       run: node --test "scripts/*.test.mjs"
 
+    # Advisory, never blocking. The two things it checks - an ENISA SRP account that has
+    # been registered, and a drill run within the last year - are facts about the world
+    # outside the repository. Neither can be fixed by editing a file, so failing here would
+    # block every unrelated PR until somebody registers an account. The runbook's
+    # *structure* is asserted, and does fail, in cra-compliance.test.mjs above.
+    - name: Report CRA Article 14 readiness (advisory)
+      run: node scripts/cra-readiness-report.mjs
+
     # Every `overrides` pin must sit on the latest published release. A stale pin is how
     # a later advisory silently re-opens on a dependency that was already "fixed" once.
     # Needs registry.npmjs.org; the fix is always to upgrade the pin, never to allow-list.
