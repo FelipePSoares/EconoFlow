@@ -191,7 +191,7 @@ jobs:
           base64 -w0 "$BOM" > bom.b64
           jq -n \
             --arg name "EconoFlow" \
-            --arg version "${GITHUB_SHA}" \
+            --arg version "production" \
             --rawfile bom bom.b64 \
             '{projectName: $name, projectVersion: $version, autoCreate: true, isLatest: true, bom: $bom}' \
             > payload.json
