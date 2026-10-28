@@ -305,6 +305,272 @@ test('the incident runbook carries every statutory deadline', () => {
   assert.match(runbook, /\bCSIRT\b/, 'runbook must name the CSIRT receiving the notification');
 });
 
+/**
+ * The Member State of main establishment decides which CSIRT receives the report. Art. 14
+ * routes a single submission through the SRP to that one national CSIRT, which then informs
+ * the others; picking the wrong one is not a cosmetic error, it is a report filed with the
+ * wrong authority within a 24-hour window.
+ *
+ * The runbook declares the answer once, and every other mention has to agree with it.
+ */
+const MAIN_ESTABLISHMENT = { memberState: 'Portugal', csirt: 'CNCS' };
+
+/** Splits a document into its `## n. Title` sections so a check can be scoped to one. */
+function sections(markdown) {
+  const result = new Map();
+  let currentTitle = null;
+  let currentLines = [];
+
+  for (const line of markdown.split(/\r?\n/)) {
+    const heading = /^##\s+(.+?)\s*$/.exec(line);
+
+    if (heading) {
+      if (currentTitle !== null) result.set(currentTitle, currentLines.join('\n'));
+      currentTitle = heading[1];
+      currentLines = [];
+      continue;
+    }
+
+    if (currentTitle !== null) currentLines.push(line);
+  }
+
+  if (currentTitle !== null) result.set(currentTitle, currentLines.join('\n'));
+
+  return result;
+}
+
+/**
+ * Returns the body of the first `## n.` section whose title contains `fragment`.
+ *
+ * <p>
+ * Every assertion below is scoped this way rather than run over the whole file, because
+ * section 7's report templates are supposed to contain `<>` placeholders: they are what a
+ * responder fills in under time pressure. A whole-file check would either flag them forever
+ * or have to be loosened until it no longer catches a real gap.
+ * </p>
+ */
+function sectionContaining(markdown, fragment) {
+  for (const [title, body] of sections(markdown)) {
+    if (title.toLowerCase().includes(fragment.toLowerCase())) return body;
+  }
+
+  throw new Error(`the runbook has no section whose title contains "${fragment}"`);
+}
+
+test('the runbook declares the Member State of main establishment', () => {
+  const runbook = read(INCIDENT_RUNBOOK_PATH);
+  const whereToReport = sectionContaining(runbook, 'Where to report');
+
+  const declaration = new RegExp(
+    `main establishment[^\\n]*\\|\\s*\\**${MAIN_ESTABLISHMENT.memberState}\\b`,
+    'i',
+  );
+
+  assert.match(
+    whereToReport,
+    declaration,
+    `the runbook does not state that the Member State of main establishment is ${MAIN_ESTABLISHMENT.memberState} `
+      + 'in the "Where to report" table, as `| Member State of main establishment | Portugal |`',
+  );
+
+  // The operator lives in Austria but the manufacturer is established in Portugal. Naming
+  // Austria against a Portugal declaration is healthy context; naming it as the main
+  // establishment is the error this guards against.
+  assert.ok(
+    !/main establishment[^\n]*\bAustria\b/i.test(whereToReport),
+    'the runbook names Austria as the Member State of main establishment, but the manufacturer is established in Portugal',
+  );
+});
+
+test('the runbook names the CSIRT that matches the Member State of main establishment', () => {
+  // The recipient is not a free choice: it is whatever national CSIRT covers the Member
+  // State declared above. Asserting both against the same constant is what stops the
+  // declaration and the recipient from drifting apart.
+  const runbook = read(INCIDENT_RUNBOOK_PATH);
+  const whereToReport = sectionContaining(runbook, 'Where to report');
+
+  const csirt = new RegExp(`\\b${MAIN_ESTABLISHMENT.csirt}\\b`);
+
+  assert.match(
+    whereToReport,
+    csirt,
+    `the runbook does not name ${MAIN_ESTABLISHMENT.csirt}, the CSIRT of ${MAIN_ESTABLISHMENT.memberState}`,
+  );
+
+  // A second national CSIRT in the same section is the drift this test exists to catch:
+  // a stale "for a Portugal-based manufacturer" sentence left next to the new answer.
+  const otherCsirts = ['CERT.at', 'INCYDE', 'CERT-Bund', 'CCB', 'CSIRT-CZ', 'CertCroatia', 'ACN'];
+
+  for (const other of otherCsirts) {
+    assert.ok(
+      !whereToReport.includes(other),
+      `the "Where to report" section names ${other} as well as ${MAIN_ESTABLISHMENT.csirt}; `
+        + 'one Member State means one recipient CSIRT',
+    );
+  }
+});
+
+test('the runbook lists the Member States where the product is available', () => {
+  // The early warning must carry this list within 24 hours. An open web service cannot be
+  // reduced to a country list, so the honest answer has to say so explicitly; a silently
+  // empty list turns the field into guesswork at the worst possible moment.
+  const runbook = read(INCIDENT_RUNBOOK_PATH);
+  const whereToReport = sectionContaining(runbook, 'Where to report');
+
+  assert.match(
+    whereToReport,
+    /all (?:EU )?Member States/i,
+    'the runbook does not say that the hosted service is available in all EU Member States, '
+      + 'which is what an open web service used from several countries actually means',
+  );
+
+  // Brazil is a real, named population outside the EU and must survive a future edit.
+  assert.match(
+    whereToReport,
+    /Brazil/i,
+    'the runbook does not name Brazil, where the product has known users outside the EU',
+  );
+});
+
+test('the runbook and its "before you need this" checklist carry no placeholders', () => {
+  // The placeholders are the whole point of issue #1066: the runbook was written but the
+  // operational answers were deferred. They must not be able to come back.
+  const runbook = read(INCIDENT_RUNBOOK_PATH);
+
+  const sectionsToCheck = ['Where to report', 'Roles', 'Before you need this'];
+
+  for (const fragment of sectionsToCheck) {
+    const body = sectionContaining(runbook, fragment);
+
+    for (const placeholder of ['to be confirmed', 'TBD', 'TODO', 'FIXME', 'XXX']) {
+      assert.ok(
+        !body.toLowerCase().includes(placeholder.toLowerCase()),
+        `the "${fragment}" section still contains the placeholder "${placeholder}"`,
+      );
+    }
+
+    // `<>` marks an unfilled template slot. Report templates are legitimate; these three
+    // sections are not templates.
+    assert.ok(
+      !/<>|<[a-z][^>\n]{2,}>/i.test(body),
+      `the "${fragment}" section contains an unfilled <...> placeholder`,
+    );
+  }
+});
+
+test('every runbook role names a primary and a backup', () => {
+  // Two people per role so that leave, sleep and time zones cannot eat a 24-hour deadline.
+  const runbook = read(INCIDENT_RUNBOOK_PATH);
+  const roles = sectionContaining(runbook, 'Roles');
+
+  const rows = roles
+    .split(/\r?\n/)
+    .filter((line) => line.trim().startsWith('|'))
+    .map((line) => line.split('|').slice(1, -1).map((cell) => cell.trim()))
+    .filter((cells) => cells.length >= 3)
+    .filter((cells) => !/^-+$/.test(cells[0].replace(/:/g, '')))
+    .filter((cells) => !/^(role|role name)$/i.test(cells[0]));
+
+  for (const role of ['Security contact', 'Incident lead', 'Repository owner']) {
+    const row = rows.find((cells) => cells[0].toLowerCase().includes(role.toLowerCase()));
+
+    assert.ok(row, `the roles table has no "${role}" row`);
+
+    // The first table in section 5 describes responsibilities in two columns; only the
+    // three-column assignment table is under test here.
+    const assignment = rows.find((cells) => cells[0].toLowerCase().includes(role.toLowerCase()) && cells.length >= 3 && cells[1] && cells[2]);
+
+    assert.ok(assignment, `the roles table gives no primary/backup assignment for "${role}"`);
+    assert.ok(
+      assignment[1].length > 0 && !/to be confirmed|tbd/i.test(assignment[1]),
+      `"${role}" has no named primary`,
+    );
+    assert.ok(
+      assignment[2].length > 0 && !/to be confirmed|tbd/i.test(assignment[2]),
+      `"${role}" has no named backup`,
+    );
+  }
+});
+
+test('the runbook defines a drill scenario and a dated, timed drill record', () => {
+  // Criterion 5 of #1066: the drill has to be run and timed. Two separate things are under
+  // test here, because conflating them makes the failure message useless:
+  //
+  //   1. the structure - a drill record with a scenario and a duration column;
+  //   2. the evidence - an actual dated run that is less than a year old.
+  //
+  // The first is what this change delivers; the second can only be delivered by someone
+  // running the drill and writing down what it cost. A drill that happened once and was
+  // never repeated is how a 24-hour commitment quietly stops being true.
+  const runbook = read(INCIDENT_RUNBOOK_PATH);
+  const drill = sectionContaining(runbook, 'Drill');
+
+  assert.match(drill, /scenario/i, 'the drill record does not define the scenario to rehearse');
+
+  assert.match(
+    drill,
+    /elapsed|took|minutes|hours/i,
+    'the drill record has no column for how long the response took; "timed" is the point of the drill',
+  );
+
+  assert.match(
+    drill,
+    /Run by|who ran/i,
+    'the drill record does not record who ran the drill, so it cannot be traced back',
+  );
+
+  const dates = [...drill.matchAll(/\b(\d{4}-\d{2}-\d{2})\b/g)]
+    .map((match) => new Date(match[1]))
+    .filter((date) => !Number.isNaN(date.getTime()));
+
+  assert.ok(
+    dates.length > 0,
+    'no drill has been recorded yet. Run the out-of-hours drill, then add a row to the '
+      + 'section 6.2 table dated YYYY-MM-DD with the measured elapsed time',
+  );
+
+  const mostRecent = new Date(Math.max(...dates.map((date) => date.getTime())));
+  const ageInDays = (Date.now() - mostRecent.getTime()) / 86_400_000;
+
+  assert.ok(
+    ageInDays <= 365,
+    `the most recent drill is dated ${mostRecent.toISOString().slice(0, 10)}, `
+      + `${Math.floor(ageInDays)} days ago; run one and record it before the year is out`,
+  );
+});
+
+test('SECURITY.md acknowledges reports within the 24-hour regulatory clock', () => {
+  // The published promise and the regulatory deadline have to be compatible. `1 business
+  // day` can exceed 24 hours whenever a report arrives on a Friday evening, so the policy
+  // says both: a business-day acknowledgement for ordinary reports, and an explicit
+  // escalation that does not wait for the next business day for anything that could be a
+  // CRA trigger.
+  const policy = read(SECURITY_POLICY_PATH);
+
+  assert.match(
+    policy,
+    /1 business day/i,
+    'SECURITY.md no longer states the 1-business-day acknowledgement researchers are promised',
+  );
+
+  // Scoped to the "what you can expect" table, not the whole file: the Article 14 summary
+  // further down already mentions 24 hours, and matching that would let the escalation row
+  // be deleted without any test noticing.
+  const expectations = policy.slice(
+    policy.indexOf('What you can expect'),
+    policy.indexOf('## Scope'),
+  );
+
+  assert.ok(expectations.length > 0, 'SECURITY.md no longer has a "What you can expect" section');
+
+  assert.match(
+    expectations,
+    /within \*\*24 hours\*\*/i,
+    'the "What you can expect" table has no 24-hour escalation row, so a report arriving on '
+      + 'a Friday evening can wait past the Art. 14 clock while the policy still looks compliant',
+  );
+});
+
 // ── SBOM pipeline ────────────────────────────────────────────────────────────
 
 test('the SBOM generator documents every component population', () => {
