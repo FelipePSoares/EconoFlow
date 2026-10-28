@@ -1,9 +1,11 @@
 /
+/security
 /privacy-policy
 /use-terms
 /contact-us
 /offline
 /pt
+/pt/security
 /pt/privacy-policy
 /pt/use-terms
 /pt/contact-us

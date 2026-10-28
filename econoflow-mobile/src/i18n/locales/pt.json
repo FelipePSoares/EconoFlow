@@ -346,6 +346,8 @@
   "LabelTermsPrefix": "Ao criar uma conta, você concorda com os",
   "LabelTermsMid": ". Para mais informações sobre as práticas de privacidade da EconoFlow, consulte a",
   "LabelTermsSuffix": ". Ocasionalmente, enviaremos e-mails relacionados à conta.",
+  "SecurityAndSupport": "Segurança e Suporte",
+  "SecurityAndSupportDescription": "Período de suporte, configuração segura, atualizações e comunicação de vulnerabilidades",
   "ContactUs": "Contate-nos",
   "ContactUsTitle": "Envie-nos uma Mensagem",
   "ContactUsNameLabel": "Nome",

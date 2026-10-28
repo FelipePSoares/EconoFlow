@@ -4,6 +4,7 @@
 
 ## Public Pages
 - [Home](https://econoflow.pt/): Product overview, feature highlights, and account creation entry points.
+- [Security and Support](https://econoflow.pt/security): Security update support period, secure setup and use instructions, and the vulnerability reporting channel.
 - [Privacy Policy](https://econoflow.pt/privacy-policy): Personal data handling, legal rights, and GDPR alignment.
 - [Terms of Use](https://econoflow.pt/use-terms): Service rules, account responsibilities, and platform limitations.
 - [Contact Us](https://econoflow.pt/contact-us): Public contact form for support questions and feedback.
@@ -11,6 +12,7 @@
 
 ## Public Pages (Portuguese)
 - [Home (PT)](https://econoflow.pt/pt): Portuguese localized page for Product overview, feature highlights, and account creation entry points.
+- [Security and Support (PT)](https://econoflow.pt/pt/security): Portuguese localized page for Security update support period, secure setup and use instructions, and the vulnerability reporting channel.
 - [Privacy Policy (PT)](https://econoflow.pt/pt/privacy-policy): Portuguese localized page for Personal data handling, legal rights, and GDPR alignment.
 - [Terms of Use (PT)](https://econoflow.pt/pt/use-terms): Portuguese localized page for Service rules, account responsibilities, and platform limitations.
 - [Contact Us (PT)](https://econoflow.pt/pt/contact-us): Portuguese localized page for Public contact form for support questions and feedback.

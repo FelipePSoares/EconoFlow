@@ -5,7 +5,7 @@ import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
 type SupportedLanguage = 'en' | 'pt';
-type LocalizedPublicPath = '/' | '/privacy-policy' | '/use-terms' | '/contact-us' | '/offline';
+type LocalizedPublicPath = '/' | '/security' | '/privacy-policy' | '/use-terms' | '/contact-us' | '/offline';
 
 interface PublicSeoEntry {
   title: Record<SupportedLanguage, string>;
@@ -28,6 +28,7 @@ const siteOrigin = 'https://econoflow.pt';
 
 const localizedPublicPaths = new Set<LocalizedPublicPath>([
   '/',
+  '/security',
   '/privacy-policy',
   '/use-terms',
   '/contact-us',
@@ -45,6 +46,16 @@ const publicSeoByPath: Record<LocalizedPublicPath, PublicSeoEntry> = {
     description: {
       en: 'Track expenses, plan budgets, collaborate on projects, and protect your account with two-factor authentication.',
       pt: 'Registre despesas, planeie orçamentos, colabore em projetos e proteja a sua conta com autenticação de dois fatores.'
+    }
+  },
+  '/security': {
+    title: {
+      en: 'Security and Support - EconoFlow',
+      pt: 'Segurança e Suporte - EconoFlow'
+    },
+    description: {
+      en: 'EconoFlow security update support period, secure setup and use instructions, and how to report a vulnerability.',
+      pt: 'Período de suporte de atualizações de segurança do EconoFlow, instruções de instalação e utilização segura e como comunicar uma vulnerabilidade.'
     }
   },
   '/privacy-policy': {
