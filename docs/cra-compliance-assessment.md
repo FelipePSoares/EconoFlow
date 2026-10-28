@@ -211,22 +211,29 @@ period nor a security-update policy.
 *Action:* author a technical file, pick and publish a support period (e.g. "security updates
 provided for 5 years from release"), and surface it in the product and on the website.
 
-### 5.4 🟡 Weak secret handling at start-up (secure-defaults failure mode)
+### 5.4 ✅ Fixed — Secret handling at start-up (secure-defaults failure mode)
+
+> **Status: remediated in #1068.** Every environment-supplied secret is now resolved and
+> validated once, before the host is built, on the same terms as SMTP. Outside Development a
+> missing, blank or too-short secret fails the start-up with a single message naming every
+> offending variable; Development keeps working defaults and logs a warning. See
+> [Required secrets](../architecture.md#required-secrets-start-up-validation).
+> The original findings are kept below for the record.
 
 Environment-supplied secrets mostly fail *closed*, which is good — but inconsistently and
 sometimes only at request time rather than at start-up:
 
-| Variable | Failure mode |
+| Variable | Failure mode (before the fix) |
 |----------|--------------|
 | `EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN` | Throws at request time (`AccessControlController.cs:179`) — a misconfigured production server starts fine and fails in front of users |
 | `EconoFlow_USER_KEY_SALT` | **Silently falls back to the literal `"Development_Key"`** (`ApplicationServiceRegistration.cs:38`) — no throw, no warning, even in Production |
 | `EconoFlow_UNSUBSCRIBE_HMAC_SECRET` | Correct: throws when unset outside Debug |
-| `EconoFlow_TOKEN_SECRET_KEY` | Falls back to the config value, which is empty — chassis validation behaviour should be confirmed |
+| `EconoFlow_TOKEN_SECRET_KEY` | Falls back to the config value, which is empty — **confirmed:** chassis signs with it, and an empty key makes `CreateToken` throw `ArgumentException: IDX10703` at request time, so every login failed on a server that had started "successfully" |
 
-The token secret fallback is the most serious: if an empty or default JWT signing key is ever
-accepted in Production, token forgery becomes trivial. Validate **all** secrets up front in
-`Program.cs` with the same discipline already used for SMTP (`Program.cs:113-115`), and fail
-start-up loudly rather than degrading silently.
+The token secret fallback was the most serious: a server with an empty JWT signing key
+started healthy and then failed every login. All secrets are now validated **up front** in
+`Program.cs` with the same discipline already used for SMTP, so the start-up fails loudly
+rather than degrading silently.
 
 **Clarification on the user key salt:** the default salt looks worse than it is. The key is
 `SHA256(userId + ":" + salt)` and *userId* is a per-user random GUID, so a default salt does
@@ -301,7 +308,7 @@ Recording these avoids re-litigating them later:
 | 1 | Establish Art. 14 reporting runbook, CSIRT contact and access, out-of-hours drill | Days | **Binding since 2026-09-11** | #1066 | 🟡 Runbook, CSIRT and roles done; SRP account and drill open |
 | 2 | Generate and retain CycloneDX SBOMs per release (NuGet, npm ×2, base images) | Days | Unblocks Art. 14 and Annex VII | #1065 | 🟢 Done |
 | 3 | Add `SECURITY.md`, `/.well-known/security.txt`, and a monitored intake address | Hours | Annex I Part II(2) | #1067 | 🟢 Done |
-| 4 | Fail start-up on missing/short secrets; remove the `"Development_Key"` fallback | Hours | Annex I(2)(1) | #1068 | 🔴 Open |
+| 4 | Fail start-up on missing/short secrets; remove the `"Development_Key"` fallback | Hours | Annex I(2)(1) | #1068 | 🟢 Done |
 | 5 | Publish a security update support period and user security instructions | Days | Annex I(2)(6), Annex II | #1069 | 🟡 Period stated; Annex II instructions open |
 | 6 | Add rate limiting on authentication and support endpoints | Days | Annex I(2)(1)(3) | #1070 | 🔴 Open |
 | 7 | Container scanning; pin third-party actions to commit SHAs; add Dependabot `docker` ecosystem | Days | Annex I(2)(5), VII | #1071 | 🟡 `provenance`/`sbom` enabled; rest open |

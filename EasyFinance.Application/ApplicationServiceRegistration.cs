@@ -33,9 +33,20 @@ namespace EasyFinance.Application
 {
     public static class ApplicationServiceRegistration
     {
-        public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+        /// <summary>
+        /// Registers the application services.
+        /// </summary>
+        /// <param name="services">The service collection.</param>
+        /// <param name="userKeySalt">
+        /// The salt hashed into every user encryption key. It is resolved and validated once
+        /// at start-up (see <c>RequiredSecrets</c> on the server) because this assembly cannot
+        /// know whether the host is running in Development: an unconfigured deployment must
+        /// not fall back to a published literal. There is deliberately no default here.
+        /// </param>
+        /// <exception cref="ArgumentNullException">Thrown when no salt is supplied.</exception>
+        public static IServiceCollection AddApplicationServices(this IServiceCollection services, string userKeySalt)
         {
-            var userKeySalt = Environment.GetEnvironmentVariable("EconoFlow_USER_KEY_SALT") ?? "Development_Key";
+            ArgumentException.ThrowIfNullOrWhiteSpace(userKeySalt);
 
             services.AddSingleton<ICallbackService, CallbackService>();
 

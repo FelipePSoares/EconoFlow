@@ -70,6 +70,7 @@ namespace EasyFinance.Server.Tests.Controllers
                 notificationService: Mock.Of<INotificationService>(),
                 turnstileService: Mock.Of<ITurnstileService>(),
                 turnstileSettings: Options.Create(new TurnstileSettings()),
+                userSecretOptions: Options.Create(new UserSecretOptions { DeleteTokenSecret = "instance-created-delete-token-secret" }),
                 logger: Mock.Of<ILogger<AccessControlController>>());
 
             this.userManagerMock.Setup(x => x.GetRolesAsync(It.IsAny<User>())).ReturnsAsync([]);
@@ -303,6 +304,7 @@ namespace EasyFinance.Server.Tests.Controllers
                 notificationService: Mock.Of<INotificationService>(),
                 turnstileService: turnstileService,
                 turnstileSettings: Options.Create(new TurnstileSettings()),
+                userSecretOptions: Options.Create(new UserSecretOptions { DeleteTokenSecret = "instance-created-delete-token-secret" }),
                 logger: Mock.Of<ILogger<AccessControlController>>());
 
             controllerWithCaptcha.ControllerContext = new ControllerContext

@@ -52,7 +52,9 @@ docker run --rm -p 8080:8080 \
   -e EconoFlow_TOKEN_SECRET_KEY='<32+ char secret>' \
   -e EconoFlow_ISSUER='https://econoflow.pt' \
   -e EconoFlow_AUDIENCE='https://econoflow.pt' \
-  -e EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN='<secret>' \
+  -e EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN='<32+ char secret>' \
+  -e EconoFlow_USER_KEY_SALT='<32+ char secret>' \
+  -e EconoFlow_UNSUBSCRIBE_HMAC_SECRET='<32+ char secret>' \
   -e SMTP_HOST='smtp.example.com' \
   -e SMTP_USERNAME='<smtp user>' \
   -e SMTP_PASSWORD='<smtp password>' \
@@ -61,9 +63,12 @@ docker run --rm -p 8080:8080 \
 
 > The container image itself ships **no** configuration values. At startup the
 > app **throws** if required production env vars are missing (e.g.
-> `SMTP_HOST`, `SMTP_USERNAME`, `SMTP_PASSWORD`,
-> `EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN`), so a deployer
-> must supply them (SealedSecret / k8s Secret, etc.).
+> `SMTP_HOST`, `SMTP_USERNAME`, `SMTP_PASSWORD`), and validates every secret in one
+> pass before the host is built: a missing, blank or too-short (under 32 characters)
+> `EconoFlow_TOKEN_SECRET_KEY`, `EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN`,
+> `EconoFlow_USER_KEY_SALT` or `EconoFlow_UNSUBSCRIBE_HMAC_SECRET` stops the start-up
+> with a single message naming all of them. A deployer must supply them
+> (SealedSecret / k8s Secret, etc.).
 
 ## Local development stack
 
@@ -204,10 +209,12 @@ production build), in addition to `appsettings.json`:
 | `ASPNETCORE_ENVIRONMENT` | Defaults to `Production` in the image. | no |
 | `EasyFinanceDB` | PostgreSQL connection string. A `Host=` value implies PostgreSQL; anything else resolves to no provider and **stops startup** rather than connecting somewhere unintended. | **yes** |
 | `Database__Provider` | Explicit store selection: `PostgreSql` or `InMemory`. Overrides inference from the connection string. See "Database provider" below. | no |
-| `EconoFlow_TOKEN_SECRET_KEY` | JWT signing key (used when not `Development`). | **yes** |
+| `EconoFlow_TOKEN_SECRET_KEY` | JWT signing key (used when not `Development`; 32+ chars). | **yes** |
 | `EconoFlow_ISSUER` | JWT issuer. | no (falls back to config) |
 | `EconoFlow_AUDIENCE` | JWT audience. | no (falls back to config) |
-| `EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN` | Secret for account-delete tokens â€” the controller throws if missing. | **yes** |
+| `EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN` | Secret that signs account-delete tokens (32+ chars) — validated at start-up, not at request time. | **yes** |
+| `EconoFlow_USER_KEY_SALT` | Salt hashed into every client-side user encryption key (32+ chars) — validated at start-up. | **yes** |
+| `EconoFlow_UNSUBSCRIBE_HMAC_SECRET` | HMAC key for unsubscribe-link signatures (32+ chars) — validated at start-up. | **yes** |
 | `SMTP_HOST` / `SMTP_USERNAME` / `SMTP_PASSWORD` | Outbound e-mail over SMTP â€” `Program.cs` throws in non-Development when the SMTP settings are incomplete. | **yes** |
 | `SMTP_PORT` / `SMTP_SECURE_SOCKET` | SMTP port (default `587`) and TLS mode: `Auto`, `None`, `StartTls` or `SslOnConnect` (default `Auto`). | no |
 | `SMTP_FROM_ADDRESS` / `SMTP_FROM_NAME` | From address/name used for every outbound e-mail (defaults `noreply@econoflow.pt` / `NoReply EconoFlow`). | no |

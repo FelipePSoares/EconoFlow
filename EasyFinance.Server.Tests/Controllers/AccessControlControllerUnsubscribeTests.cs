@@ -4,6 +4,7 @@ using EasyFinance.Application.Features.NotificationService;
 using EasyFinance.Application.Features.TurnstileService;
 using EasyFinance.Application.Features.UserService;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Server.Config;
 using EasyFinance.Server.Controllers;
 using FpsSoftware.Chassis;
 using Microsoft.AspNetCore.Http;
@@ -62,6 +63,7 @@ namespace EasyFinance.Server.Tests.Controllers
                 notificationService: Mock.Of<INotificationService>(),
                 turnstileService: Mock.Of<ITurnstileService>(),
                 turnstileSettings: Options.Create(new TurnstileSettings()),
+                userSecretOptions: Options.Create(new UserSecretOptions { DeleteTokenSecret = "instance-created-delete-token-secret" }),
                 logger: Mock.Of<ILogger<AccessControlController>>());
         }
 

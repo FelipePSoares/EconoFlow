@@ -24,6 +24,7 @@ namespace EasyFinance.Server.Tests
     /// one assembly.
     /// </para>
     /// </summary>
+    [Collection(PersistenceTestEnvironment.CollectionName)]
     public class PostgreSqlOnlyPersistenceTests
     {
         private const string PersistenceAssembly = "EasyFinance.Persistence";
@@ -39,6 +40,10 @@ namespace EasyFinance.Server.Tests
 
         private static DbContext BuildContext(Type contextType)
         {
+            // The environment variable is process-wide state: restore it rather than clearing
+            // it, otherwise a test running in parallel that depends on it having a value fails
+            // intermittently. See PersistenceTestEnvironmentCollectionSerialization.
+            var previous = Environment.GetEnvironmentVariable("EasyFinanceDB");
             Environment.SetEnvironmentVariable("EasyFinanceDB", ConnectionString);
 
             try
@@ -57,7 +62,7 @@ namespace EasyFinance.Server.Tests
             }
             finally
             {
-                Environment.SetEnvironmentVariable("EasyFinanceDB", null);
+                Environment.SetEnvironmentVariable("EasyFinanceDB", previous);
             }
         }
 
