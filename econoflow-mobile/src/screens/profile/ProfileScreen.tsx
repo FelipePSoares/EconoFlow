@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  ScrollView, StyleSheet, Switch, TouchableOpacity, View,
+  Linking, ScrollView, StyleSheet, Switch, TouchableOpacity, View,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,9 +18,11 @@ import { usePinStore } from '../../store/pinStore';
 import { useLockStore } from '../../store/lockStore';
 import { useProjectStore } from '../../store/projectStore';
 import { usePushNotifications } from '../../hooks/usePushNotifications';
+import { useAppTheme } from '../../theme/useAppTheme';
 import { GlassScreen } from '../../components/common/GlassScreen';
 import { GlassCard } from '../../components/common/GlassCard';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
+import { SECURITY_PAGE_URL } from '../../utils/legalLinks';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'Profile'>;
 
@@ -33,18 +35,19 @@ interface SettingRowProps {
   ink: string;
   ink2: string;
   hair: string;
+  iconColor?: string;
   isLast?: boolean;
   onPress?: () => void;
   testID?: string;
 }
 
 const SettingRow: React.FC<SettingRowProps> = ({
-  icon, label, value, valueColor, dark, ink, ink2, hair, isLast, onPress, testID,
+  icon, label, value, valueColor, iconColor, dark, ink, ink2, hair, isLast, onPress, testID,
 }) => {
   const inner = (
     <View style={[styles.settingRow, { borderBottomColor: isLast ? 'transparent' : hair }]}>
       <View style={[styles.settingIconWrap, { backgroundColor: '#0f76a8' + (dark ? '28' : '18') }]}>
-        <MaterialCommunityIcons name={icon as never} size={18} color="#0f76a8" />
+        <MaterialCommunityIcons name={icon as never} size={18} color={iconColor ?? '#0f76a8'} />
       </View>
       <View style={styles.settingInfo}>
         <Text style={[styles.settingLabel, { color: ink2 }]}>{label}</Text>
@@ -108,6 +111,7 @@ const SettingToggleRow: React.FC<SettingToggleRowProps> = ({
 export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
   const { dark, ink, ink2, hair } = useAuroraSkin();
+  const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const { user, clearAuth } = useAuthStore();
   const { clearProject, selectedProject } = useProjectStore();
@@ -138,6 +142,12 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
     } else {
       registerPushNotifications();
     }
+  };
+
+  // The support period and the Annex II instructions are published once, on
+  // the site, so every delivery mode shows the same wording.
+  const handleOpenSecurityPage = () => {
+    void Linking.openURL(SECURITY_PAGE_URL);
   };
 
   const displayName = user?.fullName
@@ -274,6 +284,15 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
             valueColor={hasPin ? '#0e9f6e' : undefined}
             onPress={() => rootNavigation.navigate('PinSetup')}
             testID="row-ChangePin"
+          />
+          <SettingRow
+            dark={dark} ink={ink} ink2={ink2} hair={hair}
+            icon="shield-check-outline"
+            iconColor={colors.primary}
+            label={t('SecurityAndSupport') ?? 'Security & Support'}
+            value={t('SecurityAndSupportDescription') ?? 'Support period, safe usage and vulnerability reporting'}
+            onPress={handleOpenSecurityPage}
+            testID="row-SecurityAndSupport"
             isLast
           />
         </GlassCard>

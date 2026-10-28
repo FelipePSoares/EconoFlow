@@ -7,6 +7,7 @@ import { UseTermsComponent } from './not-authenticated-area/use-terms/use-terms.
 import { ContactUsComponent } from './not-authenticated-area/contact-us/contact-us.component';
 import { HowToComponent } from './not-authenticated-area/how-to/how-to.component';
 import { OfflineComponent } from './not-authenticated-area/offline/offline.component';
+import { SecurityComponent } from './not-authenticated-area/security/security.component';
 
 import { LoginComponent } from './authentication/login/login.component';
 import { RegisterComponent } from './authentication/register/register.component';
@@ -44,6 +45,7 @@ import { EmailsComponent } from './user/emails/emails.component';
 export const routes: Routes = [
   { path: '', component: IndexComponent, pathMatch: 'full' },
   { path: 'privacy-policy', component: PrivacyPolicyComponent },
+  { path: 'security', component: SecurityComponent },
   { path: 'use-terms', component: UseTermsComponent },
   { path: 'contact-us', component: ContactUsComponent },
   { path: 'offline', component: OfflineComponent },
@@ -52,6 +54,7 @@ export const routes: Routes = [
     children: [
       { path: '', component: IndexComponent, pathMatch: 'full' },
       { path: 'privacy-policy', component: PrivacyPolicyComponent },
+      { path: 'security', component: SecurityComponent },
       { path: 'use-terms', component: UseTermsComponent },
       { path: 'contact-us', component: ContactUsComponent },
       { path: 'offline', component: OfflineComponent },

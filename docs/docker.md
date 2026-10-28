@@ -199,6 +199,19 @@ published ones.
 * The PostgreSQL image is pinned to the same digest the `integration-tests` CI job runs.
   `EasyFinance.Server.Tests/DevStackTests.cs` keeps the two in step.
 
+## Support period and security guidance
+
+An image is supported for **12 months after its release**. Only the current release receives
+security updates; pin a deployment to the commit-SHA tag (or its digest), not to `:latest`,
+and redeploy the new digest when a security release is published.
+
+Self-hosters are the deployers this product's Annex II information is written for: the full
+instructions for a secure installation and configuration, the expected environment, the update
+process and the vulnerability reporting channel are in
+[`docs/security-user-guide.md`](security-user-guide.md) and at
+<https://econoflow.pt/security>. The support period and the end-of-support notice are stated in
+[`SECURITY.md`](../SECURITY.md).
+
 ## Runtime environment variables
 
 The server reads its configuration from these environment variables (Release /
@@ -220,6 +233,8 @@ production build), in addition to `appsettings.json`:
 | `SMTP_FROM_ADDRESS` / `SMTP_FROM_NAME` | From address/name used for every outbound e-mail (defaults `noreply@econoflow.pt` / `NoReply EconoFlow`). | no |
 | `SMTP_TIMEOUT_SECONDS` | Timeout for SMTP connect/authenticate/send, in seconds (default `30`). | no |
 | `S3_ENDPOINT` / `S3_ACCESS_KEY` / `S3_SECRET_KEY` / `S3_BUCKET` | MinIO/S3 attachment storage (when `AttachmentStorage:Provider` is `Minio`). | when Minio |
+| `ForwardedHeaders__KnownNetworks__0` … | Trusted proxy address ranges (CIDR) whose `X-Forwarded-Proto` / `X-Forwarded-For` headers are honoured. The defaults are replaced by whatever is configured, and the image ships with `10.42.0.0/16` only, so any other TLS-terminating proxy (compose, nginx, a sibling container) must be listed here or `X-Forwarded-Proto` is ignored and every request is redirected to `https://<host>:8080/`. | **yes**, unless the proxy is in `10.42.0.0/16` |
+| `ForwardedHeaders__KnownProxies__0` … | A single trusted proxy address, for a proxy that has no network range of its own. It is the alternative to `ForwardedHeaders__KnownNetworks__0`, not an addition to it. | when applicable |
 | `EconoFlow_TURNSTILE_SECRET_KEY` / `EconoFlow_TURNSTILE_SITE_KEY` | Cloudflare Turnstile. | when used |
 | `EconoFlow_EXPO_PUSH_ACCESS_TOKEN` | Expo push notifications. | when used |
 | `EconoFlow_KEY_ENCRYPT_ACTIVE` | Enables DPAPI key protection (Windows only â€” not applicable to the Linux image). | no |

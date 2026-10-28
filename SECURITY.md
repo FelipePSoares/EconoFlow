@@ -7,20 +7,50 @@ manufacturer under the EU Cyber Resilience Act.
 
 ## Supported versions
 
-The support period stated below is the period during which EconoFlow provides security
-updates for a released version of the product.
+The **support period** is the period during which EconoFlow provides security updates for a
+released version of the product. It is defined per delivery mode and is the same rule for all
+of them: **security updates are provided for 12 months after a release**.
 
-| Product | Support period |
-|---------|----------------|
-| EconoFlow web application (hosted) | Security updates for as long as the service is operated, currently **not before 31 December 2030** |
-| EconoFlow mobile apps (Android / iOS) | Security updates **until 31 December 2030** |
-| EconoFlow container image (`gitea.fpssoftware.uk/fps-software/econoflow`) | Security updates for any image tag published in the last **12 months** |
+| Delivery mode | Product | Support period |
+|---------------|---------|----------------|
+| Hosted service | EconoFlow hosted web application (`econoflow.pt`) | 12 months from the release, then rolled over by the next release. The service is only offered while its current release is supported. |
+| Mobile apps | EconoFlow mobile apps for Android and iOS | 12 months from the release (each store release starts a new period, which supersedes the previous one). |
+| Container image | EconoFlow container image `gitea.fpssoftware.uk/fps-software/econoflow` | 12 months from the release of the image. A release is the push to `master` that produces the `latest` tag; its immutable handle is the commit-SHA tag (`:<sha>`) and digest. |
 
-Only the latest release of each product receives security updates. Older releases are not
-backported unless a vulnerability is severe enough that no upgrade path exists.
+What that means in practice:
 
-When the supported period for a product is coming to an end, a notice is published in this
-repository and, where the product is offered as a service, to the affected users.
+- The release the product is running today is supported until **12 months after that release**.
+  The end date therefore moves with every release, which is why the period is stated as a rule
+  rather than as a fixed date: a fixed date would have to be re-committed annually and would
+  eventually be missed.
+- Only the current release of each delivery mode receives security updates. A superseded
+  release stops being supported when its successor is released.
+- Older releases are not backported unless a vulnerability is severe enough that no upgrade
+  path exists — for example an operator who cannot upgrade the container image before the
+  current release reaches the end of its period.
+- The rule is reviewed at least once a year together with this document. If it changes, the
+  new period is published here before it takes effect, and applies to releases made from that
+  date.
+
+### End-of-support notices
+
+Users are told when a support period is ending. **At least 90 days before the end of a
+period**, a notice is published, in every channel that reaches the users of that delivery mode:
+
+| Delivery mode | Where the end-of-support notice appears |
+|---------------|-----------------------------------------|
+| Hosted web application | On the [security and support page](https://econoflow.pt/security), in the release notes, and by e-mail to the active users of the service |
+| Mobile apps | On the security and support page, in this repository's GitHub Security advisories, and in the release notes for the store listing |
+| Container image | On the security and support page, in this repository's GitHub Security advisories, and in the release notes, so an operator sees it in the release feed they already follow |
+
+The notice names the release, the end date, and the upgrade path (the new release to move
+to, or — for the container image — the deployment change required), and it stays on the
+security and support page until the period has ended, so the current status is always
+available in the product.
+
+The same page publishes the user-facing instructions for the secure installation, configuration
+and use of the product that Annex II of the Regulation requires; the long form lives in
+[`docs/security-user-guide.md`](docs/security-user-guide.md).
 
 ## Reporting a vulnerability
 
@@ -85,6 +115,9 @@ required by Annex I, Part II, point 2 of that Regulation.
 
 The related artefacts are:
 
+- [`docs/security-user-guide.md`](docs/security-user-guide.md) — the user information and
+  instructions for the secure installation, configuration and use of the product required by
+  Annex II, published for users at [`econoflow.pt/security`](https://econoflow.pt/security).
 - [`docs/cra-incident-reporting.md`](docs/cra-incident-reporting.md) — the internal runbook
   for the Article 14 reporting obligations.
 - [`docs/cra-compliance-assessment.md`](docs/cra-compliance-assessment.md) — the current

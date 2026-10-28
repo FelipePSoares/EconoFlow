@@ -1,0 +1,322 @@
+<main class="container mt-5 mb-5">
+  @if (isPortuguese()) {
+    <h1>Segurança e Suporte</h1>
+    <p><strong>Em caso de dúvida, divergência ou interpretação, a versão em inglês desta página prevalece.</strong></p>
+    <p>
+      Esta página reúne as informações e instruções de segurança para os utilizadores que o
+      EconoFlow publica ao abrigo do Anexo II do Regulamento (UE) 2024/2847 (Cyber Resilience Act).
+    </p>
+
+    <h2>1. Período de suporte</h2>
+    <p>
+      O EconoFlow disponibiliza atualizações de segurança durante <strong>{{ supportPeriod.months }} meses
+      após cada versão</strong>, em todas as formas de distribuição: a aplicação web alojada, as
+      aplicações móveis e a imagem de container.
+    </p>
+    <table class="table table-sm">
+      <thead>
+        <tr>
+          <th scope="col">O que utiliza</th>
+          <th scope="col">Suporte até</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Aplicação web alojada (econoflow.pt)</td>
+          <td>12 meses após a versão em execução</td>
+        </tr>
+        <tr>
+          <td>Aplicação Android ou iOS</td>
+          <td>12 meses após a versão instalada</td>
+        </tr>
+        <tr>
+          <td>Imagem de container</td>
+          <td>12 meses após a versão da imagem</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      Apenas a versão atual de cada forma de distribuição recebe atualizações de segurança. A
+      data de fim de suporte depende da versão que está a utilizar; as versões anteriores não
+      recebem correções retroativas, exceto quando a vulnerabilidade é grave ao ponto de não
+      existir caminho de atualização.
+    </p>
+    <p>
+      <strong>Avisos de fim de suporte:</strong> quando o período de suporte de uma versão está a
+      terminar, é publicado um aviso com pelo menos <strong>90 dias</strong> de antecedência. Na
+      aplicação alojada, o aviso aparece nesta página, nas notas de lançamento e por e-mail aos
+      utilizadores ativos; nas aplicações móveis e na imagem de container, aparece nesta página,
+      nos avisos de segurança do repositório e nas notas de lançamento. O aviso indica a versão,
+      a data de fim e a versão para a qual deve atualizar.
+    </p>
+
+    <h2>2. Ambiente esperado</h2>
+    <h3>2.1 Aplicação web alojada</h3>
+    <ul>
+      <li>Um navegador atual — as duas últimas versões principais do Chrome, Edge, Firefox ou Safari.</li>
+      <li>JavaScript e <code>localStorage</code> ativados no navegador.</li>
+      <li>Ligação exclusivamente por HTTPS; o servidor envia HSTS e uma Content Security Policy restritiva.</li>
+      <li>
+        A autenticação está protegida pelo Cloudflare Turnstile. As palavras-passe das contas têm
+        pelo menos 8 caracteres, com letra maiúscula, letra minúscula, dígito e símbolo, e cinco
+        tentativas falhadas bloqueiam a conta durante cinco minutos. A autenticação de dois fatores
+        está disponível, mas o serviço não a exige.
+      </li>
+      <li>
+        As contas não têm de confirmar o endereço de e-mail antes de iniciar sessão; quem quiser
+        essa garantia deve ativar a autenticação de dois fatores.
+      </li>
+    </ul>
+
+    <h3>2.2 Aplicações móveis</h3>
+    <ul>
+      <li>Instale a aplicação <strong>apenas</strong> através da loja oficial. Não existe suporte para instalação por outras vias.</li>
+      <li>A aplicação comunica apenas com o endereço do servidor com que foi compilada.</li>
+      <li>A sessão é guardada no armazenamento seguro do sistema (Keychain no iOS, Keystore no Android). O PIN e o desbloqueio biométrico são opcionais.</li>
+    </ul>
+
+    <h3>2.3 Imagem de container (auto-alojada)</h3>
+    <ul>
+      <li>Uma base de dados PostgreSQL, indicada em <code>EasyFinanceDB</code>.</li>
+      <li>Segredos com pelo menos 32 caracteres, únicos para cada instalação: <code>EconoFlow_TOKEN_SECRET_KEY</code>, <code>EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN</code>, <code>EconoFlow_USER_KEY_SALT</code> e <code>EconoFlow_UNSUBSCRIBE_HMAC_SECRET</code>.</li>
+      <li>Configuração SMTP (<code>SMTP_HOST</code>, <code>SMTP_USERNAME</code>, <code>SMTP_PASSWORD</code>) para os e-mails de conta e de segurança.</li>
+      <li>
+        Terminação de TLS num proxy que <strong>envie o esquema original</strong>
+        (<code>X-Forwarded-Proto</code>) <strong>e cujo endereço seja de confiança</strong>: a
+        imagem só confia em <code>10.42.0.0/16</code> por omissão, por isso indique o seu proxy em
+        <code>ForwardedHeaders__KnownNetworks__0</code> (ou
+        <code>ForwardedHeaders__KnownProxies__0</code>). A imagem escuta em HTTP na porta 8080,
+        corre com um utilizador sem privilégios e redireciona para HTTPS tudo o que não seja um
+        pedido de saúde, por isso sem esse cabeçalho o navegador acaba em
+        <code>https://&lt;host&gt;:8080/</code>, que é HTTP nessa porta, e a aplicação fica
+        inacessível.
+      </li>
+    </ul>
+
+    <h2>3. Instalação e configuração segura</h2>
+    <ol>
+      <li>Fixe a imagem pelo <strong>digest</strong>, não por uma tag mutável.</li>
+      <li>Guarde os segredos no gestor de segredos da plataforma, nunca na imagem nem num ficheiro versionado.</li>
+      <li>
+        Termine o TLS num proxy, envie o esquema do cliente e confie no endereço desse proxy
+        (<code>ForwardedHeaders__KnownNetworks__0</code> ou
+        <code>ForwardedHeaders__KnownProxies__0</code>); sem <code>X-Forwarded-Proto</code>, ou
+        vindo de um proxy não confiável, a aplicação redireciona para
+        <code>https://&lt;host&gt;:8080/</code> e fica inacessível.
+      </li>
+      <li>Configure o SMTP para que os e-mails de segurança cheguem realmente aos utilizadores.</li>
+      <li>Use credenciais de base de dados com os mínimos privilégios e mantenha cópias de segurança protegidas.</li>
+      <li>Nunca ative os dados de demonstração de desenvolvimento em produção.</li>
+    </ol>
+    <p>
+      O servidor recusa arrancar quando um segredo obrigatório está ausente, vazio ou tem menos de
+      32 caracteres, e indica na mensagem todas as variáveis em falta. Essa falha é intencional.
+    </p>
+
+    <h2>4. Atualizações de segurança</h2>
+    <ul>
+      <li>As atualizações de segurança são publicadas como novas versões; a imagem de container recebe uma nova tag <code>latest</code>, uma tag imutável pelo commit e um novo digest.</li>
+      <li>A aplicação web alojada e as aplicações móveis são atualizadas por nós.</li>
+      <li>Numa instalação auto-alojada, atualizar é reimplantar o novo digest com a mesma configuração; as migrações da base de dados são aplicadas no arranque.</li>
+      <li>Aplique uma versão de segurança no prazo de um mês após a publicação.</li>
+    </ul>
+
+    <h2>5. Utilização segura</h2>
+    <ul>
+      <li>Use uma palavra-passe única para o EconoFlow e guarde-a num gestor de palavras-passe.</li>
+      <li>
+        Ative a autenticação de dois fatores e guarde os códigos de recuperação noutro local que
+        não o dispositivo com a aplicação autenticadora:
+        <strong>Definições → Palavra-passe e autenticação → Aplicação autenticadora</strong>
+        (no telemóvel: <strong>Perfil → Palavra-passe e autenticação → Aplicação autenticadora</strong>).
+      </li>
+      <li>Termine a sessão quando utiliza um dispositivo partilhado; nas aplicações móveis use o PIN e o desbloqueio biométrico.</li>
+      <li>O EconoFlow nunca pede a sua palavra-passe por e-mail, chat ou telefone, nem pede que instale algo para receber uma atualização de segurança. Trate essas mensagens como phishing.</li>
+      <li>
+        A eliminação da conta é feita nas <strong>Definições → Conta</strong>. A aplicação mostra uma
+        caixa de confirmação que lista os projetos que serão eliminados com a conta, e nada é
+        eliminado até confirmar nessa caixa; a confirmação expira ao fim de alguns minutos. A
+        eliminação remove a conta e os projetos em que é o único administrador; os projetos
+        partilhados mantêm-se com os restantes administradores.
+      </li>
+    </ul>
+
+    <h2>6. Como comunicar uma vulnerabilidade</h2>
+    <p><strong>Não comunique vulnerabilidades em issues, discussions ou pull requests públicos.</strong></p>
+    <ul>
+      <li><strong>E-mail:</strong> {{ reportingAddress }} com o assunto <code>SECURITY</code></li>
+      <li><strong>Alternativa:</strong> security&#64;econoflow.pt, caso o endereço principal não responda atempadamente</li>
+      <li><strong>Formato legível por máquina:</strong> <a href="/.well-known/security.txt">/.well-known/security.txt</a> (RFC 9116)</li>
+    </ul>
+    <p>
+      Indicamos a resposta no prazo de um dia útil e escalamos imediatamente — incluindo fins de
+      semana — quando o relato pode corresponder a uma vulnerabilidade ativamente explorada.
+    </p>
+
+    <h2>7. Informação aos utilizadores</h2>
+    <p>
+      O período de suporte, as datas de fim de suporte e estas instruções são publicados em
+      conjunto nesta página. As alterações ao período de suporte são publicadas aqui antes de
+      produzirem efeitos.
+    </p>
+
+    <p><strong>Última Atualização:</strong> {{ lastUpdated }}</p>
+  } @else {
+    <h1>Security and Support</h1>
+    <p>
+      This page collects the user information and security instructions EconoFlow publishes under
+      Annex II of Regulation (EU) 2024/2847 (the Cyber Resilience Act).
+    </p>
+
+    <h2>1. Support period</h2>
+    <p>
+      EconoFlow provides security updates for <strong>{{ supportPeriod.months }} months after each
+      release</strong>, on every delivery mode: the hosted web application, the mobile apps and the
+      container image.
+    </p>
+    <table class="table table-sm">
+      <thead>
+        <tr>
+          <th scope="col">What you use</th>
+          <th scope="col">Supported until</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Hosted web application (econoflow.pt)</td>
+          <td>12 months after the release it runs</td>
+        </tr>
+        <tr>
+          <td>Android or iOS app</td>
+          <td>12 months after the release you installed</td>
+        </tr>
+        <tr>
+          <td>Container image</td>
+          <td>12 months after the release of the image</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      Only the current release of each delivery mode receives security updates. The end date
+      depends on the release you are using; older releases are not backported unless a
+      vulnerability is severe enough that no upgrade path exists.
+    </p>
+    <p>
+      <strong>End-of-support notices:</strong> when a support period is ending, a notice is
+      published at least <strong>90 days</strong> in advance. On the hosted application it appears
+      on this page, in the release notes and by e-mail to the active users; for the mobile apps and
+      the container image it appears on this page, in the repository's security advisories and in
+      the release notes. The notice names the release, the end date and the release to upgrade to.
+    </p>
+
+    <h2>2. Expected environment</h2>
+    <h3>2.1 Hosted web application</h3>
+    <ul>
+      <li>A current browser — the last two major versions of Chrome, Edge, Firefox or Safari.</li>
+      <li>JavaScript and <code>localStorage</code> enabled.</li>
+      <li>HTTPS only; the server sends HSTS and a strict Content Security Policy.</li>
+      <li>
+        Sign-in is protected by Cloudflare Turnstile. Account passwords are at least 8 characters
+        with an upper-case letter, a lower-case letter, a digit and a symbol, and five failed
+        sign-ins lock the account for five minutes. Second-factor authentication is available but
+        the service does not require it.
+      </li>
+      <li>
+        Accounts do not have to confirm their e-mail address before signing in; a user who wants
+        that assurance should turn on second-factor authentication.
+      </li>
+    </ul>
+
+    <h3>2.2 Mobile apps</h3>
+    <ul>
+      <li>Install the app <strong>only</strong> from the official store listing; there is no supported side-loading path.</li>
+      <li>The app talks only to the server address it is built with; a link or a QR code cannot point it elsewhere.</li>
+      <li>The session is stored in the platform secure store (Keychain on iOS, Keystore on Android). The app PIN and biometric unlock are optional.</li>
+    </ul>
+
+    <h3>2.3 Container image (self-hosted)</h3>
+    <ul>
+      <li>A PostgreSQL database, configured through <code>EasyFinanceDB</code>.</li>
+      <li>Secrets of at least 32 characters, unique per deployment: <code>EconoFlow_TOKEN_SECRET_KEY</code>, <code>EconoFlow_SECRET_KEY_FOR_DELETE_TOKEN</code>, <code>EconoFlow_USER_KEY_SALT</code> and <code>EconoFlow_UNSUBSCRIBE_HMAC_SECRET</code>.</li>
+      <li>SMTP settings (<code>SMTP_HOST</code>, <code>SMTP_USERNAME</code>, <code>SMTP_PASSWORD</code>) so account and security e-mails can be sent.</li>
+      <li>
+        TLS terminated by a proxy that <strong>forwards the original scheme</strong>
+        (<code>X-Forwarded-Proto</code>) <strong>and whose address is trusted</strong>: the image
+        trusts only <code>10.42.0.0/16</code> by default, so set your proxy in
+        <code>ForwardedHeaders__KnownNetworks__0</code> (or
+        <code>ForwardedHeaders__KnownProxies__0</code>). The image listens on plain HTTP port
+        8080, runs as a non-root user, and redirects every non-health request to HTTPS, so
+        without that header the browser ends up at <code>https://&lt;host&gt;:8080/</code> —
+        plain HTTP on that port — and the application is unreachable.
+      </li>
+    </ul>
+
+    <h2>3. Secure installation and configuration</h2>
+    <ol>
+      <li>Pin the image by <strong>digest</strong>, not by a mutable tag.</li>
+      <li>Keep secrets in the platform's secret store — never in the image or a committed file.</li>
+      <li>
+        Terminate TLS in a proxy, forward the client scheme, and trust the proxy's address
+        (<code>ForwardedHeaders__KnownNetworks__0</code> or
+        <code>ForwardedHeaders__KnownProxies__0</code>); without <code>X-Forwarded-Proto</code> —
+        or from an untrusted proxy — the application redirects to
+        <code>https://&lt;host&gt;:8080/</code> and is unreachable.
+      </li>
+      <li>Configure SMTP so the security-relevant e-mails actually reach users.</li>
+      <li>Use least-privilege database credentials and keep backups protected.</li>
+      <li>Never enable the development seed data in production.</li>
+    </ol>
+    <p>
+      The server refuses to start when a required secret is missing, blank or shorter than
+      32 characters, and names every offending variable in one message. That failure is deliberate.
+    </p>
+
+    <h2>4. Security updates</h2>
+    <ul>
+      <li>Security updates are published as new releases; for the container, a new <code>latest</code> tag, a new immutable commit tag and a new digest.</li>
+      <li>The hosted web application and the mobile apps are updated for you.</li>
+      <li>For a self-hosted container, updating is a redeploy of the new digest with the same configuration; database migrations are applied at start-up.</li>
+      <li>Apply a security release within a month of its publication.</li>
+    </ul>
+
+    <h2>5. Using EconoFlow securely</h2>
+    <ul>
+      <li>Use a unique password for EconoFlow and keep it in a password manager.</li>
+      <li>
+        Turn on second-factor authentication and store the recovery codes somewhere other than the
+        device with the authenticator: <strong>Settings → Password and Authentication →
+        Authenticator App (TOTP)</strong> (on mobile: <strong>Profile → Password and
+        Authentication → Authenticator App (TOTP)</strong>).
+      </li>
+      <li>Sign out on shared devices; on mobile, use the app PIN and biometric unlock.</li>
+      <li>EconoFlow never asks for your password by e-mail, chat or phone, and never asks you to install something to receive a security update. Treat such messages as phishing.</li>
+      <li>
+        Deleting your account is done in <strong>Settings → Account</strong>. The app shows a
+        confirmation dialog listing the projects that will be deleted with the account, and
+        nothing is deleted until you confirm there; the confirmation expires after a couple of minutes.
+        Deletion removes your account and the projects you are the only administrator of; shared
+        projects stay with their other administrators.
+      </li>
+    </ul>
+
+    <h2>6. How to report a vulnerability</h2>
+    <p><strong>Do not report security vulnerabilities through public GitHub issues, discussions or pull requests.</strong></p>
+    <ul>
+      <li><strong>E-mail:</strong> {{ reportingAddress }} with the subject line <code>SECURITY</code></li>
+      <li><strong>Backup:</strong> security&#64;econoflow.pt if the primary address does not answer in time</li>
+      <li><strong>Machine-readable:</strong> <a href="/.well-known/security.txt">/.well-known/security.txt</a> (RFC 9116)</li>
+    </ul>
+    <p>
+      We acknowledge reports within one business day, and escalate immediately — including at
+      weekends — for anything that could be an actively exploited vulnerability.
+    </p>
+
+    <h2>7. Keeping users informed</h2>
+    <p>
+      The support period, end-of-support dates and these instructions are published together on
+      this page. A change to the support period is published here before it takes effect.
+    </p>
+
+    <p><strong>Last Updated:</strong> {{ lastUpdated }}</p>
+  }
+</main>
