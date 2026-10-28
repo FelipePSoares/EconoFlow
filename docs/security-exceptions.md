@@ -66,7 +66,7 @@ releases in the `overrides` block of `easyfinance.client/package.json` and
 |------|--------|
 | Angular SSR | `@angular/*` `22.1.2` → `22.2.1` (SSR XSS, SSRF, DoS, router matrix-parameter DoS) |
 | Dev server (Vite) | `vite` → `8.3.5` (launch-editor command execution, `fs.existsSync` bypass on Windows, cross-origin script execution, out-of-scope file disclosure; all cover `8.3.0`–`8.3.2`) |
-| HTTP request parsing | `qs` → `6.17.0` |
+| HTTP request parsing | `qs` → `6.17.1` |
 | URL parsing | `fast-uri@3` → `3.1.9`, `browserslist` → `4.29.5`, `baseline-browser-mapping` → `2.11.34` |
 | Build workers | `piscina` → `5.3.2` |
 | Dev server / SSR helpers | `engine.io` → `6.6.11` |
