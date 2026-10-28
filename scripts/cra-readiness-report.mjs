@@ -64,13 +64,49 @@ function section(markdown, fragment) {
 
 const srpSection = section(runbook, 'SRP access');
 const registered = /\|\s*Account registered\s*\|(.*?)\|/i.exec(srpSection);
-const registeredValue = registered?.[1]?.trim() ?? '';
+const registeredValue = (registered?.[1] ?? '').trim();
+const registeredPlain = registeredValue.replace(/\*\*/g, '').trim();
+const registeredDate = /\b(\d{4}-\d{2}-\d{2})\b/.exec(registeredPlain);
 
-check('ENISA SRP account exists', {
-  passed: /^\**\s*(yes|2026-|20\d\d-)/i.test(registeredValue),
-  detail: registeredValue
-    ? `the runbook says: "${registeredValue.replace(/\*\*/g, '')}"`
-    : 'the runbook has no "Account registered" row',
+/**
+ * An account counts as registered only when the cell says so in a form that can be checked:
+ * a plain "Yes", or an ISO date that is not in the future.
+ *
+ * <p>
+ * The date must also be plausible. Accepting any four-digit year meant a typo like
+ * `1999-01-01` reported WARN with a message stating the runbook *did* hold a value, so the
+ * document and the report disagreed without saying why. A registration date before the
+ * Regulation entered into force (2024-12-10) cannot be real.
+ * </p>
+ */
+const REGULATION_IN_FORCE = new Date('2024-12-10');
+
+function accountRegistration(plain) {
+  if (/^yes\b/i.test(plain)) return { ok: true };
+
+  if (!registeredDate) return { ok: false, reason: 'the cell is neither "Yes" nor an ISO date' };
+
+  const date = new Date(registeredDate[1]);
+
+  if (Number.isNaN(date.getTime())) return { ok: false, reason: `"${registeredDate[1]}" is not a valid date` };
+  if (date > new Date()) return { ok: false, reason: `"${registeredDate[1]}" is in the future` };
+  if (date < REGULATION_IN_FORCE) {
+    return {
+      ok: false,
+      reason: `"${registeredDate[1]}" predates the Regulation entering into force (2024-12-10), so it cannot be a registration date`,
+    };
+  }
+
+  return { ok: true };
+}
+
+const registration = accountRegistration(registeredPlain);
+
+check('ENISA SRP account recorded as registered', {
+  passed: registration.ok,
+  detail: registration.ok
+    ? `the runbook records: "${registeredPlain}"`
+    : `the runbook does not record a usable registration (${registration.reason}); it says: "${registeredPlain}"`,
 });
 
 const verified = /\|\s*Access last verified\s*\|(.*?)\|/i.exec(srpSection);

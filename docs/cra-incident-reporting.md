@@ -60,9 +60,15 @@ States where the product was made available.
 |------|----------------|
 | Platform | ENISA Single Reporting Platform (SRP) |
 | Member State of main establishment | **Portugal** |
-| Recipient CSIRT | **CNCS** (Centro Nacional de Cibersegurança, Portugal) |
+| Recipient CSIRT | **CERT.PT** — the Portuguese national CSIRT, operated by CNCS |
+| National authority (single point of contact) | **CNCS** (Centro Nacional de Cibersegurança) |
 | Access | Use the SRP account held by the security contact; access must be confirmed **before** an incident, not during one |
 | Reference | Keep the SRP submission reference for every report; it is required for subsequent filings on the same incident |
+
+Portugal has two bodies that are easy to confuse, and the difference decides where the report
+lands. **CERT.PT** is the national CSIRT that Article 14 addresses; **CNCS** is the national
+authority and single point of contact that operates it. File through the SRP to CERT.PT. Do
+not address the report to CNCS as if it were the CSIRT.
 
 The Member State of main establishment is where EconoFlow's business entity is established.
 It is **not** where the operator happens to be living, and it is **not** where users are. That
@@ -184,17 +190,19 @@ reaches its early-warning deadline on Saturday evening.
 
 These are one-off tasks that must be done while everything is calm:
 
-- [x] Confirm the Member State of main establishment (Portugal) and the corresponding CSIRT
-      (CNCS).
+- [x] Confirm the Member State of main establishment (Portugal), the corresponding CSIRT
+      (CERT.PT) and the national authority (CNCS).
 - [ ] Confirm SRP access for the primary and backup security contacts. **Not yet done** — see
       the access record in section 6.1.
-- [ ] Keep the Member State availability list above current.
+- [ ] Keep the Member State availability list above current. **Still open** — review quarterly.
 - [ ] Pre-draft the early-warning and notification text from the templates in section 7.
+      **Still open** — the templates exist, the wording is not rehearsed.
 - [ ] Run an out-of-hours drill once a year: simulate "a dependency we ship is being
-      exploited" and time how long 24 hours feels in practice. See the drill record in
-      section 6.2.
+      exploited" and time how long 24 hours feels in practice. **Still open** — see the drill
+      record in section 6.2.
 - [ ] Verify that a release's `sbom/` artefacts actually let someone answer "are we
-      affected?" for a given CVE in under an hour.
+      affected?" for a given CVE in under an hour. **Still open** — the drill is the test of
+      this.
 
 ### 6.1 SRP access
 

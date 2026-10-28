@@ -312,21 +312,43 @@ test('the incident runbook carries every statutory deadline', () => {
  * wrong authority within a 24-hour window.
  *
  * The runbook declares the answer once, and every other mention has to agree with it.
+ *
+ * <p>
+ * Portugal has two distinct bodies and they are easy to conflate: <b>CERT.PT</b> is the
+ * national CSIRT that Art. 14 addresses, and <b>CNCS</b> is the national Cyber Resilience Act
+ * authority / single point of contact that operates it. The EC's NIS2 country page lists them
+ * separately. Naming the authority where the recipient belongs sends a report to an inbox
+ * nobody is watching for CSIRT traffic, which is exactly the failure this runbook exists to
+ * prevent, so both the recipient and the authority are asserted here.
+ * </p>
  */
-const MAIN_ESTABLISHMENT = { memberState: 'Portugal', csirt: 'CNCS' };
+const MAIN_ESTABLISHMENT = {
+  memberState: 'Portugal',
+  csirt: 'CERT.PT',
+  authority: 'CNCS',
+};
 
 /** Splits a document into its `## n. Title` sections so a check can be scoped to one. */
+/**
+ * Splits a document into its `## n. Title` sections so a check can be scoped to one.
+ *
+ * <p>
+ * `###` subsections are folded into their parent section's body, which is why a section
+ * lookup for "Before you need this" also sees 6.1 and 6.2. `subsection()` below reaches into
+ * one directly.
+ * </p>
+ */
 function sections(markdown) {
   const result = new Map();
   let currentTitle = null;
   let currentLines = [];
 
   for (const line of markdown.split(/\r?\n/)) {
-    const heading = /^##\s+(.+?)\s*$/.exec(line);
+    const heading = /^(#{2,3})\s+(.+?)\s*$/.exec(line);
 
-    if (heading) {
+    if (heading && heading[1].length === 2) {
       if (currentTitle !== null) result.set(currentTitle, currentLines.join('\n'));
-      currentTitle = heading[1];
+      currentTitle = heading[2];
       currentLines = [];
       continue;
     }
@@ -355,6 +377,27 @@ function sectionContaining(markdown, fragment) {
   }
 
   throw new Error(`the runbook has no section whose title contains "${fragment}"`);
+}
+
+/**
+ * Returns the body of the first `### n Title` subsection whose title contains `fragment`.
+ *
+ * <p>
+ * Subsection bodies end at the next heading of any level, so a lookup for "SRP access" stops
+ * before the drill record that follows it.
+ * </p>
+ */
+function subsectionContaining(markdown, fragment) {
+  const parts = markdown.split(/^(#{2,3})\s+(.+?)\s*$/m);
+
+  // split() with two capture groups alternates: body, hashes, title, body, hashes, title...
+  for (let index = 1; index < parts.length; index += 3) {
+    if (parts[index] === '###' && parts[index + 1].toLowerCase().includes(fragment.toLowerCase())) {
+      return parts[index + 2] ?? '';
+    }
+  }
+
+  throw new Error(`the runbook has no subsection whose title contains "${fragment}"`);
 }
 
 test('the runbook declares the Member State of main establishment', () => {
@@ -389,12 +432,23 @@ test('the runbook names the CSIRT that matches the Member State of main establis
   const runbook = read(INCIDENT_RUNBOOK_PATH);
   const whereToReport = sectionContaining(runbook, 'Where to report');
 
-  const csirt = new RegExp(`\\b${MAIN_ESTABLISHMENT.csirt}\\b`);
+  // The recipient row, matched structurally rather than by searching the section for the
+  // name. A bare `\bCERT.PT\b` search would pass on any sentence that happens to mention it,
+  // and a bare `\bCNCS\b` search passes on "operated by CNCS" - which is precisely how the
+  // authority got confused with the recipient in the first place.
+  const recipientRow = /^\|[^\n]*Recipient CSIRT[^\n]*\|[^\n]*$/im.exec(whereToReport);
+
+  assert.ok(
+    recipientRow,
+    'the "Where to report" table has no "Recipient CSIRT" row',
+  );
 
   assert.match(
-    whereToReport,
-    csirt,
-    `the runbook does not name ${MAIN_ESTABLISHMENT.csirt}, the CSIRT of ${MAIN_ESTABLISHMENT.memberState}`,
+    recipientRow[0],
+    new RegExp(`\\b${MAIN_ESTABLISHMENT.csirt.replace('.', '\\.')}\\b`),
+    `the "Recipient CSIRT" row does not name ${MAIN_ESTABLISHMENT.csirt}, the national CSIRT of `
+      + `${MAIN_ESTABLISHMENT.memberState}. ${MAIN_ESTABLISHMENT.authority} is the national authority `
+      + 'that operates it, not the body Art. 14 addresses',
   );
 
   // A second national CSIRT in the same section is the drift this test exists to catch:
@@ -408,6 +462,21 @@ test('the runbook names the CSIRT that matches the Member State of main establis
         + 'one Member State means one recipient CSIRT',
     );
   }
+});
+
+test('the runbook identifies the national authority as distinct from the CSIRT', () => {
+  // Portugal has two bodies and the distinction is the substance of the fix: CERT.PT receives
+  // the report, CNCS is the authority and single point of contact around it. A runbook that
+  // names only one of them sends somebody looking for an inbox that may not be the right one.
+  const runbook = read(INCIDENT_RUNBOOK_PATH);
+  const whereToReport = sectionContaining(runbook, 'Where to report');
+
+  assert.match(
+    whereToReport,
+    new RegExp(`\\b${MAIN_ESTABLISHMENT.authority}\\b`),
+    `the runbook does not mention ${MAIN_ESTABLISHMENT.authority}, the national authority that operates `
+      + `${MAIN_ESTABLISHMENT.csirt}; naming the recipient without its authority invites the two to be confused again`,
+  );
 });
 
 test('the runbook lists the Member States where the product is available', () => {
@@ -432,6 +501,52 @@ test('the runbook lists the Member States where the product is available', () =>
   );
 });
 
+/**
+ * Phrasings that mean "somebody still has to fill this in".
+ *
+ * <p>
+ * The first version of this list held five entries and missed almost every realistic way of
+ * deferring a decision - including "to be run" and "not measured", which were sitting in the
+ * drill table of the very commit that introduced the check. A blacklist is only as good as
+ * its coverage, and every addition here is one somebody actually wrote somewhere.
+ * </p>
+ *
+ * <p>
+ * The assertion below runs on top of this, because no blacklist can be complete: it also
+ * requires the rows that carry a decision to hold a <em>shape</em> (a date, an e-mail, a
+ * name). Between the two, replacing a real answer with an unlisted euphemism is much harder
+ * than deleting the check altogether.
+ * </p>
+ */
+const PLACEHOLDER_PHRASES = [
+  'to be confirmed',
+  'to be run',
+  'to be decided',
+  'to be determined',
+  'to be filled',
+  'to be defined',
+  'tbd',
+  'tba',
+  'tbc',
+  'todo',
+  'fixme',
+  'xxx',
+  'pending',
+  'placeholder',
+  'fill in',
+  'fill this',
+  'unknown',
+  'not measured',
+  'not run',
+  'not yet recorded',
+  'n/a',
+  'none yet',
+  'no drill has been',
+];
+
+/** ISO dates are the only date format the runbook tables may use, so shapes stay checkable. */
+const ISO_DATE = /\b\d{4}-\d{2}-\d{2}\b/;
+
 test('the runbook and its "before you need this" checklist carry no placeholders', () => {
   // The placeholders are the whole point of issue #1066: the runbook was written but the
   // operational answers were deferred. They must not be able to come back.
@@ -441,11 +556,22 @@ test('the runbook and its "before you need this" checklist carry no placeholders
 
   for (const fragment of sectionsToCheck) {
     const body = sectionContaining(runbook, fragment);
+    const lowered = body.toLowerCase();
 
-    for (const placeholder of ['to be confirmed', 'TBD', 'TODO', 'FIXME', 'XXX']) {
+    for (const placeholder of PLACEHOLDER_PHRASES) {
+      // `n/a` needs a word boundary on each side or it matches inside "n/a" fragments of
+      // ordinary prose, and would fire on "Analysis" via no such path -- but `\b` also
+      // stops it matching "N/A." at the end of a cell, so the boundary is explicit.
+      const pattern = placeholder === 'n/a'
+        ? /(?:^|[\s(])n\/a(?:[\s).,;]|$)/m
+        : null;
+
+      const found = pattern ? pattern.test(body) : lowered.includes(placeholder);
+
       assert.ok(
-        !body.toLowerCase().includes(placeholder.toLowerCase()),
-        `the "${fragment}" section still contains the placeholder "${placeholder}"`,
+        !found,
+        `the "${fragment}" section still contains the placeholder "${placeholder}"; `
+          + 'fill it in or remove the row, so the runbook answers the question at 03:00',
       );
     }
 
@@ -454,6 +580,107 @@ test('the runbook and its "before you need this" checklist carry no placeholders
     assert.ok(
       !/<>|<[a-z][^>\n]{2,}>/i.test(body),
       `the "${fragment}" section contains an unfilled <...> placeholder`,
+    );
+
+    // An unticked checkbox is a placeholder wearing a different hat. The checklist is
+    // allowed to carry open items, but they must be labelled as such in prose rather than
+    // left as a silent `[ ]`. Ticked items and prose bullets are the supported forms.
+    //
+    // List items wrap across lines, so each `- [ ]` is joined with its continuation lines
+    // (indented, not starting a new bullet) before being judged. Reading only the first line
+    // would flag items whose "**Still open**" marker sits on the next line.
+    const items = [];
+    let pending = null;
+
+    for (const line of body.split(/\r?\n/)) {
+      const start = /^\s*-\s*\[( |x|X)\]\s*(.*)$/.exec(line);
+
+      if (start) {
+        if (pending) items.push(pending);
+        pending = { ticked: start[1] !== ' ', text: start[2] };
+        continue;
+      }
+
+      if (pending && /^\s+\S/.test(line) && !/^\s*-\s/.test(line)) {
+        pending.text += ` ${line.trim()}`;
+        continue;
+      }
+
+      if (/^\s*$/.test(line) || /^\s*#/.test(line) || /^\s*-\s/.test(line)) {
+        if (pending) items.push(pending);
+        pending = null;
+      }
+    }
+
+    if (pending) items.push(pending);
+
+    for (const item of items.filter((entry) => !entry.ticked)) {
+      // An open item is acceptable only when it says so, with a status marker or a pointer
+      // to where the status is recorded.
+      assert.match(
+        item.text,
+        /\*\*(?:Not yet done|Still open|Open)\*\*|see (?:the )?section|Tracked in #\d+/i,
+        `the "${fragment}" section has an unticked checkbox "${item.text.trim()}" that neither `
+          + 'cross-references where its status is recorded nor marks itself still open',
+      );
+    }
+  }
+});
+
+test('the rows that carry a decision hold a value, not just a label', () => {
+  // The positive half of the placeholder check. A blacklist can be dodged by inventing a new
+  // euphemism; these rows cannot, because each must match the shape of a real answer.
+  const runbook = read(INCIDENT_RUNBOOK_PATH);
+
+  /** Returns the single cell following `label` in the first table row that starts with it. */
+  function cellAfter(markdown, label) {
+    const row = new RegExp(`^\\|\\s*${label}\\s*\\|([^\\n]*)\\|\\s*$`, 'im').exec(markdown);
+    assert.ok(row, `no table row starting with "${label}"`);
+    return row[1].trim();
+  }
+
+  // Member State: a country name, not a sentence about one.
+  const memberState = cellAfter(sectionContaining(runbook, 'Where to report'), 'Member State of main establishment');
+  assert.match(
+    memberState.replace(/\*/g, '').trim(),
+    /^[A-Z][a-z]+$/,
+    `the Member State cell holds "${memberState}", which is not a country name`,
+  );
+
+  // Recipient CSIRT: must start with a CSIRT-shaped name, so a prose sentence or an empty
+  // cell cannot stand in for it.
+  const recipient = cellAfter(sectionContaining(runbook, 'Where to report'), 'Recipient CSIRT');
+  assert.match(
+    recipient,
+    /^\**[A-Z][A-Za-z.]{2,}/,
+    `the Recipient CSIRT cell holds "${recipient}", which does not begin with a CSIRT name`,
+  );
+
+  // SRP access: the status cell must be either a plain "No" or an ISO date. Anything else
+  // ("pending", "soon", "-") is the deferred answer this issue exists to remove.
+  const srp = subsectionContaining(runbook, 'SRP access');
+  const registered = cellAfter(srp, 'Account registered').replace(/\*/g, '').trim();
+
+  assert.ok(
+    /^No\b/i.test(registered) || ISO_DATE.test(registered),
+    `the "Account registered" cell holds "${registered}"; it must be "No" or the ISO registration date`,
+  );
+
+  // The drill table: once a row exists, its date and duration must both be real values.
+  const drill = subsectionContaining(runbook, 'Drill record');
+  const drillRows = drill
+    .split(/\r?\n/)
+    .filter((line) => /^\|/.test(line.trim()))
+    .filter((line) => !/^\|[\s|:-]+\|$/.test(line.trim()))
+    .slice(1); // drop the header row
+
+  for (const row of drillRows) {
+    const cells = row.split('|').slice(1, -1).map((cell) => cell.trim());
+    assert.ok(ISO_DATE.test(cells[0]), `the drill row "${row.trim()}" has no ISO date in its first cell`);
+    assert.match(
+      cells[2],
+      /\d+\s*(?:m|min|minutes?|h|hr|hours?)\b/i,
+      `the drill row "${row.trim()}" has no measured duration (e.g. "3h 20m") in its "Elapsed time" cell`,
     );
   }
 });
@@ -503,7 +730,7 @@ test('the runbook defines a drill scenario and a dated, timed drill record', () 
   // running the drill and writing down what it cost. A drill that happened once and was
   // never repeated is how a 24-hour commitment quietly stops being true.
   const runbook = read(INCIDENT_RUNBOOK_PATH);
-  const drill = sectionContaining(runbook, 'Drill');
+  const drill = subsectionContaining(runbook, 'Drill record');
 
   assert.match(drill, /scenario/i, 'the drill record does not define the scenario to rehearse');
 

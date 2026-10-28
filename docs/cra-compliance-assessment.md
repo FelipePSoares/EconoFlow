@@ -46,7 +46,8 @@ most risk:
 - `scripts/cra-compliance.test.mjs` asserts all of the above in CI.
 
 **Still open and urgent:** the operational side of Article 14. The runbook now names the
-Member State of main establishment (Portugal) and the recipient CSIRT (CNCS), names a primary
+Member State of main establishment (Portugal) and the recipient CSIRT (CERT.PT, operated by
+CNCS), names a primary
 and a backup for every reporting role, and states honestly that the product is available in
 all EU Member States (plus Brazil, and every store market for the apps). Two things are still
 missing, and the first is the one that matters:
@@ -127,7 +128,8 @@ vulnerability or a severe security incident:
 
 Reports go once, to ENISA's SRP, addressed to the CSIRT of the Member State of the
 manufacturer's main establishment. EconoFlow's main establishment is **Portugal**, so the
-recipient is **CNCS** (Centro Nacional de Cibersegurança). Availability is **all EU Member
+recipient is **CERT.PT**, the Portuguese national CSIRT operated by the national authority
+**CNCS** (Centro Nacional de Cibersegurança). Availability is **all EU Member
 States** — the hosted service is open to anyone — plus Brazil, where the product has known
 users outside the EU.
 
@@ -138,9 +140,9 @@ depends on an inventory of what the product contains. That inventory now exists:
 
 ### Required actions
 
-1. ✅ Determine the Member State of main establishment (Portugal) and the corresponding
-   national CSIRT (CNCS). ⏳ **Still open:** register the ENISA SRP account and confirm access
-   for the primary and backup contacts.
+1. ✅ Determine the Member State of main establishment (Portugal), the national CSIRT
+   (CERT.PT) and the national authority (CNCS). ⏳ **Still open:** register the ENISA SRP
+   account and confirm access for the primary and backup contacts.
 2. ✅ Write an incident-response runbook with 24 h / 72 h / 14 d / 1 month templates, an
    on-call escalation path and a named decision-maker. ⏳ **Still open:** the out-of-hours
    drill that proves it.
