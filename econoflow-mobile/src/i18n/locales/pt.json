@@ -302,6 +302,7 @@
   "CreateExpense": "Criar Despesa",
   "CreatedSuccess": "Criado com Sucesso!",
   "MovedSuccess": "Movido com sucesso!",
+  "MessageSuccess": "Mensagem enviada com sucesso!",
   "DeletedSuccess": "Deletado com Sucesso!",
   "AddAndEdit": "Add/Edit",
   "ListCategories": "Categorias",

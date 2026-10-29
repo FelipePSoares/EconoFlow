@@ -42,11 +42,13 @@ namespace EasyFinance.Application.Features.AttachmentService
         {
             var safeContentType = NormalizeContentType(contentType);
             content = await PrepareForStorageAsync(content, size);
-            var validationResponse = ValidateTemporaryUploadInput(user, projectId, content, safeContentType, size, attachmentType);
+            var validationResponse = ValidateTemporaryUploadInput(user, projectId, content, safeContentType, size, attachmentType, out var detectedContentType);
             if (validationResponse.Failed)
                 return AppResponse<AttachmentResponseDTO>.Error(validationResponse.Messages);
 
-            var storedContentType = ResolveStoredContentType(content, safeContentType);
+            // The bytes were inspected during validation; reuse that verdict rather than
+            // reading the stream a second time.
+            var storedContentType = detectedContentType;
 
             var projectExists = await this.unitOfWork.ProjectRepository
                 .NoTrackable()
@@ -236,11 +238,13 @@ namespace EasyFinance.Application.Features.AttachmentService
         {
             var safeContentType = NormalizeContentType(contentType);
             content = await PrepareForStorageAsync(content, size);
-            var validationResponse = ValidateUploadInput(user, projectId, categoryId, expenseId, content, safeContentType, size, attachmentType);
+            var validationResponse = ValidateUploadInput(user, projectId, categoryId, expenseId, content, safeContentType, size, attachmentType, out var detectedContentType);
             if (validationResponse.Failed)
                 return AppResponse<AttachmentResponseDTO>.Error(validationResponse.Messages);
 
-            var storedContentType = ResolveStoredContentType(content, safeContentType);
+            // The bytes were inspected during validation; reuse that verdict rather than
+            // reading the stream a second time.
+            var storedContentType = detectedContentType;
 
             var expense = await GetExpenseAsync(projectId, categoryId, expenseId, trackChanges: true);
 
@@ -306,11 +310,13 @@ namespace EasyFinance.Application.Features.AttachmentService
         {
             var safeContentType = NormalizeContentType(contentType);
             content = await PrepareForStorageAsync(content, size);
-            var validationResponse = ValidateUploadInput(user, projectId, categoryId, expenseId, content, safeContentType, size, attachmentType);
+            var validationResponse = ValidateUploadInput(user, projectId, categoryId, expenseId, content, safeContentType, size, attachmentType, out var detectedContentType);
             if (validationResponse.Failed)
                 return AppResponse<AttachmentResponseDTO>.Error(validationResponse.Messages);
 
-            var storedContentType = ResolveStoredContentType(content, safeContentType);
+            // The bytes were inspected during validation; reuse that verdict rather than
+            // reading the stream a second time.
+            var storedContentType = detectedContentType;
 
             if (expenseItemId == Guid.Empty)
                 return AppResponse<AttachmentResponseDTO>.Error(nameof(expenseItemId), ValidationMessages.InvalidExpenseItemId);
@@ -510,11 +516,13 @@ namespace EasyFinance.Application.Features.AttachmentService
         {
             var safeContentType = NormalizeContentType(contentType);
             content = await PrepareForStorageAsync(content, size);
-            var validationResponse = ValidateIncomeUploadInput(user, projectId, incomeId, content, safeContentType, size);
+            var validationResponse = ValidateIncomeUploadInput(user, projectId, incomeId, content, safeContentType, size, out var detectedContentType);
             if (validationResponse.Failed)
                 return AppResponse<AttachmentResponseDTO>.Error(validationResponse.Messages);
 
-            var storedContentType = ResolveStoredContentType(content, safeContentType);
+            // The bytes were inspected during validation; reuse that verdict rather than
+            // reading the stream a second time.
+            var storedContentType = detectedContentType;
 
             var income = await GetIncomeAsync(projectId, incomeId, trackChanges: true);
 
@@ -603,9 +611,10 @@ namespace EasyFinance.Application.Features.AttachmentService
             Stream content,
             string contentType,
             long size,
-            AttachmentType attachmentType)
+            AttachmentType attachmentType,
+            out string detectedContentType)
         {
-            var response = ValidateContentAndAddErrors(content, contentType, size);
+            var response = ValidateContentAndAddErrors(content, contentType, size, out detectedContentType);
 
             if (user == null)
                 response.AddErrorMessage(nameof(user), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(user)));
@@ -627,9 +636,10 @@ namespace EasyFinance.Application.Features.AttachmentService
             Stream content,
             string contentType,
             long size,
-            AttachmentType attachmentType)
+            AttachmentType attachmentType,
+            out string detectedContentType)
         {
-            var response = ValidateContentAndAddErrors(content, contentType, size);
+            var response = ValidateContentAndAddErrors(content, contentType, size, out detectedContentType);
 
             if (user == null)
                 response.AddErrorMessage(nameof(user), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(user)));
@@ -647,9 +657,10 @@ namespace EasyFinance.Application.Features.AttachmentService
             Guid incomeId,
             Stream content,
             string contentType,
-            long size)
+            long size,
+            out string detectedContentType)
         {
-            var response = ValidateContentAndAddErrors(content, contentType, size);
+            var response = ValidateContentAndAddErrors(content, contentType, size, out detectedContentType);
 
             if (user == null)
                 response.AddErrorMessage(nameof(user), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(user)));
@@ -670,9 +681,19 @@ namespace EasyFinance.Application.Features.AttachmentService
         /// No content is read until the length and declared-type checks have passed, so a
         /// request that is going to be refused anyway never gets its body buffered.
         /// </para>
+        ///
+        /// <para>
+        /// The detected type is returned through <paramref name="detectedContentType"/> so the
+        /// caller can store under it without reading the stream a second time.
+        /// </para>
         /// </summary>
-        private static AppResponse ValidateContentAndAddErrors(Stream content, string contentType, long size)
+        private static AppResponse ValidateContentAndAddErrors(
+            Stream content,
+            string contentType,
+            long size,
+            out string detectedContentType)
         {
+            detectedContentType = null;
             var response = AppResponse.Success();
 
             if (content == null)
@@ -690,7 +711,7 @@ namespace EasyFinance.Application.Features.AttachmentService
             if (content == null || !content.CanRead)
                 return response;
 
-            var detectedContentType = AttachmentUploadPolicy.SniffContentType(content);
+            detectedContentType = AttachmentUploadPolicy.SniffContentType(content);
 
             if (detectedContentType == null)
             {
@@ -709,18 +730,6 @@ namespace EasyFinance.Application.Features.AttachmentService
             }
 
             return response;
-        }
-
-        /// <summary>
-        /// Returns the content type the upload must be stored under - the one the bytes
-        /// actually are. Falls back to the canonical declared type only when the bytes were not
-        /// inspected, which cannot happen for an accepted upload.
-        /// </summary>
-        private static string ResolveStoredContentType(Stream content, string declaredContentType)
-        {
-            var detectedContentType = content == null ? null : AttachmentUploadPolicy.SniffContentType(content);
-
-            return detectedContentType ?? AttachmentUploadPolicy.NormalizeContentTypeForStorage(declaredContentType);
         }
 
         /// <summary>

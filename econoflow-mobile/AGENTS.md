@@ -27,6 +27,8 @@ npm test && npm run typecheck && npm run lint
 
 See [setup.md](./setup.md) for the full emulator + local API dev workflow, cert configuration, and troubleshooting.
 
+**Jest and ESM-only dependencies.** The `jest.transformIgnorePatterns` allow-list in `package.json` decides which `node_modules` packages Babel transforms. The default React Native preset ignores all of them, so a package that ships **ESM only** (no CommonJS build) fails every suite that imports it with `Must use import to load ES Module`. When an `overrides` entry moves a transitive dependency to an ESM-only release, add that package to the allow-list — `decode-uri-component` is there for exactly this reason (its only advisory-free version, 0.5.1, is ESM-only).
+
 ## Architecture compliance checklist (Step 4)
 
 Verify every item below before marking the task done — quote the offending line when a violation is found:

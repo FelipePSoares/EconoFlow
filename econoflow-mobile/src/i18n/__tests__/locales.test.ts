@@ -223,3 +223,24 @@ describe('i18n attachment keys', () => {
     });
   });
 });
+
+describe('i18n catalogue parity', () => {
+  // The per-key lists above only cover the keys someone remembered to add. A key that is
+  // missing from one language renders as the raw key for those users, and no build fails,
+  // so the two catalogues are compared as sets instead.
+  it('pt.json defines every key that en.json defines', () => {
+    const missing = Object.keys(en as LocaleMap).filter(
+      (key) => !(key in (pt as LocaleMap))
+    );
+
+    expect(missing).toEqual([]);
+  });
+
+  it('en.json defines every key that pt.json defines', () => {
+    const missing = Object.keys(pt as LocaleMap).filter(
+      (key) => !(key in (en as LocaleMap))
+    );
+
+    expect(missing).toEqual([]);
+  });
+});
