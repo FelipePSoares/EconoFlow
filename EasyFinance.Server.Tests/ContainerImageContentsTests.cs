@@ -336,8 +336,9 @@ namespace EasyFinance.Server.Tests
         [Fact]
         public void TheImage_ShouldDropRoot()
         {
-            // The published application writes attachments under its base directory and needs
-            // nothing else; running as the image's own APP_UID keeps that writable without
+            // The published application writes nothing under its base directory any more -
+            // attachments go to object storage - but it still needs a writable temp directory
+            // for the JIT. Running as the image's own APP_UID keeps that writable without
             // handing the process root.
             var dockerfile = Dockerfile();
 
@@ -345,11 +346,28 @@ namespace EasyFinance.Server.Tests
                 "USER $APP_UID",
                 "the runtime user is the non-root one declared by the ASP.NET image");
 
-            // The base directory has to belong to that user or applying the EF migrations
-            // cannot write and every upload turns into a 500.
+            // The base directory has to belong to that user, or applying the EF migrations and
+            // the JIT's scratch files cannot be written.
             dockerfile.Should().Contain(
                 "chown -R \"$APP_UID\"",
                 "the published application must be owned by the runtime user");
+        }
+
+        [Fact]
+        public void TheImage_ShouldNotDeclareAnAttachmentsVolume()
+        {
+            // Attachments live in object storage, so no path inside the container holds state
+            // that has to survive a restart. A declared VOLUME that nothing writes to is worse
+            // than none: it tells the deployer to back up an empty directory.
+            var instructions = DockerfileInstructions(Dockerfile());
+
+            instructions.Should().NotContain(
+                "/app/attachments",
+                "the file-system attachment provider was removed");
+
+            instructions.Should().NotContain(
+                "VOLUME",
+                "nothing in the application container is persistent state");
         }
 
         [Fact]
@@ -433,10 +451,15 @@ namespace EasyFinance.Server.Tests
 
             jobStart.Should().BeGreaterThan(-1, "the workflow is expected to have an integration-tests job");
 
-            var nextJob = workflow.IndexOf("\n  script-tests:", StringComparison.Ordinal);
-
-            if (nextJob < 0 || nextJob < jobStart)
-                nextJob = workflow.Length;
+            // The slice ends at whichever job definition follows this one. integration-tests is
+            // the last job today, so it usually ends at end of file - but the job order has
+            // changed before, so look for any `  <name>:` line that starts after this job.
+            var nextJob = Regex
+                .Matches(workflow.Substring(jobStart + 1), @"(?m)^  [a-z][a-z0-9-]*:\s*$")
+                .Select(match => match.Index + jobStart + 1)
+                .Where(index => index > jobStart)
+                .DefaultIfEmpty(workflow.Length)
+                .Min();
 
             return workflow.Substring(jobStart, nextJob - jobStart);
         }
@@ -483,6 +506,59 @@ namespace EasyFinance.Server.Tests
         }
 
         [Fact]
+        public void CypressJob_ShouldNotDeclareAServiceKeyTwice()
+        {
+            // GitHub rejects a workflow with a duplicate mapping key before it runs anything:
+            // the run reports "this run likely failed because of a workflow file issue", with
+            // no jobs and no logs - which is very hard to trace back to a YAML edit. A plain
+            // YAML parser accepts the file (last key wins), so this checks the raw text.
+            var job = IntegrationJob();
+            var seen = new HashSet<string>();
+            var duplicates = new List<string>();
+
+            // Walk the indentation stack so a key is only "duplicate" when it repeats under the
+            // same parent. Two services each having `ports:` is fine; one service having it
+            // twice is not.
+            var path = new List<(int Indent, string Key)>();
+
+            foreach (var line in job.Split('\n'))
+            {
+                var trimmed = line.TrimEnd();
+
+                // A list item starts a new scope: two steps each having `with:` are separate
+                // mappings, not a duplicate key. The item's own content belongs to it.
+                if (Regex.IsMatch(trimmed, @"^\s*-\s"))
+                {
+                    var itemIndent = trimmed.Length - trimmed.TrimStart().Length;
+                    path.RemoveAll(entry => entry.Indent >= itemIndent);
+                    path.Add((itemIndent, $"#item{path.Count}-{Guid.NewGuid():N}"));
+                    continue;
+                }
+
+                var match = Regex.Match(trimmed, @"^(\s*)([A-Za-z0-9_\-]+):\s*$");
+
+                if (!match.Success)
+                    continue;
+
+                var indent = match.Groups[1].Length;
+
+                path.RemoveAll(entry => entry.Indent >= indent);
+
+                var fullPath = string.Join(
+                    "/",
+                    path.Select(entry => entry.Key).Append(match.Groups[2].Value));
+
+                if (!seen.Add(fullPath))
+                    duplicates.Add(fullPath);
+
+                path.Add((indent, match.Groups[2].Value));
+            }
+
+            duplicates.Should().BeEmpty(
+                "a duplicate key makes GitHub reject the whole workflow before any job runs");
+        }
+
+        [Fact]
         public void CypressJob_ShouldSeedItsFixtureUserExplicitly()
         {
             // The fixtures are skipped for a relational store, but every Cypress spec
@@ -492,6 +568,51 @@ namespace EasyFinance.Server.Tests
                 "EconoFlow_SEED_DEVELOPMENT_DATA",
                 "the Cypress suite depends on the development fixtures, which are "
                 + "skipped by default for a real database");
+        }
+
+        [Fact]
+        public void CypressJob_ShouldConfigureObjectStorage()
+        {
+            // Object storage is the only attachment backend, and AttachmentStorageServiceFactory
+            // throws at start-up when it is not configured. Registration resolves the storage,
+            // so an unconfigured job does not fail one attachment spec: every spec that signs
+            // up or logs in answers 500.
+            var job = IntegrationJob();
+
+            foreach (var variable in new[] { "S3_ENDPOINT", "S3_ACCESS_KEY", "S3_SECRET_KEY", "S3_BUCKET" })
+            {
+                job.Should().Contain(
+                    $"{variable}:",
+                    $"{variable} is required for the application to create its attachment storage");
+            }
+
+            job.Should().MatchRegex(
+                @"(?m)^\s+minio:\s*$",
+                "the job needs a MinIO service, or the configured endpoint is unreachable");
+
+            // A service container cannot set a command, so the image has to start the server
+            // by itself. This one's default CMD does; the GHCR image used by the development
+            // stack has a bare `minio` CMD and exits 0 with its help text.
+            //
+            // Checked against the instructions only: the workflow explains in a comment why
+            // that image cannot be used here, and a plain scan would match the explanation.
+            var instructions = string.Join(
+                "\n",
+                job.Split('\n').Where(line => !line.TrimStart().StartsWith("#", StringComparison.Ordinal)));
+
+            instructions.Should().NotContain(
+                "ghcr.io/coollabsio/minio",
+                "that image does not start a server under a service container's default CMD");
+        }
+
+        [Fact]
+        public void CypressJob_ShouldCreateTheAttachmentBucket()
+        {
+            // MinIO starts with an empty data directory. An upload into a bucket that does not
+            // exist fails, so the job creates it before the suite runs.
+            IntegrationJob().Should().Contain(
+                "mc mb",
+                "the bucket the application writes to has to be created first");
         }
     }
 }

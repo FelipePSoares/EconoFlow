@@ -309,9 +309,9 @@ live in `EasyFinance.Server/HealthChecks/HealthCheckPathPolicy.cs` and are share
 the `MapHealthChecks` endpoints so the two probes cannot drift apart.
 
 The S3 check (`EasyFinance.Server/HealthChecks/S3StorageHealthCheck.cs`):
-- Returns **Healthy** when the configured storage provider is `FileSystem` (no external dependency).
-- For the `Minio` provider, it verifies connectivity by calling `EnsureBucketExistsAsync` on the configured bucket.
-- Returns **Unhealthy** with the exception detail when S3 is unreachable, or when the Minio bucket is not set.
+- Verifies connectivity by calling `EnsureBucketExistsAsync` on the configured bucket; object storage is the only attachment backend, so there is nothing to report Healthy without an external dependency.
+- Returns **Healthy** when the bucket is reachable.
+- Returns **Unhealthy** with the exception detail when S3 is unreachable, or when `S3_ENDPOINT` or `S3_BUCKET` is missing.
 
 ### Forwarded headers (proxy behind Traefik)
 
@@ -575,13 +575,15 @@ An `Attachment` has exactly one parent: an `Expense`, an `ExpenseItem`, or an `I
 
 Each parent exposes the same four routes: `POST .../temporary-attachments`, `POST .../{id}/attachments`, `GET .../{id}/attachments/{attachmentId}`, `DELETE .../{id}/attachments/{attachmentId}`. Web clients link files at save time through `temporaryAttachmentIds` on the create/`PATCH` payload; the mobile client uploads straight onto an existing record.
 
-`IAttachmentStorageService` abstracts the storage backend. The default implementation (`FileSystemAttachmentStorageService`) writes to disk. A second implementation (`MinioAttachmentStorageService`) writes to any S3-compatible object storage (MinIO) via a decoupled `IMinioS3Client` adapter — swapping to Amazon S3 later requires only a new `IMinioS3Client` implementation.
+`IAttachmentStorageService` abstracts the storage operation (save, open, delete). `MinioAttachmentStorageService` is its **only** implementation: it writes to any S3-compatible object storage (MinIO) via a decoupled `IMinioS3Client` adapter — swapping to Amazon S3 later requires only a new `IMinioS3Client` implementation.
 
-The active provider is selected via `AttachmentStorage:Provider` (`FileSystem` default, `Minio` opt-in). Setting the S3 configuration alone is enough to activate `Minio`: when `AttachmentStorage:Provider` is still the default (`FileSystem`) but both an S3 `Endpoint` and `Bucket` are present, `AttachmentStorageServiceFactory.IsMinioConfigured` treats the effective provider as `Minio`. The same check drives the `S3StorageHealthCheck` readiness probe; a partial S3 configuration (endpoint or bucket set, but not both) is reported as Unhealthy because uploads would otherwise silently fall back to the file system. Object keys are identical in both backends (`yyyy/MM/dd/{guid}{ext}`), so existing `StorageKey` values in the database map 1:1 to MinIO object names with no schema change.
+There is no file-system backend. A disk-backed provider existed during the cutover to object storage and was removed with the migration job below; a container's own filesystem is not durable and not backed up, so a configuration mistake must not be able to route uploads there. `AttachmentStorageServiceFactory.Create` therefore throws at start-up when `S3_ENDPOINT` or `S3_BUCKET` is missing rather than falling back to anything, and `AttachmentStorageSingleBackendTests` fails if a second implementation reappears. The local development stack runs its own MinIO service (`docker-compose.dev.yml`) so development and production share one backend.
 
-An optional one-shot migration job (`AttachmentMigrationBackgroundService` + `AttachmentMigrationService`) copies existing local files into the object storage under their original keys. See the cutover runbook below.
+Object keys are `yyyy/MM/dd/{guid}{ext}` in the bucket, so existing `StorageKey` values in the database map 1:1 to object names with no schema change.
 
-#### Cutover runbook (local disk → MinIO)
+#### Cutover (local disk → MinIO) — completed
+
+The runbook below was followed when the deployment moved from local disk to MinIO, and both the one-shot migration job (`AttachmentMigrationBackgroundService` + `AttachmentMigrationService`) and the file-system provider it read from have since been deleted. It is kept only for the record; nothing here can be run any more.
 
 1. **Deploy with the current provider** — keep `AttachmentStorage:Provider=FileSystem` and ensure `EconoFlow_ATTACHMENTS_ROOT_PATH` still points at the existing local attachments folder.
 2. **Configure MinIO** via environment variables (`S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_BUCKET`). These must be set in the host environment only — never committed to the repository.
@@ -853,11 +855,11 @@ one of them — see [Required secrets](#required-secrets-start-up-validation).
 | `EconoFlow_KEY_ENCRYPT_ACTIVE` | optional | Enable AES key encryption for ASP.NET Data Protection | encryption disabled |
 | `EconoFlow_BETA_TESTER_ADMIN_KEY` | optional | Auth key to grant the BetaTester role via `/api/AccessControl/beta` | endpoint returns 403 for all callers |
 | `EconoFlow_PUBLIC_BASE_URL` | optional | Public base URL used in email unsubscribe links | `https://www.econoflow.pt` |
-| `EconoFlow_ATTACHMENTS_ROOT_PATH` | optional | Root directory for file attachment storage (used by `FileSystem` provider and as the migration source) | `AppContext.BaseDirectory/Attachments` |
-| `S3_ENDPOINT` | optional* | S3-compatible endpoint hostname (scheme optional, e.g. `minio-api.fpssoftware.uk`) — *required when `AttachmentStorage.Provider=Minio` | — |
-| `S3_ACCESS_KEY` | optional* | S3 access key — *required when `Provider=Minio` | — |
-| `S3_SECRET_KEY` | optional* | S3 secret key — *required when `Provider=Minio` | — |
-| `S3_BUCKET` | optional* | S3 bucket name — *required when `Provider=Minio` | — |
+| `EconoFlow_ATTACHMENTS_ROOT_PATH` | removed | Was the root directory for the file-system attachment provider; that provider no longer exists | — |
+| `S3_ENDPOINT` | **required** | S3-compatible endpoint hostname (scheme optional, e.g. `minio-api.fpssoftware.uk`). Start-up fails without it | — |
+| `S3_ACCESS_KEY` | **required** | S3 access key | — |
+| `S3_SECRET_KEY` | **required** | S3 secret key | — |
+| `S3_BUCKET` | **required** | S3 bucket name. Start-up fails without it | — |
 | `EconoFlow_WEB_PUSH_PUBLIC_KEY` | optional | VAPID public key override (overrides `appsettings.json`) | value from `appsettings.json` |
 | `EconoFlow_WEB_PUSH_PRIVATE_KEY` | optional | VAPID private key override (overrides `appsettings.json`) | value from `appsettings.json` |
 | `EconoFlow_USER_KEY_SALT` | **required** | Salt hashed into every client-side user encryption key — validated at start-up, minimum 32 characters | — (Development falls back to `RequiredSecrets.DevelopmentUserKeySalt`) |
@@ -878,13 +880,9 @@ one of them — see [Required secrets](#required-secrets-start-up-validation).
 | `TemporaryAttachmentCleanup.ExpirationHours` | `168` | 7-day TTL for temp attachments |
 | `TemporaryAttachmentCleanup.CleanupIntervalHours` | `168` | Cleanup job frequency |
 | `TemporaryAttachmentCleanup.BatchSize` | `500` | Files deleted per cleanup run |
-| `AttachmentStorage.Provider` | `FileSystem` | Storage backend: `FileSystem` or `Minio` |
-| `AttachmentStorage.Endpoint` | — | MinIO endpoint hostname (scheme optional) |
-| `AttachmentStorage.Bucket` | — | MinIO bucket name |
+| `AttachmentStorage.Endpoint` | — | MinIO endpoint hostname (scheme optional) — set from `S3_ENDPOINT` |
+| `AttachmentStorage.Bucket` | — | MinIO bucket name — set from `S3_BUCKET` |
 | `AttachmentStorage.UseSsl` | `true` | Use HTTPS to reach MinIO |
-| `AttachmentStorage:Migration.Enabled` | `false` | Enable the one-shot local→MinIO migration job |
-| `AttachmentStorage:Migration.DryRun` | `false` | Report only, copy nothing |
-| `AttachmentStorage:Migration.BatchSize` | `500` | Attachments processed per migration run |
 | `Smtp.Host` | — | SMTP server host (overridden by `SMTP_HOST`) |
 | `Smtp.Port` | `587` | SMTP server port (overridden by `SMTP_PORT`) |
 | `Smtp.SecureSocket` | `Auto` | `Auto`, `None`, `StartTls` or `SslOnConnect` (overridden by `SMTP_SECURE_SOCKET`) |

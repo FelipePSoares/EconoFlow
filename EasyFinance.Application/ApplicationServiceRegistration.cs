@@ -118,12 +118,6 @@ namespace EasyFinance.Application
             services.AddSingleton<ITemporaryAttachmentCleanupService, TemporaryAttachmentCleanupService>();
             services.AddHostedService(provider => (TemporaryAttachmentCleanupService)provider.GetRequiredService<ITemporaryAttachmentCleanupService>());
 
-            // Attachment migration (local filesystem -> object storage)
-            services.AddOptions<AttachmentMigrationOptions>();
-            services.AddScoped<AttachmentMigrationService>();
-            services.AddSingleton<FileSystemAttachmentStorageService>();
-            services.AddHostedService<AttachmentMigrationBackgroundService>();
-
             return services;
         }
     }

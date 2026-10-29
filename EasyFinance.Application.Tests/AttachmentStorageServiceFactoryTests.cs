@@ -6,42 +6,21 @@ using Microsoft.Extensions.Options;
 
 namespace EasyFinance.Application.Tests
 {
+    /// <summary>
+    /// Object storage is the only attachment backend: the file system provider and the
+    /// local-to-object-storage migration were removed once every deployment stored its
+    /// attachments in MinIO/S3. What is left to guard is that the factory cannot quietly fall
+    /// back to anything, and that a partial S3 configuration fails at creation instead of
+    /// serving uploads into nowhere.
+    /// </summary>
     public class AttachmentStorageServiceFactoryTests
     {
-        private static AttachmentStorageOptions StorageOptions(string provider) =>
-            new() { Provider = provider };
-
         [Fact]
-        public void Create_WhenProviderIsFileSystem_ShouldReturnFileSystemStorage()
-        {
-            var options = Options.Create(StorageOptions("FileSystem"));
-
-            var storage = AttachmentStorageServiceFactory.Create(options, () => null);
-
-            storage.Should().BeOfType<FileSystemAttachmentStorageService>();
-        }
-
-        [Fact]
-        public void Create_WhenProviderIsMinio_ShouldReturnMinioStorage()
+        public void Create_WithS3Configuration_ShouldReturnMinioStorage()
         {
             var options = Options.Create(new AttachmentStorageOptions
             {
-                Provider = "Minio",
-                Bucket = "test-bucket",
-            });
-
-            var storage = AttachmentStorageServiceFactory.Create(options, () => new FakeMinioS3Client());
-
-            storage.Should().BeOfType<MinioAttachmentStorageService>();
-        }
-
-        [Fact]
-        public void Create_WhenProviderIsDefaultButS3EndpointSet_ShouldReturnMinioStorage()
-        {
-            var options = Options.Create(new AttachmentStorageOptions
-            {
-                Provider = AttachmentStorageOptions.DefaultProvider, // "FileSystem"
-                Endpoint = "minio.shared-services.svc.cluster.local",
+                Endpoint = "minio.internal",
                 Bucket = "econoflow",
             });
 
@@ -51,85 +30,92 @@ namespace EasyFinance.Application.Tests
         }
 
         [Fact]
-        public void Create_WhenProviderIsDefaultAndNoS3Endpoint_ShouldReturnFileSystemStorage()
+        public void Create_WhenBucketIsMissing_ShouldThrow()
         {
-            var options = Options.Create(StorageOptions(AttachmentStorageOptions.DefaultProvider));
+            // A bucket is what every object write names. Creating the storage without one would
+            // defer a configuration error to the first upload instead of start-up.
+            var options = Options.Create(new AttachmentStorageOptions
+            {
+                Endpoint = "minio.internal",
+            });
 
-            var storage = AttachmentStorageServiceFactory.Create(options, () => null);
+            Action act = () => AttachmentStorageServiceFactory.Create(options, () => new FakeMinioS3Client());
 
-            storage.Should().BeOfType<FileSystemAttachmentStorageService>();
+            act.Should().Throw<InvalidOperationException>()
+                .WithMessage("*bucket*");
         }
 
         [Fact]
-        public void IsMinioConfigured_ExplicitMinio_ShouldReturnTrue()
+        public void Create_WhenEndpointIsMissing_ShouldThrow()
         {
-            var settings = new AttachmentStorageOptions { Provider = "Minio", Bucket = "b" };
+            var options = Options.Create(new AttachmentStorageOptions
+            {
+                Bucket = "econoflow",
+            });
 
-            AttachmentStorageServiceFactory.IsMinioConfigured(settings).Should().BeTrue();
+            Action act = () => AttachmentStorageServiceFactory.Create(options, () => new FakeMinioS3Client());
+
+            act.Should().Throw<InvalidOperationException>()
+                .WithMessage("*endpoint*");
         }
 
         [Fact]
-        public void IsMinioConfigured_ExplicitMinioWithoutBucket_ShouldReturnTrue()
+        public void Create_WhenNoS3ConfigurationAtAll_ShouldThrowRatherThanFallBackToDisk()
         {
-            // Provider is explicit; the factory throws a dedicated bucket-required
-            // error at creation time rather than treating the config as FileSystem.
-            var settings = new AttachmentStorageOptions { Provider = "Minio" };
+            var options = Options.Create(new AttachmentStorageOptions());
 
-            AttachmentStorageServiceFactory.IsMinioConfigured(settings).Should().BeTrue();
+            Action act = () => AttachmentStorageServiceFactory.Create(options, () => new FakeMinioS3Client());
+
+            act.Should().Throw<InvalidOperationException>()
+                .WithMessage("*S3*");
         }
 
         [Fact]
-        public void IsMinioConfigured_DefaultProviderWithS3EndpointAndBucket_ShouldReturnTrue()
+        public void Create_WhenTheClientFactoryIsMissing_ShouldThrow()
+        {
+            var options = Options.Create(new AttachmentStorageOptions
+            {
+                Endpoint = "minio.internal",
+                Bucket = "econoflow",
+            });
+
+            Action act = () => AttachmentStorageServiceFactory.Create(options, () => null);
+
+            act.Should().Throw<InvalidOperationException>()
+                .WithMessage("*client*");
+        }
+
+        [Fact]
+        public void IsS3Configured_WithEndpointAndBucket_ShouldReturnTrue()
         {
             var settings = new AttachmentStorageOptions
             {
-                Provider = AttachmentStorageOptions.DefaultProvider,
                 Endpoint = "minio.internal",
                 Bucket = "econoflow",
             };
 
-            AttachmentStorageServiceFactory.IsMinioConfigured(settings).Should().BeTrue();
+            AttachmentStorageServiceFactory.IsS3Configured(settings).Should().BeTrue();
         }
 
         [Theory]
-        [InlineData("FileSystem")]
-        [InlineData("filesystem")]
-        [InlineData("")]
-        public void IsMinioConfigured_NoS3Config_ShouldReturnFalse(string provider)
-        {
-            var settings = new AttachmentStorageOptions { Provider = provider };
-
-            AttachmentStorageServiceFactory.IsMinioConfigured(settings).Should().BeFalse();
-        }
-
-        [Theory]
-        [InlineData(false, true)] // Endpoint present, Bucket missing
-        [InlineData(true, false)]  // Bucket present, Endpoint missing
-        public void IsMinioConfigured_PartialS3Config_ShouldReturnFalse(bool endpointSet, bool bucketSet)
+        [InlineData(true, false)] // Endpoint present, Bucket missing
+        [InlineData(false, true)] // Bucket present, Endpoint missing
+        [InlineData(false, false)] // Nothing configured
+        public void IsS3Configured_WhenTheConfigurationIsIncomplete_ShouldReturnFalse(bool endpointSet, bool bucketSet)
         {
             var settings = new AttachmentStorageOptions
             {
-                Provider = AttachmentStorageOptions.DefaultProvider,
                 Endpoint = endpointSet ? "minio.internal" : string.Empty,
                 Bucket = bucketSet ? "econoflow" : string.Empty,
             };
 
-            AttachmentStorageServiceFactory.IsMinioConfigured(settings).Should().BeFalse();
+            AttachmentStorageServiceFactory.IsS3Configured(settings).Should().BeFalse();
         }
 
         [Fact]
-        public void IsMinioConfigured_NullSettings_ShouldReturnFalse()
+        public void IsS3Configured_NullSettings_ShouldReturnFalse()
         {
-            AttachmentStorageServiceFactory.IsMinioConfigured(null).Should().BeFalse();
-        }
-
-        [Fact]
-        public void Create_WhenProviderIsUnknown_ShouldThrow()
-        {
-            var options = Options.Create(StorageOptions("UnknownProvider"));
-
-            Action act = () => AttachmentStorageServiceFactory.Create(options, () => null);
-            act.Should().Throw<InvalidOperationException>();
+            AttachmentStorageServiceFactory.IsS3Configured(null).Should().BeFalse();
         }
 
         private class FakeMinioS3Client : IMinioS3Client

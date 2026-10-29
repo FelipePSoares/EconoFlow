@@ -34,6 +34,20 @@ namespace EasyFinance.Common.Tests
 {
     public class BaseTests : IDisposable
     {
+        /// <summary>
+        /// The bucket the test storage reads and writes. Object storage is the only attachment
+        /// backend, so attachment tests assert against the stored objects in this bucket rather
+        /// than against files on disk.
+        /// </summary>
+        protected const string TestAttachmentBucket = "test-attachments";
+
+        /// <summary>
+        /// The object storage the prepared service graph writes to. Object storage is the only
+        /// attachment backend, so a test that asserts an upload was stored reads it here rather
+        /// than looking for a file: it is the same instance the services were resolved with.
+        /// </summary>
+        protected FakeMinioS3Client AttachmentStorage { get; } = new();
+
         private readonly object fixtureLock = new();
         private Fixture? fixture;
         private string? currentDbName;
@@ -85,7 +99,9 @@ namespace EasyFinance.Common.Tests
             services.AddScoped<IExpenseItemService, ExpenseItemService>();
             services.AddScoped<ITaxYearService, TaxYearService>();
             services.AddScoped<IAttachmentService, AttachmentService>();
-            services.AddSingleton<IAttachmentStorageService, FileSystemAttachmentStorageService>();
+            services.AddSingleton<IMinioS3Client>(this.AttachmentStorage);
+            services.AddSingleton<IAttachmentStorageService>(sp => new MinioAttachmentStorageService(
+                sp.GetRequiredService<IMinioS3Client>(), TestAttachmentBucket));
             services.AddScoped<IIncomeService, IncomeService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddSingleton(notificationServiceMock.Object);

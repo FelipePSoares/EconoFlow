@@ -45,6 +45,32 @@ services:
       start_period: 30s
     restart: unless-stopped
 
+  minio:
+    # Object storage is the only attachment backend (there is no file-system provider), so the
+    # stack needs a bucket to start: without it every upload answers 500 and the readiness probe
+    # reports the application unhealthy.
+    # MinIO no longer publishes to Docker Hub (minio/minio is gone) and quay.io is not always
+    # reachable, so the image comes from GHCR. This keeps MinIO's own server and `mc` client.
+    image: ghcr.io/coollabsio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: econoflow
+      MINIO_ROOT_PASSWORD: econoflow-dev-secret
+    # The console is not published: attach to the network or forward the port yourself when you
+    # need to look inside the bucket. The API is reached by the application over the compose
+    # network, and by nothing else.
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      # The image carries MinIO's own `mc` client, which exits 0 as soon as the server it points
+      # at answers. That is the moment the application's storage client can reach the bucket.
+      test: ["CMD-SHELL", "mc ready local || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+    restart: unless-stopped
+
   app:
     build:
       # The whole repository is the build context: the image compiles both the SPA and the
@@ -59,6 +85,8 @@ services:
         GITEA_NUGET_TOKEN: ${GITEA_NUGET_TOKEN:-}
     depends_on:
       postgres:
+        condition: service_healthy
+      minio:
         condition: service_healthy
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
@@ -83,6 +111,15 @@ services:
       # The local zone, not UTC: the application derives "today", month boundaries and the
       # seeded dates from the clock, and they must line up with the browser's.
       - TZ=${TZ:-Europe/Vienna}
+      # Attachment storage. Object storage is the only backend, so start-up fails without these
+      # (the same variables the deployment sets, pointed at the stack's own MinIO service).
+      - S3_ENDPOINT=minio:9000
+      - S3_ACCESS_KEY=econoflow
+      - S3_SECRET_KEY=econoflow-dev-secret
+      - S3_BUCKET=econoflow
+      # The stack talks to MinIO in plaintext over the compose network. The deployment's MinIO
+      # sits behind TLS termination, which is why the default is true.
+      - AttachmentStorage__UseSsl=false
     ports:
       # The SPA and /api on one origin, which is what the Angular client requires (it calls
       # bare /api URLs). 4200 is also the port `ng serve` uses, so the end-to-end suite and
@@ -93,8 +130,6 @@ services:
       # and the port the mobile emulator is pointed at. The SPA's own API calls go through
       # 4200, not this one.
       - "127.0.0.1:${ECONOFLOW_DEV_API_PORT:-7003}:7003"
-    volumes:
-      - attachments:/app/attachments
     healthcheck:
       # The same two probes as the image, repeated because a compose `test` replaces the
       # image's HEALTHCHECK rather than adding to it: the SPA shell, and the API's liveness
@@ -108,4 +143,4 @@ services:
 
 volumes:
   postgres-data:
-  attachments:
+  minio-data:

@@ -18,18 +18,10 @@ using Microsoft.Extensions.DependencyInjection;
 namespace EasyFinance.Application.Tests
 {
     [Collection("Sequential")]
-    public class AttachmentServiceTests : EasyFinance.Common.Tests.BaseTests, IDisposable
+    public class AttachmentServiceTests : EasyFinance.Common.Tests.BaseTests
     {
-        private const string AttachmentRootPathEnvironmentVariable = "EconoFlow_ATTACHMENTS_ROOT_PATH";
-        private readonly string attachmentsRootPath;
-        private readonly string? previousAttachmentRootPath;
-
         public AttachmentServiceTests()
         {
-            this.previousAttachmentRootPath = Environment.GetEnvironmentVariable(AttachmentRootPathEnvironmentVariable);
-            this.attachmentsRootPath = Path.Combine(Path.GetTempPath(), $"econoflow-attachments-{Guid.NewGuid():N}");
-            Environment.SetEnvironmentVariable(AttachmentRootPathEnvironmentVariable, this.attachmentsRootPath);
-
             PrepareInMemoryDatabase();
         }
 
@@ -92,7 +84,7 @@ namespace EasyFinance.Application.Tests
             savedAttachment.ExpenseId.Should().Be(expense.Id);
             savedAttachment.ExpenseItemId.Should().BeNull();
             savedAttachment.StorageKey.Should().NotBeNullOrWhiteSpace();
-            File.Exists(ToStoragePath(savedAttachment.StorageKey)).Should().BeTrue();
+            ExistsInStorage(savedAttachment.StorageKey).Should().BeTrue();
         }
 
         [Fact]
@@ -125,7 +117,7 @@ namespace EasyFinance.Application.Tests
             var savedAttachment = unitOfWork.AttachmentRepository.NoTrackable().First(a => a.Id == uploadResponse.Data.Id);
             savedAttachment.ExpenseItemId.Should().Be(expenseItem.Id);
             savedAttachment.ExpenseId.Should().BeNull();
-            File.Exists(ToStoragePath(savedAttachment.StorageKey)).Should().BeTrue();
+            ExistsInStorage(savedAttachment.StorageKey).Should().BeTrue();
         }
 
         [Fact]
@@ -216,8 +208,8 @@ namespace EasyFinance.Application.Tests
 
             deductibleProofs.Should().HaveCount(1);
             deductibleProofs.Single().Id.Should().Be(secondUploadResponse.Data.Id);
-            File.Exists(ToStoragePath(firstAttachmentStorageKey)).Should().BeFalse();
-            File.Exists(ToStoragePath(deductibleProofs.Single().StorageKey)).Should().BeTrue();
+            ExistsInStorage(firstAttachmentStorageKey).Should().BeFalse();
+            ExistsInStorage(deductibleProofs.Single().StorageKey).Should().BeTrue();
         }
 
         [Fact]
@@ -245,14 +237,14 @@ namespace EasyFinance.Application.Tests
 
             uploadResponse.Succeeded.Should().BeTrue();
             var attachment = unitOfWork.AttachmentRepository.NoTrackable().First(a => a.Id == uploadResponse.Data.Id);
-            var storagePath = ToStoragePath(attachment.StorageKey);
-            File.Exists(storagePath).Should().BeTrue();
+            var storageKey = attachment.StorageKey;
+            ExistsInStorage(storageKey).Should().BeTrue();
 
             var deleteResponse = await attachmentService.DeleteExpenseAttachmentAsync(this.project1.Id, category.Id, expense.Id, attachment.Id);
             deleteResponse.Succeeded.Should().BeTrue();
 
             unitOfWork.AttachmentRepository.NoTrackable().Any(a => a.Id == attachment.Id).Should().BeFalse();
-            File.Exists(storagePath).Should().BeFalse();
+            ExistsInStorage(storageKey).Should().BeFalse();
         }
 
         [Fact]
@@ -310,7 +302,7 @@ namespace EasyFinance.Application.Tests
             savedAttachment.ExpenseId.Should().BeNull();
             savedAttachment.ExpenseItemId.Should().BeNull();
             savedAttachment.StorageKey.Should().NotBeNullOrWhiteSpace();
-            File.Exists(ToStoragePath(savedAttachment.StorageKey)).Should().BeTrue();
+            ExistsInStorage(savedAttachment.StorageKey).Should().BeTrue();
         }
 
         [Fact]
@@ -353,7 +345,7 @@ namespace EasyFinance.Application.Tests
 
             attachments.Should().HaveCount(2);
             attachments.Select(a => a.Name).Should().BeEquivalentTo(new[] { "payslip-1.pdf", "payslip-2.pdf" });
-            attachments.Should().OnlyContain(a => File.Exists(ToStoragePath(a.StorageKey)));
+            attachments.Should().OnlyContain(a => ExistsInStorage(a.StorageKey));
         }
 
         [Fact]
@@ -482,14 +474,14 @@ namespace EasyFinance.Application.Tests
 
             uploadResponse.Succeeded.Should().BeTrue();
             var attachment = unitOfWork.AttachmentRepository.NoTrackable().First(a => a.Id == uploadResponse.Data.Id);
-            var storagePath = ToStoragePath(attachment.StorageKey);
-            File.Exists(storagePath).Should().BeTrue();
+            var storageKey = attachment.StorageKey;
+            ExistsInStorage(storageKey).Should().BeTrue();
 
             var deleteResponse = await attachmentService.DeleteIncomeAttachmentAsync(this.project1.Id, income.Id, attachment.Id);
             deleteResponse.Succeeded.Should().BeTrue();
 
             unitOfWork.AttachmentRepository.NoTrackable().Any(a => a.Id == attachment.Id).Should().BeFalse();
-            File.Exists(storagePath).Should().BeFalse();
+            ExistsInStorage(storageKey).Should().BeFalse();
         }
 
         [Fact]
@@ -736,16 +728,6 @@ namespace EasyFinance.Application.Tests
             getResponse.Data.Single(i => i.Id == income.Id).Attachments.Single().Name.Should().Be("payslip.pdf");
         }
 
-        private string ToStoragePath(string storageKey)
-            => Path.Combine(this.attachmentsRootPath, storageKey.Replace('/', Path.DirectorySeparatorChar));
-
-        public new void Dispose()
-        {
-            base.Dispose();
-
-            Environment.SetEnvironmentVariable(AttachmentRootPathEnvironmentVariable, this.previousAttachmentRootPath);
-            if (Directory.Exists(this.attachmentsRootPath))
-                Directory.Delete(this.attachmentsRootPath, recursive: true);
-        }
+        private bool ExistsInStorage(string storageKey) => this.AttachmentStorage.Exists(TestAttachmentBucket, storageKey);
     }
 }

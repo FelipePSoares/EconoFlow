@@ -100,13 +100,26 @@ RUN dotnet publish EasyFinance.Server/EasyFinance.Server.csproj \
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine-extra AS runtime
 WORKDIR /app
 
+# libgssapi_krb5.so.2 comes from krb5-libs. Nothing here authenticates with Kerberos, but
+# .NET's managed GSSAPI backend (System.Net.Security) probes for that library while it builds
+# its authentication packages, and on Alpine the probe fails on every start with:
+#
+#   Cannot load library libgssapi_krb5.so.2
+#   Error loading shared library libgssapi_krb5.so.2: No such file or directory
+#
+# The failure is caught and harmless, which is exactly why it is worth removing: two
+# error-looking lines at start-up train whoever reads the logs to ignore stderr. Only the
+# library is installed (krb5-libs rather than the full krb5 tooling), and the release image
+# installs it for the same reason.
+RUN apk add --no-cache krb5-libs
+
 COPY --from=client /src/easyfinance.client/dist/easyfinance.client/browser/ /app/wwwroot/
 COPY --from=api /src/EasyFinance.Server/bin/Release/net10.0/linux-x64/publish/ /app/
 
-RUN mkdir -p /app/attachments /app/tmp \
-    && chown -R "$APP_UID" /app /app/attachments /app/tmp
-
-VOLUME ["/app/attachments"]
+# Attachments live in the stack's MinIO service, not in this container, so there is no
+# persistent path here and nothing to mount.
+RUN mkdir -p /app/tmp \
+    && chown -R "$APP_UID" /app /app/tmp
 
 # DEV-ONLY. Two listen ports of the one process, both published by the compose file:
 #

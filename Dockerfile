@@ -115,18 +115,28 @@ RUN dotnet publish EasyFinance.Server/EasyFinance.Server.csproj \
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine-extra AS runtime
 WORKDIR /app
 
+# libgssapi_krb5.so.2 comes from krb5-libs. Nothing here authenticates with Kerberos, but
+# .NET's managed GSSAPI backend (System.Net.Security) probes for that library while it builds
+# its authentication packages, and on Alpine the probe fails on every start with:
+#
+#   Cannot load library libgssapi_krb5.so.2
+#   Error loading shared library libgssapi_krb5.so.2: No such file or directory
+#
+# The failure is caught and harmless, which is exactly why it is worth removing: two
+# error-looking lines at start-up train whoever reads the logs to ignore stderr. Only the
+# library is installed (krb5-libs rather than the full krb5 tooling).
+RUN apk add --no-cache krb5-libs
+
 # The SPA lives in the web root the application already serves: Program.cs calls
 # UseDefaultFiles()/UseStaticFiles(), which resolve from here.
 COPY --from=client /src/easyfinance.client/dist/easyfinance.client/browser/ /app/wwwroot/
 COPY --from=api /src/EasyFinance.Server/bin/Release/net10.0/linux-x64/publish/ /app/
 
 # The JIT wants a writable temporary directory even when nothing in the code asks for one.
-RUN mkdir -p /app/attachments /app/tmp \
-    && chown -R "$APP_UID" /app /app/attachments /app/tmp
-
-# Attachments default to the FileSystem provider writing under the app base directory.
-# Mount a volume here to keep uploads across restarts.
-VOLUME ["/app/attachments"]
+# Attachments are not written here: they go to object storage (MinIO/S3), so the image has no
+# persistent path and declares no VOLUME.
+RUN mkdir -p /app/tmp \
+    && chown -R "$APP_UID" /app /app/tmp
 
 ENV ASPNETCORE_ENVIRONMENT=Production \
     ASPNETCORE_HTTP_PORTS=8080 \

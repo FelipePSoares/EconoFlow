@@ -35,7 +35,9 @@ namespace EasyFinance.Application.Tests
             services.AddScoped<IExpenseItemService, ExpenseItemService>();
             services.AddScoped<IIncomeService, IncomeService>();
             services.AddScoped<IAttachmentService, AttachmentService>();
-            services.AddSingleton<IAttachmentStorageService, FileSystemAttachmentStorageService>();
+            services.AddSingleton<IMinioS3Client>(new EasyFinance.Common.Tests.FakeMinioS3Client());
+            services.AddSingleton<IAttachmentStorageService>(sp => new MinioAttachmentStorageService(
+                sp.GetRequiredService<IMinioS3Client>(), "test-attachments"));
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<INotificationService>(_ => new Mock<INotificationService>().Object);
             services.AddLogging();

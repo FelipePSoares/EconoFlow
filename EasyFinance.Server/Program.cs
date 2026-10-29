@@ -84,8 +84,6 @@ attachmentStorageSettings.SecretKey = Environment.GetEnvironmentVariable("S3_SEC
 attachmentStorageSettings.Bucket = Environment.GetEnvironmentVariable("S3_BUCKET") ?? attachmentStorageSettings.Bucket;
 builder.Services.Configure<AttachmentStorageOptions>(options =>
 {
-    options.Provider = attachmentStorageSettings.Provider;
-    options.LocalRootPath = attachmentStorageSettings.LocalRootPath;
     options.Endpoint = attachmentStorageSettings.Endpoint;
     options.AccessKey = attachmentStorageSettings.AccessKey;
     options.SecretKey = attachmentStorageSettings.SecretKey;
@@ -93,7 +91,6 @@ builder.Services.Configure<AttachmentStorageOptions>(options =>
     options.UseSsl = attachmentStorageSettings.UseSsl;
     options.Region = attachmentStorageSettings.Region;
 });
-builder.Services.Configure<AttachmentMigrationOptions>(builder.Configuration.GetSection(AttachmentMigrationOptions.SectionName));
 
 var turnstileSettings = builder.Configuration.GetSection(TurnstileSettings.SectionName).Get<TurnstileSettings>() ?? new TurnstileSettings();
 turnstileSettings.SecretKey = Environment.GetEnvironmentVariable("EconoFlow_TURNSTILE_SECRET_KEY") ?? turnstileSettings.SecretKey;

@@ -386,6 +386,28 @@ jobs:
           --health-timeout 5s
           --health-retries 20
 
+      # Object storage is the ONLY attachment backend: creating the storage throws when
+      # S3_ENDPOINT or S3_BUCKET is missing, and the attachment specs would see a 500. The
+      # suite therefore runs against a real bucket, which is also what makes the upload and
+      # download specs exercise the path production uses.
+      #
+      # This image (not ghcr.io/coollabsio/minio) because a service container has no
+      # `command:` key: it needs an image whose default CMD already starts the server.
+      # The coollabs image's CMD is a bare `minio`, so it prints help and exits 0, which
+      # GitHub reports as an unhealthy service and fails the job in seconds.
+      minio:
+        image: bitnamilegacy/minio:latest
+        env:
+          MINIO_ROOT_USER: econoflow
+          MINIO_ROOT_PASSWORD: econoflow-dev-secret
+        ports:
+          - 9000:9000
+        options: >-
+          --health-cmd "curl -fsS http://127.0.0.1:9000/minio/health/live"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
     steps:
     - uses: actions/checkout@v7
 
@@ -443,11 +465,30 @@ jobs:
         # The fixtures are skipped for a real database by design, but every spec signs
         # in as the seeded test@test.com, so this run asks for them explicitly.
         EconoFlow_SEED_DEVELOPMENT_DATA: "true"
+        # Attachment storage. Object storage is the only backend, so the application
+        # refuses to create it without these - registration resolves it, which made every
+        # spec fail with a 500 until the MinIO service above was added.
+        S3_ENDPOINT: localhost:9000
+        S3_ACCESS_KEY: econoflow
+        S3_SECRET_KEY: econoflow-dev-secret
+        S3_BUCKET: econoflow
+        AttachmentStorage__UseSsl: "false"
 
     - name: Wait for servers to be ready
       run: |
         timeout 300 bash -c 'until curl -sf http://localhost:4200 > /dev/null 2>&1; do sleep 3; done'
       shell: bash
+
+    # MinIO serves an empty data directory. The attachment specs upload into S3_BUCKET, so it
+    # has to exist; creating it inside the service container uses the mc client the image
+    # already carries, rather than adding another tool to the job.
+    - name: Create the attachment bucket
+      shell: bash
+      run: |
+        CONTAINER_ID=$(docker ps --filter "name=minio" --format "{{.ID}}" | head -n 1)
+        docker exec "$CONTAINER_ID" mc alias set local http://127.0.0.1:9000 econoflow econoflow-dev-secret
+        docker exec "$CONTAINER_ID" mc mb --ignore-existing local/econoflow
+        docker exec "$CONTAINER_ID" mc ls local/
 
     - name: Run Cypress tests
       id: cypress
