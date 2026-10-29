@@ -65,18 +65,31 @@ namespace EasyFinance.Server.Controllers
         {
             var incomes = await this.incomeService.GetAsync(projectId, year);
             var categories = await this.categoryService.GetAsync(projectId, year);
+            var expenses = categories.Data.SelectMany(c => c.Expenses).ToList();
 
-            var lastMonthData = categories.Data.Where(c => c.Expenses.Sum(e => e.Budget) != 0).Select(c => c.Expenses.Where(e => e.Budget != 0)?.Max(e => e.Date.Month)).Max();
-            var totalBudgetLastMonthData = categories.Data.Sum(c => c.Expenses.Where(e => e.Date.Month == lastMonthData).Sum(e => e.Budget));
+            // Extrapolation rule: the budget of the last month that has any budgeted expense is
+            // taken as the budget of every later month of the year, because a budget the user
+            // stopped re-typing is assumed to still be in force. The months before that one
+            // count with the budgets they actually have. A project without a budgeted month has
+            // nothing to extrapolate, so DefaultIfEmpty(0) makes the extrapolated part 0 and a
+            // single multiplication covers both the empty and the populated case.
+            var lastBudgetedMonth = expenses
+                .Where(e => e.Budget != 0)
+                .Select(e => e.Date.Month)
+                .DefaultIfEmpty(0)
+                .Max();
+            var budgetInLastMonth = expenses
+                .Where(e => e.Budget != 0 && e.Date.Month == lastBudgetedMonth)
+                .Sum(e => e.Budget);
+            var monthsToExtrapolate = 12 - lastBudgetedMonth;
 
-            var totalBudget = categories.Data.Sum(c => c.Expenses.Sum(e => e.Budget)) + (totalBudgetLastMonthData * (12 - lastMonthData ?? 0));
-            var totalSpend = categories.Data.Sum(c => c.Expenses.Sum(e => e.Amount));
-            var totalOverspend = categories.Data.Sum(c => c.Expenses.Sum(e =>
-            {
-                var overspend = e.Budget - e.Amount;
-                return (overspend < 0) ? overspend * -1 : 0;
-            }));
+            var totalBudget = expenses.Sum(e => e.Budget) + (budgetInLastMonth * monthsToExtrapolate);
+            var totalOverspend = expenses.Sum(e => Math.Max(0, e.Amount - e.Budget));
+            var totalSpend = expenses.Sum(e => e.Amount);
 
+            // TotalSpend stays net of the overspend: the clients add TotalOverspend back to get
+            // the gross spend (see annual-overview.component.ts), so returning the gross figure
+            // here would count the overspend twice.
             return Ok(new
             {
                 TotalBudget = totalBudget,
