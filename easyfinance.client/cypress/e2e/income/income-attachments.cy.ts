@@ -111,4 +111,30 @@ describe('EconoFlow - income attachment Tests', () => {
     cy.get('mat-snack-bar-container').should('be.visible');
     cy.get('@postTemporaryAttachment').should('not.exist');
   });
+
+  it('should surface the server rejection when the content does not match the declared type', () => {
+    // The client-side check only looks at the declared type, so this file passes it and
+    // reaches the server. Only the server's content inspection can refuse it.
+    cy.intercept('POST', '**/incomes/temporary-attachments').as('postTemporaryAttachment');
+
+    const fileContent = Cypress.Buffer.from('#!/bin/sh\necho not a pdf\n');
+
+    cy.get('.btn-add').click();
+    cy.get('input[formControlName=name]').type('Salary with a fake payslip');
+    cy.get('input[formControlName=amount]').type('1200');
+    cy.get('[data-testid="income-attachments-input"]').selectFile({
+      contents: fileContent,
+      fileName: 'payslip.pdf',
+      mimeType: 'application/pdf',
+      lastModified: Date.now()
+    });
+
+    cy.wait('@postTemporaryAttachment').then(({ response }) => {
+      expect(response?.statusCode).to.equal(400);
+      expect(response?.body?.errors?.contentType).to.be.an('array').and.not.be.empty;
+    });
+
+    cy.get('[data-testid="income-attachment-pending"]').should('not.exist');
+    cy.get('mat-snack-bar-container').should('be.visible');
+  });
 });

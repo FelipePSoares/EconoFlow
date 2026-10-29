@@ -581,6 +581,27 @@ There is no file-system backend. A disk-backed provider existed during the cutov
 
 Object keys are `yyyy/MM/dd/{guid}{ext}` in the bucket, so existing `StorageKey` values in the database map 1:1 to object names with no schema change.
 
+#### Content verification
+
+The `Content-Type` a client sends is a claim, so `AttachmentUploadPolicy` verifies the bytes as well as the declared type (`SniffContentType`):
+
+| Signature | Detected type |
+|-----------|---------------|
+| `%PDF-` | `application/pdf` |
+| `\x89PNG\r\n\x1a\n` | `image/png` |
+| `FF D8 FF` | `image/jpeg` |
+| `RIFF` … `WEBP` | `image/webp` |
+| ISO-BMFF `ftyp` with a HEVC brand (`heic`, `heix`, `heim`, `heis`, `hevc`, `hevx`) | `image/heic` |
+| ISO-BMFF `ftyp` with `heif`, or a mode brand (`mif1`/`msf1`) before a HEVC brand | `image/heif` |
+
+The declared type must be on the allow-list *and* the bytes must independently detect as an allowed type:
+
+- **Detected, but different from declared** — rejected with `AttachmentContentTypeMismatch` (keyed to `contentType`). The client labelled the file wrongly; nothing is stored.
+- **Nothing detected** — an executable, a script, an SVG, or a file truncated before its signature completes — rejected with `AttachmentContentNotRecognized` (keyed to `contentType`).
+- **Detected and matching** — stored. The type written to `Attachment.ContentType` is the **detected** one, never the declaration, and `image/jpg` is folded into `image/jpeg` (`NormalizeContentTypeForStorage`).
+
+Validation is ordered cheapest-first: the length and declared-type checks run before any bytes are read, so a request that will be refused never gets its body buffered. A seekable stream is left at its original position; a forward-only request body is copied into a `MemoryStream` once, before validation, because the signature read consumes its head and the storage adapter needs a rewindable stream. Download actions serve the stored type with `Content-Disposition: attachment` (from the download name) and `X-Content-Type-Options: nosniff`, so a mislabelled file cannot be rendered inline as HTML or SVG.
+
 #### Cutover (local disk → MinIO) — completed
 
 The runbook below was followed when the deployment moved from local disk to MinIO, and both the one-shot migration job (`AttachmentMigrationBackgroundService` + `AttachmentMigrationService`) and the file-system provider it read from have since been deleted. It is kept only for the record; nothing here can be run any more.

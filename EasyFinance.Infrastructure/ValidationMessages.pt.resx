@@ -365,6 +365,12 @@ Você será redirecionado em 5 segundos...</value>
   <data name="AttachmentContentTypeNotSupported" xml:space="preserve">
     <value>Tipo de conteúdo do anexo não suportado. Tipos permitidos: {0}.</value>
   </data>
+  <data name="AttachmentContentTypeMismatch" xml:space="preserve">
+    <value>O conteúdo do anexo é {0}, o que não corresponde ao tipo declarado {1}.</value>
+  </data>
+  <data name="AttachmentContentNotRecognized" xml:space="preserve">
+    <value>O conteúdo do anexo não corresponde a nenhum tipo de arquivo suportado.</value>
+  </data>
   <data name="InvalidAttachmentType" xml:space="preserve">
     <value>Tipo de anexo inválido.</value>
   </data>

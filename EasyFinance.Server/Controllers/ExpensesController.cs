@@ -176,6 +176,8 @@ namespace EasyFinance.Server.Controllers
             if (fileResponse.Failed)
                 return ValidateResponse(fileResponse, HttpStatusCode.OK);
 
+            Response.Headers.XContentTypeOptions = "nosniff";
+
             return File(fileResponse.Data.Content, fileResponse.Data.ContentType, fileResponse.Data.Name);
         }
 
