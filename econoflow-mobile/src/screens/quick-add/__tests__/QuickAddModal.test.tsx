@@ -116,9 +116,12 @@ jest.mock('../../../utils/amountValidation', () => ({
   shouldShowAmountError: () => false,
 }));
 
-jest.mock('../../../utils/nameValidation', () => ({
-  isNameRequired: () => false,
-}));
+// Delegate to the real rule instead of a hard-coded `false`: the constant mock hid the
+// required-name behaviour these tests claim to exercise (#1059).
+jest.mock('../../../utils/nameValidation', () => {
+  const actual = jest.requireActual('../../../utils/nameValidation');
+  return { isNameRequired: (...args: unknown[]) => actual.isNameRequired(...args) };
+});
 
 jest.mock('../../../utils/apiErrors', () => ({
   extractApiErrors: () => ({}),
@@ -218,6 +221,11 @@ describe('QuickAddModal — Sentry captureError', () => {
       fireEvent.press(screen.getByText('LabelIncome'));
     });
 
+    // Fill the required name field — submitting an empty name is not what this test covers.
+    await act(async () => {
+      fireEvent.changeText(screen.getByTestId('FieldName'), 'Groceries');
+    });
+
     // Submit
     await act(async () => {
       fireEvent.press(screen.getByText('ButtonAdd'));
@@ -240,6 +248,11 @@ describe('QuickAddModal — Sentry captureError', () => {
     );
 
     await act(async () => { renderModal({ defaultCategoryId: 'cat-1' }); });
+
+    // Fill the required name field — submitting an empty name is not what this test covers.
+    await act(async () => {
+      fireEvent.changeText(screen.getByTestId('FieldName'), 'Groceries');
+    });
 
     // Submit — category is pre-selected via defaultCategoryId
     await act(async () => {
@@ -369,6 +382,30 @@ describe('QuickAddModal — Sentry captureError', () => {
         { screen: 'QuickAddModal', action: 'updateExpenseItem' },
       );
     });
+  });
+
+  it('saves an edited expense item whose name is empty (#1059)', async () => {
+    const editMode = {
+      type: 'expenseItem' as const,
+      id: 'exp-1',
+      categoryId: 'cat-1',
+      itemIndex: 0,
+      initialValues: { name: '', amount: 12, date: '2026-06-01', isDeductible: true },
+    };
+
+    await act(async () => { renderModal({ editMode }); });
+
+    await act(async () => {
+      fireEvent.press(screen.getByText('ButtonSave'));
+    });
+
+    // An empty name on an expense item is valid: the patch must be sent with the empty name
+    // rather than being dropped by a `required` rule on the name field.
+    expect(screen.queryByText('RequiredField')).toBeNull();
+    expect(mockPatchExpenseMutate).toHaveBeenCalledTimes(1);
+    expect(mockPatchExpenseMutate.mock.calls[0][0]).toEqual(
+      expect.arrayContaining([{ op: 'replace', path: '/name', value: '' }]),
+    );
   });
 
   it('uses automaticallyAdjustKeyboardInsets on ScrollView for keyboard avoidance', async () => {
