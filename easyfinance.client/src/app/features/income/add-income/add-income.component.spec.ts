@@ -262,6 +262,27 @@ describe('AddIncomeComponent attachments', () => {
     expect(component.isAttachmentOperationInProgress).toBeFalse();
   });
 
+  it('should explain a content rejection instead of suggesting a retry', () => {
+    // The server verifies the file's bytes: this upload failed because the content is not
+    // what the client declared, so telling the user to try again would be misleading.
+    setupComponent();
+
+    incomeServiceMock.uploadTemporaryAttachmentWithProgress.and.returnValue(
+      throwError(() => ({
+        errors: {
+          contentType: ['The attachment content is text/plain, which does not match the declared type application/pdf.']
+        }
+      }))
+    );
+
+    component.onAttachmentsSelected(selectFiles(
+      new File(['x'], 'payslip.pdf', { type: 'application/pdf' })
+    ));
+
+    expect(snackbarMock.openErrorSnackbar).toHaveBeenCalledWith('IncomeAttachmentContentInvalid');
+    expect(snackbarMock.openErrorSnackbar).not.toHaveBeenCalledWith('IncomeAttachmentUploadFailed');
+  });
+
   it('should reject an unsupported file type without uploading', () => {
     setupComponent();
 

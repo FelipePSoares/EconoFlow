@@ -639,6 +639,7 @@
   "LabelAddAttachment": "Add attachment",
   "LabelNoAttachments": "No attachments yet",
   "AttachmentUploadFailed": "Failed to upload the attachment. Please try again.",
+  "AttachmentContentInvalid": "This file's content doesn't match its type. Choose a PDF or an image.",
   "AttachmentDeleteFailed": "Failed to remove the attachment. Please try again.",
   "AttachmentOpenFailed": "Failed to open the attachment. Please try again.",
   "AttachmentFileSizeExceeded": "File is too large. Maximum size is 10 MB.",

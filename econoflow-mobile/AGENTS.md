@@ -27,6 +27,8 @@ npm test && npm run typecheck && npm run lint
 
 See [setup.md](./setup.md) for the full emulator + local API dev workflow, cert configuration, and troubleshooting.
 
+**Jest and ESM-only dependencies.** The `jest.transformIgnorePatterns` allow-list in `package.json` decides which `node_modules` packages Babel transforms. The default React Native preset ignores all of them, so a package that ships **ESM only** (no CommonJS build) fails every suite that imports it with `Must use import to load ES Module`. Adding a package to that allow-list fixes **Jest only** — it does not change the Metro bundle. Metro still resolves the real module, so an ESM-only package whose consumer does `require()` and calls the default export as a function builds cleanly and then throws at runtime while the tests stay green. Do not "fix" such a package by adding it to the allow-list: keep the previous CommonJS version and record the advisory in [docs/security-exceptions.md](../docs/security-exceptions.md), or move the consumer to a version that supports ESM. `decode-uri-component` is the worked example — it is on a documented exception for exactly this reason, and pinning its patched release in `overrides` broke `query-string` at runtime (PR #1106).
+
 ## Architecture compliance checklist (Step 4)
 
 Verify every item below before marking the task done — quote the offending line when a violation is found:

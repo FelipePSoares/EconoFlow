@@ -189,6 +189,27 @@ namespace EasyFinance.Server.Tests.Controllers
         }
 
         [Fact]
+        public async Task GetAttachmentAsync_ShouldSetNoSniffHeader()
+        {
+            // A stored file's type comes from the bytes that were uploaded, but it is still
+            // replayed to a browser: nosniff keeps the browser from second-guessing the
+            // Content-Type, and the download name keeps it from rendering inline.
+            this.attachmentService
+                .Setup(service => service.GetIncomeAttachmentAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<Guid>()))
+                .ReturnsAsync(AppResponse<AttachmentFileResponseDTO>.Success(new AttachmentFileResponseDTO
+                {
+                    Name = "payslip.pdf",
+                    ContentType = "application/pdf",
+                    Content = new MemoryStream(new byte[] { 1, 2, 3 })
+                }));
+
+            var result = await this.controller.GetAttachmentAsync(this.projectId, this.incomeId, this.attachmentId);
+
+            result.ShouldBeOfType<FileStreamResult>();
+            this.controller.Response.Headers["X-Content-Type-Options"].ToString().ShouldBe("nosniff");
+        }
+
+        [Fact]
         public async Task DeleteAttachmentAsync_ShouldReturnOk()
         {
             // Arrange

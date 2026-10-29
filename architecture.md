@@ -581,6 +581,27 @@ There is no file-system backend. A disk-backed provider existed during the cutov
 
 Object keys are `yyyy/MM/dd/{guid}{ext}` in the bucket, so existing `StorageKey` values in the database map 1:1 to object names with no schema change.
 
+#### Content verification
+
+The `Content-Type` a client sends is a claim, so `AttachmentUploadPolicy` verifies the bytes as well as the declared type (`SniffContentType`):
+
+| Signature | Detected type |
+|-----------|---------------|
+| `%PDF-` | `application/pdf` |
+| `\x89PNG\r\n\x1a\n` | `image/png` |
+| `FF D8 FF` | `image/jpeg` |
+| `RIFF` … `WEBP` | `image/webp` |
+| ISO-BMFF `ftyp` with a HEVC brand (`heic`, `heix`, `heim`, `heis`, `hevc`, `hevx`) | `image/heic` |
+| ISO-BMFF `ftyp` with `heif`, or a mode brand (`mif1`/`msf1`) before a HEVC brand | `image/heif` |
+
+The declared type must be on the allow-list *and* the bytes must independently detect as an allowed type:
+
+- **Detected, but different from declared** — rejected with `AttachmentContentTypeMismatch` (keyed to `contentType`). The client labelled the file wrongly; nothing is stored.
+- **Nothing detected** — an executable, a script, an SVG, or a file truncated before its signature completes — rejected with `AttachmentContentNotRecognized` (keyed to `contentType`).
+- **Detected and matching** — stored. The type written to `Attachment.ContentType` is the **detected** one, never the declaration, and `image/jpg` is folded into `image/jpeg` (`NormalizeContentTypeForStorage`).
+
+Validation is ordered cheapest-first: the length and declared-type checks run before any bytes are read, so a request that will be refused never gets its body buffered. A seekable stream is left at its original position; a forward-only request body is copied into a `MemoryStream` once, before validation, because the signature read consumes its head and the storage adapter needs a rewindable stream. **The bytes are inspected once**: validation returns the detected type through an `out` parameter and that single verdict is what gets stored, so no path re-reads the stream. Note that `IAttachmentStorageService.SaveAsync` has no content-type parameter, so the *object's* type in the bucket still comes from the file-name extension (`MimeTypeFromExtension`); `Attachment.ContentType` in the database is the authoritative, content-verified one. Download actions serve the stored type with `Content-Disposition: attachment` (from the download name) and `X-Content-Type-Options: nosniff`, so a mislabelled file cannot be rendered inline as HTML or SVG.
+
 #### Cutover (local disk → MinIO) — completed
 
 The runbook below was followed when the deployment moved from local disk to MinIO, and both the one-shot migration job (`AttachmentMigrationBackgroundService` + `AttachmentMigrationService`) and the file-system provider it read from have since been deleted. It is kept only for the record; nothing here can be run any more.
@@ -624,6 +645,8 @@ Configuration in `appsettings.json`:
 **Change detection is zoneless.** Angular 22 enables zoneless change detection by default and `app.config.ts` does not opt back into zone-based CD, so although `zone.js` is still bundled via `angular.json` it no longer drives change detection. Components use `ChangeDetectionStrategy.Eager` (checked whenever a tick's traversal reaches them, but they never *schedule* a tick themselves), which means **any state mutated outside an Angular-managed event — an RxJS/HTTP subscription callback, `setTimeout`, a promise continuation, a native listener — must be followed by `this.cdr.detectChanges()`** (`ChangeDetectorRef`), or the DOM will not repaint. Signal writes are the exception: they schedule their own tick. Incidental ticks do exist — `AsyncPipe`, `markForCheck`, and Material overlays (`ApplicationRef.attachView`) all schedule one — so the omission is easy to miss until a flow (like an upload whose success snackbar is suppressed) has no other tick source. This trap caused a real CI failure in the income attachment upload flow; `add-expense.component.ts` is the reference implementation, and its upload/delete/save handlers call `detectChanges()` after every async mutation.
 
 **Attachment upload policy**: the expense, expense-item and income upload surfaces all validate through `core/utils/attachment-policy.ts` (`MAX_ATTACHMENT_SIZE_BYTES`, `ALLOWED_ATTACHMENT_MIME_TYPES`, `validateAttachmentFile`, `ATTACHMENT_ACCEPT_ATTRIBUTE`), a client-side mirror of the backend `AttachmentUploadPolicy`. The client check is advisory — it only fails fast before spending bandwidth — and the server re-validates every upload.
+
+Because the server also inspects the *content*, an upload can be refused for a reason the client cannot predict from the declared type. `core/utils/api-errors.ts` (`isAttachmentContentRejection`) recognises those rejections — the server keys every one to `contentType` — so the upload surfaces show a specific message (`IncomeAttachmentContentInvalid`, `DeductibleProofContentInvalid`) instead of the generic "please try again", which would be wrong advice for a file that will fail identically on retry. The mobile app mirrors this in `src/utils/apiErrors.ts`, driving `AttachmentContentInvalid`. `i18n-catalogue.spec.ts` keeps `messages.en.json` and `messages.pt.json` key-for-key in step.
 
 ### Bootstrap chain
 

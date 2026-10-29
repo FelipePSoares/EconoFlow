@@ -1,4 +1,4 @@
-import { extractApiErrors } from '../apiErrors';
+import { extractApiErrors, isAttachmentContentRejection } from '../apiErrors';
 
 describe('extractApiErrors', () => {
   it('returns empty record for a generic JS Error', () => {
@@ -63,5 +63,48 @@ describe('extractApiErrors', () => {
       },
     };
     expect(extractApiErrors(error).Name).toHaveLength(2);
+  });
+});
+
+describe('isAttachmentContentRejection', () => {
+  const contentTypeRejection = {
+    response: {
+      status: 400,
+      data: {
+        errors: {
+          contentType: [
+            'The attachment content is image/png, which does not match the declared type application/pdf.',
+          ],
+        },
+      },
+    },
+  };
+
+  it('returns true for a 400 keyed to contentType', () => {
+    expect(isAttachmentContentRejection(contentTypeRejection)).toBe(true);
+  });
+
+  it('returns false when the rejection is about another field', () => {
+    const error = {
+      response: { status: 400, data: { errors: { size: ['Attachment must not be empty.'] } } },
+    };
+    expect(isAttachmentContentRejection(error)).toBe(false);
+  });
+
+  it('returns false for a server error even if it mentions contentType', () => {
+    const error = {
+      response: { status: 500, data: { errors: { contentType: ['boom'] } } },
+    };
+    expect(isAttachmentContentRejection(error)).toBe(false);
+  });
+
+  it('returns false for the bare status without messages', () => {
+    expect(isAttachmentContentRejection({ response: { status: 400, data: {} } })).toBe(false);
+  });
+
+  it('returns false for a network failure', () => {
+    expect(isAttachmentContentRejection(new Error('Network Error'))).toBe(false);
+    expect(isAttachmentContentRejection(undefined)).toBe(false);
+    expect(isAttachmentContentRejection(null)).toBe(false);
   });
 });

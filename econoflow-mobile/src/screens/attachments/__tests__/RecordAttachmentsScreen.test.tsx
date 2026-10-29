@@ -145,6 +145,50 @@ describe('RecordAttachmentsScreen', () => {
     expect(addMutate).toHaveBeenCalledWith(pickedFile, expect.anything());
   });
 
+  it('explains a content mismatch instead of showing the generic upload error', async () => {
+    // The server inspected the bytes and refused them: the declared type was not what the
+    // file actually is. Telling the user to "try again" would be wrong - retrying the same
+    // file fails the same way.
+    const addMutate = jest.fn((_file: unknown, options: { onError: (error: unknown) => void }) => {
+      options.onError({
+        response: {
+          status: 400,
+          data: {
+            errors: {
+              contentType: [
+                'The attachment content is image/png, which does not match the declared type application/pdf.',
+              ],
+            },
+          },
+        },
+      });
+    });
+    mockMutations(addMutate, jest.fn());
+
+    await render(<RecordAttachmentsScreen route={makeRoute()} navigation={makeNavigation()} />);
+
+    await fireEvent.press(screen.getByTestId('attachment-add-button'));
+    await fireEvent.press(screen.getByTestId('picker-select'));
+
+    await waitFor(() => expect(screen.getByText('AttachmentContentInvalid')).toBeTruthy());
+    expect(screen.queryByText('AttachmentUploadFailed')).toBeNull();
+  });
+
+  it('keeps the generic upload error for failures that are not content rejections', async () => {
+    const addMutate = jest.fn((_file: unknown, options: { onError: (error: unknown) => void }) => {
+      options.onError({ response: { status: 500, data: {} } });
+    });
+    mockMutations(addMutate, jest.fn());
+
+    await render(<RecordAttachmentsScreen route={makeRoute()} navigation={makeNavigation()} />);
+
+    await fireEvent.press(screen.getByTestId('attachment-add-button'));
+    await fireEvent.press(screen.getByTestId('picker-select'));
+
+    await waitFor(() => expect(screen.getByText('AttachmentUploadFailed')).toBeTruthy());
+    expect(screen.queryByText('AttachmentContentInvalid')).toBeNull();
+  });
+
   it('opens an attachment through the download helper', async () => {
     await render(<RecordAttachmentsScreen route={makeRoute()} navigation={makeNavigation()} />);
 
