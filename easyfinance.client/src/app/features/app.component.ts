@@ -49,15 +49,6 @@ import { ProjectOverviewRefreshService } from '../core/services/project-overview
 })
 
 export class AppComponent {
-  private readonly localizedPublicPaths = new Set([
-    '',
-    'privacy-policy',
-    'use-terms',
-    'contact-us',
-    'offline',
-    'how-to-create-budget'
-  ]);
-
   private router = inject(Router);
   private dialog = inject(MatDialog);
   private authService = inject(AuthService);
@@ -73,6 +64,20 @@ export class AppComponent {
   private pwaInstallService = inject(PwaInstallService);
   private pwaUpdateService = inject(PwaUpdateService);
   private projectOverviewRefreshService = inject(ProjectOverviewRefreshService);
+  /**
+   * Public pages served in both languages under `/` and `/pt`, plus the home
+   * route itself. Membership decides whether a localized public route renders
+   * as public content instead of authenticated content.
+   */
+  private readonly localizedPublicPaths = new Set([
+    '',
+    'security',
+    'privacy-policy',
+    'use-terms',
+    'contact-us',
+    'offline',
+    'how-to-create-budget'
+  ]);
   private document = inject(DOCUMENT);
   private appRef = inject(ApplicationRef);
   private platformId = inject(PLATFORM_ID);

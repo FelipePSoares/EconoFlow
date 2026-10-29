@@ -1,4 +1,5 @@
 import React from 'react';
+import { Linking } from 'react-native';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react-native';
 import { ProfileScreen } from '../ProfileScreen';
 
@@ -22,6 +23,12 @@ jest.mock('react-native-paper', () => {
       React.createElement(Text, props, children),
   };
 });
+
+jest.mock('../../../theme/useAppTheme', () => ({
+  // The security row takes its icon colour from the app theme, so the mock has to
+  // provide the palette the real hook returns.
+  useAppTheme: () => ({ colors: { primary: '#0f76a8' } }),
+}));
 
 jest.mock('expo-linear-gradient', () => {
   const React = require('react');
@@ -350,5 +357,30 @@ describe('ProfileScreen – PIN settings', () => {
   it('renders the change PIN row', async () => {
     await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
     expect(screen.getByTestId('row-ChangePin')).toBeTruthy();
+  });
+});
+
+describe('ProfileScreen – security and support', () => {
+  const securityPageUrl = 'https://econoflow.pt/security';
+  let openUrlSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    openUrlSpy = jest.spyOn(Linking, 'openURL').mockResolvedValue(true as never);
+  });
+
+  afterEach(() => {
+    openUrlSpy.mockRestore();
+  });
+
+  it('renders the security and support row', async () => {
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    expect(screen.getByTestId('row-SecurityAndSupport')).toBeTruthy();
+  });
+
+  it('opens the published security page when the row is pressed', async () => {
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    fireEvent.press(screen.getByTestId('row-SecurityAndSupport'));
+    expect(openUrlSpy).toHaveBeenCalledTimes(1);
+    expect(openUrlSpy).toHaveBeenCalledWith(securityPageUrl);
   });
 });

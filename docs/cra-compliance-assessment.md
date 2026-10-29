@@ -26,14 +26,20 @@ binding today.
 | **Incident / vulnerability reporting (Art. 14)** | 🟡 **Runbook populated and identified** — SRP account and drill still open (#1066) |
 | Technical documentation (Annex VII) | 🔴 Absent (#1073) |
 | SBOM | 🟢 **Generated per release** (#1065) |
-| Security update support period | 🟡 Stated in `SECURITY.md`; needs owner confirmation (#1069) |
-| User instructions (Annex II) | 🔴 Absent (#1069) |
+| Security update support period | 🟢 Rolling 12-month rule per delivery mode, owner-confirmed (#1069) |
+| User instructions (Annex II) | 🟢 `/security` page, `docs/security-user-guide.md` (#1069) |
 | Conformity assessment & CE marking (Annex VIII) | 🔴 Not performed (#1074) |
 
 ### Implemented since the initial assessment
 
 The first remediation pass landed the artefacts that were quickest to build and carried the
 most risk:
+
+- The support period is one rolling rule (12 months after a release, for every delivery mode),
+  published with the end-of-support notice mechanism in `SECURITY.md`, and the Annex II user
+  instructions are published in product at `/security` (English and Portuguese) and in
+  `docs/security-user-guide.md`; `econoflow-mobile/src/utils/legalLinks.ts` opens the same page
+  from the mobile profile screen.
 
 - `SECURITY.md` and `easyfinance.client/src/.well-known/security.txt` publish the coordinated
   vulnerability disclosure channel (Annex I, Part II, point 2).
@@ -309,7 +315,7 @@ Recording these avoids re-litigating them later:
 | 2 | Generate and retain CycloneDX SBOMs per release (NuGet, npm ×2, base images) | Days | Unblocks Art. 14 and Annex VII | #1065 | 🟢 Done |
 | 3 | Add `SECURITY.md`, `/.well-known/security.txt`, and a monitored intake address | Hours | Annex I Part II(2) | #1067 | 🟢 Done |
 | 4 | Fail start-up on missing/short secrets; remove the `"Development_Key"` fallback | Hours | Annex I(2)(1) | #1068 | 🟢 Done |
-| 5 | Publish a security update support period and user security instructions | Days | Annex I(2)(6), Annex II | #1069 | 🟡 Period stated; Annex II instructions open |
+| 5 | Publish a security update support period and user security instructions | Days | Annex I(2)(6), Annex II | #1069 | 🟢 Rolling 12-month period, notice mechanism, `/security` page and user guide |
 | 6 | Add rate limiting on authentication and support endpoints | Days | Annex I(2)(1)(3) | #1070 | 🔴 Open |
 | 7 | Container scanning; pin third-party actions to commit SHAs; add Dependabot `docker` ecosystem | Days | Annex I(2)(5), VII | #1071 | 🟡 `provenance`/`sbom` enabled; rest open |
 | 8 | Verify uploads by content rather than the declared `Content-Type` | Days | Annex I(2)(1) | #1072 | 🔴 Open |

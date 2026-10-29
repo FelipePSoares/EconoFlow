@@ -323,9 +323,12 @@ callback/absolute-URL generation (`Request.Scheme`) and client-IP logging.
 `app.UseForwardedHeaders()` runs **first** in the pipeline and honours
 `X-Forwarded-Proto` / `X-Forwarded-For` **only from a trusted proxy network** (spoofing
 protection). Trusted networks come from `ForwardedHeaders:KnownNetworks` in
-`appsettings.json`/env (`ForwardedHeaders__KnownNetworks__0=…`), defaulting to the k3s
+`appsettings.json`/env (`ForwardedHeaders__KnownNetworks__0=…`, or
+`ForwardedHeaders__KnownProxies__0=…` for a single address), defaulting to the k3s
 pod CIDR `10.42.0.0/16` (the loopback `127.0.0.0/8` is always trusted by the
-framework). Configuration lives in
+framework). A deployment behind any other proxy must name it here, or the forwarded
+scheme is ignored and `UseHttpsRedirection` sends the browser to
+`https://<host>:8080/`. Configuration lives in
 `EasyFinance.Server/Extensions/ForwardedHeadersExtensions.cs`.
 
 > **Why the health-probe bypass above is still needed.** The two mechanisms cover
@@ -661,8 +664,19 @@ main.ts
 /user/account            → AccountComponent              [AuthGuard]
 /user/authentication     → PasswordAuthenticationComponent [AuthGuard]
 /user/emails             → EmailsComponent               [AuthGuard]
+/security, /pt/security  → SecurityComponent            (public; CRA Annex II page)
 **                       → redirect to /projects
 ```
+
+The security page is the product's copy of the Annex II user instructions: the support period
+([`SecurityService`](easyfinance.client/src/app/core/services/security.service.ts) computes the
+rolling 12-month window from the current date, so the page cannot go stale), the secure setup
+and use instructions, and the reporting channel. It is a localized public path — listed in
+`localizedPublicPaths` in `app.component.ts`, in `CanonicalService`, in
+`src/prerender-routes.txt` and in `scripts/generate-sitemap.mjs` — so it renders publicly,
+redirects its language with the rest of the site, is prerendered in both languages and reaches
+the sitemap and `llms.txt`. The footer links to it; the mobile app opens the same page from the
+profile screen through `econoflow-mobile/src/utils/legalLinks.ts`.
 
 ### i18n
 
@@ -967,6 +981,9 @@ product?" inside the 24-hour window requires knowing what the product contains.
 | `easyfinance.client/src/.well-known/security.txt` | RFC 9116 reporting channel, served at `/.well-known/security.txt` | same (ABNF shape, expiry horizon, ASCII-only) |
 | `docs/cra-incident-reporting.md` | Article 14 runbook and report templates | same |
 | `scripts/generate-sbom.mjs` | Release SBOM | same |
+| `docs/security-user-guide.md` | Annex II user information and instructions (long form of the `/security` page) | same (topic coverage) |
+| `easyfinance.client/src/app/features/not-authenticated-area/security/` | In-product `/security` page, English and Portuguese | same (route, `/pt` route, prerender list, footer link, support period, reporting address) |
+| Support-period section of `SECURITY.md` | Rolling 12-month rule per delivery mode and the end-of-support notice mechanism | same (rule, delivery modes, 90-day notice) |
 
 These run in the `script-tests` job on every pull request via
 `node --test "scripts/*.test.mjs"`.

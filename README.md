@@ -115,6 +115,12 @@ published to the self-hosted Gitea registry (`gitea.fpssoftware.uk`) on push to 
 See [docs/docker.md](docs/docker.md) for the image, required runtime environment
 variables, and the GitHub secrets used by `.github/workflows/docker-publish.yml`.
 
+The security-update support period and the user-facing security instructions — how to report a
+vulnerability, how to configure a self-hosted deployment safely, and how updates arrive — are
+published at [econoflow.pt/security](https://econoflow.pt/security), with the long form in
+[docs/security-user-guide.md](docs/security-user-guide.md) and the policy in
+[SECURITY.md](SECURITY.md).
+
 ## Contributors
 
 Welcome to join us and contribute code to EconoFlow together.

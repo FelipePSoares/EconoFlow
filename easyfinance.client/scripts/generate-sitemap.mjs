@@ -15,6 +15,7 @@ const siteOrigin = (process.env.SITEMAP_SITE_URL || 'https://econoflow.pt').repl
 
 const routeMetadataByCanonicalPath = new Map([
   ['/', { priority: '1.0', changefreq: 'monthly' }],
+  ['/security', { priority: '0.5', changefreq: 'yearly' }],
   ['/privacy-policy', { priority: '0.5', changefreq: 'yearly' }],
   ['/use-terms', { priority: '0.5', changefreq: 'yearly' }],
   ['/contact-us', { priority: '0.5', changefreq: 'yearly' }],
@@ -32,6 +33,10 @@ const llmsMetadataByCanonicalPath = new Map([
   ['/', {
     title: 'Home',
     summary: 'Product overview, feature highlights, and account creation entry points.'
+  }],
+  ['/security', {
+    title: 'Security and Support',
+    summary: 'Security update support period, secure setup and use instructions, and the vulnerability reporting channel.'
   }],
   ['/privacy-policy', {
     title: 'Privacy Policy',

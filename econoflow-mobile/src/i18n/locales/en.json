@@ -347,6 +347,8 @@
   "LabelTermsPrefix": "By creating an account, you agree to the",
   "LabelTermsMid": ". For more information about EconoFlow's privacy practices, see the EconoFlow",
   "LabelTermsSuffix": ". We'll occasionally send you account-related emails.",
+  "SecurityAndSupport": "Security & Support",
+  "SecurityAndSupportDescription": "Support period, secure setup, updates and vulnerability reporting",
   "ContactUs": "Contact Us",
   "ContactUsTitle": "Send Us a Message",
   "ContactUsNameLabel": "Name",

@@ -291,6 +291,198 @@ test('SECURITY.md and security.txt agree on the reporting contact', () => {
   );
 });
 
+// ── Annex II user information ────────────────────────────────────────────────
+
+/** The in-product security page (Angular component template). */
+const SECURITY_PAGE_TEMPLATE_PATH =
+  'easyfinance.client/src/app/features/not-authenticated-area/security/security.component.html';
+
+/** The narrative Annex II guide, mirrored by the in-product page. */
+const SECURITY_GUIDE_PATH = 'docs/security-user-guide.md';
+
+test('SECURITY.md honours a rolling support period for every delivery mode', () => {
+  // The owner settled on one rule for all three delivery modes: security
+  // updates for 12 months after a release. A per-product date instead would
+  // have to be re-committed by hand every year and would eventually be missed.
+  const policy = read(SECURITY_POLICY_PATH);
+
+  assert.match(
+    policy,
+    /12 months/i,
+    'SECURITY.md no longer states the 12-month rolling support period the project committed to',
+  );
+
+  for (const deliveryMode of ['hosted web application', 'mobile apps', 'container image']) {
+    assert.ok(
+      new RegExp(`^\\|[^|]*\\|[^|]*EconoFlow ${deliveryMode}`, 'im').test(policy),
+      `SECURITY.md no longer names the ${deliveryMode} as a delivery mode with its own support period`,
+    );
+  }
+  assert.match(
+    policy,
+    /https:\/\/econoflow\.pt\/security/,
+    'SECURITY.md does not point users at the published security page',
+  );
+});
+
+test('SECURITY.md documents how the end of a support period is announced', () => {
+  // Annex I(2)(6) asks for the support period to be *stated to users*. A period
+  // nobody is told about when it ends satisfies the letter and not the intent,
+  // so the notice mechanism has to be published with it.
+  const policy = read(SECURITY_POLICY_PATH);
+  const noticeSection = policy.slice(policy.indexOf('## Supported versions'), policy.indexOf('## Reporting a vulnerability'));
+
+  assert.ok(noticeSection.length > 0, 'SECURITY.md no longer has a "Supported versions" section');
+  assert.match(
+    noticeSection,
+    /end[- ]of[- ]support/i,
+    'the "Supported versions" section never mentions how an end of support is announced',
+  );
+  assert.match(
+    noticeSection,
+    /90 days/i,
+    'the end-of-support notice has no advance warning period',
+  );
+});
+
+test('the Annex II user instructions are published', () => {
+  assert.ok(
+    existsSync(resolve(repositoryRoot, SECURITY_GUIDE_PATH)),
+    `${SECURITY_GUIDE_PATH} is missing; Annex II requires user information and instructions`,
+  );
+
+  const guide = read(SECURITY_GUIDE_PATH);
+
+  assert.match(guide, /annex ii/i, 'the user guide does not name the Annex II obligation it discharges');
+  assert.match(guide, /support period/i, 'the user guide does not state the support period');
+  // The "using EconoFlow securely" section describes the product; it must not slip
+  // back into telling the reader to do things, which is what the in-product page
+  // (deliberately third person) was rewritten away from.
+  const usingSecurely = guide.slice(guide.indexOf('## 5. Using EconoFlow securely'), guide.indexOf('## 6.'));
+  assert.ok(usingSecurely.length > 0, 'the user guide has no "Using EconoFlow securely" section');
+  assert.doesNotMatch(
+    usingSecurely,
+    /^\s*-\s+(?:Use|Turn on|Sign out|Report|Apply|Check|Enable|Change|Keep)\b/m,
+    'the "Using EconoFlow securely" section addresses the reader in the imperative; describe the product instead',
+  );
+
+  for (const [document, text] of [
+    [SECURITY_GUIDE_PATH, guide],
+    ['docs/docker.md', read('docs/docker.md')],
+  ]) {
+    assert.match(
+      text,
+      /X-Forwarded-Proto/,
+      `${document} does not tell self-hosters to forward the client scheme; without it the ` +
+        'server redirects every non-health request to https://<host>:8080/, which is plain HTTP',
+    );
+    assert.match(
+      text,
+      /KnownNetworks__0|KnownProxies__0/,
+      `${document} tells deployers only to forward X-Forwarded-Proto. The image trusts only ` +
+        '10.42.0.0/16 by default, so a proxy elsewhere is ignored and the deployment stays ' +
+        'unreachable; the trust setting has to be published with it',
+    );
+  }
+
+  for (const [topic, pattern] of [
+    ['how to report a vulnerability', /report a vulnerability|reporting a vulnerability/i],
+    ['the secure installation / configuration steps', /install|configuration/i],
+    ['the expected environment', /environment/i],
+    ['the update process', /updat/i],
+    ['account guidance for end users', /password|second factor/i],
+  ]) {
+    assert.match(guide, pattern, `the user guide does not cover ${topic}`);
+  }
+});
+
+test('the published user copy does not misdescribe the product', () => {
+  // Two statements were wrong once and are cheap to keep honest. Account deletion
+  // is applied from the dialog token in the response — DeleteUserAsync sends no
+  // e-mail — and the settings menu is "Password and Authentication", not
+  // "Account > Security".
+  const guide = read(SECURITY_GUIDE_PATH);
+  const page = read(SECURITY_PAGE_TEMPLATE_PATH);
+
+  for (const [document, text] of [
+    [SECURITY_PAGE_TEMPLATE_PATH, page],
+    [SECURITY_GUIDE_PATH, guide],
+  ]) {
+    assert.doesNotMatch(
+      text,
+      /delet\w*[^.]{0,60}e-?mail|e-?mail[^.]{0,60}delet|elimina\w*[^.]{0,60}e-?mail|inbox|caixa de entrada/i,
+      `${document} tells users to confirm account deletion by e-mail, but the server sends none`,
+    );
+    assert.doesNotMatch(
+      text,
+      /Account\s*(?:>|›|→)\s*Security|Conta\s*(?:&gt;|>|›|→)\s*Segurança/,
+      `${document} points at a menu path that does not exist`,
+    );
+  }
+});
+
+test('the security page is reachable in product, in both languages', () => {
+  // Acceptance criterion of #1069: the guidance must be surfaced in the
+  // product, not only in the repository. The page is a public route with an
+  // English and a Portuguese rendering, linked from the footer.
+  assert.ok(
+    existsSync(resolve(repositoryRoot, SECURITY_PAGE_TEMPLATE_PATH)),
+    `${SECURITY_PAGE_TEMPLATE_PATH} is missing; the security guidance has no in-product page`,
+  );
+
+  const page = read(SECURITY_PAGE_TEMPLATE_PATH);
+  const securityPageComponent = read(SECURITY_PAGE_TEMPLATE_PATH.replace(/\.html$/, '.ts'));
+
+  assert.match(page, /isPortuguese\(\)/, 'the security page has no Portuguese rendering');
+  assert.match(page, /support period/i, 'the security page does not state the support period');
+  assert.match(
+    page,
+    /reportingAddress/,
+    'the security page does not render the reporting address from the component',
+  );
+  // The address itself lives in SecurityService (which the page imports), mirroring
+  // /.well-known/security.txt.
+  assert.match(
+    securityPageComponent,
+    /SECURITY_REPORTING_ADDRESS/,
+    'the security page component does not publish the reporting address',
+  );
+  assert.match(
+    read('easyfinance.client/src/app/core/services/security.service.ts'),
+    /contact@econoflow\.pt/,
+    'SecurityService does not publish the reporting address',
+  );
+  // Both halves of the page have to carry the same sections: a translated half that
+  // silently drops a topic would still pass every presence check above.
+  const sectionCounts = [...page.matchAll(/<h2>\d+\./g)].length;
+  assert.ok(sectionCounts > 0 && sectionCounts % 2 === 0, 'the security page sections do not pair up');
+
+  // A Portuguese copy saved in the wrong encoding shows mojibake to every pt reader.
+  assert.doesNotMatch(
+    page,
+    /Ã|Â|â€|�/,
+    'the security page contains mojibake; re-save it as UTF-8 rather than Windows-1252',
+  );
+
+  const routes = read('easyfinance.client/src/app/features/app-routing.module.ts');
+  assert.match(routes, /path: 'security'/, 'the security page is not routed');
+  assert.ok(
+    (routes.match(/path: 'security'/g) ?? []).length >= 2,
+    'the security page is not routed under /pt as well as /',
+  );
+
+  const footer = read('easyfinance.client/src/app/features/app.component.html');
+  assert.match(
+    footer,
+    /getPublicRouteCommands\('security'\)/,
+    'the footer does not link to the security page',
+  );
+
+  const prerender = read('easyfinance.client/src/prerender-routes.txt');
+  assert.match(prerender, /^\/security$/m, '/security is not prerendered');
+  assert.match(prerender, /^\/pt\/security$/m, '/pt/security is not prerendered');
+});
+
 // ── Art. 14 runbook ──────────────────────────────────────────────────────────
 
 test('the incident runbook carries every statutory deadline', () => {
