@@ -189,9 +189,12 @@ published ones.
   boundaries from the clock, and they must line up with the browser's. Override with `TZ=...`.
   The plain `alpine` tag has neither, and would silently run on UTC while throwing on the first
   culture-aware call.
-* The stack keeps its state in the `postgres-data` and `attachments` volumes. The seeding
+* The stack keeps its state in the `postgres-data` and `minio-data` volumes. The seeding
   cannot run twice against a non-empty database, so after changing seed code start from a
   clean database with `down -v`.
+* The stack runs its own **MinIO** service, because object storage is the only attachment
+  backend: the application refuses to start without `S3_ENDPOINT` and `S3_BUCKET`, and the
+  compose file points both at that service.
 * The image publishes a **Release** build with `DefineConstants=DEBUG`. `GenericRepository.Insert`
   only tracks the entity `#if DEBUG`, and a plain Release build makes every Insert a no-op. The
   seeder no longer goes through it — it adds its fixture graph to the change tracker itself —
@@ -232,7 +235,7 @@ production build), in addition to `appsettings.json`:
 | `SMTP_PORT` / `SMTP_SECURE_SOCKET` | SMTP port (default `587`) and TLS mode: `Auto`, `None`, `StartTls` or `SslOnConnect` (default `Auto`). | no |
 | `SMTP_FROM_ADDRESS` / `SMTP_FROM_NAME` | From address/name used for every outbound e-mail (defaults `noreply@econoflow.pt` / `NoReply EconoFlow`). | no |
 | `SMTP_TIMEOUT_SECONDS` | Timeout for SMTP connect/authenticate/send, in seconds (default `30`). | no |
-| `S3_ENDPOINT` / `S3_ACCESS_KEY` / `S3_SECRET_KEY` / `S3_BUCKET` | MinIO/S3 attachment storage (when `AttachmentStorage:Provider` is `Minio`). | when Minio |
+| `S3_ENDPOINT` / `S3_ACCESS_KEY` / `S3_SECRET_KEY` / `S3_BUCKET` | Attachment storage — object storage (MinIO/S3) is the only backend, so the application refuses to start without an endpoint and a bucket. | **yes** |
 | `ForwardedHeaders__KnownNetworks__0` … | Trusted proxy address ranges (CIDR) whose `X-Forwarded-Proto` / `X-Forwarded-For` headers are honoured. The defaults are replaced by whatever is configured, and the image ships with `10.42.0.0/16` only, so any other TLS-terminating proxy (compose, nginx, a sibling container) must be listed here or `X-Forwarded-Proto` is ignored and every request is redirected to `https://<host>:8080/`. | **yes**, unless the proxy is in `10.42.0.0/16` |
 | `ForwardedHeaders__KnownProxies__0` … | A single trusted proxy address, for a proxy that has no network range of its own. It is the alternative to `ForwardedHeaders__KnownNetworks__0`, not an addition to it. | when applicable |
 | `EconoFlow_TURNSTILE_SECRET_KEY` / `EconoFlow_TURNSTILE_SITE_KEY` | Cloudflare Turnstile. | when used |
@@ -245,9 +248,9 @@ overrides or future env/config substitution by the deployer.
 
 ### Persistent volume
 
-The default `AttachmentStorage:Provider` is `FileSystem`, writing under the app
-base directory. The image declares `VOLUME ["/app/attachments"]` â€” mount a
-persistent volume there to keep uploads across restarts.
+The image declares no `VOLUME`: attachments are stored in object storage (MinIO/S3), so
+nothing inside the application container is state that must survive a restart. The only
+persistent volumes a deployment needs are the database's and the object store's own.
 
 ## Health check probes
 

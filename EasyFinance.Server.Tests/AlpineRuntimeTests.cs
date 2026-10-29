@@ -82,5 +82,42 @@ namespace EasyFinance.Server.Tests
                 "mcr.microsoft.com/dotnet/aspnet:10.0-alpine-extra",
                 "the Development image must run the same runtime as the release image");
         }
+
+        [Fact]
+        public void TheImage_ShouldCarryTheGssapiLibraryTheManagedAuthenticationBackendProbesFor()
+        {
+            // .NET's managed GSSAPI backend (System.Net.Security) probes for libgssapi_krb5.so.2
+            // while it sets up its authentication packages, whether or not anything in the
+            // application asks for Kerberos. On Alpine, krb5 is not part of the base image and
+            // the probe fails at every start with:
+            //
+            //   Cannot load library libgssapi_krb5.so.2
+            //   Error loading shared library libgssapi_krb5.so.2: No such file or directory
+            //
+            // Nothing is functionally broken by that, which is what makes it a trap: two
+            // error-looking lines at start-up train operators to ignore stderr. The library is
+            // in krb5-libs (the runtime half of krb5 on Alpine), and the probe is the reason
+            // the image carries it.
+            var instructions = DockerfileInstructions("Dockerfile");
+
+            instructions.Should().Contain(
+                "krb5-libs",
+                "libgssapi_krb5.so.2 lives in krb5-libs, and the runtime probes for it on "
+                + "every start");
+
+            // Both images run the same runtime and the same GSSAPI probe, so a dev image
+            // without the library would print the error the release image no longer prints.
+            DockerfileInstructions("docker", "Dockerfile.dev").Should().Contain(
+                "krb5-libs",
+                "the Development image runs the same runtime, so it probes for the library too");
+        }
+
+        private static string DockerfileInstructions(params string[] parts) =>
+            string.Join(
+                "\n",
+                Read(parts)
+                    .Split('\n')
+                    .Select(line => line.TrimEnd())
+                    .Where(line => !line.TrimStart().StartsWith("#", StringComparison.Ordinal)));
     }
 }

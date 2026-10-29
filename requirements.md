@@ -122,7 +122,8 @@ An **Expense** belongs to a Category and records actual or planned spending.
 
 #### 2.4.4 Attachments
 - Users shall upload file attachments to an expense, an expense item, or an income.
-- An attachment has a `Name`, `ContentType`, `Size`, `StorageKey` (cloud reference), and `AttachmentType` (`General` or `DeductibleProof`).
+- An attachment has a `Name`, `ContentType`, `Size`, `StorageKey` (object name in the attachment store), and `AttachmentType` (`General` or `DeductibleProof`).
+- Attachment files shall be stored in S3-compatible object storage (MinIO), which is the **only** storage backend; there is no local-disk fallback. The system shall refuse to start when the object storage endpoint or bucket is not configured.
 - Uploads shall be limited to **10 MB** and to the content types `application/pdf`, `image/jpeg`, `image/jpg`, `image/png`, `image/webp`, `image/heic` and `image/heif`. The backend is the authority and rejects anything outside that policy.
 - Income attachments are always `General`, are unlimited in number (a new upload never replaces an earlier file), and exist to store payslips, contracts and similar supporting documents.
 - An expense may hold at most one `DeductibleProof`; uploading a replacement supersedes the previous file.

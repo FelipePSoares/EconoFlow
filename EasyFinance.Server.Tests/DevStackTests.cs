@@ -222,19 +222,69 @@ namespace EasyFinance.Server.Tests
         }
 
         [Fact]
-        public void Compose_ShouldKeepTheDatabaseAndUploads()
+        public void Compose_ShouldKeepTheDatabaseAndTheObjectStorage()
         {
             // A `docker compose up` must not discard the sample data or the uploaded
-            // attachments.
-            var compose = Compose();
+            // attachments. Object storage is the only attachment backend now, so the uploads
+            // live in MinIO - a named volume under /data - rather than in the application
+            // container's own filesystem.
+            var compose = ComposeWithoutComments();
 
             compose.Should().Contain(
                 "var/lib/postgresql",
                 "the PostgreSQL data directory must be a named volume");
 
             compose.Should().Contain(
+                "/data",
+                "MinIO's data directory must be a named volume, or every `up` discards the "
+                + "attachments the end-to-end suite uploaded");
+
+            compose.Should().NotContain(
                 "/app/attachments",
-                "uploaded attachments must survive a container restart");
+                "the application no longer writes attachments to its own disk");
+        }
+
+        [Fact]
+        public void Compose_ShouldRunObjectStorageForAttachments()
+        {
+            // The application has exactly one attachment backend and it is S3-compatible, so a
+            // local stack without MinIO starts fine and then answers every upload with a 500.
+            var compose = ComposeWithoutComments();
+
+            compose.Should().MatchRegex(
+                @"(?m)^\s{2}minio:\s*$",
+                "uploads need a running MinIO service");
+
+            compose.Should().MatchRegex(
+                @"image:\s*ghcr\.io/coollabsio/minio:",
+                "MinIO is no longer published on Docker Hub, so the stack runs the GHCR image");
+
+            compose.Should().Contain(
+                "mc ready",
+                "the MinIO image has no wget or curl; its own mc client is the health check");
+
+            foreach (var variable in new[] { "S3_ENDPOINT", "S3_ACCESS_KEY", "S3_SECRET_KEY", "S3_BUCKET" })
+            {
+                compose.Should().Contain(
+                    $"{variable}=",
+                    $"{variable} is read by Program.cs and without it attachment storage cannot "
+                    + "be created");
+            }
+
+            compose.Should().MatchRegex(
+                @"S3_ENDPOINT=minio",
+                "the endpoint has to name the MinIO service on the compose network");
+        }
+
+        [Fact]
+        public void Compose_ShouldStartOnlyAfterMinioIsReady()
+        {
+            // The same trap as PostgreSQL: the application creates its storage client and its
+            // readiness probe checks the bucket at start-up, so a container that starts before
+            // MinIO answers becomes unhealthy for no good reason.
+            Compose().Should().MatchRegex(
+                @"(?s)depends_on:.*?minio:.*?condition:\s*service_healthy",
+                "the application must wait for MinIO's health check");
         }
 
         [Fact]
@@ -340,20 +390,28 @@ namespace EasyFinance.Server.Tests
         }
 
         [Fact]
-        public void DevelopmentImage_ShouldCreateTheAttachmentsDirectory()
+        public void DevelopmentImage_ShouldNotCarryAnAttachmentsDirectory()
         {
-            // The FileSystem attachment provider writes its files but does not create the
-            // directory, and the image runs as the base image's non-root user. A missing,
-            // unowned directory turns every upload into a 500.
+            // There is no file-system provider to write into it any more, and the compose file
+            // no longer mounts it. A VOLUME the application never touches only invites someone
+            // to mount a volume that stores nothing.
             var dockerfile = DevImage();
 
-            dockerfile.Should().Contain(
-                "mkdir -p /app/attachments",
-                "the provider expects the directory to exist");
+            dockerfile.Should().NotContain(
+                "/app/attachments",
+                "attachments live in MinIO, not in the application container");
 
-            dockerfile.Should().Contain(
-                "chown -R \"$APP_UID\" /app /app/attachments",
-                "the runtime user must be able to write there");
+            dockerfile.Should().NotContain(
+                "VOLUME",
+                "no path in the application container holds state the application needs");
+        }
+
+        [Fact]
+        public void Compose_ShouldNotMountAnAttachmentsVolume()
+        {
+            Compose().Should().NotContain(
+                "attachments:",
+                "a volume mounted where nothing is written is a misleading backup target");
         }
 
         [Fact]

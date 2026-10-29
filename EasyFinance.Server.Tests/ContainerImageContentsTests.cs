@@ -336,8 +336,9 @@ namespace EasyFinance.Server.Tests
         [Fact]
         public void TheImage_ShouldDropRoot()
         {
-            // The published application writes attachments under its base directory and needs
-            // nothing else; running as the image's own APP_UID keeps that writable without
+            // The published application writes nothing under its base directory any more -
+            // attachments go to object storage - but it still needs a writable temp directory
+            // for the JIT. Running as the image's own APP_UID keeps that writable without
             // handing the process root.
             var dockerfile = Dockerfile();
 
@@ -345,11 +346,28 @@ namespace EasyFinance.Server.Tests
                 "USER $APP_UID",
                 "the runtime user is the non-root one declared by the ASP.NET image");
 
-            // The base directory has to belong to that user or applying the EF migrations
-            // cannot write and every upload turns into a 500.
+            // The base directory has to belong to that user, or applying the EF migrations and
+            // the JIT's scratch files cannot be written.
             dockerfile.Should().Contain(
                 "chown -R \"$APP_UID\"",
                 "the published application must be owned by the runtime user");
+        }
+
+        [Fact]
+        public void TheImage_ShouldNotDeclareAnAttachmentsVolume()
+        {
+            // Attachments live in object storage, so no path inside the container holds state
+            // that has to survive a restart. A declared VOLUME that nothing writes to is worse
+            // than none: it tells the deployer to back up an empty directory.
+            var instructions = DockerfileInstructions(Dockerfile());
+
+            instructions.Should().NotContain(
+                "/app/attachments",
+                "the file-system attachment provider was removed");
+
+            instructions.Should().NotContain(
+                "VOLUME",
+                "nothing in the application container is persistent state");
         }
 
         [Fact]

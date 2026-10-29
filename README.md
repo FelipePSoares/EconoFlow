@@ -94,8 +94,9 @@ npx cypress open     # interactive
   then run the suite with `CYPRESS_BASE_URL=http://localhost:<port>`.
 * **The seeding runs once.** The fixture data cannot be re-seeded against a non-empty
   database, so after changing seed code run `down -v` first.
-* **State** lives in the `postgres-data` and `attachments` volumes; `down` keeps it, `down -v`
-  drops it.
+* **State** lives in the `postgres-data` and `minio-data` volumes; `down` keeps it, `down -v`
+  drops it. Attachments are stored in the stack's own MinIO service — there is no file-system
+  attachment backend.
 * **`TZ`** defaults to `Europe/Vienna` and must match your browser's zone: the app derives
   "today" and month boundaries from the clock. Override it, e.g. `TZ=Europe/Lisbon`.
 * The stack serves the **Development** application on the same production browser bundle the

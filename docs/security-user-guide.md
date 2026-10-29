@@ -115,9 +115,9 @@ unreachable. See [`docs/docker.md`](docker.md#runtime-environment-variables).
    security notifications) can actually reach users.
 5. **Give the database its own least-privilege credentials** and back it up; the backups
    contain personal and financial data and are as sensitive as the database itself.
-6. **Storage of attachments** is either the local filesystem (a mounted volume) or an
-   S3/MinIO bucket. Keep the volume private to the service and the bucket's credentials
-   scoped to that bucket.
+6. **Storage of attachments** is an S3-compatible object store (MinIO). It is the only
+   backend, so `S3_ENDPOINT` and `S3_BUCKET` are required at start-up. Keep the bucket private
+   to the service and scope its credentials to that bucket.
 7. **Health probes** are `/api/health/live` and `/api/health/ready`; keep them reachable from
    the orchestrator and from nothing else.
 8. **Never enable the development seed data in production.** `EconoFlow_SEED_DEVELOPMENT_DATA`
