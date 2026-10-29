@@ -646,6 +646,8 @@ Configuration in `appsettings.json`:
 
 **Attachment upload policy**: the expense, expense-item and income upload surfaces all validate through `core/utils/attachment-policy.ts` (`MAX_ATTACHMENT_SIZE_BYTES`, `ALLOWED_ATTACHMENT_MIME_TYPES`, `validateAttachmentFile`, `ATTACHMENT_ACCEPT_ATTRIBUTE`), a client-side mirror of the backend `AttachmentUploadPolicy`. The client check is advisory — it only fails fast before spending bandwidth — and the server re-validates every upload.
 
+Because the server also inspects the *content*, an upload can be refused for a reason the client cannot predict from the declared type. `core/utils/api-errors.ts` (`isAttachmentContentRejection`) recognises those rejections — the server keys every one to `contentType` — so the upload surfaces show a specific message (`IncomeAttachmentContentInvalid`, `DeductibleProofContentInvalid`) instead of the generic "please try again", which would be wrong advice for a file that will fail identically on retry. The mobile app mirrors this in `src/utils/apiErrors.ts`, driving `AttachmentContentInvalid`. `i18n-catalogue.spec.ts` keeps `messages.en.json` and `messages.pt.json` key-for-key in step.
+
 ### Bootstrap chain
 
 ```

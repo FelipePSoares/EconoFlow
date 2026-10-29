@@ -26,6 +26,7 @@ import { GlobalService } from '../../../core/services/global.service';
 import { CurrentDateService } from '../../../core/services/current-date.service';
 import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.component';
 import { ATTACHMENT_ACCEPT_ATTRIBUTE, validateAttachmentFile } from '../../../core/utils/attachment-policy';
+import { isAttachmentContentRejection } from '../../../core/utils/api-errors';
 
 @Component({
     selector: 'app-add-income',
@@ -255,8 +256,12 @@ export class AddIncomeComponent implements OnInit, AfterViewInit {
         this.attachmentUploadPercent = 100;
         this.cdr.detectChanges();
       },
-      error: () => {
-        this.snackBar.openErrorSnackbar(this.translateService.instant('IncomeAttachmentUploadFailed'));
+      error: (response: ApiErrorResponse) => {
+        this.snackBar.openErrorSnackbar(this.translateService.instant(
+          isAttachmentContentRejection(response)
+            ? 'IncomeAttachmentContentInvalid'
+            : 'IncomeAttachmentUploadFailed'
+        ));
 
         // Keep going: one rejected file must not silently drop the rest of the selection.
         // When the queue drains, uploadNextAttachment() runs finishAttachmentUploads().

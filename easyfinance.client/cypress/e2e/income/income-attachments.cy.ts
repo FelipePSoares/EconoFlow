@@ -135,6 +135,9 @@ describe('EconoFlow - income attachment Tests', () => {
     });
 
     cy.get('[data-testid="income-attachment-pending"]').should('not.exist');
-    cy.get('mat-snack-bar-container').should('be.visible');
+    // The specific message, not the generic "try again": retrying this file cannot help.
+    cy.get('mat-snack-bar-container')
+      .should('be.visible')
+      .and('contain.text', "content doesn't match its type");
   });
 });
