@@ -506,6 +506,59 @@ namespace EasyFinance.Server.Tests
         }
 
         [Fact]
+        public void CypressJob_ShouldNotDeclareAServiceKeyTwice()
+        {
+            // GitHub rejects a workflow with a duplicate mapping key before it runs anything:
+            // the run reports "this run likely failed because of a workflow file issue", with
+            // no jobs and no logs - which is very hard to trace back to a YAML edit. A plain
+            // YAML parser accepts the file (last key wins), so this checks the raw text.
+            var job = IntegrationJob();
+            var seen = new HashSet<string>();
+            var duplicates = new List<string>();
+
+            // Walk the indentation stack so a key is only "duplicate" when it repeats under the
+            // same parent. Two services each having `ports:` is fine; one service having it
+            // twice is not.
+            var path = new List<(int Indent, string Key)>();
+
+            foreach (var line in job.Split('\n'))
+            {
+                var trimmed = line.TrimEnd();
+
+                // A list item starts a new scope: two steps each having `with:` are separate
+                // mappings, not a duplicate key. The item's own content belongs to it.
+                if (Regex.IsMatch(trimmed, @"^\s*-\s"))
+                {
+                    var itemIndent = trimmed.Length - trimmed.TrimStart().Length;
+                    path.RemoveAll(entry => entry.Indent >= itemIndent);
+                    path.Add((itemIndent, $"#item{path.Count}-{Guid.NewGuid():N}"));
+                    continue;
+                }
+
+                var match = Regex.Match(trimmed, @"^(\s*)([A-Za-z0-9_\-]+):\s*$");
+
+                if (!match.Success)
+                    continue;
+
+                var indent = match.Groups[1].Length;
+
+                path.RemoveAll(entry => entry.Indent >= indent);
+
+                var fullPath = string.Join(
+                    "/",
+                    path.Select(entry => entry.Key).Append(match.Groups[2].Value));
+
+                if (!seen.Add(fullPath))
+                    duplicates.Add(fullPath);
+
+                path.Add((indent, match.Groups[2].Value));
+            }
+
+            duplicates.Should().BeEmpty(
+                "a duplicate key makes GitHub reject the whole workflow before any job runs");
+        }
+
+        [Fact]
         public void CypressJob_ShouldSeedItsFixtureUserExplicitly()
         {
             // The fixtures are skipped for a relational store, but every Cypress spec

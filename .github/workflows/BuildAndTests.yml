@@ -407,13 +407,6 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
-        ports:
-          - 9000:9000
-        options: >-
-          --health-cmd "mc ready local"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
 
     steps:
     - uses: actions/checkout@v7
