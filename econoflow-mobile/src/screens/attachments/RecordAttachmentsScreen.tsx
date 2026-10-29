@@ -23,6 +23,7 @@ import { ErrorBanner } from '../../components/common/ErrorBanner';
 import { LoadingIndicator } from '../../components/common/LoadingIndicator';
 import { captureError } from '../../monitoring/sentry';
 import { downloadAndOpenAttachment } from '../../utils/attachmentDownload';
+import { isAttachmentContentRejection } from '../../utils/apiErrors';
 import type { AttachmentValidationError } from '../../utils/attachments';
 
 type Props = NativeStackScreenProps<OverviewStackParamList, 'RecordAttachments'>;
@@ -89,7 +90,12 @@ export const RecordAttachmentsScreen: React.FC<Props> = ({ route }) => {
     addAttachment.mutate(file, {
       onError: (error: unknown) => {
         captureError(error, { screen: 'RecordAttachmentsScreen', action: 'uploadAttachment' });
-        setErrorMessage(t('AttachmentUploadFailed'));
+        // The server verifies the file's bytes, not its declared type. When it refuses the
+        // content, retrying the same file cannot help, so the message says what to do
+        // instead of "try again".
+        setErrorMessage(
+          isAttachmentContentRejection(error) ? t('AttachmentContentInvalid') : t('AttachmentUploadFailed')
+        );
       },
     });
   };

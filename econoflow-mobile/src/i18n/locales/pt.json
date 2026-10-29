@@ -638,6 +638,7 @@
   "LabelAddAttachment": "Adicionar anexo",
   "LabelNoAttachments": "Ainda não há anexos",
   "AttachmentUploadFailed": "Falha ao enviar o anexo. Tente novamente.",
+  "AttachmentContentInvalid": "O conteúdo do arquivo não corresponde ao seu tipo. Escolha um PDF ou uma imagem.",
   "AttachmentDeleteFailed": "Falha ao remover o anexo. Tente novamente.",
   "AttachmentOpenFailed": "Falha ao abrir o anexo. Tente novamente.",
   "AttachmentFileSizeExceeded": "Arquivo muito grande. O tamanho máximo é 10 MB.",

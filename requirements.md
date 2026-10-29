@@ -214,7 +214,7 @@ A **Plan** belongs to a Project and represents a financial goal (emergency reser
 - Tokens must be transmitted over HTTPS only.
 - Refresh tokens are stored server-side; client compromise allows server-side invalidation.
 - CAPTCHA (Cloudflare Turnstile) is required on login/register forms.
-- File upload: content type and size must be validated server-side; storage references (`StorageKey`) are never exposed as raw file paths.
+- File upload: the declared `Content-Type` and the size must be validated server-side, and the file **content** must be inspected against known file signatures. A file whose content does not match its declared type, or matches no supported type (including a truncated file), shall be rejected. The type recorded and served back shall be the detected one, never the declared one. Storage references (`StorageKey`) are never exposed as raw file paths.
 - The Content-Security-Policy is emitted by the server in Production and by the Angular dev-server proxy in Development, so it is exercised in both modes.
 
 ### 3.1.1 Cyber Resilience Act compliance

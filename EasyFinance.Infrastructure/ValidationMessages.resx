@@ -365,6 +365,12 @@ You will be redirect in 5 seconds ...</value>
   <data name="AttachmentContentTypeNotSupported" xml:space="preserve">
     <value>Unsupported attachment content type. Allowed types: {0}.</value>
   </data>
+  <data name="AttachmentContentTypeMismatch" xml:space="preserve">
+    <value>The attachment content is {0}, which does not match the declared type {1}.</value>
+  </data>
+  <data name="AttachmentContentNotRecognized" xml:space="preserve">
+    <value>The attachment content does not match any supported file type.</value>
+  </data>
   <data name="InvalidAttachmentType" xml:space="preserve">
     <value>Invalid attachment type.</value>
   </data>

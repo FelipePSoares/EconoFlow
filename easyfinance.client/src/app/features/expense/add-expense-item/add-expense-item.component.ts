@@ -36,6 +36,7 @@ import { ProjectService } from '../../../core/services/project.service';
 import { ProjectTaxYearSettings } from '../../../core/models/project-tax-year-settings';
 import { computeTaxYearPeriod, hasTaxYearRuleConfigured } from '../../../core/utils/tax-year';
 import { ATTACHMENT_ACCEPT_ATTRIBUTE, validateAttachmentFile } from '../../../core/utils/attachment-policy';
+import { isAttachmentContentRejection } from '../../../core/utils/api-errors';
 import { ConfigureTaxYearRuleDialogComponent } from '../../../core/components/configure-tax-year-rule-dialog/configure-tax-year-rule-dialog.component';
 import { PageModalComponent, PageModalDialogData } from '../../../core/components/page-modal/page-modal.component';
 
@@ -914,8 +915,12 @@ export class AddExpenseItemComponent implements OnInit, AfterViewInit {
           this.proofUploadSubscription = undefined;
           this.cdr.detectChanges();
         },
-        error: () => {
-          this.snackBar.openErrorSnackbar(this.translateService.instant('DeductibleProofUploadFailed'));
+        error: (response: ApiErrorResponse) => {
+          this.snackBar.openErrorSnackbar(this.translateService.instant(
+            isAttachmentContentRejection(response)
+              ? 'DeductibleProofContentInvalid'
+              : 'DeductibleProofUploadFailed'
+          ));
           this.clearPendingDeductibleProof();
         }
       });

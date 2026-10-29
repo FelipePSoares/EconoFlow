@@ -203,6 +203,7 @@ describe('i18n attachment keys', () => {
     'LabelAddAttachment',
     'LabelNoAttachments',
     'AttachmentUploadFailed',
+    'AttachmentContentInvalid',
     'AttachmentDeleteFailed',
     'AttachmentOpenFailed',
     'AttachmentFileSizeExceeded',

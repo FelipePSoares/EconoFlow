@@ -32,6 +32,7 @@ import { MatSelect, MatSelectModule } from '@angular/material/select';
 import { AttachmentType } from '../../../core/enums/attachment-type';
 import { SnackbarComponent } from '../../../core/components/snackbar/snackbar.component';
 import { ATTACHMENT_ACCEPT_ATTRIBUTE, validateAttachmentFile } from '../../../core/utils/attachment-policy';
+import { isAttachmentContentRejection } from '../../../core/utils/api-errors';
 import { Expense } from '../../../core/models/expense';
 import { ProjectService } from '../../../core/services/project.service';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -694,8 +695,12 @@ export class AddExpenseComponent implements OnInit, AfterViewInit {
           this.proofUploadSubscription = undefined;
           this.cdr.detectChanges();
         },
-        error: () => {
-          this.snackBar.openErrorSnackbar(this.translateService.instant('DeductibleProofUploadFailed'));
+        error: (response: ApiErrorResponse) => {
+          this.snackBar.openErrorSnackbar(this.translateService.instant(
+            isAttachmentContentRejection(response)
+              ? 'DeductibleProofContentInvalid'
+              : 'DeductibleProofUploadFailed'
+          ));
           this.clearPendingDeductibleProof();
         }
       });

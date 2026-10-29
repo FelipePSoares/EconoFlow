@@ -274,9 +274,18 @@ pinned to floating tags (`@v7`, `@v6`, `@latest`, `ChristopheLav/iis-deploy@v1`)
 `anomalyco/opencode/github@latest` runs on `issue_comment` with `id-token: write` — a floating
 tag on a token-bearing workflow is an avoidable supply-chain risk (Annex I(2)(1), I(2)(5)).
 
-### 5.8 🟡 Attachment upload validation trusts the client
+### 5.8 ✅ Fixed — Attachment upload validation trusts the client
 
-`AttachmentUploadPolicy` allows PDF/JPEG/PNG/WebP/HEIC by *declared* `Content-Type` only, with
+> **Status: remediated in #1072.** Uploads are now verified by content, not by the declared
+> `Content-Type`: `AttachmentUploadPolicy.SniffContentType` reads the file signature (PDF, PNG,
+> JPEG, WebP, HEIC/HEIF), the bytes must independently detect as an allowed type, and the
+> detected type is the one stored and later served. Disguised executables, scripts and
+> truncated files are rejected with a `.resx`-backed message keyed to `contentType`, and
+> downloads carry `Content-Disposition: attachment` plus `X-Content-Type-Options: nosniff`.
+> See [architecture.md § 9](../architecture.md#content-verification).
+> The original finding is kept below for the record.
+
+`AttachmentUploadPolicy` allowed PDF/JPEG/PNG/WebP/HEIC by *declared* `Content-Type` only, with
 no magic-byte or content sniffing. The 10 MB cap is good; the type check is advisory. Since
 files are served back to users, add server-side content verification.
 
@@ -318,7 +327,7 @@ Recording these avoids re-litigating them later:
 | 5 | Publish a security update support period and user security instructions | Days | Annex I(2)(6), Annex II | #1069 | 🟢 Rolling 12-month period, notice mechanism, `/security` page and user guide |
 | 6 | Add rate limiting on authentication and support endpoints | Days | Annex I(2)(1)(3) | #1070 | 🔴 Open |
 | 7 | Container scanning; pin third-party actions to commit SHAs; add Dependabot `docker` ecosystem | Days | Annex I(2)(5), VII | #1071 | 🟡 `provenance`/`sbom` enabled; rest open |
-| 8 | Verify uploads by content rather than the declared `Content-Type` | Days | Annex I(2)(1) | #1072 | 🔴 Open |
+| 8 | Verify uploads by content rather than the declared `Content-Type` | Days | Annex I(2)(1) | #1072 | 🟢 Done |
 | 9 | Author the technical file (Annex VII) and risk assessment | Weeks | Required by 2027-12-11 | #1073 | 🔴 Open |
 | 10 | Annex VIII Module A self-assessment, EU declaration of conformity, CE marking | Weeks | Required by 2027-12-11 | #1074 | 🔴 Open |
 

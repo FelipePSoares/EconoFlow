@@ -7,6 +7,8 @@ using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.Features.AttachmentService;
 using EasyFinance.Application.Features.ExpenseService;
 using EasyFinance.Application.Features.IncomeService;
+using EasyFinance.Common.Tests;
+using EasyFinance.Common.Tests.Files;
 using EasyFinance.Domain.Financial;
 using EasyFinance.Domain.Shared;
 using EasyFinance.Infrastructure;
@@ -65,7 +67,7 @@ namespace EasyFinance.Application.Tests
 
             var category = this.project1.Categories.First();
             var expense = category.Expenses.First();
-            var payload = new byte[] { 1, 2, 3, 4 };
+            var payload = AttachmentTestFiles.Pdf;
 
             await using var stream = new MemoryStream(payload);
             var uploadResponse = await attachmentService.UploadExpenseAttachmentAsync(
@@ -98,7 +100,7 @@ namespace EasyFinance.Application.Tests
             var category = this.project1.Categories.First();
             var expense = category.Expenses.First();
             var expenseItem = expense.Items.First();
-            var payload = new byte[] { 4, 3, 2, 1 };
+            var payload = AttachmentTestFiles.Png;
 
             await using var stream = new MemoryStream(payload);
             var uploadResponse = await attachmentService.UploadExpenseItemAttachmentAsync(
@@ -131,7 +133,7 @@ namespace EasyFinance.Application.Tests
             var category = this.project1.Categories.First();
             var expense = category.Expenses.First();
             var expenseItem = expense.Items.First();
-            var payload = new byte[] { 8, 7, 6, 5 };
+            var payload = AttachmentTestFiles.Pdf;
 
             await using var uploadStream = new MemoryStream(payload);
             var temporaryUploadResponse = await attachmentService.UploadTemporaryAttachmentAsync(
@@ -173,7 +175,7 @@ namespace EasyFinance.Application.Tests
             var category = this.project1.Categories.First();
             var expense = category.Expenses.First();
 
-            await using var firstStream = new MemoryStream(new byte[] { 1, 1, 1 });
+            await using var firstStream = new MemoryStream(AttachmentTestFiles.Pdf);
             var firstUploadResponse = await attachmentService.UploadExpenseAttachmentAsync(
                 user: this.user1,
                 projectId: this.project1.Id,
@@ -182,13 +184,13 @@ namespace EasyFinance.Application.Tests
                 content: firstStream,
                 fileName: "proof-1.pdf",
                 contentType: "application/pdf",
-                size: 3,
+                size: AttachmentTestFiles.Pdf.LongLength,
                 attachmentType: AttachmentType.DeductibleProof);
 
             firstUploadResponse.Succeeded.Should().BeTrue();
             var firstAttachmentStorageKey = unitOfWork.AttachmentRepository.NoTrackable().First(a => a.Id == firstUploadResponse.Data.Id).StorageKey;
 
-            await using var secondStream = new MemoryStream(new byte[] { 2, 2, 2, 2 });
+            await using var secondStream = new MemoryStream(AttachmentTestFiles.Pdf);
             var secondUploadResponse = await attachmentService.UploadExpenseAttachmentAsync(
                 user: this.user1,
                 projectId: this.project1.Id,
@@ -197,7 +199,7 @@ namespace EasyFinance.Application.Tests
                 content: secondStream,
                 fileName: "proof-2.pdf",
                 contentType: "application/pdf",
-                size: 4,
+                size: AttachmentTestFiles.Pdf.LongLength,
                 attachmentType: AttachmentType.DeductibleProof);
 
             secondUploadResponse.Succeeded.Should().BeTrue();
@@ -223,7 +225,7 @@ namespace EasyFinance.Application.Tests
             var category = this.project1.Categories.First();
             var expense = category.Expenses.First();
 
-            await using var stream = new MemoryStream(new byte[] { 9, 9, 9 });
+            await using var stream = new MemoryStream(AttachmentTestFiles.Pdf);
             var uploadResponse = await attachmentService.UploadExpenseAttachmentAsync(
                 user: this.user1,
                 projectId: this.project1.Id,
@@ -232,7 +234,7 @@ namespace EasyFinance.Application.Tests
                 content: stream,
                 fileName: "delete-me.pdf",
                 contentType: "application/pdf",
-                size: 3,
+                size: AttachmentTestFiles.Pdf.LongLength,
                 attachmentType: AttachmentType.General);
 
             uploadResponse.Succeeded.Should().BeTrue();
@@ -257,7 +259,7 @@ namespace EasyFinance.Application.Tests
             var foreignCategory = this.project2.Categories.First();
             var foreignExpense = foreignCategory.Expenses.First();
 
-            await using var stream = new MemoryStream(new byte[] { 5, 5, 5 });
+            await using var stream = new MemoryStream(AttachmentTestFiles.Pdf);
             var action = async () => await attachmentService.UploadExpenseAttachmentAsync(
                 user: this.user1,
                 projectId: this.project1.Id,
@@ -266,7 +268,7 @@ namespace EasyFinance.Application.Tests
                 content: stream,
                 fileName: "not-allowed.pdf",
                 contentType: "application/pdf",
-                size: 3,
+                size: AttachmentTestFiles.Pdf.LongLength,
                 attachmentType: AttachmentType.General);
 
             await action.Should().ThrowAsync<KeyNotFoundException>();
@@ -281,7 +283,7 @@ namespace EasyFinance.Application.Tests
             var unitOfWork = scopedServices.GetRequiredService<IUnitOfWork>();
 
             var income = this.project1.Incomes.First();
-            var payload = new byte[] { 1, 2, 3, 4, 5 };
+            var payload = AttachmentTestFiles.Pdf;
 
             await using var stream = new MemoryStream(payload);
             var uploadResponse = await attachmentService.UploadIncomeAttachmentAsync(
@@ -296,6 +298,7 @@ namespace EasyFinance.Application.Tests
             uploadResponse.Succeeded.Should().BeTrue();
             uploadResponse.Data.AttachmentType.Should().Be(AttachmentType.General);
             uploadResponse.Data.IsTemporary.Should().BeFalse();
+            uploadResponse.Data.ContentType.Should().Be("application/pdf");
 
             var savedAttachment = unitOfWork.AttachmentRepository.NoTrackable().First(a => a.Id == uploadResponse.Data.Id);
             savedAttachment.IncomeId.Should().Be(income.Id);
@@ -315,7 +318,7 @@ namespace EasyFinance.Application.Tests
 
             var income = this.project1.Incomes.First();
 
-            await using var firstStream = new MemoryStream(new byte[] { 1, 1, 1 });
+            await using var firstStream = new MemoryStream(AttachmentTestFiles.Pdf);
             var firstUploadResponse = await attachmentService.UploadIncomeAttachmentAsync(
                 user: this.user1,
                 projectId: this.project1.Id,
@@ -323,11 +326,11 @@ namespace EasyFinance.Application.Tests
                 content: firstStream,
                 fileName: "payslip-1.pdf",
                 contentType: "application/pdf",
-                size: 3);
+                size: AttachmentTestFiles.Pdf.LongLength);
 
             firstUploadResponse.Succeeded.Should().BeTrue();
 
-            await using var secondStream = new MemoryStream(new byte[] { 2, 2, 2, 2 });
+            await using var secondStream = new MemoryStream(AttachmentTestFiles.Pdf);
             var secondUploadResponse = await attachmentService.UploadIncomeAttachmentAsync(
                 user: this.user1,
                 projectId: this.project1.Id,
@@ -335,7 +338,7 @@ namespace EasyFinance.Application.Tests
                 content: secondStream,
                 fileName: "payslip-2.pdf",
                 contentType: "application/pdf",
-                size: 4);
+                size: AttachmentTestFiles.Pdf.LongLength);
 
             secondUploadResponse.Succeeded.Should().BeTrue();
 
@@ -357,7 +360,7 @@ namespace EasyFinance.Application.Tests
             var unitOfWork = scopedServices.GetRequiredService<IUnitOfWork>();
 
             var income = this.project1.Incomes.First();
-            var payload = new byte[] { 7, 7, 7 };
+            var payload = AttachmentTestFiles.Pdf;
 
             await using var uploadStream = new MemoryStream(payload);
             var temporaryUploadResponse = await attachmentService.UploadTemporaryAttachmentAsync(
@@ -423,7 +426,7 @@ namespace EasyFinance.Application.Tests
             var attachmentService = scopedServices.GetRequiredService<IAttachmentService>();
 
             var income = this.project1.Incomes.First();
-            var payload = new byte[] { 3, 1, 4, 1, 5 };
+            var payload = AttachmentTestFiles.Pdf;
 
             await using var stream = new MemoryStream(payload);
             var uploadResponse = await attachmentService.UploadIncomeAttachmentAsync(
@@ -462,7 +465,7 @@ namespace EasyFinance.Application.Tests
 
             var income = this.project1.Incomes.First();
 
-            await using var stream = new MemoryStream(new byte[] { 9, 9, 9 });
+            await using var stream = new MemoryStream(AttachmentTestFiles.Pdf);
             var uploadResponse = await attachmentService.UploadIncomeAttachmentAsync(
                 user: this.user1,
                 projectId: this.project1.Id,
@@ -470,7 +473,7 @@ namespace EasyFinance.Application.Tests
                 content: stream,
                 fileName: "delete-me.pdf",
                 contentType: "application/pdf",
-                size: 3);
+                size: AttachmentTestFiles.Pdf.LongLength);
 
             uploadResponse.Succeeded.Should().BeTrue();
             var attachment = unitOfWork.AttachmentRepository.NoTrackable().First(a => a.Id == uploadResponse.Data.Id);
@@ -493,7 +496,7 @@ namespace EasyFinance.Application.Tests
 
             var foreignIncome = this.project2.Incomes.First();
 
-            await using var stream = new MemoryStream(new byte[] { 5, 5, 5 });
+            await using var stream = new MemoryStream(AttachmentTestFiles.Pdf);
             var action = async () => await attachmentService.UploadIncomeAttachmentAsync(
                 user: this.user1,
                 projectId: this.project1.Id,
@@ -501,7 +504,7 @@ namespace EasyFinance.Application.Tests
                 content: stream,
                 fileName: "not-allowed.pdf",
                 contentType: "application/pdf",
-                size: 3);
+                size: AttachmentTestFiles.Pdf.LongLength);
 
             await action.Should().ThrowAsync<KeyNotFoundException>();
         }
@@ -515,7 +518,7 @@ namespace EasyFinance.Application.Tests
             var unitOfWork = scopedServices.GetRequiredService<IUnitOfWork>();
 
             var income = this.project1.Incomes.First();
-            var payload = new byte[] { 1, 2, 3 };
+            var payload = AttachmentTestFiles.WindowsExecutable;
 
             await using var stream = new MemoryStream(payload);
             var uploadResponse = await attachmentService.UploadIncomeAttachmentAsync(
@@ -623,7 +626,7 @@ namespace EasyFinance.Application.Tests
             var incomeService = scopedServices.GetRequiredService<IIncomeService>();
             var unitOfWork = scopedServices.GetRequiredService<IUnitOfWork>();
 
-            var payload = new byte[] { 6, 6, 6 };
+            var payload = AttachmentTestFiles.Pdf;
 
             await using var uploadStream = new MemoryStream(payload);
             var temporaryUploadResponse = await attachmentService.UploadTemporaryAttachmentAsync(
@@ -668,7 +671,7 @@ namespace EasyFinance.Application.Tests
             var unitOfWork = scopedServices.GetRequiredService<IUnitOfWork>();
 
             var income = this.project1.Incomes.First();
-            var payload = new byte[] { 8, 8, 8 };
+            var payload = AttachmentTestFiles.Pdf;
 
             await using var uploadStream = new MemoryStream(payload);
             var temporaryUploadResponse = await attachmentService.UploadTemporaryAttachmentAsync(
@@ -706,7 +709,7 @@ namespace EasyFinance.Application.Tests
 
             var income = this.project1.Incomes.First();
 
-            await using var stream = new MemoryStream(new byte[] { 2, 0, 2, 6 });
+            await using var stream = new MemoryStream(AttachmentTestFiles.Pdf);
             var uploadResponse = await attachmentService.UploadIncomeAttachmentAsync(
                 user: this.user1,
                 projectId: this.project1.Id,
@@ -714,7 +717,7 @@ namespace EasyFinance.Application.Tests
                 content: stream,
                 fileName: "payslip.pdf",
                 contentType: "application/pdf",
-                size: 4);
+                size: AttachmentTestFiles.Pdf.LongLength);
 
             uploadResponse.Succeeded.Should().BeTrue();
 
@@ -728,6 +731,284 @@ namespace EasyFinance.Application.Tests
             getResponse.Data.Single(i => i.Id == income.Id).Attachments.Single().Name.Should().Be("payslip.pdf");
         }
 
+        [Theory]
+        [InlineData("application/pdf")]
+        [InlineData("image/png")]
+        [InlineData("image/jpeg")]
+        [InlineData("image/webp")]
+        [InlineData("image/heic")]
+        [InlineData("image/heif")]
+        public async Task UploadIncomeAttachment_WithEachAllowedType_ShouldStoreThatType(string contentType)
+        {
+            using var scope = this.serviceProvider.CreateScope();
+            var scopedServices = scope.ServiceProvider;
+            var attachmentService = scopedServices.GetRequiredService<IAttachmentService>();
+            var unitOfWork = scopedServices.GetRequiredService<IUnitOfWork>();
+
+            var income = this.project1.Incomes.First();
+            var payload = PayloadFor(contentType);
+
+            await using var stream = new MemoryStream(payload);
+            var uploadResponse = await attachmentService.UploadIncomeAttachmentAsync(
+                user: this.user1,
+                projectId: this.project1.Id,
+                incomeId: income.Id,
+                content: stream,
+                fileName: "attachment.bin",
+                contentType: contentType,
+                size: payload.LongLength);
+
+            uploadResponse.Succeeded.Should().BeTrue("the content is a real file of the declared type");
+            uploadResponse.Data.ContentType.Should().Be(contentType);
+        }
+
+        [Fact]
+        public async Task UploadExpenseAttachment_WithEachAllowedType_ShouldStoreThatType()
+        {
+            using var scope = this.serviceProvider.CreateScope();
+            var scopedServices = scope.ServiceProvider;
+            var attachmentService = scopedServices.GetRequiredService<IAttachmentService>();
+            var unitOfWork = scopedServices.GetRequiredService<IUnitOfWork>();
+
+            var category = this.project1.Categories.First();
+            var expense = category.Expenses.First();
+
+            foreach (var (contentType, payload) in new[]
+                     {
+                         ("image/png", AttachmentTestFiles.Png),
+                         ("image/jpeg", AttachmentTestFiles.Jpeg),
+                         ("image/webp", AttachmentTestFiles.Webp),
+                         ("image/heic", AttachmentTestFiles.Heic),
+                         ("image/heif", AttachmentTestFiles.Heif),
+                     })
+            {
+                await using var stream = new MemoryStream(payload);
+                var uploadResponse = await attachmentService.UploadExpenseAttachmentAsync(
+                    user: this.user1,
+                    projectId: this.project1.Id,
+                    categoryId: category.Id,
+                    expenseId: expense.Id,
+                    content: stream,
+                    fileName: $"receipt-{contentType.Replace('/', '-')}",
+                    contentType: contentType,
+                    size: payload.LongLength,
+                    attachmentType: AttachmentType.General);
+
+                uploadResponse.Succeeded.Should().BeTrue($"{contentType} is an allowed type");
+                uploadResponse.Data.ContentType.Should().Be(contentType);
+
+                unitOfWork.AttachmentRepository.NoTrackable()
+                    .First(a => a.Id == uploadResponse.Data.Id)
+                    .ContentType.Should().Be(contentType);
+            }
+        }
+
+        [Fact]
+        public async Task UploadExpenseAttachment_WithJpgAlias_ShouldStoreJpeg()
+        {
+            using var scope = this.serviceProvider.CreateScope();
+            var scopedServices = scope.ServiceProvider;
+            var attachmentService = scopedServices.GetRequiredService<IAttachmentService>();
+            var unitOfWork = scopedServices.GetRequiredService<IUnitOfWork>();
+
+            var category = this.project1.Categories.First();
+            var expense = category.Expenses.First();
+
+            await using var stream = new MemoryStream(AttachmentTestFiles.Jpeg);
+            var uploadResponse = await attachmentService.UploadExpenseAttachmentAsync(
+                user: this.user1,
+                projectId: this.project1.Id,
+                categoryId: category.Id,
+                expenseId: expense.Id,
+                content: stream,
+                fileName: "receipt.jpg",
+                contentType: "image/jpg",
+                size: AttachmentTestFiles.Jpeg.LongLength,
+                attachmentType: AttachmentType.General);
+
+            uploadResponse.Succeeded.Should().BeTrue();
+            uploadResponse.Data.ContentType.Should().Be("image/jpeg");
+        }
+
+        [Fact]
+        public async Task UploadExpenseAttachment_WithDisguisedExecutableDeclaredAsPdf_ShouldRejectWithoutStoringOrReplacingTheProof()
+        {
+            using var scope = this.serviceProvider.CreateScope();
+            var scopedServices = scope.ServiceProvider;
+            var attachmentService = scopedServices.GetRequiredService<IAttachmentService>();
+            var unitOfWork = scopedServices.GetRequiredService<IUnitOfWork>();
+
+            var category = this.project1.Categories.First();
+            var expense = category.Expenses.First();
+
+            await using var proofStream = new MemoryStream(AttachmentTestFiles.Pdf);
+            var existingProof = await attachmentService.UploadExpenseAttachmentAsync(
+                user: this.user1,
+                projectId: this.project1.Id,
+                categoryId: category.Id,
+                expenseId: expense.Id,
+                content: proofStream,
+                fileName: "real-proof.pdf",
+                contentType: "application/pdf",
+                size: AttachmentTestFiles.Pdf.LongLength,
+                attachmentType: AttachmentType.DeductibleProof);
+
+            existingProof.Succeeded.Should().BeTrue();
+
+            await using var stream = new MemoryStream(AttachmentTestFiles.WindowsExecutable);
+            var uploadResponse = await attachmentService.UploadExpenseAttachmentAsync(
+                user: this.user1,
+                projectId: this.project1.Id,
+                categoryId: category.Id,
+                expenseId: expense.Id,
+                content: stream,
+                fileName: "invoice.pdf",
+                contentType: "application/pdf",
+                size: AttachmentTestFiles.WindowsExecutable.LongLength,
+                attachmentType: AttachmentType.DeductibleProof);
+
+            uploadResponse.Succeeded.Should().BeFalse();
+            uploadResponse.Messages.Should().Contain(
+                message => message.Code == "contentType"
+                    && message.Description == ValidationMessages.AttachmentContentNotRecognized);
+
+            // The rejected file must not replace the proof that is already there.
+            var proofs = unitOfWork.AttachmentRepository.NoTrackable()
+                .Where(a => a.ExpenseId == expense.Id && a.AttachmentType == AttachmentType.DeductibleProof)
+                .ToList();
+
+            proofs.Should().HaveCount(1);
+            proofs.Single().Id.Should().Be(existingProof.Data.Id);
+        }
+
+        [Fact]
+        public async Task UploadIncomeAttachment_WithDisguisedExecutableDeclaredAsImage_ShouldRejectWithoutStoring()
+        {
+            using var scope = this.serviceProvider.CreateScope();
+            var scopedServices = scope.ServiceProvider;
+            var attachmentService = scopedServices.GetRequiredService<IAttachmentService>();
+            var unitOfWork = scopedServices.GetRequiredService<IUnitOfWork>();
+
+            var income = this.project1.Incomes.First();
+
+            await using var stream = new MemoryStream(AttachmentTestFiles.ElfExecutable);
+            var uploadResponse = await attachmentService.UploadIncomeAttachmentAsync(
+                user: this.user1,
+                projectId: this.project1.Id,
+                incomeId: income.Id,
+                content: stream,
+                fileName: "payslip.png",
+                contentType: "image/png",
+                size: AttachmentTestFiles.ElfExecutable.LongLength);
+
+            uploadResponse.Succeeded.Should().BeFalse();
+            uploadResponse.Messages.Should().Contain(
+                message => message.Code == "contentType"
+                    && message.Description == ValidationMessages.AttachmentContentNotRecognized);
+
+            unitOfWork.AttachmentRepository.NoTrackable()
+                .Any(a => a.IncomeId == income.Id)
+                .Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task UploadTemporaryAttachment_WithTruncatedFileDeclaredAsPdf_ShouldRejectWithoutStoring()
+        {
+            using var scope = this.serviceProvider.CreateScope();
+            var scopedServices = scope.ServiceProvider;
+            var attachmentService = scopedServices.GetRequiredService<IAttachmentService>();
+            var unitOfWork = scopedServices.GetRequiredService<IUnitOfWork>();
+
+            await using var stream = new MemoryStream(AttachmentTestFiles.TruncatedPdf);
+            var uploadResponse = await attachmentService.UploadTemporaryAttachmentAsync(
+                user: this.user1,
+                projectId: this.project1.Id,
+                content: stream,
+                fileName: "half-upload.pdf",
+                contentType: "application/pdf",
+                size: AttachmentTestFiles.TruncatedPdf.LongLength,
+                attachmentType: AttachmentType.General);
+
+            uploadResponse.Succeeded.Should().BeFalse();
+            uploadResponse.Messages.Should().Contain(message => message.Code == "contentType");
+
+            unitOfWork.AttachmentRepository.NoTrackable()
+                .Any(a => a.IsTemporary)
+                .Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task UploadIncomeAttachment_WithContentThatDoesNotMatchTheDeclaredType_ShouldRejectWithAMismatch()
+        {
+            using var scope = this.serviceProvider.CreateScope();
+            var scopedServices = scope.ServiceProvider;
+            var attachmentService = scopedServices.GetRequiredService<IAttachmentService>();
+            var unitOfWork = scopedServices.GetRequiredService<IUnitOfWork>();
+
+            var income = this.project1.Incomes.First();
+
+            await using var stream = new MemoryStream(AttachmentTestFiles.Png);
+            var uploadResponse = await attachmentService.UploadIncomeAttachmentAsync(
+                user: this.user1,
+                projectId: this.project1.Id,
+                incomeId: income.Id,
+                content: stream,
+                fileName: "receipt.pdf",
+                contentType: "application/pdf",
+                size: AttachmentTestFiles.Png.LongLength);
+
+            uploadResponse.Succeeded.Should().BeFalse();
+            uploadResponse.Messages.Should().Contain(
+                message => message.Code == "contentType"
+                    && message.Description == string.Format(
+                        ValidationMessages.AttachmentContentTypeMismatch,
+                        "image/png",
+                        "application/pdf"));
+
+            unitOfWork.AttachmentRepository.NoTrackable()
+                .Any(a => a.IncomeId == income.Id)
+                .Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task UploadIncomeAttachment_FromANonSeekableStream_ShouldStoreTheCompleteFile()
+        {
+            using var scope = this.serviceProvider.CreateScope();
+            var scopedServices = scope.ServiceProvider;
+            var attachmentService = scopedServices.GetRequiredService<IAttachmentService>();
+            var unitOfWork = scopedServices.GetRequiredService<IUnitOfWork>();
+
+            var income = this.project1.Incomes.First();
+            var payload = AttachmentTestFiles.Pdf;
+
+            await using var stream = AttachmentTestFiles.NonSeekable(payload);
+            var uploadResponse = await attachmentService.UploadIncomeAttachmentAsync(
+                user: this.user1,
+                projectId: this.project1.Id,
+                incomeId: income.Id,
+                content: stream,
+                fileName: "chunked-upload.pdf",
+                contentType: "application/pdf",
+                size: payload.LongLength);
+
+            uploadResponse.Succeeded.Should().BeTrue();
+
+            var savedAttachment = unitOfWork.AttachmentRepository.NoTrackable().First(a => a.Id == uploadResponse.Data.Id);
+            var storedBytes = this.AttachmentStorage.Read(TestAttachmentBucket, savedAttachment.StorageKey);
+            storedBytes.Should().Equal(payload);
+        }
+
         private bool ExistsInStorage(string storageKey) => this.AttachmentStorage.Exists(TestAttachmentBucket, storageKey);
+
+        private static byte[] PayloadFor(string contentType) => contentType switch
+        {
+            "application/pdf" => AttachmentTestFiles.Pdf,
+            "image/png" => AttachmentTestFiles.Png,
+            "image/jpeg" => AttachmentTestFiles.Jpeg,
+            "image/webp" => AttachmentTestFiles.Webp,
+            "image/heic" => AttachmentTestFiles.Heic,
+            "image/heif" => AttachmentTestFiles.Heif,
+            _ => throw new ArgumentOutOfRangeException(nameof(contentType), contentType, "No payload registered.")
+        };
     }
 }

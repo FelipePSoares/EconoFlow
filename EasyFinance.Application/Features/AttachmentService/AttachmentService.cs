@@ -41,9 +41,12 @@ namespace EasyFinance.Application.Features.AttachmentService
             AttachmentType attachmentType)
         {
             var safeContentType = NormalizeContentType(contentType);
+            content = await PrepareForStorageAsync(content, size);
             var validationResponse = ValidateTemporaryUploadInput(user, projectId, content, safeContentType, size, attachmentType);
             if (validationResponse.Failed)
                 return AppResponse<AttachmentResponseDTO>.Error(validationResponse.Messages);
+
+            var storedContentType = ResolveStoredContentType(content, safeContentType);
 
             var projectExists = await this.unitOfWork.ProjectRepository
                 .NoTrackable()
@@ -54,9 +57,6 @@ namespace EasyFinance.Application.Features.AttachmentService
 
             var safeFileName = NormalizeFileName(fileName);
 
-            if (content.CanSeek)
-                content.Seek(0, SeekOrigin.Begin);
-
             string createdStorageKey = null;
             try
             {
@@ -64,7 +64,7 @@ namespace EasyFinance.Application.Features.AttachmentService
 
                 var temporaryAttachment = new Attachment(
                     name: safeFileName,
-                    contentType: safeContentType,
+                    contentType: storedContentType,
                     size: size,
                     storageKey: createdStorageKey,
                     attachmentType: attachmentType,
@@ -235,9 +235,12 @@ namespace EasyFinance.Application.Features.AttachmentService
             AttachmentType attachmentType)
         {
             var safeContentType = NormalizeContentType(contentType);
+            content = await PrepareForStorageAsync(content, size);
             var validationResponse = ValidateUploadInput(user, projectId, categoryId, expenseId, content, safeContentType, size, attachmentType);
             if (validationResponse.Failed)
                 return AppResponse<AttachmentResponseDTO>.Error(validationResponse.Messages);
+
+            var storedContentType = ResolveStoredContentType(content, safeContentType);
 
             var expense = await GetExpenseAsync(projectId, categoryId, expenseId, trackChanges: true);
 
@@ -246,9 +249,6 @@ namespace EasyFinance.Application.Features.AttachmentService
                 existingDeductibleProof = expense.Attachments.FirstOrDefault(a => a.AttachmentType == AttachmentType.DeductibleProof);
 
             var safeFileName = NormalizeFileName(fileName);
-
-            if (content.CanSeek)
-                content.Seek(0, SeekOrigin.Begin);
 
             string createdStorageKey = null;
             try
@@ -263,7 +263,7 @@ namespace EasyFinance.Application.Features.AttachmentService
 
                 var attachment = new Attachment(
                     name: safeFileName,
-                    contentType: safeContentType,
+                    contentType: storedContentType,
                     size: size,
                     storageKey: createdStorageKey,
                     attachmentType: attachmentType,
@@ -305,9 +305,12 @@ namespace EasyFinance.Application.Features.AttachmentService
             AttachmentType attachmentType)
         {
             var safeContentType = NormalizeContentType(contentType);
+            content = await PrepareForStorageAsync(content, size);
             var validationResponse = ValidateUploadInput(user, projectId, categoryId, expenseId, content, safeContentType, size, attachmentType);
             if (validationResponse.Failed)
                 return AppResponse<AttachmentResponseDTO>.Error(validationResponse.Messages);
+
+            var storedContentType = ResolveStoredContentType(content, safeContentType);
 
             if (expenseItemId == Guid.Empty)
                 return AppResponse<AttachmentResponseDTO>.Error(nameof(expenseItemId), ValidationMessages.InvalidExpenseItemId);
@@ -316,9 +319,6 @@ namespace EasyFinance.Application.Features.AttachmentService
 
             var safeFileName = NormalizeFileName(fileName);
 
-            if (content.CanSeek)
-                content.Seek(0, SeekOrigin.Begin);
-
             string createdStorageKey = null;
             try
             {
@@ -326,7 +326,7 @@ namespace EasyFinance.Application.Features.AttachmentService
 
                 var attachment = new Attachment(
                     name: safeFileName,
-                    contentType: safeContentType,
+                    contentType: storedContentType,
                     size: size,
                     storageKey: createdStorageKey,
                     attachmentType: attachmentType,
@@ -509,16 +509,16 @@ namespace EasyFinance.Application.Features.AttachmentService
             long size)
         {
             var safeContentType = NormalizeContentType(contentType);
+            content = await PrepareForStorageAsync(content, size);
             var validationResponse = ValidateIncomeUploadInput(user, projectId, incomeId, content, safeContentType, size);
             if (validationResponse.Failed)
                 return AppResponse<AttachmentResponseDTO>.Error(validationResponse.Messages);
 
+            var storedContentType = ResolveStoredContentType(content, safeContentType);
+
             var income = await GetIncomeAsync(projectId, incomeId, trackChanges: true);
 
             var safeFileName = NormalizeFileName(fileName);
-
-            if (content.CanSeek)
-                content.Seek(0, SeekOrigin.Begin);
 
             string createdStorageKey = null;
             try
@@ -527,7 +527,7 @@ namespace EasyFinance.Application.Features.AttachmentService
 
                 var attachment = new Attachment(
                     name: safeFileName,
-                    contentType: safeContentType,
+                    contentType: storedContentType,
                     size: size,
                     storageKey: createdStorageKey,
                     attachmentType: AttachmentType.General,
@@ -605,7 +605,7 @@ namespace EasyFinance.Application.Features.AttachmentService
             long size,
             AttachmentType attachmentType)
         {
-            var response = AppResponse.Success();
+            var response = ValidateContentAndAddErrors(content, contentType, size);
 
             if (user == null)
                 response.AddErrorMessage(nameof(user), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(user)));
@@ -615,14 +615,6 @@ namespace EasyFinance.Application.Features.AttachmentService
                 response.AddErrorMessage(nameof(categoryId), ValidationMessages.InvalidCategoryId);
             if (expenseId == Guid.Empty)
                 response.AddErrorMessage(nameof(expenseId), ValidationMessages.InvalidExpenseId);
-            if (content == null)
-                response.AddErrorMessage(nameof(content), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(content)));
-            if (size <= 0)
-                response.AddErrorMessage(nameof(size), ValidationMessages.AttachmentFileIsEmpty);
-            if (size > AttachmentUploadPolicy.MaxAttachmentSizeBytes)
-                response.AddErrorMessage(nameof(size), string.Format(ValidationMessages.AttachmentFileSizeExceeded, AttachmentUploadPolicy.MaxAttachmentSizeBytes / (1024 * 1024)));
-            if (!AttachmentUploadPolicy.IsAllowedContentType(contentType))
-                response.AddErrorMessage(nameof(contentType), string.Format(ValidationMessages.AttachmentContentTypeNotSupported, AttachmentUploadPolicy.AllowedContentTypesDescription));
             if (!Enum.IsDefined(typeof(AttachmentType), attachmentType))
                 response.AddErrorMessage(nameof(attachmentType), ValidationMessages.InvalidAttachmentType);
 
@@ -637,20 +629,12 @@ namespace EasyFinance.Application.Features.AttachmentService
             long size,
             AttachmentType attachmentType)
         {
-            var response = AppResponse.Success();
+            var response = ValidateContentAndAddErrors(content, contentType, size);
 
             if (user == null)
                 response.AddErrorMessage(nameof(user), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(user)));
             if (projectId == Guid.Empty)
                 response.AddErrorMessage(nameof(projectId), ValidationMessages.InvalidProjectId);
-            if (content == null)
-                response.AddErrorMessage(nameof(content), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(content)));
-            if (size <= 0)
-                response.AddErrorMessage(nameof(size), ValidationMessages.AttachmentFileIsEmpty);
-            if (size > AttachmentUploadPolicy.MaxAttachmentSizeBytes)
-                response.AddErrorMessage(nameof(size), string.Format(ValidationMessages.AttachmentFileSizeExceeded, AttachmentUploadPolicy.MaxAttachmentSizeBytes / (1024 * 1024)));
-            if (!AttachmentUploadPolicy.IsAllowedContentType(contentType))
-                response.AddErrorMessage(nameof(contentType), string.Format(ValidationMessages.AttachmentContentTypeNotSupported, AttachmentUploadPolicy.AllowedContentTypesDescription));
             if (!Enum.IsDefined(typeof(AttachmentType), attachmentType))
                 response.AddErrorMessage(nameof(attachmentType), ValidationMessages.InvalidAttachmentType);
 
@@ -665,7 +649,7 @@ namespace EasyFinance.Application.Features.AttachmentService
             string contentType,
             long size)
         {
-            var response = AppResponse.Success();
+            var response = ValidateContentAndAddErrors(content, contentType, size);
 
             if (user == null)
                 response.AddErrorMessage(nameof(user), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(user)));
@@ -673,6 +657,24 @@ namespace EasyFinance.Application.Features.AttachmentService
                 response.AddErrorMessage(nameof(projectId), ValidationMessages.InvalidProjectId);
             if (incomeId == Guid.Empty)
                 response.AddErrorMessage(nameof(incomeId), ValidationMessages.InvalidIncomeId);
+
+            return response;
+        }
+
+        /// <summary>
+        /// Shared content checks for every upload surface. The declared type is only the first
+        /// gate: it must be on the allow-list, and the bytes must independently prove they are
+        /// that type, because the declared header is supplied by the client.
+        ///
+        /// <para>
+        /// No content is read until the length and declared-type checks have passed, so a
+        /// request that is going to be refused anyway never gets its body buffered.
+        /// </para>
+        /// </summary>
+        private static AppResponse ValidateContentAndAddErrors(Stream content, string contentType, long size)
+        {
+            var response = AppResponse.Success();
+
             if (content == null)
                 response.AddErrorMessage(nameof(content), string.Format(ValidationMessages.PropertyCantBeNullOrEmpty, nameof(content)));
             if (size <= 0)
@@ -680,9 +682,81 @@ namespace EasyFinance.Application.Features.AttachmentService
             if (size > AttachmentUploadPolicy.MaxAttachmentSizeBytes)
                 response.AddErrorMessage(nameof(size), string.Format(ValidationMessages.AttachmentFileSizeExceeded, AttachmentUploadPolicy.MaxAttachmentSizeBytes / (1024 * 1024)));
             if (!AttachmentUploadPolicy.IsAllowedContentType(contentType))
+            {
                 response.AddErrorMessage(nameof(contentType), string.Format(ValidationMessages.AttachmentContentTypeNotSupported, AttachmentUploadPolicy.AllowedContentTypesDescription));
+                return response;
+            }
+
+            if (content == null || !content.CanRead)
+                return response;
+
+            var detectedContentType = AttachmentUploadPolicy.SniffContentType(content);
+
+            if (detectedContentType == null)
+            {
+                // The bytes match nothing we accept - an executable, a script, or a file that
+                // was truncated before its signature was complete.
+                response.AddErrorMessage(nameof(contentType), ValidationMessages.AttachmentContentNotRecognized);
+                return response;
+            }
+
+            var normalizedDeclared = AttachmentUploadPolicy.NormalizeContentTypeForStorage(contentType);
+            if (!string.Equals(normalizedDeclared, detectedContentType, StringComparison.Ordinal))
+            {
+                response.AddErrorMessage(
+                    nameof(contentType),
+                    string.Format(ValidationMessages.AttachmentContentTypeMismatch, detectedContentType, normalizedDeclared));
+            }
 
             return response;
+        }
+
+        /// <summary>
+        /// Returns the content type the upload must be stored under - the one the bytes
+        /// actually are. Falls back to the canonical declared type only when the bytes were not
+        /// inspected, which cannot happen for an accepted upload.
+        /// </summary>
+        private static string ResolveStoredContentType(Stream content, string declaredContentType)
+        {
+            var detectedContentType = content == null ? null : AttachmentUploadPolicy.SniffContentType(content);
+
+            return detectedContentType ?? AttachmentUploadPolicy.NormalizeContentTypeForStorage(declaredContentType);
+        }
+
+        /// <summary>
+        /// Prepares the upload stream for validation and storage and returns it positioned at
+        /// the start.
+        ///
+        /// <para>
+        /// Signature detection needs to read the head and then leave the stream usable for the
+        /// storage copy. That is free on a seekable stream but impossible on a forward-only
+        /// request body, so such a stream is copied into memory once.
+        /// </para>
+        ///
+        /// <para>
+        /// Callers pass <paramref name="size"/> so an oversized body is refused before it is
+        /// buffered: the only thing this method can spend memory on is an upload that is
+        /// already within the size limit and declares an allowed type.
+        /// </para>
+        /// </summary>
+        private static async Task<Stream> PrepareForStorageAsync(Stream content, long size)
+        {
+            if (!content.CanSeek)
+            {
+                // Nothing gets buffered for a request the cheap checks already reject.
+                if (size <= 0 || size > AttachmentUploadPolicy.MaxAttachmentSizeBytes)
+                    return content;
+
+                var buffered = new MemoryStream();
+                await content.CopyToAsync(buffered);
+                buffered.Position = 0;
+
+                return buffered;
+            }
+
+            content.Seek(0, SeekOrigin.Begin);
+
+            return content;
         }
 
         private async Task<Expense> GetExpenseAsync(Guid projectId, Guid categoryId, Guid expenseId, bool trackChanges)
