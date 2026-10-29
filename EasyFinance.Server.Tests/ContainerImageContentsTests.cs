@@ -536,6 +536,20 @@ namespace EasyFinance.Server.Tests
             job.Should().MatchRegex(
                 @"(?m)^\s+minio:\s*$",
                 "the job needs a MinIO service, or the configured endpoint is unreachable");
+
+            // A service container cannot set a command, so the image has to start the server
+            // by itself. This one's default CMD does; the GHCR image used by the development
+            // stack has a bare `minio` CMD and exits 0 with its help text.
+            //
+            // Checked against the instructions only: the workflow explains in a comment why
+            // that image cannot be used here, and a plain scan would match the explanation.
+            var instructions = string.Join(
+                "\n",
+                job.Split('\n').Where(line => !line.TrimStart().StartsWith("#", StringComparison.Ordinal)));
+
+            instructions.Should().NotContain(
+                "ghcr.io/coollabsio/minio",
+                "that image does not start a server under a service container's default CMD");
         }
 
         [Fact]

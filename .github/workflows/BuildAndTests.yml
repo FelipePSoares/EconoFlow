@@ -390,11 +390,23 @@ jobs:
       # S3_ENDPOINT or S3_BUCKET is missing, and the attachment specs would see a 500. The
       # suite therefore runs against a real bucket, which is also what makes the upload and
       # download specs exercise the path production uses.
+      #
+      # This image (not ghcr.io/coollabsio/minio) because a service container has no
+      # `command:` key: it needs an image whose default CMD already starts the server.
+      # The coollabs image's CMD is a bare `minio`, so it prints help and exits 0, which
+      # GitHub reports as an unhealthy service and fails the job in seconds.
       minio:
-        image: ghcr.io/coollabsio/minio:latest
+        image: bitnamilegacy/minio:latest
         env:
           MINIO_ROOT_USER: econoflow
           MINIO_ROOT_PASSWORD: econoflow-dev-secret
+        ports:
+          - 9000:9000
+        options: >-
+          --health-cmd "curl -fsS http://127.0.0.1:9000/minio/health/live"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
         ports:
           - 9000:9000
         options: >-
@@ -481,6 +493,7 @@ jobs:
       shell: bash
       run: |
         CONTAINER_ID=$(docker ps --filter "name=minio" --format "{{.ID}}" | head -n 1)
+        docker exec "$CONTAINER_ID" mc alias set local http://127.0.0.1:9000 econoflow econoflow-dev-secret
         docker exec "$CONTAINER_ID" mc mb --ignore-existing local/econoflow
         docker exec "$CONTAINER_ID" mc ls local/
 
