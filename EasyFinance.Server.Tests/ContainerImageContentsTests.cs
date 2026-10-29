@@ -451,10 +451,15 @@ namespace EasyFinance.Server.Tests
 
             jobStart.Should().BeGreaterThan(-1, "the workflow is expected to have an integration-tests job");
 
-            var nextJob = workflow.IndexOf("\n  script-tests:", StringComparison.Ordinal);
-
-            if (nextJob < 0 || nextJob < jobStart)
-                nextJob = workflow.Length;
+            // The slice ends at whichever job definition follows this one. integration-tests is
+            // the last job today, so it usually ends at end of file - but the job order has
+            // changed before, so look for any `  <name>:` line that starts after this job.
+            var nextJob = Regex
+                .Matches(workflow.Substring(jobStart + 1), @"(?m)^  [a-z][a-z0-9-]*:\s*$")
+                .Select(match => match.Index + jobStart + 1)
+                .Where(index => index > jobStart)
+                .DefaultIfEmpty(workflow.Length)
+                .Min();
 
             return workflow.Substring(jobStart, nextJob - jobStart);
         }
@@ -510,6 +515,37 @@ namespace EasyFinance.Server.Tests
                 "EconoFlow_SEED_DEVELOPMENT_DATA",
                 "the Cypress suite depends on the development fixtures, which are "
                 + "skipped by default for a real database");
+        }
+
+        [Fact]
+        public void CypressJob_ShouldConfigureObjectStorage()
+        {
+            // Object storage is the only attachment backend, and AttachmentStorageServiceFactory
+            // throws at start-up when it is not configured. Registration resolves the storage,
+            // so an unconfigured job does not fail one attachment spec: every spec that signs
+            // up or logs in answers 500.
+            var job = IntegrationJob();
+
+            foreach (var variable in new[] { "S3_ENDPOINT", "S3_ACCESS_KEY", "S3_SECRET_KEY", "S3_BUCKET" })
+            {
+                job.Should().Contain(
+                    $"{variable}:",
+                    $"{variable} is required for the application to create its attachment storage");
+            }
+
+            job.Should().MatchRegex(
+                @"(?m)^\s+minio:\s*$",
+                "the job needs a MinIO service, or the configured endpoint is unreachable");
+        }
+
+        [Fact]
+        public void CypressJob_ShouldCreateTheAttachmentBucket()
+        {
+            // MinIO starts with an empty data directory. An upload into a bucket that does not
+            // exist fails, so the job creates it before the suite runs.
+            IntegrationJob().Should().Contain(
+                "mc mb",
+                "the bucket the application writes to has to be created first");
         }
     }
 }
