@@ -10,6 +10,11 @@ export function extractApiErrors(error: unknown): Record<string, string[]> {
  * declared. The server keys that rejection to `contentType`, and the response is a 400 -
  * a retry of the same file would fail identically, so callers should explain the problem
  * rather than suggest trying again.
+ *
+ * The status is checked here because the mobile Axios client surfaces the whole response.
+ * The Angular twin (`easyfinance.client/src/app/core/utils/api-errors.ts`) deliberately
+ * checks only the `contentType` key: its HTTP interceptor has already reduced the error to
+ * an `ApiErrorResponse` and discards the status, so both end up matching the same 400.
  */
 export function isAttachmentContentRejection(error: unknown): boolean {
   const e = error as RawErrorResponse & { response?: { status?: number } };

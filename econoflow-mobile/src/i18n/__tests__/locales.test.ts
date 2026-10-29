@@ -243,4 +243,18 @@ describe('i18n catalogue parity', () => {
 
     expect(missing).toEqual([]);
   });
+
+  // A key present in both catalogues but empty in one still renders as nothing for those
+  // users, so parity has to cover values as well as names.
+  it('every key has a non-empty value in both catalogues', () => {
+    const blankInEnglish = Object.keys(en as LocaleMap).filter(
+      (key) => String((en as LocaleMap)[key] ?? '').trim().length === 0
+    );
+    const blankInPortuguese = Object.keys(pt as LocaleMap).filter(
+      (key) => String((pt as LocaleMap)[key] ?? '').trim().length === 0
+    );
+
+    expect(blankInEnglish).toEqual([]);
+    expect(blankInPortuguese).toEqual([]);
+  });
 });
