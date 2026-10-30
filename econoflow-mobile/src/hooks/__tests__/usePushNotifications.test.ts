@@ -1,6 +1,7 @@
 import * as NotificationsApi from '../../api/notifications.api';
 import { useNotificationStore } from '../../store/notificationStore';
-import { registerPushNotificationsAsync, unregisterPushNotificationsAsync } from '../usePushNotifications';
+import { act, renderHook } from '@testing-library/react-native';
+import { registerPushNotificationsAsync, unregisterPushNotificationsAsync, usePushNotifications } from '../usePushNotifications';
 
 jest.mock('expo-secure-store', () => ({
   getItemAsync: jest.fn().mockResolvedValue(null),
@@ -161,7 +162,7 @@ describe('registerPushNotificationsAsync', () => {
 
     await expect(
       registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled),
-    ).resolves.toBeUndefined();
+    ).resolves.toMatchObject({ ok: false });
 
     expect(mockCaptureError).toHaveBeenCalledWith(apiError, { screen: 'usePushNotifications', action: 'register' });
     expect(setNotificationsEnabled).toHaveBeenCalledWith(false);
@@ -175,7 +176,7 @@ describe('registerPushNotificationsAsync', () => {
 
     await expect(
       registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled),
-    ).resolves.toBeUndefined();
+    ).resolves.toMatchObject({ ok: false });
 
     expect(mockCaptureError).toHaveBeenCalledWith(tokenError, { screen: 'usePushNotifications', action: 'register' });
     expect(setNotificationsEnabled).toHaveBeenCalledWith(false);
@@ -188,7 +189,7 @@ describe('registerPushNotificationsAsync', () => {
 
     await expect(
       registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled),
-    ).resolves.toBeUndefined();
+    ).resolves.toMatchObject({ ok: false });
 
     expect(mockCaptureError).toHaveBeenCalledWith(permError, { screen: 'usePushNotifications', action: 'register' });
     expect(setNotificationsEnabled).toHaveBeenCalledWith(false);
@@ -204,7 +205,7 @@ describe('registerPushNotificationsAsync', () => {
 
     await expect(
       registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled),
-    ).resolves.toBeUndefined();
+    ).resolves.toMatchObject({ ok: false });
 
     expect(loadCount).toBe(loadsBefore);
     expect(setExpoPushToken).not.toHaveBeenCalled();
@@ -231,12 +232,108 @@ describe('registerPushNotificationsAsync', () => {
         setExpoPushToken,
         setNotificationsEnabled,
       ),
-    ).resolves.toBeUndefined();
+    ).resolves.toMatchObject({ ok: false });
 
     // Must not be a TypeError from dereferencing the missing module: the guard stops the
     // undefined shape before it is ever used.
     expect(setExpoPushToken).not.toHaveBeenCalled();
     expect(NotificationsApi.registerExpoPushToken).not.toHaveBeenCalled();
+  });
+});
+
+describe('registerPushNotificationsAsync — result for each failure mode (#1056)', () => {
+  beforeEach(() => {
+    useNotificationStore.setState({ expoPushToken: null, notificationsEnabled: false });
+    mockIsDevice.current = true;
+    mockIsRunningInExpoGo.current = false;
+    jest.clearAllMocks();
+  });
+
+  it('returns ok: true after a successful registration', async () => {
+    mockGetPermissionsAsync.mockResolvedValue({ status: 'granted' });
+    mockGetExpoPushTokenAsync.mockResolvedValue({ data: 'ExponentPushToken[abc]' });
+    (NotificationsApi.registerExpoPushToken as jest.Mock).mockResolvedValue({ data: {} });
+
+    const result = await registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled);
+
+    expect(result).toEqual({ ok: true });
+  });
+
+  it('returns reason "device" when there is no physical device', async () => {
+    mockIsDevice.current = false;
+
+    const result = await registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled);
+
+    expect(result).toEqual({ ok: false, reason: 'device' });
+  });
+
+  it('returns reason "permission" when the permission prompt is declined', async () => {
+    mockGetPermissionsAsync.mockResolvedValue({ status: 'undetermined' });
+    mockRequestPermissionsAsync.mockResolvedValue({ status: 'denied' });
+
+    const result = await registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled);
+
+    expect(result).toEqual({ ok: false, reason: 'permission' });
+  });
+
+  it('returns reason "unavailable" when push is unavailable in Expo Go on Android', async () => {
+    mockIsRunningInExpoGo.current = true;
+
+    const result = await registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled);
+
+    expect(result).toEqual({ ok: false, reason: 'unavailable' });
+  });
+
+  it('returns reason "api" when the backend rejects the token', async () => {
+    mockGetPermissionsAsync.mockResolvedValue({ status: 'granted' });
+    mockGetExpoPushTokenAsync.mockResolvedValue({ data: 'ExponentPushToken[abc]' });
+    (NotificationsApi.registerExpoPushToken as jest.Mock).mockRejectedValue(new Error('API error'));
+
+    const result = await registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled);
+
+    expect(result).toEqual({ ok: false, reason: 'api' });
+  });
+
+  it('returns reason "unknown" when the push token cannot be obtained', async () => {
+    mockGetPermissionsAsync.mockResolvedValue({ status: 'granted' });
+    mockGetExpoPushTokenAsync.mockRejectedValue(new Error('Expo push service unreachable'));
+
+    const result = await registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled);
+
+    expect(result).toEqual({ ok: false, reason: 'unknown' });
+  });
+
+  it('returns reason "permission" when the permission call itself throws', async () => {
+    // A native-module failure while reading the permission is still a permission
+    // problem from the user's point of view: "try again later" would mislead them.
+    mockGetPermissionsAsync.mockRejectedValue(new Error('Native module error'));
+
+    const result = await registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled);
+
+    expect(result).toEqual({ ok: false, reason: 'permission' });
+    expect(setNotificationsEnabled).not.toHaveBeenCalledWith(true);
+  });
+
+  it('returns reason "permission" when requesting the permission throws', async () => {
+    mockGetPermissionsAsync.mockResolvedValue({ status: 'undetermined' });
+    mockRequestPermissionsAsync.mockRejectedValue(new Error('Native module error'));
+
+    const result = await registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled);
+
+    expect(result).toEqual({ ok: false, reason: 'permission' });
+    expect(NotificationsApi.registerExpoPushToken).not.toHaveBeenCalled();
+  });
+
+  it('leaves notifications disabled on every failure mode', async () => {
+    mockGetPermissionsAsync.mockResolvedValue({ status: 'granted' });
+    mockGetExpoPushTokenAsync.mockResolvedValue({ data: 'ExponentPushToken[abc]' });
+    (NotificationsApi.registerExpoPushToken as jest.Mock).mockRejectedValue(new Error('API error'));
+
+    const result = await registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled);
+
+    expect(result.ok).toBe(false);
+    expect(setNotificationsEnabled).not.toHaveBeenCalledWith(true);
+    expect(setExpoPushToken).not.toHaveBeenCalled();
   });
 });
 
@@ -273,5 +370,82 @@ describe('unregisterPushNotificationsAsync', () => {
     expect(mockCaptureError).toHaveBeenCalledWith(apiError, { screen: 'usePushNotifications', action: 'unregister' });
     expect(NotificationsApi.unregisterExpoPushToken).toHaveBeenCalled();
     expect(clearNotificationState).toHaveBeenCalled();
+  });
+
+  it('reports ok: true when the API call succeeds (#1056)', async () => {
+    (NotificationsApi.unregisterExpoPushToken as jest.Mock).mockResolvedValue({ data: {} });
+
+    const result = await unregisterPushNotificationsAsync('ExponentPushToken[abc]', clearNotificationState);
+
+    expect(result).toEqual({ ok: true });
+  });
+
+  it('reports ok: false when the API call fails, so the caller can restore the toggle (#1056)', async () => {
+    (NotificationsApi.unregisterExpoPushToken as jest.Mock).mockRejectedValue(new Error('API error'));
+
+    const result = await unregisterPushNotificationsAsync('ExponentPushToken[abc]', clearNotificationState);
+
+    expect(result).toEqual({ ok: false });
+  });
+
+  it('does not report a failure when there is no token to remove (#1056)', async () => {
+    const result = await unregisterPushNotificationsAsync(null, clearNotificationState);
+
+    expect(result).toEqual({ ok: true });
+  });
+});
+
+describe('usePushNotifications — error state (#1056)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockIsDevice.current = true;
+    mockIsRunningInExpoGo.current = false;
+    useNotificationStore.setState({ expoPushToken: null, notificationsEnabled: false });
+  });
+
+  it('exposes the failure reason after a rejected registration and clears it on dismiss', async () => {
+    mockGetPermissionsAsync.mockResolvedValue({ status: 'undetermined' });
+    mockRequestPermissionsAsync.mockResolvedValue({ status: 'denied' });
+
+    const { result } = await renderHook(() => usePushNotifications());
+
+    await act(async () => {
+      await result.current.registerPushNotifications();
+    });
+    expect(result.current.pushNotificationsError).toBe('permission');
+
+    await act(async () => {
+      result.current.clearPushNotificationsError();
+    });
+    expect(result.current.pushNotificationsError).toBeNull();
+  });
+
+  it('restores the toggle to ON and reports the failure when disabling fails', async () => {
+    useNotificationStore.setState({ expoPushToken: 'ExponentPushToken[abc]', notificationsEnabled: true });
+    (NotificationsApi.unregisterExpoPushToken as jest.Mock).mockRejectedValue(new Error('API error'));
+
+    const { result } = await renderHook(() => usePushNotifications());
+
+    await act(async () => {
+      await result.current.unregisterPushNotifications();
+    });
+
+    expect(result.current.pushNotificationsError).toBe('unregister');
+    expect(useNotificationStore.getState().notificationsEnabled).toBe(true);
+  });
+
+  it('keeps pushing enabled and reports no error after a successful registration', async () => {
+    mockGetPermissionsAsync.mockResolvedValue({ status: 'granted' });
+    mockGetExpoPushTokenAsync.mockResolvedValue({ data: 'ExponentPushToken[abc]' });
+    (NotificationsApi.registerExpoPushToken as jest.Mock).mockResolvedValue({ data: {} });
+
+    const { result } = await renderHook(() => usePushNotifications());
+
+    await act(async () => {
+      await result.current.registerPushNotifications();
+    });
+
+    expect(result.current.pushNotificationsError).toBeNull();
+    expect(useNotificationStore.getState().notificationsEnabled).toBe(true);
   });
 });

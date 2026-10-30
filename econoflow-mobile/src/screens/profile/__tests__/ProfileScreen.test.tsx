@@ -52,6 +52,34 @@ jest.mock('../../../components/common/GlassScreen', () => {
   };
 });
 
+jest.mock('../../../components/common/ErrorBanner', () => {
+  const React = require('react');
+  const { Text, TouchableOpacity } = require('react-native');
+  return {
+    // Mirrors the real banner's shape closely enough to assert on visible/message
+    // and to drive both actions from a test.
+    ErrorBanner: ({
+      visible, message, onDismiss, onRetry,
+    }: {
+      visible: boolean;
+      message?: string;
+      onDismiss: () => void;
+      onRetry?: () => void;
+    }) => {
+      if (!visible) return null;
+      return React.createElement(
+        React.Fragment,
+        null,
+        React.createElement(Text, { testID: 'error-banner' }, message ?? 'ErrorGeneric'),
+        onRetry
+          ? React.createElement(TouchableOpacity, { testID: 'error-banner-retry', onPress: onRetry })
+          : null,
+        React.createElement(TouchableOpacity, { testID: 'error-banner-dismiss', onPress: onDismiss }),
+      );
+    },
+  };
+});
+
 jest.mock('../../../components/common/GlassCard', () => {
   const React = require('react');
   const { View } = require('react-native');
@@ -321,7 +349,7 @@ describe('ProfileScreen – push notifications loading state', () => {
   });
 
   it('does not show a spinner when no notification request is in flight', async () => {
-    mockHook({});
+    mockHook({ pushNotificationsError: null });
 
     await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
 
@@ -346,6 +374,106 @@ describe('ProfileScreen – push notifications loading state', () => {
 
     expect(mockUnregisterPushNotifications).not.toHaveBeenCalled();
     expect(mockRegisterPushNotifications).not.toHaveBeenCalled();
+  });
+});
+
+describe('ProfileScreen – push notifications error banner (#1056)', () => {
+  const mockClearPushNotificationsError = jest.fn();
+  const mockRetryPushNotificationsRegistration = jest.fn();
+
+  beforeEach(() => {
+    mockRegisterPushNotifications.mockReset();
+    mockUnregisterPushNotifications.mockReset();
+    mockClearPushNotificationsError.mockReset();
+    mockRetryPushNotificationsRegistration.mockReset();
+  });
+
+  const mockHook = (overrides: Record<string, unknown>) => {
+    const { usePushNotifications } = jest.requireMock('../../../hooks/usePushNotifications');
+    usePushNotifications.mockReturnValue({
+      notificationsEnabled: false,
+      isRegistering: false,
+      isUnregistering: false,
+      registerPushNotifications: mockRegisterPushNotifications,
+      unregisterPushNotifications: mockUnregisterPushNotifications,
+      clearPushNotificationsError: mockClearPushNotificationsError,
+      retryPushNotificationsRegistration: mockRetryPushNotificationsRegistration,
+      ...overrides,
+    });
+  };
+
+  it('shows the localised permission message when notifications are blocked', async () => {
+    mockHook({ pushNotificationsError: 'permission' });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+
+    expect(screen.getByTestId('error-banner')).toHaveTextContent('NotificationsPermissionBlockedMessage');
+  });
+
+  it('shows a retry-later message for a technical failure', async () => {
+    mockHook({ pushNotificationsError: 'api' });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+
+    expect(screen.getByTestId('error-banner')).toHaveTextContent('NotificationsEnableFailedMessage');
+  });
+
+  it('explains that push is unavailable in Expo Go on Android', async () => {
+    mockHook({ pushNotificationsError: 'unavailable' });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+
+    expect(screen.getByTestId('error-banner')).toHaveTextContent('NotificationsUnavailableExpoGoMessage');
+  });
+
+  it('says a physical device is required when running on a simulator', async () => {
+    mockHook({ pushNotificationsError: 'device' });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+
+    expect(screen.getByTestId('error-banner')).toHaveTextContent('NotificationsRequirePhysicalDeviceMessage');
+  });
+
+  it('does not render the banner when there is no error', async () => {
+    mockHook({ pushNotificationsError: null });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+
+    expect(screen.queryByTestId('error-banner')).toBeNull();
+  });
+
+  it('re-runs the activation when the retry action is pressed', async () => {
+    mockHook({ pushNotificationsError: 'api' });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    fireEvent.press(screen.getByTestId('error-banner-retry'));
+
+    expect(mockRetryPushNotificationsRegistration).toHaveBeenCalledTimes(1);
+  });
+
+  it('clears the error when dismissed', async () => {
+    mockHook({ pushNotificationsError: 'api' });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    fireEvent.press(screen.getByTestId('error-banner-dismiss'));
+
+    expect(mockClearPushNotificationsError).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows a distinct message when disabling notifications fails', async () => {
+    mockHook({ notificationsEnabled: true, pushNotificationsError: 'unregister' });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+
+    expect(screen.getByTestId('error-banner')).toHaveTextContent('NotificationsDisableFailedMessage');
+  });
+
+  it('does not offer a retry when disabling failed', async () => {
+    mockHook({ notificationsEnabled: true, pushNotificationsError: 'unregister' });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+
+    expect(screen.queryByTestId('error-banner-retry')).toBeNull();
   });
 });
 

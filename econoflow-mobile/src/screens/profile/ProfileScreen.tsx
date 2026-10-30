@@ -21,6 +21,7 @@ import { usePushNotifications } from '../../hooks/usePushNotifications';
 import { useAppTheme } from '../../theme/useAppTheme';
 import { GlassScreen } from '../../components/common/GlassScreen';
 import { GlassCard } from '../../components/common/GlassCard';
+import { ErrorBanner } from '../../components/common/ErrorBanner';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
 import { SECURITY_PAGE_URL } from '../../utils/legalLinks';
 
@@ -141,13 +142,19 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
     notificationsEnabled,
     isRegistering,
     isUnregistering,
+    pushNotificationsError,
     registerPushNotifications,
     unregisterPushNotifications,
+    retryPushNotificationsRegistration,
+    clearPushNotificationsError,
   } = usePushNotifications();
 
   const isTogglingNotifications = isRegistering || isUnregistering;
 
   const handleSignOut = async () => {
+    // A failed unregister restores the token and the toggle so the Profile row stays
+    // consistent; signing out then clears auth and the project anyway, so the leftover
+    // subscription is never shown to the next user.
     await unregisterPushNotifications();
     queryClient.clear();
     clearPin();
@@ -164,6 +171,34 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
       registerPushNotifications();
     }
   };
+
+  // Retrying a rejected registration is meaningful; retrying a failed disable is not,
+  // so the banner only offers that action for the permission/device/network cases.
+  // Guarded like the row itself: a fast double-tap must not start two registrations.
+  const notificationsErrorRetry =
+    pushNotificationsError && pushNotificationsError !== 'unregister' && !isTogglingNotifications
+      ? retryPushNotificationsRegistration
+      : undefined;
+
+  // Each failure gets its own wording: "try again later" is useless advice when the
+  // OS has blocked the permission or the device cannot receive notifications at all.
+  const notificationsErrorMessage = (() => {
+    switch (pushNotificationsError) {
+      case 'permission':
+        return t('NotificationsPermissionBlockedMessage') ?? 'Notifications are blocked for EconoFlow. Allow them in your device settings and try again.';
+      case 'device':
+        return t('NotificationsRequirePhysicalDeviceMessage') ?? 'Notifications need a physical device — this simulator cannot receive them.';
+      case 'unavailable':
+        return t('NotificationsUnavailableExpoGoMessage') ?? 'Push notifications are not available in Expo Go on Android. Use a development build.';
+      case 'unregister':
+        return t('NotificationsDisableFailedMessage') ?? 'Couldn\'t turn off notifications. Please try again later.';
+      case 'api':
+      case 'unknown':
+        return t('NotificationsEnableFailedMessage') ?? 'Couldn\'t enable notifications. Please try again later.';
+      default:
+        return undefined;
+    }
+  })();
 
   // The support period and the Annex II instructions are published once, on
   // the site, so every delivery mode shows the same wording.
@@ -248,6 +283,12 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
         <Text style={[styles.sectionTitle, { color: ink2 }]}>
           {t('NotificationPreferences') ?? 'Notifications'}
         </Text>
+        <ErrorBanner
+          visible={!!pushNotificationsError}
+          message={notificationsErrorMessage}
+          onDismiss={clearPushNotificationsError}
+          onRetry={notificationsErrorRetry}
+        />
         <GlassCard dark={dark} radius={20} style={styles.card}>
           <SettingToggleRow
             dark={dark} ink={ink} ink2={ink2} hair={hair}
