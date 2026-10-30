@@ -174,8 +174,9 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
 
   // Retrying a rejected registration is meaningful; retrying a failed disable is not,
   // so the banner only offers that action for the permission/device/network cases.
+  // Guarded like the row itself: a fast double-tap must not start two registrations.
   const notificationsErrorRetry =
-    pushNotificationsError && pushNotificationsError !== 'unregister'
+    pushNotificationsError && pushNotificationsError !== 'unregister' && !isTogglingNotifications
       ? retryPushNotificationsRegistration
       : undefined;
 
