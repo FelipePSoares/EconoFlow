@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator, Linking, ScrollView, StyleSheet, Switch, TouchableOpacity, View,
+  ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Switch, TouchableOpacity, View,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,6 +14,8 @@ import type { ProfileStackParamList } from '../../navigation/ProfileStackNavigat
 import type { SessionParamList } from '../../navigation/SessionNavigator';
 import { useAuthStore } from '../../store/authStore';
 import { useBiometricStore } from '../../store/biometricStore';
+import { useBiometricToggle } from '../../hooks/useBiometricToggle';
+import type { BiometricFailure } from '../../hooks/useBiometricToggle';
 import { usePinStore } from '../../store/pinStore';
 import { useLockStore } from '../../store/lockStore';
 import { useProjectStore } from '../../store/projectStore';
@@ -86,44 +88,109 @@ interface SettingToggleRowProps {
    */
   loading?: boolean;
   isLast?: boolean;
-  onPress?: () => void;
+  /**
+   * Called with the value the row is asked to switch to. Resolving with `false` means the
+   * change was refused, and the row takes back the value it already showed.
+   */
+  onToggle?: (next: boolean) => Promise<boolean> | void;
   testID?: string;
 }
 
+/**
+ * How long after a change a second report of the same change is dropped.
+ *
+ * One physical touch on the Switch reaches the row as two events — the Switch's own
+ * `onValueChange` and the wrapping Pressable's press — so the row has to collapse them
+ * into one toggle (#1052). A fast second tap on the same value is far less likely than
+ * that pair, and the very next tap on the row is enough to correct it.
+ */
+const TOGGLE_DEDUPE_MS = 400;
+
 const SettingToggleRow: React.FC<SettingToggleRowProps> = ({
-  icon, label, value, toggled, dark, ink, ink2, hair, disabled, loading, isLast, onPress, testID,
+  icon, label, value, toggled, dark, ink, ink2, hair, disabled, loading, isLast, onToggle, testID,
 }) => {
+  // The Switch is told what the row now believes, so it moves with the tap instead of
+  // waiting for the async store round trip and looking unresponsive.
+  const [optimistic, setOptimistic] = useState(toggled);
+  // The store value this row was last rendered from, so a new one can be adopted below.
+  const [lastToggled, setLastToggled] = useState(toggled);
+  const handledValueRef = useRef<{ value: boolean; at: number } | null>(null);
+  // The value this row is waiting for the store to adopt, if any.
+  const awaitingRef = useRef<boolean | null>(null);
+
+  // The store's value is the truth whenever it changes. Adopting it during the render that
+  // brings the new value (React's "adjust state from props" pattern) keeps the row in step
+  // without an effect that would render twice.
+  if (toggled !== lastToggled) {
+    setLastToggled(toggled);
+    setOptimistic(toggled);
+  }
+
   const isBusy = !!loading;
-  const inner = (
-    <View style={[styles.settingRow, { borderBottomColor: isLast ? 'transparent' : hair }]}>
-      <View style={[styles.settingIconWrap, { backgroundColor: '#0f76a8' + (dark ? '28' : '18') }]}>
-        <MaterialCommunityIcons name={icon as never} size={18} color="#0f76a8" />
-      </View>
-      <View style={styles.settingInfo}>
-        <Text style={[styles.settingLabel, { color: ink2 }]}>{label}</Text>
-        <Text style={[styles.settingValue, { color: ink }]}>{value}</Text>
-      </View>
-      {isBusy ? (
-        <ActivityIndicator testID={`${testID}-spinner`} color="#0f76a8" />
-      ) : (
-        <Switch
-          value={toggled}
-          disabled={disabled}
-          onValueChange={onPress}
-          trackColor={{ false: hair, true: '#0f76a880' }}
-          thumbColor={toggled ? '#0f76a8' : '#ccc'}
-        />
-      )}
-    </View>
-  );
+  const isDisabled = isBusy || !!disabled;
+
+  const requestToggle = (next: boolean) => {
+    if (isDisabled || !onToggle) return;
+
+    const handled = handledValueRef.current;
+    if (handled && handled.value === next && Date.now() - handled.at < TOGGLE_DEDUPE_MS) {
+      return;
+    }
+    handledValueRef.current = { value: next, at: Date.now() };
+
+    awaitingRef.current = next;
+    setOptimistic(next);
+    void Promise.resolve(onToggle(next)).then((accepted) => {
+      // A refused change never reaches the store, so `toggled` cannot correct the row:
+      // take the optimistic value back, unless a newer tap has since asked for another.
+      if (accepted === false && awaitingRef.current === next) {
+        awaitingRef.current = null;
+        setOptimistic(toggled);
+      }
+    });
+  };
+
+  const handleRowPress = () => {
+    requestToggle(!optimistic);
+  };
+
+  const handleSwitchChange = (next: boolean) => {
+    // The switch handed back the value it already shows: the row press that came with
+    // it already moved it, so there is nothing left to toggle.
+    if (next === optimistic) return;
+    requestToggle(next);
+  };
 
   return (
-    <View
+    <Pressable
+      onPress={handleRowPress}
+      disabled={isDisabled}
+      accessibilityRole="switch"
+      accessibilityState={{ checked: optimistic, disabled: isDisabled, busy: isBusy }}
       testID={testID}
-      accessibilityState={{ disabled: isBusy, busy: isBusy }}
     >
-      {inner}
-    </View>
+      <View style={[styles.settingRow, { borderBottomColor: isLast ? 'transparent' : hair }]}>
+        <View style={[styles.settingIconWrap, { backgroundColor: '#0f76a8' + (dark ? '28' : '18') }]}>
+          <MaterialCommunityIcons name={icon as never} size={18} color="#0f76a8" />
+        </View>
+        <View style={styles.settingInfo}>
+          <Text style={[styles.settingLabel, { color: ink2 }]}>{label}</Text>
+          <Text style={[styles.settingValue, { color: ink }]}>{value}</Text>
+        </View>
+        {isBusy ? (
+          <ActivityIndicator testID={`${testID}-spinner`} color="#0f76a8" />
+        ) : (
+          <Switch
+            value={optimistic}
+            disabled={isDisabled}
+            onValueChange={handleSwitchChange}
+            trackColor={{ false: hair, true: '#0f76a880' }}
+            thumbColor={optimistic ? '#0f76a8' : '#ccc'}
+            testID={`${testID}-switch`}
+          />
+        )}
+      </View>
+    </Pressable>
   );
 };
 
@@ -134,7 +201,13 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { user, clearAuth } = useAuthStore();
   const { clearProject, selectedProject } = useProjectStore();
-  const { biometricEnabled, setBiometricEnabled, resetBiometricPromptSkipped } = useBiometricStore();
+  const { biometricEnabled } = useBiometricStore();
+  const {
+    isPending: isTogglingBiometrics,
+    enabled: canToggleBiometrics,
+    setBiometricEnabled,
+  } = useBiometricToggle();
+  const [biometricError, setBiometricError] = useState<BiometricFailure | null>(null);
   const { hasPin, clearPin } = usePinStore();
   const { reset: resetLock } = useLockStore();
   const rootNavigation = useNavigation<NativeStackNavigationProp<SessionParamList>>();
@@ -185,16 +258,19 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
     clearProject();
   };
 
-  const handleToggleNotifications = () => {
+  // One tap on the push row, its label or its switch. The row hands over the value it is
+  // asked to switch to; the flow below decides whether a dialog or a registration is
+  // needed for it.
+  const handleToggleNotifications = (next: boolean) => {
     if (isTogglingNotifications) return;
-    if (notificationsEnabled) {
+    // Turning it off is immediate; turning it on is an explicit request, so it goes
+    // through the shared flow: the OS dialog is asked at most once and the Android
+    // channel exists before it. A failure is surfaced by the flow through the banner
+    // above; a decline is an answer, not an error, and is explained by the guidance.
+    if (!next) {
       unregisterPushNotifications();
       return;
     }
-    // Turning it on is an explicit request, so it goes through the shared flow: the OS
-    // dialog is asked at most once and the Android channel exists before it. A failure
-    // is surfaced by the flow through the banner below; a decline is an answer, not an
-    // error, and is explained by the guidance.
     void requestNotificationPermissionAndRegister();
   };
 
@@ -205,6 +281,34 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
     effectiveNotificationsError && effectiveNotificationsError !== 'unregister' && !isTogglingNotifications
       ? retryPushNotificationsRegistration
       : undefined;
+
+  // One tap on the biometric row, its label or its switch. The hook owns the
+  // hardware/enrollment checks and joins taps that arrive together, so a double tap
+  // cannot toggle twice. It resolves `false` when the change was refused, which tells the
+  // row to take back the value it showed while waiting.
+  const handleToggleBiometrics = async (next: boolean): Promise<boolean> => {
+    setBiometricError(null);
+    const result = await setBiometricEnabled(next);
+    if (!result.ok && result.reason !== 'not-hydrated') setBiometricError(result.reason);
+    return result.ok;
+  };
+
+  // Each reason has its own fix: no sensor at all, nothing enrolled yet, or a sensor that
+  // could not answer. Sharing one sentence would send the user to the wrong screen.
+  const biometricErrorMessage = (() => {
+    switch (biometricError) {
+      case 'hardware':
+        return t('BiometricNotAvailable') ?? 'Biometrics not available on this device';
+      case 'not-enrolled':
+        return t('BiometricErrorNotEnrolled')
+          ?? 'Set up a fingerprint or face unlock in your device settings first.';
+      case 'unknown':
+        return t('BiometricEnableFailed')
+          ?? 'Couldn\'t enable biometric authentication. Please try again later.';
+      default:
+        return undefined;
+    }
+  })();
 
   // The OS will not show the dialog again, so the only remaining fix is the system
   // settings — unless the permission has since been granted there.
@@ -335,7 +439,7 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
             toggled={notificationsEnabled}
             loading={isTogglingNotifications}
             disabled={isTogglingNotifications}
-            onPress={handleToggleNotifications}
+            onToggle={handleToggleNotifications}
             testID="row-PushNotifications"
             isLast
           />
@@ -361,6 +465,13 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
         <Text style={[styles.sectionTitle, { color: ink2 }]}>
           {t('MenuPasswordAuthentication') ?? 'Security'}
         </Text>
+        {/* A refused enable is a statement about the device, not something to retry, so
+            the banner only offers dismiss. */}
+        <ErrorBanner
+          visible={!!biometricErrorMessage}
+          message={biometricErrorMessage}
+          onDismiss={() => setBiometricError(null)}
+        />
         <GlassCard dark={dark} radius={20} style={styles.card}>
           <SettingRow
             dark={dark} ink={ink} ink2={ink2} hair={hair}
@@ -385,11 +496,11 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
             label={t('BiometricAuthLabel') ?? 'Biometric Authentication'}
             value={t('BiometricAuthDescription') ?? 'Use fingerprint or face to unlock the app'}
             toggled={biometricEnabled}
-            onPress={() => {
-              const newValue = !biometricEnabled;
-              setBiometricEnabled(newValue);
-              if (newValue) resetBiometricPromptSkipped();
-            }}
+            loading={isTogglingBiometrics}
+            // Until the stored value is known a tap would land on defaults and be
+            // replayed over, so the row refuses to move before then (#1052).
+            disabled={!canToggleBiometrics}
+            onToggle={handleToggleBiometrics}
             testID="row-BiometricAuth"
           />
           <SettingRow

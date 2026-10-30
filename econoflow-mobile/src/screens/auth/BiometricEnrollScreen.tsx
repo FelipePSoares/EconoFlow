@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -8,8 +8,12 @@ import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { SessionParamList } from '../../navigation/SessionNavigator';
 import { useBiometricStore } from '../../store/biometricStore';
+import { useBiometricToggle } from '../../hooks/useBiometricToggle';
+import type { BiometricFailure } from '../../hooks/useBiometricToggle';
 import { GlassScreen } from '../../components/common/GlassScreen';
 import { GlassCard } from '../../components/common/GlassCard';
+import { ErrorBanner } from '../../components/common/ErrorBanner';
+import { useAppTheme } from '../../theme/useAppTheme';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
 
 type Props = NativeStackScreenProps<SessionParamList, 'BiometricEnroll'>;
@@ -17,8 +21,13 @@ type Props = NativeStackScreenProps<SessionParamList, 'BiometricEnroll'>;
 export const BiometricEnrollScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
   const { dark, ink, ink2 } = useAuroraSkin();
-  const { biometricPromptSkipped, setBiometricEnabled, setBiometricPromptSkipped } = useBiometricStore();
+  const { colors, customColors } = useAppTheme();
+  const { biometricPromptSkipped, setBiometricPromptSkipped } = useBiometricStore();
+  // The hook, not the store, is what checks the device before persisting the choice.
+  const { setBiometricEnabled: enableBiometric } = useBiometricToggle();
   const [checked, setChecked] = useState(false);
+  const [isEnabling, setIsEnabling] = useState(false);
+  const [errorReason, setErrorReason] = useState<BiometricFailure | null>(null);
 
   const navigateToGate = useCallback(() => {
     navigation.reset({ index: 0, routes: [{ name: 'BiometricGate' }] });
@@ -33,8 +42,17 @@ export const BiometricEnrollScreen: React.FC<Props> = ({ navigation }) => {
         return;
       }
 
-      const hasHardware = await LocalAuthentication.hasHardwareAsync();
-      const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+      // A rejected native call used to leave the screen blank forever, because nothing
+      // else could move the user on from `checked === false`.
+      let hasHardware = false;
+      let isEnrolled = false;
+      try {
+        hasHardware = await LocalAuthentication.hasHardwareAsync();
+        isEnrolled = hasHardware && await LocalAuthentication.isEnrolledAsync();
+      } catch {
+        hasHardware = false;
+        isEnrolled = false;
+      }
 
       if (!cancelled) {
         if (!hasHardware || !isEnrolled) {
@@ -50,9 +68,19 @@ export const BiometricEnrollScreen: React.FC<Props> = ({ navigation }) => {
     return () => { cancelled = true; };
   }, [biometricPromptSkipped, navigateToGate]);
 
-  const handleEnable = () => {
-    setBiometricEnabled(true);
-    navigateToGate();
+  const handleEnable = async () => {
+    if (isEnabling) return;
+    setIsEnabling(true);
+    setErrorReason(null);
+    // The hook re-checks the device before persisting, so the setting cannot be stored on
+    // a device that lost its enrolment between this screen's check and the tap.
+    const result = await enableBiometric(true);
+    setIsEnabling(false);
+    if (result.ok) {
+      navigateToGate();
+      return;
+    }
+    setErrorReason(result.reason);
   };
 
   const handleSkip = () => {
@@ -60,18 +88,32 @@ export const BiometricEnrollScreen: React.FC<Props> = ({ navigation }) => {
     navigateToGate();
   };
 
+  const errorMessage = (() => {
+    switch (errorReason) {
+      case 'hardware':
+        return t('BiometricNotAvailable');
+      case 'not-enrolled':
+        return t('BiometricErrorNotEnrolled');
+      case 'not-hydrated':
+      case 'unknown':
+        return t('BiometricEnableFailed');
+      default:
+        return undefined;
+    }
+  })();
+
   if (!checked) return null;
 
   return (
     <GlassScreen dark={dark}>
       <View style={styles.container}>
         <LinearGradient
-          colors={['#0f76a8', '#14c08a']}
+          colors={[colors.primary, customColors.accentGreen]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.iconWrap}
         >
-          <MaterialCommunityIcons name="fingerprint" size={48} color="#fff" />
+          <MaterialCommunityIcons name="fingerprint" size={48} color={colors.onPrimary} />
         </LinearGradient>
 
         <Text style={[styles.title, { color: ink }]}>
@@ -81,25 +123,43 @@ export const BiometricEnrollScreen: React.FC<Props> = ({ navigation }) => {
           {t('BiometricEnrollMessage')}
         </Text>
 
+        <ErrorBanner
+          visible={!!errorMessage}
+          message={errorMessage}
+          onDismiss={() => setErrorReason(null)}
+        />
+
         <GlassCard dark={dark} radius={20} style={styles.card}>
-          <View style={styles.enableBtn} testID="biometric-enroll-enable">
-            <Text
-              style={styles.enableText}
-              onPress={handleEnable}
-            >
+          {/* The whole button is the touch target: the label alone left the padded area
+              dead, so a tap on it looked like it had done nothing (#1052). */}
+          <Pressable
+            onPress={handleEnable}
+            disabled={isEnabling}
+            accessibilityRole="button"
+            accessibilityLabel={t('BiometricEnrollEnable')}
+            accessibilityState={{ disabled: isEnabling, busy: isEnabling }}
+            style={({ pressed }) => [
+              styles.enableBtn,
+              { backgroundColor: colors.primary, opacity: isEnabling ? 0.6 : pressed ? 0.85 : 1 },
+            ]}
+            testID="biometric-enroll-enable"
+          >
+            <Text style={[styles.enableText, { color: colors.onPrimary }]}>
               {t('BiometricEnrollEnable')}
             </Text>
-          </View>
+          </Pressable>
 
-          <View style={styles.skipRow}>
-            <Text
-              style={[styles.skipText, { color: ink2 }]}
-              onPress={handleSkip}
-              testID="biometric-enroll-skip"
-            >
+          <Pressable
+            onPress={handleSkip}
+            accessibilityRole="button"
+            accessibilityLabel={t('BiometricEnrollSkip')}
+            style={styles.skipRow}
+            testID="biometric-enroll-skip"
+          >
+            <Text style={[styles.skipText, { color: ink2 }]}>
               {t('BiometricEnrollSkip')}
             </Text>
-          </View>
+          </Pressable>
         </GlassCard>
       </View>
     </GlassScreen>
@@ -139,23 +199,21 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   enableBtn: {
-    backgroundColor: '#0f76a8',
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: 'center',
   },
   enableText: {
-    color: '#fff',
     fontWeight: '800',
     fontSize: 15,
   },
   skipRow: {
     alignItems: 'center',
     marginTop: 16,
+    paddingVertical: 8,
   },
   skipText: {
     fontWeight: '600',
     fontSize: 13.5,
-    paddingVertical: 8,
   },
 });

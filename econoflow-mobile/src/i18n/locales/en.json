@@ -633,6 +633,8 @@
   "BiometricEnrollEnable": "Enable",
   "BiometricEnrollSkip": "Not now",
   "BiometricErrorLockedOut": "Too many attempts. Use your device passcode.",
+  "BiometricErrorNotEnrolled": "Set up a fingerprint or face unlock in your device settings first.",
+  "BiometricEnableFailed": "Couldn't enable biometric authentication. Please try again later.",
 
   "PinCreateTitle": "Create App PIN",
   "PinCreateSubtitle": "Enter a 4 to 6 digit PIN to protect your account",
