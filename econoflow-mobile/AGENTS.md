@@ -16,6 +16,14 @@ The New Architecture is the only supported one — React Native 0.82+ cannot dis
 - Failures land in `useNotificationStore.lastPermissionError`; `ProfileScreen` renders it through `ErrorBanner` (a declined prompt is not an error and is filtered out).
 - The OS prompt itself is verifiable only on a dev/standalone build (`npx expo run:android` / `run:ios`) — Expo Go cannot show a push flow.
 
+**Biometric toggle flow (#1052).** `useBiometricToggle()` in `src/hooks/useBiometricToggle.ts` is the only path that turns biometrics on or off; `ProfileScreen`'s row and `BiometricEnrollScreen`'s button both call it. Rules it enforces:
+
+- **One tap, one toggle.** `SettingToggleRow` is a `Pressable`, so the label, the description and the empty part of the row toggle the setting too — not just the `Switch`. One touch reaches the row twice (the `Switch`'s `onValueChange` and the `Pressable`'s press), so the row collapses the pair: a repeated request for the same value within `TOGGLE_DEDUPE_MS` is dropped.
+- **Enabling checks the device first.** `hasHardwareAsync()` and `isEnrolledAsync()` run before `setBiometricEnabled(true)`, so the setting cannot read ON where it would fail at unlock. A refusal leaves it OFF and `ProfileScreen` explains why through `ErrorBanner` (`BiometricNotAvailable` / `BiometricErrorNotEnrolled` / `BiometricEnableFailed`). Turning it off never checks anything.
+- **Taps are joined.** Concurrent enables share one in-flight request, so a double tap cannot run the native checks or the store write twice.
+- **Hydration cannot revert a tap.** `useBiometricStore` sets `skipHydration`, so nothing is read at import time; `hydrateBiometricStore()` starts the single SecureStore read once per app run, and the hook calls it. The row stays disabled until it lands (`isHydrated`), and a value picked before the read finishes wins over the stored one (`merge`) and is written back. Never read `biometricEnabled` from the store before `hydrated` — that is exactly the tap that used to flip back.
+- `biometricPromptSkipped` records that the user answered the enrollment prompt; `setBiometricEnabled(true)` resets it so a re-enabled user is asked again.
+
 ## Development workflow
 
 Follow the 4-step workflow in [root AGENTS.md](../AGENTS.md). The per-project commands are:

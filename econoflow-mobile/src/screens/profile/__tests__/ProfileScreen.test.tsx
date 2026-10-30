@@ -1,7 +1,18 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react-native';
+import { act, render, screen, fireEvent, waitFor } from '@testing-library/react-native';
 import { ProfileScreen } from '../ProfileScreen';
+
+/**
+ * Lets a press' async work (the toggle request and the state updates it triggers) finish
+ * inside `act`, so it cannot resume during the next test's render — React reports that as
+ * overlapping `act()` calls and tears the tree down mid-flight.
+ */
+const settle = () => act(async () => {
+  await Promise.resolve();
+  await Promise.resolve();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+});
 
 jest.mock('@expo/vector-icons', () => ({
   MaterialCommunityIcons: 'MaterialCommunityIcons',
@@ -25,9 +36,9 @@ jest.mock('react-native-paper', () => {
 });
 
 jest.mock('../../../theme/useAppTheme', () => ({
-  // The security row takes its icon colour from the app theme, so the mock has to
-  // provide the palette the real hook returns.
-  useAppTheme: () => ({ colors: { primary: '#0f76a8' } }),
+  // The security row takes its icon colour from the app theme and the guidance text takes
+  // its error colour, so the mock has to provide the palette the real hook returns.
+  useAppTheme: () => ({ colors: { primary: '#0f76a8', error: '#e74c3c' } }),
 }));
 
 jest.mock('expo-linear-gradient', () => {
@@ -149,8 +160,15 @@ jest.mock('../../../store/authStore', () => ({
 jest.mock('../../../store/biometricStore', () => ({
   useBiometricStore: jest.fn(() => ({
     biometricEnabled: false,
-    setBiometricEnabled: jest.fn(),
-    resetBiometricPromptSkipped: jest.fn(),
+  })),
+}));
+
+jest.mock('../../../hooks/useBiometricToggle', () => ({
+  useBiometricToggle: jest.fn(() => ({
+    isHydrated: true,
+    isPending: false,
+    enabled: true,
+    setBiometricEnabled: jest.fn().mockResolvedValue({ ok: true }),
   })),
 }));
 
@@ -194,6 +212,40 @@ const mockNavigation = {
 } as unknown as React.ComponentProps<typeof ProfileScreen>['navigation'];
 
 const mockRoute = {} as unknown as React.ComponentProps<typeof ProfileScreen>['route'];
+
+/**
+ * Every test starts from the app's steady state: the persisted value is known and the row
+ * accepts taps. Tests that need another state point their mock at it themselves.
+ */
+afterEach(settle);
+
+/**
+ * Presses inside \ct\ and lets everything the press started finish before returning.
+ *
+ * \ireEvent.press\ wraps the press in its own \ct\, and the async work it kicks off then
+ * overlaps the next \ct\ � React reports that and unmounts the tree, which made every later
+ * test fail. Pressing from inside one \ct\ keeps the whole interaction in a single scope.
+ */
+const pressAndSettle = async (element: Parameters<typeof fireEvent.press>[0]) => {
+  await act(async () => {
+    fireEvent(element, 'press');
+    await Promise.resolve();
+    await Promise.resolve();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+};
+
+beforeEach(() => {
+  const { useBiometricStore } = jest.requireMock('../../../store/biometricStore');
+  useBiometricStore.mockReturnValue({ biometricEnabled: false });
+  const { useBiometricToggle } = jest.requireMock('../../../hooks/useBiometricToggle');
+  useBiometricToggle.mockReturnValue({
+    isHydrated: true,
+    isPending: false,
+    enabled: true,
+    setBiometricEnabled: jest.fn().mockResolvedValue({ ok: true }),
+  });
+});
 
 describe('ProfileScreen – sign out', () => {
   beforeEach(() => {
@@ -633,8 +685,29 @@ describe('ProfileScreen – notifications permission sync (#1053)', () => {
 describe('ProfileScreen – biometric toggle', () => {
   const mockSetBiometricEnabled = jest.fn();
 
+  /** Points the store mock at the given persisted value. */
+  const mockBiometricStore = (biometricEnabled: boolean) => {
+    const { useBiometricStore } = jest.requireMock('../../../store/biometricStore');
+    useBiometricStore.mockReturnValue({ biometricEnabled });
+  };
+
+  /** Points the hook mock at the given hydration/pending state. */
+  const mockBiometricToggle = (overrides: Record<string, unknown> = {}) => {
+    const { useBiometricToggle } = jest.requireMock('../../../hooks/useBiometricToggle');
+    useBiometricToggle.mockReturnValue({
+      isHydrated: true,
+      isPending: false,
+      enabled: true,
+      setBiometricEnabled: mockSetBiometricEnabled,
+      ...overrides,
+    });
+  };
+
   beforeEach(() => {
     mockSetBiometricEnabled.mockReset();
+    mockSetBiometricEnabled.mockResolvedValue({ ok: true });
+    mockBiometricStore(false);
+    mockBiometricToggle();
   });
 
   it('renders the biometric toggle row', async () => {
@@ -642,58 +715,149 @@ describe('ProfileScreen – biometric toggle', () => {
     expect(screen.getByTestId('row-BiometricAuth')).toBeTruthy();
   });
 
-  it('calls setBiometricEnabled when toggled', async () => {
-    const { useBiometricStore } = jest.requireMock('../../../store/biometricStore');
-    useBiometricStore.mockReturnValue({
-      biometricEnabled: false,
-      setBiometricEnabled: mockSetBiometricEnabled,
-      resetBiometricPromptSkipped: jest.fn(),
-    });
-
+  it('enables biometrics with a single tap on the row (#1052)', async () => {
     await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
-    fireEvent.press(screen.getByTestId('row-BiometricAuth'));
+
+    await pressAndSettle(screen.getByTestId('row-BiometricAuth'));
+
+    // Exactly once: the switch and the row report the same touch, and the row collapses
+    // the pair instead of toggling twice.
+    expect(mockSetBiometricEnabled).toHaveBeenCalledTimes(1);
     expect(mockSetBiometricEnabled).toHaveBeenCalledWith(true);
   });
 
-  it('shows toggled on when biometricEnabled is true', async () => {
-    const { useBiometricStore } = jest.requireMock('../../../store/biometricStore');
-    useBiometricStore.mockReturnValue({
-      biometricEnabled: true,
-      setBiometricEnabled: mockSetBiometricEnabled,
-      resetBiometricPromptSkipped: jest.fn(),
-    });
+  it('enables biometrics from a tap on the label, not just the switch (#1052)', async () => {
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+
+    await pressAndSettle(screen.getByText('BiometricAuthLabel'));
+
+    expect(mockSetBiometricEnabled).toHaveBeenCalledTimes(1);
+    expect(mockSetBiometricEnabled).toHaveBeenCalledWith(true);
+  });
+
+  it('toggles off with a single tap when biometrics are on', async () => {
+    mockBiometricStore(true);
 
     await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
-    fireEvent.press(screen.getByTestId('row-BiometricAuth'));
+    await pressAndSettle(screen.getByTestId('row-BiometricAuth'));
+
+    expect(mockSetBiometricEnabled).toHaveBeenCalledTimes(1);
     expect(mockSetBiometricEnabled).toHaveBeenCalledWith(false);
   });
 
-  it('calls resetBiometricPromptSkipped when toggling biometrics on', async () => {
-    const mockResetPromptSkipped = jest.fn();
-    const { useBiometricStore } = jest.requireMock('../../../store/biometricStore');
-    useBiometricStore.mockReturnValue({
-      biometricEnabled: false,
-      setBiometricEnabled: jest.fn(),
-      resetBiometricPromptSkipped: mockResetPromptSkipped,
-    });
-
+  it('flips the switch after a successful enable so the tap visibly takes effect', async () => {
     await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
-    fireEvent.press(screen.getByTestId('row-BiometricAuth'));
-    expect(mockResetPromptSkipped).toHaveBeenCalled();
+    expect(screen.getByTestId('row-BiometricAuth-switch').props.value).toBe(false);
+
+    await pressAndSettle(screen.getByTestId('row-BiometricAuth'));
+
+    expect(screen.getByTestId('row-BiometricAuth-switch').props.value).toBe(true);
   });
 
-  it('does not call resetBiometricPromptSkipped when toggling biometrics off', async () => {
-    const mockResetPromptSkipped = jest.fn();
-    const { useBiometricStore } = jest.requireMock('../../../store/biometricStore');
-    useBiometricStore.mockReturnValue({
-      biometricEnabled: true,
-      setBiometricEnabled: jest.fn(),
-      resetBiometricPromptSkipped: mockResetPromptSkipped,
-    });
+  it('leaves the switch off when the device cannot enable biometrics (#1052)', async () => {
+    // The hook refuses the request, so the store keeps reporting OFF. The row showed the
+    // new value when the tap arrived and must take it back, or it would read ON over a
+    // setting that is still off.
+    mockSetBiometricEnabled.mockResolvedValue({ ok: false, reason: 'not-enrolled' });
 
     await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
-    fireEvent.press(screen.getByTestId('row-BiometricAuth'));
-    expect(mockResetPromptSkipped).not.toHaveBeenCalled();
+    await pressAndSettle(screen.getByTestId('row-BiometricAuth'));
+
+    expect(screen.getByTestId('error-banner')).toHaveTextContent('BiometricErrorNotEnrolled');
+    expect(screen.getByTestId('row-BiometricAuth-switch').props.value).toBe(false);
+  });
+
+  it('explains a device without biometric hardware', async () => {
+    mockSetBiometricEnabled.mockResolvedValue({ ok: false, reason: 'hardware' });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    await pressAndSettle(screen.getByTestId('row-BiometricAuth'));
+
+    expect(screen.getByTestId('error-banner')).toHaveTextContent('BiometricNotAvailable');
+  });
+
+  it('explains an unexpected biometric failure', async () => {
+    mockSetBiometricEnabled.mockResolvedValue({ ok: false, reason: 'unknown' });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    await pressAndSettle(screen.getByTestId('row-BiometricAuth'));
+
+    expect(screen.getByTestId('error-banner')).toHaveTextContent('BiometricEnableFailed');
+  });
+
+  it('clears the biometric error when the banner is dismissed', async () => {
+    mockSetBiometricEnabled.mockResolvedValue({ ok: false, reason: 'not-enrolled' });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    await pressAndSettle(screen.getByTestId('row-BiometricAuth'));
+    expect(screen.getByTestId('error-banner')).toBeTruthy();
+
+    await pressAndSettle(screen.getByTestId('error-banner-dismiss'));
+
+    expect(screen.queryByTestId('error-banner')).toBeNull();
+  });
+
+  it('gives up the tap that lands before the store has hydrated (#1052)', async () => {
+    mockBiometricToggle({ isHydrated: false, enabled: false });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+
+    expect(screen.getByTestId('row-BiometricAuth').props.accessibilityState).toEqual(
+      expect.objectContaining({ disabled: true }),
+    );
+
+    await pressAndSettle(screen.getByTestId('row-BiometricAuth'));
+
+    // Applied over an unhydrated value, this is exactly the tap the replayed state used
+    // to undo, so it is dropped and the row is told it is disabled.
+    expect(mockSetBiometricEnabled).not.toHaveBeenCalled();
+  });
+
+  it('toggles once when the switch itself is pressed (#1052)', async () => {
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+
+    await act(async () => {
+      fireEvent(screen.getByTestId('row-BiometricAuth-switch'), 'valueChange', true);
+    });
+    await settle();
+
+    expect(mockSetBiometricEnabled).toHaveBeenCalledTimes(1);
+    expect(mockSetBiometricEnabled).toHaveBeenCalledWith(true);
+  });
+
+  it('does not double-toggle when the switch and the row both report a touch (#1052)', async () => {
+    // One real touch on the switch reaches the row twice: the Switch's own onValueChange
+    // and the Pressable's onPress. Toggling for both would flip the setting twice, and a
+    // double toggle looks exactly like "nothing happened".
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+
+    await act(async () => {
+      fireEvent(screen.getByTestId('row-BiometricAuth-switch'), 'valueChange', true);
+      fireEvent.press(screen.getByTestId('row-BiometricAuth'));
+      await Promise.resolve();
+    });
+    await settle();
+
+    expect(mockSetBiometricEnabled).toHaveBeenCalledTimes(1);
+    expect(mockSetBiometricEnabled).toHaveBeenCalledWith(true);
+  });
+
+  it('shows a spinner and refuses taps while an enable is in flight', async () => {
+    mockBiometricToggle({ isPending: true, enabled: false });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+
+    expect(screen.getByTestId('row-BiometricAuth-spinner')).toBeTruthy();
+    await pressAndSettle(screen.getByTestId('row-BiometricAuth'));
+    expect(mockSetBiometricEnabled).not.toHaveBeenCalled();
+  });
+});
+
+describe('ProfileScreen – biometric accessibility', () => {
+  it('exposes the biometric row as a switch for screen readers', async () => {
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+
+    expect(screen.getByTestId('row-BiometricAuth').props.accessibilityRole).toBe('switch');
   });
 });
 
@@ -728,3 +892,17 @@ describe('ProfileScreen – security and support', () => {
     expect(openUrlSpy).toHaveBeenCalledWith(securityPageUrl);
   });
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+

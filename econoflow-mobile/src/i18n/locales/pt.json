@@ -633,6 +633,8 @@
   "BiometricEnrollEnable": "Ativar",
   "BiometricEnrollSkip": "Agora não",
   "BiometricErrorLockedOut": "Muitas tentativas. Use o código do seu dispositivo.",
+  "BiometricErrorNotEnrolled": "Configure primeiro a impressão digital ou o reconhecimento facial nas definições do dispositivo.",
+  "BiometricEnableFailed": "Não foi possível ativar a autenticação biométrica. Tente novamente mais tarde.",
 
   "PinCreateTitle": "Criar PIN do App",
   "PinCreateSubtitle": "Digite um PIN de 4 a 6 dígitos para proteger sua conta",
