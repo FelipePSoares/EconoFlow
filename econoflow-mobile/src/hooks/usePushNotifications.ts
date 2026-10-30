@@ -89,12 +89,25 @@ export async function registerPushNotificationsAsync(
       );
     }
 
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
+    // The permission calls get their own guard: when either one throws (a native
+    // module failure, a device that cannot answer the query) the user's fix is still
+    // to allow notifications in the system settings, so it must not be reported as a
+    // generic "try again later" failure.
+    let finalStatus: string;
+    try {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      finalStatus = existingStatus;
 
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('[PushNotifications] Permission query failed', err);
+      captureError(err, { screen: 'usePushNotifications', action: 'register' });
+      setNotificationsEnabled(false);
+      return { ok: false, reason: 'permission' };
     }
 
     if (finalStatus !== 'granted') {

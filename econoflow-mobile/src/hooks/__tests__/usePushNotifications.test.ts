@@ -303,6 +303,27 @@ describe('registerPushNotificationsAsync — result for each failure mode (#1056
     expect(result).toEqual({ ok: false, reason: 'unknown' });
   });
 
+  it('returns reason "permission" when the permission call itself throws', async () => {
+    // A native-module failure while reading the permission is still a permission
+    // problem from the user's point of view: "try again later" would mislead them.
+    mockGetPermissionsAsync.mockRejectedValue(new Error('Native module error'));
+
+    const result = await registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled);
+
+    expect(result).toEqual({ ok: false, reason: 'permission' });
+    expect(setNotificationsEnabled).not.toHaveBeenCalledWith(true);
+  });
+
+  it('returns reason "permission" when requesting the permission throws', async () => {
+    mockGetPermissionsAsync.mockResolvedValue({ status: 'undetermined' });
+    mockRequestPermissionsAsync.mockRejectedValue(new Error('Native module error'));
+
+    const result = await registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled);
+
+    expect(result).toEqual({ ok: false, reason: 'permission' });
+    expect(NotificationsApi.registerExpoPushToken).not.toHaveBeenCalled();
+  });
+
   it('leaves notifications disabled on every failure mode', async () => {
     mockGetPermissionsAsync.mockResolvedValue({ status: 'granted' });
     mockGetExpoPushTokenAsync.mockResolvedValue({ data: 'ExponentPushToken[abc]' });

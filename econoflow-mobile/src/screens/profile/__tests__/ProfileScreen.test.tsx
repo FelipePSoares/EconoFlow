@@ -349,7 +349,7 @@ describe('ProfileScreen – push notifications loading state', () => {
   });
 
   it('does not show a spinner when no notification request is in flight', async () => {
-    mockHook({});
+    mockHook({ pushNotificationsError: null });
 
     await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
 
@@ -435,7 +435,7 @@ describe('ProfileScreen – push notifications error banner (#1056)', () => {
   });
 
   it('does not render the banner when there is no error', async () => {
-    mockHook({});
+    mockHook({ pushNotificationsError: null });
 
     await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
 

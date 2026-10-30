@@ -152,6 +152,9 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
   const isTogglingNotifications = isRegistering || isUnregistering;
 
   const handleSignOut = async () => {
+    // A failed unregister restores the token and the toggle so the Profile row stays
+    // consistent; signing out then clears auth and the project anyway, so the leftover
+    // subscription is never shown to the next user.
     await unregisterPushNotifications();
     queryClient.clear();
     clearPin();
