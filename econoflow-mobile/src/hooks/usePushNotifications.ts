@@ -1,11 +1,15 @@
 import { useState, useCallback } from 'react';
-import { Platform } from 'react-native';
+import { Linking, Platform } from 'react-native';
 import { isRunningInExpoGo } from 'expo';
 import * as Device from 'expo-device';
 import type * as ExpoNotifications from 'expo-notifications';
 import { registerExpoPushToken as apiRegister, unregisterExpoPushToken as apiUnregister } from '../api/notifications.api';
 import { useNotificationStore } from '../store/notificationStore';
+import type { PushPermissionStatus } from '../store/notificationStore';
 import { captureError } from '../monitoring/sentry';
+
+/** Android notification channel created before the permission is requested. */
+export const NOTIFICATION_CHANNEL_ID = 'default';
 
 /**
  * Expo Go on Android stopped shipping remote notifications in SDK 53: the native module
@@ -60,10 +64,66 @@ export type PushUnregistrationResult = { ok: true } | { ok: false };
  */
 export type PushNotificationsError = PushRegistrationFailure | 'unregister';
 
+interface PermissionSnapshot {
+  status: string;
+  canAskAgain: boolean;
+}
+
+const toPermissionStatus = (status: string): PushPermissionStatus =>
+  status === 'granted' || status === 'denied' ? status : 'undetermined';
+
+/**
+ * Reads the OS permission into the store. Returns `null` when the permission cannot be
+ * queried at all (no native module, simulator, Expo Go), so callers can leave the
+ * previous state untouched instead of guessing.
+ */
+async function refreshPermissionState(): Promise<PermissionSnapshot | null> {
+  if (!Device.isDevice || isPushUnavailable()) {
+    return null;
+  }
+
+  const Notifications = loadNotifications();
+  if (!Notifications?.getPermissionsAsync) {
+    return null;
+  }
+
+  const { status, canAskAgain } = await Notifications.getPermissionsAsync();
+  useNotificationStore.getState().setPermissionState(toPermissionStatus(status), canAskAgain !== false);
+  return { status, canAskAgain: canAskAgain !== false };
+}
+
+/** The `default` channel must exist before the Android 13+ permission dialog is shown. */
+async function ensureNotificationChannel(
+  Notifications: typeof ExpoNotifications,
+): Promise<void> {
+  if (Platform.OS !== 'android' || !Notifications?.setNotificationChannelAsync) {
+    return;
+  }
+
+  try {
+    await Notifications.setNotificationChannelAsync(NOTIFICATION_CHANNEL_ID, {
+      name: 'Default',
+      importance: Notifications.AndroidImportance?.MAX ?? 5,
+    });
+  } catch (err) {
+    // A missing channel degrades delivery; it must not block the permission flow.
+    // eslint-disable-next-line no-console
+    console.warn('[PushNotifications] Could not create the notification channel', err);
+  }
+}
+
+/**
+ * Asks for the push token and registers it with the backend, without ever showing the OS
+ * permission dialog. Used once the permission is known to be granted, and by the Profile
+ * toggle, whose user already expressed intent.
+ */
 export async function registerPushNotificationsAsync(
   setExpoPushToken: (t: string) => void,
   setNotificationsEnabled: (v: boolean) => void,
+  options: { requestPermission?: boolean } = {},
 ): Promise<PushRegistrationResult> {
+  const requestPermission = options.requestPermission ?? true;
+
   if (!Device.isDevice) {
     // eslint-disable-next-line no-console
     console.warn('[PushNotifications] Registration skipped — not a physical device');
@@ -97,10 +157,17 @@ export async function registerPushNotificationsAsync(
     try {
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
       finalStatus = existingStatus;
+      useNotificationStore.getState().setPermissionState(toPermissionStatus(existingStatus));
 
-      if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
+      // The explicit toggle path passes `requestPermission: false`: the user's intent is
+      // already known and asking here would re-open a dialog the OS may refuse to show.
+      if (existingStatus !== 'granted' && requestPermission) {
+        await ensureNotificationChannel(Notifications);
+        const { status, canAskAgain } = await Notifications.requestPermissionsAsync();
         finalStatus = status;
+        useNotificationStore
+          .getState()
+          .setPermissionState(toPermissionStatus(status), canAskAgain !== false);
       }
     } catch (err) {
       // eslint-disable-next-line no-console
@@ -145,6 +212,157 @@ export async function registerPushNotificationsAsync(
   }
 }
 
+let permissionFlowInFlight: Promise<PushRegistrationResult> | null = null;
+
+/**
+ * The single entry point for "may we notify this user?" — used by the post-login prompt
+ * and the Profile toggle, never by an individual auth screen.
+ *
+ * Rules, in order:
+ * 1. only a physical device on a platform with push support is asked anything;
+ * 2. the OS status is read first — `granted` registers without a dialog,
+ *    `undetermined` asks, `denied` never asks again;
+ * 3. the dialog is shown at most once per user, tracked by `hasPromptedForPermission`
+ *    (persisted), so the common "re-open the app" case stays silent;
+ * 4. the Android channel exists before the dialog, because Android 13+ renders the
+ *    notification permission prompt as part of it.
+ *
+ * Concurrent callers share the in-flight promise: the login hook and a tapping user must
+ * not open the dialog twice.
+ */
+export function requestNotificationPermissionAndRegister(): Promise<PushRegistrationResult> {
+  if (permissionFlowInFlight) {
+    return permissionFlowInFlight;
+  }
+
+  permissionFlowInFlight = (async (): Promise<PushRegistrationResult> => {
+    const store = useNotificationStore.getState();
+    const { setExpoPushToken, setNotificationsEnabled, setLastPermissionError } = store;
+    // A fresh attempt: the banner from a previous attempt must not linger.
+    setLastPermissionError(null);
+
+    let snapshot: PermissionSnapshot | null;
+    try {
+      snapshot = await refreshPermissionState();
+    } catch (err) {
+      // A permission query that throws is still a permission problem for the user.
+      // eslint-disable-next-line no-console
+      console.error('[PushNotifications] Permission query failed', err);
+      captureError(err, { screen: 'usePushNotifications', action: 'requestPermission' });
+      setNotificationsEnabled(false);
+      setLastPermissionError('permission');
+      return { ok: false, reason: 'permission' };
+    }
+
+    if (snapshot === null) {
+      // Not a physical device / Expo Go on Android: report it exactly like the
+      // registration does, and leave the prompt answer alone so a dev build still asks.
+      const unavailable = await registerPushNotificationsAsync(
+        setExpoPushToken,
+        setNotificationsEnabled,
+        { requestPermission: false },
+      );
+      if (!unavailable.ok) setLastPermissionError(unavailable.reason);
+      return unavailable;
+    }
+
+    if (snapshot.status === 'granted') {
+      // Nothing to ask: register straight away. The channel is created here too — a user
+      // who allowed notifications in the system settings never passed the dialog and
+      // would otherwise have no `default` channel for the backend pushes (#1053).
+      try {
+        await ensureNotificationChannel(loadNotifications());
+      } catch (err) {
+        // A missing channel degrades delivery; it must not block the registration.
+        captureError(err, { screen: 'usePushNotifications', action: 'ensureChannel' });
+      }
+      const registered = await registerPushNotificationsAsync(
+        setExpoPushToken,
+        setNotificationsEnabled,
+        { requestPermission: false },
+      );
+      if (!registered.ok) setLastPermissionError(registered.reason);
+      return registered;
+    }
+
+    const { hasPromptedForPermission, canAskForPermission } = useNotificationStore.getState();
+
+    if (snapshot.status === 'denied') {
+      // The dialog is answerable exactly once on iOS and after two dismissals on
+      // Android; a second request is a silent no-op that would look like a bug.
+      if (!hasPromptedForPermission) {
+        useNotificationStore.getState().setHasPromptedForPermission(true);
+      }
+      setNotificationsEnabled(false);
+      return { ok: false, reason: 'permission' };
+    }
+
+    if (hasPromptedForPermission || !canAskForPermission) {
+      setNotificationsEnabled(false);
+      return { ok: false, reason: 'permission' };
+    }
+
+    try {
+      const Notifications = loadNotifications();
+      await ensureNotificationChannel(Notifications);
+      const { status, canAskAgain } = await Notifications.requestPermissionsAsync();
+      useNotificationStore
+        .getState()
+        .setPermissionState(toPermissionStatus(status), canAskAgain !== false);
+      // Answering the dialog (either way) is the "asked once" event.
+      useNotificationStore.getState().setHasPromptedForPermission(true);
+
+      if (status !== 'granted') {
+        // eslint-disable-next-line no-console
+        console.warn('[PushNotifications] Permission not granted', status);
+        captureError(new Error('Push registration skipped — permission not granted'), { screen: 'usePushNotifications', action: 'requestPermission' });
+        setNotificationsEnabled(false);
+        return { ok: false, reason: 'permission' };
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('[PushNotifications] Permission request failed', err);
+      captureError(err, { screen: 'usePushNotifications', action: 'requestPermission' });
+      setNotificationsEnabled(false);
+      setLastPermissionError('permission');
+      return { ok: false, reason: 'permission' };
+    }
+
+    // The permission is granted now, so the token can be registered without re-asking.
+    // `hasPromptedForPermission` was recorded from what the user saw, not from `status`
+    // alone — and the backend call has to run either way so the device is subscribed.
+    const registered = await registerPushNotificationsAsync(
+      setExpoPushToken,
+      setNotificationsEnabled,
+      { requestPermission: false },
+    );
+
+    if (!registered.ok && registered.reason === 'permission') {
+      // Permission was granted a moment ago, so a "permission" failure here can only be
+      // the native query failing mid-flight: say so rather than blaming the user.
+      setLastPermissionError('unknown');
+      return { ok: false, reason: 'unknown' };
+    }
+
+    if (!registered.ok) {
+      setLastPermissionError(registered.reason);
+    }
+
+    return registered;
+  })();
+
+  return permissionFlowInFlight.finally(() => {
+    permissionFlowInFlight = null;
+  });
+}
+
+/** Opens the OS notification settings for this app (the only fix once "don't ask again"). */
+export function openNotificationSettings(): void {
+  Linking.openSettings().catch((err) => {
+    captureError(err, { screen: 'usePushNotifications', action: 'openSettings' });
+  });
+}
+
 export async function unregisterPushNotificationsAsync(
   expoPushToken: string | null,
   clearNotificationState: () => void,
@@ -176,6 +394,8 @@ export const usePushNotifications = () => {
 
   const expoPushToken = useNotificationStore((s) => s.expoPushToken);
   const notificationsEnabled = useNotificationStore((s) => s.notificationsEnabled);
+  const pushPermissionStatus = useNotificationStore((s) => s.pushPermissionStatus);
+  const canAskForPermission = useNotificationStore((s) => s.canAskForPermission);
   const setExpoPushToken = useNotificationStore((s) => s.setExpoPushToken);
   const setNotificationsEnabled = useNotificationStore((s) => s.setNotificationsEnabled);
   const clearNotificationState = useNotificationStore((s) => s.clearNotificationState);
@@ -191,6 +411,42 @@ export const usePushNotifications = () => {
       setIsRegistering(false);
     }
   }, [setExpoPushToken, setNotificationsEnabled]);
+
+  /**
+   * Re-reads the OS permission so the Profile toggle cannot claim ON while the system
+   * blocks notifications. `ProfileScreen` runs it on mount, since the user may have
+   * changed the permission in the system settings while the app was backgrounded.
+   *
+   * When the permission is granted but no token was ever registered, nothing on this
+   * device is subscribed yet, so the registration runs once to make the state truthful.
+   */
+  const syncPermissionState = useCallback(async () => {
+    let snapshot: PermissionSnapshot | null = null;
+    try {
+      snapshot = await refreshPermissionState();
+    } catch (err) {
+      // Keep whatever the store already believes: a failed query is not a revocation.
+      captureError(err, { screen: 'usePushNotifications', action: 'syncPermission' });
+      return;
+    }
+
+    if (snapshot === null) return;
+
+    if (snapshot.status !== 'granted') {
+      // Without the OS permission no token can work, so the toggle must read OFF even
+      // while the backend still holds a registration for this device.
+      const store = useNotificationStore.getState();
+      if (store.notificationsEnabled || store.expoPushToken) {
+        store.setNotificationsEnabled(false);
+      }
+      return;
+    }
+
+    const { expoPushToken: token } = useNotificationStore.getState();
+    if (!token) {
+      await registerPushNotifications();
+    }
+  }, [registerPushNotifications]);
 
   const unregisterPushNotifications = useCallback(async () => {
     setIsUnregistering(true);
@@ -216,12 +472,15 @@ export const usePushNotifications = () => {
 
   return {
     notificationsEnabled,
+    pushPermissionStatus,
+    canAskForPermission,
     isRegistering,
     isUnregistering,
     pushNotificationsError,
     registerPushNotifications,
     unregisterPushNotifications,
     retryPushNotificationsRegistration: registerPushNotifications,
+    syncPermissionState,
     clearPushNotificationsError,
   };
 };

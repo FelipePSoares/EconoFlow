@@ -1,7 +1,12 @@
 import * as NotificationsApi from '../../api/notifications.api';
 import { useNotificationStore } from '../../store/notificationStore';
 import { act, renderHook } from '@testing-library/react-native';
-import { registerPushNotificationsAsync, unregisterPushNotificationsAsync, usePushNotifications } from '../usePushNotifications';
+import {
+  registerPushNotificationsAsync,
+  requestNotificationPermissionAndRegister,
+  unregisterPushNotificationsAsync,
+  usePushNotifications,
+} from '../usePushNotifications';
 
 jest.mock('expo-secure-store', () => ({
   getItemAsync: jest.fn().mockResolvedValue(null),
@@ -9,7 +14,21 @@ jest.mock('expo-secure-store', () => ({
   deleteItemAsync: jest.fn().mockResolvedValue(undefined),
 }));
 
-jest.mock('../../api/notifications.api');
+jest.mock('../../api/notifications.api', () => {
+  // `jest.mock(path)` is auto-mocked once per test *file*, not per test: the
+  // implementations are cleared in `beforeEach` (see `resetApiMocks`) so a `rejects`
+  // from one case cannot leak into the next.
+  return {
+    registerExpoPushToken: jest.fn(),
+    unregisterExpoPushToken: jest.fn(),
+  };
+});
+
+/** Clears mock implementations *and* the calls of the notification API. */
+const resetApiMocks = () => {
+  (NotificationsApi.registerExpoPushToken as jest.Mock).mockReset();
+  (NotificationsApi.unregisterExpoPushToken as jest.Mock).mockReset();
+};
 
 jest.mock('../../api/client', () => ({
   apiClient: {
@@ -22,6 +41,7 @@ jest.mock('../../api/client', () => ({
 const mockGetPermissionsAsync = jest.fn();
 const mockRequestPermissionsAsync = jest.fn();
 const mockGetExpoPushTokenAsync = jest.fn();
+const mockSetNotificationChannelAsync = jest.fn();
 let loadCount = 0;
 
 // A factory spy stands in for the real module on purpose: the real one throws for the
@@ -32,6 +52,8 @@ jest.mock('expo-notifications', () => {
     getPermissionsAsync: (...args: unknown[]) => mockGetPermissionsAsync(...args),
     requestPermissionsAsync: (...args: unknown[]) => mockRequestPermissionsAsync(...args),
     getExpoPushTokenAsync: (...args: unknown[]) => mockGetExpoPushTokenAsync(...args),
+    setNotificationChannelAsync: (...args: unknown[]) => mockSetNotificationChannelAsync(...args),
+    AndroidImportance: { MAX: 5 },
   };
 });
 
@@ -79,6 +101,7 @@ describe('registerPushNotificationsAsync', () => {
     mockIsDevice.current = true;
     mockIsRunningInExpoGo.current = false;
     jest.clearAllMocks();
+    resetApiMocks();
   });
 
   it('captures error to Sentry when Device.isDevice is false', async () => {
@@ -247,6 +270,7 @@ describe('registerPushNotificationsAsync — result for each failure mode (#1056
     mockIsDevice.current = true;
     mockIsRunningInExpoGo.current = false;
     jest.clearAllMocks();
+    resetApiMocks();
   });
 
   it('returns ok: true after a successful registration', async () => {
@@ -342,6 +366,7 @@ describe('unregisterPushNotificationsAsync', () => {
     useNotificationStore.setState({ expoPushToken: null, notificationsEnabled: false });
     mockIsDevice.current = true;
     jest.clearAllMocks();
+    resetApiMocks();
   });
 
   it('calls API and clears store when token exists', async () => {
@@ -398,6 +423,7 @@ describe('unregisterPushNotificationsAsync', () => {
 describe('usePushNotifications — error state (#1056)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetApiMocks();
     mockIsDevice.current = true;
     mockIsRunningInExpoGo.current = false;
     useNotificationStore.setState({ expoPushToken: null, notificationsEnabled: false });
@@ -447,5 +473,298 @@ describe('usePushNotifications — error state (#1056)', () => {
 
     expect(result.current.pushNotificationsError).toBeNull();
     expect(useNotificationStore.getState().notificationsEnabled).toBe(true);
+  });
+});
+
+// ─── #1053 — the single post-login permission + registration flow ────────────
+
+const resetNotificationStore = () => {
+  useNotificationStore.setState({
+    expoPushToken: null,
+    notificationsEnabled: false,
+    hasPromptedForPermission: false,
+    pushPermissionStatus: 'undetermined',
+    canAskForPermission: true,
+  });
+};
+
+const permission = (status: string, canAskAgain = true) => ({
+  status,
+  canAskAgain,
+  granted: status === 'granted',
+});
+
+describe('requestNotificationPermissionAndRegister (#1053)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetApiMocks();
+    mockIsDevice.current = true;
+    mockIsRunningInExpoGo.current = false;
+    resetNotificationStore();
+    mockSetNotificationChannelAsync.mockResolvedValue(undefined);
+  });
+
+  it('does not ask the OS when the permission is already granted', async () => {
+    mockGetPermissionsAsync.mockResolvedValue(permission('granted'));
+    mockGetExpoPushTokenAsync.mockResolvedValue({ data: 'ExponentPushToken[abc]' });
+    (NotificationsApi.registerExpoPushToken as jest.Mock).mockResolvedValue({ data: {} });
+
+    await requestNotificationPermissionAndRegister();
+
+    expect(mockRequestPermissionsAsync).not.toHaveBeenCalled();
+    expect(useNotificationStore.getState().notificationsEnabled).toBe(true);
+  });
+
+  it('records the denial, keeps the toggle off and reports permission', async () => {
+    mockGetPermissionsAsync.mockResolvedValue(permission('undetermined'));
+    mockRequestPermissionsAsync.mockResolvedValue({ status: 'denied', canAskAgain: false });
+
+    const result = await requestNotificationPermissionAndRegister();
+
+    expect(result).toEqual({ ok: false, reason: 'permission' });
+    const state = useNotificationStore.getState();
+    expect(state.hasPromptedForPermission).toBe(true);
+    expect(state.pushPermissionStatus).toBe('denied');
+    expect(state.canAskForPermission).toBe(false);
+    expect(state.notificationsEnabled).toBe(false);
+    expect(NotificationsApi.registerExpoPushToken).not.toHaveBeenCalled();
+  });
+
+  it('does not prompt again after the user already answered', async () => {
+    useNotificationStore.setState({ hasPromptedForPermission: true });
+    mockGetPermissionsAsync.mockResolvedValue(permission('undetermined'));
+
+    const result = await requestNotificationPermissionAndRegister();
+
+    expect(mockRequestPermissionsAsync).not.toHaveBeenCalled();
+    expect(result).toEqual({ ok: false, reason: 'permission' });
+    expect(useNotificationStore.getState().hasPromptedForPermission).toBe(true);
+  });
+
+  it('never prompts when the OS says it cannot be asked again', async () => {
+    mockGetPermissionsAsync.mockResolvedValue(permission('denied', false));
+
+    const result = await requestNotificationPermissionAndRegister();
+
+    expect(mockRequestPermissionsAsync).not.toHaveBeenCalled();
+    expect(result).toEqual({ ok: false, reason: 'permission' });
+    expect(useNotificationStore.getState().pushPermissionStatus).toBe('denied');
+    expect(useNotificationStore.getState().canAskForPermission).toBe(false);
+  });
+
+  it('reports the answer as already given when the permission is denied for good', async () => {
+    mockGetPermissionsAsync.mockResolvedValue(permission('denied', false));
+
+    await requestNotificationPermissionAndRegister();
+
+    expect(useNotificationStore.getState().hasPromptedForPermission).toBe(true);
+  });
+
+  it('creates the Android channel before asking for the permission', async () => {
+    mockGetPermissionsAsync.mockResolvedValue(permission('undetermined'));
+    mockRequestPermissionsAsync.mockResolvedValue(permission('granted'));
+    mockGetExpoPushTokenAsync.mockResolvedValue({ data: 'ExponentPushToken[abc]' });
+    (NotificationsApi.registerExpoPushToken as jest.Mock).mockResolvedValue({ data: {} });
+
+    await requestNotificationPermissionAndRegister();
+
+    expect(mockSetNotificationChannelAsync).toHaveBeenCalledWith(
+      'default',
+      expect.objectContaining({ importance: expect.anything() }),
+    );
+    expect(mockSetNotificationChannelAsync.mock.invocationCallOrder[0])
+      .toBeLessThan(mockRequestPermissionsAsync.mock.invocationCallOrder[0]);
+  });
+
+  it('still registers when the channel cannot be created', async () => {
+    mockSetNotificationChannelAsync.mockRejectedValue(new Error('channel error'));
+    mockGetPermissionsAsync.mockResolvedValue(permission('granted'));
+    mockGetExpoPushTokenAsync.mockResolvedValue({ data: 'ExponentPushToken[abc]' });
+    (NotificationsApi.registerExpoPushToken as jest.Mock).mockResolvedValue({ data: {} });
+
+    const result = await requestNotificationPermissionAndRegister();
+
+    expect(result).toEqual({ ok: true });
+  });
+
+  it('does not run the flow when the permission block cannot be read', async () => {
+    mockGetPermissionsAsync.mockRejectedValue(new Error('native module error'));
+
+    const result = await requestNotificationPermissionAndRegister();
+
+    expect(result).toEqual({ ok: false, reason: 'permission' });
+    expect(mockRequestPermissionsAsync).not.toHaveBeenCalled();
+    expect(useNotificationStore.getState().hasPromptedForPermission).toBe(false);
+  });
+
+  it('records the answer when the permission is granted (regression)', async () => {
+    mockGetPermissionsAsync.mockResolvedValue(permission('granted'));
+    mockGetExpoPushTokenAsync.mockResolvedValue({ data: 'ExponentPushToken[abc]' });
+    (NotificationsApi.registerExpoPushToken as jest.Mock).mockResolvedValue({ data: {} });
+
+    await requestNotificationPermissionAndRegister();
+
+    // No dialog was shown (the OS already had the answer), so nothing pretends the user
+    // was asked — but the device is registered, which is what the toggle reflects.
+    expect(useNotificationStore.getState().hasPromptedForPermission).toBe(false);
+    expect(useNotificationStore.getState().notificationsEnabled).toBe(true);
+    expect(useNotificationStore.getState().expoPushToken).toBe('ExponentPushToken[abc]');
+  });
+
+  it('creates the Android channel even when the permission was granted in the settings', async () => {
+    // A grant obtained outside the app never passed the dialog, so this path is the only
+    // chance to create the `default` channel the backend pushes land in (#1053).
+    mockGetPermissionsAsync.mockResolvedValue(permission('granted'));
+    mockGetExpoPushTokenAsync.mockResolvedValue({ data: 'ExponentPushToken[abc]' });
+    (NotificationsApi.registerExpoPushToken as jest.Mock).mockResolvedValue({ data: {} });
+
+    await requestNotificationPermissionAndRegister();
+
+    expect(mockSetNotificationChannelAsync).toHaveBeenCalledWith(
+      'default',
+      expect.objectContaining({ importance: expect.anything() }),
+    );
+  });
+
+  it('shrinks the banner failure to a non-permission one when the permission is granted', async () => {
+    useNotificationStore.setState({ lastPermissionError: 'permission' });
+    mockGetPermissionsAsync.mockResolvedValue(permission('granted'));
+    mockGetExpoPushTokenAsync.mockResolvedValue({ data: 'ExponentPushToken[abc]' });
+    (NotificationsApi.registerExpoPushToken as jest.Mock).mockRejectedValue(new Error('API error'));
+
+    await requestNotificationPermissionAndRegister();
+
+    // The declined-permission wording would be wrong here — the permission is granted,
+    // the backend call is what failed — so the icon in Profile must offer a retry.
+    expect(useNotificationStore.getState().lastPermissionError).toBe('api');
+  });
+
+  it('shrinks the banner failure to none when the permission is granted and registration works', async () => {
+    useNotificationStore.setState({ lastPermissionError: 'unknown' });
+    mockGetPermissionsAsync.mockResolvedValue(permission('granted'));
+    mockGetExpoPushTokenAsync.mockResolvedValue({ data: 'ExponentPushToken[abc]' });
+    (NotificationsApi.registerExpoPushToken as jest.Mock).mockResolvedValue({ data: {} });
+
+    await requestNotificationPermissionAndRegister();
+
+    expect(useNotificationStore.getState().lastPermissionError).toBeNull();
+  });
+
+  it('is a no-op on a simulator instead of prompting for a permission it cannot use', async () => {
+    mockIsDevice.current = false;
+
+    const result = await requestNotificationPermissionAndRegister();
+
+    expect(result).toEqual({ ok: false, reason: 'device' });
+    expect(mockGetPermissionsAsync).not.toHaveBeenCalled();
+    expect(mockRequestPermissionsAsync).not.toHaveBeenCalled();
+    expect(useNotificationStore.getState().hasPromptedForPermission).toBe(false);
+  });
+
+  it('shares one in-flight request between concurrent callers', async () => {
+    mockGetPermissionsAsync.mockResolvedValue(permission('undetermined'));
+    mockRequestPermissionsAsync.mockResolvedValue(permission('granted'));
+    mockGetExpoPushTokenAsync.mockResolvedValue({ data: 'ExponentPushToken[abc]' });
+    (NotificationsApi.registerExpoPushToken as jest.Mock).mockResolvedValue({ data: {} });
+
+    const [first, second] = await Promise.all([
+      requestNotificationPermissionAndRegister(),
+      requestNotificationPermissionAndRegister(),
+    ]);
+
+    expect(mockRequestPermissionsAsync).toHaveBeenCalledTimes(1);
+    expect(first).toEqual(second);
+  });
+
+  it('asks again in a later session when the previous answer could not be applied', async () => {
+    mockGetPermissionsAsync.mockResolvedValue(permission('undetermined'));
+    mockRequestPermissionsAsync.mockResolvedValue(permission('granted'));
+    mockGetExpoPushTokenAsync.mockResolvedValue({ data: 'ExponentPushToken[abc]' });
+    (NotificationsApi.registerExpoPushToken as jest.Mock).mockResolvedValue({ data: {} });
+
+    await requestNotificationPermissionAndRegister();
+    expect(mockRequestPermissionsAsync).toHaveBeenCalledTimes(1);
+
+    useNotificationStore.getState().resetPermissionPrompt();
+    await requestNotificationPermissionAndRegister();
+
+    expect(mockRequestPermissionsAsync).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('usePushNotifications — permission sync on mount (#1053)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetApiMocks();
+    mockIsDevice.current = true;
+    mockIsRunningInExpoGo.current = false;
+    resetNotificationStore();
+  });
+
+  it('drops the toggle to OFF when the OS no longer grants notifications', async () => {
+    useNotificationStore.setState({ notificationsEnabled: true, expoPushToken: 'ExponentPushToken[abc]' });
+    mockGetPermissionsAsync.mockResolvedValue(permission('denied', false));
+
+    const { result } = await renderHook(() => usePushNotifications());
+
+    await act(async () => {
+      await result.current.syncPermissionState();
+    });
+
+    expect(useNotificationStore.getState().pushPermissionStatus).toBe('denied');
+    expect(result.current.notificationsEnabled).toBe(false);
+  });
+
+  it('picks up a permission granted from the system settings', async () => {
+    mockGetPermissionsAsync.mockResolvedValue(permission('granted'));
+
+    const { result } = await renderHook(() => usePushNotifications());
+
+    await act(async () => {
+      await result.current.syncPermissionState();
+    });
+
+    expect(useNotificationStore.getState().pushPermissionStatus).toBe('granted');
+    expect(result.current.pushPermissionStatus).toBe('granted');
+  });
+
+  it('asks the OS when the toggle is on but no token was ever registered', async () => {
+    // The previous session never finished registering: the toggle must reflect the app,
+    // so activating again is the right move here.
+    useNotificationStore.setState({ notificationsEnabled: true, expoPushToken: null });
+    mockGetPermissionsAsync.mockResolvedValue(permission('denied', false));
+
+    const { result } = await renderHook(() => usePushNotifications());
+
+    await act(async () => {
+      await result.current.syncPermissionState();
+    });
+
+    expect(result.current.notificationsEnabled).toBe(false);
+  });
+
+  it('keeps the local state when the permission cannot be read', async () => {
+    useNotificationStore.setState({ notificationsEnabled: true, expoPushToken: 'ExponentPushToken[abc]' });
+    mockGetPermissionsAsync.mockRejectedValue(new Error('native module error'));
+
+    const { result } = await renderHook(() => usePushNotifications());
+
+    await act(async () => {
+      await result.current.syncPermissionState();
+    });
+
+    expect(result.current.notificationsEnabled).toBe(true);
+  });
+
+  it('exposes canAskForPermission so the UI can send the user to the settings', async () => {
+    mockGetPermissionsAsync.mockResolvedValue(permission('denied', false));
+
+    const { result } = await renderHook(() => usePushNotifications());
+
+    await act(async () => {
+      await result.current.syncPermissionState();
+    });
+
+    expect(result.current.canAskForPermission).toBe(false);
   });
 });

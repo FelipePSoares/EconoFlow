@@ -1,6 +1,7 @@
 // All imports first — Jest hoists jest.mock() calls before any imports at
 // runtime regardless of their position in source, so this ordering is safe.
 import { useAuthStore } from '../authStore';
+import { useNotificationStore } from '../notificationStore';
 import { setUserContext, clearUserContext } from '../../monitoring/sentry';
 import type { User } from '../../api/types';
 import type { AuthState } from '../authStore';
@@ -106,6 +107,23 @@ describe('authStore – Sentry user context integration', () => {
     it('persists the user object in the store', () => {
       useAuthStore.getState().setUser(mockUser);
       expect(useAuthStore.getState().user).toEqual(mockUser);
+    });
+
+    it('binds the notification prompt answer to the signed-in user (#1053)', () => {
+      useNotificationStore.setState({ currentUserKey: 'previous-user' });
+      useAuthStore.getState().setUser(mockUser);
+
+      expect(useNotificationStore.getState().currentUserKey).toBe('user-abc-123');
+    });
+
+    it('forgets a previous user\u2019s notification answer on a different account (#1053)', () => {
+      // A second account on the same device must get its own rationale and OS prompt
+      // instead of inheriting the first user's silence.
+      useNotificationStore.setState({ currentUserKey: 'previous-user', hasPromptedForPermission: true });
+
+      useAuthStore.getState().setUser(mockUser);
+
+      expect(useNotificationStore.getState().hasPromptedForPermission).toBe(false);
     });
   });
 

@@ -342,7 +342,7 @@ describe('ProfileSetupScreen', () => {
     expect(screen.queryByText('SmartSetupBack')).toBeNull();
   });
 
-  it('calls registerPushNotificationsAsync on successful submit', async () => {
+  it('does not request the notification permission from the onboarding screen (#1053)', async () => {
     mockMutateAsync.mockResolvedValue({});
 
     await render(<ProfileSetupScreen navigation={mockNavigation} />);
@@ -354,26 +354,9 @@ describe('ProfileSetupScreen', () => {
       await new Promise(resolve => setTimeout(resolve, 0));
     });
 
-    await waitFor(() => {
-      expect(mockRegisterPushNotificationsAsync).toHaveBeenCalled();
-    });
-  });
-
-  it('does not show error banner when registerPushNotificationsAsync completes', async () => {
-    mockMutateAsync.mockResolvedValue({});
-    mockRegisterPushNotificationsAsync.mockResolvedValue(undefined);
-
-    await render(<ProfileSetupScreen navigation={mockNavigation} />);
-
-    await act(async () => {
-      await fireEvent.changeText(screen.getByTestId('PlaceholderFirstName'), 'John');
-      await fireEvent.changeText(screen.getByTestId('PlaceholderLastName'), 'Doe');
-      await fireEvent.press(screen.getByTestId('ButtonSaveAndContinue'));
-      await new Promise(resolve => setTimeout(resolve, 0));
-    });
-
-    await waitFor(() => {
-      expect(screen.queryByTestId('error-banner')).toBeNull();
-    });
+    await waitFor(() => expect(mockRootDispatch).toHaveBeenCalled());
+    // The prompt belongs to the post-login hook, which runs once `Main` mounts — after
+    // the biometric gate — instead of racing this screen's unmount.
+    expect(mockRegisterPushNotificationsAsync).not.toHaveBeenCalled();
   });
 });

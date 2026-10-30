@@ -141,6 +141,16 @@ jest.mock('../../../store/authStore', () => ({
   })),
 }));
 
+// #1053: registration auto-login must not request the permission by itself — the
+// single post-login hook owns the rationale + OS prompt.
+const mockRequestNotificationPermissionAndRegister = jest.fn();
+
+jest.mock('../../../hooks/usePushNotifications', () => ({
+  registerPushNotificationsAsync: jest.fn(),
+  requestNotificationPermissionAndRegister: (...args: unknown[]) =>
+    mockRequestNotificationPermissionAndRegister(...args),
+}));
+
 jest.mock('../../../i18n', () => ({
   __esModule: true,
   default: { changeLanguage: jest.fn() },
@@ -318,5 +328,20 @@ describe('RegisterScreen — auto-login after registration', () => {
       expect(mockNavigate).toHaveBeenCalledWith('TwoFactor', expect.any(Object)),
     );
     expect(mockCaptureError).not.toHaveBeenCalled();
+  });
+
+  it('does not request the notification permission from the screen itself (#1053)', async () => {
+    const { registerPushNotificationsAsync } = jest.requireMock('../../../hooks/usePushNotifications');
+
+    mockRegister.mockResolvedValue({ data: {} });
+    mockMobileLogin.mockResolvedValue({ data: { accessToken: 'at', refreshToken: 'rt' } });
+    mockGetCurrentUser.mockResolvedValue({ data: { id: 'u1', firstName: '', languageCode: 'en' } });
+
+    await renderScreen(queryClient);
+    await fillAndSubmitForm();
+
+    await waitFor(() => expect(mockSetTokens).toHaveBeenCalled());
+    expect(registerPushNotificationsAsync).not.toHaveBeenCalled();
+    expect(mockRequestNotificationPermissionAndRegister).not.toHaveBeenCalled();
   });
 });

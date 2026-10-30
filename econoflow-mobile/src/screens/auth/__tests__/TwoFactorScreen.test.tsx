@@ -103,6 +103,16 @@ jest.mock('../../../store/authStore', () => ({
   })),
 }));
 
+// #1053: the 2FA path lands in the session navigator like any other login; the single
+// post-login hook is what asks for the permission, never this screen.
+const mockRequestNotificationPermissionAndRegister = jest.fn();
+
+jest.mock('../../../hooks/usePushNotifications', () => ({
+  registerPushNotificationsAsync: jest.fn(),
+  requestNotificationPermissionAndRegister: (...args: unknown[]) =>
+    mockRequestNotificationPermissionAndRegister(...args),
+}));
+
 jest.mock('../../../i18n', () => ({
   __esModule: true,
   default: { changeLanguage: jest.fn() },
@@ -246,5 +256,19 @@ describe('TwoFactorScreen', () => {
 
     await waitFor(() => expect(mockSetTokens).toHaveBeenCalled());
     expect(mockCaptureError).not.toHaveBeenCalled();
+  });
+
+  it('does not request the notification permission itself (#1053)', async () => {
+    const { registerPushNotificationsAsync } = jest.requireMock('../../../hooks/usePushNotifications');
+
+    mockMobileLogin.mockResolvedValue({ data: { accessToken: 'at', refreshToken: 'rt' } });
+    mockGetCurrentUser.mockResolvedValue({ data: { id: 'u1', firstName: '', languageCode: 'en' } });
+
+    await renderScreen(queryClient);
+    await fillAndSubmit();
+
+    await waitFor(() => expect(mockSetTokens).toHaveBeenCalled());
+    expect(registerPushNotificationsAsync).not.toHaveBeenCalled();
+    expect(mockRequestNotificationPermissionAndRegister).not.toHaveBeenCalled();
   });
 });

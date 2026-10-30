@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { render, screen, waitFor } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { MainNavigator } from '../MainNavigator';
 
@@ -63,6 +63,23 @@ jest.mock('../../screens/quick-add/QuickAddModal', () => ({
   QuickAddModal: () => null,
 }));
 
+// ─── Notification permission prompt (#1053) ───────────────────────────────────
+
+// Only the push flow is mocked: the real `useNotificationPermissionPrompt` must then
+// fire it once `Main` mounts, which is exactly the behaviour under test.
+const mockRequestNotificationPermissionAndRegister = jest.fn();
+
+jest.mock('../../hooks/usePushNotifications', () => ({
+  requestNotificationPermissionAndRegister: (...args: unknown[]) =>
+    mockRequestNotificationPermissionAndRegister(...args),
+  openNotificationSettings: jest.fn(),
+}));
+
+jest.mock('../../components/auth/AuroraPrimaryButton', () => {
+  const React = require('react');
+  return { AuroraPrimaryButton: () => React.createElement(React.Fragment, null) };
+});
+
 // ─── Store mocks ──────────────────────────────────────────────────────────────
 
 jest.mock('../../store/uiStore', () => ({
@@ -89,6 +106,23 @@ jest.mock('../../store/authStore', () => ({
     selector({ openCreateProjectOnStart: mockOpenCreateProjectOnStart }),
   ),
 }));
+
+// The prompt only acts once SecureStore rehydration settles; the store mock below starts
+// hydrated so the hook can run in these tests.
+
+jest.mock('../../store/notificationStore', () => {
+  const { create } = jest.requireActual('zustand');
+  const useNotificationStore = create((set: (partial: Record<string, unknown>) => void) => ({
+    // Plain values, not a getter: a getter is only read when the selector runs on a
+    // store notification, so the component would never see the post-retest value.
+    hasHydrated: true,
+    hasPromptedForPermission: false,
+    pushPermissionStatus: 'undetermined',
+    canAskForPermission: true,
+    setHasPromptedForPermission: (prompted: boolean) => set({ hasPromptedForPermission: prompted }),
+  }));
+  return { useNotificationStore };
+});
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
@@ -123,5 +157,45 @@ describe('MainNavigator – initial tab based on openCreateProjectOnStart', () =
     expect(projectsTab.props.accessibilityState?.selected).toBe(true);
     const overviewTab = screen.getByLabelText(/TabOverview/);
     expect(overviewTab.props.accessibilityState?.selected).toBe(false);
+  });
+});
+
+describe('MainNavigator – notification permission prompt (#1053)', () => {
+  beforeEach(() => {
+    mockRequestNotificationPermissionAndRegister.mockReset();
+    mockRequestNotificationPermissionAndRegister.mockResolvedValue({ ok: true });
+  });
+
+  it('runs the shared permission flow after the main screen mounts', async () => {
+    // `Main` is the one screen every authenticated path reaches (password login,
+    // registration auto-login, 2FA), after the biometric gate — the only place where
+    // the OS dialog cannot race another system prompt.
+    await render(
+      <NavigationContainer>
+        <MainNavigator />
+      </NavigationContainer>,
+    );
+
+    await waitFor(() => {
+      expect(mockRequestNotificationPermissionAndRegister).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('does not ask again while the user stays on the main screen', async () => {
+    const { rerender } = await render(
+      <NavigationContainer>
+        <MainNavigator />
+      </NavigationContainer>,
+    );
+
+    await waitFor(() => expect(mockRequestNotificationPermissionAndRegister).toHaveBeenCalledTimes(1));
+
+    rerender(
+      <NavigationContainer>
+        <MainNavigator />
+      </NavigationContainer>,
+    );
+
+    expect(mockRequestNotificationPermissionAndRegister).toHaveBeenCalledTimes(1);
   });
 });

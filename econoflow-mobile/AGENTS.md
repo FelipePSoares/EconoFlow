@@ -6,6 +6,16 @@ The New Architecture is the only supported one — React Native 0.82+ cannot dis
 
 **Never import `expo-notifications` at module scope.** Expo Go on Android does not register `ExpoTopicSubscriptionModule`, and the package resolves it with `requireNativeModule` on import ([expo/expo#52175](https://github.com/expo/expo/issues/52175)), so a top-level import red-screens the whole app on startup. `src/hooks/usePushNotifications.ts` loads it with `require('expo-notifications')` inside the flow instead — keep it that way, and lazy-load any other package you import from `AppNavigator`'s graph whose native module Expo Go omits. Push registration still cannot work in Expo Go on Android by design; test it on a dev build.
 
+**Notification permission flow (#1053).** `requestNotificationPermissionAndRegister()` in `src/hooks/usePushNotifications.ts` is the only place that shows the OS permission dialog. Never call `Notifications.requestPermissionsAsync()` from a screen. Rules it enforces:
+
+- It runs from `useNotificationPermissionPrompt`, mounted by `MainNavigator` — the first screen every authenticated path reaches (password login, registration auto-login, 2FA), *after* the biometric gate. Requesting from `LoginScreen`/`ProfileSetupScreen` raced their unmount and the Android 13+ dialog was swallowed.
+- `getPermissionsAsync()` is read first; the dialog is only shown when the status is `undetermined` **and** `canAskAgain`. The Android `default` channel is created before the dialog.
+- `hasPromptedForPermission` (persisted in `useNotificationStore` via `expo-secure-store`) records that the user answered, so a restart or a second login stays silent. It is bound to the account by `authStore.setUser` → `setCurrentUserKey(user.id)`, so a different account on the same device gets its own prompt; a plain sign-out (`clearNotificationState`) keeps the answer.
+- `denied` + `canAskAgain === false` ("don't ask again") never prompts again: `NotificationPermissionPrompt` renders a settings guidance and `ProfileScreen` shows an inline `notifications-permission-guidance` row whose action calls `openNotificationSettings()` (`Linking.openSettings`).
+- `notificationsEnabled` is derived (OS permission **and** a registered token). `ProfileScreen` re-reads the permission on mount via `syncPermissionState()`, so the toggle cannot read ON while the system blocks notifications.
+- Failures land in `useNotificationStore.lastPermissionError`; `ProfileScreen` renders it through `ErrorBanner` (a declined prompt is not an error and is filtered out).
+- The OS prompt itself is verifiable only on a dev/standalone build (`npx expo run:android` / `run:ios`) — Expo Go cannot show a push flow.
+
 ## Development workflow
 
 Follow the 4-step workflow in [root AGENTS.md](../AGENTS.md). The per-project commands are:

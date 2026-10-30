@@ -15,8 +15,6 @@ import type { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { mobileLogin, getCurrentUser } from '../../api/auth.api';
 import { captureError } from '../../monitoring/sentry';
 import { useAuthStore } from '../../store/authStore';
-import { useNotificationStore } from '../../store/notificationStore';
-import { registerPushNotificationsAsync } from '../../hooks/usePushNotifications';
 import i18n from '../../i18n';
 import { AuthHero } from '../../components/auth/AuthHero';
 import { AuroraField } from '../../components/auth/AuroraField';
@@ -63,10 +61,10 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
       try {
         const userResponse = await getCurrentUser();
         setUser(userResponse.data);
-        const { expoPushToken: existingToken, setExpoPushToken, setNotificationsEnabled } = useNotificationStore.getState();
-        if (!existingToken) {
-          registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled);
-        }
+        // The notification permission is requested once by the post-login screen
+        // (useNotificationPermissionPrompt), not here: asking while this screen
+        // unmounts, with the biometric gate opening at the same time, swallowed the
+        // Android 13+ dialog entirely (#1053).
         if (userResponse.data.languageCode) {
           const lang = userResponse.data.languageCode.startsWith('pt') ? 'pt' : 'en';
           i18n.changeLanguage(lang);

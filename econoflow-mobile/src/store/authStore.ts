@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import * as SecureStore from 'expo-secure-store';
 import type { User } from '../api/types';
 import { setUserContext, clearUserContext } from '../monitoring/sentry';
+import { useNotificationStore } from './notificationStore';
 
 interface SecureStorage {
   getItem(name: string): Promise<string | null>;
@@ -43,6 +44,11 @@ export const useAuthStore = create<AuthState>()(
         set({ accessToken, refreshToken, isAuthenticated: true }),
       setUser: (user) => {
         setUserContext(user.id);
+        // The notification prompt is answered once per user (#1053). Every authenticated
+        // path — password login, registration auto-login, 2FA — lands here, so binding
+        // the answer to this id is what lets a second account on the same device get its
+        // own rationale and prompt instead of inheriting the previous user's silence.
+        useNotificationStore.getState().setCurrentUserKey(user.id ?? null);
         set({ user, needsOnboarding: !!user && !user.firstName });
       },
       clearAuth: () => {

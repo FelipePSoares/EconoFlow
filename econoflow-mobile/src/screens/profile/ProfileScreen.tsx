@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   ActivityIndicator, Linking, ScrollView, StyleSheet, Switch, TouchableOpacity, View,
 } from 'react-native';
@@ -17,7 +17,8 @@ import { useBiometricStore } from '../../store/biometricStore';
 import { usePinStore } from '../../store/pinStore';
 import { useLockStore } from '../../store/lockStore';
 import { useProjectStore } from '../../store/projectStore';
-import { usePushNotifications } from '../../hooks/usePushNotifications';
+import { useNotificationStore } from '../../store/notificationStore';
+import { usePushNotifications, requestNotificationPermissionAndRegister, openNotificationSettings } from '../../hooks/usePushNotifications';
 import { useAppTheme } from '../../theme/useAppTheme';
 import { GlassScreen } from '../../components/common/GlassScreen';
 import { GlassCard } from '../../components/common/GlassCard';
@@ -140,16 +141,37 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
   const queryClient = useQueryClient();
   const {
     notificationsEnabled,
+    pushPermissionStatus,
+    canAskForPermission,
     isRegistering,
     isUnregistering,
     pushNotificationsError,
-    registerPushNotifications,
     unregisterPushNotifications,
     retryPushNotificationsRegistration,
+    syncPermissionState,
     clearPushNotificationsError,
   } = usePushNotifications();
 
   const isTogglingNotifications = isRegistering || isUnregistering;
+
+  // A failure from the shared flow (post-login prompt or the toggle) is stored next to
+  // the permission state, so both entry points explain themselves through one banner.
+  const lastPermissionError = useNotificationStore((s) => s.lastPermissionError);
+  const clearLastPermissionError = useNotificationStore((s) => s.setLastPermissionError);
+  // A declined OS prompt is an answer, not an error: the guidance row below explains the
+  // way forward, and a "try again" banner would just re-ask a dialog the OS will ignore.
+  const effectiveNotificationsError =
+    pushNotificationsError ?? (lastPermissionError === 'permission' ? null : lastPermissionError);
+
+  // The toggle must not claim ON while the OS blocks notifications: re-read the
+  // permission on mount, since the user may have changed it in the system settings
+  // while the app was backgrounded (#1053).
+  useEffect(() => {
+    void syncPermissionState();
+    // `syncPermissionState` is recreated when the toggle flips; re-running it then would
+    // re-register on every switch press, so only the mount is of interest here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSignOut = async () => {
     // A failed unregister restores the token and the toggle so the Profile row stays
@@ -167,23 +189,35 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
     if (isTogglingNotifications) return;
     if (notificationsEnabled) {
       unregisterPushNotifications();
-    } else {
-      registerPushNotifications();
+      return;
     }
+    // Turning it on is an explicit request, so it goes through the shared flow: the OS
+    // dialog is asked at most once and the Android channel exists before it. A failure
+    // is surfaced by the flow through the banner below; a decline is an answer, not an
+    // error, and is explained by the guidance.
+    void requestNotificationPermissionAndRegister();
   };
 
   // Retrying a rejected registration is meaningful; retrying a failed disable is not,
   // so the banner only offers that action for the permission/device/network cases.
   // Guarded like the row itself: a fast double-tap must not start two registrations.
   const notificationsErrorRetry =
-    pushNotificationsError && pushNotificationsError !== 'unregister' && !isTogglingNotifications
+    effectiveNotificationsError && effectiveNotificationsError !== 'unregister' && !isTogglingNotifications
       ? retryPushNotificationsRegistration
       : undefined;
 
+  // The OS will not show the dialog again, so the only remaining fix is the system
+  // settings — unless the permission has since been granted there.
+  const showPermissionGuidance =
+    canAskForPermission === false && pushPermissionStatus !== 'granted';
+
   // Each failure gets its own wording: "try again later" is useless advice when the
   // OS has blocked the permission or the device cannot receive notifications at all.
+  // A blocked permission gets the settings row below instead — showing the "try again"
+  // banner with the same advice next to it would be two copies of one sentence.
   const notificationsErrorMessage = (() => {
-    switch (pushNotificationsError) {
+    if (showPermissionGuidance) return undefined;
+    switch (effectiveNotificationsError) {
       case 'permission':
         return t('NotificationsPermissionBlockedMessage') ?? 'Notifications are blocked for EconoFlow. Allow them in your device settings and try again.';
       case 'device':
@@ -284,9 +318,12 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
           {t('NotificationPreferences') ?? 'Notifications'}
         </Text>
         <ErrorBanner
-          visible={!!pushNotificationsError}
+          visible={!!notificationsErrorMessage}
           message={notificationsErrorMessage}
-          onDismiss={clearPushNotificationsError}
+          onDismiss={() => {
+            clearPushNotificationsError();
+            clearLastPermissionError(null);
+          }}
           onRetry={notificationsErrorRetry}
         />
         <GlassCard dark={dark} radius={20} style={styles.card}>
@@ -303,6 +340,22 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
             isLast
           />
         </GlassCard>
+        {showPermissionGuidance && (
+          <View testID="notifications-permission-guidance" style={styles.guidance}>
+            <Text style={[styles.guidanceText, { color: colors.error }]}>
+              {t('NotificationsPermissionBlockedGuidance')}
+            </Text>
+            <TouchableOpacity
+              onPress={openNotificationSettings}
+              testID="notifications-open-settings"
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.guidanceAction, { color: colors.primary }]}>
+                {t('NotificationsPermissionOpenSettings')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Security */}
         <Text style={[styles.sectionTitle, { color: ink2 }]}>
@@ -417,6 +470,16 @@ const styles = StyleSheet.create({
   settingInfo:  { flex: 1, gap: 2 },
   settingLabel: { fontSize: 11.5, fontWeight: '600' },
   settingValue: { fontSize: 14, fontWeight: '700' },
+
+  guidance: {
+    marginTop: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 14,
+    gap: 6,
+  },
+  guidanceText: { fontSize: 12.5, fontWeight: '600', lineHeight: 18 },
+  guidanceAction: { fontSize: 13, fontWeight: '800' },
 
   signOutBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
