@@ -172,6 +172,8 @@ export interface CreateExpenseItemRequest {
   name: string;
   date: string;
   amount: number;
+  /** Marks the item as tax deductible; the backend accepts unnamed items. */
+  isDeductible?: boolean;
 }
 
 export interface TaxYearSettingsRequest {

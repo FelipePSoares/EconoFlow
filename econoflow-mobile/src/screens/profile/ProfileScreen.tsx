@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  Linking, ScrollView, StyleSheet, Switch, TouchableOpacity, View,
+  ActivityIndicator, Linking, ScrollView, StyleSheet, Switch, TouchableOpacity, View,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -78,14 +78,20 @@ interface SettingToggleRowProps {
   ink2: string;
   hair: string;
   disabled?: boolean;
+  /**
+   * Replaces the switch with an activity indicator while an async toggle is in
+   * flight, so the row does not look frozen. Implies `disabled`.
+   */
+  loading?: boolean;
   isLast?: boolean;
   onPress?: () => void;
   testID?: string;
 }
 
 const SettingToggleRow: React.FC<SettingToggleRowProps> = ({
-  icon, label, value, toggled, dark, ink, ink2, hair, disabled, isLast, onPress, testID,
+  icon, label, value, toggled, dark, ink, ink2, hair, disabled, loading, isLast, onPress, testID,
 }) => {
+  const isBusy = !!loading;
   const inner = (
     <View style={[styles.settingRow, { borderBottomColor: isLast ? 'transparent' : hair }]}>
       <View style={[styles.settingIconWrap, { backgroundColor: '#0f76a8' + (dark ? '28' : '18') }]}>
@@ -95,17 +101,28 @@ const SettingToggleRow: React.FC<SettingToggleRowProps> = ({
         <Text style={[styles.settingLabel, { color: ink2 }]}>{label}</Text>
         <Text style={[styles.settingValue, { color: ink }]}>{value}</Text>
       </View>
-      <Switch
-        value={toggled}
-        disabled={disabled}
-        onValueChange={onPress}
-        trackColor={{ false: hair, true: '#0f76a880' }}
-        thumbColor={toggled ? '#0f76a8' : '#ccc'}
-      />
+      {isBusy ? (
+        <ActivityIndicator testID={`${testID}-spinner`} color="#0f76a8" />
+      ) : (
+        <Switch
+          value={toggled}
+          disabled={disabled}
+          onValueChange={onPress}
+          trackColor={{ false: hair, true: '#0f76a880' }}
+          thumbColor={toggled ? '#0f76a8' : '#ccc'}
+        />
+      )}
     </View>
   );
 
-  return <View testID={testID}>{inner}</View>;
+  return (
+    <View
+      testID={testID}
+      accessibilityState={{ disabled: isBusy, busy: isBusy }}
+    >
+      {inner}
+    </View>
+  );
 };
 
 export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
@@ -123,9 +140,12 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
   const {
     notificationsEnabled,
     isRegistering,
+    isUnregistering,
     registerPushNotifications,
     unregisterPushNotifications,
   } = usePushNotifications();
+
+  const isTogglingNotifications = isRegistering || isUnregistering;
 
   const handleSignOut = async () => {
     await unregisterPushNotifications();
@@ -137,6 +157,7 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleToggleNotifications = () => {
+    if (isTogglingNotifications) return;
     if (notificationsEnabled) {
       unregisterPushNotifications();
     } else {
@@ -234,7 +255,8 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
             label={t('PushNotifications') ?? 'Push Notifications'}
             value={t('ReceiveRealTimePushNotificationsYourDevices') ?? 'Receive real-time push notifications on your devices'}
             toggled={notificationsEnabled}
-            disabled={isRegistering}
+            loading={isTogglingNotifications}
+            disabled={isTogglingNotifications}
             onPress={handleToggleNotifications}
             testID="row-PushNotifications"
             isLast

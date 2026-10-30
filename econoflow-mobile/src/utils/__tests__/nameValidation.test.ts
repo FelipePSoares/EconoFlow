@@ -14,8 +14,12 @@ describe('isNameRequired', () => {
   });
 
   describe('creating a new item where isAddingItemToExpense is true but editMode is set', () => {
-    it('returns true — editMode takes precedence, name required when editing', () => {
+    it('returns true — editMode takes precedence, name required when editing an income', () => {
       expect(isNameRequired({ type: 'income' }, true)).toBe(true);
+    });
+
+    it('returns true when editing an expense while adding an item', () => {
+      expect(isNameRequired({ type: 'expense' }, true)).toBe(true);
     });
   });
 
@@ -26,12 +30,12 @@ describe('isNameRequired', () => {
   });
 
   describe('editing an existing expense item', () => {
-    it('returns true — name is required when editing an item', () => {
-      expect(isNameRequired({ type: 'expenseItem' }, false)).toBe(true);
+    it('returns false — name is optional when editing an item (#1059)', () => {
+      expect(isNameRequired({ type: 'expenseItem' }, false)).toBe(false);
     });
 
-    it('returns true even when isAddingItemToExpense is true (editMode takes precedence)', () => {
-      expect(isNameRequired({ type: 'expenseItem' }, true)).toBe(true);
+    it('returns false even when isAddingItemToExpense is true (#1059)', () => {
+      expect(isNameRequired({ type: 'expenseItem' }, true)).toBe(false);
     });
   });
 

@@ -286,6 +286,69 @@ describe('ProfileScreen – push notifications toggle', () => {
   });
 });
 
+describe('ProfileScreen – push notifications loading state', () => {
+  beforeEach(() => {
+    mockRegisterPushNotifications.mockReset();
+    mockUnregisterPushNotifications.mockReset();
+  });
+
+  const mockHook = (overrides: Record<string, unknown>) => {
+    const { usePushNotifications } = jest.requireMock('../../../hooks/usePushNotifications');
+    usePushNotifications.mockReturnValue({
+      notificationsEnabled: false,
+      isRegistering: false,
+      isUnregistering: false,
+      registerPushNotifications: mockRegisterPushNotifications,
+      unregisterPushNotifications: mockUnregisterPushNotifications,
+      ...overrides,
+    });
+  };
+
+  it('shows a spinner while notifications are being enabled (#1054)', async () => {
+    mockHook({ isRegistering: true });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+
+    expect(screen.getByTestId('row-PushNotifications-spinner')).toBeTruthy();
+  });
+
+  it('shows a spinner while notifications are being disabled (#1054)', async () => {
+    mockHook({ notificationsEnabled: true, isUnregistering: true });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+
+    expect(screen.getByTestId('row-PushNotifications-spinner')).toBeTruthy();
+  });
+
+  it('does not show a spinner when no notification request is in flight', async () => {
+    mockHook({});
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+
+    expect(screen.queryByTestId('row-PushNotifications-spinner')).toBeNull();
+  });
+
+  it('marks the row busy for screen readers while a request is in flight', async () => {
+    mockHook({ isRegistering: true });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+
+    expect(screen.getByTestId('row-PushNotifications').props.accessibilityState).toEqual(
+      expect.objectContaining({ busy: true, disabled: true }),
+    );
+  });
+
+  it('ignores presses on the row while unregistering (#1054)', async () => {
+    mockHook({ notificationsEnabled: true, isUnregistering: true });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    fireEvent.press(screen.getByTestId('row-PushNotifications'));
+
+    expect(mockUnregisterPushNotifications).not.toHaveBeenCalled();
+    expect(mockRegisterPushNotifications).not.toHaveBeenCalled();
+  });
+});
+
 describe('ProfileScreen – biometric toggle', () => {
   const mockSetBiometricEnabled = jest.fn();
 

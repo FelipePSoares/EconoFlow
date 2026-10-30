@@ -73,7 +73,7 @@ export const useAddExpenseItem = (projectId: string, categoryId: string, month: 
           name: item.name,
           date: item.date,
           amount: item.amount,
-          isDeductible: false,
+          isDeductible: item.isDeductible ?? false,
           temporaryAttachmentIds: [],
           items: [],
         },
