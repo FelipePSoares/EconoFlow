@@ -36,15 +36,39 @@ function loadNotifications(): typeof ExpoNotifications {
   return require('expo-notifications') as typeof ExpoNotifications;
 }
 
+/**
+ * Why activation failed, so the UI can show an actionable message instead of a
+ * generic one. Every failure also reaches Sentry; the reason only drives copy.
+ */
+export type PushRegistrationFailure =
+  | 'device'
+  | 'unavailable'
+  | 'permission'
+  | 'api'
+  | 'unknown';
+
+export type PushRegistrationResult =
+  | { ok: true }
+  | { ok: false; reason: PushRegistrationFailure };
+
+export type PushUnregistrationResult = { ok: true } | { ok: false };
+
+/**
+ * What the Profile banner reports. Registration failures are re-used verbatim
+ * and disabling gets its own reason, because "try again" is not a sensible
+ * action there.
+ */
+export type PushNotificationsError = PushRegistrationFailure | 'unregister';
+
 export async function registerPushNotificationsAsync(
   setExpoPushToken: (t: string) => void,
   setNotificationsEnabled: (v: boolean) => void,
-): Promise<void> {
+): Promise<PushRegistrationResult> {
   if (!Device.isDevice) {
     // eslint-disable-next-line no-console
     console.warn('[PushNotifications] Registration skipped — not a physical device');
     captureError(new Error('Push registration skipped — not a physical device'), { screen: 'usePushNotifications', action: 'register' });
-    return;
+    return { ok: false, reason: 'device' };
   }
 
   if (isPushUnavailable()) {
@@ -54,7 +78,7 @@ export async function registerPushNotificationsAsync(
       new Error('Push registration skipped — unavailable in Expo Go on Android'),
       { screen: 'usePushNotifications', action: 'register' },
     );
-    return;
+    return { ok: false, reason: 'unavailable' };
   }
 
   try {
@@ -77,39 +101,56 @@ export async function registerPushNotificationsAsync(
       // eslint-disable-next-line no-console
       console.warn('[PushNotifications] Registration skipped — permission not granted', finalStatus);
       captureError(new Error('Push registration skipped — permission not granted'), { screen: 'usePushNotifications', action: 'register' });
-      return;
+      return { ok: false, reason: 'permission' };
     }
 
     const tokenData = await Notifications.getExpoPushTokenAsync();
     const token = tokenData.data;
     const deviceName = Platform.OS === 'ios' ? 'iOS' : 'Android';
 
-    await apiRegister(token, deviceName);
+    try {
+      await apiRegister(token, deviceName);
+    } catch (err) {
+      // Only the backend call is marked 'api': everything thrown before it is a
+      // local/native failure, which the UI words differently.
+      // eslint-disable-next-line no-console
+      console.error('[PushNotifications] Registration failed', err);
+      captureError(err, { screen: 'usePushNotifications', action: 'register' });
+      setNotificationsEnabled(false);
+      return { ok: false, reason: 'api' };
+    }
+
     setExpoPushToken(token);
     setNotificationsEnabled(true);
+    return { ok: true };
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('[PushNotifications] Registration failed', err);
     captureError(err, { screen: 'usePushNotifications', action: 'register' });
     setNotificationsEnabled(false);
+    return { ok: false, reason: 'unknown' };
   }
 }
 
 export async function unregisterPushNotificationsAsync(
   expoPushToken: string | null,
   clearNotificationState: () => void,
-): Promise<void> {
+): Promise<PushUnregistrationResult> {
   if (!expoPushToken) {
-    return;
+    return { ok: true };
   }
 
   try {
     await apiUnregister(expoPushToken);
+    return { ok: true };
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('[PushNotifications] Unregistration failed', err);
     captureError(err, { screen: 'usePushNotifications', action: 'unregister' });
+    return { ok: false };
   } finally {
+    // The local token is gone either way: retrying a removal the server already
+    // performed would fail forever, so the device stops believing it is subscribed.
     clearNotificationState();
   }
 }
@@ -117,6 +158,8 @@ export async function unregisterPushNotificationsAsync(
 export const usePushNotifications = () => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [isUnregistering, setIsUnregistering] = useState(false);
+  const [pushNotificationsError, setPushNotificationsError] =
+    useState<PushNotificationsError | null>(null);
 
   const expoPushToken = useNotificationStore((s) => s.expoPushToken);
   const notificationsEnabled = useNotificationStore((s) => s.notificationsEnabled);
@@ -126,8 +169,11 @@ export const usePushNotifications = () => {
 
   const registerPushNotifications = useCallback(async () => {
     setIsRegistering(true);
+    setPushNotificationsError(null);
     try {
-      await registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled);
+      const result = await registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled);
+      if (!result.ok) setPushNotificationsError(result.reason);
+      return result;
     } finally {
       setIsRegistering(false);
     }
@@ -135,18 +181,34 @@ export const usePushNotifications = () => {
 
   const unregisterPushNotifications = useCallback(async () => {
     setIsUnregistering(true);
+    setPushNotificationsError(null);
     try {
-      await unregisterPushNotificationsAsync(expoPushToken, clearNotificationState);
+      const result = await unregisterPushNotificationsAsync(expoPushToken, clearNotificationState);
+      if (!result.ok) {
+        // The local state was cleared anyway, so the toggle would read OFF while
+        // the server still has the token; say so instead of failing silently.
+        setPushNotificationsError('unregister');
+        setNotificationsEnabled(true);
+        setExpoPushToken(expoPushToken ?? '');
+      }
+      return result;
     } finally {
       setIsUnregistering(false);
     }
-  }, [expoPushToken, clearNotificationState]);
+  }, [expoPushToken, clearNotificationState, setNotificationsEnabled, setExpoPushToken]);
+
+  const clearPushNotificationsError = useCallback(() => {
+    setPushNotificationsError(null);
+  }, []);
 
   return {
     notificationsEnabled,
     isRegistering,
     isUnregistering,
+    pushNotificationsError,
     registerPushNotifications,
     unregisterPushNotifications,
+    retryPushNotificationsRegistration: registerPushNotifications,
+    clearPushNotificationsError,
   };
 };
