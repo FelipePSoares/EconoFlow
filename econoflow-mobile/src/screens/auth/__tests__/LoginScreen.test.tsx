@@ -332,45 +332,21 @@ describe('LoginScreen', () => {
     expect(mockCaptureError).not.toHaveBeenCalled();
   });
 
-  // ─── Push notification registration tests ────────────────────────────────
+  // ─── Push notification registration tests (#1053) ─────────────────────────
 
-  it('calls push registration on successful login when no token exists', async () => {
+  it('does not request the notification permission itself', async () => {
+    // The prompt is triggered once from the post-login hook so that password login,
+    // registration auto-login and 2FA all share one path — and so it runs after the
+    // navigator has settled instead of while this screen unmounts.
     mockMobileLogin.mockResolvedValue({ data: { accessToken: 'at', refreshToken: 'rt' } });
     mockGetCurrentUser.mockResolvedValue({
       data: { id: 'u1', firstName: 'Test', languageCode: 'en' },
-    });
-    mockNotificationGetState.mockReturnValue({
-      expoPushToken: null,
-      setExpoPushToken: jest.fn(),
-      setNotificationsEnabled: jest.fn(),
     });
 
     await renderScreen(queryClient);
     await fillAndSubmit();
 
-    await waitFor(() => {
-      expect(mockSetTokens).toHaveBeenCalled();
-      expect(mockRegisterPushNotificationsAsync).toHaveBeenCalled();
-    });
-  });
-
-  it('skips push registration when token already exists', async () => {
-    mockMobileLogin.mockResolvedValue({ data: { accessToken: 'at', refreshToken: 'rt' } });
-    mockGetCurrentUser.mockResolvedValue({
-      data: { id: 'u1', firstName: 'Test', languageCode: 'en' },
-    });
-    mockNotificationGetState.mockReturnValue({
-      expoPushToken: 'ExponentPushToken[existing]',
-      setExpoPushToken: jest.fn(),
-      setNotificationsEnabled: jest.fn(),
-    });
-
-    await renderScreen(queryClient);
-    await fillAndSubmit();
-
-    await waitFor(() => {
-      expect(mockSetTokens).toHaveBeenCalled();
-    });
+    await waitFor(() => expect(mockSetTokens).toHaveBeenCalled());
     expect(mockRegisterPushNotificationsAsync).not.toHaveBeenCalled();
   });
 

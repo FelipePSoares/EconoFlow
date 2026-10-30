@@ -224,6 +224,27 @@ describe('i18n attachment keys', () => {
   });
 });
 
+describe('i18n notification permission keys (#1053)', () => {
+  const permissionKeys = [
+    'NotificationsPermissionRationaleTitle',
+    'NotificationsPermissionRationaleMessage',
+    'NotificationsPermissionAllow',
+    'NotificationsPermissionNotNow',
+    'NotificationsPermissionDeniedGuidance',
+    'NotificationsPermissionOpenSettings',
+  ];
+
+  permissionKeys.forEach((key) => {
+    it(`en.json contains ${key}`, () => {
+      expect((en as LocaleMap)[key]).toBeTruthy();
+    });
+
+    it(`pt.json contains ${key}`, () => {
+      expect((pt as LocaleMap)[key]).toBeTruthy();
+    });
+  });
+});
+
 describe('i18n catalogue parity', () => {
   // The per-key lists above only cover the keys someone remembered to add. A key that is
   // missing from one language renders as the raw key for those users, and no build fails,

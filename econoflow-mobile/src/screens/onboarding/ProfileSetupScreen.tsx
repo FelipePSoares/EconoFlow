@@ -17,10 +17,8 @@ import { CommonActions } from '@react-navigation/native';
 import type { OnboardingParamList } from '../../navigation/OnboardingNavigator';
 import type { SessionParamList } from '../../navigation/SessionNavigator';
 import { useUpdateProfile } from '../../hooks/useUpdateProfile';
-import { registerPushNotificationsAsync } from '../../hooks/usePushNotifications';
 import { captureError } from '../../monitoring/sentry';
 import { useAuthStore } from '../../store/authStore';
-import { useNotificationStore } from '../../store/notificationStore';
 import i18n from '../../i18n';
 import { AuthHero } from '../../components/auth/AuthHero';
 import { AuroraField } from '../../components/auth/AuroraField';
@@ -84,8 +82,8 @@ export const ProfileSetupScreen: React.FC<Props> = ({ navigation }) => {
         i18n.changeLanguage(values.languageCode.startsWith('pt') ? 'pt' : 'en');
       }
 
-      const { setExpoPushToken, setNotificationsEnabled } = useNotificationStore.getState();
-      registerPushNotificationsAsync(setExpoPushToken, setNotificationsEnabled);
+      // The notification permission belongs to the post-login flow (#1053): requesting
+      // it here fired while this screen was being torn down by the reset below.
 
       // Onboarding is terminal: there is no back button, and AppGate only swaps
       // Onboarding → Main when `needsOnboarding` flips. The PATCH response alone does not

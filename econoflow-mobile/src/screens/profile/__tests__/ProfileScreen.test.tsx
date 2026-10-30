@@ -91,20 +91,32 @@ jest.mock('../../../components/common/GlassCard', () => {
 
 const mockRegisterPushNotifications = jest.fn();
 const mockUnregisterPushNotifications = jest.fn();
+const mockSyncPermissionState = jest.fn();
+const mockOpenNotificationSettings = jest.fn();
+const mockRequestNotificationPermissionAndRegister = jest.fn();
 
 jest.mock('../../../hooks/usePushNotifications', () => ({
   usePushNotifications: jest.fn(() => ({
     notificationsEnabled: false,
     registerPushNotifications: mockRegisterPushNotifications,
     unregisterPushNotifications: mockUnregisterPushNotifications,
+    syncPermissionState: mockSyncPermissionState,
   })),
+  // #1053: turning the toggle on goes through the shared flow so the OS prompt is
+  // asked at most once and the Android channel exists before the dialog appears.
+  requestNotificationPermissionAndRegister: (...args: unknown[]) =>
+    mockRequestNotificationPermissionAndRegister(...args),
+  openNotificationSettings: (...args: unknown[]) => mockOpenNotificationSettings(...args),
 }));
 
 jest.mock('../../../store/notificationStore', () => ({
-  useNotificationStore: jest.fn(() => ({
-    expoPushToken: null,
-    notificationsEnabled: false,
-  })),
+  useNotificationStore: jest.fn((selector?: (s: Record<string, unknown>) => unknown) => {
+    const state = {
+      lastPermissionError: null as string | null,
+      setLastPermissionError: jest.fn(),
+    };
+    return selector ? selector(state) : state;
+  }),
 }));
 
 const mockClearAuth = jest.fn();
@@ -287,9 +299,10 @@ describe('ProfileScreen – push notifications toggle', () => {
     expect(screen.getByTestId('row-PushNotifications')).toBeTruthy();
   });
 
-  it('calls registerPushNotifications when toggled on', async () => {
+  it('goes through the shared permission flow when turned on (#1053)', async () => {
     const { usePushNotifications } = jest.requireMock('../../../hooks/usePushNotifications');
     usePushNotifications.mockReturnValue({
+      syncPermissionState: mockSyncPermissionState,
       notificationsEnabled: false,
       registerPushNotifications: mockRegisterPushNotifications,
       unregisterPushNotifications: mockUnregisterPushNotifications,
@@ -297,12 +310,13 @@ describe('ProfileScreen – push notifications toggle', () => {
 
     await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
     fireEvent.press(screen.getByTestId('row-PushNotifications'));
-    expect(mockRegisterPushNotifications).toHaveBeenCalled();
+    expect(mockRequestNotificationPermissionAndRegister).toHaveBeenCalled();
   });
 
   it('calls unregisterPushNotifications when toggled off', async () => {
     const { usePushNotifications } = jest.requireMock('../../../hooks/usePushNotifications');
     usePushNotifications.mockReturnValue({
+      syncPermissionState: mockSyncPermissionState,
       notificationsEnabled: true,
       registerPushNotifications: mockRegisterPushNotifications,
       unregisterPushNotifications: mockUnregisterPushNotifications,
@@ -323,6 +337,7 @@ describe('ProfileScreen – push notifications loading state', () => {
   const mockHook = (overrides: Record<string, unknown>) => {
     const { usePushNotifications } = jest.requireMock('../../../hooks/usePushNotifications');
     usePushNotifications.mockReturnValue({
+      syncPermissionState: mockSyncPermissionState,
       notificationsEnabled: false,
       isRegistering: false,
       isUnregistering: false,
@@ -391,6 +406,7 @@ describe('ProfileScreen – push notifications error banner (#1056)', () => {
   const mockHook = (overrides: Record<string, unknown>) => {
     const { usePushNotifications } = jest.requireMock('../../../hooks/usePushNotifications');
     usePushNotifications.mockReturnValue({
+      syncPermissionState: mockSyncPermissionState,
       notificationsEnabled: false,
       isRegistering: false,
       isUnregistering: false,
@@ -465,15 +481,152 @@ describe('ProfileScreen – push notifications error banner (#1056)', () => {
 
     await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
 
-    expect(screen.getByTestId('error-banner')).toHaveTextContent('NotificationsDisableFailedMessage');
+    expect(screen.getByText('NotificationsDisableFailedMessage')).toBeTruthy();
+    expect(screen.queryByTestId('error-banner-retry')).toBeNull();
+  });
+});
+
+describe('ProfileScreen – notifications permission sync (#1053)', () => {
+  beforeEach(() => {
+    mockRegisterPushNotifications.mockReset();
+    mockUnregisterPushNotifications.mockReset();
+    mockSyncPermissionState.mockReset();
+    mockSyncPermissionState.mockResolvedValue(undefined);
+    mockOpenNotificationSettings.mockReset();
+    mockRequestNotificationPermissionAndRegister.mockReset();
+    mockRequestNotificationPermissionAndRegister.mockResolvedValue({ ok: true });
   });
 
-  it('does not offer a retry when disabling failed', async () => {
-    mockHook({ notificationsEnabled: true, pushNotificationsError: 'unregister' });
+  const mockHook = (overrides: Record<string, unknown>) => {
+    const { usePushNotifications } = jest.requireMock('../../../hooks/usePushNotifications');
+    usePushNotifications.mockReturnValue({
+      syncPermissionState: mockSyncPermissionState,
+      notificationsEnabled: false,
+      isRegistering: false,
+      isUnregistering: false,
+      registerPushNotifications: mockRegisterPushNotifications,
+      unregisterPushNotifications: mockUnregisterPushNotifications,
+      ...overrides,
+    });
+  };
+
+  afterEach(() => {
+    const { usePushNotifications } = jest.requireMock('../../../hooks/usePushNotifications');
+    usePushNotifications.mockReturnValue({
+      syncPermissionState: mockSyncPermissionState,
+      notificationsEnabled: false,
+      registerPushNotifications: mockRegisterPushNotifications,
+      unregisterPushNotifications: mockUnregisterPushNotifications,
+    });
+  });
+
+  it('re-reads the OS permission when the screen mounts', async () => {
+    mockHook({});
 
     await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
 
-    expect(screen.queryByTestId('error-banner-retry')).toBeNull();
+    expect(mockSyncPermissionState).toHaveBeenCalledTimes(1);
+  });
+
+  it('goes through the shared permission flow when turning the toggle on', async () => {
+    mockHook({ notificationsEnabled: false });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    fireEvent.press(screen.getByTestId('row-PushNotifications'));
+
+    expect(mockRequestNotificationPermissionAndRegister).toHaveBeenCalledTimes(1);
+    expect(mockRegisterPushNotifications).not.toHaveBeenCalled();
+  });
+
+  it('does not go through the shared flow when turning the toggle off', async () => {
+    mockHook({ notificationsEnabled: true });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    fireEvent.press(screen.getByTestId('row-PushNotifications'));
+
+    expect(mockRequestNotificationPermissionAndRegister).not.toHaveBeenCalled();
+    expect(mockUnregisterPushNotifications).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the settings guidance when the OS blocks notifications for good', async () => {
+    mockHook({ pushPermissionStatus: 'denied', canAskForPermission: false });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+
+    expect(screen.getByTestId('notifications-permission-guidance'))
+      .toHaveTextContent(/NotificationsPermissionBlockedGuidance/);
+  });
+
+  it('hides the retry banner when the settings guidance already explains the fix', async () => {
+    // Two copies of "allow notifications in your settings" side by side is noise.
+    const { useNotificationStore } = jest.requireMock('../../../store/notificationStore');
+    useNotificationStore.mockImplementation((selector?: (s: Record<string, unknown>) => unknown) => {
+      const state = { lastPermissionError: 'api', setLastPermissionError: jest.fn() };
+      return selector ? selector(state) : state;
+    });
+    mockHook({ pushPermissionStatus: 'denied', canAskForPermission: false });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+
+    expect(screen.getByTestId('notifications-permission-guidance')).toBeTruthy();
+    expect(screen.queryByTestId('error-banner')).toBeNull();
+  });
+
+  it('opens the system settings from the guidance', async () => {
+    mockHook({ pushPermissionStatus: 'denied', canAskForPermission: false });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    fireEvent.press(screen.getByTestId('notifications-open-settings'));
+
+    expect(mockOpenNotificationSettings).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides the guidance while the permission can still be requested in-app', async () => {
+    mockHook({ pushPermissionStatus: 'undetermined', canAskForPermission: true });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+
+    expect(screen.queryByTestId('notifications-permission-guidance')).toBeNull();
+  });
+
+  it('hides the guidance once the permission is granted', async () => {
+    mockHook({ notificationsEnabled: true, pushPermissionStatus: 'granted', canAskForPermission: false });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+
+    expect(screen.queryByTestId('notifications-permission-guidance')).toBeNull();
+  });
+
+  it('reports a failure through the error banner when the shared flow fails', async () => {
+    mockHook({});
+    // The shared flow reports its failure next to the permission state, so a run started
+    // by the post-login prompt is still explained on this screen.
+    const { useNotificationStore } = jest.requireMock('../../../store/notificationStore');
+    useNotificationStore.mockImplementation((selector?: (s: Record<string, unknown>) => unknown) => {
+      const state = { lastPermissionError: 'api', setLastPermissionError: jest.fn() };
+      return selector ? selector(state) : state;
+    });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+
+    expect(screen.getByTestId('error-banner')).toHaveTextContent('NotificationsEnableFailedMessage');
+  });
+
+  it('does not show an error banner when the user declines the OS prompt', async () => {
+    mockHook({});
+    // A decline stores `permission` as the last outcome; the toggle stays OFF and the
+    // banner must not call it an error.
+    const { useNotificationStore } = jest.requireMock('../../../store/notificationStore');
+    useNotificationStore.mockImplementation((selector?: (s: Record<string, unknown>) => unknown) => {
+      const state = { lastPermissionError: 'permission', setLastPermissionError: jest.fn() };
+      return selector ? selector(state) : state;
+    });
+
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    fireEvent.press(screen.getByTestId('row-PushNotifications'));
+
+    await waitFor(() => expect(mockRequestNotificationPermissionAndRegister).toHaveBeenCalled());
+    expect(screen.queryByTestId('error-banner')).toBeNull();
   });
 });
 

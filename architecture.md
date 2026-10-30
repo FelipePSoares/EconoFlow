@@ -796,6 +796,9 @@ Crash reporting and performance tracking: `@sentry/react-native` (~7.11.0). All 
 | Component tree on crash | `attachViewHierarchy: true` — structure only, no field values |
 | CPU profiles | `profilesSampleRate: 0.1` — 10 % of sampled traces carry a Hermes CPU profile |
 | Push notification registration errors | `captureError(err, { screen: 'usePushNotifications', action: 'register' })` — API call failure |
+| Push notification permission errors | `captureError(err, { screen: 'usePushNotifications', action: 'requestPermission' \| 'syncPermission' \| 'ensureChannel' })` — OS permission query/request, channel or state-sync failure |
+| Notification permission bootstrap errors | `captureError(err, { screen: 'NotificationPermissionPrompt', action: 'bootstrap' \| 'request' })` — unexpected throw out of the post-login flow |
+| Notification store rehydration errors | `captureError(err, { screen: 'notificationStore', action: 'rehydrate' })` — SecureStore read failure (the store still marks itself hydrated) |
 | Push notification unregistration errors | `captureError(err, { screen: 'usePushNotifications', action: 'unregister' })` — API call failure |
 | Push registration skipped (emulator) | `addBreadcrumb('Push registration skipped — not a physical device', 'debug')` — no error event, only breadcrumb |
 | Push registration skipped (permission denied) | `addBreadcrumb('Push registration skipped — permission not granted', 'debug', { status })` — no error event, only breadcrumb |

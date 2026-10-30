@@ -12,6 +12,7 @@ import { OverviewStackNavigator } from './OverviewStackNavigator';
 import { PlansStackNavigator } from './PlansStackNavigator';
 import { ProfileStackNavigator } from './ProfileStackNavigator';
 import { QuickAddModal } from '../screens/quick-add/QuickAddModal';
+import { NotificationPermissionPrompt } from '../components/notifications/NotificationPermissionPrompt';
 import { useQuickAddStore } from '../store/quickAddStore';
 import { useUIStore } from '../store/uiStore';
 import { useAuthStore } from '../store/authStore';
@@ -136,6 +137,15 @@ export const MainNavigator: React.FC = () => {
       defaultCategoryId={quickAddCategoryId ?? undefined}
       defaultType={quickAddDefaultType ?? undefined}
     />
+
+    {/*
+      First-login notification rationale + OS prompt (#1053). `Main` is the screen every
+      authenticated path lands on — password login, registration auto-login, 2FA — and
+      only after the biometric gate has run, so the Android 13+ permission dialog is
+      requested once the navigator has settled instead of racing a system prompt. The
+      component renders nothing once the user has answered.
+    */}
+    <NotificationPermissionPrompt />
     </>
   );
 };
