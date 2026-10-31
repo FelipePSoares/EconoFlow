@@ -15,6 +15,15 @@
 const avdName = process.env.DETOX_AVD_NAME || 'Pixel_7_API_35';
 
 /**
+ * CI boots the emulator itself (with `reactivecircus/android-emulator-runner`, which creates
+ * an AVD Detox cannot see and starts it on `emulator-5554`), so there Detox must **attach** to
+ * that running device instead of booting one of its own: `DETOX_CI=1` switches the device to
+ * `android.attached` with that serial. Everywhere else Detox manages the emulator by AVD name.
+ */
+const isCi = Boolean(process.env.DETOX_CI);
+const ciAdbName = process.env.DETOX_CI_ADB || 'emulator-5554';
+
+/**
  * The ABI the APKs are built for, passed on the Gradle command line rather than left to
  * `gradle.properties`: the emulator is x86_64, and a debug build for every ABI compiles four
  * times more native code (and three of those copies are never installed). The test APK must
@@ -61,18 +70,9 @@ module.exports = {
     },
   },
   devices: {
-    emulator: {
-      type: 'android.emulator',
-      device: {
-        avdName,
-        /**
-         * `true` in CI, where an emulator is already running (the GitHub action boots it)
-         * and Detox must attach to it instead of booting an AVD of its own — it cannot see
-         * the AVDs the action creates.
-         */
-        headless: Boolean(process.env.DETOX_CI),
-      },
-    },
+    emulator: isCi
+      ? { type: 'android.attached', device: { adbName: ciAdbName } }
+      : { type: 'android.emulator', device: { avdName } },
   },
   configurations: {
     'android.emu.debug': {
