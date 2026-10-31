@@ -14,7 +14,7 @@ interface Props extends TextInputProps {
 }
 
 export const AuroraField: React.FC<Props> = ({
-  dark, icon, textPrefix, placeholder, onToggleSecure, showSecure, hasError, style: _style, ...rest
+  dark, icon, textPrefix, placeholder, onToggleSecure, showSecure, hasError, style: _style, testID, ...rest
 }) => {
   const ink  = dark ? '#e6edf3' : '#0d2137';
   const ink2 = dark ? '#8aa0b6' : '#5b6b7c';
@@ -32,7 +32,11 @@ export const AuroraField: React.FC<Props> = ({
       ) : icon ? (
         <MaterialCommunityIcons name={icon as never} size={20} color={ink2} style={styles.icon} />
       ) : null}
+      {/* The `testID` belongs to the input itself, not to the decorated row: the
+          integration tests (e2e/) type into it directly, and a matcher on the row would
+          not reach the editable native view. */}
       <TextInput
+        testID={testID}
         placeholder={placeholder}
         placeholderTextColor={ink2}
         style={[styles.input, { color: ink }]}

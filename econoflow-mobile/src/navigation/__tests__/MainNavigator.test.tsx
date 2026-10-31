@@ -119,7 +119,15 @@ jest.mock('../../store/notificationStore', () => {
     hasPromptedForPermission: false,
     pushPermissionStatus: 'undetermined',
     canAskForPermission: true,
+    // A relaunch always arrives with the session bound to the account it belongs to;
+    // the prompt waits for that before deciding anything (#1053).
+    sessionBound: true,
+    signedInUserKey: 'user-a',
+    currentUserKey: 'user-a',
+    notificationsEnabled: false,
+    expoPushToken: null,
     setHasPromptedForPermission: (prompted: boolean) => set({ hasPromptedForPermission: prompted }),
+    markAsked: () => set({ hasPromptedForPermission: true }),
   }));
   return { useNotificationStore };
 });

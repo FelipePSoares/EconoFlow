@@ -64,7 +64,6 @@ export const useBiometricToggle = (): BiometricToggle => {
   const biometricEnabled = useBiometricStore((s) => s.biometricEnabled);
   const storeHydrated = useBiometricStore((s) => s.hydrated);
   const setStoreBiometricEnabled = useBiometricStore((s) => s.setBiometricEnabled);
-  const resetBiometricPromptSkipped = useBiometricStore((s) => s.resetBiometricPromptSkipped);
 
   // Reads the persisted value once per app run. Until it lands the row stays disabled, so
   // a tap cannot be applied to defaults that a read in flight would then overwrite (#1052).
@@ -104,9 +103,9 @@ export const useBiometricToggle = (): BiometricToggle => {
           const availability = await checkBiometricsAvailable();
           if (!availability.ok) return availability;
           setStoreBiometricEnabled(true);
-          // A user who turns biometrics back on is asking to be offered the unlock
-          // prompt again, exactly as enabling it from the enrollment screen would.
-          resetBiometricPromptSkipped();
+          // The declined offer is left declined: turning biometrics on from Profile is a
+          // proactive move that needs no offer, while clearing the flag made the next
+          // launch navigate back to the enrollment screen (#1052).
           return OK;
         } catch {
           return UNKNOWN;
@@ -125,7 +124,7 @@ export const useBiometricToggle = (): BiometricToggle => {
         }
       });
     },
-    [isHydrated, resetBiometricPromptSkipped, setStoreBiometricEnabled],
+    [isHydrated, setStoreBiometricEnabled],
   );
 
   return {

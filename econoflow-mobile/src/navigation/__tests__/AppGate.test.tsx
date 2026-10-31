@@ -27,6 +27,13 @@ jest.mock('../../store/authStore', () => {
     clearAuth: () => set({ accessToken: null, refreshToken: null, user: null, isAuthenticated: false }),
   }));
 
+  // The real store hydrates from SecureStore on import; there is nothing to wait for in
+  // a test that renders the component directly.
+  useAuthStore.persist = {
+    hasHydrated: () => true,
+    onFinishHydration: () => () => {},
+  } as unknown as typeof useAuthStore.persist;
+
   return { useAuthStore };
 });
 
@@ -98,6 +105,26 @@ describe('AppGate', () => {
     await waitFor(() => {
       expect(screen.getByTestId('session-navigator')).toBeTruthy();
     });
+  });
+
+  it('renders no session while the stored session is still being read (#1052)', async () => {
+    // Rendering before the rehydration binds the account is what let a relaunch walk
+    // straight past the unlock gate.
+    const persistence = (jest.requireMock('../../store/authStore') as {
+      useAuthStore: { persist: { hasHydrated: () => boolean } };
+    }).useAuthStore.persist;
+    const original = persistence.hasHydrated;
+    persistence.hasHydrated = () => false;
+    try {
+      store().getState().setTokens('at', 'rt');
+
+      await render(<AppGate />);
+
+      expect(screen.queryByTestId('session-navigator')).toBeNull();
+      expect(screen.queryByTestId('auth-navigator')).toBeNull();
+    } finally {
+      persistence.hasHydrated = original;
+    }
   });
 
   it('returns to the auth stack when the auth state is cleared', async () => {

@@ -64,7 +64,11 @@ describe('useBiometricToggle', () => {
       expect(useBiometricStore.getState().biometricEnabled).toBe(true);
     });
 
-    it('resets the enrollment prompt answer so a re-enabled user is asked again', async () => {
+    // #1052: the decline is the *offer* answer and must survive. Clearing it here made the
+    // next launch navigate "not enabled and never answered" → the enrollment offer again,
+    // so the screen kept coming back. Enabling is done from Profile; the gate must only
+    // ever prompt for the PIN after this.
+    it('does not undo the declined enrollment offer', async () => {
       useBiometricStore.getState().setBiometricPromptSkipped();
       const { result } = await renderHook(() => useBiometricToggle());
 
@@ -72,7 +76,19 @@ describe('useBiometricToggle', () => {
         await result.current.setBiometricEnabled(true);
       });
 
-      expect(useBiometricStore.getState().biometricPromptSkipped).toBe(false);
+      expect(useBiometricStore.getState().biometricEnabled).toBe(true);
+      expect(useBiometricStore.getState().biometricPromptSkipped).toBe(true);
+    });
+
+    it('turning biometrics off does not undo the declined enrollment offer either', async () => {
+      useBiometricStore.getState().setBiometricPromptSkipped();
+      const { result } = await renderHook(() => useBiometricToggle());
+
+      await act(async () => {
+        await result.current.setBiometricEnabled(false);
+      });
+
+      expect(useBiometricStore.getState().biometricPromptSkipped).toBe(true);
     });
 
     it('keeps the setting off and reports "hardware" when the device has no biometrics', async () => {

@@ -4,6 +4,8 @@ import * as SecureStore from 'expo-secure-store';
 import type { User } from '../api/types';
 import { setUserContext, clearUserContext } from '../monitoring/sentry';
 import { useNotificationStore } from './notificationStore';
+import { hydrateBiometricStore } from './biometricStore';
+import { hydratePinStore } from './pinStore';
 
 interface SecureStorage {
   getItem(name: string): Promise<string | null>;
@@ -48,7 +50,14 @@ export const useAuthStore = create<AuthState>()(
         // path — password login, registration auto-login, 2FA — lands here, so binding
         // the answer to this id is what lets a second account on the same device get its
         // own rationale and prompt instead of inheriting the previous user's silence.
-        useNotificationStore.getState().setCurrentUserKey(user.id ?? null);
+        // It also tells the prompt that this run's answer is the one it has to wait for.
+        useNotificationStore.getState().bindSignedInUser(user.id ?? null);
+        // The unlock gate reads the PIN and the biometric flag from stores that are only
+        // hydrated by the relaunch path above; a fresh sign-in never rehydrates anything,
+        // so without this the gate saw the defaults ("no PIN") and sent the user to create
+        // one — or to the enrollment screen — right after logging in (#1052).
+        void hydratePinStore({ force: true });
+        void hydrateBiometricStore({ force: true });
         set({ user, needsOnboarding: !!user && !user.firstName });
       },
       clearAuth: () => {
@@ -78,6 +87,17 @@ export const useAuthStore = create<AuthState>()(
         }
         if (state) {
           state.needsOnboarding = !!state.user && !state.user.firstName;
+          // A returning user relaunches the app every day and `setUser` is not replayed by
+          // the rehydration, so this is the only place that binds the session to its
+          // account and starts the two lock stores' reads. Without it the notification
+          // store never learns which account it answered for (#1053), and the unlock gate
+          // — the first screen of a session — ran on defaults and re-offered enrollment
+          // (#1052). Forced, so a second session in the same app run re-reads both.
+          useNotificationStore.getState().bindSignedInUser(state.user?.id ?? null);
+          if (state.isAuthenticated && state.user) {
+            void hydrateBiometricStore({ force: true });
+            void hydratePinStore({ force: true });
+          }
         }
       },
     }

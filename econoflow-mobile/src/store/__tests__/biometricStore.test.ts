@@ -76,6 +76,7 @@ describe('biometricStore', () => {
     expect(useBiometricStore.getState().biometricEnabled).toBe(false);
     expect(useBiometricStore.getState().biometricPromptSkipped).toBe(false);
   });
+
 });
 
 describe('biometricStore – hydration (#1052)', () => {
@@ -163,6 +164,24 @@ describe('biometricStore – hydration (#1052)', () => {
     expect(written).toContain(true);
   });
 
+  // #1052: a sign-out leaves the device to the next person. The next launch reads what was
+  // stored, so a value left in SecureStore comes back as "biometrics already enabled".
+  it('a sign-out is not undone by the next cold start', async () => {
+    const { hydrateBiometricStore, useBiometricStore: store } = coldStart();
+    getItemAsync.mockResolvedValue(storedValue({ biometricEnabled: false, biometricPromptSkipped: false }));
+    await hydrateBiometricStore();
+    store.getState().setBiometricEnabled(true);
+    await new Promise((resolve) => { setTimeout(resolve, 0); });
+
+    store.getState().clearBiometric();
+    await new Promise((resolve) => { setTimeout(resolve, 0); });
+
+    const written = setItemAsync.mock.calls
+      .filter(([key]) => key === STORAGE_KEY)
+      .map(([, value]) => JSON.parse(value as string).state);
+    expect(written.at(-1)).toMatchObject({ biometricEnabled: false, biometricPromptSkipped: false });
+  });
+
   it('keeps the enrollment prompt answer across a cold start', async () => {
     const { hydrateBiometricStore, useBiometricStore } = coldStart();
     getItemAsync.mockResolvedValue(storedValue({ biometricEnabled: false, biometricPromptSkipped: true }));
@@ -170,6 +189,20 @@ describe('biometricStore – hydration (#1052)', () => {
     await hydrateBiometricStore();
 
     expect(useBiometricStore.getState().biometricPromptSkipped).toBe(true);
+  });
+
+  it('can be asked to read the stored value again', async () => {
+    // The read is started by the auth rehydration, which is also where a fresh session
+    // begins; a second session in the same app run must not be stuck on the defaults.
+    const { hydrateBiometricStore, useBiometricStore } = coldStart();
+    getItemAsync.mockResolvedValue(storedValue({ biometricEnabled: false, biometricPromptSkipped: false }));
+    await hydrateBiometricStore();
+
+    getItemAsync.mockResolvedValue(storedValue({ biometricEnabled: true, biometricPromptSkipped: false }));
+    await hydrateBiometricStore({ force: true });
+
+    expect(getItemAsync).toHaveBeenCalledTimes(2);
+    expect(useBiometricStore.getState().biometricEnabled).toBe(true);
   });
 
   it('reports hydration as finished even when the read fails', async () => {

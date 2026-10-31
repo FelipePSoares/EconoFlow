@@ -323,6 +323,143 @@ jobs:
       run: node ../scripts/audit-gate.mjs .
       working-directory: ./econoflow-mobile
 
+  # The Detox suite (econoflow-mobile/e2e) drives the real app on a real Android device, so
+  # it runs on a runner with KVM, not on the Windows machine the app is developed on (a
+  # checkout there is too deep for CMake's object-file names; see econoflow-mobile/setup.md).
+  # The API it signs in against is the development stack this workflow already knows how to
+  # start, and the app reaches it over `adb reverse`, exactly like a local run.
+  mobile-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Detect mobile changes in PR
+      id: mobile-changes
+      uses: dorny/paths-filter@v4
+      with:
+        filters: |
+          mobile:
+            - 'econoflow-mobile/**'
+
+    - name: Enable KVM for the emulator
+      if: steps.mobile-changes.outputs.mobile == 'true'
+      run: |
+        echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+        sudo udevadm control --reload-rules
+        sudo udevadm trigger --name-match=kvm
+
+    - name: Install Node.js
+      if: steps.mobile-changes.outputs.mobile == 'true'
+      uses: actions/setup-node@v7
+      with:
+        node-version: '22.x'
+
+    - name: Install Java
+      if: steps.mobile-changes.outputs.mobile == 'true'
+      uses: actions/setup-java@v5
+      with:
+        distribution: temurin
+        java-version: '17'
+
+    - name: Cache mobile node_modules
+      if: steps.mobile-changes.outputs.mobile == 'true'
+      uses: actions/cache@v6
+      with:
+        path: ./econoflow-mobile/node_modules
+        key: mobile-e2e-node-modules-${{ runner.os }}-${{ hashFiles('./econoflow-mobile/package-lock.json') }}
+
+    - name: Install mobile dependencies
+      if: steps.mobile-changes.outputs.mobile == 'true'
+      run: npm ci
+      working-directory: ./econoflow-mobile
+
+    # `plugins/with-detox-android.js` selects this CMake (its Ninja handles long paths, which
+    # the default 3.22.1 does not); it is an SDK package, so it has to be installed.
+    - name: Install the CMake the Android build selects
+      if: steps.mobile-changes.outputs.mobile == 'true'
+      run: |
+        yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "cmake;3.30.4" > /dev/null
+
+    # The specs sign in as the seeded `test1@test.com` against the development stack; the
+    # app is pointed at it through `adb reverse` (see econoflow-mobile/.env.local), which the
+    # emulator action sets up for 7003.
+    - name: Start the development API stack
+      if: steps.mobile-changes.outputs.mobile == 'true'
+      run: |
+        docker compose -f docker-compose.dev.yml up --build -d
+      env:
+        GITEA_NUGET_USERNAME: ${{ secrets.GITEA_NUGET_USERNAME }}
+        GITEA_NUGET_TOKEN: ${{ secrets.GITEA_NUGET_TOKEN }}
+
+    - name: Wait for the API
+      if: steps.mobile-changes.outputs.mobile == 'true'
+      run: |
+        for attempt in $(seq 1 120); do
+          if curl -fsS http://localhost:7003/api/health/live > /dev/null; then
+            echo "API is up"
+            exit 0
+          fi
+          sleep 5
+        done
+        echo "The API did not come up; recent logs:"
+        docker compose -f docker-compose.dev.yml logs --tail 100 app
+        exit 1
+
+    - name: Point the app at the local API
+      if: steps.mobile-changes.outputs.mobile == 'true'
+      run: echo "EXPO_PUBLIC_API_URL=http://localhost:7003" >> .env.local
+      working-directory: ./econoflow-mobile
+
+    - name: Build the app and the Detox test APK
+      if: steps.mobile-changes.outputs.mobile == 'true'
+      run: npm run e2e:build
+      working-directory: ./econoflow-mobile
+
+    - name: Run the Detox suite
+      if: steps.mobile-changes.outputs.mobile == 'true'
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: 35
+        target: google_apis
+        arch: x86_64
+        profile: pixel_7
+        disable-animations: true
+        emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+        # The emulator exists only inside this action, so everything that talks to it has to
+        # happen here, in one script.
+        #
+        # The APKs are installed and the app is started once *before* Detox connects: on a
+        # cold emulator the first launch is slow enough that Detox's ready handshake times out
+        # ("Failed to run application on the device"), so it finds them already installed and
+        # warm. Detox repeats this installation itself.
+        #
+        # `DETOX_CI` makes the config attach to this running device instead of booting an AVD
+        # (see `.detoxrc.js`). The suite command enters the app directory explicitly: Detox
+        # resolves `jest` from the working directory, and `npx` from the root would download
+        # its own copy instead of using the one `npm ci` installed.
+        script: |
+          adb reverse tcp:7003 tcp:7003
+          adb install -r -t econoflow-mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          adb install -r -t econoflow-mobile/android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+          adb shell am start -n pt.econoflow.mobile/.MainActivity || true
+          sleep 20
+          adb shell am force-stop pt.econoflow.mobile || true
+          cd econoflow-mobile && DETOX_CI=1 ./node_modules/.bin/detox test -c android.emu.debug
+
+    - name: Upload Detox artifacts
+      if: failure() && steps.mobile-changes.outputs.mobile == 'true'
+      uses: actions/upload-artifact@v5
+      with:
+        name: detox-artifacts
+        path: econoflow-mobile/e2e/artifacts
+        if-no-files-found: ignore
+
+    - name: Stop the development API stack
+      if: always() && steps.mobile-changes.outputs.mobile == 'true'
+      run: docker compose -f docker-compose.dev.yml down -v
+
   script-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 10
