@@ -120,8 +120,6 @@ services:
       # The stack talks to MinIO in plaintext over the compose network. The deployment's MinIO
       # sits behind TLS termination, which is why the default is true.
       - AttachmentStorage__UseSsl=false
-      - EconoFlow_TOKEN_SECRET_KEY=ci-integration-test-placeholder-secret-key-32chars
-      - EconoFlow_UNSUBSCRIBE_HMAC_SECRET=ci-integration-test-placeholder-secret-key-32chars
     ports:
       # The SPA and /api on one origin, which is what the Angular client requires (it calls
       # bare /api URLs). 4200 is also the port `ng serve` uses, so the end-to-end suite and
