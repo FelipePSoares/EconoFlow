@@ -1,0 +1,2 @@
+﻿# Detox artifacts (screenshots, device logs, element dumps of failing tests)
+e2e/artifacts/
