@@ -126,10 +126,13 @@ describe('EconoFlow - expense list Tests', () => {
     })
 
     it('should show error after failed update', () => {
-      // The backend refuses an amount on an expense dated in the future.
-      const nextMonth: Month = thisMonth.month === 12
-        ? { year: thisMonth.year + 1, month: 1 }
-        : { year: thisMonth.year, month: thisMonth.month + 1 };
+      // The backend refuses an amount on an expense dated in the future. "Future" is measured
+      // by the server's clock, not by a fixed day of the month: a `next month, day 1` date is
+      // *today* when the suite runs on the 1st, and the API accepts an expense dated today —
+      // so the test passed on every other day and failed on that one. The date is therefore
+      // taken from the clock with a margin of several days either side of the boundary.
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 7);
 
       cy.get('button[name=edit]').first().click()
 
@@ -137,7 +140,7 @@ describe('EconoFlow - expense list Tests', () => {
 
       cy.get('input[formControlName=date]')
         .clear()
-        .type(`${typedDate(nextMonth, 1)}{enter}`)
+        .type(`${futureDate.toLocaleDateString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric' })}{enter}`)
 
       cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ response }) => {
         expect(response?.statusCode).to.equal(400)

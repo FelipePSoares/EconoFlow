@@ -1,6 +1,6 @@
 import React from 'react';
 import { AppState } from 'react-native';
-import { render, screen, act, fireEvent } from '@testing-library/react-native';
+import { render, screen, act, fireEvent, waitFor } from '@testing-library/react-native';
 import { LockOverlay } from '../LockOverlay';
 import { useAuthStore } from '../../../store/authStore';
 import { useBiometricStore } from '../../../store/biometricStore';
@@ -143,7 +143,9 @@ describe('LockOverlay', () => {
 
     // First failure: the sensor still owns the way in, so no keypad yet.
     const retry = await screen.findByText('BiometricUsePasscode');
-    expect(mockAuthenticateAsync).toHaveBeenCalledTimes(1);
+    // The first prompt is opened on a task (`setTimeout(…, 0)`), so its call lands after the
+    // screen has rendered; wait for it instead of assuming the task has run.
+    await waitFor(() => expect(mockAuthenticateAsync).toHaveBeenCalledTimes(1));
     expect(screen.queryByTestId('pin-keypad')).toBeNull();
 
     // Each retry is another sensor attempt; the third real failure runs the sensor out.
