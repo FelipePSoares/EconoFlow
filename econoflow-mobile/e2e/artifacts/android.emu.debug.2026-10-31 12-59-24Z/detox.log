@@ -1,0 +1,963 @@
+13:59:24.761 detox[20152] B node_modules\detox\local-cli\cli.js test -c android.emu.debug --reuse
+  data: {
+    "id": "7d8d1319-6951-ea26-4f89-71357a5c6290",
+    "detoxConfig": {
+      "configurationName": "android.emu.debug",
+      "apps": {
+        "default": {
+          "type": "android.apk",
+          "binaryPath": "android/app/build/outputs/apk/debug/app-debug.apk",
+          "testBinaryPath": "android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk",
+          "build": "npx expo prebuild -p android --no-install && node scripts/apply-detox-android.js && cd android && gradlew.bat assembleDebug assembleDebugAndroidTest -PreactNativeArchitectures=x86_64"
+        }
+      },
+      "artifacts": {
+        "rootDir": "e2e\\artifacts\\android.emu.debug.2026-10-31 12-59-24Z",
+        "plugins": {
+          "log": {
+            "enabled": true,
+            "keepOnlyFailedTestsArtifacts": true
+          },
+          "screenshot": {
+            "shouldTakeAutomaticSnapshots": true,
+            "keepOnlyFailedTestsArtifacts": true,
+            "enabled": true
+          },
+          "video": {
+            "enabled": false,
+            "keepOnlyFailedTestsArtifacts": false
+          },
+          "instruments": {
+            "enabled": false,
+            "keepOnlyFailedTestsArtifacts": false
+          },
+          "uiHierarchy": {
+            "enabled": false,
+            "keepOnlyFailedTestsArtifacts": false
+          }
+        }
+      },
+      "behavior": {
+        "init": {
+          "keepLockFile": false,
+          "reinstallApp": false,
+          "exposeGlobals": true
+        },
+        "cleanup": {
+          "shutdownDevice": false
+        },
+        "launchApp": "auto"
+      },
+      "cli": {
+        "configuration": "android.emu.debug",
+        "reuse": true,
+        "start": true
+      },
+      "commands": [
+        {
+          "appName": "default",
+          "build": "npx expo prebuild -p android --no-install && node scripts/apply-detox-android.js && cd android && gradlew.bat assembleDebug assembleDebugAndroidTest -PreactNativeArchitectures=x86_64"
+        }
+      ],
+      "device": {
+        "type": "android.emulator",
+        "device": {
+          "avdName": "Pixel_7_API_35"
+        }
+      },
+      "logger": {
+        "level": "info",
+        "overrideConsole": true,
+        "options": {
+          "showLoggerName": true,
+          "showPid": true,
+          "showLevel": false,
+          "showMetadata": false,
+          "basepath": "D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\detox\\src",
+          "prefixers": {},
+          "stringifiers": {}
+        }
+      },
+      "testRunner": {
+        "retries": 0,
+        "forwardEnv": false,
+        "detached": false,
+        "bail": false,
+        "noRetryArgs": [
+          "shard"
+        ],
+        "jest": {
+          "setupTimeout": 180000,
+          "teardownTimeout": 60000,
+          "retryAfterCircusRetries": false,
+          "reportWorkerAssign": true
+        },
+        "args": {
+          "$0": "jest",
+          "_": [],
+          "config": "e2e/jest.config.js",
+          "--": []
+        }
+      },
+      "session": {
+        "autoStart": true,
+        "debugSynchronization": 10000
+      }
+    },
+    "detoxIPCServer": "primary-20152",
+    "testResults": [],
+    "testSessionIndex": 0,
+    "workersCount": 0
+  }
+13:59:24.780 detox[20152] i Server path not specified, so defaulting to ipc.config.socketRoot + ipc.config.appspace + ipc.config.id /tmp/detox.primary-20152
+13:59:24.781 detox[20152] i starting server on  /tmp/detox.primary-20152 
+13:59:24.781 detox[20152] i starting TLS server false
+13:59:24.782 detox[20152] i starting server as Unix || Windows Socket
+13:59:24.786 detox[20152] i Detox server listening on localhost:51396...
+13:59:24.791 detox[20152] i Serialized the session state at: C:\Users\felip\AppData\Local\Temp\7d8d1319-6951-ea26-4f89-71357a5c6290.detox.json
+13:59:24.792 detox[20152] B jest --config e2e/jest.config.js
+13:59:24.809 detox[20152] i (node:20152) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+13:59:27.494 detox[21140] i Service path not specified, so defaulting to ipc.config.socketRoot + ipc.config.appspace + id 
+13:59:27.495 detox[21140] i requested connection to  primary-20152 /tmp/detox.primary-20152
+13:59:27.495 detox[21140] i Connecting client on Unix Socket : /tmp/detox.primary-20152
+13:59:27.496 detox[20152] i ## socket connection to server detected ##
+13:59:27.497 detox[21140] i retrying reset
+13:59:27.498 detox[21140] i dispatching event to  primary-20152 /tmp/detox.primary-20152  :  registerContext , { id: 'secondary-21140' }
+13:59:27.499 detox[20152] i received event of :  registerContext { id: 'secondary-21140' }
+13:59:27.499 detox[20152] i dispatching event to socket  :  registerContextDone {
+  testResults: [],
+  testSessionIndex: 0,
+  unsafe_earlyTeardown: undefined
+}
+13:59:27.501 detox[21140] i ## received events ##
+13:59:27.501 detox[21140] i detected event registerContextDone { testResults: [], testSessionIndex: 0 }
+13:59:29.158 detox[21140] B e2e\auth\login.e2e.js
+13:59:29.160 detox[20152] i received event of :  registerWorker { workerId: 'w1' }
+13:59:29.160 detox[20152] i dispatching event to socket  :  registerWorkerDone { workersCount: 1 }
+13:59:29.160 detox[21140] B set up environment
+13:59:29.161 detox[20152] i broadcasting event to all known sockets listening to  \\.\pipe\tmp-detox.primary-20152  :   sessionStateUpdate { workersCount: 1 }
+13:59:29.161 detox[21140] i dispatching event to  primary-20152 /tmp/detox.primary-20152  :  registerWorker , { workerId: 'w1' }
+13:59:29.162 detox[21140] i ## received events ##
+13:59:29.162 detox[21140] i detected event registerWorkerDone { workersCount: 1 }
+13:59:32.009 detox[21140] i ## received events ##
+13:59:32.009 detox[21140] i detected event sessionStateUpdate { workersCount: 1 }
+13:59:32.016 detox[20152] B connection :51396<->:51398
+13:59:32.018 detox[21140] i opened web socket to: ws://localhost:51396
+13:59:32.062 detox[20152] i get
+  data: {"type":"login","params":{"sessionId":"336eda84-9727-fb1f-91ed-202b11adc5bb","role":"tester"},"messageId":0}
+13:59:32.062 detox[21140] i send message
+  data: {"type":"login","params":{"sessionId":"336eda84-9727-fb1f-91ed-202b11adc5bb","role":"tester"},"messageId":0}
+13:59:32.063 detox[20152] i created session 336eda84-9727-fb1f-91ed-202b11adc5bb
+13:59:32.063 detox[20152] i send
+  data: {
+    "type": "loginSuccess",
+    "params": {
+      "testerConnected": true,
+      "appConnected": false
+    },
+    "messageId": 0
+  }
+13:59:32.063 detox[20152] i tester joined session 336eda84-9727-fb1f-91ed-202b11adc5bb
+13:59:32.066 detox[21140] i get message
+  data: {"type":"loginSuccess","params":{"testerConnected":true,"appConnected":false},"messageId":0}
+   
+13:59:32.902 detox[20152] i received event of :  allocateDevice {
+  deviceConfig: { type: 'android.emulator', device: { avdName: 'Pixel_7_API_35' } }
+}
+13:59:32.902 detox[21140] i dispatching event to  primary-20152 /tmp/detox.primary-20152  :  allocateDevice , {
+  deviceConfig: { type: 'android.emulator', device: { avdName: 'Pixel_7_API_35' } }
+}
+13:59:32.939 detox[20152] B init
+  args: ()
+13:59:32.945 detox[20152] E init
+13:59:32.946 detox[20152] B allocate
+  data: {
+    "type": "android.emulator",
+    "device": {
+      "avdName": "Pixel_7_API_35"
+    }
+  }
+13:59:33.585 detox[20152] i Detected emulator binary version { major: 36, minor: 5, patch: 11, toString: [Function: toString] }
+13:59:33.588 detox[20152] i "C:\Users\felip\AppData\Local\Android\Sdk\platform-tools\adb.EXE"  devices
+13:59:33.678 detox[20152] i List of devices attached
+emulator-5554	device
+
+
+13:59:33.691 detox[20152] i port: 5554, host: localhost
+13:59:33.748 detox[20152] i Found a matching & free device emulator-5554
+13:59:33.750 detox[20152] i settled on emulator-5554 (Pixel_7_API_35)
+  data: {
+    "id": "emulator-5554",
+    "adbName": "emulator-5554",
+    "name": "emulator-5554 (Pixel_7_API_35)"
+  }
+13:59:33.750 detox[20152] E allocate
+13:59:33.750 detox[20152] B post-allocate: emulator-5554
+  data: {
+    "id": "emulator-5554",
+    "adbName": "emulator-5554",
+    "name": "emulator-5554 (Pixel_7_API_35)"
+  }
+13:59:33.750 detox[20152] i "C:\Users\felip\AppData\Local\Android\Sdk\platform-tools\adb.EXE" -s "emulator-5554" shell "getprop dev.bootcomplete"
+13:59:34.218 detox[20152] i 1
+
+13:59:34.218 detox[20152] i "C:\Users\felip\AppData\Local\Android\Sdk\platform-tools\adb.EXE" -s "emulator-5554" shell "getprop ro.build.version.sdk"
+13:59:34.388 detox[20152] i 35
+
+13:59:34.388 detox[20152] i "C:\Users\felip\AppData\Local\Android\Sdk\platform-tools\adb.EXE" -s "emulator-5554" shell "settings put global animator_duration_scale 0"
+13:59:34.671 detox[20152] i 
+13:59:34.671 detox[20152] i "C:\Users\felip\AppData\Local\Android\Sdk\platform-tools\adb.EXE" -s "emulator-5554" shell "settings put global window_animation_scale 0"
+13:59:34.772 detox[20152] i 
+13:59:34.772 detox[20152] i "C:\Users\felip\AppData\Local\Android\Sdk\platform-tools\adb.EXE" -s "emulator-5554" shell "settings put global transition_animation_scale 0"
+13:59:34.921 detox[20152] i 
+13:59:34.921 detox[20152] i "C:\Users\felip\AppData\Local\Android\Sdk\platform-tools\adb.EXE" -s "emulator-5554" shell "dumpsys power | grep \"^[ ]*m[UW].*=\""
+13:59:35.126 detox[20152] i   mWakefulness=Awake
+  mWakefulnessChanging=false
+  mUseAutoSuspend=true
+  mWakeLockSummary=0x0
+  mWakeUpWhenPluggedOrUnpluggedConfig=false
+  mWakeUpWhenPluggedOrUnpluggedInTheaterModeConfig=false
+  mDreamsBatteryLevelMinimumWhenPoweredConfig=-1
+  mDreamsBatteryLevelMinimumWhenNotPoweredConfig=15
+  mScreenBrightnessOverrideFromWindowManager=NaN
+  mUserActivityTimeoutOverrideFromWindowManager=-1
+  mUserInactiveOverrideFromWindowManager=false
+  mUserId=0
+  mWakeLockSummary=0x0
+  mUserInteractionBackoffMillis=60000
+
+13:59:35.127 detox[20152] E post-allocate: emulator-5554
+13:59:35.127 detox[20152] i dispatching event to socket  :  allocateDeviceDone {
+  deviceCookie: {
+    id: 'emulator-5554',
+    adbName: 'emulator-5554',
+    name: 'emulator-5554 (Pixel_7_API_35)'
+  }
+}
+13:59:35.128 detox[21140] i ## received events ##
+13:59:35.128 detox[21140] i detected event allocateDeviceDone {
+  deviceCookie: {
+    id: 'emulator-5554',
+    adbName: 'emulator-5554',
+    name: 'emulator-5554 (Pixel_7_API_35)'
+  }
+}
+13:59:35.157 detox[21140] B onBootDevice
+  args: ({"deviceId":"emulator-5554"})
+13:59:35.158 detox[21140] E onBootDevice
+13:59:35.158 detox[21140] B installUtilBinaries
+  args: ()
+13:59:35.159 detox[21140] E installUtilBinaries
+13:59:35.159 detox[21140] B selectApp
+  args: ("default")
+13:59:35.164 detox[21140] i "C:\Users\felip\AppData\Local\Android\Sdk\build-tools\37.0.0\aapt.EXE" dump badging "D:\Sources\EconoFlow\econoflow-mobile\android\app\build\outputs\apk\debug\app-debug.apk"
+13:59:35.249 detox[21140] i package: name='pt.econoflow.mobile' versionCode='2' versionName='1.0.0' platformBuildVersionName='17' platformBuildVersionCode='37' compileSdkVersion='37' compileSdkVersionCodename='17'
+sdkVersion:'24'
+targetSdkVersion:'36'
+uses-permission: name='android.permission.SYSTEM_ALERT_WINDOW'
+uses-permission: name='android.permission.INTERNET'
+uses-permission: name='android.permission.READ_EXTERNAL_STORAGE' maxSdkVersion='32'
+uses-permission: name='android.permission.RECORD_AUDIO'
+uses-permission: name='android.permission.USE_BIOMETRIC'
+uses-permission: name='android.permission.USE_FINGERPRINT'
+uses-permission: name='android.permission.VIBRATE'
+uses-permission: name='android.permission.WRITE_EXTERNAL_STORAGE' maxSdkVersion='32'
+uses-permission: name='android.permission.ACCESS_NETWORK_STATE'
+uses-permission: name='android.permission.ACCESS_LOCAL_NETWORK'
+uses-permission: name='android.permission.CAMERA'
+uses-permission: name='android.permission.RECEIVE_BOOT_COMPLETED'
+uses-permission: name='android.permission.POST_NOTIFICATIONS'
+uses-permission: name='android.permission.WAKE_LOCK'
+uses-permission: name='com.google.android.c2dm.permission.RECEIVE'
+uses-permission: name='pt.econoflow.mobile.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION'
+uses-permission: name='com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE'
+uses-permission: name='com.sec.android.provider.badge.permission.READ'
+uses-permission: name='com.sec.android.provider.badge.permission.WRITE'
+uses-permission: name='com.htc.launcher.permission.READ_SETTINGS'
+uses-permission: name='com.htc.launcher.permission.UPDATE_SHORTCUT'
+uses-permission: name='com.sonyericsson.home.permission.BROADCAST_BADGE'
+uses-permission: name='com.sonymobile.home.permission.PROVIDER_INSERT_BADGE'
+uses-permission: name='com.anddoes.launcher.permission.UPDATE_COUNT'
+uses-permission: name='com.majeur.launcher.permission.UPDATE_BADGE'
+uses-permission: name='com.huawei.android.launcher.permission.CHANGE_BADGE'
+uses-permission: name='com.huawei.android.launcher.permission.READ_SETTINGS'
+uses-permission: name='com.huawei.android.launcher.permission.WRITE_SETTINGS'
+uses-permission: name='android.permission.READ_APP_BADGE'
+uses-permission: name='com.oppo.launcher.permission.READ_SETTINGS'
+uses-permission: name='com.oppo.launcher.permission.WRITE_SETTINGS'
+uses-permission: name='me.everything.badger.permission.BADGE_COUNT_READ'
+uses-permission: name='me.everything.badger.permission.BADGE_COUNT_WRITE'
+application-label:'EconoFlow'
+application-label-af:'EconoFlow'
+application-label-am:'EconoFlow'
+application-label-ar:'EconoFlow'
+application-label-as:'EconoFlow'
+application-label-az:'EconoFlow'
+application-label-be:'EconoFlow'
+application-label-bg:'EconoFlow'
+application-label-bn:'EconoFlow'
+application-label-bs:'EconoFlow'
+application-label-ca:'EconoFlow'
+application-label-cs:'EconoFlow'
+application-label-da:'EconoFlow'
+application-label-de:'EconoFlow'
+application-label-el:'EconoFlow'
+application-label-en-AU:'EconoFlow'
+application-label-en-CA:'EconoFlow'
+application-label-en-GB:'EconoFlow'
+application-label-en-IN:'EconoFlow'
+application-label-en-XC:'EconoFlow'
+application-label-es:'EconoFlow'
+application-label-es-419:'EconoFlow'
+application-label-es-ES:'EconoFlow'
+application-label-es-GT:'EconoFlow'
+application-label-es-US:'EconoFlow'
+application-label-et:'EconoFlow'
+application-label-eu:'EconoFlow'
+application-label-fa:'EconoFlow'
+application-label-fi:'EconoFlow'
+application-label-fr:'EconoFlow'
+application-label-fr-CA:'EconoFlow'
+application-label-gl:'EconoFlow'
+application-label-gu:'EconoFlow'
+application-label-hi:'EconoFlow'
+application-label-hr:'EconoFlow'
+application-label-hu:'EconoFlow'
+application-label-hy:'EconoFlow'
+application-label-in:'EconoFlow'
+application-label-is:'EconoFlow'
+application-label-it:'EconoFlow'
+application-label-iw:'EconoFlow'
+application-label-ja:'EconoFlow'
+application-label-ka:'EconoFlow'
+application-label-kk:'EconoFlow'
+application-label-km:'EconoFlow'
+application-label-kn:'EconoFlow'
+application-label-ko:'EconoFlow'
+application-label-ky:'EconoFlow'
+application-label-lo:'EconoFlow'
+application-label-lt:'EconoFlow'
+application-label-lv:'EconoFlow'
+application-label-mk:'EconoFlow'
+application-label-ml:'EconoFlow'
+application-label-mn:'EconoFlow'
+application-label-mr:'EconoFlow'
+application-label-ms:'EconoFlow'
+application-label-my:'EconoFlow'
+application-label-nb:'EconoFlow'
+application-label-ne:'EconoFlow'
+application-label-nl:'EconoFlow'
+application-label-or:'EconoFlow'
+application-label-pa:'EconoFlow'
+application-label-pl:'EconoFlow'
+application-label-pt:'EconoFlow'
+application-label-pt-BR:'EconoFlow'
+application-label-pt-PT:'EconoFlow'
+application-label-ro:'EconoFlow'
+application-label-ru:'EconoFlow'
+application-label-ru-RU:'EconoFlow'
+application-label-si:'EconoFlow'
+application-label-sk:'EconoFlow'
+application-label-sl:'EconoFlow'
+application-label-sq:'EconoFlow'
+application-label-sr:'EconoFlow'
+application-label-sr-Latn:'EconoFlow'
+application-label-sv:'EconoFlow'
+application-label-sw:'EconoFlow'
+application-label-ta:'EconoFlow'
+application-label-te:'EconoFlow'
+application-label-th:'EconoFlow'
+application-label-tl:'EconoFlow'
+application-label-tr:'EconoFlow'
+application-label-uk:'EconoFlow'
+application-label-ur:'EconoFlow'
+application-label-uz:'EconoFlow'
+application-label-vi:'EconoFlow'
+application-label-zh:'EconoFlow'
+application-label-zh-CN:'EconoFlow'
+application-label-zh-HK:'EconoFlow'
+application-label-zh-TW:'EconoFlow'
+application-label-zu:'EconoFlow'
+application-icon-120:'res/mipmap-anydpi-v26/ic_launcher.xml'
+application-icon-160:'res/mipmap-anydpi-v26/ic_launcher.xml'
+application-icon-240:'res/mipmap-anydpi-v26/ic_launcher.xml'
+application-icon-320:'res/mipmap-anydpi-v26/ic_launcher.xml'
+application-icon-480:'res/mipmap-anydpi-v26/ic_launcher.xml'
+application-icon-640:'res/mipmap-anydpi-v26/ic_launcher.xml'
+application-icon-65534:'res/mipmap-anydpi-v26/ic_launcher.xml'
+application-icon-65535:'res/mipmap-anydpi-v26/ic_launcher.xml'
+application: label='EconoFlow' icon='res/mipmap-anydpi-v26/ic_launcher.xml'
+application-debuggable
+launchable-activity: name='pt.econoflow.mobile.MainActivity'  label='' icon=''
+uses-library-not-required:'androidx.window.extensions'
+uses-library-not-required:'androidx.window.sidecar'
+feature-group: label=''
+  uses-feature: name='android.hardware.camera'
+  uses-implied-feature: name='android.hardware.camera' reason='requested android.permission.CAMERA permission'
+  uses-feature: name='android.hardware.faketouch'
+  uses-implied-feature: name='android.hardware.faketouch' reason='default feature for all apps'
+  uses-feature: name='android.hardware.microphone'
+  uses-implied-feature: name='android.hardware.microphone' reason='requested android.permission.RECORD_AUDIO permission'
+  uses-feature: name='android.hardware.screen.portrait'
+  uses-implied-feature: name='android.hardware.screen.portrait' reason='one or more activities have specified a portrait orientation'
+main
+other-activities
+other-receivers
+other-services
+supports-screens: 'small' 'normal' 'large' 'xlarge'
+supports-any-density: 'true'
+locales: '--_--' 'af' 'am' 'ar' 'as' 'az' 'be' 'bg' 'bn' 'bs' 'ca' 'cs' 'da' 'de' 'el' 'en-AU' 'en-CA' 'en-GB' 'en-IN' 'en-XC' 'es' 'es-419' 'es-ES' 'es-GT' 'es-US' 'et' 'eu' 'fa' 'fi' 'fr' 'fr-CA' 'gl' 'gu' 'hi' 'hr' 'hu' 'hy' 'in' 'is' 'it' 'iw' 'ja' 'ka' 'kk' 'km' 'kn' 'ko' 'ky' 'lo' 'lt' 'lv' 'mk' 'ml' 'mn' 'mr' 'ms' 'my' 'nb' 'ne' 'nl' 'or' 'pa' 'pl' 'pt' 'pt-BR' 'pt-PT' 'ro' 'ru' 'ru-RU' 'si' 'sk' 'sl' 'sq' 'sr' 'sr-Latn' 'sv' 'sw' 'ta' 'te' 'th' 'tl' 'tr' 'uk' 'ur' 'uz' 'vi' 'zh' 'zh-CN' 'zh-HK' 'zh-TW' 'zu'
+densities: '120' '160' '240' '320' '480' '640' '65534' '65535'
+native-code: 'x86_64'
+
+13:59:35.249 detox[21140] E selectApp
+13:59:35.249 detox[21140] E set up environment
+13:59:35.974 detox[21140] B tear down environment
+13:59:35.974 detox[21140] B onBeforeCleanup
+  args: ()
+13:59:35.975 detox[21140] E onBeforeCleanup
+13:59:35.976 detox[20152] i tester exited session 336eda84-9727-fb1f-91ed-202b11adc5bb
+13:59:35.976 detox[20152] E connection :51396<->:51398
+13:59:35.976 detox[20152] i received event of :  deallocateDevice {
+  deviceCookie: {
+    id: 'emulator-5554',
+    adbName: 'emulator-5554',
+    name: 'emulator-5554 (Pixel_7_API_35)'
+  }
+}
+13:59:35.977 detox[20152] B free: emulator-5554
+  data: {}
+13:59:35.977 detox[21140] i dispatching event to  primary-20152 /tmp/detox.primary-20152  :  deallocateDevice , {
+  deviceCookie: {
+    id: 'emulator-5554',
+    adbName: 'emulator-5554',
+    name: 'emulator-5554 (Pixel_7_API_35)'
+  }
+}
+13:59:35.979 detox[20152] E free: emulator-5554
+13:59:35.979 detox[20152] i dispatching event to socket  :  deallocateDeviceDone {}
+13:59:35.980 detox[21140] i ## received events ##
+13:59:35.980 detox[21140] i detected event deallocateDeviceDone {}
+13:59:35.981 detox[21140] E tear down environment
+13:59:35.981 detox[21140] E e2e\auth\login.e2e.js
+13:59:36.020 detox[20152] i received event of :  registerWorker { workerId: 'w1' }
+13:59:36.020 detox[20152] i dispatching event to socket  :  registerWorkerDone { workersCount: 1 }
+13:59:36.020 detox[21140] B e2e\auth\signUp.e2e.js
+13:59:36.020 detox[21140] B set up environment
+13:59:36.020 detox[21140] i dispatching event to  primary-20152 /tmp/detox.primary-20152  :  registerWorker , { workerId: 'w1' }
+13:59:36.021 detox[21140] i ## received events ##
+13:59:36.021 detox[21140] i detected event registerWorkerDone { workersCount: 1 }
+13:59:36.022 detox[20152] B connection :51396<->:51421
+13:59:36.023 detox[20152] i get
+  data: {"type":"login","params":{"sessionId":"336eda84-9727-fb1f-91ed-202b11adc5bb","role":"tester"},"messageId":0}
+13:59:36.023 detox[20152] i created session 336eda84-9727-fb1f-91ed-202b11adc5bb
+13:59:36.023 detox[20152] i send
+  data: {
+    "type": "loginSuccess",
+    "params": {
+      "testerConnected": true,
+      "appConnected": false
+    },
+    "messageId": 0
+  }
+13:59:36.023 detox[20152] i tester joined session 336eda84-9727-fb1f-91ed-202b11adc5bb
+13:59:36.023 detox[21140] i opened web socket to: ws://localhost:51396
+13:59:36.024 detox[20152] i received event of :  allocateDevice {
+  deviceConfig: { type: 'android.emulator', device: { avdName: 'Pixel_7_API_35' } }
+}
+13:59:36.024 detox[20152] B allocate
+  data: {
+    "type": "android.emulator",
+    "device": {
+      "avdName": "Pixel_7_API_35"
+    }
+  }
+13:59:36.024 detox[21140] i send message
+  data: {"type":"login","params":{"sessionId":"336eda84-9727-fb1f-91ed-202b11adc5bb","role":"tester"},"messageId":0}
+13:59:36.024 detox[21140] i get message
+  data: {"type":"loginSuccess","params":{"testerConnected":true,"appConnected":false},"messageId":0}
+   
+13:59:36.025 detox[21140] i dispatching event to  primary-20152 /tmp/detox.primary-20152  :  allocateDevice , {
+  deviceConfig: { type: 'android.emulator', device: { avdName: 'Pixel_7_API_35' } }
+}
+13:59:36.105 detox[20152] i "C:\Users\felip\AppData\Local\Android\Sdk\platform-tools\adb.EXE"  devices
+13:59:36.149 detox[20152] i List of devices attached
+emulator-5554	device
+
+
+13:59:36.150 detox[20152] i port: 5554, host: localhost
+13:59:36.153 detox[20152] i Found a matching & free device emulator-5554
+13:59:36.154 detox[20152] i settled on emulator-5554 (Pixel_7_API_35)
+  data: {
+    "id": "emulator-5554",
+    "adbName": "emulator-5554",
+    "name": "emulator-5554 (Pixel_7_API_35)"
+  }
+13:59:36.155 detox[20152] E allocate
+13:59:36.155 detox[20152] B post-allocate: emulator-5554
+  data: {
+    "id": "emulator-5554",
+    "adbName": "emulator-5554",
+    "name": "emulator-5554 (Pixel_7_API_35)"
+  }
+13:59:36.155 detox[20152] i "C:\Users\felip\AppData\Local\Android\Sdk\platform-tools\adb.EXE" -s "emulator-5554" shell "getprop dev.bootcomplete"
+13:59:36.212 detox[20152] i 1
+
+13:59:36.212 detox[20152] i "C:\Users\felip\AppData\Local\Android\Sdk\platform-tools\adb.EXE" -s "emulator-5554" shell "settings put global animator_duration_scale 0"
+13:59:36.281 detox[20152] i 
+13:59:36.281 detox[20152] i "C:\Users\felip\AppData\Local\Android\Sdk\platform-tools\adb.EXE" -s "emulator-5554" shell "settings put global window_animation_scale 0"
+13:59:36.361 detox[20152] i 
+13:59:36.361 detox[20152] i "C:\Users\felip\AppData\Local\Android\Sdk\platform-tools\adb.EXE" -s "emulator-5554" shell "settings put global transition_animation_scale 0"
+13:59:36.438 detox[20152] i 
+13:59:36.438 detox[20152] i "C:\Users\felip\AppData\Local\Android\Sdk\platform-tools\adb.EXE" -s "emulator-5554" shell "dumpsys power | grep \"^[ ]*m[UW].*=\""
+13:59:36.564 detox[20152] i   mWakefulness=Awake
+  mWakefulnessChanging=false
+  mUseAutoSuspend=true
+  mWakeLockSummary=0x0
+  mWakeUpWhenPluggedOrUnpluggedConfig=false
+  mWakeUpWhenPluggedOrUnpluggedInTheaterModeConfig=false
+  mDreamsBatteryLevelMinimumWhenPoweredConfig=-1
+  mDreamsBatteryLevelMinimumWhenNotPoweredConfig=15
+  mScreenBrightnessOverrideFromWindowManager=NaN
+  mUserActivityTimeoutOverrideFromWindowManager=-1
+  mUserInactiveOverrideFromWindowManager=false
+  mUserId=0
+  mWakeLockSummary=0x0
+  mUserInteractionBackoffMillis=60000
+
+13:59:36.564 detox[20152] E post-allocate: emulator-5554
+13:59:36.564 detox[20152] i dispatching event to socket  :  allocateDeviceDone {
+  deviceCookie: {
+    id: 'emulator-5554',
+    adbName: 'emulator-5554',
+    name: 'emulator-5554 (Pixel_7_API_35)'
+  }
+}
+13:59:36.566 detox[21140] i ## received events ##
+13:59:36.566 detox[21140] i detected event allocateDeviceDone {
+  deviceCookie: {
+    id: 'emulator-5554',
+    adbName: 'emulator-5554',
+    name: 'emulator-5554 (Pixel_7_API_35)'
+  }
+}
+13:59:36.566 detox[21140] B onBootDevice
+  args: ({"deviceId":"emulator-5554"})
+13:59:36.566 detox[21140] E onBootDevice
+13:59:36.567 detox[21140] B installUtilBinaries
+  args: ()
+13:59:36.567 detox[21140] E installUtilBinaries
+13:59:36.567 detox[21140] B selectApp
+  args: ("default")
+13:59:36.567 detox[21140] E selectApp
+13:59:36.568 detox[21140] E set up environment
+13:59:36.651 detox[20152] i tester exited session 336eda84-9727-fb1f-91ed-202b11adc5bb
+13:59:36.651 detox[21140] B tear down environment
+13:59:36.651 detox[21140] B onBeforeCleanup
+  args: ()
+13:59:36.652 detox[20152] E connection :51396<->:51421
+13:59:36.652 detox[20152] i received event of :  deallocateDevice {
+  deviceCookie: {
+    id: 'emulator-5554',
+    adbName: 'emulator-5554',
+    name: 'emulator-5554 (Pixel_7_API_35)'
+  }
+}
+13:59:36.652 detox[20152] B free: emulator-5554
+  data: {}
+13:59:36.652 detox[21140] E onBeforeCleanup
+13:59:36.653 detox[21140] i dispatching event to  primary-20152 /tmp/detox.primary-20152  :  deallocateDevice , {
+  deviceCookie: {
+    id: 'emulator-5554',
+    adbName: 'emulator-5554',
+    name: 'emulator-5554 (Pixel_7_API_35)'
+  }
+}
+13:59:36.656 detox[20152] E free: emulator-5554
+13:59:36.656 detox[20152] i dispatching event to socket  :  deallocateDeviceDone {}
+13:59:36.657 detox[21140] i ## received events ##
+13:59:36.657 detox[21140] i detected event deallocateDeviceDone {}
+13:59:36.657 detox[21140] E tear down environment
+13:59:36.657 detox[21140] E e2e\auth\signUp.e2e.js
+13:59:36.666 detox[20152] i received event of :  reportTestResults {
+  testResults: [
+    {
+      success: false,
+      testFilePath: 'D:\\Sources\\EconoFlow\\econoflow-mobile\\e2e\\auth\\login.e2e.js',
+      testExecError: {
+        name: 'Error',
+        message: '.configFile is only allowed in root programmatic options',
+        stack: 'Error: .configFile is only allowed in root programmatic options\n' +
+          '    at D:\\Sources\\EconoFlow\\econoflow-mobile\\e2e\\babel.config.js\n' +
+          '    at loadPartialConfigSync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\index.ts:53:60)\n' +
+          '    at loadBabelConfig (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-config\\node_modules\\babel-jest\\build\\index.js:178:56)\n' +
+          '    at Object.getCacheKey (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-config\\node_modules\\babel-jest\\build\\index.js:242:28)\n' +
+          '    at ScriptTransformer._getCacheKey (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:193:41)\n' +
+          '    at ScriptTransformer._getFileCachePath (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:229:27)\n' +
+          '    at ScriptTransformer.transformSource (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:407:32)\n' +
+          '    at ScriptTransformer._transformAndBuildScript (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:524:40)\n' +
+          '    at ScriptTransformer.transform (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:563:19)\n' +
+          '    at TransformCache.transform (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:3728:52)\n' +
+          '    at ModuleExecutor.exec (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:3032:51)\n' +
+          '    at CjsLoader.loadModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:440:36)\n' +
+          '    at CjsLoader.requireModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:335:12)\n' +
+          '    at Runtime.requireModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:4981:27)\n' +
+          '    at jestAdapter (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-circus\\build\\runner.js:96:13)\n' +
+          '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+          '    at runTestInternal (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\build\\index.js:247:16)\n' +
+          '    at runTest (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\build\\index.js:315:7)'
+      },
+      isPermanentFailure: false
+    },
+    {
+      success: false,
+      testFilePath: 'D:\\Sources\\EconoFlow\\econoflow-mobile\\e2e\\auth\\signUp.e2e.js',
+      testExecError: {
+        name: 'Error',
+        message: '.configFile is only allowed in root programmatic options',
+        stack: 'Error: .configFile is only allowed in root programmatic options\n' +
+          '    at validate (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\validation\\options.ts:399:25)\n' +
+          '    at D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\config-chain.ts:340:22\n' +
+          '    at handler (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\caching.ts:125:55)\n' +
+          '    at cachedFunction.next (<anonymous>)\n' +
+          '    at evaluateSync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\gensync\\index.js:251:28)\n' +
+          '    at sync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\gensync\\index.js:89:14)\n' +
+          '    at validateConfigFile (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\config-chain.ts:185:27)\n' +
+          '    at buildRootChain.next (<anonymous>)\n' +
+          '    at loadPrivatePartialConfig (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\partial.ts:110:44)\n' +
+          '    at loadPrivatePartialConfig.next (<anonymous>)\n' +
+          '    at loadPrivatePartialConfig (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\partial.ts:169:12)\n' +
+          '    at loadPartialConfig.next (<anonymous>)\n' +
+          '    at evaluateSync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\gensync\\index.js:251:28)\n' +
+          '    at sync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\gensync\\index.js:89:14)\n' +
+          '    at fn (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\errors\\rewrite-stack-trace.ts:99:14)\n' +
+          '    at loadPartialConfigSync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\index.ts:53:60)\n' +
+          '    at loadBabelConfig (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-config\\node_modules\\babel-jest\\build\\index.js:178:56)\n' +
+          '    at Object.getCacheKey (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-config\\node_modules\\babel-jest\\build\\index.js:242:28)\n' +
+          '    at ScriptTransformer._getCacheKey (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:193:41)\n' +
+          '    at ScriptTransformer._getFileCachePath (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:229:27)\n' +
+          '    at ScriptTransformer.transformSource (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:407:32)\n' +
+          '    at ScriptTransformer._transformAndBuildScript (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:524:40)\n' +
+          '    at ScriptTransformer.transform (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:563:19)\n' +
+          '    at TransformCache.transform (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:3728:52)\n' +
+          '    at ModuleExecutor.exec (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:3032:51)\n' +
+          '    at CjsLoader.loadModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:440:36)\n' +
+          '    at CjsLoader.requireModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:335:12)\n' +
+          '    at Runtime.requireModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:4981:27)\n' +
+          '    at jestAdapter (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-circus\\build\\runner.js:96:13)\n' +
+          '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+          '    at runTestInternal (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\build\\index.js:247:16)\n' +
+          '    at runTest (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\build\\index.js:315:7)'
+      },
+      isPermanentFailure: false
+    }
+  ]
+}
+13:59:36.666 detox[20152] i dispatching event to socket  :  reportTestResultsDone {
+  testResults: [
+    {
+      success: false,
+      testFilePath: 'D:\\Sources\\EconoFlow\\econoflow-mobile\\e2e\\auth\\login.e2e.js',
+      testExecError: {
+        name: 'Error',
+        message: '.configFile is only allowed in root programmatic options',
+        stack: 'Error: .configFile is only allowed in root programmatic options\n' +
+          '    at D:\\Sources\\EconoFlow\\econoflow-mobile\\e2e\\babel.config.js\n' +
+          '    at loadPartialConfigSync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\index.ts:53:60)\n' +
+          '    at loadBabelConfig (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-config\\node_modules\\babel-jest\\build\\index.js:178:56)\n' +
+          '    at Object.getCacheKey (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-config\\node_modules\\babel-jest\\build\\index.js:242:28)\n' +
+          '    at ScriptTransformer._getCacheKey (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:193:41)\n' +
+          '    at ScriptTransformer._getFileCachePath (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:229:27)\n' +
+          '    at ScriptTransformer.transformSource (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:407:32)\n' +
+          '    at ScriptTransformer._transformAndBuildScript (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:524:40)\n' +
+          '    at ScriptTransformer.transform (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:563:19)\n' +
+          '    at TransformCache.transform (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:3728:52)\n' +
+          '    at ModuleExecutor.exec (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:3032:51)\n' +
+          '    at CjsLoader.loadModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:440:36)\n' +
+          '    at CjsLoader.requireModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:335:12)\n' +
+          '    at Runtime.requireModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:4981:27)\n' +
+          '    at jestAdapter (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-circus\\build\\runner.js:96:13)\n' +
+          '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+          '    at runTestInternal (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\build\\index.js:247:16)\n' +
+          '    at runTest (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\build\\index.js:315:7)'
+      },
+      isPermanentFailure: false
+    },
+    {
+      success: false,
+      testFilePath: 'D:\\Sources\\EconoFlow\\econoflow-mobile\\e2e\\auth\\signUp.e2e.js',
+      testExecError: {
+        name: 'Error',
+        message: '.configFile is only allowed in root programmatic options',
+        stack: 'Error: .configFile is only allowed in root programmatic options\n' +
+          '    at validate (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\validation\\options.ts:399:25)\n' +
+          '    at D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\config-chain.ts:340:22\n' +
+          '    at handler (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\caching.ts:125:55)\n' +
+          '    at cachedFunction.next (<anonymous>)\n' +
+          '    at evaluateSync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\gensync\\index.js:251:28)\n' +
+          '    at sync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\gensync\\index.js:89:14)\n' +
+          '    at validateConfigFile (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\config-chain.ts:185:27)\n' +
+          '    at buildRootChain.next (<anonymous>)\n' +
+          '    at loadPrivatePartialConfig (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\partial.ts:110:44)\n' +
+          '    at loadPrivatePartialConfig.next (<anonymous>)\n' +
+          '    at loadPrivatePartialConfig (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\partial.ts:169:12)\n' +
+          '    at loadPartialConfig.next (<anonymous>)\n' +
+          '    at evaluateSync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\gensync\\index.js:251:28)\n' +
+          '    at sync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\gensync\\index.js:89:14)\n' +
+          '    at fn (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\errors\\rewrite-stack-trace.ts:99:14)\n' +
+          '    at loadPartialConfigSync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\index.ts:53:60)\n' +
+          '    at loadBabelConfig (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-config\\node_modules\\babel-jest\\build\\index.js:178:56)\n' +
+          '    at Object.getCacheKey (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-config\\node_modules\\babel-jest\\build\\index.js:242:28)\n' +
+          '    at ScriptTransformer._getCacheKey (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:193:41)\n' +
+          '    at ScriptTransformer._getFileCachePath (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:229:27)\n' +
+          '    at ScriptTransformer.transformSource (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:407:32)\n' +
+          '    at ScriptTransformer._transformAndBuildScript (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:524:40)\n' +
+          '    at ScriptTransformer.transform (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:563:19)\n' +
+          '    at TransformCache.transform (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:3728:52)\n' +
+          '    at ModuleExecutor.exec (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:3032:51)\n' +
+          '    at CjsLoader.loadModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:440:36)\n' +
+          '    at CjsLoader.requireModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:335:12)\n' +
+          '    at Runtime.requireModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:4981:27)\n' +
+          '    at jestAdapter (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-circus\\build\\runner.js:96:13)\n' +
+          '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+          '    at runTestInternal (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\build\\index.js:247:16)\n' +
+          '    at runTest (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\build\\index.js:315:7)'
+      },
+      isPermanentFailure: false
+    }
+  ]
+}
+13:59:36.666 detox[21140] i dispatching event to  primary-20152 /tmp/detox.primary-20152  :  reportTestResults , {
+  testResults: [
+    {
+      success: false,
+      testFilePath: 'D:\\Sources\\EconoFlow\\econoflow-mobile\\e2e\\auth\\login.e2e.js',
+      testExecError: {
+        name: 'Error',
+        message: '.configFile is only allowed in root programmatic options',
+        stack: 'Error: .configFile is only allowed in root programmatic options\n' +
+          '    at D:\\Sources\\EconoFlow\\econoflow-mobile\\e2e\\babel.config.js\n' +
+          '    at loadPartialConfigSync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\index.ts:53:60)\n' +
+          '    at loadBabelConfig (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-config\\node_modules\\babel-jest\\build\\index.js:178:56)\n' +
+          '    at Object.getCacheKey (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-config\\node_modules\\babel-jest\\build\\index.js:242:28)\n' +
+          '    at ScriptTransformer._getCacheKey (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:193:41)\n' +
+          '    at ScriptTransformer._getFileCachePath (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:229:27)\n' +
+          '    at ScriptTransformer.transformSource (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:407:32)\n' +
+          '    at ScriptTransformer._transformAndBuildScript (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:524:40)\n' +
+          '    at ScriptTransformer.transform (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:563:19)\n' +
+          '    at TransformCache.transform (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:3728:52)\n' +
+          '    at ModuleExecutor.exec (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:3032:51)\n' +
+          '    at CjsLoader.loadModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:440:36)\n' +
+          '    at CjsLoader.requireModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:335:12)\n' +
+          '    at Runtime.requireModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:4981:27)\n' +
+          '    at jestAdapter (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-circus\\build\\runner.js:96:13)\n' +
+          '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+          '    at runTestInternal (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\build\\index.js:247:16)\n' +
+          '    at runTest (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\build\\index.js:315:7)'
+      },
+      isPermanentFailure: false
+    },
+    {
+      success: false,
+      testFilePath: 'D:\\Sources\\EconoFlow\\econoflow-mobile\\e2e\\auth\\signUp.e2e.js',
+      testExecError: {
+        name: 'Error',
+        message: '.configFile is only allowed in root programmatic options',
+        stack: 'Error: .configFile is only allowed in root programmatic options\n' +
+          '    at validate (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\validation\\options.ts:399:25)\n' +
+          '    at D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\config-chain.ts:340:22\n' +
+          '    at handler (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\caching.ts:125:55)\n' +
+          '    at cachedFunction.next (<anonymous>)\n' +
+          '    at evaluateSync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\gensync\\index.js:251:28)\n' +
+          '    at sync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\gensync\\index.js:89:14)\n' +
+          '    at validateConfigFile (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\config-chain.ts:185:27)\n' +
+          '    at buildRootChain.next (<anonymous>)\n' +
+          '    at loadPrivatePartialConfig (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\partial.ts:110:44)\n' +
+          '    at loadPrivatePartialConfig.next (<anonymous>)\n' +
+          '    at loadPrivatePartialConfig (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\partial.ts:169:12)\n' +
+          '    at loadPartialConfig.next (<anonymous>)\n' +
+          '    at evaluateSync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\gensync\\index.js:251:28)\n' +
+          '    at sync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\gensync\\index.js:89:14)\n' +
+          '    at fn (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\errors\\rewrite-stack-trace.ts:99:14)\n' +
+          '    at loadPartialConfigSync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\index.ts:53:60)\n' +
+          '    at loadBabelConfig (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-config\\node_modules\\babel-jest\\build\\index.js:178:56)\n' +
+          '    at Object.getCacheKey (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-config\\node_modules\\babel-jest\\build\\index.js:242:28)\n' +
+          '    at ScriptTransformer._getCacheKey (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:193:41)\n' +
+          '    at ScriptTransformer._getFileCachePath (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:229:27)\n' +
+          '    at ScriptTransformer.transformSource (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:407:32)\n' +
+          '    at ScriptTransformer._transformAndBuildScript (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:524:40)\n' +
+          '    at ScriptTransformer.transform (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:563:19)\n' +
+          '    at TransformCache.transform (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:3728:52)\n' +
+          '    at ModuleExecutor.exec (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:3032:51)\n' +
+          '    at CjsLoader.loadModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:440:36)\n' +
+          '    at CjsLoader.requireModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:335:12)\n' +
+          '    at Runtime.requireModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:4981:27)\n' +
+          '    at jestAdapter (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-circus\\build\\runner.js:96:13)\n' +
+          '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+          '    at runTestInternal (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\build\\index.js:247:16)\n' +
+          '    at runTest (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\build\\index.js:315:7)'
+      },
+      isPermanentFailure: false
+    }
+  ]
+}
+13:59:36.667 detox[20152] i broadcasting event to all known sockets listening to  \\.\pipe\tmp-detox.primary-20152  :   sessionStateUpdate {
+  testResults: [
+    {
+      success: false,
+      testFilePath: 'D:\\Sources\\EconoFlow\\econoflow-mobile\\e2e\\auth\\login.e2e.js',
+      testExecError: {
+        name: 'Error',
+        message: '.configFile is only allowed in root programmatic options',
+        stack: 'Error: .configFile is only allowed in root programmatic options\n' +
+          '    at D:\\Sources\\EconoFlow\\econoflow-mobile\\e2e\\babel.config.js\n' +
+          '    at loadPartialConfigSync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\index.ts:53:60)\n' +
+          '    at loadBabelConfig (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-config\\node_modules\\babel-jest\\build\\index.js:178:56)\n' +
+          '    at Object.getCacheKey (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-config\\node_modules\\babel-jest\\build\\index.js:242:28)\n' +
+          '    at ScriptTransformer._getCacheKey (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:193:41)\n' +
+          '    at ScriptTransformer._getFileCachePath (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:229:27)\n' +
+          '    at ScriptTransformer.transformSource (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:407:32)\n' +
+          '    at ScriptTransformer._transformAndBuildScript (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:524:40)\n' +
+          '    at ScriptTransformer.transform (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:563:19)\n' +
+          '    at TransformCache.transform (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:3728:52)\n' +
+          '    at ModuleExecutor.exec (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:3032:51)\n' +
+          '    at CjsLoader.loadModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:440:36)\n' +
+          '    at CjsLoader.requireModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:335:12)\n' +
+          '    at Runtime.requireModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:4981:27)\n' +
+          '    at jestAdapter (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-circus\\build\\runner.js:96:13)\n' +
+          '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+          '    at runTestInternal (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\build\\index.js:247:16)\n' +
+          '    at runTest (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\build\\index.js:315:7)'
+      },
+      isPermanentFailure: false
+    },
+    {
+      success: false,
+      testFilePath: 'D:\\Sources\\EconoFlow\\econoflow-mobile\\e2e\\auth\\signUp.e2e.js',
+      testExecError: {
+        name: 'Error',
+        message: '.configFile is only allowed in root programmatic options',
+        stack: 'Error: .configFile is only allowed in root programmatic options\n' +
+          '    at validate (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\validation\\options.ts:399:25)\n' +
+          '    at D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\config-chain.ts:340:22\n' +
+          '    at handler (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\caching.ts:125:55)\n' +
+          '    at cachedFunction.next (<anonymous>)\n' +
+          '    at evaluateSync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\gensync\\index.js:251:28)\n' +
+          '    at sync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\gensync\\index.js:89:14)\n' +
+          '    at validateConfigFile (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\config-chain.ts:185:27)\n' +
+          '    at buildRootChain.next (<anonymous>)\n' +
+          '    at loadPrivatePartialConfig (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\partial.ts:110:44)\n' +
+          '    at loadPrivatePartialConfig.next (<anonymous>)\n' +
+          '    at loadPrivatePartialConfig (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\partial.ts:169:12)\n' +
+          '    at loadPartialConfig.next (<anonymous>)\n' +
+          '    at evaluateSync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\gensync\\index.js:251:28)\n' +
+          '    at sync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\gensync\\index.js:89:14)\n' +
+          '    at fn (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\errors\\rewrite-stack-trace.ts:99:14)\n' +
+          '    at loadPartialConfigSync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\index.ts:53:60)\n' +
+          '    at loadBabelConfig (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-config\\node_modules\\babel-jest\\build\\index.js:178:56)\n' +
+          '    at Object.getCacheKey (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-config\\node_modules\\babel-jest\\build\\index.js:242:28)\n' +
+          '    at ScriptTransformer._getCacheKey (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:193:41)\n' +
+          '    at ScriptTransformer._getFileCachePath (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:229:27)\n' +
+          '    at ScriptTransformer.transformSource (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:407:32)\n' +
+          '    at ScriptTransformer._transformAndBuildScript (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:524:40)\n' +
+          '    at ScriptTransformer.transform (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:563:19)\n' +
+          '    at TransformCache.transform (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:3728:52)\n' +
+          '    at ModuleExecutor.exec (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:3032:51)\n' +
+          '    at CjsLoader.loadModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:440:36)\n' +
+          '    at CjsLoader.requireModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:335:12)\n' +
+          '    at Runtime.requireModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:4981:27)\n' +
+          '    at jestAdapter (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-circus\\build\\runner.js:96:13)\n' +
+          '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+          '    at runTestInternal (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\build\\index.js:247:16)\n' +
+          '    at runTest (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\build\\index.js:315:7)'
+      },
+      isPermanentFailure: false
+    }
+  ]
+}
+13:59:36.668 detox[21140] i ## received events ##
+13:59:36.669 detox[21140] i detected event reportTestResultsDone {
+  testResults: [
+    {
+      success: false,
+      testFilePath: 'D:\\Sources\\EconoFlow\\econoflow-mobile\\e2e\\auth\\login.e2e.js',
+      testExecError: {
+        name: 'Error',
+        message: '.configFile is only allowed in root programmatic options',
+        stack: 'Error: .configFile is only allowed in root programmatic options\n' +
+          '    at D:\\Sources\\EconoFlow\\econoflow-mobile\\e2e\\babel.config.js\n' +
+          '    at loadPartialConfigSync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\index.ts:53:60)\n' +
+          '    at loadBabelConfig (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-config\\node_modules\\babel-jest\\build\\index.js:178:56)\n' +
+          '    at Object.getCacheKey (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-config\\node_modules\\babel-jest\\build\\index.js:242:28)\n' +
+          '    at ScriptTransformer._getCacheKey (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:193:41)\n' +
+          '    at ScriptTransformer._getFileCachePath (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:229:27)\n' +
+          '    at ScriptTransformer.transformSource (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:407:32)\n' +
+          '    at ScriptTransformer._transformAndBuildScript (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:524:40)\n' +
+          '    at ScriptTransformer.transform (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:563:19)\n' +
+          '    at TransformCache.transform (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:3728:52)\n' +
+          '    at ModuleExecutor.exec (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:3032:51)\n' +
+          '    at CjsLoader.loadModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:440:36)\n' +
+          '    at CjsLoader.requireModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:335:12)\n' +
+          '    at Runtime.requireModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:4981:27)\n' +
+          '    at jestAdapter (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-circus\\build\\runner.js:96:13)\n' +
+          '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+          '    at runTestInternal (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\build\\index.js:247:16)\n' +
+          '    at runTest (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\build\\index.js:315:7)'
+      },
+      isPermanentFailure: false
+    },
+    {
+      success: false,
+      testFilePath: 'D:\\Sources\\EconoFlow\\econoflow-mobile\\e2e\\auth\\signUp.e2e.js',
+      testExecError: {
+        name: 'Error',
+        message: '.configFile is only allowed in root programmatic options',
+        stack: 'Error: .configFile is only allowed in root programmatic options\n' +
+          '    at validate (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\validation\\options.ts:399:25)\n' +
+          '    at D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\config-chain.ts:340:22\n' +
+          '    at handler (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\caching.ts:125:55)\n' +
+          '    at cachedFunction.next (<anonymous>)\n' +
+          '    at evaluateSync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\gensync\\index.js:251:28)\n' +
+          '    at sync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\gensync\\index.js:89:14)\n' +
+          '    at validateConfigFile (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\config-chain.ts:185:27)\n' +
+          '    at buildRootChain.next (<anonymous>)\n' +
+          '    at loadPrivatePartialConfig (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\partial.ts:110:44)\n' +
+          '    at loadPrivatePartialConfig.next (<anonymous>)\n' +
+          '    at loadPrivatePartialConfig (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\partial.ts:169:12)\n' +
+          '    at loadPartialConfig.next (<anonymous>)\n' +
+          '    at evaluateSync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\gensync\\index.js:251:28)\n' +
+          '    at sync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\gensync\\index.js:89:14)\n' +
+          '    at fn (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\errors\\rewrite-stack-trace.ts:99:14)\n' +
+          '    at loadPartialConfigSync (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\@babel\\core\\src\\config\\index.ts:53:60)\n' +
+          '    at loadBabelConfig (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-config\\node_modules\\babel-jest\\build\\index.js:178:56)\n' +
+          '    at Object.getCacheKey (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-config\\node_modules\\babel-jest\\build\\index.js:242:28)\n' +
+          '    at ScriptTransformer._getCacheKey (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:193:41)\n' +
+          '    at ScriptTransformer._getFileCachePath (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:229:27)\n' +
+          '    at ScriptTransformer.transformSource (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:407:32)\n' +
+          '    at ScriptTransformer._transformAndBuildScript (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:524:40)\n' +
+          '    at ScriptTransformer.transform (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\node_modules\\@jest\\transform\\build\\index.js:563:19)\n' +
+          '    at TransformCache.transform (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:3728:52)\n' +
+          '    at ModuleExecutor.exec (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:3032:51)\n' +
+          '    at CjsLoader.loadModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:440:36)\n' +
+          '    at CjsLoader.requireModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:335:12)\n' +
+          '    at Runtime.requireModule (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runtime\\build\\index.js:4981:27)\n' +
+          '    at jestAdapter (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-circus\\build\\runner.js:96:13)\n' +
+          '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+          '    at runTestInternal (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\build\\index.js:247:16)\n' +
+          '    at runTest (D:\\Sources\\EconoFlow\\econoflow-mobile\\node_modules\\jest-runner\\build\\index.js:315:7)'
+      },
+      isPermanentFailure: false
+    }
+  ]
+}
+13:59:36.671 detox[20152] i socket disconnected secondary-21140
+13:59:36.671 detox[21140] i connection closed primary-20152 /tmp/detox.primary-20152 0 tries remaining of 0
+13:59:36.672 detox[21140] i secondary-21140 exceeded connection rety amount of  or stopRetrying flag set.
+13:59:36.802 detox[20152] E Command failed with exit code = 1:
+jest --config e2e/jest.config.js
+13:59:36.803 detox[20152] B cleanup
+  args: ()
+13:59:36.806 detox[20152] E cleanup
+13:59:36.806 detox[20152] i Detox server has been closed gracefully
+13:59:36.808 detox[20152] E node_modules\detox\local-cli\cli.js test -c android.emu.debug --reuse
