@@ -424,12 +424,15 @@ jobs:
     - name: Warm up the emulator with the APKs
       if: steps.mobile-changes.outputs.mobile == 'true'
       run: |
-        adb install -r -t econoflow-mobile/android/app/build/outputs/apk/debug/app-debug.apk
-        adb install -r -t econoflow-mobile/android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-        adb reverse tcp:7003 tcp:7003
-        adb shell am start -n pt.econoflow.mobile/.MainActivity || true
+        # `adb` is not on PATH for a plain step on this runner image; only the emulator action
+        # adds it, so it is addressed through the SDK.
+        ADB="$ANDROID_HOME/platform-tools/adb"
+        "$ADB" install -r -t econoflow-mobile/android/app/build/outputs/apk/debug/app-debug.apk
+        "$ADB" install -r -t econoflow-mobile/android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+        "$ADB" reverse tcp:7003 tcp:7003
+        "$ADB" shell am start -n pt.econoflow.mobile/.MainActivity || true
         sleep 20
-        adb shell am force-stop pt.econoflow.mobile || true
+        "$ADB" shell am force-stop pt.econoflow.mobile || true
 
     - name: Run the Detox suite
       if: steps.mobile-changes.outputs.mobile == 'true'
