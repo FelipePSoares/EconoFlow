@@ -250,6 +250,43 @@ jobs:
       run: npx expo prebuild --platform android --no-install --clean
       working-directory: ./econoflow-mobile
 
+    # `android.cmakeVersion` is not a preference: Expo's root project plugin assigns it
+    # straight to `externalNativeBuild.cmake.version` of every module, so AGP looks for
+    # exactly that CMake and nothing else. It is set in app.json and written into the
+    # generated gradle.properties by plugins/with-detox-android.js during prebuild, which is
+    # why this step runs after prebuild and reads the version from that file. The hosted
+    # runner image ships a different SDK CMake (3.31.5), which is why the release build
+    # stopped at
+    #   [CXX1300] CMake '3.30.4' was not found in SDK, PATH, or by cmake.dir property
+    # Installing the pinned version next to the image's own makes the build independent of
+    # which CMake the image happens to carry.
+    - name: Install the pinned Android SDK CMake
+      if: steps.mobile-changes.outputs.mobile == 'true'
+      run: |
+        set -euo pipefail
+
+        # Read the version from source instead of repeating it here, so the two cannot drift.
+        CMAKE_VERSION="$(sed -n 's/^[[:space:]]*android\.cmakeVersion[[:space:]]*=[[:space:]]*//p' gradle.properties)"
+
+        # A future Expo upgrade that drops the pin must fail loudly here rather than as an
+        # sdkmanager parse error.
+        if [ -z "$CMAKE_VERSION" ]; then
+          echo "::error::android.cmakeVersion is not set in econoflow-mobile/android/gradle.properties; nothing to install"
+          exit 1
+        fi
+
+        echo "Installing Android SDK CMake ${CMAKE_VERSION}"
+        SDKMANAGER="$(find "${ANDROID_HOME}/cmdline-tools" -type f -name sdkmanager | head -n 1)"
+        # sdkmanager is a Java 21-friendly tool and needs Java 17+; the image exposes each
+        # installed JDK as its own variable, and the job has only set up JDK 17's default.
+        JAVA_HOME="${JAVA_HOME_21_X64:-$JAVA_HOME}" "${SDKMANAGER}" \
+          --install "cmake;${CMAKE_VERSION}" --sdk_root="${ANDROID_HOME}"
+
+        # Prove the install landed: a "not found" here still reads as CXX1300 at compile time.
+        test -x "${ANDROID_HOME}/cmake/${CMAKE_VERSION}/bin/cmake"
+        "${ANDROID_HOME}/cmake/${CMAKE_VERSION}/bin/cmake" --version
+      working-directory: ./econoflow-mobile
+
     - name: Cache Gradle
       if: steps.mobile-changes.outputs.mobile == 'true'
       uses: actions/cache@v6

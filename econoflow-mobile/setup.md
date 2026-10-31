@@ -287,7 +287,7 @@ CMake derives that object-file name from the absolute path of the generated JNI 
 |---------|--------|
 | `npm run android:short-paths` (junction of `node_modules` into `C:\n\econoflow-mobile`) | CMake resolves a junction to its real path, so the object names still start `D_/Sources/…` |
 | Building the project from a short root (`C:\eco\…`) with a physical copy of `node_modules` | The 260-character error is gone (objects start `C_/eco/…`), but the build then stops in ninja with `mkdir(...): No such file or directory` on the same deep object paths. `cmd` and .NET create those directories without complaint from the same working directory — the failure is inside this machine's Ninja/cmd interaction, not in the project |
-| `android.cmakeVersion=3.30.4` (Expo's override; `sdkmanager "cmake;3.30.4"`) | Ships the same Ninja 1.10.2 binary |
+| `android.cmakeVersion=3.30.4` (written by `plugins/with-detox-android.js` from `app.json`; `sdkmanager "cmake;3.30.4"`) | Ships the same Ninja 1.10.2 binary |
 | Rewriting `build.ninja` to shorten/escape the offending outputs | No effect: the statement ninja was failing on is already correctly escaped (`C$:/…`), which was confirmed by inspection |
 | `HKLM\…\FileSystem\LongPathsEnabled=1` | Already enabled; it only covers tools that opt in |
 
