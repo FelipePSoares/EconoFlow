@@ -417,23 +417,6 @@ jobs:
       run: npm run e2e:build
       working-directory: ./econoflow-mobile
 
-    # Installs both APKs and starts the app once, while the emulator is still warming up. The
-    # first inspection of a cold emulator is slow, and Detox's ready handshake times out on it
-    # ("Failed to run application on the device"); Detox repeats this step anyway, so a
-    # failure here is not fatal — it only pins the app in the emulator's cache.
-    - name: Warm up the emulator with the APKs
-      if: steps.mobile-changes.outputs.mobile == 'true'
-      run: |
-        # `adb` is not on PATH for a plain step on this runner image; only the emulator action
-        # adds it, so it is addressed through the SDK.
-        ADB="$ANDROID_HOME/platform-tools/adb"
-        "$ADB" install -r -t econoflow-mobile/android/app/build/outputs/apk/debug/app-debug.apk
-        "$ADB" install -r -t econoflow-mobile/android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-        "$ADB" reverse tcp:7003 tcp:7003
-        "$ADB" shell am start -n pt.econoflow.mobile/.MainActivity || true
-        sleep 20
-        "$ADB" shell am force-stop pt.econoflow.mobile || true
-
     - name: Run the Detox suite
       if: steps.mobile-changes.outputs.mobile == 'true'
       uses: reactivecircus/android-emulator-runner@v2
@@ -444,15 +427,26 @@ jobs:
         profile: pixel_7
         disable-animations: true
         emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
-        # Every line of `script` runs in its own shell, so changing directory on one line
-        # does not carry to the next — the whole run has to be one command. It starts from
-        # the repository root, which is why the app directory is entered explicitly: Detox
+        # The emulator exists only inside this action, so everything that talks to it has to
+        # happen here, in one script.
+        #
+        # The APKs are installed and the app is started once *before* Detox connects: on a
+        # cold emulator the first launch is slow enough that Detox's ready handshake times out
+        # ("Failed to run application on the device"), so it finds them already installed and
+        # warm. Detox repeats this installation itself.
+        #
+        # `DETOX_CI` makes the config attach to this running device instead of booting an AVD
+        # (see `.detoxrc.js`). The suite command enters the app directory explicitly: Detox
         # resolves `jest` from the working directory, and `npx` from the root would download
         # its own copy instead of using the one `npm ci` installed.
-        # `DETOX_CI` tells the config that the emulator is already running (the action boots
-        # it), so Detox attaches to that device instead of booting its own AVD.
         script: |
-          adb reverse tcp:7003 tcp:7003 && cd econoflow-mobile && DETOX_CI=1 ./node_modules/.bin/detox test -c android.emu.debug
+          adb reverse tcp:7003 tcp:7003
+          adb install -r -t econoflow-mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          adb install -r -t econoflow-mobile/android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+          adb shell am start -n pt.econoflow.mobile/.MainActivity || true
+          sleep 20
+          adb shell am force-stop pt.econoflow.mobile || true
+          cd econoflow-mobile && DETOX_CI=1 ./node_modules/.bin/detox test -c android.emu.debug
 
     - name: Upload Detox artifacts
       if: failure() && steps.mobile-changes.outputs.mobile == 'true'
