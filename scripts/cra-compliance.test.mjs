@@ -1088,6 +1088,14 @@ test('the release workflow installs the CMake version the Android build is pinne
     /android\\\.cmakeVersion/,
     `${path} does not read android.cmakeVersion from gradle.properties`,
   );
+  // The step runs with `working-directory: ./econoflow-mobile`, where prebuild writes
+  // android/gradle.properties. Reading the bare filename made sed fail with "can't read
+  // gradle.properties", so the install step failed before sdkmanager ever ran.
+  assert.match(
+    workflow,
+    /sed[^\n]*android\/gradle\.properties/,
+    `${path} reads gradle.properties from the mobile directory, where prebuild does not write it`,
+  );
   assert.match(
     workflow,
     /"cmake;\$\{CMAKE_VERSION\}"/,
