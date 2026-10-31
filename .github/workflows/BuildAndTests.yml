@@ -417,6 +417,20 @@ jobs:
       run: npm run e2e:build
       working-directory: ./econoflow-mobile
 
+    # Installs both APKs and starts the app once, while the emulator is still warming up. The
+    # first inspection of a cold emulator is slow, and Detox's ready handshake times out on it
+    # ("Failed to run application on the device"); Detox repeats this step anyway, so a
+    # failure here is not fatal — it only pins the app in the emulator's cache.
+    - name: Warm up the emulator with the APKs
+      if: steps.mobile-changes.outputs.mobile == 'true'
+      run: |
+        adb install -r -t econoflow-mobile/android/app/build/outputs/apk/debug/app-debug.apk
+        adb install -r -t econoflow-mobile/android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+        adb reverse tcp:7003 tcp:7003
+        adb shell am start -n pt.econoflow.mobile/.MainActivity || true
+        sleep 20
+        adb shell am force-stop pt.econoflow.mobile || true
+
     - name: Run the Detox suite
       if: steps.mobile-changes.outputs.mobile == 'true'
       uses: reactivecircus/android-emulator-runner@v2
