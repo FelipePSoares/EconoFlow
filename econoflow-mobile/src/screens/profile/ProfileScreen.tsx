@@ -201,7 +201,7 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { user, clearAuth } = useAuthStore();
   const { clearProject, selectedProject } = useProjectStore();
-  const { biometricEnabled } = useBiometricStore();
+  const { biometricEnabled, clearBiometric } = useBiometricStore();
   const {
     isPending: isTogglingBiometrics,
     enabled: canToggleBiometrics,
@@ -253,6 +253,9 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
     await unregisterPushNotifications();
     queryClient.clear();
     clearPin();
+    // The biometric shortcut belongs to the person who signed in. Left behind, the next
+    // sign-in is unlocked by the fingerprint dialog instead of asking for a PIN (#1052).
+    clearBiometric();
     resetLock();
     clearAuth();
     clearProject();
@@ -529,6 +532,7 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
           onPress={handleSignOut}
           activeOpacity={0.82}
           style={styles.signOutBtn}
+          testID="sign-out"
         >
           <MaterialCommunityIcons name="logout" size={18} color="#e74c3c" />
           <Text style={styles.signOutText}>{t('ButtonSignOut') ?? 'Sign out'}</Text>

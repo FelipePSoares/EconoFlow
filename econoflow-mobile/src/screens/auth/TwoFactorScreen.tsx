@@ -75,6 +75,7 @@ export const TwoFactorScreen: React.FC<Props> = ({ route }) => {
               render={({ field: { onChange, value } }) => (
                 <AuroraField
                   dark={dark}
+                  testID="two-factor-code"
                   icon="shield-key-outline"
                   placeholder={t('FieldTwoFactorCode')}
                   value={value}
@@ -85,9 +86,10 @@ export const TwoFactorScreen: React.FC<Props> = ({ route }) => {
               )}
             />
             {errors.code && <HelperText type="error">{errors.code.message}</HelperText>}
-            {authError  && <HelperText type="error">{authError}</HelperText>}
+            {authError && <HelperText type="error" testID="two-factor-error">{authError}</HelperText>}
 
             <AuroraPrimaryButton
+              testID="two-factor-submit"
               label={t('ButtonVerify')}
               onPress={handleSubmit(v => { setAuthError(null); mutation.mutate(v); })}
               loading={mutation.isPending}

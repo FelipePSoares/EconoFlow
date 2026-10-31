@@ -15,11 +15,27 @@ import { SessionNavigator } from './SessionNavigator';
  *
  * Keying by `isAuthenticated` also discards the signed-out history, so a sign-out cannot
  * navigate back into the previous session.
+ *
+ * A restored session waits for the auth store to finish reading its own storage (#1052),
+ * because the unlock gate decides from stores that only the rehydration binds — a relaunch
+ * used to render straight back into `Main`'s content through the gate, before any of it
+ * was known.
  */
 export const AppGate: React.FC = () => {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  // The store module always hydrates on import, before React renders anything: by the
+  // time this component runs, the session is either restored or was never there.
+  const restoredSessionReady = useAuthStore.persist.hasHydrated();
 
-  return isAuthenticated
-    ? <SessionNavigator key="session" />
-    : <AuthNavigator key="auth" />;
+  if (!isAuthenticated) {
+    return <AuthNavigator key="auth" />;
+  }
+
+  // Signed out → signed in during this run (login): the lock decision belongs to the
+  // rehydration and has already happened.
+  if (!restoredSessionReady) {
+    return null;
+  }
+
+  return <SessionNavigator key="session" />;
 };

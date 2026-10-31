@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { BiometricGateScreen } from '../BiometricGateScreen';
 
 jest.mock('react-i18next', () => ({
@@ -66,9 +66,15 @@ jest.mock('expo-local-authentication', () => ({
 }));
 
 jest.mock('../../../store/biometricStore', () => {
-  const fn = jest.fn().mockReturnValue({
-    biometricEnabled: true,
-    setBiometricEnabled: jest.fn(),
+  // Selector-aware like the real hook: a mock that ignores the selector hands the whole
+  // state object to `useSelector`-style calls and silently breaks every consumer.
+  const fn = jest.fn((selector?: (s: Record<string, unknown>) => unknown) => {
+    const state = {
+      biometricEnabled: true,
+      hydrated: true,
+      setBiometricEnabled: jest.fn(),
+    };
+    return selector ? selector(state) : state;
   });
   return {
     useBiometricStore: Object.assign(fn, {
@@ -113,16 +119,155 @@ const mockNavigation = {
 const mockRoute = {} as unknown as React.ComponentProps<typeof BiometricGateScreen>['route'];
 
 describe('BiometricGateScreen', () => {
+  // The suite reassigns several stores; every case starts from the documented default.
+  const restoreBiometricStore = () => {
+    const { useBiometricStore } = jest.requireMock('../../../store/biometricStore');
+    useBiometricStore.mockImplementation((selector?: (s: Record<string, unknown>) => unknown) => {
+      const state = { biometricEnabled: true, hydrated: true, setBiometricEnabled: jest.fn() };
+      return selector ? selector(state) : state;
+    });
+    const { usePinStore } = jest.requireMock('../../../store/pinStore');
+    usePinStore.mockImplementation((selector?: (s: Record<string, unknown>) => unknown) => {
+      const state = { hasPin: true };
+      return selector ? selector(state) : state;
+    });
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
-    const { useBiometricStore } = jest.requireMock('../../../store/biometricStore');
-    useBiometricStore.mockReturnValue({
-      biometricEnabled: true,
-      setBiometricEnabled: jest.fn(),
-    });
+    restoreBiometricStore();
     mockHasHardwareAsync.mockResolvedValue(true);
     mockIsEnrolledAsync.mockResolvedValue(true);
     mockAuthenticateAsync.mockResolvedValue({ success: true });
+  });
+
+  // The reported symptom (#1052): right after logging in the app sat on a blank screen.
+  // The gate stays a spinner while the store has not been read, and `PinEntry` resets back
+  // to it after a wrong PIN — a gate that reads the loading flag from a stale value can
+  // keep the spinner up forever over the real screen.
+  describe('never leaves the user on a spinner', () => {
+    // The mock is reassigned here; restore the default so later cases start clean.
+    afterEach(() => {
+      const { useBiometricStore } = jest.requireMock('../../../store/biometricStore');
+      useBiometricStore.mockImplementation((selector?: (s: Record<string, unknown>) => unknown) => {
+        const state = { biometricEnabled: true, hydrated: true, setBiometricEnabled: jest.fn() };
+        return selector ? selector(state) : state;
+      });
+    });
+
+    it('shows the PIN request instead of a spinner when there is no PIN', async () => {
+      const { usePinStore } = jest.requireMock('../../../store/pinStore');
+      usePinStore.mockReturnValue({ hasPin: false });
+
+      await render(<BiometricGateScreen navigation={mockNavigation} route={mockRoute} />);
+
+      await waitFor(() => {
+        expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: 'PinSetup' }] });
+      });
+      // The screen hides itself rather than drawing anything while it is leaving.
+      expect(screen.queryByTestId('biometric-fallback')).toBeNull();
+    });
+
+    it('does not hold the screen for a store flag that will never flip', async () => {
+      // `hydrateBiometricStore` is not used by this screen at all any more; the flag only
+      // hides a read that is still pending. A build that never writes it must not spin.
+      const { useBiometricStore } = jest.requireMock('../../../store/biometricStore');
+      useBiometricStore.mockReturnValue({ biometricEnabled: false, hydrated: false });
+
+      await render(<BiometricGateScreen navigation={mockNavigation} route={mockRoute} />);
+
+      await waitFor(() => {
+        expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: 'PinEntry' }] });
+      });
+    });
+  });
+
+  // #1052: with biometrics on there is exactly ONE way in — the sensor. The PIN is the
+  // fallback, not a parallel option, so the user never gets asked for both.
+  describe('biometrics first, PIN as the fallback', () => {
+    it('asks for biometrics only and does not send the user to the PIN screen', async () => {
+      await render(<BiometricGateScreen navigation={mockNavigation} route={mockRoute} />);
+
+      await waitFor(() => expect(mockSetUnlocked).toHaveBeenCalled());
+
+      expect(mockAuthenticateAsync).toHaveBeenCalledTimes(1);
+      expect(mockReset).not.toHaveBeenCalledWith({ index: 0, routes: [{ name: 'PinEntry' }] });
+      expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: 'Main' }] });
+    });
+
+    it('keeps prompting the sensor after one failure instead of showing the PIN', async () => {
+      mockAuthenticateAsync.mockResolvedValue({ success: false, error: 'authentication_failed' });
+
+      await render(<BiometricGateScreen navigation={mockNavigation} route={mockRoute} />);
+
+      await waitFor(() => expect(screen.getByTestId('biometric-fallback')).toBeTruthy());
+
+      // One failure is still within the sensor's own retry budget: no PIN yet.
+      expect(screen.queryByTestId('biometric-use-pin')).toBeNull();
+      expect(mockReset).not.toHaveBeenCalledWith({ index: 0, routes: [{ name: 'PinEntry' }] });
+    });
+
+    it('hands over to the PIN after three sensor failures', async () => {
+      mockAuthenticateAsync.mockResolvedValue({ success: false, error: 'authentication_failed' });
+
+      await render(<BiometricGateScreen navigation={mockNavigation} route={mockRoute} />);
+      await waitFor(() => expect(screen.getByTestId('biometric-fallback')).toBeTruthy());
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('biometric-retry'));
+      });
+      await waitFor(() => expect(mockAuthenticateAsync).toHaveBeenCalledTimes(2));
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('biometric-retry'));
+      });
+      await waitFor(() => expect(mockAuthenticateAsync).toHaveBeenCalledTimes(3));
+
+      // Out of attempts: the PIN takes over on its own, with the three failures spent.
+      await waitFor(() => {
+        expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: 'PinEntry' }] });
+      });
+      expect(mockSetUnlocked).not.toHaveBeenCalled();
+    });
+
+    it('defaults to the PIN once the sensor is out of attempts', async () => {
+      mockAuthenticateAsync.mockResolvedValue({ success: false, error: 'authentication_failed' });
+
+      await render(<BiometricGateScreen navigation={mockNavigation} route={mockRoute} />);
+      await waitFor(() => expect(screen.getByTestId('biometric-fallback')).toBeTruthy());
+
+      for (let i = 0; i < 2; i += 1) {
+        fireEvent.press(screen.getByTestId('biometric-retry'));
+        await waitFor(() => expect(mockAuthenticateAsync).toHaveBeenCalledTimes(2 + i));
+      }
+
+      await waitFor(() => {
+        expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: 'PinEntry' }] });
+      });
+    });
+
+    it('unlocks when a retry succeeds before the attempts run out', async () => {
+      mockAuthenticateAsync
+        .mockResolvedValueOnce({ success: false, error: 'authentication_failed' })
+        .mockResolvedValueOnce({ success: true });
+
+      await render(<BiometricGateScreen navigation={mockNavigation} route={mockRoute} />);
+      await waitFor(() => expect(mockAuthenticateAsync).toHaveBeenCalledTimes(1));
+      await act(async () => { fireEvent.press(screen.getByTestId('biometric-retry')); });
+
+      await waitFor(() => expect(mockSetUnlocked).toHaveBeenCalled());
+      expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: 'Main' }] });
+    });
+
+    it('goes straight to the PIN without prompting when the device lost its sensor', async () => {
+      mockHasHardwareAsync.mockResolvedValue(false);
+
+      await render(<BiometricGateScreen navigation={mockNavigation} route={mockRoute} />);
+
+      await waitFor(() => {
+        expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: 'PinEntry' }] });
+      });
+      expect(mockAuthenticateAsync).not.toHaveBeenCalled();
+    });
   });
 
   it('calls authenticateAsync on mount when biometrics available and enabled', async () => {
@@ -230,7 +375,87 @@ describe('BiometricGateScreen', () => {
     });
   });
 
-  it('navigates to BiometricEnroll when no pin and no biometrics', async () => {
+  // #1052: the PIN is the app's own lock. Biometrics only shortcut it, so a device
+  // without an app PIN has to be sent to create one — never straight to the unlock prompt.
+  // #1052: declining the offer is final for the unlock path. With the PIN working there is
+  // no reason to show the offer again — the user turns biometrics on from the settings.
+  it('never offers enrollment again once the PIN works, whatever the biometric state', async () => {
+    const { useBiometricStore } = jest.requireMock('../../../store/biometricStore');
+    useBiometricStore.mockReturnValue({ biometricEnabled: false, biometricPromptSkipped: true });
+    const { usePinStore } = jest.requireMock('../../../store/pinStore');
+    usePinStore.mockReturnValue({ hasPin: true });
+
+    for (let run = 0; run < 3; run += 1) {
+      await render(<BiometricGateScreen navigation={mockNavigation} route={mockRoute} />);
+
+      await waitFor(() => {
+        expect(mockReset).toHaveBeenLastCalledWith({ index: 0, routes: [{ name: 'PinEntry' }] });
+      });
+    }
+
+    expect(mockReset).not.toHaveBeenCalledWith({ index: 0, routes: [{ name: 'BiometricEnroll' }] });
+  });
+
+  it('never offers enrollment again even when biometrics were turned back on without use', async () => {
+    // Turning the toggle on and off again used to clear the decline flag, so the offer
+    // returned on the next launch. The flag now survives.
+    const { useBiometricStore } = jest.requireMock('../../../store/biometricStore');
+    useBiometricStore.mockReturnValue({ biometricEnabled: false, biometricPromptSkipped: true });
+    const { usePinStore } = jest.requireMock('../../../store/pinStore');
+    usePinStore.mockReturnValue({ hasPin: true });
+
+    await render(<BiometricGateScreen navigation={mockNavigation} route={mockRoute} />);
+
+    await waitFor(() => {
+      expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: 'PinEntry' }] });
+    });
+    expect(mockAuthenticateAsync).not.toHaveBeenCalled();
+  });
+
+  it('sends a user without an app PIN to create one, even when biometrics are enabled', async () => {
+    const { usePinStore } = jest.requireMock('../../../store/pinStore');
+    usePinStore.mockReturnValue({ hasPin: false });
+
+    await render(<BiometricGateScreen navigation={mockNavigation} route={mockRoute} />);
+
+    await waitFor(() => {
+      expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: 'PinSetup' }] });
+    });
+    expect(mockAuthenticateAsync).not.toHaveBeenCalled();
+  });
+
+  it('navigates to PinSetup when biometrics are not enabled and there is no PIN', async () => {
+    const { useBiometricStore } = jest.requireMock('../../../store/biometricStore');
+    useBiometricStore.mockReturnValue({ biometricEnabled: false });
+    const { usePinStore } = jest.requireMock('../../../store/pinStore');
+    usePinStore.mockReturnValue({ hasPin: false });
+
+    await render(<BiometricGateScreen navigation={mockNavigation} route={mockRoute} />);
+
+    await waitFor(() => {
+      expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: 'PinSetup' }] });
+    });
+  });
+
+  // #1052: a user who declined the enrollment offer is sent straight to the PIN, never
+  // back to the screen that offered biometrics.
+  it('skips the enrollment offer once the user declined it and there is a PIN', async () => {
+    const { useBiometricStore } = jest.requireMock('../../../store/biometricStore');
+    useBiometricStore.mockReturnValue({ biometricEnabled: false, biometricPromptSkipped: true });
+    const { usePinStore } = jest.requireMock('../../../store/pinStore');
+    usePinStore.mockReturnValue({ hasPin: true });
+
+    await render(<BiometricGateScreen navigation={mockNavigation} route={mockRoute} />);
+
+    await waitFor(() => {
+      expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: 'PinEntry' }] });
+    });
+    expect(mockReset).not.toHaveBeenCalledWith({ index: 0, routes: [{ name: 'BiometricEnroll' }] });
+  });
+
+  it('never offers biometrics before the app PIN exists', async () => {
+    // #1052: a device without a PIN is protected by nothing, so the PIN comes first and
+    // the enrollment offer is only shown once it exists.
     const { useBiometricStore } = jest.requireMock('../../../store/biometricStore');
     useBiometricStore.mockReturnValue({
       biometricEnabled: false,
@@ -244,8 +469,12 @@ describe('BiometricGateScreen', () => {
       expect(mockAuthenticateAsync).not.toHaveBeenCalled();
       expect(mockReset).toHaveBeenCalledWith({
         index: 0,
-        routes: [{ name: 'BiometricEnroll' }],
+        routes: [{ name: 'PinSetup' }],
       });
+    });
+    expect(mockReset).not.toHaveBeenCalledWith({
+      index: 0,
+      routes: [{ name: 'BiometricEnroll' }],
     });
   });
 

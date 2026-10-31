@@ -341,6 +341,7 @@ export const CreateProjectScreen: React.FC<Props> = ({ navigation, route }) => {
           {fromOnboarding ? (
             /* Skip — exits onboarding entirely */
             <TouchableOpacity
+              testID="onboarding-skip-project"
               style={[styles.cancelBtn, { backgroundColor: toggleBg, borderColor: toggleBorder }]}
               onPress={() =>
                 navigation

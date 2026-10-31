@@ -2,6 +2,8 @@
 // runtime regardless of their position in source, so this ordering is safe.
 import { useAuthStore } from '../authStore';
 import { useNotificationStore } from '../notificationStore';
+import { hydrateBiometricStore } from '../biometricStore';
+import { hydratePinStore } from '../pinStore';
 import { setUserContext, clearUserContext } from '../../monitoring/sentry';
 import type { User } from '../../api/types';
 import type { AuthState } from '../authStore';
@@ -16,6 +18,19 @@ jest.mock('../../monitoring/sentry', () => ({
   setUserContext: jest.fn(),
   clearUserContext: jest.fn(),
 }));
+
+// The rehydration hook must start the biometric read itself; the real one is a
+// SecureStore round trip and is covered by its own suite.
+jest.mock('../biometricStore', () => ({
+  hydrateBiometricStore: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('../pinStore', () => ({
+  hydratePinStore: jest.fn().mockResolvedValue(undefined),
+}));
+
+const mockHydrateBiometricStore = hydrateBiometricStore as jest.Mock;
+const mockHydratePinStore = hydratePinStore as jest.Mock;
 
 const mockUser: User = {
   id: 'user-abc-123',
@@ -116,6 +131,19 @@ describe('authStore – Sentry user context integration', () => {
       expect(useNotificationStore.getState().currentUserKey).toBe('user-abc-123');
     });
 
+    // #1052: the rehydration only runs on a relaunch. On the first sign-in of an app run
+    // the lock stores were still on their defaults, so the gate saw "no PIN" and lost the
+    // PIN the user had (and everything the previous session stored).
+    it('reads the app PIN and the biometric setting on login', () => {
+      mockHydratePinStore.mockClear();
+      mockHydrateBiometricStore.mockClear();
+
+      useAuthStore.getState().setUser(mockUser);
+
+      expect(mockHydratePinStore).toHaveBeenCalled();
+      expect(mockHydrateBiometricStore).toHaveBeenCalled();
+    });
+
     it('forgets a previous user\u2019s notification answer on a different account (#1053)', () => {
       // A second account on the same device must get its own rationale and OS prompt
       // instead of inheriting the first user's silence.
@@ -171,6 +199,62 @@ describe('authStore – Sentry user context integration', () => {
       const rehydrate = getRehydrationCallback();
       rehydrate({ ...useAuthStore.getState(), user: null });
       expect(setUserContext).not.toHaveBeenCalled();
+    });
+
+    it('binds the notification answer to the rehydrated user (#1053)', () => {
+      // A relaunch is not a login: `setUser` is never called, so the rehydration is the
+      // only place where the notification store learns which account it answered for
+      // before the post-login prompt mounts.
+      useNotificationStore.setState({ currentUserKey: null, hasPromptedForPermission: false });
+
+      getRehydrationCallback()({
+        ...useAuthStore.getState(),
+        user: { ...mockUser, id: 'uid-relaunch' },
+        isAuthenticated: true,
+      });
+
+      expect(useNotificationStore.getState().currentUserKey).toBe('uid-relaunch');
+    });
+
+    it('reads the biometric setting on relaunch, so enrollment is not offered again (#1052)', () => {
+      // Nothing mounts `useBiometricToggle` before the gate, so without this read the gate
+      // saw the defaults (`biometricEnabled: false`) and sent the user back to enrollment.
+      mockHydrateBiometricStore.mockClear();
+
+      getRehydrationCallback()({
+        ...useAuthStore.getState(),
+        user: mockUser,
+        isAuthenticated: true,
+      });
+
+      expect(mockHydrateBiometricStore).toHaveBeenCalled();
+    });
+
+    it('does not read the biometric setting while signed out', () => {
+      mockHydrateBiometricStore.mockClear();
+
+      getRehydrationCallback()({
+        ...useAuthStore.getState(),
+        user: null,
+        isAuthenticated: false,
+      });
+
+      expect(mockHydrateBiometricStore).not.toHaveBeenCalled();
+    });
+
+    it('reads the app PIN before the gate decides whether the user has one', () => {
+      // The gate mounts before anything else in the session, so nothing has started the
+      // PIN read yet: without this it always saw `hasPin: false` and asked the user to
+      // create a PIN they already had.
+      mockHydratePinStore.mockClear();
+
+      getRehydrationCallback()({
+        ...useAuthStore.getState(),
+        user: mockUser,
+        isAuthenticated: true,
+      });
+
+      expect(mockHydratePinStore).toHaveBeenCalled();
     });
   });
 });

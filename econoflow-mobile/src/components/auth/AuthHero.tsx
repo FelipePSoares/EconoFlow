@@ -16,7 +16,9 @@ export const AuthHero: React.FC<Props> = ({ dark, subtitle }) => {
   const { ink, ink2 } = auroraTokens(dark);
 
   return (
-    <View style={styles.wrap}>
+    // The brand block is on every auth screen, so it doubles as the marker that the
+    // auth tree is showing — the integration tests (e2e/) wait for it before typing.
+    <View style={styles.wrap} testID="auth-hero">
       <View style={[styles.iconWrap, dark ? styles.iconDark : styles.iconLight]}>
         <Image
           source={

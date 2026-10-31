@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { ComponentProps } from 'react';
 import {
-  TouchableOpacity, StyleSheet, useColorScheme,
+  TouchableOpacity, StyleSheet, View, useColorScheme,
 } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -46,7 +46,10 @@ export const MainNavigator: React.FC = () => {
   const quickAddViewedMonth = useQuickAddStore(s => s.viewedMonth);
 
   return (
-    <>
+    // The wrapper's `testID` is the signed-in marker of the integration tests (e2e/):
+    // reaching it is what "the customer is logged in on the app" means, whatever path —
+    // login, 2FA or the registration's auto-login — got them here.
+    <View style={styles.flex} testID="main-navigator">
     <Tab.Navigator
       initialRouteName={openCreateProjectOnStart ? 'Projects' : 'Overview'}
       screenOptions={({ route }) => ({
@@ -146,11 +149,12 @@ export const MainNavigator: React.FC = () => {
       component renders nothing once the user has answered.
     */}
     <NotificationPermissionPrompt />
-    </>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  flex: { flex: 1 },
   fabWrap: {
     top: -16,            // lifts the FAB above the tab bar
     alignItems: 'center',
