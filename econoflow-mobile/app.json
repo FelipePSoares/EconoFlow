@@ -58,7 +58,12 @@
         }
       ],
       "expo-font",
-      "./plugins/with-detox-android"
+      [
+        "./plugins/with-detox-android",
+        {
+          "cmakeVersion": "3.30.4"
+        }
+      ]
     ],
     "extra": {
       "eas": {

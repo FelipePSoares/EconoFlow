@@ -250,10 +250,13 @@ jobs:
       run: npx expo prebuild --platform android --no-install --clean
       working-directory: ./econoflow-mobile
 
-    # `android.cmakeVersion` in gradle.properties is not a preference: Expo's root project
-    # plugin assigns it straight to `externalNativeBuild.cmake.version` of every module, so
-    # AGP looks for exactly that CMake and nothing else. The hosted runner image ships a
-    # different SDK CMake (3.31.5), which is why the release build stopped at
+    # `android.cmakeVersion` is not a preference: Expo's root project plugin assigns it
+    # straight to `externalNativeBuild.cmake.version` of every module, so AGP looks for
+    # exactly that CMake and nothing else. It is set in app.json and written into the
+    # generated gradle.properties by plugins/with-detox-android.js during prebuild, which is
+    # why this step runs after prebuild and reads the version from that file. The hosted
+    # runner image ships a different SDK CMake (3.31.5), which is why the release build
+    # stopped at
     #   [CXX1300] CMake '3.30.4' was not found in SDK, PATH, or by cmake.dir property
     # Installing the pinned version next to the image's own makes the build independent of
     # which CMake the image happens to carry.
