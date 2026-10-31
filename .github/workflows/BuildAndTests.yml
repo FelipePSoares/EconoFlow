@@ -427,14 +427,13 @@ jobs:
         profile: pixel_7
         disable-animations: true
         emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
-        # The action runs this from the repository root, so the script has to move to the
-        # app directory first: Detox resolves `jest` (and everything else) from the working
-        # directory, and `npx` from the root would fetch a different Detox into its cache
-        # instead of using the one `npm ci` installed.
+        # Every line of `script` runs in its own shell, so changing directory on one line
+        # does not carry to the next — the whole run has to be one command. It starts from
+        # the repository root, which is why the app directory is entered explicitly: Detox
+        # resolves `jest` from the working directory, and `npx` from the root would download
+        # its own copy instead of using the one `npm ci` installed.
         script: |
-          adb reverse tcp:7003 tcp:7003
-          cd econoflow-mobile || exit 1
-          ./node_modules/.bin/detox test -c android.emu.debug
+          adb reverse tcp:7003 tcp:7003 && cd econoflow-mobile && ./node_modules/.bin/detox test -c android.emu.debug
 
     - name: Upload Detox artifacts
       if: failure() && steps.mobile-changes.outputs.mobile == 'true'
