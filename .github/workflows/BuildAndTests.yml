@@ -432,8 +432,10 @@ jobs:
         # the repository root, which is why the app directory is entered explicitly: Detox
         # resolves `jest` from the working directory, and `npx` from the root would download
         # its own copy instead of using the one `npm ci` installed.
+        # `DETOX_CI` tells the config that the emulator is already running (the action boots
+        # it), so Detox attaches to that device instead of booting its own AVD.
         script: |
-          adb reverse tcp:7003 tcp:7003 && cd econoflow-mobile && ./node_modules/.bin/detox test -c android.emu.debug
+          adb reverse tcp:7003 tcp:7003 && cd econoflow-mobile && DETOX_CI=1 ./node_modules/.bin/detox test -c android.emu.debug
 
     - name: Upload Detox artifacts
       if: failure() && steps.mobile-changes.outputs.mobile == 'true'

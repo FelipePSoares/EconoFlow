@@ -65,6 +65,12 @@ module.exports = {
       type: 'android.emulator',
       device: {
         avdName,
+        /**
+         * `true` in CI, where an emulator is already running (the GitHub action boots it)
+         * and Detox must attach to it instead of booting an AVD of its own — it cannot see
+         * the AVDs the action creates.
+         */
+        headless: Boolean(process.env.DETOX_CI),
       },
     },
   },
