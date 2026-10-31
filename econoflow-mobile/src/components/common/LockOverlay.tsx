@@ -178,6 +178,16 @@ export const LockOverlay: React.FC = () => {
 
   // The sensor prompt is an external side effect, so it is opened on a task rather than
   // synchronously in the effect body.
+  //
+  // The dependencies are the lock's *inputs* only. A failure must not re-arm the effect: it
+  // would open a new prompt for every attempt and loop the sensor without the customer asking
+  // (#1052). Only a return to the foreground re-asks, and the attempts counter is read through
+  // a ref so the listener always sees its current value.
+  const attemptsRef = useRef(biometricAttempts);
+  useEffect(() => {
+    attemptsRef.current = biometricAttempts;
+  }, [biometricAttempts]);
+
   useEffect(() => {
     // Signed out: nothing to unlock, and no dialog over the Login screen.
     if (!isAuthenticated) return;
@@ -188,7 +198,7 @@ export const LockOverlay: React.FC = () => {
       // stack the dialogs and the second would be answered by the first dismissal.
       if (inFlightRef.current) return;
       // The keypad owns the lock once the sensor ran out of attempts; it offers the way back.
-      if (biometricAttempts >= MAX_BIOMETRIC_FAILURES) return;
+      if (attemptsRef.current >= MAX_BIOMETRIC_FAILURES) return;
       void attemptBiometric();
     };
 
@@ -206,10 +216,8 @@ export const LockOverlay: React.FC = () => {
       clearTimeout(task);
       subscription.remove();
     };
-    // Re-armed only when the lock's inputs change; the dialog itself must not reopen on a
-    // re-render (a new failure count also re-arms it, which is what lets a retry happen).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, biometricEnabled, hasPin, biometricAttempts]);
+  }, [isAuthenticated, biometricEnabled, hasPin]);
 
   useEffect(() => {
     mountedRef.current = true;

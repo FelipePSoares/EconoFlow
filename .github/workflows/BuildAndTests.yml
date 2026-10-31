@@ -375,6 +375,13 @@ jobs:
       run: npm ci
       working-directory: ./econoflow-mobile
 
+    # `plugins/with-detox-android.js` selects this CMake (its Ninja handles long paths, which
+    # the default 3.22.1 does not); it is an SDK package, so it has to be installed.
+    - name: Install the CMake the Android build selects
+      if: steps.mobile-changes.outputs.mobile == 'true'
+      run: |
+        yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "cmake;3.30.4" > /dev/null
+
     # The specs sign in as the seeded `test1@test.com` against the development stack; the
     # app is pointed at it through `adb reverse` (see econoflow-mobile/.env.local), which the
     # emulator action sets up for 7003.

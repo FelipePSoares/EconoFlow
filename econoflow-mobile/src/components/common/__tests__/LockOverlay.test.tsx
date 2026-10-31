@@ -161,6 +161,29 @@ describe('LockOverlay', () => {
     expect(screen.getByTestId('lock-use-biometric')).toBeTruthy();
   });
 
+  it('does not reopen the prompt after a failure the customer answered', async () => {
+    // #1052: the sensor is asked once, and a refusal leaves the customer holding the
+    // "try again" screen. Re-arming the prompt on every failure would loop the dialog and
+    // spend all the attempts without anyone touching the app.
+    useAuthStore.setState({
+      accessToken: 'at',
+      refreshToken: 'rt',
+      user: { id: 'user-a', firstName: 'A' } as never,
+      isAuthenticated: true,
+    });
+    mockAuthenticateAsync.mockResolvedValue({ success: false, error: 'authentication_failed' });
+
+    await render(<LockOverlay />);
+    await screen.findByText('BiometricUsePasscode');
+
+    // Give the deferred prompt and any re-render it caused the chance to run.
+    await act(async () => {
+      await new Promise((resolve) => { setTimeout(resolve, 20); });
+    });
+
+    expect(mockAuthenticateAsync).toHaveBeenCalledTimes(1);
+  });
+
   it('never covers the signed-out app (#1052)', async () => {
     // The lock store now starts LOCKED so a relaunch cannot walk past the gate, and this
     // overlay is rendered whenever the lock is on. Without the auth check it painted a PIN
