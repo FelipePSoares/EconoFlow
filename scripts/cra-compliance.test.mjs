@@ -1044,6 +1044,48 @@ test('the release workflow publishes an SBOM artefact for the image it pushes', 
 
 // ── Mobile release build ─────────────────────────────────────────────────────
 
+test('the release workflow builds the APK on every release, not only when mobile changed', () => {
+  // The job is a release deliverable: every master run must publish an installable APK.
+  // It used to be gated on dorny/paths-filter over `econoflow-mobile/**`, so a release
+  // whose diff touched nothing under that directory skipped all of its steps and still
+  // reported success - the run "passed" having produced no APK at all
+  // (run 41239728476, android-build: every step skipped, conclusion success).
+  const path = '.github/workflows/Release.yml';
+  const workflow = read(path);
+
+  // Take the mobile job on its own, so a filter elsewhere cannot satisfy this test.
+  const jobStart = workflow.indexOf('android-build:');
+  assert.ok(jobStart !== -1, `${path} no longer has an android-build job`);
+  const job = workflow.slice(jobStart);
+
+  assert.doesNotMatch(
+    job,
+    /paths-filter|paths_filter|paths-filter/,
+    `${path}'s android-build still filters on changed paths, so a release without mobile ` +
+      'changes silently publishes no APK',
+  );
+
+  // Every step that produces the APK has to run unconditionally: an `if:` that is not the
+  // manual-run guard skips it exactly when the release still needs the artefact.
+  // The file is checked out with CRLF on some machines, so match either line ending.
+  for (const stepName of [
+    'Install mobile dependencies',
+    'Generate Android native project',
+    'Install the pinned Android SDK CMake',
+    'Generate signing keystore',
+    'Build standalone release APK',
+    'Upload release APK',
+  ]) {
+    const step = new RegExp(`- name: ${stepName}\\r?\\n([\\s\\S]*?)(?=\\r?\\n    - |$)`).exec(job);
+    assert.ok(step, `${path} no longer has the "${stepName}" step`);
+    assert.doesNotMatch(
+      step[1],
+      /^ {6}if: .*mobile/m,
+      `"${stepName}" is still gated on mobile changes, so the release can skip the APK`,
+    );
+  }
+});
+
 test('the release workflow installs the CMake version the Android build is pinned to', () => {
   // `android.cmakeVersion` REPLACES the CMake version AGP would use for every module
   // (Expo's ExpoRootProjectPlugin does
