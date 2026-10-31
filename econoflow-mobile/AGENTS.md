@@ -35,7 +35,7 @@ The New Architecture is the only supported one — React Native 0.82+ cannot dis
 - **A spec starts where the product starts.** The app picks its first screen from what the device stores, and the activity is `singleTask`, so a relaunch keeps the running navigator (`initialRouteName` is read on mount only). Specs relaunch at a start URL (`econoflow://econoflow-start`) rather than `launchApp`; the root `App` holds no deep-link config, so React Navigation never routes these.
 - **The PIN belongs to the device, not the account** (`pinStore`). "Create a PIN" therefore only happens once per device; specs that need it run first, and `signUp.e2e.js` (filename order) is the one that signs out and starts from the Login screen.
 - **The suite writes to the local stack.** It signs in as the seeded `test1@test.com` and registers a fresh `e2e+…@econoflow.test` account per run. Never point it at production.
-- **Android, debug build only.** The Detox runner lives in the androidTest APK (`android/app/build.gradle`), and on Windows the native build needs `npm run android:short-paths` (see [setup.md](./setup.md#integration-tests-with-detox)).
+- **Android, debug build only.** The Detox runner lives in the androidTest APK (`android/app/build.gradle` + `android/build.gradle`), and the app is built for one ABI — the emulator's (`-PreactNativeArchitectures`, default `x86_64` in `.detoxrc.js`). A deep Windows checkout cannot build it at all (CMake object names pass 260 characters); the suite therefore runs in the `mobile-e2e` CI job, and `setup.md` records what was tried locally (see [setup.md](./setup.md#integration-tests-with-detox)).
 
 ## Development workflow
 
@@ -56,7 +56,6 @@ npm run e2e:build && npm run e2e:test    # Detox, with the local stack and an em
 | `npm test` | Run Jest tests |
 | `npm run typecheck` | TypeScript type check |
 | `npm run lint` | ESLint |
-| `npm run android:short-paths` | Windows: the junction that keeps the native build inside `MAX_PATH` |
 | `npm run e2e:build` | Build the app and the Detox androidTest APK |
 | `npm run e2e:test` | Run the Detox suite in `e2e/` |
 

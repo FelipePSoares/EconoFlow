@@ -281,30 +281,26 @@ ninja: error: Stat(...react-native-safe-area-context/.../ComponentDescriptors.cp
 ```
 
 CMake derives that object-file name from the absolute path of the generated JNI sources under
-`node_modules`. Everything tried on this machine failed, and each fix was reverted:
+`node_modules`. Attempts made on this checkout, for the record (each reverted):
 
 | Attempt | Result |
 |---------|--------|
-| `npm run android:short-paths` (junction of `node_modules` into `C:\n\econoflow-mobile`) | The AAR and its codegen outputs still resolve to the real `D:\…` path, so `CMakeFiles/…/D_/Sources/…` is unchanged |
-| `android.cmakeVersion=3.30.4` (Expo's override; install with `sdkmanager "cmake;3.30.4"`) | Its Ninja handles long *paths*, but the truncation happens in the VS 2008 express-edition CRT parser ninja uses for this, so it still reports the literal `Filename longer than 260 characters` |
-| Rewriting `build.ninja` to prefix the offending outputs with a ninja `$` escape | `ninja: error: expected newline, got ':'` — the same CRT truncation is in the MSVC printf used for the parse error itself (reproduced in isolation in `C:\nbuild`) |
-| `HKLM\SYSTEM\CurrentControlSet\Control\FileSystem\LongPathsEnabled=1` | Already enabled; it only covers tools that opt in |
+| `npm run android:short-paths` (junction of `node_modules` into `C:\n\econoflow-mobile`) | CMake resolves a junction to its real path, so the object names still start `D_/Sources/…` |
+| Building the project from a short root (`C:\eco\…`) with a physical copy of `node_modules` | The 260-character error is gone (objects start `C_/eco/…`), but the build then stops in ninja with `mkdir(...): No such file or directory` on the same deep object paths. `cmd` and .NET create those directories without complaint from the same working directory — the failure is inside this machine's Ninja/cmd interaction, not in the project |
+| `android.cmakeVersion=3.30.4` (Expo's override; `sdkmanager "cmake;3.30.4"`) | Ships the same Ninja 1.10.2 binary |
+| Rewriting `build.ninja` to shorten/escape the offending outputs | No effect: the statement ninja was failing on is already correctly escaped (`C$:/…`), which was confirmed by inspection |
+| `HKLM\…\FileSystem\LongPathsEnabled=1` | Already enabled; it only covers tools that opt in |
 
-The path that works is a short one. **This repo on this machine was already set up that way
-before Detox was added** (`econoflow-mobile/android` is a junction to
-`C:\n\econoflow-mobile\android`, 26 characters deep). To get the APKs:
+So this checkout cannot produce the Android APKs on **this Windows machine**, and Detox cannot
+run here. The suite is configured to run where the limit does not exist or does not bite:
 
-```powershell
-# from the short root, with a short node_modules there (npm run android:short-paths), so the
-# generated sources and their object files both live under C:\n\
-cd C:\n\econoflow-mobile\android
-.\gradlew.bat assembleDebug assembleDebugAndroidTest -PreactNativeArchitectures=x86_64
-```
-
-That route was not verified end to end in this environment: the `node_modules` copy under
-`C:\n\` was left in an inconsistent state by the sandbox. The alternative — and what most
-Detox setups do — is a Linux or macOS CI runner or a CI Docker image, where the limit does
-not exist.
+- **CI** (recommended): the GitHub workflow `Mobile e2e (Detox)` in
+  `.github/workflows/BuildAndTests.yml` builds both APKs on `ubuntu-latest`, in an
+  `reactivecircus/android-emulator-runner` emulator, and runs `npm run e2e:test`. It runs on a
+  PR that touches the mobile app.
+- **Any Linux/macOS machine, or Docker Desktop with WSL2** (see the CI job for the exact
+  image and commands), or a Windows machine whose checkout sits at a short path from the
+  start (e.g. `C:\c\econoflow`) — there `npm run e2e:build` works unchanged.
 
 ### Running the suite
 
