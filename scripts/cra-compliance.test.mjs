@@ -1042,6 +1042,50 @@ test('the release workflow publishes an SBOM artefact for the image it pushes', 
   );
 });
 
+// ── Mobile release build ─────────────────────────────────────────────────────
+
+test('the release workflow installs the CMake version the Android build is pinned to', () => {
+  // `android.cmakeVersion` in gradle.properties REPLACES the CMake version AGP would use
+  // for every module (Expo's ExpoRootProjectPlugin does
+  // `android.externalNativeBuild.cmake.version = cmakeVersion`), so the version it names
+  // has to be installed in the SDK, not merely present on the runner. It was not: the
+  // runner image ships SDK CMake 3.31.5, while Expo pins 3.30.4, and the master release
+  // build died with
+  //   [CXX1300] CMake '3.30.4' was not found in SDK, PATH, or by cmake.dir property
+  // The workflow has to prove the pin is still in force before deriving the version from
+  // it, so that dropping the pin one day does not reintroduce this silently.
+  const path = '.github/workflows/Release.yml';
+  const workflow = read(path);
+  const gradleProperties = read('econoflow-mobile/android/gradle.properties');
+
+  const pinnedCmake = /^\s*android\.cmakeVersion\s*=\s*(\S+)\s*$/m.exec(gradleProperties);
+  assert.ok(
+    pinnedCmake,
+    'econoflow-mobile/android/gradle.properties no longer pins android.cmakeVersion',
+  );
+
+  assert.match(
+    workflow,
+    /sdkmanager/,
+    `${path} never runs sdkmanager, so it cannot install the SDK CMake the build is pinned to`,
+  );
+
+  // The version is read from gradle.properties at build time (`cmake;<derived version>`),
+  // so what matters is that the derived value reaches sdkmanager - not that a literal
+  // version sits in the workflow, which would be a second copy to drift.
+  assert.match(
+    workflow,
+    /android\\\.cmakeVersion/,
+    `${path} does not read android.cmakeVersion from gradle.properties`,
+  );
+  assert.match(
+    workflow,
+    /"cmake;\$\{CMAKE_VERSION\}"/,
+    `${path} does not install the CMake version android.cmakeVersion (${pinnedCmake[1]}) pins, ` +
+      'so the native build fails with [CXX1300] CMake not found in SDK',
+  );
+});
+
 // ── IIS host configuration ───────────────────────────────────────────────────
 
 test('web.config sets clickjacking protection', () => {
