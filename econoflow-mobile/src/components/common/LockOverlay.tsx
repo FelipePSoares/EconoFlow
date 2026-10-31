@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import { AppState, AppStateStatus, StyleSheet, View, TouchableOpacity } from 'react-native';
 import { Text } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,6 +16,21 @@ import { useAuroraSkin } from '../../theme/useAuroraSkin';
 const PIN_LENGTH_MAX = 6;
 const MAX_ATTEMPTS = 5;
 const MAX_BIOMETRIC_FAILURES = 3;
+
+/**
+ * Outcomes of `authenticateAsync` that end the prompt without the customer answering it.
+ *
+ * The sensor was never read, so nothing was proved against the customer: the app keeps the
+ * lock (it is what dismissed the prompt) and asks again when it is back in front. A real
+ * refusal (`authentication_failed`, `lockout`) still counts, and enough of them hand the
+ * lock to the keypad.
+ */
+const COMPLETED_WITHOUT_ANSWER: ReadonlySet<string> = new Set([
+  'system_cancel',
+  'app_cancel',
+  'user_cancel',
+  'user_fallback',
+]);
 
 /**
  * `styles` is a `const` declared at the bottom of this module. `PinDots` and `KeyPad` are
@@ -98,6 +113,9 @@ export const LockOverlay: React.FC = () => {
   const [biometricAttempts, setBiometricAttempts] = useState(0);
   const inFlightRef = useRef(false);
   const mountedRef = useRef(true);
+  // The foreground state this overlay last saw, so only a background → active transition
+  // re-opens the prompt (not every AppState event, e.g. Android's `blur`/`focus`).
+  const appStateRef = useRef<AppStateStatus>((AppState.currentState ?? 'active') as AppStateStatus);
 
   const handleForgotPin = useCallback(() => {
     clearBiometric();
@@ -143,6 +161,12 @@ export const LockOverlay: React.FC = () => {
         return;
       }
 
+      // A prompt the system cancelled *for* the customer — the app went to the background
+      // while it was up, or a system screen covered it — is not a failed attempt: the app is
+      // still locked, and spending one of the three attempts would push a quick switch-back
+      // onto the keypad. Coming back to the foreground asks again instead.
+      if (COMPLETED_WITHOUT_ANSWER.has(result.error ?? '')) return;
+
       setBiometricAttempts((previous) => previous + 1);
       setMode('pin');
     } catch {
@@ -158,11 +182,34 @@ export const LockOverlay: React.FC = () => {
     // Signed out: nothing to unlock, and no dialog over the Login screen.
     if (!isAuthenticated) return;
     if (!biometricEnabled || !hasPin) return;
-    const task = setTimeout(() => { void attemptBiometric(); }, 0);
-    return () => clearTimeout(task);
-    // Mount only: a dialog must not reopen on every re-render.
+
+    const prompt = () => {
+      // Never a second prompt on top of one the customer has not answered yet: the OS would
+      // stack the dialogs and the second would be answered by the first dismissal.
+      if (inFlightRef.current) return;
+      // The keypad owns the lock once the sensor ran out of attempts; it offers the way back.
+      if (biometricAttempts >= MAX_BIOMETRIC_FAILURES) return;
+      void attemptBiometric();
+    };
+
+    const task = setTimeout(prompt, 0);
+
+    // Coming back to the app asks again, without waiting for a tap: the overlay stays mounted
+    // for as long as the app is locked, so this is the case a restart never reaches.
+    const subscription = AppState.addEventListener('change', (next) => {
+      const wasAway = appStateRef.current !== 'active';
+      appStateRef.current = next;
+      if (wasAway && next === 'active') prompt();
+    });
+
+    return () => {
+      clearTimeout(task);
+      subscription.remove();
+    };
+    // Re-armed only when the lock's inputs change; the dialog itself must not reopen on a
+    // re-render (a new failure count also re-arms it, which is what lets a retry happen).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated]);
+  }, [isAuthenticated, biometricEnabled, hasPin, biometricAttempts]);
 
   useEffect(() => {
     mountedRef.current = true;

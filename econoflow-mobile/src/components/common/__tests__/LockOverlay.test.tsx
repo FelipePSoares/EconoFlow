@@ -1,4 +1,5 @@
 import React from 'react';
+import { AppState } from 'react-native';
 import { render, screen, act, fireEvent } from '@testing-library/react-native';
 import { LockOverlay } from '../LockOverlay';
 import { useAuthStore } from '../../../store/authStore';
@@ -52,6 +53,24 @@ jest.mock('react-native-paper', () => {
       React.createElement(RNText, props, children),
   };
 });
+
+// React Native's AppState is a real module here; the overlay listens to it so a quick app
+// switch re-asks the sensor. The listener is captured so a test can deliver a transition.
+let mockAppStateListener: ((state: string) => void) | null = null;
+jest.mock('react-native/Libraries/AppState/AppState', () => ({
+  __esModule: true,
+  default: {
+    currentState: 'active',
+    addEventListener: jest.fn((_event: string, listener: (state: string) => void) => {
+      mockAppStateListener = listener;
+      return {
+        remove: jest.fn(() => {
+          if (mockAppStateListener === listener) mockAppStateListener = null;
+        }),
+      };
+    }),
+  },
+}));
 
 const mockAuthenticateAsync = jest.fn();
 jest.mock('expo-local-authentication', () => ({
@@ -160,5 +179,53 @@ describe('LockOverlay', () => {
     await render(<LockOverlay />);
 
     expect(screen.getByTestId('lock-overlay')).toBeTruthy();
+  });
+
+  // With biometrics on, the app is meant to ask for the sensor at once — including the
+  // moment the app comes back to the foreground while it is still running.
+  // With biometrics on, the app is meant to ask for the sensor at once — every time the
+  // customer comes back to it, not only when the overlay mounts for the first time.
+  describe('the sensor is asked as soon as the app is in front again', () => {
+    const settle = async () => {
+      await act(async () => {
+        await new Promise((resolve) => { setTimeout(resolve, 5); });
+      });
+    };
+
+    const signIn = () => {
+      useAuthStore.setState({
+        accessToken: 'at',
+        refreshToken: 'rt',
+        user: { id: 'user-a', firstName: 'A' } as never,
+        isAuthenticated: true,
+      });
+    };
+
+    beforeEach(() => {
+      AppState.currentState = 'active';
+      signIn();
+    });
+
+    it('asks again when the app returns to the foreground while the overlay stays up', async () => {
+      // The overlay is rendered for as long as the app is locked, and a quick app switch does
+      // not unmount it: only AppState changes. Without re-asking, the customer comes back to
+      // a "single tap" screen instead of the sensor.
+      await render(<LockOverlay />);
+      await settle();
+      expect(mockAuthenticateAsync).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        AppState.currentState = 'background';
+        mockAppStateListener?.('background');
+      });
+      act(() => {
+        AppState.currentState = 'active';
+        mockAppStateListener?.('active');
+      });
+      await settle();
+
+      expect(mockAuthenticateAsync).toHaveBeenCalledTimes(2);
+      expect(screen.queryByTestId('pin-keypad')).toBeNull();
+    });
   });
 });

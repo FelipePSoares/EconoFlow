@@ -1,6 +1,25 @@
 import React from 'react';
+import { AppState } from 'react-native';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { BiometricGateScreen } from '../BiometricGateScreen';
+
+// The gate's unlock hook listens to AppState so a return to the foreground asks again after
+// the system dismissed the prompt. The listener is captured so a test can deliver it.
+let mockAppStateListener: ((state: string) => void) | null = null;
+jest.mock('react-native/Libraries/AppState/AppState', () => ({
+  __esModule: true,
+  default: {
+    currentState: 'active',
+    addEventListener: jest.fn((_event: string, listener: (state: string) => void) => {
+      mockAppStateListener = listener;
+      return {
+        remove: jest.fn(() => {
+          if (mockAppStateListener === listener) mockAppStateListener = null;
+        }),
+      };
+    }),
+  },
+}));
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (k: string) => k }),
@@ -139,6 +158,9 @@ describe('BiometricGateScreen', () => {
     mockHasHardwareAsync.mockResolvedValue(true);
     mockIsEnrolledAsync.mockResolvedValue(true);
     mockAuthenticateAsync.mockResolvedValue({ success: true });
+    // The AppState mock is shared by the file; a test that moves the app to the background
+    // must not leave the next one there.
+    AppState.currentState = 'active';
   });
 
   // The reported symptom (#1052): right after logging in the app sat on a blank screen.
@@ -311,7 +333,7 @@ describe('BiometricGateScreen', () => {
   });
 
   it('shows error and fallback options when authentication fails', async () => {
-    mockAuthenticateAsync.mockResolvedValue({ success: false, error: 'user_cancel' });
+    mockAuthenticateAsync.mockResolvedValue({ success: false, error: 'authentication_failed' });
 
     await render(<BiometricGateScreen navigation={mockNavigation} route={mockRoute} />);
 
@@ -331,7 +353,7 @@ describe('BiometricGateScreen', () => {
   });
 
   it('renders sign out button on fallback screen', async () => {
-    mockAuthenticateAsync.mockResolvedValue({ success: false, error: 'user_cancel' });
+    mockAuthenticateAsync.mockResolvedValue({ success: false, error: 'authentication_failed' });
 
     await render(<BiometricGateScreen navigation={mockNavigation} route={mockRoute} />);
 
@@ -341,7 +363,7 @@ describe('BiometricGateScreen', () => {
   });
 
   it('signs out without navigating', async () => {
-    mockAuthenticateAsync.mockResolvedValue({ success: false, error: 'user_cancel' });
+    mockAuthenticateAsync.mockResolvedValue({ success: false, error: 'authentication_failed' });
 
     await render(<BiometricGateScreen navigation={mockNavigation} route={mockRoute} />);
 
@@ -487,6 +509,36 @@ describe('BiometricGateScreen', () => {
     expect(mockAuthenticateAsync).not.toHaveBeenCalled();
     expect(mockReset).not.toHaveBeenCalled();
   });
+
+    it('asks again on return to the foreground, and opens the app with the sensor', async () => {
+      // The customer switching apps while the prompt is up used to end on the fallback screen
+      // once the system dismissed the dialog. Now the way back asks again on its own, and an
+      // answered prompt lets them in -- no button to press.
+      mockAuthenticateAsync
+        .mockResolvedValueOnce({ success: false, error: 'app_cancel' })
+        .mockResolvedValueOnce({ success: true });
+
+      await render(<BiometricGateScreen navigation={mockNavigation} route={mockRoute} />);
+      await waitFor(() => expect(mockAuthenticateAsync).toHaveBeenCalledTimes(1));
+      await act(async () => {
+        await new Promise((resolve) => { setTimeout(resolve, 5); });
+      });
+
+      act(() => {
+        AppState.currentState = 'background';
+        mockAppStateListener?.('background');
+      });
+      act(() => {
+        AppState.currentState = 'active';
+        mockAppStateListener?.('active');
+      });
+
+      await waitFor(() => expect(mockAuthenticateAsync).toHaveBeenCalledTimes(2));
+      await waitFor(() => expect(mockSetUnlocked).toHaveBeenCalled());
+      // The reset that leaves the gate happened; which screen follows (Main or Onboarding)
+      // depends on the account, not on this screen.
+      expect(mockReset).toHaveBeenCalled();
+    });
 
   // Note: The "use PIN on fallback" test using DOM queries is not possible
   // in React 19 concurrent mode because state updates from async effects

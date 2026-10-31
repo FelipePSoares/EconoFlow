@@ -100,8 +100,26 @@ describe('useBiometricUnlock (#1052)', () => {
     expect(LocalAuthentication.authenticateAsync).toHaveBeenCalledTimes(MAX_BIOMETRIC_FAILURES);
   });
 
-  it('counts a user cancellation as a failure', async () => {
-    LocalAuthentication.authenticateAsync.mockResolvedValue(failure('user_cancel'));
+  // A prompt the system takes away did not prove anything: the customer switching apps, or a
+  // system screen covering it, must not spend one of the three attempts — otherwise a quick
+  // switch-back drops them onto the keypad instead of asking again.
+  it.each(['user_cancel', 'system_cancel', 'app_cancel', 'user_fallback'])(
+    'does not count a %s as a failure',
+    async (error) => {
+      LocalAuthentication.authenticateAsync.mockResolvedValue(failure(error));
+      const { result } = await renderHook(() => useBiometricUnlock(jest.fn(), { autoPrompt: false }));
+
+      await act(async () => {
+        await result.current.retry();
+      });
+
+      expect(result.current.failures).toBe(0);
+      expect(result.current.exhausted).toBe(false);
+    },
+  );
+
+  it('still counts a real refusal as a failure', async () => {
+    LocalAuthentication.authenticateAsync.mockResolvedValue(failure('authentication_failed'));
     const { result } = await renderHook(() => useBiometricUnlock(jest.fn(), { autoPrompt: false }));
 
     await act(async () => {

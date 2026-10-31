@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useTranslation } from 'react-i18next';
 import { useBiometricStore } from '../store/biometricStore';
@@ -8,6 +9,25 @@ import { useBiometricStore } from '../store/biometricStore';
  * only way in (#1052).
  */
 export const MAX_BIOMETRIC_FAILURES = 3;
+
+/**
+ * Outcomes of `authenticateAsync` that end the prompt without the customer answering it.
+ *
+ * The sensor was never read, so nothing was proved against the customer: the app keeps the
+ * lock (it is what dismissed the prompt) and asks again when it is back in front. A real
+ * refusal (`authentication_failed`, `lockout`) still counts, and enough of them hand the
+ * lock to the keypad.
+ */
+const COMPLETED_WITHOUT_ANSWER: ReadonlySet<string> = new Set([
+  'system_cancel',
+  'app_cancel',
+  'user_cancel',
+  'user_fallback',
+]);
+
+/** The app was away and is in front again: a prompt the system cancelled is owed anew. */
+const isBackInFront = (previous: AppStateStatus, next: AppStateStatus): boolean =>
+  previous !== 'active' && next === 'active';
 
 /**
  * The one biometric prompt of the app. Every unlock screen uses it, so the sensor behaves
@@ -72,6 +92,13 @@ export const useBiometricUnlock = (
 
   const autoPrompted = useRef(false);
 
+  // The foreground state this hook last saw, so only a background → active transition
+  // re-opens the prompt (not every AppState event, e.g. Android's `blur`/`focus`).
+  const appStateRef = useRef<AppStateStatus>((AppState.currentState ?? 'active') as AppStateStatus);
+  // Whether the last prompt ended because the system took it away, rather than because the
+  // customer answered it. Only that kind is re-opened automatically on the way back.
+  const interrupted = useRef(false);
+
   useEffect(() => {
     mounted.current = true;
     // A fresh mount is a fresh unlock attempt: the automatic prompt is owed again.
@@ -127,6 +154,14 @@ export const useBiometricUnlock = (
         return;
       }
 
+      // The system dismissed the prompt for us (the app left the foreground, a system screen
+      // covered it): no failed attempt, and the way back asks again.
+      if (COMPLETED_WITHOUT_ANSWER.has(result.error ?? '')) {
+        interrupted.current = true;
+        return;
+      }
+
+      interrupted.current = false;
       if (result.error === 'lockout') setLockedOut(true);
       setFailures((previous) => previous + 1);
     } catch {
@@ -140,6 +175,16 @@ export const useBiometricUnlock = (
 
   const exhausted = failures >= MAX_BIOMETRIC_FAILURES;
   const canUsePin = options.escapeAvailable !== false || exhausted;
+
+  const prompt = useCallback(() => runPrompt(false), [runPrompt]);
+  const retry = useCallback(() => runPrompt(true), [runPrompt]);
+
+  // Read through a ref by the AppState listener, which is registered once and must always
+  // call the latest prompt (it closes over the current failure count).
+  const promptRef = useRef(prompt);
+  useEffect(() => {
+    promptRef.current = prompt;
+  }, [prompt]);
 
   // The first attempt is the automatic one; later attempts are user-initiated (`retry`).
   // `autoPrompted` is reset by the mount effect above, so a remount is owed a prompt again.
@@ -155,8 +200,27 @@ export const useBiometricUnlock = (
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [biometricEnabled, autoPromptEnabled]);
 
-  const prompt = useCallback(() => runPrompt(false), [runPrompt]);
-  const retry = useCallback(() => runPrompt(true), [runPrompt]);
+  // Coming back to the app asks again, on its own, when the prompt the system took away is
+  // still the reason the app is locked: the customer opened the app to be let in, not to
+  // press "try again". A prompt the customer answered (a real failure) is left as it is —
+  // that is what `interrupted` separates.
+  //
+  // Deliberately not tied to `autoPrompt`: that option is about the *first* prompt of the
+  // screen (the gate decides it itself, after its own checks), while this only revives a
+  // prompt the customer had already seen and the system interrupted.
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (next) => {
+      const previous = appStateRef.current;
+      appStateRef.current = next;
+      if (!isBackInFront(previous, next)) return;
+      if (!interrupted.current || !biometricEnabled) return;
+      interrupted.current = false;
+      void promptRef.current();
+    });
+    return () => subscription.remove();
+    // Registered once: the listener reads the current state through the refs above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return {
     failures,
