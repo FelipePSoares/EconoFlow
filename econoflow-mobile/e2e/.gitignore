@@ -1,2 +1,3 @@
-﻿# Detox artifacts (screenshots, device logs, element dumps of failing tests)
-e2e/artifacts/
+# Detox artifacts (screenshots, device logs and element dumps of failing tests).
+# This file lives inside e2e/, so the pattern is relative to it — not "e2e/artifacts/".
+artifacts/
