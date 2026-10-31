@@ -251,6 +251,137 @@ adb shell am start -n pt.econoflow.mobile/.MainActivity
 If `npx expo run:android` fails during install (Broken pipe / Can't find service: package) —
 see Troubleshooting below.
 
+## Integration tests with Detox
+
+The `e2e/` suite drives the real app on a real device and checks the flows the unit tests
+cannot: logging in, registering, the PIN, biometrics, and what a restart or a sign-out does
+to the stored session. It runs against the **native debug build** — Detox starts the app
+through an instrumentation runner that only exists in the androidTest APK — and against the
+**local API stack**, because every spec signs in, registers or creates a session for real.
+
+### One-time setup
+
+```powershell
+cd econoflow-mobile
+npm install
+npm run e2e:build                # app-debug.apk + app-debug-androidTest.apk
+```
+
+`npm run e2e:build` runs `assembleDebug assembleDebugAndroidTest`. The Detox runner ships as
+an `androidTestImplementation` in `android/app/build.gradle`, so the second APK is the one
+that connects Detox to the app — building only `assembleDebug` leaves Detox reporting
+`No instrumentation runner found on device`.
+
+**Windows and the 260-character path limit — read this first.** The native build of this
+checkout (`D:\Sources\EconoFlow\econoflow-mobile`, 38 characters deep) fails on Windows:
+
+```text
+ninja: error: Stat(...react-native-safe-area-context/.../ComponentDescriptors.cpp.o):
+            Filename longer than 260 characters
+```
+
+CMake derives that object-file name from the absolute path of the generated JNI sources under
+`node_modules`. Attempts made on this checkout, for the record (each reverted):
+
+| Attempt | Result |
+|---------|--------|
+| `npm run android:short-paths` (junction of `node_modules` into `C:\n\econoflow-mobile`) | CMake resolves a junction to its real path, so the object names still start `D_/Sources/…` |
+| Building the project from a short root (`C:\eco\…`) with a physical copy of `node_modules` | The 260-character error is gone (objects start `C_/eco/…`), but the build then stops in ninja with `mkdir(...): No such file or directory` on the same deep object paths. `cmd` and .NET create those directories without complaint from the same working directory — the failure is inside this machine's Ninja/cmd interaction, not in the project |
+| `android.cmakeVersion=3.30.4` (Expo's override; `sdkmanager "cmake;3.30.4"`) | Ships the same Ninja 1.10.2 binary |
+| Rewriting `build.ninja` to shorten/escape the offending outputs | No effect: the statement ninja was failing on is already correctly escaped (`C$:/…`), which was confirmed by inspection |
+| `HKLM\…\FileSystem\LongPathsEnabled=1` | Already enabled; it only covers tools that opt in |
+
+So this checkout cannot produce the Android APKs on **this Windows machine**, and Detox cannot
+run here. Build it where the limit does not exist or does not bite:
+
+- **Any Linux/macOS machine, or Docker Desktop with WSL2**, or a Windows machine whose checkout
+  sits at a short path from the start (e.g. `C:\c\econoflow`) — there `npm run e2e:build`
+  works unchanged.
+
+**The suite is not in the pipeline, and does not run yet.** The `mobile-e2e` job was removed
+from `.github/workflows/BuildAndTests.yml`; keep it out until the suite passes locally. What is
+known, from running it on the emulator:
+
+- A **debug** build contains no JavaScript bundle. React Native's debug builds load the bundle
+  from a Metro dev server, and this project has no such server running, so the app starts and
+  never signals ready — Detox reports `Failed to run application on the device` for every spec.
+  Embedding the bundle in the debug APK (`react { debuggableVariants = [] }`) fixes that part
+  and the bundle is then present (`assets/index.android.bundle`), but **the suite still fails**:
+  the instrumentation session dies before Detox's ready handshake (`Force stopping … start
+  instr`, then `Failure reporting to instrumentation watcher` and `System.exit status: 0`).
+- A **release** app cannot be used: Detox's test APK is generated for the debug variant only
+  (AGP has no `assembleReleaseAndroidTest`), and pairing it with a release app crashes the
+  runner with `ClassNotFoundException: kotlin.jvm.internal.Intrinsics`.
+
+Diagnosing that instrumentation failure is the prerequisite for running the suite anywhere —
+including in CI.
+
+### Running the suite
+
+```powershell
+# terminal 1 — the API and database the specs use
+docker compose -f docker-compose.dev.yml up -d
+
+# terminal 2 — the emulator, and the port bridge the app's EXPO_PUBLIC_API_URL needs
+emulator -avd Pixel_7_API_35 &
+adb reverse tcp:7003 tcp:7003
+
+# terminal 3
+cd econoflow-mobile
+npm run e2e:test                       # the whole suite
+npx detox test -c android.emu.debug e2e/auth/login.e2e.js   # one spec
+npm run e2e:build && npm run e2e:test  # after source changes
+```
+
+| Command | What it does |
+|---------|--------------|
+| `npm run e2e:build` | `assembleDebug` + `assembleDebugAndroidTest` for the emulator's ABI |
+| `npm run e2e:test` | builds nothing, installs both APKs and runs `e2e/**/*.e2e.js` |
+| `npx detox test -c android.emu.debug --record-logs all` | keeps device logs of passing tests too |
+| `npx detox test -c android.emu.debug -r` | reuses the installed build (fastest loop) |
+
+Failure artifacts (screenshots, device log, view hierarchy) land in `e2e/artifacts/`, which is
+git-ignored. `DETOX_AVD_NAME` overrides the emulator (`Pixel_7_API_35` by default).
+
+### What the specs assume
+
+- **A device with no PIN.** `signUp.e2e.js` creates the device PIN; the "create a PIN" steps
+  of `login.e2e.js` only run on a device that has none. The PIN is stored per device
+  (`pinStore`), not per account. After the first full run the PIN belongs to the device, so
+  a second run of `e2e/auth/login.e2e.js` alone starts at the PIN screen — wipe the
+  emulator (`adb shell pm clear pt.econoflow.mobile`) or install a fresh AVD to repeat it
+  exactly.
+- **The local stack**, seeded with `EconoFlow_SEED_DEVELOPMENT_DATA=true`: the specs sign in
+  as `test1@test.com` / `Passw0rd!`. Registration uses a fresh `e2e+…@econoflow.test`
+  address on every run and leaves the account behind, like a real customer would.
+- **Notifications are denied** by the specs (`permissions: { notifications: 'deny' }`), so
+  the post-login prompt shows its rationale and the specs dismiss it. A biometric prompt is
+  never shown: the specs decline biometrics on every path that offers it.
+- **The command that starts each spec has to say where.** The app decides its first screen
+  from what the device stores, and the activity is `singleTask`, so a plain relaunch keeps
+  the navigator that is already up. The specs therefore relaunch at a start URL
+  (`econoflow://econoflow-start`) instead of `launchApp`.
+- **Specs run in filename order** (`login.e2e.js`, then `signUp.e2e.js`) because the PIN is
+  per device: the first spec is the one that signs out of the session left on the emulator
+  and creates a PIN for its account, and `signUp.e2e.js` runs its registration after that.
+
+### Troubleshooting
+
+- **`ninja: error: ... Filename longer than 260 characters`** — see the Windows section
+  above; the build must run from a short path (or on Linux/macOS).
+- **`mergeDebugAndroidTestNativeLibs … libc++_shared.so` from a library module** — the
+  `androidTest` variants of the native libraries are not needed (Detox's runner comes from
+  the app's androidTest APK); `android/build.gradle` disables their merge task.
+- **`Could not get unknown property` / `Failed to apply plugin` in `build.gradle`** — the
+  Android project is generated by `npx expo prebuild`; a clean prebuild drops the Detox
+  wiring from `android/app/build.gradle` and `android/build.gradle`. Prefer
+  `npx expo run:android` normally: it reuses `android/` and keeps both.
+- **`No instrumentation runner found on device`** — only the app APK was installed. Run
+  `npm run e2e:build` (it also builds `app-debug-androidTest.apk`).
+- **A spec times out on the Login screen while the app shows a PIN pad** — the device has
+  a PIN from an earlier session. `adb shell pm clear pt.econoflow.mobile`, then launch the
+  app once by hand; the next `npm run e2e:test` starts from a fresh state.
+
 ## Troubleshooting
 
 **`net::ERR_FAILED`, 0.0 kB, ~600 ms — request never reaches backend**

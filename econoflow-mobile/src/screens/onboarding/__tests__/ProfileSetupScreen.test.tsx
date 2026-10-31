@@ -201,9 +201,9 @@ describe('ProfileSetupScreen', () => {
 
     await render(<ProfileSetupScreen navigation={mockNavigation} />);
 
-    await fireEvent.changeText(screen.getByTestId('PlaceholderFirstName'), 'John');
-    await fireEvent.changeText(screen.getByTestId('PlaceholderLastName'), 'Doe');
-    await fireEvent.press(screen.getByTestId('ButtonSaveAndContinue'));
+    await fireEvent.changeText(screen.getByTestId('onboarding-first-name'), 'John');
+    await fireEvent.changeText(screen.getByTestId('onboarding-last-name'), 'Doe');
+    await fireEvent.press(screen.getByTestId('onboarding-submit'));
 
     await waitFor(() => {
       expect(mockRootDispatch).toHaveBeenCalledWith(
@@ -222,9 +222,9 @@ describe('ProfileSetupScreen', () => {
 
     await render(<ProfileSetupScreen navigation={mockNavigation} />);
 
-    await fireEvent.changeText(screen.getByTestId('PlaceholderFirstName'), 'John');
-    await fireEvent.changeText(screen.getByTestId('PlaceholderLastName'), 'Doe');
-    await fireEvent.press(screen.getByTestId('ButtonSaveAndContinue'));
+    await fireEvent.changeText(screen.getByTestId('onboarding-first-name'), 'John');
+    await fireEvent.changeText(screen.getByTestId('onboarding-last-name'), 'Doe');
+    await fireEvent.press(screen.getByTestId('onboarding-submit'));
 
     await waitFor(() => {
       expect(mockSetOpenCreateProjectOnStart).toHaveBeenCalledWith(false);
@@ -234,14 +234,14 @@ describe('ProfileSetupScreen', () => {
 
   it('renders first name, last name, and language fields', async () => {
     await render(<ProfileSetupScreen navigation={mockNavigation} />);
-    expect(screen.getByTestId('PlaceholderFirstName')).toBeTruthy();
-    expect(screen.getByTestId('PlaceholderLastName')).toBeTruthy();
+    expect(screen.getByTestId('onboarding-first-name')).toBeTruthy();
+    expect(screen.getByTestId('onboarding-last-name')).toBeTruthy();
   });
 
   it('shows required field error when first name is empty on submit', async () => {
     await render(<ProfileSetupScreen navigation={mockNavigation} />);
 
-    await fireEvent.press(screen.getByTestId('ButtonSaveAndContinue'));
+    await fireEvent.press(screen.getByTestId('onboarding-submit'));
 
     expect((await screen.findAllByText('RequiredField')).length).toBeGreaterThan(0);
   });
@@ -249,8 +249,8 @@ describe('ProfileSetupScreen', () => {
   it('shows required field error when last name is empty on submit', async () => {
     await render(<ProfileSetupScreen navigation={mockNavigation} />);
 
-    await fireEvent.changeText(screen.getByTestId('PlaceholderFirstName'), 'John');
-    await fireEvent.press(screen.getByTestId('ButtonSaveAndContinue'));
+    await fireEvent.changeText(screen.getByTestId('onboarding-first-name'), 'John');
+    await fireEvent.press(screen.getByTestId('onboarding-submit'));
 
     expect(await screen.findByText('RequiredField')).toBeTruthy();
   });
@@ -260,9 +260,9 @@ describe('ProfileSetupScreen', () => {
 
     await render(<ProfileSetupScreen navigation={mockNavigation} />);
 
-    await fireEvent.changeText(screen.getByTestId('PlaceholderFirstName'), 'John');
-    await fireEvent.changeText(screen.getByTestId('PlaceholderLastName'), 'Doe');
-    await fireEvent.press(screen.getByTestId('ButtonSaveAndContinue'));
+    await fireEvent.changeText(screen.getByTestId('onboarding-first-name'), 'John');
+    await fireEvent.changeText(screen.getByTestId('onboarding-last-name'), 'Doe');
+    await fireEvent.press(screen.getByTestId('onboarding-submit'));
 
     await waitFor(() => {
       expect(mockMutateAsync).toHaveBeenCalledWith(
@@ -280,9 +280,9 @@ describe('ProfileSetupScreen', () => {
     await render(<ProfileSetupScreen navigation={mockNavigation} />);
 
     await act(async () => {
-      await fireEvent.changeText(screen.getByTestId('PlaceholderFirstName'), 'John');
-      await fireEvent.changeText(screen.getByTestId('PlaceholderLastName'), 'Doe');
-      await fireEvent.press(screen.getByTestId('ButtonSaveAndContinue'));
+      await fireEvent.changeText(screen.getByTestId('onboarding-first-name'), 'John');
+      await fireEvent.changeText(screen.getByTestId('onboarding-last-name'), 'Doe');
+      await fireEvent.press(screen.getByTestId('onboarding-submit'));
       await new Promise(resolve => setTimeout(resolve, 0));
     });
 
@@ -296,9 +296,9 @@ describe('ProfileSetupScreen', () => {
 
     await render(<ProfileSetupScreen navigation={mockNavigation} />);
 
-    await fireEvent.changeText(screen.getByTestId('PlaceholderFirstName'), 'John');
-    await fireEvent.changeText(screen.getByTestId('PlaceholderLastName'), 'Doe');
-    await fireEvent.press(screen.getByTestId('ButtonSaveAndContinue'));
+    await fireEvent.changeText(screen.getByTestId('onboarding-first-name'), 'John');
+    await fireEvent.changeText(screen.getByTestId('onboarding-last-name'), 'Doe');
+    await fireEvent.press(screen.getByTestId('onboarding-submit'));
 
     expect(await screen.findByTestId('error-banner', {}, { timeout: 3000 })).toBeTruthy();
   });
@@ -308,9 +308,9 @@ describe('ProfileSetupScreen', () => {
 
     await render(<ProfileSetupScreen navigation={mockNavigation} />);
 
-    await fireEvent.changeText(screen.getByTestId('PlaceholderFirstName'), 'John');
-    await fireEvent.changeText(screen.getByTestId('PlaceholderLastName'), 'Doe');
-    await fireEvent.press(screen.getByTestId('ButtonSaveAndContinue'));
+    await fireEvent.changeText(screen.getByTestId('onboarding-first-name'), 'John');
+    await fireEvent.changeText(screen.getByTestId('onboarding-last-name'), 'Doe');
+    await fireEvent.press(screen.getByTestId('onboarding-submit'));
 
     await waitFor(() => {
       expect(mockSetOpenCreateProjectOnStart).toHaveBeenCalledWith(false);
@@ -323,9 +323,9 @@ describe('ProfileSetupScreen', () => {
 
     await render(<ProfileSetupScreen navigation={mockNavigation} />);
 
-    await fireEvent.changeText(screen.getByTestId('PlaceholderFirstName'), 'John');
-    await fireEvent.changeText(screen.getByTestId('PlaceholderLastName'), 'Doe');
-    await fireEvent.press(screen.getByTestId('ButtonSaveAndContinue'));
+    await fireEvent.changeText(screen.getByTestId('onboarding-first-name'), 'John');
+    await fireEvent.changeText(screen.getByTestId('onboarding-last-name'), 'Doe');
+    await fireEvent.press(screen.getByTestId('onboarding-submit'));
 
     await waitFor(() => {
       expect(mockCaptureError).toHaveBeenCalledWith(
@@ -348,9 +348,9 @@ describe('ProfileSetupScreen', () => {
     await render(<ProfileSetupScreen navigation={mockNavigation} />);
 
     await act(async () => {
-      await fireEvent.changeText(screen.getByTestId('PlaceholderFirstName'), 'John');
-      await fireEvent.changeText(screen.getByTestId('PlaceholderLastName'), 'Doe');
-      await fireEvent.press(screen.getByTestId('ButtonSaveAndContinue'));
+      await fireEvent.changeText(screen.getByTestId('onboarding-first-name'), 'John');
+      await fireEvent.changeText(screen.getByTestId('onboarding-last-name'), 'Doe');
+      await fireEvent.press(screen.getByTestId('onboarding-submit'));
       await new Promise(resolve => setTimeout(resolve, 0));
     });
 

@@ -111,9 +111,13 @@ let hydrationStarted: Promise<void> | null = null;
 /**
  * Reads the stored value, once per app run. Every screen that acts on the setting calls
  * it, so they all wait for the same hydration instead of starting competing reads.
+ *
+ * `force` re-reads it for a new session in the same app run: the read is started by the
+ * auth rehydration, and a second sign-in must not be left on the previous session's value
+ * (`merge` keeps a value the user picked before the read landed, so a tap still wins).
  */
-export const hydrateBiometricStore = (): Promise<void> => {
-  if (hydrationStarted) return hydrationStarted;
+export const hydrateBiometricStore = (options: { force?: boolean } = {}): Promise<void> => {
+  if (hydrationStarted && !options.force) return hydrationStarted;
   hydrationStarted = new Promise<void>((resolve) => {
     // Deferred by a task: the store module is still being evaluated at import time, and
     // hydrating from the middle of it is the race this exists to remove.

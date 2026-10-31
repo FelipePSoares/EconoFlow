@@ -6,7 +6,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { SessionParamList } from '../../navigation/SessionNavigator';
-import { usePinStore } from '../../store/pinStore';
+import { PIN_LENGTH_MAX, PIN_LENGTH_MIN, usePinStore } from '../../store/pinStore';
+import { useBiometricUnlock } from '../../hooks/useBiometricUnlock';
 import { useLockStore } from '../../store/lockStore';
 import { useAuthStore } from '../../store/authStore';
 import { useBiometricStore } from '../../store/biometricStore';
@@ -16,7 +17,6 @@ import { useAuroraSkin } from '../../theme/useAuroraSkin';
 
 type Props = NativeStackScreenProps<SessionParamList, 'PinEntry'>;
 
-const PIN_LENGTH_MAX = 6;
 const MAX_ATTEMPTS = 5;
 
 const PinDots: React.FC<{ length: number; max: number }> = ({ length, max }) => (
@@ -52,15 +52,33 @@ const KeyPad: React.FC<{ onDigit: (d: string) => void; onBackspace: () => void }
 export const PinEntryScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
   const { dark, ink, ink2 } = useAuroraSkin();
-  const { verifyPin, clearPin } = usePinStore();
+  const { verifyPin, clearPin, pinLength } = usePinStore();
   const { setUnlocked } = useLockStore();
   const { clearAuth } = useAuthStore();
-  const { clearBiometric } = useBiometricStore();
+  const { clearBiometric, biometricEnabled } = useBiometricStore();
+  const { needsOnboarding } = useAuthStore();
   const [display, setDisplay] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [attempts, setAttempts] = useState(0);
+  const [entering, setEntering] = useState(false);
   const bufRef = useRef('');
   const verifyingRef = useRef(false);
+
+  const enterApp = useCallback(() => {
+    setEntering(true);
+    setUnlocked();
+    navigation.reset({
+      index: 0,
+      routes: [{ name: needsOnboarding ? 'Onboarding' : 'Main' }],
+    });
+  }, [setUnlocked, needsOnboarding, navigation]);
+
+  /**
+   * The shared sensor prompt. It is **not** automatic here: this screen is already the
+   * fallback, and prompting over the keypad would ask for both at once (#1052). The user
+   * taps the fingerprint button to go back to the sensor.
+   */
+  const unlock = useBiometricUnlock(enterApp, { autoPrompt: false });
 
   const handleForgotPin = useCallback(() => {
     // Clearing the auth state is enough: `AppGate` swaps to the auth tree on its own.
@@ -73,35 +91,52 @@ export const PinEntryScreen: React.FC<Props> = ({ navigation }) => {
     if (verifyingRef.current) return;
     setError(null);
     bufRef.current += digit;
+    // Never keep more digits than the longest PIN; a dangling extra one would then be
+    // part of the next attempt.
     if (bufRef.current.length > PIN_LENGTH_MAX) {
-      bufRef.current = bufRef.current.slice(0, -1);
-      return;
+      bufRef.current = bufRef.current.slice(0, PIN_LENGTH_MAX);
     }
     setDisplay(bufRef.current);
-    if (bufRef.current.length >= 4) {
-      verifyingRef.current = true;
-      const input = bufRef.current;
-      const ok = await verifyPin(input);
-      verifyingRef.current = false;
-      if (ok) {
-        setUnlocked();
-        navigation.reset({ index: 0, routes: [{ name: 'BiometricGate' }] });
-      } else {
-            setAttempts((prev) => {
-              const next = prev + 1;
-              if (next >= MAX_ATTEMPTS) {
-                setError(t('PinMaxAttempts'));
-                setTimeout(() => handleForgotPin(), 2000);
-              } else {
-                setError(t('PinAttemptsRemaining', { count: MAX_ATTEMPTS - next }));
-              }
-              return next;
-            });
-        bufRef.current = '';
-        setDisplay('');
-      }
+    // Verify as soon as the stored number of digits is typed (#1052) — a 4-digit PIN must
+    // not wait for six. A PIN saved before its length was recorded has no target, so the
+    // hash decides: a match continues at once, a miss keeps accepting digits up to 6.
+    const knownLength = typeof pinLength === 'number';
+    const reachedTarget = knownLength
+      ? bufRef.current.length === pinLength
+      : bufRef.current.length >= PIN_LENGTH_MIN;
+    if (!reachedTarget) return;
+
+    verifyingRef.current = true;
+    const input = bufRef.current;
+    const ok = await verifyPin(input);
+    verifyingRef.current = false;
+
+    if (ok) {
+      bufRef.current = '';
+      setDisplay('');
+      enterApp();
+      return;
     }
-  }, [verifyPin, setUnlocked, navigation, t, handleForgotPin]);
+
+    if (!knownLength && input.length < PIN_LENGTH_MAX) {
+      // Four or five digits that do not match prove nothing when the PIN may be longer:
+      // keep the digits and wait for more instead of spending one of the five attempts.
+      return;
+    }
+
+    setAttempts((prev) => {
+      const next = prev + 1;
+      if (next >= MAX_ATTEMPTS) {
+        setError(t('PinMaxAttempts'));
+        setTimeout(() => handleForgotPin(), 2000);
+      } else {
+        setError(t('PinAttemptsRemaining', { count: MAX_ATTEMPTS - next }));
+      }
+      return next;
+    });
+    bufRef.current = '';
+    setDisplay('');
+  }, [verifyPin, pinLength, enterApp, t, handleForgotPin]);
 
   const handleBackspace = useCallback(() => {
     setError(null);
@@ -129,6 +164,19 @@ export const PinEntryScreen: React.FC<Props> = ({ navigation }) => {
           <Text style={[styles.attemptsText, { color: ink2 }]}>{t('PinAttemptsRemaining', { count: remaining })}</Text>
         )}
         <KeyPad onDigit={handleDigit} onBackspace={handleBackspace} />
+        {/* Back to the sensor: it is why this screen is here, and a user whose fingerprint
+            works again must not be stuck on the keypad (#1052). */}
+        {biometricEnabled && !entering && (
+          <TouchableOpacity
+            onPress={() => { void unlock.retry(); }}
+            activeOpacity={0.7}
+            style={styles.biometricRow}
+            testID="pin-use-biometric"
+          >
+            <MaterialCommunityIcons name="fingerprint" size={22} color={ink2} />
+            <Text style={[styles.biometricText, { color: ink2 }]}>{t('BiometricUseInstead')}</Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity onPress={handleForgotPin} activeOpacity={0.7} style={styles.forgotRow} testID="pin-forgot">
           <Text style={[styles.forgotText, { color: ink2 }]}>{t('PinForgot')}</Text>
         </TouchableOpacity>
@@ -153,6 +201,8 @@ const styles = StyleSheet.create({
   keypadRow: { flexDirection: 'row', justifyContent: 'space-around', gap: 12 },
   key: { width: 72, height: 56, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.10)', alignItems: 'center', justifyContent: 'center' },
   keyText: { color: '#fff', fontSize: 22, fontWeight: '700' },
+  biometricRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 20, paddingVertical: 8 },
+  biometricText: { fontSize: 14, fontWeight: '600' },
   forgotRow: { marginTop: 24, paddingVertical: 8 },
   forgotText: { fontSize: 14, fontWeight: '600', textDecorationLine: 'underline' },
 });

@@ -128,7 +128,7 @@ export const ProfileSetupScreen: React.FC<Props> = ({ navigation }) => {
               render={({ field: { onChange, value } }) => (
                 <AuroraField
                   dark={dark}
-                  testID={t('PlaceholderFirstName')}
+                  testID="onboarding-first-name"
                   icon="account-outline"
                   placeholder={t('PlaceholderFirstName')}
                   value={value}
@@ -150,7 +150,7 @@ export const ProfileSetupScreen: React.FC<Props> = ({ navigation }) => {
               render={({ field: { onChange, value } }) => (
                 <AuroraField
                   dark={dark}
-                  testID={t('PlaceholderLastName')}
+                  testID="onboarding-last-name"
                   icon="account-outline"
                   placeholder={t('PlaceholderLastName')}
                   value={value}
@@ -206,7 +206,7 @@ export const ProfileSetupScreen: React.FC<Props> = ({ navigation }) => {
             />
 
             <AuroraPrimaryButton
-              testID={t('ButtonSaveAndContinue')}
+              testID="onboarding-submit"
               label={t('ButtonSaveAndContinue')}
               onPress={handleSubmit(onSubmit)}
               loading={updateProfile.isPending}

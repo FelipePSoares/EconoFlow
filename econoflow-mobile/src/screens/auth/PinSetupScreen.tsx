@@ -6,15 +6,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { SessionParamList } from '../../navigation/SessionNavigator';
-import { usePinStore } from '../../store/pinStore';
+import { PIN_LENGTH_MAX, PIN_LENGTH_MIN, usePinStore } from '../../store/pinStore';
+import { hydrateBiometricStore, useBiometricStore } from '../../store/biometricStore';
 import { GlassScreen } from '../../components/common/GlassScreen';
 import { GlassCard } from '../../components/common/GlassCard';
+import { AuroraPrimaryButton } from '../../components/auth/AuroraPrimaryButton';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
 
 type Props = NativeStackScreenProps<SessionParamList, 'PinSetup'>;
-
-const PIN_LENGTH_MIN = 4;
-const PIN_LENGTH_MAX = 6;
 
 const PinDots: React.FC<{ length: number; max: number }> = ({ length, max }) => (
   <View style={styles.dotsRow}>
@@ -53,52 +52,78 @@ export const PinSetupScreen: React.FC<Props> = ({ navigation }) => {
   const [step, setStep] = useState<'create' | 'confirm'>('create');
   const [display, setDisplay] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const savedPinRef = useRef('');
+  // The chosen PIN while confirming. State, not a ref: the confirmation screen renders its
+  // dot count from it, and a ref read during render is not tracked by the compiler.
+  const [savedPin, setSavedPin] = useState('');
   const stepRef = useRef(step);
   const createBufRef = useRef('');
   const confirmBufRef = useRef('');
 
   useEffect(() => { stepRef.current = step; }, [step]);
 
-  useEffect(() => {
-    if (step === 'confirm' && confirmBufRef.current.length >= PIN_LENGTH_MIN && confirmBufRef.current.length === savedPinRef.current.length) {
-      if (confirmBufRef.current === savedPinRef.current) {
-        setPin(savedPinRef.current);
-        navigation.reset({ index: 0, routes: [{ name: 'BiometricEnroll' }] });
-      } else {
-        setError(t('PinMismatch'));
-        confirmBufRef.current = '';
-        savedPinRef.current = '';
-        setDisplay('');
-        setStep('create');
-      }
-    }
-  }, [step, setPin, navigation, t]);
+  /** Records the PIN and continues to the unlock flow. */
+  const finish = useCallback(async (pin: string) => {
+    await setPin(pin);
+    // The PIN is what the gate needs, and biometrics stay an optional offer. The answer is
+    // read from the store once the PIN is saved: until the decline has been read, `false`
+    // is not an answer and offering would repeat a decision already made (#1052).
+    await hydrateBiometricStore();
+    const declined = useBiometricStore.getState().biometricPromptSkipped;
+    navigation.reset({
+      index: 0,
+      routes: [{ name: declined ? 'BiometricGate' : 'BiometricEnroll' }],
+    });
+  }, [setPin, navigation]);
+
+  /** The create step is done: the user picked a 4–6 digit PIN and confirmed the length. */
+  const handleContinue = () => {
+    const pin = createBufRef.current;
+    if (pin.length < PIN_LENGTH_MIN) return;
+    setSavedPin(pin);
+    createBufRef.current = '';
+    confirmBufRef.current = '';
+    setDisplay('');
+    setError(null);
+    setStep('confirm');
+  };
+
+  const handleMismatch = useCallback(() => {
+    setError(t('PinMismatch'));
+    confirmBufRef.current = '';
+    setSavedPin('');
+    createBufRef.current = '';
+    setDisplay('');
+    setStep('create');
+  }, [t]);
 
   const handleDigit = useCallback((digit: string) => {
     setError(null);
     if (stepRef.current === 'create') {
+      // Nothing moves on by itself: a PIN may be 4, 5 or 6 digits, so only the user can
+      // say it is complete (#1052). It used to jump to confirmation at the fourth digit,
+      // which made a longer PIN impossible to enter.
+      if (createBufRef.current.length >= PIN_LENGTH_MAX) return;
       createBufRef.current += digit;
-      if (createBufRef.current.length > PIN_LENGTH_MAX) {
-        createBufRef.current = createBufRef.current.slice(0, -1);
-        return;
-      }
       setDisplay(createBufRef.current);
-      if (createBufRef.current.length >= PIN_LENGTH_MIN) {
-        savedPinRef.current = createBufRef.current;
-        createBufRef.current = '';
-        setDisplay('');
-        setStep('confirm');
-      }
     } else {
+      if (confirmBufRef.current.length >= savedPin.length) return;
       confirmBufRef.current += digit;
-      if (confirmBufRef.current.length > PIN_LENGTH_MAX) {
-        confirmBufRef.current = confirmBufRef.current.slice(0, -1);
-        return;
-      }
       setDisplay(confirmBufRef.current);
+      // Confirmed as soon as the same number of digits is typed again — four for a
+      // four-digit PIN, six for a six-digit one. Waiting for a fixed length is why a
+      // correct 4-digit confirmation never continued.
+      if (confirmBufRef.current.length === savedPin.length) {
+        const confirmed = confirmBufRef.current === savedPin;
+        // The buffer is cleared either way: the step is about to leave this state.
+        confirmBufRef.current = '';
+        if (confirmed) {
+          void finish(savedPin);
+        } else {
+          handleMismatch();
+        }
+      }
     }
-  }, []);
+  }, [finish, handleMismatch, savedPin]);
 
   const handleBackspace = useCallback(() => {
     setError(null);
@@ -123,13 +148,30 @@ export const PinSetupScreen: React.FC<Props> = ({ navigation }) => {
         <Text style={[styles.subtitle, { color: ink2 }]}>
           {step === 'create' ? t('PinCreateSubtitle') : ''}
         </Text>
-        <PinDots length={display.length} max={PIN_LENGTH_MAX} />
+        {/* The dots follow the length being typed, so a 4- or 5-digit PIN reads as
+            complete rather than as a row with missing dots. */}
+        <PinDots
+          length={display.length}
+          max={step === 'create'
+            ? Math.max(PIN_LENGTH_MIN, display.length)
+            : savedPin.length || PIN_LENGTH_MAX}
+        />
         {error && (
           <GlassCard dark={dark} radius={14} style={styles.errorCard}>
             <Text style={styles.errorText}>{error}</Text>
           </GlassCard>
         )}
         <KeyPad onDigit={handleDigit} onBackspace={handleBackspace} />
+        {step === 'create' && (
+          <View style={styles.continueRow}>
+            <AuroraPrimaryButton
+              testID="pin-create-continue"
+              label={t('PinContinue')}
+              onPress={handleContinue}
+              disabled={display.length < PIN_LENGTH_MIN}
+            />
+          </View>
+        )}
       </View>
     </GlassScreen>
   );
@@ -144,6 +186,7 @@ const styles = StyleSheet.create({
   dot: { width: 14, height: 14, borderRadius: 7 },
   dotFilled: { backgroundColor: '#0f76a8' },
   dotEmpty: { backgroundColor: 'rgba(255,255,255,0.2)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' },
+  continueRow: { width: '100%', maxWidth: 280 },
   errorCard: { width: '100%', padding: 12, marginBottom: 16 },
   errorText: { color: '#e74c3c', fontSize: 14, fontWeight: '600', textAlign: 'center' },
   keypad: { width: '100%', maxWidth: 280, gap: 12 },

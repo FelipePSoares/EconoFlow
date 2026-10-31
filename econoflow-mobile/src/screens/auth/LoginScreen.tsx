@@ -105,7 +105,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
               }}
               render={({ field: { onChange, value } }) => (
                 <AuroraField dark={dark} icon="email-outline" placeholder={t('FieldEmailAddress')}
-                  value={value} onChangeText={onChange} keyboardType="email-address"
+                  testID="login-email" value={value} onChangeText={onChange} keyboardType="email-address"
                   autoCapitalize="none" autoCorrect={false} hasError={!!errors.email} />
               )}
             />
@@ -117,13 +117,16 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
               rules={{ required: t('RequiredField') }}
               render={({ field: { onChange, value } }) => (
                 <AuroraField dark={dark} icon="lock-outline" placeholder={t('FieldPassword')}
+                  testID="login-password"
                   value={value} onChangeText={onChange} secureTextEntry={!showPassword}
                   onToggleSecure={() => setShowPassword(v => !v)} showSecure={showPassword}
                   hasError={!!errors.password} />
               )}
             />
             {errors.password && <HelperText type="error">{errors.password.message}</HelperText>}
-            {loginError && <HelperText type="error">{loginError}</HelperText>}
+            {loginError && (
+              <HelperText type="error" testID="login-error">{loginError}</HelperText>
+            )}
 
             <View style={styles.forgotRow}>
               <Text style={[styles.link, { color: '#0f76a8' }]}
@@ -133,6 +136,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
             </View>
 
             <AuroraPrimaryButton
+              testID="login-submit"
               label={t('ButtonSignIn')}
               onPress={handleSubmit(v => { setLoginError(null); loginMutation.mutate(v); })}
               loading={loginMutation.isPending}
@@ -144,7 +148,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
             <Text style={[styles.bottomText, { color: ink2 }]}>
               {t('LabelNoAccount') ?? "Don't have an account?"}
             </Text>
-            <Text style={[styles.link, { color: '#0f76a8' }]}
+            <Text style={[styles.link, { color: '#0f76a8' }]} testID="login-register-link"
               onPress={() => navigation.navigate('Register')}>
               {' '}{t('LinkCreateAccount')}
             </Text>

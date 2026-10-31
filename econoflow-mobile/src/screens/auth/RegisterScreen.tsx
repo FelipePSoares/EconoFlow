@@ -123,7 +123,7 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
               rules={{ required: t('RequiredField'), pattern: { value: /\S+@\S+\.\S+/, message: t('InvalidEmail') } }}
               render={({ field: { onChange, value } }) => (
                 <AuroraField dark={dark} icon="email-outline" placeholder={t('FieldEmailAddress')}
-                  value={value} onChangeText={onChange} keyboardType="email-address"
+                  testID="register-email" value={value} onChangeText={onChange} keyboardType="email-address"
                   autoCapitalize="none" autoCorrect={false} hasError={!!errors.email} />
               )}
             />
@@ -135,6 +135,7 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
               rules={{ required: t('RequiredField'), pattern: { value: PASSWORD_REGEX, message: t('PasswordRequirements') } }}
               render={({ field: { onChange, value } }) => (
                 <AuroraField dark={dark} icon="lock-outline" placeholder={t('FieldPassword')}
+                  testID="register-password"
                   value={value} onChangeText={onChange} secureTextEntry={!showPassword}
                   onToggleSecure={() => setShowPassword(v => !v)} showSecure={showPassword}
                   hasError={!!errors.password} />
@@ -148,13 +149,15 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
               rules={{ required: t('RequiredField'), validate: v => v === passwordValue || t('PasswordsMustMatch') }}
               render={({ field: { onChange, value } }) => (
                 <AuroraField dark={dark} icon="lock-reset" placeholder={t('FieldConfirmPassword')}
+                  testID="register-confirm-password"
                   value={value} onChangeText={onChange} secureTextEntry hasError={!!errors.confirmPassword} />
               )}
             />
             {errors.confirmPassword && <HelperText type="error">{errors.confirmPassword.message}</HelperText>}
-            {serverError && <HelperText type="error">{serverError}</HelperText>}
+            {serverError && <HelperText type="error" testID="register-error">{serverError}</HelperText>}
 
             <AuroraPrimaryButton
+              testID="register-submit"
               label={t('ButtonRegister')}
               onPress={handleSubmit(v => { setServerError(null); registerMutation.mutate(v); })}
               loading={registerMutation.isPending}

@@ -157,11 +157,14 @@ jest.mock('../../../store/authStore', () => ({
   })),
 }));
 
+const mockClearBiometric = jest.fn();
 jest.mock('../../../store/biometricStore', () => ({
   useBiometricStore: jest.fn(() => ({
     biometricEnabled: false,
+    clearBiometric: mockClearBiometric,
   })),
 }));
+
 
 jest.mock('../../../hooks/useBiometricToggle', () => ({
   useBiometricToggle: jest.fn(() => ({
@@ -237,7 +240,7 @@ const pressAndSettle = async (element: Parameters<typeof fireEvent.press>[0]) =>
 
 beforeEach(() => {
   const { useBiometricStore } = jest.requireMock('../../../store/biometricStore');
-  useBiometricStore.mockReturnValue({ biometricEnabled: false });
+  useBiometricStore.mockReturnValue({ biometricEnabled: false, clearBiometric: mockClearBiometric });
   const { useBiometricToggle } = jest.requireMock('../../../hooks/useBiometricToggle');
   useBiometricToggle.mockReturnValue({
     isHydrated: true,
@@ -254,6 +257,7 @@ describe('ProfileScreen – sign out', () => {
     mockQueryClientClear.mockReset();
     mockClearPin.mockReset();
     mockResetLock.mockReset();
+    mockClearBiometric.mockReset();
     mockNavigate.mockReset();
     mockRegisterPushNotifications.mockReset();
     mockUnregisterPushNotifications.mockReset();
@@ -297,6 +301,16 @@ describe('ProfileScreen – sign out', () => {
     await waitFor(() => {
       expect(mockClearPin).toHaveBeenCalledTimes(1);
       expect(mockResetLock).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  // #1052: the biometric setting belongs to the signed-in person. Left behind, the next
+  // sign-in is unlocked by the fingerprint dialog instead of asking for a PIN.
+  it('clears the biometric setting on sign out', async () => {
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    fireEvent.press(screen.getByText('ButtonSignOut'));
+    await waitFor(() => {
+      expect(mockClearBiometric).toHaveBeenCalledTimes(1);
     });
   });
 });
@@ -688,7 +702,7 @@ describe('ProfileScreen – biometric toggle', () => {
   /** Points the store mock at the given persisted value. */
   const mockBiometricStore = (biometricEnabled: boolean) => {
     const { useBiometricStore } = jest.requireMock('../../../store/biometricStore');
-    useBiometricStore.mockReturnValue({ biometricEnabled });
+    useBiometricStore.mockReturnValue({ biometricEnabled, clearBiometric: mockClearBiometric });
   };
 
   /** Points the hook mock at the given hydration/pending state. */

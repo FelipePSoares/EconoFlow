@@ -637,7 +637,8 @@
   "BiometricEnableFailed": "Couldn't enable biometric authentication. Please try again later.",
 
   "PinCreateTitle": "Create App PIN",
-  "PinCreateSubtitle": "Enter a 4 to 6 digit PIN to protect your account",
+  "PinCreateSubtitle": "Enter a 4 to 6 digit PIN to protect your account, then tap Continue",
+  "PinContinue": "Continue",
   "PinConfirmTitle": "Confirm your PIN",
   "PinMismatch": "PINs do not match. Try again.",
   "PinEntryTitle": "Enter App PIN",
@@ -646,6 +647,7 @@
   "PinAttemptsRemaining": "{{count}} attempt(s) remaining",
   "PinMaxAttempts": "Too many incorrect attempts. Signing out.",
   "PinUseInstead": "Use PIN instead",
+  "BiometricUseInstead": "Use fingerprint or face instead",
   "PinChangeLabel": "App PIN",
   "PinChangeDescription": "Set a PIN to unlock the app",
   "ButtonConfirm": "Confirm",

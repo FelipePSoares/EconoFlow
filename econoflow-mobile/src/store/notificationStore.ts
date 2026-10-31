@@ -40,6 +40,22 @@ export interface NotificationState {
   canAskForPermission: boolean;
   /** Key of the account the prompt answer belongs to; a different account starts over. */
   currentUserKey: string | null;
+  /**
+   * Key of the account that is signed in for this app run, bound by the auth store on a
+   * login *and* on a relaunch. Never persisted: the rehydration binds it again.
+   *
+   * The post-login prompt waits for `currentUserKey` to match it, so it can tell "the read
+   * of the stored answer has not landed yet" (the two stores hydrate in either order)
+   * apart from "this account has never answered" (#1053).
+   */
+  signedInUserKey: string | null;
+  /**
+   * Whether this app run has been bound to an account yet — by a login or by the
+   * rehydrated auth state. A field of its own so a subscriber can tell "the launch knows
+   * whose answer this is" even when the account keys happen to be unchanged. Never
+   * persisted: every launch binds again.
+   */
+  sessionBound: boolean;
   /** `false` until SecureStore rehydration settles, so the post-login flow does not race it. */
   hasHydrated: boolean;
   /**
@@ -50,9 +66,20 @@ export interface NotificationState {
   setExpoPushToken: (token: string) => void;
   setNotificationsEnabled: (enabled: boolean) => void;
   setHasPromptedForPermission: (prompted: boolean) => void;
+  /**
+   * Records that the user has answered the rationale or the OS dialog for this account.
+   *
+   * One write instead of two: `hasPromptedForPermission` and `canAskForPermission` are
+   * separate fields, and a caller that wrote the first while the second was still `false`
+   * (a `set` built by spreading a stale snapshot) silently undid its own answer — which
+   * made the rationale reappear on the next launch.
+   */
+  markAsked: () => void;
   setPermissionState: (status: PushPermissionStatus, canAskAgain?: boolean) => void;
   setLastPermissionError: (reason: NotificationState['lastPermissionError']) => void;
   setCurrentUserKey: (key: string | null) => void;
+  /** Binds this app run to an account (login and relaunch); resets a different account's answer. */
+  bindSignedInUser: (key: string | null) => void;
   /** Forget the prompt answer for the next session, keeping the token/registration state. */
   resetPermissionPrompt: () => void;
   clearNotificationState: () => void;
@@ -71,11 +98,14 @@ export const useNotificationStore = create<NotificationState>()(
       notificationsEnabled: false,
       ...initialPermissionState,
       currentUserKey: null,
+      signedInUserKey: null,
+      sessionBound: false,
       hasHydrated: false,
       lastPermissionError: null,
       setExpoPushToken: (token) => set({ expoPushToken: token }),
       setNotificationsEnabled: (enabled) => set({ notificationsEnabled: enabled }),
       setHasPromptedForPermission: (prompted) => set({ hasPromptedForPermission: prompted }),
+      markAsked: () => set({ hasPromptedForPermission: true }),
       setPermissionState: (status, canAskAgain = true) =>
         set({ pushPermissionStatus: status, canAskForPermission: canAskAgain }),
       setLastPermissionError: (reason) => set({ lastPermissionError: reason }),
@@ -91,6 +121,13 @@ export const useNotificationStore = create<NotificationState>()(
             ? { currentUserKey: key, ...initialPermissionState }
             : { currentUserKey: key },
         );
+      },
+      bindSignedInUser: (key) => {
+        // `setCurrentUserKey` must run first: for a different account it clears the
+        // previous answer, and a plain assignment here would leave `signedInUserKey`
+        // looking already-answered-by-this-account to the prompt.
+        get().setCurrentUserKey(key);
+        set({ signedInUserKey: key, sessionBound: true });
       },
       resetPermissionPrompt: () => set({ ...initialPermissionState }),
       clearNotificationState: () => set({ expoPushToken: null, notificationsEnabled: false }),

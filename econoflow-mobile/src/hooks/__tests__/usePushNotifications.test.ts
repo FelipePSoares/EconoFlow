@@ -661,6 +661,57 @@ describe('requestNotificationPermissionAndRegister (#1053)', () => {
     expect(useNotificationStore.getState().hasPromptedForPermission).toBe(false);
   });
 
+  // #1053: the app is backgrounded and reopened all day long. The OS keeps the grant but
+  // the process forgets the token, and reading the permission back as `granted` silently
+  // counted as "already sorted" — the toggle stayed OFF and nothing registered the device
+  // again, so the user never saw the activation message.
+  describe('when the app is reopened after the permission was answered', () => {
+    it('registers the device again instead of assuming a granted permission is enough', async () => {
+      useNotificationStore.setState({ hasPromptedForPermission: true });
+      mockGetPermissionsAsync.mockResolvedValue(permission('granted'));
+      mockGetExpoPushTokenAsync.mockResolvedValue({ data: 'ExponentPushToken[abc]' });
+      (NotificationsApi.registerExpoPushToken as jest.Mock).mockResolvedValue({ data: {} });
+
+      const result = await requestNotificationPermissionAndRegister();
+
+      expect(result).toEqual({ ok: true });
+      expect(NotificationsApi.registerExpoPushToken).toHaveBeenCalledTimes(1);
+      expect(useNotificationStore.getState().expoPushToken).toBe('ExponentPushToken[abc]');
+      expect(useNotificationStore.getState().notificationsEnabled).toBe(true);
+    });
+
+    it('reports activation when the device comes back with a token that was lost with the process', async () => {
+      useNotificationStore.setState({
+        hasPromptedForPermission: true,
+        notificationsEnabled: false,
+        expoPushToken: null,
+      });
+      mockGetPermissionsAsync.mockResolvedValue(permission('granted'));
+      mockGetExpoPushTokenAsync.mockResolvedValue({ data: 'ExponentPushToken[again]' });
+      (NotificationsApi.registerExpoPushToken as jest.Mock).mockResolvedValue({ data: {} });
+
+      await requestNotificationPermissionAndRegister();
+
+      expect(NotificationsApi.registerExpoPushToken).toHaveBeenCalledWith('ExponentPushToken[again]', 'Android');
+      expect(useNotificationStore.getState().notificationsEnabled).toBe(true);
+    });
+
+    it('keeps the rationale away once the returning user is registered and active', async () => {
+      useNotificationStore.setState({ hasPromptedForPermission: false });
+      mockGetPermissionsAsync.mockResolvedValue(permission('granted'));
+      mockGetExpoPushTokenAsync.mockResolvedValue({ data: 'ExponentPushToken[abc]' });
+      (NotificationsApi.registerExpoPushToken as jest.Mock).mockResolvedValue({ data: {} });
+
+      await requestNotificationPermissionAndRegister();
+
+      expect(mockRequestPermissionsAsync).not.toHaveBeenCalled();
+      const state = useNotificationStore.getState();
+      // Either the stored answer or the active registration is enough: a user who is
+      // already receiving notifications must never be asked to allow them.
+      expect(state.hasPromptedForPermission || state.notificationsEnabled).toBe(true);
+    });
+  });
+
   it('shares one in-flight request between concurrent callers', async () => {
     mockGetPermissionsAsync.mockResolvedValue(permission('undetermined'));
     mockRequestPermissionsAsync.mockResolvedValue(permission('granted'));
@@ -741,6 +792,47 @@ describe('usePushNotifications — permission sync on mount (#1053)', () => {
     });
 
     expect(result.current.notificationsEnabled).toBe(false);
+  });
+
+  // #1053: the process is killed and restarted all day long, so a stored token is not the
+  // same thing as a live subscription. Trusting it left the toggle reading ON after a
+  // relaunch while this device held no token at all and received nothing.
+  it('registers the device again on relaunch even when a stale token is stored', async () => {
+    useNotificationStore.setState({
+      hasPromptedForPermission: true,
+      notificationsEnabled: false,
+      expoPushToken: 'ExponentPushToken[from-the-previous-process]',
+    });
+    mockGetPermissionsAsync.mockResolvedValue(permission('granted'));
+    mockGetExpoPushTokenAsync.mockResolvedValue({ data: 'ExponentPushToken[current]' });
+    (NotificationsApi.registerExpoPushToken as jest.Mock).mockResolvedValue({ data: {} });
+
+    const { result } = await renderHook(() => usePushNotifications());
+
+    await act(async () => {
+      await result.current.syncPermissionState();
+    });
+
+    expect(NotificationsApi.registerExpoPushToken).toHaveBeenCalledWith(
+      'ExponentPushToken[current]',
+      expect.any(String),
+    );
+    expect(useNotificationStore.getState().expoPushToken).toBe('ExponentPushToken[current]');
+    expect(useNotificationStore.getState().notificationsEnabled).toBe(true);
+  });
+
+  it('marks a granted permission as answered, so a relaunch never shows the rationale', async () => {
+    mockGetPermissionsAsync.mockResolvedValue(permission('granted'));
+    mockGetExpoPushTokenAsync.mockResolvedValue({ data: 'ExponentPushToken[current]' });
+    (NotificationsApi.registerExpoPushToken as jest.Mock).mockResolvedValue({ data: {} });
+
+    const { result } = await renderHook(() => usePushNotifications());
+
+    await act(async () => {
+      await result.current.syncPermissionState();
+    });
+
+    expect(useNotificationStore.getState().hasPromptedForPermission).toBe(true);
   });
 
   it('keeps the local state when the permission cannot be read', async () => {

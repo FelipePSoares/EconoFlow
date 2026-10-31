@@ -15,6 +15,7 @@ describe('notificationStore', () => {
       pushPermissionStatus: 'undetermined',
       canAskForPermission: true,
       currentUserKey: null,
+      signedInUserKey: null,
       lastPermissionError: null,
     });
   });
@@ -36,6 +37,75 @@ describe('notificationStore', () => {
       useNotificationStore.getState().setNotificationsEnabled(true);
       useNotificationStore.getState().setNotificationsEnabled(false);
       expect(useNotificationStore.getState().notificationsEnabled).toBe(false);
+    });
+  });
+
+  describe('rehydration merge', () => {
+    // A returning user opens the app every day. The notification prompt must stay silent
+    // once answered, so the stored answer has to survive a cold start — even when the
+    // code that created the store has since added new fields with defaults.
+    const mergeWith = (persisted: Record<string, unknown>) => {
+      const options = (useNotificationStore as unknown as {
+        persist: { getOptions: () => { merge?: (persisted: unknown, current: unknown) => Record<string, unknown> } };
+      }).persist.getOptions();
+      const merge = options.merge;
+      expect(merge).toBeDefined();
+      return (merge as (persisted: unknown, current: unknown) => Record<string, unknown>)(
+        persisted,
+        useNotificationStore.getState(),
+      );
+    };
+
+    it('restores the stored prompt answer, permission status and account key', () => {
+      const merged = mergeWith({
+        hasPromptedForPermission: true,
+        pushPermissionStatus: 'granted',
+        canAskForPermission: true,
+        currentUserKey: 'user-a',
+      });
+
+      expect(merged.hasPromptedForPermission).toBe(true);
+      expect(merged.pushPermissionStatus).toBe('granted');
+      expect(merged.currentUserKey).toBe('user-a');
+    });
+
+    it('does not reset the account key before `setUser` binds the signed-in user', () => {
+      // On a cold start `setUser` has not run yet; the key is what tells a second
+      // account apart from the first, so a merge that dropped it would re-prompt the
+      // same user on every launch.
+      const merged = mergeWith({ currentUserKey: 'user-a', hasPromptedForPermission: true });
+
+      expect(merged.currentUserKey).toBe('user-a');
+    });
+  });
+
+  describe('signedInUserKey', () => {
+    it('records the account that signed in, so the prompt can wait for its own answer', () => {
+      useNotificationStore.getState().bindSignedInUser('user-a');
+
+      expect(useNotificationStore.getState().signedInUserKey).toBe('user-a');
+      expect(useNotificationStore.getState().currentUserKey).toBe('user-a');
+    });
+
+    it('clears a previous account\u2019s answer when a different one is bound', () => {
+      useNotificationStore.getState().bindSignedInUser('user-a');
+      useNotificationStore.getState().markAsked();
+
+      useNotificationStore.getState().bindSignedInUser('user-b');
+
+      expect(useNotificationStore.getState().signedInUserKey).toBe('user-b');
+      expect(useNotificationStore.getState().hasPromptedForPermission).toBe(false);
+    });
+
+    it('is never persisted: a relaunch binds it again from the rehydrated auth state', () => {
+      const options = (useNotificationStore as unknown as {
+        persist: { getOptions: () => { partialize: (s: unknown) => Record<string, unknown> } };
+      }).persist.getOptions();
+
+      useNotificationStore.setState({ signedInUserKey: 'user-a' });
+      const persisted = options.partialize(useNotificationStore.getState());
+
+      expect(persisted).not.toHaveProperty('signedInUserKey');
     });
   });
 

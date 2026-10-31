@@ -81,6 +81,8 @@
     "test": "jest --watchAll=false",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src/ App.tsx --ext .ts,.tsx --max-warnings 0",
+    "e2e:build": "detox build -c android.emu.debug",
+    "e2e:test": "detox test -c android.emu.debug",
     "prepare": "cd .. && git config core.hooksPath .husky || true"
   },
   "lint-staged": {
@@ -94,6 +96,10 @@
   },
   "jest": {
     "preset": "jest-expo",
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/e2e/"
+    ],
     "transformIgnorePatterns": [
       "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|@sentry/.*|native-base|react-native-svg)"
     ],
@@ -105,6 +111,7 @@
   "private": true,
   "devDependencies": {
     "@expo/ngrok": "^4.1.3",
+    "@react-native-community/cli-platform-android": "^20.1.3",
     "@react-native/jest-preset": "^0.88.0",
     "@testing-library/react-native": "^14.0.0",
     "@types/jest": "30.0.0",
@@ -112,6 +119,7 @@
     "@types/react-native-vector-icons": "^6.4.18",
     "@typescript-eslint/eslint-plugin": "^8.63.0",
     "@typescript-eslint/parser": "^8.63.0",
+    "detox": "^20.51.4",
     "eslint": "^8.57.1",
     "eslint-config-expo": "~58.0.4",
     "eslint-plugin-react": "^7.37.5",

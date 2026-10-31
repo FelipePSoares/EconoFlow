@@ -57,7 +57,8 @@
           "cameraPermission": "EconoFlow uses the camera so you can photograph payslips and receipts."
         }
       ],
-      "expo-font"
+      "expo-font",
+      "./plugins/with-detox-android"
     ],
     "extra": {
       "eas": {

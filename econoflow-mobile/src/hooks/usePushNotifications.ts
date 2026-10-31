@@ -158,6 +158,9 @@ export async function registerPushNotificationsAsync(
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
       finalStatus = existingStatus;
       useNotificationStore.getState().setPermissionState(toPermissionStatus(existingStatus));
+      // The app cannot answer for the registration after an OS grant it never asked for.
+      // Only an answer given *here* is recorded below, so the post-login prompt can tell
+      // "the user allowed it" from "nobody was ever asked".
 
       // The explicit toggle path passes `requestPermission: false`: the user's intent is
       // already known and asking here would re-open a dialog the OS may refuse to show.
@@ -165,9 +168,10 @@ export async function registerPushNotificationsAsync(
         await ensureNotificationChannel(Notifications);
         const { status, canAskAgain } = await Notifications.requestPermissionsAsync();
         finalStatus = status;
-        useNotificationStore
-          .getState()
-          .setPermissionState(toPermissionStatus(status), canAskAgain !== false);
+        const store = useNotificationStore.getState();
+        store.setPermissionState(toPermissionStatus(status), canAskAgain !== false);
+        // The dialog was shown: whatever the answer, the user has been asked (#1053).
+        store.markAsked();
       }
     } catch (err) {
       // eslint-disable-next-line no-console
@@ -306,11 +310,10 @@ export function requestNotificationPermissionAndRegister(): Promise<PushRegistra
       const Notifications = loadNotifications();
       await ensureNotificationChannel(Notifications);
       const { status, canAskAgain } = await Notifications.requestPermissionsAsync();
-      useNotificationStore
-        .getState()
-        .setPermissionState(toPermissionStatus(status), canAskAgain !== false);
+      const store = useNotificationStore.getState();
+      store.setPermissionState(toPermissionStatus(status), canAskAgain !== false);
       // Answering the dialog (either way) is the "asked once" event.
-      useNotificationStore.getState().setHasPromptedForPermission(true);
+      store.markAsked();
 
       if (status !== 'granted') {
         // eslint-disable-next-line no-console
@@ -417,8 +420,8 @@ export const usePushNotifications = () => {
    * blocks notifications. `ProfileScreen` runs it on mount, since the user may have
    * changed the permission in the system settings while the app was backgrounded.
    *
-   * When the permission is granted but no token was ever registered, nothing on this
-   * device is subscribed yet, so the registration runs once to make the state truthful.
+   * When the permission is granted but this device is not active, nothing on it is
+   * subscribed, so the registration runs once to make the state truthful (#1053).
    */
   const syncPermissionState = useCallback(async () => {
     let snapshot: PermissionSnapshot | null = null;
@@ -442,10 +445,16 @@ export const usePushNotifications = () => {
       return;
     }
 
-    const { expoPushToken: token } = useNotificationStore.getState();
-    if (!token) {
-      await registerPushNotifications();
-    }
+    // A native grant recorded outside the app (the OS dialog answered elsewhere, the
+    // permission re-enabled in the settings) is the user's answer too. Without recording
+    // it the rationale came back on the next launch for a user who had said yes.
+    useNotificationStore.getState().markAsked();
+
+    // A stored token is not a live subscription: the push token dies with the process and
+    // the backend registration behind it is only as good as this device's subscription.
+    // Registering again is the only way a relaunch (or a re-enabled permission) ends with
+    // the device actually receiving alerts, which is what the activation message reports.
+    await registerPushNotifications();
   }, [registerPushNotifications]);
 
   const unregisterPushNotifications = useCallback(async () => {

@@ -1,8 +1,8 @@
 import './src/i18n';
 import { initSentry, navigationIntegration } from './src/monitoring/sentry';
 import * as Sentry from '@sentry/react-native';
-import React, { useCallback } from 'react';
-import { View, useColorScheme } from 'react-native';
+import React, { useCallback, useEffect } from 'react';
+import { Linking, View, useColorScheme } from 'react-native';
 import {
   NavigationContainer,
   DarkTheme as NavDarkTheme,
@@ -18,7 +18,9 @@ import * as SplashScreen from 'expo-splash-screen';
 import { AppGate } from './src/navigation/AppGate';
 import { useAppLock } from './src/hooks/useAppLock';
 import { useLockStore } from './src/store/lockStore';
+import { useAuthStore } from './src/store/authStore';
 import { LockOverlay } from './src/components/common/LockOverlay';
+import { isE2eStartUrl } from './src/e2e/e2eStart';
 
 // Initialise Sentry before any React rendering.
 // Disabled in dev builds; enabled in production releases.
@@ -121,7 +123,29 @@ function App() {
 
   useAppLock();
 
-  const isLocked = useLockStore((s) => s.isLocked);
+  // The lock only exists on top of a signed-in session: it covers the unlocked app, and
+  // the Login screen is not something a PIN can unlock (#1052).
+  const lockActive = useLockStore((s) => s.isLocked);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isLocked = isAuthenticated && lockActive;
+
+  // The integration suite's entry point (`e2e/`, debug builds only — see `src/e2e/`): it
+  // ends the stored session so the app shows the Login screen, the one start state a
+  // device that already has a session could not otherwise reach. `isE2eStartUrl` is false
+  // unless `__DEV__`, and it matches one reserved URL, so a release build ignores it.
+  useEffect(() => {
+    const openE2eStart = (url: string) => {
+      if (!isE2eStartUrl(url)) return;
+      useLockStore.getState().reset();
+      useAuthStore.getState().clearAuth();
+    };
+
+    void Linking.getInitialURL().then((url) => {
+      if (url) openE2eStart(url);
+    });
+    const subscription = Linking.addEventListener('url', ({ url }) => openE2eStart(url));
+    return () => subscription.remove();
+  }, []);
 
   // Hide the splash screen on first layout.
   // Add any async startup awaits inside this callback before hideAsync()
