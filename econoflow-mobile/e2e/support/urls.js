@@ -17,16 +17,20 @@ export const APP_PACKAGE = 'pt.econoflow.mobile';
 export const START_URL = `${APP_SCHEME}://econoflow-start`;
 
 /**
- * Launches the app again from its root, at a start URL, with the notification permission
- * denied.
+ * Launches the app, with the notification permission denied.
  *
  * The permission is denied so the post-login prompt shows its rationale — which the specs
- * dismiss — rather than the OS dialog: the dialog would sit over the assertions, and Detox
- * cannot answer it on an emulator.
+ * dismiss — rather than the OS dialog, which would sit over the assertions.
+ *
+ * `newInstance: false` on purpose: with `true`, Detox stops the app and then waits for the
+ * process (`ps | grep`) to reappear before it hands control to instrumentation. On the
+ * emulators this suite runs against that wait never completes — it fails with "PID still not
+ * available" although the app itself starts and renders — so the app is handed to Detox
+ * without a restart. A spec that needs a cold start calls `stopApp()` first.
  */
 export async function relaunchApp(url = START_URL) {
   await device.launchApp({
-    newInstance: true,
+    newInstance: false,
     url,
     permissions: { notifications: 'deny' },
   });

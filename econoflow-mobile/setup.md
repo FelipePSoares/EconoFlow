@@ -292,15 +292,29 @@ CMake derives that object-file name from the absolute path of the generated JNI 
 | `HKLM\…\FileSystem\LongPathsEnabled=1` | Already enabled; it only covers tools that opt in |
 
 So this checkout cannot produce the Android APKs on **this Windows machine**, and Detox cannot
-run here. The suite is configured to run where the limit does not exist or does not bite:
+run here. Build it where the limit does not exist or does not bite:
 
-- **CI** (recommended): the GitHub workflow `Mobile e2e (Detox)` in
-  `.github/workflows/BuildAndTests.yml` builds both APKs on `ubuntu-latest`, in an
-  `reactivecircus/android-emulator-runner` emulator, and runs `npm run e2e:test`. It runs on a
-  PR that touches the mobile app.
-- **Any Linux/macOS machine, or Docker Desktop with WSL2** (see the CI job for the exact
-  image and commands), or a Windows machine whose checkout sits at a short path from the
-  start (e.g. `C:\c\econoflow`) — there `npm run e2e:build` works unchanged.
+- **Any Linux/macOS machine, or Docker Desktop with WSL2**, or a Windows machine whose checkout
+  sits at a short path from the start (e.g. `C:\c\econoflow`) — there `npm run e2e:build`
+  works unchanged.
+
+**The suite is not in the pipeline, and does not run yet.** The `mobile-e2e` job was removed
+from `.github/workflows/BuildAndTests.yml`; keep it out until the suite passes locally. What is
+known, from running it on the emulator:
+
+- A **debug** build contains no JavaScript bundle. React Native's debug builds load the bundle
+  from a Metro dev server, and this project has no such server running, so the app starts and
+  never signals ready — Detox reports `Failed to run application on the device` for every spec.
+  Embedding the bundle in the debug APK (`react { debuggableVariants = [] }`) fixes that part
+  and the bundle is then present (`assets/index.android.bundle`), but **the suite still fails**:
+  the instrumentation session dies before Detox's ready handshake (`Force stopping … start
+  instr`, then `Failure reporting to instrumentation watcher` and `System.exit status: 0`).
+- A **release** app cannot be used: Detox's test APK is generated for the debug variant only
+  (AGP has no `assembleReleaseAndroidTest`), and pairing it with a release app crashes the
+  runner with `ClassNotFoundException: kotlin.jvm.internal.Intrinsics`.
+
+Diagnosing that instrumentation failure is the prerequisite for running the suite anywhere —
+including in CI.
 
 ### Running the suite
 
