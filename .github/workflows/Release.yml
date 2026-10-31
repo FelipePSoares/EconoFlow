@@ -266,7 +266,8 @@ jobs:
         set -euo pipefail
 
         # Read the version from source instead of repeating it here, so the two cannot drift.
-        CMAKE_VERSION="$(sed -n 's/^[[:space:]]*android\.cmakeVersion[[:space:]]*=[[:space:]]*//p' gradle.properties)"
+        # prebuild writes it to android/gradle.properties, one level below this directory.
+        CMAKE_VERSION="$(sed -n 's/^[[:space:]]*android\.cmakeVersion[[:space:]]*=[[:space:]]*//p' android/gradle.properties)"
 
         # A future Expo upgrade that drops the pin must fail loudly here rather than as an
         # sdkmanager parse error.
