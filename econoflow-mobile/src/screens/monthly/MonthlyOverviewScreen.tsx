@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   StyleSheet, TouchableOpacity, View,
-  ScrollView, RefreshControl,
+  ScrollView, RefreshControl, useWindowDimensions,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -49,11 +49,29 @@ function fmtCompact(n: number): string {
   return Math.round(Math.abs(n)).toLocaleString();
 }
 
+/**
+ * The tallest top inset this screen will honour, as a share of the window's height.
+ *
+ * The navigator already keeps the screen clear of the system bars, so the inset is only ever
+ * a small refinement — a status bar, at most a notch. Anything taller did not come from this
+ * window's top edge, and honouring it pushed the first row most of a screen down (see
+ * `topInset` below).
+ */
+const MAX_TOP_INSET_RATIO = 0.2;
+
 export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
   const { dark, ink, ink2, hair } = useAuroraSkin();
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
+  // `insets.top` is not trusted blindly. The bottom-tabs navigator already keeps this screen
+  // clear of the status bar, so this is only a refinement of that — and on some devices the
+  // safe-area provider reports a frame that is not this window's top edge (a display cut-out
+  // inset), which turned into a padding most of the screen tall: the Overview opened with its
+  // whole upper half blank and its first row in the middle. A gap taller than the window can
+  // meaningfully have is that bad answer, not a taller status bar.
+  const windowHeight = useWindowDimensions().height;
+  const topInset = insets.top > windowHeight * MAX_TOP_INSET_RATIO ? 0 : insets.top;
   const [month, setMonth] = useState(currentMonth());
   const [refreshing, setRefreshing] = useState(false);
   const [dismissedForMonth, setDismissedForMonth] = useState<string | null>(null);
@@ -115,7 +133,7 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
   if (!selectedProject) {
     return (
       <GlassScreen dark={dark}>
-        <View style={[styles.emptyCenter, { paddingTop: insets.top }]}>
+        <View style={[styles.emptyCenter, { paddingTop: topInset }]}>
           <MaterialCommunityIcons name="folder-open-outline" size={52} color={ink2} />
           <Text style={[styles.emptyText, { color: ink2 }]}>{t('LabelNoProjects')}</Text>
         </View>
@@ -146,15 +164,16 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
     <GlassScreen dark={dark}>
       <View style={{ flex: 1, opacity: isFetchingData ? 0.55 : 1 }}>
         <ScrollView
+          testID="overview-scroll"
           style={styles.fill}
-        contentContainerStyle={{ paddingTop: insets.top, paddingBottom: insets.bottom + 16 }}
+        contentContainerStyle={{ paddingTop: topInset, paddingBottom: insets.bottom + 16 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
             tintColor={ink2}
-            progressViewOffset={insets.top}
+            progressViewOffset={topInset}
           />
         }
       >
