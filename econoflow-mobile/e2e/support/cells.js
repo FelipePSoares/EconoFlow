@@ -1,4 +1,6 @@
-import { by, element, waitFor } from 'detox';
+import { by, element, expect, waitFor } from 'detox';
+import { PIN } from './accounts';
+import { dismissNotificationRationale } from './notificationPrompt';
 
 /**
  * The PIN keypad. `PinSetupScreen`, `PinEntryScreen` and the in-app `LockOverlay` all render
@@ -30,18 +32,71 @@ export async function waitForApp(timeout = 45000) {
   await waitFor(element(by.id('main-navigator'))).toBeVisible().withTimeout(timeout);
 }
 
+/** `true` when the element exists; never throws. */
+export async function exists(testID) {
+  try {
+    await expect(element(by.id(testID))).toExist();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Signs out through the Profile tab, the customer's own way out.
  *
- * The tab button has no `testID` of its own (`MainNavigator` leaves it to the navigator),
- * so the tab is found by its label.
+ * The tab is reached by its `testID` (`tab-profile`, set by `MainNavigator`), not by its
+ * translated label: that is the contract the suite keeps everywhere else.
+ *
+ * Every step waits for what it needs *before* touching it: the signed-in tree has to be up
+ * (a spec can arrive on the lock screens, or just after a restart), the tab bar stays
+ * hidden behind the lock, and the sign-out replaces the whole tree with the Login screen.
+ * Tapping a view that is still incoming is how a spec "passes" on nothing.
  */
 export async function signOutThroughProfile() {
-  await element(by.text(TAB_PROFILE_LABEL)).tap();
+  await waitForApp();
+  await dismissNotificationRationale();
+
+  // The session may be locked (a restart, or an app returned from the background): the
+  // Profile tab only exists behind the unlock, so unlock first when a keypad is showing.
+  if (await exists(PIN_KEYS.digit('1'))) {
+    await typePin(PIN);
+    await waitForApp();
+  }
+
+  await waitFor(element(by.id(TAB_PROFILE))).toBeVisible().withTimeout(30000);
+  await element(by.id(TAB_PROFILE)).tap();
   await waitFor(element(by.id('sign-out'))).toBeVisible().withTimeout(30000);
   await element(by.id('sign-out')).tap();
   await waitFor(element(by.id('auth-hero'))).toBeVisible().withTimeout(45000);
 }
 
-/** `en.json` → `TabProfile`; the device runs the app in English. */
-export const TAB_PROFILE_LABEL = 'Profile';
+/**
+ * Brings the device to the Login screen from wherever it is: signed in, locked, or already
+ * signed out.
+ *
+ * This is the only supported way for a spec to make itself independent of the one before
+ * it. Detox runs the spec files in an order derived from their measured duration, so a spec
+ * cannot assume which one ran first — it can only assume its own starting point, and this
+ * is that starting point.
+ */
+export async function signOutIfNeeded() {
+  if (await exists('login-submit')) return;          // already signed out
+  if (await exists('onboarding-first-name')) {
+    // A customer registered and never finished onboarding: finish it, so the session
+    // reaches the app and can be ended.
+    await element(by.id('onboarding-first-name')).typeText('E2e');
+    await element(by.id('onboarding-last-name')).typeText('Teardown');
+    await element(by.id('onboarding-submit')).tap();
+    await waitForApp(60000);
+    if (await exists('onboarding-skip-project')) {
+      await element(by.id('onboarding-skip-project')).tap();
+      await waitForApp();
+    }
+  }
+  await signOutThroughProfile();
+}
+
+/** The tab bar's ids (`MainNavigator` → `tabBarButtonTestID`). */
+export const TAB_PROFILE = 'tab-profile';
+export const TAB_OVERVIEW = 'tab-overview';

@@ -13,6 +13,13 @@ export const APP_PACKAGE = 'pt.econoflow.mobile';
  * cold start shows. The activity is `singleTask`, so a plain relaunch keeps the running
  * navigator — whose `initialRouteName` is read only on mount — and the screen the previous
  * spec left can stay on top. A URL starts the app from its root instead.
+ *
+ * This URL is not special: nothing in the app handles it, and `App` only routes the
+ * automation entry point (`econoflow://e2e/open`, see `src/e2e/e2eStart.ts`). It is the
+ * scheme entry of the activity — what an ordinary customer's deeplink would be — so the app
+ * cold-starts and decides its screen from what the device stores, which is exactly the state
+ * each spec is about. Do not "fix" it into `e2e/open`: that entry point pins the Login screen
+ * and is only for the two specs that start at the Login screen (`01-signUp`, `02-login`).
  */
 export const START_URL = `${APP_SCHEME}://econoflow-start`;
 
@@ -62,3 +69,24 @@ export async function restartAndWaitFor(testID, timeout = 45000) {
   await restartApp();
   await waitFor(element(by.id(testID))).toBeVisible().withTimeout(timeout);
 }
+
+/**
+ * Starts the app the way the product starts it — cold, on whatever the device stores — and
+ * leaves the device **signed out, on the Login screen**.
+ *
+ * This is what a spec opens with, and it is what makes the specs independent of each other:
+ * Detox decides the file order from measured durations, so "the spec before this one left a
+ * session" is not a state a spec may be built on. `04` onward also call this between cases.
+ *
+ * The debug build's automation entry point (`econoflow://e2e/open`, see `src/e2e/e2eStart.ts`)
+ * ends the stored session and shows the Login screen — the one start state a device with a
+ * session cannot otherwise reach. Nothing is cleared from the device beyond that: a PIN and
+ * the biometric flag belong to the device and are deliberately kept.
+ */
+export async function openAtLogin(timeout = 60000) {
+  await relaunchApp(LOGIN_URL);
+  await waitFor(element(by.id('login-submit'))).toBeVisible().withTimeout(timeout);
+}
+
+/** The automation entry point: a debug build ends the stored session and shows Login. */
+export const LOGIN_URL = `${APP_SCHEME}://e2e/open`;
