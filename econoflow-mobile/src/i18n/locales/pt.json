@@ -623,6 +623,8 @@
   "BiometricAuthLabel": "Autenticação Biométrica",
   "BiometricAuthDescription": "Use a impressão digital ou rosto para desbloquear o app",
   "BiometricGateTitle": "Desbloqueie o EconoFlow",
+  "SessionStarting": "A iniciar a sua sess�o",
+  "SessionUnlocking": "A desbloquear a aplica��o",
   "BiometricGateSubtitle": "Autentique-se para continuar",
   "BiometricPromptReason": "Autentique-se para aceder às suas finanças",
   "BiometricNotAvailable": "Biometria não disponível neste dispositivo",
@@ -665,4 +667,5 @@
   "AttachmentTakePhoto": "Tirar ou escolher foto",
   "ConfirmDeleteAttachment": "Remover este anexo? Esta ação não pode ser desfeita."
 }
+
 

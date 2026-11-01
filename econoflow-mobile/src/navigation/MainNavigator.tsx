@@ -33,6 +33,18 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 // Invisible placeholder so the tab slot is occupied
 function EmptyScreen() { return null; }
 
+/**
+ * The entry point of the signed-in tree, and the sign the app is actually rendering.
+ *
+ * A screen that renders `null` leaves a blank window, and that is exactly what the customer
+ * saw after a successful login: the session was there, nothing was drawn (#1116). Mounting an
+ * empty `View` instead means the tree always paints, and `testID` gives the integration suite
+ * (e2e/) something to look at right after the tab's own id.
+ */
+function OverviewEntry() {
+  return <View style={styles.flex} testID="overview-screen">{null}</View>;
+}
+
 export const MainNavigator: React.FC = () => {
   const { t }  = useTranslation();
   const dark   = useColorScheme() === 'dark';
@@ -50,6 +62,10 @@ export const MainNavigator: React.FC = () => {
     // reaching it is what "the customer is logged in on the app" means, whatever path —
     // login, 2FA or the registration's auto-login — got them here.
     <View style={styles.flex} testID="main-navigator">
+    {/* A painter under the tabs: whenever the tab navigator shows nothing of its own — the
+        frame between two `reset`s, a screen that renders `null` — the window still draws
+        the app's background instead of going blank (#1116). */}
+    <OverviewEntry />
     <Tab.Navigator
       initialRouteName={openCreateProjectOnStart ? 'Projects' : 'Overview'}
       screenOptions={({ route }) => ({
@@ -81,12 +97,23 @@ export const MainNavigator: React.FC = () => {
       <Tab.Screen
         name="Projects"
         component={ProjectStackNavigator}
-        options={{ tabBarLabel: t('TabProjects') }}
+        options={{
+          tabBarLabel: t('TabProjects'),
+          // The tab bar sets no testIDs of its own, so the integration tests (e2e/) find
+          // the tabs by these ids and assert where the app opened. Set per screen, not on
+          // the global options, or all of them would share one id.
+          tabBarButtonTestID: 'tab-projects',
+        }}
       />
       <Tab.Screen
         name="Overview"
         component={OverviewStackNavigator}
-        options={{ tabBarLabel: t('TabOverview') }}
+        options={{
+          tabBarLabel: t('TabOverview'),
+          // The app opens here unless a first project is being created: the one assertion
+          // that says "logged in, on the page the customer expects".
+          tabBarButtonTestID: 'tab-overview',
+        }}
       />
 
       {/* ── Centre FAB ─────────────────────────────────────────────────── */}
@@ -123,13 +150,13 @@ export const MainNavigator: React.FC = () => {
       <Tab.Screen
         name="Plans"
         component={PlansStackNavigator}
-        options={{ tabBarLabel: t('TabPlans') }}
+        options={{ tabBarLabel: t('TabPlans'), tabBarButtonTestID: 'tab-plans' }}
       />
 
       <Tab.Screen
         name="Profile"
         component={ProfileStackNavigator}
-        options={{ headerShown: false, tabBarLabel: t('TabProfile') }}
+        options={{ headerShown: false, tabBarLabel: t('TabProfile'), tabBarButtonTestID: 'tab-profile' }}
       />
     </Tab.Navigator>
 

@@ -623,6 +623,8 @@
   "BiometricAuthLabel": "Biometric Authentication",
   "BiometricAuthDescription": "Use fingerprint or face to unlock the app",
   "BiometricGateTitle": "Unlock EconoFlow",
+  "SessionStarting": "Starting your session",
+  "SessionUnlocking": "Unlocking the app",
   "BiometricGateSubtitle": "Authenticate to continue",
   "BiometricPromptReason": "Authenticate to access your finances",
   "BiometricNotAvailable": "Biometrics not available on this device",
@@ -665,3 +667,4 @@
   "AttachmentTakePhoto": "Take or choose photo",
   "ConfirmDeleteAttachment": "Remove this attachment? This cannot be undone."
 }
+
