@@ -101,10 +101,22 @@ export const useBiometricUnlock = (
 
   useEffect(() => {
     mounted.current = true;
+    // The listener below is registered once, for the life of the mount, and it judges a
+    // transition from where the app *is* when the mount happens — never from a value
+    // captured at first render. React replays the effects of an already-mounted screen
+    // (StrictMode, or a re-render caused by something other than this component's own
+    // state), and a value from before the app went to the background makes
+    // "background → active" look like no transition at all: the prompt the customer is
+    // owed when coming back would never open (#1116).
+    appStateRef.current = (AppState.currentState ?? 'active') as AppStateStatus;
     // A fresh mount is a fresh unlock attempt: the automatic prompt is owed again.
     autoPrompted.current = false;
     return () => {
       mounted.current = false;
+      // The cleanup also runs when React replays the effects of an already-mounted screen,
+      // so the next mount starts a fresh ledger: an id counter shared across mounts would
+      // make the new mount's first attempt look stale and never open the sensor (#1116).
+      attemptId.current = 0;
       // Leave no dialog behind when this screen goes away (the call is optional: not every
       // expo-local-authentication build ships it).
       try {
@@ -132,16 +144,37 @@ export const useBiometricUnlock = (
     // The user is trying again: the next failure must be judged on its own merits.
     setLockedOut(false);
 
+    // A device question that never answered. It is not "no biometrics": calling it that
+    // is final for the caller, and the next gate mount then went to the keypad even
+    // though the sensor was there (#1116).
+    let checked = false;
+    let hasHardware = false;
+    let isEnrolled = false;
     try {
-      const hasHardware = await LocalAuthentication.hasHardwareAsync();
-      const isEnrolled = hasHardware && await LocalAuthentication.isEnrolledAsync();
-      if (!mounted.current) return;
+      hasHardware = await LocalAuthentication.hasHardwareAsync();
+      isEnrolled = hasHardware && await LocalAuthentication.isEnrolledAsync();
+      checked = true;
+    } catch {
+      checked = false;
+    }
+    // A newer attempt owns the busy state: it must not be cleared from under it.
+    if (!mounted.current || attempt !== attemptId.current) return;
 
-      if (!hasHardware || !isEnrolled) {
-        setUnavailable(true);
-        return;
-      }
+    if (!checked) {
+      // The lock stays and the sensor can be asked again; a real refusal below still
+      // counts towards the attempts.
+      setPrompting(false);
+      return;
+    }
 
+    if (!hasHardware || !isEnrolled) {
+      // Final for the caller: the PIN takes over (`BiometricGateScreen`).
+      setPrompting(false);
+      setUnavailable(true);
+      return;
+    }
+
+    try {
       const result = await LocalAuthentication.authenticateAsync({
         promptMessage: t('BiometricPromptReason'),
         cancelLabel: t('ButtonCancel'),
@@ -185,6 +218,8 @@ export const useBiometricUnlock = (
   useEffect(() => {
     promptRef.current = prompt;
   }, [prompt]);
+
+
 
   // The first attempt is the automatic one; later attempts are user-initiated (`retry`).
   // `autoPrompted` is reset by the mount effect above, so a remount is owed a prompt again.

@@ -214,3 +214,76 @@ describe('biometricStore – hydration (#1052)', () => {
     expect(useBiometricStore.getState().hydrated).toBe(true);
   });
 });
+
+describe('biometricStore – the unlock gate waits for the stored answer (#1116)', () => {
+  beforeEach(() => {
+    getItemAsync.mockReset();
+    getItemAsync.mockResolvedValue(null);
+    setItemAsync.mockReset();
+    setItemAsync.mockResolvedValue(undefined);
+  });
+
+  // The read is deliberately slow — the real one is a SecureStore keychain round trip, and
+  // it is the gap the gate used to decide in.
+  const holdRead = () => {
+    let releaseRead: (value: string | null) => void = () => {};
+    getItemAsync.mockImplementation(
+      () => new Promise<string | null>((resolve) => { releaseRead = resolve; }),
+    );
+    return (value: string | null) => releaseRead(value);
+  };
+
+  it('is not marked answering until the stored value has landed', async () => {
+    const { hydrateBiometricStore, useBiometricStore } = coldStart();
+    const release = holdRead();
+
+    const hydrating = hydrateBiometricStore();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    // Still reading: the gate must wait instead of deciding on the default "off". Only
+    // `hasHydrated()` can say so — a module-level flag would read "answered" from an
+    // earlier read, because nothing announces that a read has begun.
+    expect(useBiometricStore.persist.hasHydrated()).toBe(false);
+    expect(useBiometricStore.getState().biometricEnabled).toBe(false);
+
+    release(storedValue({ biometricEnabled: true, biometricPromptSkipped: true }));
+    await hydrating;
+
+    expect(useBiometricStore.persist.hasHydrated()).toBe(true);
+    expect(useBiometricStore.getState().biometricEnabled).toBe(true);
+  });
+
+  it('answers again when a forced read starts, and again when it lands', async () => {
+    // A login starts a forced read on top of whatever the last session left in memory. A
+    // gate mounted between the two must not read the previous session's "biometrics on"
+    // as this session's answer.
+    const { hydrateBiometricStore, useBiometricStore } = coldStart();
+    getItemAsync.mockResolvedValue(storedValue({ biometricEnabled: true, biometricPromptSkipped: true }));
+    await hydrateBiometricStore();
+
+    const release = holdRead();
+    void hydrateBiometricStore({ force: true });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(useBiometricStore.persist.hasHydrated()).toBe(false);
+
+    release(storedValue({ biometricEnabled: false, biometricPromptSkipped: true }));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(useBiometricStore.persist.hasHydrated()).toBe(true);
+    expect(useBiometricStore.getState().biometricEnabled).toBe(false);
+  });
+
+  it('keeps the last stored value on screen while a forced read is in flight', async () => {
+    // The gate holds this value too: a re-read must not blank it to "off" for a moment and
+    // send the customer to the keypad before the answer arrives.
+    const { hydrateBiometricStore, useBiometricStore } = coldStart();
+    getItemAsync.mockResolvedValue(storedValue({ biometricEnabled: true, biometricPromptSkipped: true }));
+    await hydrateBiometricStore();
+
+    const release = holdRead();
+    void hydrateBiometricStore({ force: true });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(useBiometricStore.getState().biometricEnabled).toBe(true);
+    release(storedValue({ biometricEnabled: true, biometricPromptSkipped: true }));
+  });
+});
