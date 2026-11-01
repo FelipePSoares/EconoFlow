@@ -1,0 +1,7 @@
+{
+  "name": "econoflow-log",
+  "version": "1.0.0",
+  "description": "A native log sink for the app's diagnostic trail: writes to logcat on Android and NSLog on iOS, where JavaScript console output never arrives.",
+  "main": "index.ts",
+  "private": true
+}

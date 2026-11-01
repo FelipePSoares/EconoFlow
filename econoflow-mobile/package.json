@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
+    "econoflow-log": "file:./modules/econoflow-log",
     "@expo/vector-icons": "^15.0.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/datetimepicker": "9.2.1",
@@ -131,3 +132,4 @@
     "test-renderer": "^1.2.0"
   }
 }
+
