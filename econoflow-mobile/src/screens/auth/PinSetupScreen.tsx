@@ -116,7 +116,7 @@ export const PinSetupScreen: React.FC<Props> = ({ navigation }) => {
     // 3. The offer's own screen waits for the stored answer before it offers anything, so the
     //    read only has to be *started* here — joining the one the session already ran.
     void hydrateBiometricStore();
-  }, [setPin, navigation]);
+  }, [setPin, navigation, onScreenRef]);
 
   const finishRef = useRef(finish);
   useEffect(() => { finishRef.current = finish; }, [finish]);

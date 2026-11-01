@@ -52,6 +52,11 @@ export async function exists(testID) {
  * (a spec can arrive on the lock screens, or just after a restart), the tab bar stays
  * hidden behind the lock, and the sign-out replaces the whole tree with the Login screen.
  * Tapping a view that is still incoming is how a spec "passes" on nothing.
+ *
+ * The account screen is reached **by its tab node** (`tab-profile`), never by the
+ * `sign-out` id: the tab bar shows every tab's node whether or not its screen is the one
+ * on top, so waiting for `sign-out` straight after a launch waited for a screen nobody had
+ * opened — which is how a sign-out case failed while the app was sitting on Overview.
  */
 export async function signOutThroughProfile() {
   await waitForApp();

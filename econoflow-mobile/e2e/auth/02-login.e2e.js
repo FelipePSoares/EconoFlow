@@ -1,5 +1,6 @@
 import { by, element, expect, waitFor } from 'detox';
 import { APP_PACKAGE, PIN, SEEDED_ACCOUNT, wrongPin } from '../support/accounts';
+import { declineBiometricOffer } from '../support/biometrics';
 import { signOutThroughProfile, typePin, waitForApp, waitForKeypad } from '../support/cells';
 import { dismissNotificationRationale } from '../support/notificationPrompt';
 import { openAtLogin, relaunchApp, restartAndWaitFor, stopApp } from '../support/urls';
@@ -43,6 +44,15 @@ describe('Login', () => {
     // first case below an assertion instead of a search.
     await openAtLogin();
   });
+
+  /**
+   * What the keypad shows after the first wrong PIN (`PinAttemptsRemaining` in `en.json`,
+   * rendered by `PinEntryScreen` with `MAX_ATTEMPTS - 1`). A translated string is normally
+   * off-limits for the suite — the `testID` is the contract — but this message has no id of
+   * its own, and pinning the copy here is what keeps the assertion meaningful: if the wording
+   * changes, this spec fails and is updated, instead of silently matching nothing.
+   */
+  const ATTEMPTS_REMAINING = '4 attempt(s) remaining';
 
   it('ends the session the device had and shows the Login screen', async () => {
     // The entry point ends the session; this asserts the result, which is the state every
@@ -91,15 +101,21 @@ describe('Login', () => {
       await element(by.id('pin-create-continue')).tap();
       await waitFor(element(by.text('Confirm your PIN'))).toBeVisible().withTimeout(15000);
       await typePin(PIN);
-      await waitFor(element(by.id('biometric-enroll-skip'))).toBeVisible().withTimeout(30000);
-      // The offer is declined: the app PIN is the lock, biometrics stay optional.
-      await element(by.id('biometric-enroll-skip')).tap();
     } else {
       await typePin(PIN);
     }
 
     await waitForApp(60000);
     await dismissNotificationRationale();
+
+    // The offer is declined when it appears: the app PIN is the lock, biometrics stay
+    // optional. It is *optional* in every sense — on the device this suite runs on there is
+    // no enrolled biometric, so the app shows "nothing to offer" instead of the offer, and a
+    // device that already answered is past it. Waiting for `biometric-enroll-skip` here
+    // failed whenever either of those was true; the app is what this case is about.
+    const declined = await declineBiometricOffer();
+    if (declined) await waitForApp(60000);
+
     // The seeded account already has a name: nothing to onboard.
     await expect(element(by.id('onboarding-first-name'))).not.toExist();
   });
@@ -117,7 +133,10 @@ describe('Login', () => {
   it('refuses a wrong PIN and keeps the customer out', async () => {
     await typePin(wrongPin(PIN));
 
-    await waitFor(element(by.textMatch(/attempt/i))).toBeVisible().withTimeout(20000);
+    // `PinAttemptsRemaining` — "N attempt(s) remaining" — is the screen's own id for it, so
+    // the spec no longer depends on a matcher Detox 20 does not have (`by.textMatch` threw,
+    // and the two cases after it failed on the state that left behind).
+    await waitFor(element(by.text(ATTEMPTS_REMAINING))).toBeVisible().withTimeout(20000);
     await expect(element(by.id('main-navigator'))).not.toExist();
   });
 

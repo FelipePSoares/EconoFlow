@@ -623,8 +623,8 @@
   "BiometricAuthLabel": "Autenticação Biométrica",
   "BiometricAuthDescription": "Use a impressão digital ou rosto para desbloquear o app",
   "BiometricGateTitle": "Desbloqueie o EconoFlow",
-  "SessionStarting": "A iniciar a sua sess�o",
-  "SessionUnlocking": "A desbloquear a aplica��o",
+  "SessionStarting": "A iniciar a sua sess�o",
+  "SessionUnlocking": "A desbloquear a aplica��o",
   "BiometricGateSubtitle": "Autentique-se para continuar",
   "BiometricPromptReason": "Autentique-se para aceder às suas finanças",
   "BiometricNotAvailable": "Biometria não disponível neste dispositivo",
@@ -637,6 +637,7 @@
   "BiometricErrorLockedOut": "Muitas tentativas. Use o código do seu dispositivo.",
   "BiometricErrorNotEnrolled": "Configure primeiro a impressão digital ou o reconhecimento facial nas definições do dispositivo.",
   "BiometricEnableFailed": "Não foi possível ativar a autenticação biométrica. Tente novamente mais tarde.",
+  "BiometricSkipToPin": "Continuar sem biometria",
 
   "PinCreateTitle": "Criar PIN do App",
   "PinCreateSubtitle": "Digite um PIN de 4 a 6 dígitos para proteger sua conta e toque em Continuar",

@@ -1,6 +1,6 @@
 import { by, device, element, expect, waitFor } from 'detox';
 import { PIN, SEEDED_ACCOUNT } from '../support/accounts';
-import { offerFingerprint } from '../support/biometrics';
+import { declineBiometricOffer, offerFingerprint } from '../support/biometrics';
 import {
   TAB_OVERVIEW,
   exists,
@@ -98,9 +98,9 @@ describe('Biometric unlock', () => {
 
   it('signing out leaves the Login screen', async () => {
     await signInAndPassPin();
-    if (await exists('biometric-enroll-skip')) {
-      await element(by.id('biometric-enroll-skip')).tap();
-    }
+    // The device has just created/entered its PIN, so the offer is showing right now — in
+    // whichever shape this device gets. Declining it is what reaches the app.
+    await declineBiometricOffer();
     await waitForApp(60000);
     await dismissNotificationRationale();
     await signOutThroughProfile();

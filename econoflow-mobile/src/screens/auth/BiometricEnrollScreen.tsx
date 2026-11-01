@@ -71,14 +71,20 @@ export const BiometricEnrollScreen: React.FC<Props> = ({ navigation }) => {
    * With a PIN on the device the app is protected and they go straight in; without one the
    * PIN setup is the next step — the same rule `sessionEntryScreen` applies when a session
    * opens, so the two cannot disagree about where the customer belongs.
+   *
+   * The decline is recorded, in the same order as `handleSkip` below — navigate first, write
+   * after (#1116). Leaving it unrecorded made this screen the one way out that never stuck:
+   * a device without a sensor was offered biometrics again on the next login, from the same
+   * screen it cannot use, and the customer could decline for ever.
    */
   const continueWithoutOffer = useCallback(() => {
     if (hasPin) {
       unlockAndEnter();
-      return;
+    } else {
+      navigation.replace('PinSetup');
     }
-    navigation.replace('PinSetup');
-  }, [hasPin, unlockAndEnter, navigation]);
+    setBiometricPromptSkipped();
+  }, [hasPin, unlockAndEnter, navigation, setBiometricPromptSkipped]);
 
   useEffect(() => {
     let cancelled = false;

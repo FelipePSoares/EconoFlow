@@ -7,6 +7,7 @@ import {
   newAccountEmail,
 } from '../support/accounts';
 import { exists, typePin, waitForApp, waitForKeypad } from '../support/cells';
+import { declineBiometricOffer } from '../support/biometrics';
 import { dismissNotificationRationale } from '../support/notificationPrompt';
 import { openAtLogin, stopApp } from '../support/urls';
 
@@ -77,16 +78,13 @@ describe('Registration', () => {
       await element(by.id('pin-create-continue')).tap();
       await waitFor(element(by.text('Confirm your PIN'))).toBeVisible().withTimeout(15000);
       await typePin(PIN);
-      await waitFor(element(by.id('biometric-enroll-skip'))).toBeVisible().withTimeout(30000);
-      await element(by.id('biometric-enroll-skip')).tap();
     } else {
       await typePin(PIN);
-      // Biometrics offered here means the decline did not stick: take it, so nothing in
-      // this file is left waiting on a system dialog.
-      if (await exists('biometric-enroll-skip')) {
-        await element(by.id('biometric-enroll-skip')).tap();
-      }
     }
+
+    // Whichever shape the offer takes — the full one, or "nothing to offer" on a device
+    // without an enrolled biometric — declining it is what moves on to onboarding.
+    await declineBiometricOffer();
 
     // A customer with no first name is onboarded — the screen a returning customer never
     // sees. It opens after the PIN, before the app.

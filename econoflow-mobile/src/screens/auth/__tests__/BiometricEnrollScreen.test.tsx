@@ -414,6 +414,41 @@ describe('BiometricEnrollScreen', () => {
       expect(mockSetUnlocked).toHaveBeenCalled();
       expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: 'Main' }] });
     });
+
+    it('records the decline on a device that cannot offer biometrics either', async () => {
+      // The "nothing to offer" screen is a skip like any other (`continueWithoutOffer`), and
+      // it used to be the only way out that recorded nothing. The customer left saying no to
+      // an offer that cannot be made, and the next login offered it again — from the same
+      // unusable screen — so there was no way past it that stuck (#1116).
+      mockHasHardwareAsync.mockResolvedValue(false);
+      const { usePinStore } = jest.requireActual('../../../store/pinStore');
+      usePinStore.setState({ pinHash: 'hash:1234', hasPin: true, hydrated: true });
+
+      await render(<BiometricEnrollScreen navigation={mockNavigation} route={mockRoute} />);
+
+      fireEvent.press(await screen.findByTestId('biometric-enroll-cannot-offer'));
+
+      await waitFor(() => {
+        expect(useBiometricStore.getState().biometricPromptSkipped).toBe(true);
+      });
+      expect(mockSetUnlocked).toHaveBeenCalled();
+      expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: 'Main' }] });
+    });
+
+    it('shows a translated label on the way past an offer that cannot be made', async () => {
+      // The button used to render its key: `BiometricSkipToPin` was in neither catalogue, so
+      // every customer read the raw identifier. The catalogue is checked for completeness by
+      // `locales.test.ts`; this pins the label the screen actually shows.
+      mockHasHardwareAsync.mockResolvedValue(false);
+      const { usePinStore } = jest.requireActual('../../../store/pinStore');
+      usePinStore.setState({ pinHash: 'hash:1234', hasPin: true, hydrated: true });
+
+      await render(<BiometricEnrollScreen navigation={mockNavigation} route={mockRoute} />);
+
+      const button = await screen.findByTestId('biometric-enroll-cannot-offer');
+      expect(screen.getByText('BiometricSkipToPin')).toBeTruthy();
+      expect(button.props.accessibilityLabel).toBe('BiometricSkipToPin');
+    });
   });
 });
 
