@@ -68,13 +68,13 @@
     "@angular/service-worker": "22.2.4",
     "@angular/ssr": "22.2.5",
     "@eslint/js": "^10.0.1",
-    "@ngx-translate/core": "^18.0.0",
+    "@ngx-translate/core": "^18.1.0",
     "bootstrap": "^5.3.8",
-    "bootstrap-icons": "^1.13.1",
+    "bootstrap-icons": "^1.13.2",
     "canvas-confetti": "^1.9.4",
-    "chart.js": "^4.4.8",
+    "chart.js": "^4.6.1",
     "crypto-js": "^4.2.0",
-    "express": "^5.2.1",
+    "express": "^5.3.0",
     "fast-json-patch": "^3.1.1",
     "jest-editor-support": "*",
     "moment": "^2.31.0",
@@ -97,7 +97,7 @@
     "@types/crypto-js": "^4.2.2",
     "@types/express": "^5.0.6",
     "@types/jasmine": "~7.0.0",
-    "@types/node": "^26.6.5",
+    "@types/node": "^26.6.6",
     "@types/qrcode": "^1.5.6",
     "angular-eslint": "22.6.0",
     "cypress": "^16.2.1",
@@ -109,6 +109,6 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.3.0",
     "typescript": "^6.0.3",
-    "typescript-eslint": "8.72.0"
+    "typescript-eslint": "8.72.1"
   }
 }
