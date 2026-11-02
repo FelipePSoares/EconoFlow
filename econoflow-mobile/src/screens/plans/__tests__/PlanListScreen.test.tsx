@@ -1,7 +1,9 @@
 import React from 'react';
+import { Dimensions } from 'react-native';
 import { act, render, screen, fireEvent, waitFor } from '@testing-library/react-native';
 import { PlanListScreen } from '../PlanListScreen';
 import type { Plan } from '../../../api/types';
+import { mockTabInsets, resetTabInsets } from '../../../__test-support__/tabInsetMocks';
 
 // ─── Sentry mock ──────────────────────────────────────────────────────────────
 
@@ -20,8 +22,10 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (k: string) => k }),
 }));
 
+// The insets the device reports, scriptable per case: the header's top padding is derived
+// from them, and a case has to be able to say what a real device (or a bad frame) sends.
 jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+  useSafeAreaInsets: () => mockTabInsets.current,
 }));
 
 jest.mock('react-native-paper', () => {
@@ -317,5 +321,67 @@ describe('PlanListScreen', () => {
         expect.objectContaining({ screen: 'PlanListScreen', action: 'archivePlan' }),
       ),
     );
+  });
+});
+
+/**
+ * Plans opened with its whole upper half blank on a device whose safe-area frame was not the
+ * app window's: the header padded itself by `insets.top` outright, and that inset was most of
+ * the screen. The Login screen (outside the tab navigator) and the QuickAdd modal (its own
+ * window) were unaffected — which is what made it look like a tab-navigator problem.
+ */
+describe('PlanListScreen — top inset', () => {
+  beforeEach(() => {
+    resetTabInsets();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../store/projectStore') as any).useProjectStore.mockReturnValue(makeProjectStore());
+  });
+
+  afterEach(() => {
+    resetTabInsets();
+  });
+
+  /** A flat style object from a React Native `style` prop (an object, or an array of them). */
+  const styleOf = (style: unknown): Record<string, unknown> =>
+    (Array.isArray(style)
+      ? Object.assign({}, ...style.filter(Boolean))
+      : (style ?? {})) as Record<string, unknown>;
+
+  /** The header's top padding: the number that decides where the first row lands. */
+  const headerPaddingTop = (): number => {
+    const title = screen.getByText('PlanList');
+    let node = title.parent;
+    while (node) {
+      const flat = styleOf(node.props.style);
+      if (typeof flat?.paddingTop === 'number') return flat.paddingTop;
+      node = node.parent;
+    }
+    throw new Error('the header wrapper was not found');
+  };
+
+  const renderScreen = async () => {
+    await act(async () => {
+      render(<PlanListScreen navigation={mockNavigation} route={mockRoute} />);
+    });
+  };
+
+  it('clears the status bar by the inset the device reports', async () => {
+    mockTabInsets.current = { top: 48, bottom: 24, left: 0, right: 0 };
+
+    await renderScreen();
+
+    // `header` adds 6 of its own, so the inset is applied once and not lost.
+    expect(headerPaddingTop()).toBe(54);
+  });
+
+  it('does not pad the header by a frame that is not this window', async () => {
+    const { height } = Dimensions.get('window');
+    mockTabInsets.current = { top: height * 0.5, bottom: 24, left: 0, right: 0 };
+
+    await renderScreen();
+
+    // The tab navigator already places the screen below the status bar, so a rejected inset
+    // costs nothing but the 6 the header adds itself.
+    expect(headerPaddingTop()).toBeLessThanOrEqual(height * 0.2);
   });
 });

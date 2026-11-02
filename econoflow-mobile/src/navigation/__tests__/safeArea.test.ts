@@ -1,14 +1,15 @@
 import { Dimensions } from 'react-native';
-import { sanitiseFrame, sanitiseInsets, MAX_SANE_TOP_INSET_RATIO } from '../safeArea';
+import { sanitiseInsets, MAX_SANE_TOP_INSET_RATIO } from '../safeArea';
 
 /**
- * The safe-area frame the app trusts.
+ * The top inset a tab screen is allowed to act on.
  *
- * A bad answer here is not cosmetic: `@react-navigation/elements` uses `insets.top` as a
- * screen's `headerStatusBarHeight`, so every screen inside the tab navigator starts that far
- * down. On a Redmi Note 15 Pro 5G (edge-to-edge, punch-hole) the provider reported a frame
- * that was not the app window, and Overview/Plans/Profile/Projects opened with roughly their
- * upper half blank — while the Login screen, outside the tab navigator, was fine.
+ * A bad answer here is not cosmetic: the tab screens pad their own header with `insets.top`, so
+ * a frame that is not this window's becomes a padding most of a screen tall. The regression
+ * this rule was written against, though, came from the opposite mistake — an app-wide rewrite
+ * of `react-native-safe-area-context`'s `initialWindowMetrics`, which moved the tab navigator
+ * itself and left all four tabs' top half blank (exactly 50.0% of the window). See
+ * `useTabTopInset.ts` for why the decision lives with the screen and nowhere else.
  */
 describe('sanitiseInsets', () => {
   const window = { width: 1080, height: 2400 };
@@ -22,8 +23,12 @@ describe('sanitiseInsets', () => {
     });
   });
 
+  it('keeps the inset an ordinary Android phone reports', () => {
+    // The value the device in the report sent: an ordinary status bar, honoured as given.
+    expect(sanitiseInsets({ top: 51.8, bottom: 24, left: 0, right: 0 }, window).top).toBe(51.8);
+  });
+
   it('drops a top inset larger than any window edge can be', () => {
-    // The frame the device actually reported: not this window's top edge at all.
     const result = sanitiseInsets({ top: 960, bottom: 48, left: 0, right: 0 }, window);
 
     expect(result.top).toBe(0);
@@ -60,23 +65,5 @@ describe('sanitiseInsets', () => {
     const live = Dimensions.get('window');
 
     expect(sanitiseInsets({ top: live.height, bottom: 0, left: 0, right: 0 }).top).toBe(0);
-  });
-});
-
-describe('sanitiseFrame', () => {
-  // This is the value `@react-navigation/elements` reads for the tab navigator's headers.
-  const frame = { x: 0, y: 0, width: 1080, height: 2400 };
-
-  it('keeps a real status bar and passes the frame through', () => {
-    const metrics = sanitiseFrame({ frame, insets: { top: 96, bottom: 48, left: 0, right: 0 } });
-
-    expect(metrics.insets).toEqual({ top: 96, bottom: 48, left: 0, right: 0 });
-    expect(metrics.frame).toEqual(frame);
-  });
-
-  it('rejects the frame the device reported and keeps the bottom inset', () => {
-    const metrics = sanitiseFrame({ frame, insets: { top: 960, bottom: 48, left: 0, right: 0 } });
-
-    expect(metrics.insets).toEqual({ top: 0, bottom: 48, left: 0, right: 0 });
   });
 });

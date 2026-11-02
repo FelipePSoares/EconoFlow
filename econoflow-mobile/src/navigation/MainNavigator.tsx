@@ -34,17 +34,34 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 function EmptyScreen() { return null; }
 
 /**
- * The entry point of the signed-in tree, and the sign the app is actually rendering.
+ * A background painter under the tabs, and the sign the signed-in tree is rendering.
  *
- * A screen that renders `null` leaves a blank window, and that is exactly what the customer
- * saw after a successful login: the session was there, nothing was drawn (#1116). Mounting an
- * empty `View` instead means the tree always paints, and `testID` gives the integration suite
- * (e2e/) something to look at right after the tab's own id.
+ * A screen that renders `null` leaves a blank window, so after #1116 this fills the wrapper
+ * behind the navigator instead. **It must not take part in the column's layout**: it used to be
+ * `flex: 1`, and because the tab navigator's outer box (`SafeAreaProviderCompat`) is also
+ * `flex: 1`, the wrapper split its height evenly between the two and every tab started halfway
+ * down — content began at exactly 50.0% of the window (row 693 of 1386) on the device that
+ * reported it. Absolutely positioned, it paints without occupying anything, so the navigator
+ * gets the full height exactly as it did before #1116.
  */
-function OverviewEntry() {
-  return <View style={styles.flex} testID="overview-screen">{null}</View>;
+function BackgroundPainter() {
+  return <View style={styles.painter} testID="overview-screen" pointerEvents="none" />;
 }
 
+/**
+ * The entry point of the signed-in tree.
+ *
+ * #1116 added a background "painter" here — an empty `flex: 1` `View` rendered as a **sibling**
+ * of `<Tab.Navigator>`, so the window would still draw the app background on the frame between
+ * two `reset`s. It is not there any more, and must not come back in that shape: the tab
+ * navigator's own outer box (`SafeAreaProviderCompat`) is `flex: 1`, so the wrapper contained
+ * **two** `flex: 1` children and split its height between them. Every tab then started halfway
+ * down the window — measured at exactly 50.0% (row 693 of 1386) on the device that reported
+ * it — while the tab bar sat at its usual place and the Login/PIN screens, outside this
+ * wrapper, were unaffected.
+ *
+ * The tab navigator draws its own background for every route, so nothing is left to paint.
+ */
 export const MainNavigator: React.FC = () => {
   const { t }  = useTranslation();
   const dark   = useColorScheme() === 'dark';
@@ -62,10 +79,8 @@ export const MainNavigator: React.FC = () => {
     // reaching it is what "the customer is logged in on the app" means, whatever path —
     // login, 2FA or the registration's auto-login — got them here.
     <View style={styles.flex} testID="main-navigator">
-    {/* A painter under the tabs: whenever the tab navigator shows nothing of its own — the
-        frame between two `reset`s, a screen that renders `null` — the window still draws
-        the app's background instead of going blank (#1116). */}
-    <OverviewEntry />
+    {/* Paints behind the tabs without taking height from them — see `BackgroundPainter`. */}
+    <BackgroundPainter />
     <Tab.Navigator
       initialRouteName={openCreateProjectOnStart ? 'Projects' : 'Overview'}
       screenOptions={({ route }) => ({
@@ -182,6 +197,10 @@ export const MainNavigator: React.FC = () => {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
+  // Takes no space in the column: a `flex: 1` sibling of the tab navigator split the screen in
+  // half (see `BackgroundPainter`). Written out rather than spread from
+  // `StyleSheet.absoluteFillObject`, which the test renderer's `StyleSheet` does not populate.
+  painter: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 },
   fabWrap: {
     top: -16,            // lifts the FAB above the tab bar
     alignItems: 'center',

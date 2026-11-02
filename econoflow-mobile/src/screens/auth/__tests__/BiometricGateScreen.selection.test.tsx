@@ -95,6 +95,9 @@ jest.mock('../../../store/pinStore', () => {
   };
 });
 
+// Loaded after the `jest.mock` factories above on purpose: the factories read the same module
+// through `jest.requireActual`, so this import must not be hoisted above them.
+// eslint-disable-next-line import/first
 import {
   defaultLockStores,
   mockDeviceEnrolled,

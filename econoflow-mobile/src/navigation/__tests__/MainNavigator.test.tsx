@@ -215,6 +215,39 @@ describe('MainNavigator – always paints (#1116)', () => {
   });
 });
 
+/**
+ * The half-screen regression, pinned where it was actually made.
+ *
+ * The painter above is a sibling of `<Tab.Navigator>` inside the wrapper `View`. The tab
+ * navigator's own outer box (`SafeAreaProviderCompat`) is `flex: 1`, so while the painter was
+ * `flex: 1` too the wrapper had **two** growing children and split its height evenly between
+ * them: every tab started at exactly 50.0% of the window (row 693 of 1386 in the report), with
+ * the tab bar in its usual place. The painter must contribute no flex.
+ */
+describe('MainNavigator – the background painter does not take height from the tabs', () => {
+  const flatten = (style: unknown): Record<string, unknown> => {
+    const { StyleSheet } = jest.requireActual('react-native');
+    return StyleSheet.flatten(style as never) as Record<string, unknown>;
+  };
+
+  it('paints behind the navigator instead of beside it', async () => {
+    await render(
+      <NavigationContainer>
+        <MainNavigator />
+      </NavigationContainer>,
+    );
+
+    const painter = screen.getByTestId('overview-screen');
+    const style = flatten(painter.props.style);
+
+    // Absolute positioning keeps it out of the column's flex distribution entirely...
+    expect(style.position).toBe('absolute');
+    // ...and it must never claim a share of the height.
+    expect(style.flex).toBeUndefined();
+    expect(style.flexGrow).toBeUndefined();
+  });
+});
+
 describe('MainNavigator – notification permission prompt (#1053)', () => {
   beforeEach(() => {
     mockRequestNotificationPermissionAndRegister.mockReset();

@@ -8,6 +8,7 @@ import { Dimensions } from 'react-native';
 import { act, render, screen, fireEvent, waitFor } from '@testing-library/react-native';
 import { MonthlyOverviewScreen } from '../MonthlyOverviewScreen';
 import type { Category } from '../../../api/types';
+import { mockTabInsets, resetTabInsets } from '../../../__test-support__/tabInsetMocks';
 
 // ─── Common UI mocks ──────────────────────────────────────────────────────────
 
@@ -21,9 +22,8 @@ jest.mock('react-i18next', () => ({
 
 // Scriptable, so a test can give the screen the insets a real device reports. It starts at
 // zero: most cases here are about the archive capability, not the layout.
-let mockInsets = { top: 0, bottom: 0, left: 0, right: 0 };
 jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: () => mockInsets,
+  useSafeAreaInsets: () => mockTabInsets.current,
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -389,7 +389,7 @@ describe('MonthlyOverviewScreen — top inset', () => {
    * that is not the app window, and the screen must not turn that into padding.
    */
   const renderWithInsets = async (insets: { top: number; bottom: number; left: number; right: number }) => {
-    mockInsets = insets;
+    mockTabInsets.current = insets;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (jest.requireMock('../../../store/projectStore') as any).useProjectStore.mockImplementation(() => makeProjectStore('Manager'));
 
@@ -399,7 +399,7 @@ describe('MonthlyOverviewScreen — top inset', () => {
   };
 
   afterEach(() => {
-    mockInsets = { top: 0, bottom: 0, left: 0, right: 0 };
+    resetTabInsets();
   });
 
   /**

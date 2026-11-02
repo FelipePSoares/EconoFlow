@@ -13,7 +13,6 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './src/api/queryClient';
 import { Provider as PaperProvider, MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { safeAreaInitialMetrics } from './src/navigation/installSafeArea';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { AppGate } from './src/navigation/AppGate';
@@ -159,14 +158,7 @@ function App() {
     <View style={{ flex: 1 }} onLayout={onLayout}>
       <QueryClientProvider client={queryClient}>
         <PaperProvider theme={isDark ? paperDarkTheme : paperLightTheme}>
-          {/*
-            The provider reads the frame the device reports, with the correction from
-            `installSafeAreaCorrection()` already applied to it (see `index.js`): a top inset
-            that cannot be this window's is what pushed every screen inside the tab navigator
-            down by most of its height. `initialMetrics` is passed only when the captured
-            frame had to be corrected, so an ordinary device keeps the library's own values.
-          */}
-          <SafeAreaProvider initialMetrics={safeAreaInitialMetrics()}>
+          <SafeAreaProvider>
             <View style={{ flex: 1 }}>
               <NavigationContainer
                 ref={navigationRef}

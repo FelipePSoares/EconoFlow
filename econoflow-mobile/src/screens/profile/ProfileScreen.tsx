@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabTopInset } from '../../navigation/useTabTopInset';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
@@ -199,6 +200,9 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
   const { dark, ink, ink2, hair } = useAuroraSkin();
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
+  // Profile draws its own content inside the tab navigator, so the top inset goes through the
+  // guard: booked twice it became most of the screen (see `useTabTopInset`).
+  const topInset = useTabTopInset();
   const { user, clearAuth } = useAuthStore();
   const { clearProject, selectedProject } = useProjectStore();
   const { biometricEnabled, clearBiometric } = useBiometricStore();
@@ -357,7 +361,7 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
     <GlassScreen dark={dark}>
       <ScrollView
         style={styles.fill}
-        contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 10, paddingBottom: insets.bottom + 32 }]}
+        contentContainerStyle={[styles.scroll, { paddingTop: topInset + 10, paddingBottom: insets.bottom + 32 }]}
         showsVerticalScrollIndicator={false}
       >
         {/* Avatar + name */}

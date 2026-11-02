@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import {
   StyleSheet, TouchableOpacity, View,
-  ScrollView, RefreshControl, useWindowDimensions,
+  ScrollView, RefreshControl,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabTopInset } from '../../navigation/useTabTopInset';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useIsFocused } from '@react-navigation/native';
@@ -50,25 +51,19 @@ function fmtCompact(n: number): string {
 }
 
 /**
- * The tallest top inset this screen will honour, as a share of the window's height.
+ * The Overview, whose top spacing comes from `useTabTopInset`.
  *
- * A second line of defence, kept after the real fix. The app corrects the safe-area frame
- * once, before anything renders (`src/navigation/installSafeArea.ts`), which is what stops the
- * tab navigator starting this screen most of a screen down; this guard still applies if a
- * provider mounted elsewhere ever reports such a frame again.
+ * The screen draws its own header instead of a navigator header, and the tab navigator has
+ * already placed it below the status bar — so the inset must not be booked twice with the raw
+ * device value. See `useTabTopInset.ts`: the decision is this screen's alone, which is why it
+ * cannot disturb the navigator the way the old app-wide frame rewrite did.
  */
-const MAX_TOP_INSET_RATIO = 0.2;
-
 export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
   const { dark, ink, ink2, hair } = useAuroraSkin();
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
-  // `insets.top` is not trusted blindly: a frame that is not this window's top edge became a
-  // padding most of a screen tall. See `installSafeArea.ts` for the app-wide correction and
-  // `MAX_TOP_INSET_RATIO` for why this screen keeps its own guard.
-  const windowHeight = useWindowDimensions().height;
-  const topInset = insets.top > windowHeight * MAX_TOP_INSET_RATIO ? 0 : insets.top;
+  const topInset = useTabTopInset();
   const [month, setMonth] = useState(currentMonth());
   const [refreshing, setRefreshing] = useState(false);
   const [dismissedForMonth, setDismissedForMonth] = useState<string | null>(null);
