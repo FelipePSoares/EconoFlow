@@ -45,6 +45,46 @@ describe('EconoFlow - expense item list Tests', () => {
   let itemIds: string[] = [];
   let thisMonth: Month;
 
+  /**
+   * The expense's day, and its two items' days, laid out relative to today.
+   *
+   * They used to be hard-coded to the 8th (expense), 9th and 10th (items). An expense item
+   * may not be dated in the future either - the same `A future expense can't have a amount`
+   * rule applies to `Items.Date` - so from the 1st to the 7th of every month the fixture
+   * itself was rejected and the whole spec failed in its "before each" hook, before reaching
+   * the behaviour under test.
+   *
+   * The expense now takes the 8th when it has already happened, and otherwise the day before
+   * the two item days - so the expense is never after its own items and none of the three is
+   * in the future. On the 1st of the month there is only one day behind today, so the items
+   * share it.
+   */
+  const expenseDay = (): number => {
+    const fixed = 8;
+    const today = new Date().getDate();
+    return fixed < today ? fixed : Math.max(1, today - 2);
+  };
+
+  const itemDays = (): number[] => {
+    const today = new Date().getDate();
+    return today > 2 ? [today - 1, today] : [1, Math.min(2, today)];
+  };
+
+  /**
+   * The day the last item moves to.
+   *
+   * Normally the first item's day - a move backwards, inside the same month. On the 1st of the
+   * month there is no earlier day, and the "moving an item to another month" test already
+   * covers that case, so the date test only runs once the month has room for two days.
+   */
+  const movedToDay = (): number | null => {
+    const items = itemDays();
+    return items[0] < items[1] ? items[0] : null;
+  };
+
+  /** Whether two distinct item days exist today, and so whether the date test can run. */
+  const hasTwoItemDays = (): boolean => movedToDay() !== null;
+
   beforeEach(() => {
     thisMonth = monthOf(new Date());
 
@@ -54,22 +94,24 @@ describe('EconoFlow - expense item list Tests', () => {
       cy.intercept('PATCH', '**/expenses/*').as('patchExpenses')
       cy.login(user.username, user.password)
 
-      // One expense dated the 8th, then its two items added the way the application adds
-      // them: a PATCH whose `items` array is the full list. Creating an expense with
+      // One expense in the current month, then its two items added the way the application
+      // adds them: a PATCH whose `items` array is the full list. Creating an expense with
       // nested `items` is rejected (the items carry their creator as a required field),
       // so this follows the path the UI itself uses.
-      cy.createIsolatedProject([], { days: [{ month: thisMonth, day: 8 }] }).then((project: IsolatedProject) => {
+      cy.createIsolatedProject([], { days: [{ month: thisMonth, day: expenseDay() }] }).then((project: IsolatedProject) => {
         projectId = project.id;
         categoryId = project.category.id;
         expenseId = project.expenses[0].id;
+
+        const itemDates = itemDays().map(day => dayOfMonth(thisMonth, day));
 
         cy.request('PATCH', `/api/Projects/${projectId}/Categories/${categoryId}/Expenses/${expenseId}`, [
           {
             op: 'add',
             path: '/items',
             value: [
-              { name: 'First item', date: dayOfMonth(thisMonth, 9), amount: 100 },
-              { name: 'Second item', date: dayOfMonth(thisMonth, 10), amount: 200 }
+              { name: 'First item', date: itemDates[0], amount: 100 },
+              { name: 'Second item', date: itemDates[1], amount: 200 }
             ]
           }
         ]).then(({ status, body }) => {
@@ -112,10 +154,16 @@ describe('EconoFlow - expense item list Tests', () => {
   })
 
   it('should update date after success update', () => {
-    // The parent expense is on the 8th, so the item can move to the 7th and stay inside the
-    // same month. A date in another month is rejected by the backend - that is the point of
-    // the next test, not of this one.
-    const targetDay = 7;
+    // The item is moved to the earlier of the two item days: inside the same month, in the
+    // past, and a real change. A date in another month is rejected by the backend - that is
+    // the point of the next test, not of this one. On the 1st of the month there is no
+    // earlier day to move to, so this case is checked by the month-change test instead.
+    if (!hasTwoItemDays()) {
+      cy.log('The 1st of the month has a single day available: the item date test needs two.');
+      return;
+    }
+
+    const targetDay = movedToDay() as number;
     const targetIso = dayOfMonth(thisMonth, targetDay);
 
     cy.get('button[name=edit-sub]').first().click()

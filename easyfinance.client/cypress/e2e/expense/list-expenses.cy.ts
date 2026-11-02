@@ -1,4 +1,4 @@
-import { dayOfMonth, IsolatedExpense, IsolatedProject, Month, monthOf } from '../../support/isolated-project';
+import { dayOfMonth, IsolatedExpense, IsolatedProject, Month, monthOf, previousDays } from '../../support/isolated-project';
 
 describe('EconoFlow - expense list Tests', () => {
     interface ExpensePatchOperation {
@@ -26,6 +26,40 @@ describe('EconoFlow - expense list Tests', () => {
     let expenseIds: string[] = [];
     let thisMonth: Month;
 
+    /**
+     * The three expenses' days, and the day the first one is moved to.
+     *
+     * They used to be the fixed 8th, 9th and 10th, with the edit moving to the 11th - all
+     * inside the current month. The backend refuses an expense dated in the future, and
+     * "future" is the server's clock, so from the 1st to the 7th of every month the fixture
+     * itself was in the future and the POST answered 400: the specs failed on dates far
+     * outside the behaviour they check.
+     *
+     * The days are now three consecutive days that have already happened, and the first is
+     * moved to the day after the last - so every test keeps its "first row" in the same
+     * relative order and no date is ever in the future.
+     */
+    const expenseDays = (): number[] => {
+      const fixed = [8, 9, 10];
+
+      // The 8th onwards is what the spec reasoned about, and it works once the 8th has passed.
+      if (fixed.every(day => day < new Date().getDate())) {
+        return fixed;
+      }
+
+      // Otherwise three days that have happened, leaving a day after them for the edit. On the
+      // 1st, 2nd and 3rd there is no such run, so the test that moves the date is skipped
+      // rather than given days it cannot tell apart.
+      return previousDays(new Date(), 3);
+    };
+
+    /** The day after the last expense, or null when the month has no day left to move to. */
+    const movedToDay = (): number | null => {
+      const days = expenseDays();
+      const target = days.length === 3 ? days[2] + 1 : -1;
+      return target > 0 && target <= new Date().getDate() ? target : null;
+    };
+
     beforeEach(() => {
       thisMonth = monthOf(new Date());
 
@@ -36,7 +70,9 @@ describe('EconoFlow - expense list Tests', () => {
         cy.login(user.username, user.password)
 
         cy.createIsolatedProject([], {
-          days: [8, 9, 10].map(day => ({ month: thisMonth, day }))
+          // The last expense of the three is clamped by the factory, so the latest the first
+          // one can safely sit is three days before today - never a date this month's future.
+          days: expenseDays().map(day => ({ month: thisMonth, day }))
         }).then((project: IsolatedProject) => {
           projectId = project.id;
           categoryId = project.category.id;
@@ -79,11 +115,18 @@ describe('EconoFlow - expense list Tests', () => {
     })
 
     it('should update date after success update', () => {
-      // The three expenses are on the 8th, 9th and 10th, so moving the first one to the
-      // 11th keeps every test's "first row" the same and stays inside the month the list
-      // shows - a date outside the month would filter the expense out of the list instead
-      // of reordering it.
-      const targetDay = 11;
+      // The expense is moved to the day after the last of the three, which keeps every test's
+      // "first row" in the same relative order, stays inside the month the list shows, and -
+      // because the seed days are laid out around today - is never a future date. At the very
+      // start of a month there is no such day yet, and the move is not exercised.
+      const target = movedToDay();
+
+      if (target === null) {
+        cy.log('Too early in the month to move an expense forward inside it.');
+        return;
+      }
+
+      const targetDay = target;
       const targetIso = dayOfMonth(thisMonth, targetDay);
 
       cy.get('button[name=edit]').first().click()
