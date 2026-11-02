@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabTopInset } from '../../navigation/useTabTopInset';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -39,6 +40,9 @@ export const ProjectListScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
   const { dark, ink, ink2 } = useAuroraSkin();
   const insets = useSafeAreaInsets();
+  // The tab navigator already places this screen clear of the status bar, so the top inset is
+  // taken through the guard rather than booked twice (see `useTabTopInset`).
+  const topInset = useTabTopInset();
   const { data: projects, isLoading, error: projectsError, refetch } = useProjects();
   const { selectedProject, setSelectedProject } = useProjectStore();
   const openCreateProjectOnStart = useAuthStore((s) => s.openCreateProjectOnStart);
@@ -72,7 +76,7 @@ export const ProjectListScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <GlassScreen dark={dark}>
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+      <View style={[styles.header, { paddingTop: topInset + 10 }]}>
         <View>
           <Text style={[styles.headerLabel, { color: ink2 }]}>{t('TabProjects')}</Text>
           <Text style={[styles.headerCount, { color: ink }]}>

@@ -42,7 +42,7 @@
     "engine.io": "6.6.11",
     "fast-uri@3": "3.1.9",
     "follow-redirects": "1.16.2",
-    "hono": "4.13.14",
+    "hono": "4.13.16",
     "ip-address": "10.7.5",
     "js-yaml@3": "3.15.2",
     "piscina": "5.3.2",

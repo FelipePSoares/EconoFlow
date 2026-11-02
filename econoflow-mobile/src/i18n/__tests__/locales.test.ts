@@ -1,7 +1,38 @@
+import fs from 'fs';
+import path from 'path';
 import en from '../locales/en.json';
 import pt from '../locales/pt.json';
 
 type LocaleMap = Record<string, string>;
+
+/**
+ * Every translation key the source actually asks for: `t('Key')` and `i18next.t('Key')`.
+ *
+ * Test files are skipped — a key named in a test is not a key the app renders — and so is
+ * anything under a `__tests__` directory.
+ */
+function referencedKeys(): Set<string> {
+  const root = path.join(process.cwd(), 'src');
+  const keys = new Set<string>();
+  const call = /(?:\bi18next\.t|\bt)\(\s*['"`]([A-Za-z0-9_.]+)['"`]/g;
+
+  const walk = (dir: string): void => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name !== '__tests__') walk(full);
+        continue;
+      }
+      if (!/\.(ts|tsx)$/.test(entry.name) || /\.test\.|\.spec\./.test(entry.name)) continue;
+
+      const source = fs.readFileSync(full, 'utf8');
+      for (const match of source.matchAll(call)) keys.add(match[1]);
+    }
+  };
+
+  walk(root);
+  return keys;
+}
 
 describe('i18n locale completeness', () => {
   it('en.json contains LabelCategories with a non-empty value', () => {
@@ -277,5 +308,21 @@ describe('i18n catalogue parity', () => {
 
     expect(blankInEnglish).toEqual([]);
     expect(blankInPortuguese).toEqual([]);
+  });
+
+  // Comparing the two catalogues with each other is not enough: a key missing from *both*
+  // is perfectly "in parity", and i18next then renders the raw key as the user-visible
+  // label. `BiometricSkipToPin` did exactly that — the biometric offer showed the button
+  // text "BiometricSkipToPin" in every language, and the suite above could not see it.
+  it('every key the source asks for is defined in en.json', () => {
+    const missing = [...referencedKeys()].filter((key) => !(key in (en as LocaleMap)));
+
+    expect(missing).toEqual([]);
+  });
+
+  it('every key the source asks for is defined in pt.json', () => {
+    const missing = [...referencedKeys()].filter((key) => !(key in (pt as LocaleMap)));
+
+    expect(missing).toEqual([]);
   });
 });

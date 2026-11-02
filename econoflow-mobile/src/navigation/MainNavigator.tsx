@@ -33,6 +33,35 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 // Invisible placeholder so the tab slot is occupied
 function EmptyScreen() { return null; }
 
+/**
+ * A background painter under the tabs, and the sign the signed-in tree is rendering.
+ *
+ * A screen that renders `null` leaves a blank window, so after #1116 this fills the wrapper
+ * behind the navigator instead. **It must not take part in the column's layout**: it used to be
+ * `flex: 1`, and because the tab navigator's outer box (`SafeAreaProviderCompat`) is also
+ * `flex: 1`, the wrapper split its height evenly between the two and every tab started halfway
+ * down — content began at exactly 50.0% of the window (row 693 of 1386) on the device that
+ * reported it. Absolutely positioned, it paints without occupying anything, so the navigator
+ * gets the full height exactly as it did before #1116.
+ */
+function BackgroundPainter() {
+  return <View style={styles.painter} testID="overview-screen" pointerEvents="none" />;
+}
+
+/**
+ * The entry point of the signed-in tree.
+ *
+ * #1116 added a background "painter" here — an empty `flex: 1` `View` rendered as a **sibling**
+ * of `<Tab.Navigator>`, so the window would still draw the app background on the frame between
+ * two `reset`s. It is not there any more, and must not come back in that shape: the tab
+ * navigator's own outer box (`SafeAreaProviderCompat`) is `flex: 1`, so the wrapper contained
+ * **two** `flex: 1` children and split its height between them. Every tab then started halfway
+ * down the window — measured at exactly 50.0% (row 693 of 1386) on the device that reported
+ * it — while the tab bar sat at its usual place and the Login/PIN screens, outside this
+ * wrapper, were unaffected.
+ *
+ * The tab navigator draws its own background for every route, so nothing is left to paint.
+ */
 export const MainNavigator: React.FC = () => {
   const { t }  = useTranslation();
   const dark   = useColorScheme() === 'dark';
@@ -50,6 +79,8 @@ export const MainNavigator: React.FC = () => {
     // reaching it is what "the customer is logged in on the app" means, whatever path —
     // login, 2FA or the registration's auto-login — got them here.
     <View style={styles.flex} testID="main-navigator">
+    {/* Paints behind the tabs without taking height from them — see `BackgroundPainter`. */}
+    <BackgroundPainter />
     <Tab.Navigator
       initialRouteName={openCreateProjectOnStart ? 'Projects' : 'Overview'}
       screenOptions={({ route }) => ({
@@ -81,12 +112,23 @@ export const MainNavigator: React.FC = () => {
       <Tab.Screen
         name="Projects"
         component={ProjectStackNavigator}
-        options={{ tabBarLabel: t('TabProjects') }}
+        options={{
+          tabBarLabel: t('TabProjects'),
+          // The tab bar sets no testIDs of its own, so the integration tests (e2e/) find
+          // the tabs by these ids and assert where the app opened. Set per screen, not on
+          // the global options, or all of them would share one id.
+          tabBarButtonTestID: 'tab-projects',
+        }}
       />
       <Tab.Screen
         name="Overview"
         component={OverviewStackNavigator}
-        options={{ tabBarLabel: t('TabOverview') }}
+        options={{
+          tabBarLabel: t('TabOverview'),
+          // The app opens here unless a first project is being created: the one assertion
+          // that says "logged in, on the page the customer expects".
+          tabBarButtonTestID: 'tab-overview',
+        }}
       />
 
       {/* ── Centre FAB ─────────────────────────────────────────────────── */}
@@ -123,13 +165,13 @@ export const MainNavigator: React.FC = () => {
       <Tab.Screen
         name="Plans"
         component={PlansStackNavigator}
-        options={{ tabBarLabel: t('TabPlans') }}
+        options={{ tabBarLabel: t('TabPlans'), tabBarButtonTestID: 'tab-plans' }}
       />
 
       <Tab.Screen
         name="Profile"
         component={ProfileStackNavigator}
-        options={{ headerShown: false, tabBarLabel: t('TabProfile') }}
+        options={{ headerShown: false, tabBarLabel: t('TabProfile'), tabBarButtonTestID: 'tab-profile' }}
       />
     </Tab.Navigator>
 
@@ -155,6 +197,10 @@ export const MainNavigator: React.FC = () => {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
+  // Takes no space in the column: a `flex: 1` sibling of the tab navigator split the screen in
+  // half (see `BackgroundPainter`). Written out rather than spread from
+  // `StyleSheet.absoluteFillObject`, which the test renderer's `StyleSheet` does not populate.
+  painter: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 },
   fabWrap: {
     top: -16,            // lifts the FAB above the tab bar
     alignItems: 'center',

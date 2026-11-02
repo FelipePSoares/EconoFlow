@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabTopInset } from '../../navigation/useTabTopInset';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useIsFocused } from '@react-navigation/native';
@@ -49,11 +50,20 @@ function fmtCompact(n: number): string {
   return Math.round(Math.abs(n)).toLocaleString();
 }
 
+/**
+ * The Overview, whose top spacing comes from `useTabTopInset`.
+ *
+ * The screen draws its own header instead of a navigator header, and the tab navigator has
+ * already placed it below the status bar — so the inset must not be booked twice with the raw
+ * device value. See `useTabTopInset.ts`: the decision is this screen's alone, which is why it
+ * cannot disturb the navigator the way the old app-wide frame rewrite did.
+ */
 export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
   const { dark, ink, ink2, hair } = useAuroraSkin();
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
+  const topInset = useTabTopInset();
   const [month, setMonth] = useState(currentMonth());
   const [refreshing, setRefreshing] = useState(false);
   const [dismissedForMonth, setDismissedForMonth] = useState<string | null>(null);
@@ -115,7 +125,7 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
   if (!selectedProject) {
     return (
       <GlassScreen dark={dark}>
-        <View style={[styles.emptyCenter, { paddingTop: insets.top }]}>
+        <View style={[styles.emptyCenter, { paddingTop: topInset }]}>
           <MaterialCommunityIcons name="folder-open-outline" size={52} color={ink2} />
           <Text style={[styles.emptyText, { color: ink2 }]}>{t('LabelNoProjects')}</Text>
         </View>
@@ -146,15 +156,16 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
     <GlassScreen dark={dark}>
       <View style={{ flex: 1, opacity: isFetchingData ? 0.55 : 1 }}>
         <ScrollView
+          testID="overview-scroll"
           style={styles.fill}
-        contentContainerStyle={{ paddingTop: insets.top, paddingBottom: insets.bottom + 16 }}
+        contentContainerStyle={{ paddingTop: topInset, paddingBottom: insets.bottom + 16 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
             tintColor={ink2}
-            progressViewOffset={insets.top}
+            progressViewOffset={topInset}
           />
         }
       >

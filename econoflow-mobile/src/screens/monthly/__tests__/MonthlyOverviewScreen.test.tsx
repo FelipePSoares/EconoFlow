@@ -4,9 +4,11 @@
  * correctly wired for each role.
  */
 import React from 'react';
+import { Dimensions } from 'react-native';
 import { act, render, screen, fireEvent, waitFor } from '@testing-library/react-native';
 import { MonthlyOverviewScreen } from '../MonthlyOverviewScreen';
 import type { Category } from '../../../api/types';
+import { mockTabInsets, resetTabInsets } from '../../../__test-support__/tabInsetMocks';
 
 // ─── Common UI mocks ──────────────────────────────────────────────────────────
 
@@ -18,8 +20,10 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (k: string) => k }),
 }));
 
+// Scriptable, so a test can give the screen the insets a real device reports. It starts at
+// zero: most cases here are about the archive capability, not the layout.
 jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+  useSafeAreaInsets: () => mockTabInsets.current,
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -369,5 +373,59 @@ describe('MonthlyOverviewScreen — archive-category capability', () => {
 
     fireEvent.press(screen.getByTestId('saved-panel'));
     expect(mockParentNavigate).toHaveBeenCalledWith('Plans');
+  });
+});
+
+describe('MonthlyOverviewScreen — top inset', () => {
+  /**
+   * The Overview once opened with its whole upper half blank: the first thing on screen was
+   * the greeting, halfway down. The screen reads `insets.top` itself **and** the bottom-tabs
+   * navigator already keeps the screen clear of the status bar, so the inset was applied
+   * twice — and on a device whose inset is not the app window's (a cut-out, a display cutout
+   * inset, a large gesture-bar inset) "twice" became most of the screen.
+   *
+   * The rule this pins: the screen honours the inset it is given, **once**, and never more
+   * than the inset itself. Anything larger is the safe-area provider handing back a frame
+   * that is not the app window, and the screen must not turn that into padding.
+   */
+  const renderWithInsets = async (insets: { top: number; bottom: number; left: number; right: number }) => {
+    mockTabInsets.current = insets;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jest.requireMock('../../../store/projectStore') as any).useProjectStore.mockImplementation(() => makeProjectStore('Manager'));
+
+    await act(async () => {
+      render(<MonthlyOverviewScreen navigation={mockNavigation} />);
+    });
+  };
+
+  afterEach(() => {
+    resetTabInsets();
+  });
+
+  /**
+   * The scroll content's top padding — the value that decides where the first row lands.
+   * Read from the rendered tree by the id the screen gives its scroll view, because that is
+   * the contract this repo uses for everything the tests need to reach.
+   */
+  const contentPaddingTop = (): number => {
+    const scroll = screen.getByTestId('overview-scroll');
+    const style = scroll.props.contentContainerStyle;
+    return Array.isArray(style) ? Object.assign({}, ...style).paddingTop : style?.paddingTop;
+  };
+
+  it('reserves the top inset once, so the first row is what the screen shows', async () => {
+    await renderWithInsets({ top: 96, bottom: 48, left: 0, right: 0 });
+
+    expect(contentPaddingTop()).toBeLessThanOrEqual(96);
+  });
+
+  it('does not turn an inset larger than the window into a blank half-screen', async () => {
+    // What a cut-out device reported: an inset that is not this window's top edge. The screen
+    // must never pad by more than a fraction of its own height — that is what pushed the
+    // first row into the middle of the screen and left the upper half empty.
+    await renderWithInsets({ top: 700, bottom: 48, left: 0, right: 0 });
+
+    const { height } = Dimensions.get('window');
+    expect(contentPaddingTop()).toBeLessThanOrEqual(height * 0.2);
   });
 });

@@ -623,6 +623,8 @@
   "BiometricAuthLabel": "Biometric Authentication",
   "BiometricAuthDescription": "Use fingerprint or face to unlock the app",
   "BiometricGateTitle": "Unlock EconoFlow",
+  "SessionStarting": "Starting your session",
+  "SessionUnlocking": "Unlocking the app",
   "BiometricGateSubtitle": "Authenticate to continue",
   "BiometricPromptReason": "Authenticate to access your finances",
   "BiometricNotAvailable": "Biometrics not available on this device",
@@ -635,6 +637,7 @@
   "BiometricErrorLockedOut": "Too many attempts. Use your device passcode.",
   "BiometricErrorNotEnrolled": "Set up a fingerprint or face unlock in your device settings first.",
   "BiometricEnableFailed": "Couldn't enable biometric authentication. Please try again later.",
+  "BiometricSkipToPin": "Continue without biometrics",
 
   "PinCreateTitle": "Create App PIN",
   "PinCreateSubtitle": "Enter a 4 to 6 digit PIN to protect your account, then tap Continue",
@@ -665,3 +668,4 @@
   "AttachmentTakePhoto": "Take or choose photo",
   "ConfirmDeleteAttachment": "Remove this attachment? This cannot be undone."
 }
+

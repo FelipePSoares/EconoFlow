@@ -205,6 +205,65 @@ describe('useBiometricUnlock (#1052)', () => {
     expect(onUnlocked).toHaveBeenCalled();
   });
 
+  // #1116: `unavailable` means "this device cannot do biometrics", and the screens that
+  // show the PIN treat it as final. A hardware check that fails or is still running is not
+  // that: marking it made the next gate mount hand over to the keypad instead of the sensor.
+  describe('a check that has not answered is not a device without biometrics (#1116)', () => {
+    beforeEach(() => {
+      // The native question is answered, slowly: this is a keychain/biometric-service round
+      // trip, and on a cold start it can outlast the effect that opens the prompt.
+      LocalAuthentication.hasHardwareAsync.mockImplementation(
+        () => new Promise<boolean>(() => {}),
+      );
+    });
+
+    it('stays undecided while the hardware check is in flight', async () => {
+      const { result } = await renderHook(() =>
+        useBiometricUnlock(jest.fn(), { autoPrompt: false }),
+      );
+
+      await flush();
+      void result.current.prompt();
+      await flush();
+
+      expect(result.current.unavailable).toBe(false);
+      expect(LocalAuthentication.authenticateAsync).not.toHaveBeenCalled();
+    });
+
+    it('does not mark the device unusable when the check rejects', async () => {
+      LocalAuthentication.hasHardwareAsync.mockReset();
+      LocalAuthentication.hasHardwareAsync.mockRejectedValue(new Error('not available'));
+      const onUnlocked = jest.fn();
+      const { result } = await renderHook(() =>
+        useBiometricUnlock(onUnlocked, { autoPrompt: false }),
+      );
+
+      await act(async () => {
+        await result.current.prompt();
+      });
+
+      // A sensor that refuses to answer is not "no sensor": the caller keeps the lock and
+      // may ask again, and the user is not dropped onto the keypad.
+      expect(result.current.unavailable).toBe(false);
+      expect(onUnlocked).not.toHaveBeenCalled();
+      expect(LocalAuthentication.authenticateAsync).not.toHaveBeenCalled();
+    });
+
+    it('does not mark the device unusable when the enrolment check rejects', async () => {
+      LocalAuthentication.hasHardwareAsync.mockResolvedValue(true);
+      LocalAuthentication.isEnrolledAsync.mockRejectedValue(new Error('not available'));
+      const { result } = await renderHook(() =>
+        useBiometricUnlock(jest.fn(), { autoPrompt: false }),
+      );
+
+      await act(async () => {
+        await result.current.prompt();
+      });
+
+      expect(result.current.unavailable).toBe(false);
+    });
+  });
+
   it('does not offer the PIN before the failures run out when the caller says so', async () => {
     const { result } = await renderHook(() =>
       useBiometricUnlock(jest.fn(), { escapeAvailable: false, autoPrompt: false }),

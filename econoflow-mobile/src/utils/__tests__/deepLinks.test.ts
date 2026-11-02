@@ -39,6 +39,21 @@ describe('toPathSegments', () => {
     expect(toPathSegments('https://econoflow.pt/e2e/open')).toEqual([]);
     expect(toPathSegments('econoflowx://e2e/open')).toEqual([]);
   });
+
+  // Android hands `Linking` every text the customer types in a field whose keyboard offers
+  // "Open with" — and with an address-ended domain the typed text *is* a `econoflow://`
+  // link. A login typed as `econoflow: //e2e/open@example.com` ended the whole session (#1116):
+  // the form was parsed as the automation entry point and the app was signed out.
+  it('is empty for text that only starts the scheme, however it is spelled', () => {
+    expect(toPathSegments('econoflow: //e2e/open@example.com')).toEqual([]);
+    expect(toPathSegments('econoflow://e2e/open@example.com')).toEqual([]);
+    expect(toPathSegments('econoflow : //e2e/open@example.com')).toEqual([]);
+    expect(toPathSegments('my econoflow://e2e/open account')).toEqual([]);
+  });
+
+  it('ignores whitespace around a real link', () => {
+    expect(toPathSegments('  econoflow://e2e/open  ')).toEqual(['e2e', 'open']);
+  });
 });
 
 describe('isE2eLink', () => {
@@ -53,5 +68,11 @@ describe('isE2eLink', () => {
     expect(isE2eLink('econoflow://e2eX/open')).toBe(false);
     expect(isE2eLink(undefined)).toBe(false);
     expect(isE2eLink('https://econoflow.pt/e2e/open')).toBe(false);
+  });
+
+  it('does not recognise a login typed into a form as the sentinel', () => {
+    // The customer typed their address; the keyboard reported it as a link (#1116).
+    expect(isE2eLink('econoflow: //e2e/open@example.com')).toBe(false);
+    expect(isE2eLink('econoflow://e2e/open@example.com')).toBe(false);
   });
 });

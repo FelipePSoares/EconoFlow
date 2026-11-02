@@ -6,6 +6,7 @@ import { setUserContext, clearUserContext } from '../monitoring/sentry';
 import { useNotificationStore } from './notificationStore';
 import { hydrateBiometricStore } from './biometricStore';
 import { hydratePinStore } from './pinStore';
+import { trace } from '../diagnostics/trace';
 
 interface SecureStorage {
   getItem(name: string): Promise<string | null>;
@@ -61,6 +62,9 @@ export const useAuthStore = create<AuthState>()(
         set({ user, needsOnboarding: !!user && !user.firstName });
       },
       clearAuth: () => {
+        // The trail's one line about a session disappearing. It is written before the state
+        // changes because the screen that caused it is gone by the time anyone looks (#1116).
+        trace('auth.clear');
         clearUserContext();
         set({ accessToken: null, refreshToken: null, user: null, isAuthenticated: false, needsOnboarding: false, openCreateProjectOnStart: false });
       },

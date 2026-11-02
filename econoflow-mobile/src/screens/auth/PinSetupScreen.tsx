@@ -12,6 +12,8 @@ import { GlassScreen } from '../../components/common/GlassScreen';
 import { GlassCard } from '../../components/common/GlassCard';
 import { AuroraPrimaryButton } from '../../components/auth/AuroraPrimaryButton';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
+import { trace } from '../../diagnostics/trace';
+import { attachNavigationListeners, useScreenTrace } from '../../diagnostics/useScreenTrace';
 
 type Props = NativeStackScreenProps<SessionParamList, 'PinSetup'>;
 
@@ -58,22 +60,66 @@ export const PinSetupScreen: React.FC<Props> = ({ navigation }) => {
   const stepRef = useRef(step);
   const createBufRef = useRef('');
   const confirmBufRef = useRef('');
+  // Whether this screen is still the one in front: the save path navigates from an awaited
+  // promise, and a screen that left while the write was in flight must not move the stack
+  // (the trail records this, see `useScreenTrace`).
+  const onScreenRef = useScreenTrace('PinSetup');
+  useEffect(() => attachNavigationListeners(navigation, 'PinSetup', onScreenRef), [navigation, onScreenRef]);
 
   useEffect(() => { stepRef.current = step; }, [step]);
 
-  /** Records the PIN and continues to the unlock flow. */
-  const finish = useCallback(async (pin: string) => {
-    await setPin(pin);
-    // The PIN is what the gate needs, and biometrics stay an optional offer. The answer is
-    // read from the store once the PIN is saved: until the decline has been read, `false`
-    // is not an answer and offering would repeat a decision already made (#1052).
-    await hydrateBiometricStore();
-    const declined = useBiometricStore.getState().biometricPromptSkipped;
-    navigation.reset({
-      index: 0,
-      routes: [{ name: declined ? 'BiometricGate' : 'BiometricEnroll' }],
-    });
-  }, [setPin, navigation]);
+  // The saving path waits for the answer it is about to act on, and nothing is decided
+  // anywhere else: the screen simply stays up until the read lands (#1116).
+  const pendingSaves = useRef(0);
+
+  /**
+   * Records the PIN, then continues to the unlock flow.
+   *
+   * **The navigation comes first, and it does not wait for anything** (#1116).
+   *
+   * It used to be dispatched after `await setPin(pin)` and `await hydrateBiometricStore()` —
+   * and by then the `navigation` object this screen captured could belong to a stack that had
+   * already been replaced, so React Navigation logged "The action 'RESET' …
+   * {"name":"PinSetup"} … was not handled by any navigator" and the customer was left on a
+   * blank screen until the app was restarted. That is the reported defect, and it only
+   * happens on the slow reads a real device has and a test double does not.
+   *
+   * So the order is: save the PIN (state), move the stack (synchronously, while this screen is
+   * certainly mounted), then read the stored biometric answer in the background and use it
+   * only to decide *where the next screen goes* — never whether this navigation happens.
+   */
+  const finish = useCallback((pin: string) => {
+    trace('pinsetup.finish.start', { onScreen: onScreenRef.current });
+
+    // 1. The PIN itself. `setPin` hashes asynchronously but writes the store last; the
+    //    screen leaves either way, because the value the next screen needs is `hasPin`.
+    void setPin(pin).catch(() => undefined);
+
+    // 2. Move the stack now. `replace`, not `reset`: this screen was the session's entry, and
+    //    nothing may be left behind that a back gesture could return to.
+    //
+    //    Where it goes is decided by the answer *already in the store*: a decline is
+    //    persisted, so after one the offer must not be shown again (#1052). The read that
+    //    makes sure it is loaded is started below, not awaited here.
+    const { biometricPromptSkipped } = useBiometricStore.getState();
+    const target = biometricPromptSkipped ? 'BiometricGate' : 'BiometricEnroll';
+    try {
+      trace('pinsetup.navigate.dispatch', { target, onScreen: onScreenRef.current });
+      navigation.replace(target);
+    } catch (error) {
+      trace('pinsetup.navigate.threw', {
+        target,
+        error: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+      });
+    }
+
+    // 3. The offer's own screen waits for the stored answer before it offers anything, so the
+    //    read only has to be *started* here — joining the one the session already ran.
+    void hydrateBiometricStore();
+  }, [setPin, navigation, onScreenRef]);
+
+  const finishRef = useRef(finish);
+  useEffect(() => { finishRef.current = finish; }, [finish]);
 
   /** The create step is done: the user picked a 4–6 digit PIN and confirmed the length. */
   const handleContinue = () => {
@@ -117,13 +163,22 @@ export const PinSetupScreen: React.FC<Props> = ({ navigation }) => {
         // The buffer is cleared either way: the step is about to leave this state.
         confirmBufRef.current = '';
         if (confirmed) {
-          void finish(savedPin);
+          // One save per tap: typing fast around the confirmation must not save twice.
+          if (pendingSaves.current > 0) return;
+          pendingSaves.current += 1;
+          // `finish` is synchronous now — it moves the stack before anything is awaited, so
+          // the navigation cannot be lost to a screen that unmounted while a read ran.
+          // The guard is released on the next task, after the screen has gone.
+          finishRef.current(savedPin);
+          setTimeout(() => {
+            pendingSaves.current = Math.max(0, pendingSaves.current - 1);
+          }, 0);
         } else {
           handleMismatch();
         }
       }
     }
-  }, [finish, handleMismatch, savedPin]);
+  }, [handleMismatch, savedPin]);
 
   const handleBackspace = useCallback(() => {
     setError(null);
@@ -194,3 +249,7 @@ const styles = StyleSheet.create({
   key: { width: 72, height: 56, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.10)', alignItems: 'center', justifyContent: 'center' },
   keyText: { color: '#fff', fontSize: 22, fontWeight: '700' },
 });
+
+
+
+

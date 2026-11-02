@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FlatList, StyleSheet, TouchableOpacity, View, RefreshControl } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabTopInset } from '../../navigation/useTabTopInset';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -24,6 +25,9 @@ export const PlanListScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
   const { dark, ink, ink2 } = useAuroraSkin();
   const insets = useSafeAreaInsets();
+  // The tab navigator already places this screen clear of the status bar, so the top inset is
+  // taken through the guard rather than booked twice (see `useTabTopInset`).
+  const topInset = useTabTopInset();
   const [dismissedError, setDismissedError] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const { selectedProject, currency } = useProjectStore();
@@ -50,7 +54,7 @@ export const PlanListScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <GlassScreen dark={dark}>
       {/* ── Header ───────────────────────────────────────────────────── */}
-      <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
+      <View style={[styles.header, { paddingTop: topInset + 6 }]}>
         <TouchableOpacity
           onPress={() =>
             navigation

@@ -290,6 +290,7 @@ CMake derives that object-file name from the absolute path of the generated JNI 
 | `android.cmakeVersion=3.30.4` (written by `plugins/with-detox-android.js` from `app.json`; `sdkmanager "cmake;3.30.4"`) | Ships the same Ninja 1.10.2 binary |
 | Rewriting `build.ninja` to shorten/escape the offending outputs | No effect: the statement ninja was failing on is already correctly escaped (`C$:/…`), which was confirmed by inspection |
 | `HKLM\…\FileSystem\LongPathsEnabled=1` | Already enabled; it only covers tools that opt in |
+| Re-running `gradlew assembleDebug` right after a failed build (to reuse the CMake cache) | The failing statement is re-evaluated from scratch; same error. The APK in `android/app/build/outputs/apk` from an earlier build is stale — `npm run e2e:build` starts with `expo prebuild`, which clears `android/` and with it those outputs |
 
 So this checkout cannot produce the Android APKs on **this Windows machine**, and Detox cannot
 run here. Build it where the limit does not exist or does not bite:
@@ -364,6 +365,13 @@ git-ignored. `DETOX_AVD_NAME` overrides the emulator (`Pixel_7_API_35` by defaul
 - **Specs run in filename order** (`login.e2e.js`, then `signUp.e2e.js`) because the PIN is
   per device: the first spec is the one that signs out of the session left on the emulator
   and creates a PIN for its account, and `signUp.e2e.js` runs its registration after that.
+- **`auth/biometricUnlock.e2e.js` needs a device without a PIN**, and a biometric enrolled
+  on the emulator (`Pixel_7_API_35` has fingerprint 1). It covers the flow of #1116: sign in →
+  create the PIN → **accept** the biometrics offer → restart → the sensor is asked on its own
+  → answering it opens the app on Overview (and a second restart does the same) → sign out.
+  The sensor is the OS dialog, so `e2e/support/biometrics.js` answers it over the emulator
+  console (`adb -e emu finger touch 1`): Detox cannot tap it, and every other spec declines
+  biometrics so it never meets the dialog.
 
 ### Troubleshooting
 

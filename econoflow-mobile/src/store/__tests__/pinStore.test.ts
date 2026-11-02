@@ -190,4 +190,52 @@ describe('pinStore – hydration', () => {
 
     await expect(hydratePinStore()).resolves.toBeUndefined();
   });
+
+  // #1116: the gate asks "is there a PIN?" the moment the session appears, which on a
+  // login is also the moment this read starts. It must be able to tell "still reading"
+  // from "no PIN", or it sends a returning customer to create a second one.
+  it('is not marked answering until the stored PIN has landed', async () => {
+    const { hydratePinStore, usePinStore: store } = coldStart();
+    // A module-level `hydrated` flag cannot describe the read this test starts, because
+    // there is no notification that a read has *begun*: it would read "answered" from an
+    // earlier read even though `hasHydrated()` already says the answer is unknown again.
+    // `hasHydrated()` is the single source every screen uses.
+    let releaseRead: (value: string | null) => void = () => {};
+    getItemAsync.mockImplementation(
+      () => new Promise<string | null>((resolve) => { releaseRead = resolve; }),
+    );
+
+    const hydrating = hydratePinStore();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(store.persist.hasHydrated()).toBe(false);
+    // And the default is still what is on screen — which is exactly why nothing may
+    // decide on it yet.
+    expect(store.getState().hasPin).toBe(false);
+
+    releaseRead(storedValue({ pinHash: 'hash:1234', hasPin: true, pinLength: 4 }));
+    await hydrating;
+
+    expect(store.persist.hasHydrated()).toBe(true);
+    expect(store.getState().hasPin).toBe(true);
+  });
+
+  it('answers again when a forced read starts, and keeps the last PIN meanwhile', async () => {
+    // A login re-reads the device PIN; a gate mounted over that re-read must not decide
+    // from the default "no PIN" while the answer is still on its way.
+    const { hydratePinStore, usePinStore: store } = coldStart();
+    getItemAsync.mockResolvedValue(storedValue({ pinHash: 'hash:1234', hasPin: true, pinLength: 4 }));
+    await hydratePinStore();
+
+    let releaseRead: (value: string | null) => void = () => {};
+    getItemAsync.mockImplementation(
+      () => new Promise<string | null>((resolve) => { releaseRead = resolve; }),
+    );
+    void hydratePinStore({ force: true });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(store.persist.hasHydrated()).toBe(false);
+    // The value already read stays on screen until the new one lands.
+    expect(store.getState().hasPin).toBe(true);
+    releaseRead(storedValue({ pinHash: 'hash:1234', hasPin: true, pinLength: 4 }));
+  });
 });

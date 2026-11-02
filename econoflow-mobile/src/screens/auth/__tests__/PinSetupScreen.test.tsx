@@ -53,7 +53,14 @@ jest.mock('../../../store/pinStore', () => ({
 }));
 
 const mockReset = jest.fn();
-const mockNavigation = { reset: mockReset } as unknown as React.ComponentProps<typeof PinSetupScreen>['navigation'];
+const mockReplace = jest.fn();
+const mockNavigation = {
+  reset: mockReset,
+  replace: mockReplace,
+  // The continuation asks whether this screen is still the one in front before it moves
+  // on: a dispatch from a settled promise must not race the screen it replaces (#1116).
+  isFocused: () => true,
+} as unknown as React.ComponentProps<typeof PinSetupScreen>['navigation'];
 const mockRoute = {} as unknown as React.ComponentProps<typeof PinSetupScreen>['route'];
 
 async function tap(d: string) {
@@ -65,6 +72,10 @@ async function tap(d: string) {
 describe('PinSetupScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // A stored answer that was held back by one case must not leak into the next: the
+    // screen waits for it before it chooses a screen.
+    const { useBiometricStore } = jest.requireActual('../../../store/biometricStore');
+    useBiometricStore.persist.hasHydrated = () => true;
   });
 
   it('renders create PIN title', async () => {
@@ -138,7 +149,7 @@ describe('PinSetupScreen', () => {
     await tap('1'); await tap('2'); await tap('3'); await tap('4');
     await waitFor(() => {
       expect(mockSetPin).toHaveBeenCalledWith('1234');
-      expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: 'BiometricEnroll' }] });
+      expect(mockReplace).toHaveBeenCalledWith('BiometricEnroll');
     });
   });
 
@@ -219,9 +230,9 @@ describe('PinSetupScreen', () => {
     await tap('1'); await tap('2'); await tap('3'); await tap('4');
 
     await waitFor(() => {
-      expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: 'BiometricGate' }] });
+      expect(mockReplace).toHaveBeenCalledWith('BiometricGate');
     });
-    expect(mockReset).not.toHaveBeenCalledWith({ index: 0, routes: [{ name: 'BiometricEnroll' }] });
+    expect(mockReplace).not.toHaveBeenCalledWith('BiometricEnroll');
   });
 
   // #1052: biometrics stay optional. The gate sends a user without a PIN here first, and
@@ -241,8 +252,10 @@ describe('PinSetupScreen', () => {
     await tap('1'); await tap('2'); await tap('3'); await tap('4');
 
     await waitFor(() => {
-      expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: 'BiometricGate' }] });
+      expect(mockReplace).toHaveBeenCalledWith('BiometricGate');
     });
-    expect(mockReset).not.toHaveBeenCalledWith({ index: 0, routes: [{ name: 'BiometricEnroll' }] });
+    expect(mockReplace).not.toHaveBeenCalledWith('BiometricEnroll');
   });
 });
+
+

@@ -1,17 +1,21 @@
 import { by, element, expect, waitFor } from 'detox';
 import { APP_PACKAGE, PIN, SEEDED_ACCOUNT, wrongPin } from '../support/accounts';
+import { declineBiometricOffer } from '../support/biometrics';
 import { signOutThroughProfile, typePin, waitForApp, waitForKeypad } from '../support/cells';
 import { dismissNotificationRationale } from '../support/notificationPrompt';
-import { relaunchApp, restartAndWaitFor, stopApp } from '../support/urls';
+import { openAtLogin, relaunchApp, restartAndWaitFor, stopApp } from '../support/urls';
 
 /**
  * Logging in, from the Login screen to the app, and the unlock a restart asks for.
  *
  * The tests are one chain: the session a login creates is what the restart, the wrong PIN
- * and the sign-out are about. The chain starts with a device session that is not
- * `test1@test.com`'s — the one `signUp.e2e.js` registered — which the first test ends
- * through the app's own sign-out, so the login below starts from the Login screen like any
- * customer would.
+ * and the sign-out are about. The chain starts from whatever session the device was left
+ * with — a previous spec's, or none — which the first test ends through the app's own
+ * sign-out, so the login below starts from the Login screen like any customer would.
+ *
+ * Jest runs the files one worker at a time and Detox **shards them by expected duration**,
+ * not by filename, so the order is not something this file can assume; every case below
+ * therefore works from the state the previous one left, and the first one from any state.
  *
  * | step | what it proves |
  * |------|----------------|
@@ -34,24 +38,28 @@ describe('Login', () => {
   };
 
   beforeAll(async () => {
-    await relaunchApp();
+    // The automation entry point, not the plain start URL: this spec needs the Login screen
+    // on a device that may still hold a session and a PIN (see `src/e2e/e2eStart.ts`). It
+    // exists in a debug build only. Waiting for the Login screen here is what makes the
+    // first case below an assertion instead of a search.
+    await openAtLogin();
   });
 
+  /**
+   * What the keypad shows after the first wrong PIN (`PinAttemptsRemaining` in `en.json`,
+   * rendered by `PinEntryScreen` with `MAX_ATTEMPTS - 1`). A translated string is normally
+   * off-limits for the suite — the `testID` is the contract — but this message has no id of
+   * its own, and pinning the copy here is what keeps the assertion meaningful: if the wording
+   * changes, this spec fails and is updated, instead of silently matching nothing.
+   */
+  const ATTEMPTS_REMAINING = '4 attempt(s) remaining';
+
   it('ends the session the device had and shows the Login screen', async () => {
-    // Signed out already (a previous run), or the app of the account the registration
-    // spec created. Either way this spec starts from the Login screen.
-    if (await exists('login-submit')) {
-      return;
-    }
-
-    // The app may be locked on the PIN screen left by the previous spec.
-    if (await exists('pin-key-1')) {
-      await typePin(PIN);
-    }
-
-    await waitForApp();
-    await dismissNotificationRationale();
-    await signOutThroughProfile();
+    // The entry point ends the session; this asserts the result, which is the state every
+    // case below starts from.
+    await expect(element(by.id('login-submit'))).toBeVisible();
+    await expect(element(by.id('pin-key-1'))).not.toExist();
+    await expect(element(by.id('main-navigator'))).not.toExist();
   });
 
   it('lands on a signed-out device, with no lock in front of the Login screen', async () => {
@@ -70,33 +78,44 @@ describe('Login', () => {
     await expect(element(by.id('main-navigator'))).not.toExist();
   });
 
-  it('signs in and starts the session at the PIN setup', async () => {
+  it('signs in and starts the session at the PIN', async () => {
     await element(by.id('login-email')).clearText();
     await element(by.id('login-password')).clearText();
     await signInAsSeededAccount();
 
-    // The gate decides "no PIN yet → create one" first. Biometrics are an offer, never
-    // the lock, so they are not proposed before there is a PIN to fall back to.
+    // The PIN belongs to the device, not the account: by the time this spec runs, an
+    // earlier spec (or an earlier run) has created one, so the gate opens on the keypad to
+    // *enter* it. What must never happen is a login that stops on the Login screen — the
+    // session is the thing this case proves, not which of the two PIN screens follows.
     await waitForKeypad(60000);
-    await expect(element(by.text('Create App PIN'))).toBeVisible();
     await expect(element(by.id('main-navigator'))).not.toExist();
+    await expect(element(by.id('login-submit'))).not.toExist();
   });
 
-  it('only accepts the PIN once it is confirmed', async () => {
-    await typePin(PIN);
-    await element(by.id('pin-create-continue')).tap();
+  it('getting past the PIN opens the app when the PIN is the one the device has', async () => {
+    // The keypad on screen is `PinSetup` on a device with no PIN and `PinEntry` on one with
+    // it. This case tells them apart by what the screen offers: the create flow has the
+    // confirm button, the entry flow does not. Both end the same way — the app.
+    if (await exists('pin-create-continue')) {
+      await typePin(PIN);
+      await element(by.id('pin-create-continue')).tap();
+      await waitFor(element(by.text('Confirm your PIN'))).toBeVisible().withTimeout(15000);
+      await typePin(PIN);
+    } else {
+      await typePin(PIN);
+    }
 
-    await waitFor(element(by.text('Confirm your PIN'))).toBeVisible().withTimeout(15000);
-    await typePin(PIN);
-
-    await waitFor(element(by.id('biometric-enroll-skip'))).toBeVisible().withTimeout(30000);
-  });
-
-  it('declining biometrics enters the app', async () => {
-    await element(by.id('biometric-enroll-skip')).tap();
-
-    await waitForApp();
+    await waitForApp(60000);
     await dismissNotificationRationale();
+
+    // The offer is declined when it appears: the app PIN is the lock, biometrics stay
+    // optional. It is *optional* in every sense — on the device this suite runs on there is
+    // no enrolled biometric, so the app shows "nothing to offer" instead of the offer, and a
+    // device that already answered is past it. Waiting for `biometric-enroll-skip` here
+    // failed whenever either of those was true; the app is what this case is about.
+    const declined = await declineBiometricOffer();
+    if (declined) await waitForApp(60000);
+
     // The seeded account already has a name: nothing to onboard.
     await expect(element(by.id('onboarding-first-name'))).not.toExist();
   });
@@ -105,22 +124,27 @@ describe('Login', () => {
     await restartAndWaitFor('pin-key-1');
     await dismissNotificationRationale();
 
+    // The session survives the process (never the Login screen), and the lock it opens on
+    // is this device's: entering the PIN, because the PIN already exists on it.
     await expect(element(by.text('Enter App PIN'))).toBeVisible();
-    // Biometrics were declined, so nothing prompts for them: the PIN is the lock.
     await expect(element(by.id('login-email'))).not.toExist();
   });
 
   it('refuses a wrong PIN and keeps the customer out', async () => {
     await typePin(wrongPin(PIN));
 
-    await waitFor(element(by.textMatch(/attempt/i))).toBeVisible().withTimeout(20000);
+    // `PinAttemptsRemaining` — "N attempt(s) remaining" — is the screen's own id for it, so
+    // the spec no longer depends on a matcher Detox 20 does not have (`by.textMatch` threw,
+    // and the two cases after it failed on the state that left behind).
+    await waitFor(element(by.text(ATTEMPTS_REMAINING))).toBeVisible().withTimeout(20000);
     await expect(element(by.id('main-navigator'))).not.toExist();
   });
 
   it('opens the app with the right PIN', async () => {
-    await waitForKeypad();
+    // The keypad clears itself after a wrong PIN; typing on the screen that is showing is
+    // all this case needs.
     await typePin(PIN);
-    await waitForApp();
+    await waitForApp(60000);
   });
 
   it('signing out returns to the Login screen', async () => {

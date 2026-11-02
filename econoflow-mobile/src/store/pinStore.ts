@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import * as SecureStore from 'expo-secure-store';
+import { trace } from '../diagnostics/trace';
 import { digestStringAsync, CryptoDigestAlgorithm } from 'expo-crypto';
 
 interface SecureStorage {
@@ -69,7 +70,8 @@ export const usePinStore = create<PinState>()(
         hasPin: state.hasPin,
         pinLength: state.pinLength,
       }),
-      onRehydrateStorage: () => () => {
+      onRehydrateStorage: () => (state, error) => {
+        trace('pin.read.done', { hasPin: state?.hasPin, failed: Boolean(error) });
         // A failed read still ends the wait: the gate must not hang on a broken keychain,
         // and "no PIN" is the safe answer for a keychain it cannot read.
         usePinStore.setState({ hydrated: true });
@@ -80,26 +82,90 @@ export const usePinStore = create<PinState>()(
 
 let hydrationStarted: Promise<void> | null = null;
 
+// ── Whether the stored PIN is known ───────────────────────────────────────────
+//
+// `hasPin` is only an answer once the read has landed. The gate asks it the moment a
+// session appears, which on a login is also the moment the read starts; reading the
+// default `false` then sent a returning customer to "Create App PIN" over the PIN they
+// already had (#1116).
+
+const answeringListeners = new Set<() => void>();
+
+/** `true` while nothing would change the answer any more: the read landed or failed. */
+const isAnswering = (): boolean =>
+  usePinStore.persist.hasHydrated() || usePinStore.getState().hydrated;
+
+const notifyAnswering = () => {
+  for (const listener of Array.from(answeringListeners)) listener();
+};
+
+// Subscribed once: a store never announces a read that has *started*, and a forced re-read
+// starts knowing nothing (`hasHydrated()` is false again), so the screen has to be told.
+// Both `subscribe` and `onFinishHydration` are idempotent for these listeners.
+usePinStore.subscribe(() => notifyAnswering());
+usePinStore.persist.onFinishHydration(() => notifyAnswering());
+
 /**
- * Reads the stored PIN, once per app run unless `force` is passed.
+ * Whether the stored PIN has been read (#1116). A screen subscribes to this instead of
+ * reading `hasHydrated()` once, so it re-renders when the read lands — and loses the
+ * answer again when the next one starts.
+ */
+export const subscribePinAnswering = (listener: () => void): (() => void) => {
+  answeringListeners.add(listener);
+  return () => {
+    answeringListeners.delete(listener);
+  };
+};
+
+/** Current value of `subscribePinAnswering`, for `useSyncExternalStore`. */
+export const isPinAnswerKnown = (): boolean => isAnswering();
+
+/**
+ * Reads the stored PIN. The unlock gate decides between "enter your PIN" and "create one"
+ * from `hasPin`, and it is the first screen of a session — it cannot rely on a screen
+ * having started the read already.
  *
- * The unlock gate decides between "enter your PIN" and "create one" from `hasPin`, and it
- * is the first screen of a session — it cannot rely on a screen having started the read
- * already. `force` lets the session bind refresh the value when a new session begins in
- * the same app run (a sign-out and a second account).
+ * `force` re-reads it when a new session begins in the same app run (a sign-out and a
+ * second account); a forced read starts life "unknown", because until it answers the
+ * value in the store belongs to the previous session. The returned promise resolves when
+ * this read lands, never rejects.
  */
 export const hydratePinStore = (options: { force?: boolean } = {}): Promise<void> => {
-  if (hydrationStarted && !options.force) return hydrationStarted;
-  hydrationStarted = new Promise<void>((resolve) => {
+  // A read already on its way answers every caller, forced or not: there is nothing a
+  // second read could know that the one in flight will not.
+  if (hydrationStarted && !isAnswering()) return hydrationStarted;
+  // Nothing left to learn: the stored PIN is already in the store.
+  if (!options.force && isAnswering()) return Promise.resolve();
+
+  const started = new Promise<void>((resolve) => {
     // Deferred by a task so the store module is never hydrated from the middle of its own
     // evaluation, the same reason `hydrateBiometricStore` waits.
     setTimeout(() => {
-      const rehydration = usePinStore.persist.rehydrate();
+      let rehydration: Promise<void> | void;
+      try {
+        trace('pin.read.start');
+        rehydration = usePinStore.persist.rehydrate();
+      } catch (error) {
+        trace('pin.read.throw', { error: String(error) });
+        // A store that cannot start the read must still let its callers decide, with the
+        // defaults, rather than leave them waiting.
+        resolve();
+        return;
+      }
       Promise.resolve(rehydration).then(
         () => resolve(),
-        () => resolve(),
+        (error) => { trace('pin.read.failed', { error: String(error) }); resolve(); },
       );
     }, 0);
   });
-  return hydrationStarted;
+  hydrationStarted = started;
+  // The answer is unknown from now until this read lands: everything that decides on the
+  // stored PIN must render as pending, not on the previous session's.
+  notifyAnswering();
+  return started;
 };
+
+
+
+
+

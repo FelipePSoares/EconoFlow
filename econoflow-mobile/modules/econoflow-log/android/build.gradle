@@ -1,0 +1,22 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'expo.modules.econoflowlog'
+version = '1.0.0'
+
+/**
+ * The diagnostic trail's native log sink (#1116).
+ *
+ * A local Expo module: `expo prebuild` re-links it on every regeneration, where a file added
+ * by hand under `android/` would simply be deleted. `expo-module-gradle-plugin` supplies the
+ * Kotlin/Expo wiring, so this build file stays minimal.
+ */
+android {
+  namespace "expo.modules.econoflowlog"
+  defaultConfig {
+    versionCode 1
+    versionName "1.0.0"
+  }
+}

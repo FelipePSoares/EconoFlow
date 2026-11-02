@@ -24,4 +24,11 @@ describe('e2eStart', () => {
     expect(startScreenFor('econoflow://econoflow-start')).toBe(null);
     expect(startScreenFor(undefined)).toBe(null);
   });
+
+  it('has no opinion about text the customer typed into a field', () => {
+    // `Linking` reports a typed login as a link when the keyboard offers "Open with". Acting
+    // on it ended the session the customer had just created (#1116).
+    expect(isE2eStartUrl('econoflow: //e2e/open@example.com')).toBe(false);
+    expect(startScreenFor('econoflow: //e2e/open@example.com')).toBe(null);
+  });
 });
