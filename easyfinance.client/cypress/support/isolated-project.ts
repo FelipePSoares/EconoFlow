@@ -45,6 +45,60 @@ export const shiftMonth = (month: Month, offset: number): Month => {
   return monthOf(shifted);
 };
 
+/**
+ * The day of the month that a date written "`day` of `month`" must use to be accepted.
+ *
+ * <p>
+ * The backend refuses any expense or expense item dated in the future
+ * (`A future expense can't have a amount`), with "future" measured by the SERVER's clock.
+ * A spec that hard-codes a day of the current month is therefore only correct until the
+ * month reaches it: writing the 8th works on the 8th of November, and on the 2nd it is
+ * six days out and the POST/PATCH answers 400. That is what broke these specs on the 1st
+ * of every month.
+ * </p>
+ *
+ * <p>
+ * Clamping to today (and never below the 1st) keeps the date inside the month the specs
+ * reason about - and keeps it valid whichever clock is ahead, the browser's or the
+ * server's. When `day` has already passed, the clamp silently chooses today instead;
+ * that is what this returns, so callers compare against it rather than against `day`.
+ * </p>
+ */
+export const safeDayOfMonth = (month: Month, day: number, today: Date = new Date()): number => {
+  const isThisMonth = today.getFullYear() === month.year && today.getMonth() + 1 === month.month;
+  const latestAllowed = isThisMonth ? today.getDate() : daysInMonth(month);
+  return Math.max(1, Math.min(day, latestAllowed));
+};
+
+/**
+ * A run of `count` consecutive days that have already happened, ending no later than today.
+ *
+ * <p>
+ * For specs that need several days laid out in order, with a day left over after the last.
+ * Clamping each day on its own is not enough: on the 2nd, "the 8th, 9th and 10th clamped"
+ * are 2, 2 and 2, which is neither ordered nor something later assertions can tell apart.
+ * The run is built backwards from today instead, so it is `count` distinct consecutive days
+ * in the current month and none of them is in the future.
+ * </p>
+ *
+ * <p>
+ * The start of the month has fewer days behind it than the run needs. It then returns as
+ * many distinct days as exist (`[1]`, or `[1, 2]`) rather than repeating one, so callers that
+ * need exactly `count` days must check the length they got back.
+ * </p>
+ */
+export const previousDays = (today: Date = new Date(), count: number): number[] => {
+  const available = Math.max(0, today.getDate() - 1);
+  const days = Math.min(count, available);
+  return Array.from({ length: days }, (_, index) => today.getDate() - days + index);
+};
+
+const daysInMonth = (month: Month): number => new Date(month.year, month.month, 0).getDate();
+
+/** `dayOfMonth` clamped with {@link safeDayOfMonth}, as `yyyy-MM-dd`. */
+export const safeDateOfMonth = (month: Month, day: number, today: Date = new Date()): string =>
+  dayOfMonth(month, safeDayOfMonth(month, day, today));
+
 export interface IsolatedExpense {
   id: string;
   name: string;
@@ -102,12 +156,15 @@ export function createIsolatedProject(
       });
     }
 
-    const [next, ...remaining] = days;
+    const next = days[0];
+    // Clamped: the backend refuses a future date, so a hard-coded day of the current month
+    // silently breaks this factory from that day of the month onwards.
+    const date = safeDateOfMonth(next.month, next.day);
 
     return cy
       .request('POST', `/api/Projects/${projectId}/Categories/${categories[0].id}/Expenses`, {
-        name: `Expense ${dayOfMonth(next.month, next.day)}`,
-        date: dayOfMonth(next.month, next.day),
+        name: `Expense ${date}`,
+        date,
         amount: 100,
         budget: 150
       })

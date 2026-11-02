@@ -1,10 +1,14 @@
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Account;
 using EasyFinance.Domain.Financial;
 using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Domain.Shared;
 using EasyFinance.Persistence.DatabaseContext;
+using FpsSoftware.Chassis;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,6 +16,12 @@ namespace EasyFinance.Server.Config
 {
     public static class DevelopmentTestDataSeeder
     {
+        /// <summary>
+        /// The password of both fixture users. The end-to-end suite signs in with it, so it is
+        /// part of the fixture contract rather than an incidental detail.
+        /// </summary>
+        public const string FixturePassword = "Passw0rd!";
+
         /// <summary>
         /// Whether seeding must be skipped for the given provider.
         ///
@@ -60,11 +70,14 @@ namespace EasyFinance.Server.Config
         /// <para>
         /// Adding through the context is what the production services rely on as well
         /// (<c>InsertOrUpdate</c> tracks), so the fixtures take the same path the application
-        /// does. The single <c>SaveChangesAsync</c> at the end also makes the whole fixture a
-        /// single transaction, so a failure leaves no half-seeded database behind.
+        /// does. The fixture is written in two parts — the users, then the graph that names
+        /// them — because one save of a graph carrying its own principals inserts those
+        /// principals twice (see the comment at the first <c>SaveChangesAsync</c>). Each part is
+        /// one transaction: a failure leaves users behind, but never a half-built graph, and the
+        /// seeder reports it instead of throwing.
         /// </para>
         /// </summary>
-        public static async Task SeedAsync(IServiceProvider services)
+        public static async Task<AppResponse<IEnumerable<User>>> SeedAsync(IServiceProvider services)
         {
             using var serviceScope = services.CreateScope();
             var context = serviceScope.ServiceProvider.GetRequiredService<EasyFinanceDatabaseContext>();
@@ -86,24 +99,90 @@ namespace EasyFinance.Server.Config
                 return new DateOnly(date.Year, date.Month, safeDay);
             }
 
-            var user = new User(firstName: "Test", lastName: "Admin", enabled: true)
+            var user = new User(Guid.Parse("4f1d4a0e-8a8f-4f0f-9c4c-6b6f0f2a1c01"))
             {
                 UserName = "test@test.com",
                 Email = "test@test.com",
                 EmailConfirmed = true
             };
+            user.SetFirstName("Test");
+            user.SetLastName("Admin");
+            user.SetEnabled(true);
             user.SetLanguageCode("en");
-            await userManager.CreateAsync(user, "Passw0rd!");
-            await userManager.AddToRoleAsync(user, SystemRoles.BetaTester);
 
-            var user2 = new User(firstName: "Second", lastName: "User", enabled: true)
+            var user2 = new User(Guid.Parse("9a0c5b43-1d2e-4b57-8f4d-2c7e6a9b3d02"))
             {
                 UserName = "test1@test.com",
                 Email = "test1@test.com",
                 EmailConfirmed = true
             };
+            user2.SetFirstName("Second");
+            user2.SetLastName("User");
+            user2.SetEnabled(true);
             user2.SetLanguageCode("en");
-            await userManager.CreateAsync(user2, "Passw0rd!");
+
+            // THE FIXTURE'S USERS ARE WRITTEN BY THIS CONTEXT, NOT BY userManager.CreateAsync.
+            //
+            // They used to be created with CreateAsync only, which saves them through the
+            // UserManager's OWN DbContext. This context therefore never knew them, and the graph
+            // below - the notifications, each expense/income's CreatedBy, and the UserProject
+            // memberships - names them. SaveChangesAsync then tried to INSERT those users again as
+            // dependents with an empty id, and PostgreSQL refused:
+            //
+            //   The value of 'IdentityUserRole<Guid>.UserId' is unknown when attempting to save
+            //   changes. This is because the property is also part of a foreign key for which the
+            //   principal entity in the relationship is not known.
+            //
+            // Program.cs catches that as a fatal start-up error, so the dev stack's container
+            // restarted forever and served 502. The in-memory store hid it: it enforces no
+            // foreign keys. Ids are fixed so both contexts agree on WHO the principal is.
+            context.Add(user);
+            context.Add(user2);
+
+            foreach (var fixtureUser in new[] { user, user2 })
+            {
+                var passwordErrors = await ValidatePasswordAsync(userManager, fixtureUser);
+                if (passwordErrors.Count > 0)
+                {
+                    return AppResponse<IEnumerable<User>>.Error(passwordErrors);
+                }
+
+                // What UserManager.CreateAsync() would have filled in: Identity refuses to
+                // validate a user whose security stamp is null, and the concurrency stamp is the
+                // token every later write through the UserManager verifies.
+                fixtureUser.SecurityStamp ??= Guid.NewGuid().ToString();
+                fixtureUser.ConcurrencyStamp ??= Guid.NewGuid().ToString();
+                fixtureUser.PasswordHash = userManager.PasswordHasher.HashPassword(fixtureUser, FixturePassword);
+            }
+
+            // The users are written on their own, before anything that names them.
+            //
+            // One half of the fix, with the Add above: the users are real rows in THIS context's
+            // store before the graph references them. EF orders the rows of a single SaveChanges
+            // by the shape of the graph, and a graph that already carries its own users gets those
+            // users inserted ahead of the rows that reference them - then inserted a second time
+            // when it reaches the users themselves and finds them Added. With the rows stored
+            // first, every reference below resolves against a user that exists.
+            await context.SaveChangesAsync();
+
+            // The role is the one part of the fixture that must go through Identity: it writes the
+            // AspNetUserRoles join row, which nothing else may touch.
+            //
+            // The user is looked up by ID. Only CreateAsync fills in the normalized user name and
+            // email, so the rows this context writes leave them empty and FindByNameAsync /
+            // FindByEmailAsync find nothing here. Identity normalizes and persists both columns as
+            // part of this update, so the account looks up normally from then on.
+            var roleUser = await userManager.FindByIdAsync(user.Id.ToString());
+            if (roleUser is null)
+            {
+                return AppResponse<IEnumerable<User>>.Error(nameof(User), "The fixture user was not stored.");
+            }
+
+            var roleAssignment = await userManager.AddToRoleAsync(roleUser, SystemRoles.BetaTester);
+            if (!roleAssignment.Succeeded)
+            {
+                return AppResponse<IEnumerable<User>>.Error(ToMessages(roleAssignment));
+            }
 
             var notification = new Notification(user, "WelcomeMessage", NotificationType.Information, NotificationCategory.System, limitNotificationChannels: NotificationChannels.InApp);
             context.Add(notification);
@@ -283,10 +362,52 @@ namespace EasyFinance.Server.Config
             userProject2.SetAccepted();
             context.Add(userProject2);
 
+            // The user's default project is part of this same write. Going through
+            // userManager.UpdateAsync() here wrote the user from the UserManager's own DbContext,
+            // which knows nothing about the project's row until this SaveChangesAsync has
+            // committed it (FK_AspNetUsers_Projects_DefaultProjectId).
+            user.SetDefaultProject(project.Id);
+            context.Update(user);
+
             await context.SaveChangesAsync();
 
-            user.SetDefaultProject(project.Id);
-            await userManager.UpdateAsync(user);
+            return AppResponse<IEnumerable<User>>.Success(new[] { user, user2 });
         }
+
+        /// <summary>
+        /// Checks the fixture password against Identity's configured policy without creating
+        /// anything.
+        ///
+        /// <para>
+        /// The password is part of the fixture contract - the end-to-end suite signs in with it -
+        /// so a policy that rejects it must be reported by the seeder instead of silently
+        /// leaving the fixture user unable to sign in.
+        /// </para>
+        /// </summary>
+        private static async Task<ICollection<AppMessage>> ValidatePasswordAsync(UserManager<User> userManager, User user)
+        {
+            var messages = new List<AppMessage>();
+
+            foreach (var validator in userManager.PasswordValidators)
+            {
+                var validation = await validator.ValidateAsync(userManager, user, FixturePassword);
+                if (validation.Succeeded)
+                {
+                    continue;
+                }
+
+                foreach (var error in validation.Errors)
+                {
+                    messages.Add(new AppMessage(nameof(User), error.Description));
+                }
+            }
+
+            return messages;
+        }
+
+        private static ICollection<AppMessage> ToMessages(IdentityResult result) =>
+            result.Errors
+                .Select(error => new AppMessage(nameof(IdentityResult), error.Description))
+                .ToList();
     }
 }
