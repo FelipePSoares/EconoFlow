@@ -52,10 +52,10 @@ function fmtCompact(n: number): string {
 /**
  * The tallest top inset this screen will honour, as a share of the window's height.
  *
- * The navigator already keeps the screen clear of the system bars, so the inset is only ever
- * a small refinement — a status bar, at most a notch. Anything taller did not come from this
- * window's top edge, and honouring it pushed the first row most of a screen down (see
- * `topInset` below).
+ * A second line of defence, kept after the real fix. The app corrects the safe-area frame
+ * once, before anything renders (`src/navigation/installSafeArea.ts`), which is what stops the
+ * tab navigator starting this screen most of a screen down; this guard still applies if a
+ * provider mounted elsewhere ever reports such a frame again.
  */
 const MAX_TOP_INSET_RATIO = 0.2;
 
@@ -64,12 +64,9 @@ export const MonthlyOverviewScreen: React.FC<Props> = ({ navigation }) => {
   const { dark, ink, ink2, hair } = useAuroraSkin();
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
-  // `insets.top` is not trusted blindly. The bottom-tabs navigator already keeps this screen
-  // clear of the status bar, so this is only a refinement of that — and on some devices the
-  // safe-area provider reports a frame that is not this window's top edge (a display cut-out
-  // inset), which turned into a padding most of the screen tall: the Overview opened with its
-  // whole upper half blank and its first row in the middle. A gap taller than the window can
-  // meaningfully have is that bad answer, not a taller status bar.
+  // `insets.top` is not trusted blindly: a frame that is not this window's top edge became a
+  // padding most of a screen tall. See `installSafeArea.ts` for the app-wide correction and
+  // `MAX_TOP_INSET_RATIO` for why this screen keeps its own guard.
   const windowHeight = useWindowDimensions().height;
   const topInset = insets.top > windowHeight * MAX_TOP_INSET_RATIO ? 0 : insets.top;
   const [month, setMonth] = useState(currentMonth());
