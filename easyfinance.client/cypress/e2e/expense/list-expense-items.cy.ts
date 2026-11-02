@@ -46,7 +46,7 @@ describe('EconoFlow - expense item list Tests', () => {
   let thisMonth: Month;
 
   /**
-   * The expense's day, and its two items' days, laid out relative to today.
+   * The expense's day and its two items' days.
    *
    * They used to be hard-coded to the 8th (expense), 9th and 10th (items). An expense item
    * may not be dated in the future either - the same `A future expense can't have a amount`
@@ -54,36 +54,21 @@ describe('EconoFlow - expense item list Tests', () => {
    * itself was rejected and the whole spec failed in its "before each" hook, before reaching
    * the behaviour under test.
    *
-   * The expense now takes the 8th when it has already happened, and otherwise the day before
-   * the two item days - so the expense is never after its own items and none of the three is
-   * in the future. On the 1st of the month there is only one day behind today, so the items
-   * share it.
+   * The days are laid out backwards from today instead: the two items take the two days
+   * before today, and the expense takes the day before them. That keeps all three in the
+   * current month, none of them in the future, every item on or before its expense (an item
+   * may not be dated after the expense it belongs to), and the two items distinct. On the 1st
+   * of the month the items share the only day available.
    */
-  const expenseDay = (): number => {
-    const fixed = 8;
-    const today = new Date().getDate();
-    return fixed < today ? fixed : Math.max(1, today - 2);
-  };
+  const expenseDay = (): number => Math.max(1, new Date().getDate() - 2);
 
   const itemDays = (): number[] => {
     const today = new Date().getDate();
     return today > 2 ? [today - 1, today] : [1, Math.min(2, today)];
   };
 
-  /**
-   * The day the last item moves to.
-   *
-   * Normally the first item's day - a move backwards, inside the same month. On the 1st of the
-   * month there is no earlier day, and the "moving an item to another month" test already
-   * covers that case, so the date test only runs once the month has room for two days.
-   */
-  const movedToDay = (): number | null => {
-    const items = itemDays();
-    return items[0] < items[1] ? items[0] : null;
-  };
-
-  /** Whether two distinct item days exist today, and so whether the date test can run. */
-  const hasTwoItemDays = (): boolean => movedToDay() !== null;
+  /** The day the first item is moved to: the expense's day, the latest valid date for an item. */
+  const movedToDay = (): number => expenseDay();
 
   beforeEach(() => {
     thisMonth = monthOf(new Date());
@@ -154,16 +139,16 @@ describe('EconoFlow - expense item list Tests', () => {
   })
 
   it('should update date after success update', () => {
-    // The item is moved to the earlier of the two item days: inside the same month, in the
-    // past, and a real change. A date in another month is rejected by the backend - that is
-    // the point of the next test, not of this one. On the 1st of the month there is no
-    // earlier day to move to, so this case is checked by the month-change test instead.
-    if (!hasTwoItemDays()) {
-      cy.log('The 1st of the month has a single day available: the item date test needs two.');
-      return;
-    }
-
-    const targetDay = movedToDay() as number;
+    // The first item is moved to the day of the expense itself: inside the same month, in the
+    // past, and never after the expense it belongs to. A date in another month is rejected by
+    // the backend - that is the point of the next test, not of this one.
+    //
+    // Both other directions were wrong at some point. Moving it to the LAST item's day is a
+    // move forwards, and an item may not be dated after its expense, so the backend answered
+    // 400 and the PATCH never arrived. Moving it a day later than the expense has the same
+    // problem. The expense's own day is the latest valid date for an item and is always in
+    // the past, because the fixture clamps the expense to a day that has already happened.
+    const targetDay = movedToDay();
     const targetIso = dayOfMonth(thisMonth, targetDay);
 
     cy.get('button[name=edit-sub]').first().click()
