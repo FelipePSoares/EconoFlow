@@ -107,19 +107,15 @@ describe('EconoFlow - expense item list Tests', () => {
 
           cy.visit(`/projects/${projectId}/categories/${categoryId}/expenses`);
 
-          // Re-open the expansion for every test.
+          // Re-open the expansion for every test: opening an editor COLLAPSES it, so the second
+          // test onwards would otherwise find no rows to edit and type into nothing.
           //
-          // The editor is inline, so it does not save on its own: `{enter}` submits the form
-          // only when the form is valid, and a date typed into the material datepicker is held
-          // until the control loses focus or the form is submitted. A test that types a date and
-          // presses Enter therefore sends nothing at all ("cy.wait() timed out ... patchExpenses",
-          // with the field still showing the value it had). Submitting the form explicitly is
-          // what the user does, and it works for the date control as well as the text ones.
+          // This is also why every edit goes through `openEditorFor`, which asserts that the
+          // inline editor that appeared belongs to the expense this spec seeded. Cy's built-in
+          // existence check has a second and a half to see the sublist render; without it a test
+          // can type into the PARENT expense's editor and wait forever for a PATCH about an item.
           cy.clickWhenLoaderGone('.btn-link')
 
-          // Wait for the rows to exist before the test picks one: the reload above renders them
-          // asynchronously, and `last()`/`first()` on a not-yet-rendered sublist would edit the
-          // wrong row - or, on the parent row, type into an input that is about to be replaced.
           cy.get('button[name=edit-sub]').should('have.length', 2)
         })
       })
@@ -127,21 +123,43 @@ describe('EconoFlow - expense item list Tests', () => {
   })
 
   /**
+   * Opens the inline editor of one of this expense's items and checks it is the right one.
+   *
+   * `position` is which of the two items to edit. The editor must belong to an item of the
+   * seeded expense: if the sublist has not rendered yet, `first()` resolves to the parent
+   * expense's own edit button, and every following assertion in the test then waits on a PATCH
+   * that can never arrive for an item. Asserting `itemIds` here fails fast and names the cause.
+   */
+  const openEditorFor = (position: 'first' | 'last'): Cypress.Chainable => {
+    return cy
+      .get('button[name=edit-sub]')[position]()
+      .click()
+      .then(() => cy.get('app-expense-item form').should('have.length', 1))
+      .then(() => {
+        cy.get('input[formControlName=name]')
+          .invoke('val')
+          .should('be.oneOf', ['First item', 'Second item']);
+      });
+  };
+
+  /** The item the editor is open for, by the name the fixture gave it. */
+  const editedItemName = (): Cypress.Chainable<string> =>
+    cy.get('input[formControlName=name]').invoke('val').then(name => String(name));
+
+  /**
    * Submits the inline item editor.
    *
    * The item form is inline inside the expense row: it saves on form submission, not on a key
-   * press. `{enter}` inside an input only submits a valid form, and a date typed into the
-   * material datepicker control is not committed until the control loses focus or the form is
-   * submitted - so a test that typed `{enter}` sent nothing at all and failed waiting for a
-   * PATCH that never left the browser. Clicking the form's own submit button is what the user
-   * does, and it commits every field type the same way.
+   * press. `{enter}` inside an input only submits a form that is already valid, and a date typed
+   * into a material datepicker control is not committed until the control loses focus or the
+   * form is submitted. Every test in this spec typed `{enter}` and relied on that.
    */
-  const submitItemEditor = (): Cypress.Chainable => cy.get('app-expense-item form').first().submit();
+  const submitItemEditor = (): Cypress.Chainable => cy.get('app-expense-item form').submit();
 
   it('should update name after success update', () => {
     const value = `name_${Math.random()}`;
 
-    cy.get('button[name=edit-sub]').last().click()
+    openEditorFor('last')
     cy.intercept('GET', '**/expenses*').as('getExpenses')
     cy.get('input[formControlName=name]').clear().type(value)
     submitItemEditor()
@@ -161,36 +179,42 @@ describe('EconoFlow - expense item list Tests', () => {
     // past, and never after the expense it belongs to. A date in another month is rejected by
     // the backend - that is the point of the next test, not of this one.
     //
-    // Both other directions were wrong at some point. Moving it to the LAST item's day is a
-    // move forwards, and an item may not be dated after its expense, so the backend answered
-    // 400 and the PATCH never arrived. Moving it a day later than the expense has the same
-    // problem. The expense's own day is the latest valid date for an item and is always in
+    // Moving the FIRST item onto the LAST item's day is what the test used to do. The fixture
+    // puts the items on consecutive days, so that is a move forwards - and an item may not be
+    // dated after the expense it belongs to, so the backend answered 400 and the PATCH never
+    // arrived. The expense's own day is the latest valid date for an item, and it is always in
     // the past, because the fixture clamps the expense to a day that has already happened.
     const targetDay = movedToDay();
     const targetIso = dayOfMonth(thisMonth, targetDay);
 
-    cy.get('button[name=edit-sub]').first().click()
+    openEditorFor('first').then(() => {
+      editedItemName().then(itemName => {
+        cy.intercept('GET', '**/expenses*').as('getExpenses')
 
-    cy.intercept('GET', '**/expenses*').as('getExpenses')
+        cy.get('input[formControlName=date]').clear().type(typedDate(thisMonth, targetDay))
+        submitItemEditor()
 
-    cy.get('input[formControlName=date]').clear().type(typedDate(thisMonth, targetDay))
-    submitItemEditor()
+        cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
+          expect(response?.statusCode).to.equal(200)
+          const operations = request.body as unknown as ExpensePatchOperation[];
+          const dateOperation = operations.find(operation => /\/items\/\d+\/date$/i.test(operation.path));
 
-    cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
-      expect(response?.statusCode).to.equal(200)
-      const operations = request.body as unknown as ExpensePatchOperation[];
-      const dateOperation = operations.find(operation => /\/items\/\d+\/date$/i.test(operation.path));
+          expect(toDateKey(dateOperation?.value), 'the PATCH carries the date').to.not.equal(null);
+          expect(String(dateOperation?.value).slice(0, 10), 'the PATCH persists the chosen day')
+            .to.equal(targetIso);
 
-      expect(toDateKey(dateOperation?.value), 'the PATCH carries the date').to.not.equal(null);
-      expect(String(dateOperation?.value).slice(0, 10), 'the PATCH persists the chosen day')
-        .to.equal(targetIso);
+          cy.wait<ExpenseReq, ExpenseRes[]>('@getExpenses').then(({ response: getExpensesResponse }) => {
+            const updatedExpense = getExpensesResponse?.body.find(expense => expense.id === expenseId);
+            expect(updatedExpense, 'the edited expense').to.not.equal(undefined);
 
-      cy.wait<ExpenseReq, ExpenseRes[]>('@getExpenses').then(({ response: getExpensesResponse }) => {
-        const updatedExpense = getExpensesResponse?.body.find(expense => expense.id === expenseId);
-        expect(updatedExpense, 'the edited expense').to.not.equal(undefined);
-
-        const updatedItem = updatedExpense?.items.find(item => toDateKey((item as { date?: string | Date }).date) === toDateKey(targetIso));
-        expect(updatedItem, `an item is now dated ${targetIso}`).to.not.equal(undefined);
+            // The item that was edited, by name: the fixture's days may coincide at the start of
+            // a month, so finding "the item dated targetIso" could match the wrong one.
+            const editedItem = updatedExpense?.items.find(item => item.name === itemName);
+            expect(editedItem, `the edited item is still in the expense`).to.not.equal(undefined);
+            expect(toDateKey((editedItem as { date?: string | Date }).date), `the edited item is dated ${targetIso}`)
+              .to.equal(toDateKey(targetIso));
+          })
+        })
       })
     })
   })
@@ -201,7 +225,7 @@ describe('EconoFlow - expense item list Tests', () => {
       ? { year: thisMonth.year + 1, month: 1 }
       : { year: thisMonth.year, month: thisMonth.month + 1 };
 
-    cy.get('button[name=edit-sub]').first().click()
+    openEditorFor('first')
 
     cy.get('input[formControlName=date]').clear().type(typedDate(nextMonth, 1))
     submitItemEditor()
@@ -216,7 +240,7 @@ describe('EconoFlow - expense item list Tests', () => {
     let value = 12345;
     const fallbackValue = 23456;
 
-    cy.get('button[name=edit-sub]').first().click()
+    openEditorFor('first')
 
     cy.intercept('GET', '**/expenses*').as('getExpenses')
 
