@@ -253,7 +253,22 @@ try
         }
         else
         {
-            DevelopmentTestDataSeeder.SeedAsync(app.Services).GetAwaiter().GetResult();
+            // The fixtures report their own outcome: a business failure (a rejected fixture
+            // password, a role that cannot be granted) comes back as an AppResponse rather than an
+            // exception, exactly like any other service. Start-up must still fail loudly, because
+            // a silently unseeded database leaves the end-to-end suite with no user to sign in as.
+            var seedResult = DevelopmentTestDataSeeder.SeedAsync(app.Services).GetAwaiter().GetResult();
+
+            if (!seedResult.Succeeded)
+            {
+                var errors = string.Join(", ", seedResult.Messages.Select(message => message.Description));
+                throw new InvalidOperationException($"Failed to seed the development fixtures: {errors}");
+            }
+
+            Log.Information(
+                "Development seed data written for {UserCount} user(s): {Users}",
+                seedResult.Data?.Count() ?? 0,
+                string.Join(", ", seedResult.Data?.Select(seededUser => seededUser.UserName) ?? []));
         }
     }
     else
