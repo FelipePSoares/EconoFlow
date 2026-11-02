@@ -107,26 +107,44 @@ describe('EconoFlow - expense item list Tests', () => {
 
           cy.visit(`/projects/${projectId}/categories/${categoryId}/expenses`);
 
-          // Expand the expense once the list has settled.
+          // Re-open the expansion for every test.
           //
-          // The loading overlay can appear *after* the rows do - the page renders, then a
-          // background refresh starts, and the overlay covers the row again. Waiting for the
-          // spinner to be absent and for the row to exist does not cover that order, and the
-          // click lands under the overlay ("is being covered by another element").
+          // The editor is inline, so it does not save on its own: `{enter}` submits the form
+          // only when the form is valid, and a date typed into the material datepicker is held
+          // until the control loses focus or the form is submitted. A test that types a date and
+          // presses Enter therefore sends nothing at all ("cy.wait() timed out ... patchExpenses",
+          // with the field still showing the value it had). Submitting the form explicitly is
+          // what the user does, and it works for the date control as well as the text ones.
           cy.clickWhenLoaderGone('.btn-link')
 
-
+          // Wait for the rows to exist before the test picks one: the reload above renders them
+          // asynchronously, and `last()`/`first()` on a not-yet-rendered sublist would edit the
+          // wrong row - or, on the parent row, type into an input that is about to be replaced.
+          cy.get('button[name=edit-sub]').should('have.length', 2)
         })
       })
     })
   })
+
+  /**
+   * Submits the inline item editor.
+   *
+   * The item form is inline inside the expense row: it saves on form submission, not on a key
+   * press. `{enter}` inside an input only submits a valid form, and a date typed into the
+   * material datepicker control is not committed until the control loses focus or the form is
+   * submitted - so a test that typed `{enter}` sent nothing at all and failed waiting for a
+   * PATCH that never left the browser. Clicking the form's own submit button is what the user
+   * does, and it commits every field type the same way.
+   */
+  const submitItemEditor = (): Cypress.Chainable => cy.get('app-expense-item form').first().submit();
 
   it('should update name after success update', () => {
     const value = `name_${Math.random()}`;
 
     cy.get('button[name=edit-sub]').last().click()
     cy.intercept('GET', '**/expenses*').as('getExpenses')
-    cy.get('input[formControlName=name]').clear().type(`${value}{enter}`)
+    cy.get('input[formControlName=name]').clear().type(value)
+    submitItemEditor()
 
     cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
       expect(response?.statusCode).to.equal(200)
@@ -155,7 +173,8 @@ describe('EconoFlow - expense item list Tests', () => {
 
     cy.intercept('GET', '**/expenses*').as('getExpenses')
 
-    cy.get('input[formControlName=date]').clear().type(`${typedDate(thisMonth, targetDay)}{enter}`)
+    cy.get('input[formControlName=date]').clear().type(typedDate(thisMonth, targetDay))
+    submitItemEditor()
 
     cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
       expect(response?.statusCode).to.equal(200)
@@ -184,7 +203,8 @@ describe('EconoFlow - expense item list Tests', () => {
 
     cy.get('button[name=edit-sub]').first().click()
 
-    cy.get('input[formControlName=date]').clear().type(`${typedDate(nextMonth, 1)}{enter}`)
+    cy.get('input[formControlName=date]').clear().type(typedDate(nextMonth, 1))
+    submitItemEditor()
 
     cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ response }) => {
       expect(response?.statusCode).to.equal(400)
@@ -209,7 +229,8 @@ describe('EconoFlow - expense item list Tests', () => {
         value = fallbackValue;
       }
 
-      cy.get('input[formControlName=amount]').clear().type(`${value}{enter}`)
+      cy.get('input[formControlName=amount]').clear().type(`${value}`)
+      submitItemEditor()
     })
 
     cy.wait<ExpenseReq, ExpenseRes>('@patchExpenses').then(({ request, response }) => {
