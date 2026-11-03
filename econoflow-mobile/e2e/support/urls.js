@@ -1,4 +1,5 @@
 import { by, device, element, waitFor } from 'detox';
+import { answerSystemSensorIfShown } from './biometrics';
 
 /**
  * The app's URL scheme and package (`app.json` → `expo.scheme` / `expo.android.package`).
@@ -41,6 +42,9 @@ export async function relaunchApp(url = START_URL) {
     url,
     permissions: { notifications: 'deny' },
   });
+  // An app that came back in front asks the sensor again when biometrics are on; see
+  // `restartApp` for why it is answered here rather than in each spec.
+  await answerSystemSensorIfShown();
 }
 
 /** Kills the app. */
@@ -57,6 +61,11 @@ export async function stopApp() {
  */
 export async function restartApp({ url } = {}) {
   await device.relaunchApp({ url });
+  // A restart is what makes the app ask for the sensor, and while that OS dialog is up the
+  // app's window has no focus — every later `waitFor` would fail with
+  // `has-window-focus=false`. See `answerSystemSensorIfShown` for why it is answered here
+  // rather than in each spec.
+  await answerSystemSensorIfShown();
 }
 
 /**

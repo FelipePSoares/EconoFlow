@@ -239,6 +239,135 @@ namespace EasyFinance.Server.Tests
             }
         }
 
+        /// <summary>
+        /// The fixture user must be findable the way the login finds a customer.
+        ///
+        /// <para>
+        /// <b>Every mobile end-to-end spec signs in as <c>test1@test.com</c>, and could not.</b>
+        /// <c>AccessControlController.ValidateSignInAsync</c> resolves the customer with
+        /// <c>UserManager.FindByEmailAsync</c>, which queries <c>NormalizedEmail</c> — the
+        /// column Identity fills in <c>CreateAsync</c>/<c>UpdateAsync</c>, and nowhere else.
+        /// The seeder writes its users with <c>context.Add</c> (that is the #1118 fix), so
+        /// <c>NormalizedEmail</c> and <c>NormalizedUserName</c> were written as <c>NULL</c>:
+        /// the row exists, the password hash is correct, and every login still answers
+        /// <c>401 InvalidCredentials</c>. On screen that is
+        /// <c>"Incorrect login information!"</c>, which reads exactly like a bad password.
+        /// </para>
+        ///
+        /// <para>
+        /// Confirmed against the dev stack before the fix — the two users disagreed:
+        /// </para>
+        ///
+        /// <code>
+        ///  Email          | NormalizedEmail | NormalizedUserName
+        ///  test@test.com  | TEST@TEST.COM   | TEST@TEST.COM
+        ///  test1@test.com | &lt;NULL&gt;          | &lt;NULL&gt;
+        /// </code>
+        ///
+        /// <para>
+        /// The in-memory store does not normalize either, so this test fails for the same
+        /// reason the dev stack did rather than passing on a lenient provider.
+        /// </para>
+        /// </summary>
+        [Fact]
+        public async Task SeedAsync_ShouldWriteUsersTheLoginCanFind()
+        {
+            var databaseName = $"SeederGraph_{Guid.NewGuid():N}";
+            await using var provider = BuildSeederServices(databaseName);
+
+            await PrepareRolesAsync(provider);
+
+            var result = await EasyFinance.Server.Config.DevelopmentTestDataSeeder.SeedAsync(provider);
+
+            result.Succeeded.Should().BeTrue($"Errors: {DescribeMessages(result)}");
+
+            using (var scope = provider.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<EasyFinanceDatabaseContext>();
+                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+
+                foreach (var seeded in result.Data)
+                {
+                    // Exactly what ValidateSignInAsync does.
+                    var found = await userManager.FindByEmailAsync(seeded.Email!);
+
+                    found.Should().NotBeNull(
+                        $"{seeded.Email} is a fixture the end-to-end suite signs in as, and "
+                        + "UserManager.FindByEmailAsync only matches a user whose NormalizedEmail "
+                        + "is populated — a row written straight through the DbContext has none");
+
+                    found!.Id.Should().Be(seeded.Id);
+
+                    var foundByName = await userManager.FindByNameAsync(seeded.UserName!);
+
+                    foundByName.Should().NotBeNull(
+                        $"{seeded.UserName} must also be findable by user name, which Identity "
+                        + "matches through NormalizedUserName");
+                }
+            }
+        }
+
+        /// <summary>
+        /// The columns the lookup depends on hold Identity's normalized form of the values.
+        ///
+        /// <para>
+        /// Asserted on the stored row, not only through the manager: the columns are what a
+        /// later <c>FindByEmailAsync</c> reads, and a test that only went through the manager
+        /// could be satisfied by a mock or a coincidental case-insensitive comparison.
+        /// </para>
+        /// </summary>
+        [Fact]
+        public async Task SeedAsync_ShouldStoreTheNormalizedNameAndEmail()
+        {
+            var databaseName = $"SeederGraph_{Guid.NewGuid():N}";
+            await using var provider = BuildSeederServices(databaseName);
+
+            await PrepareRolesAsync(provider);
+
+            var result = await EasyFinance.Server.Config.DevelopmentTestDataSeeder.SeedAsync(provider);
+
+            result.Succeeded.Should().BeTrue($"Errors: {DescribeMessages(result)}");
+
+            using (var scope = provider.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<EasyFinanceDatabaseContext>();
+                // The same service Identity's UserManager normalizes with.
+                var normalizer = scope.ServiceProvider.GetRequiredService<ILookupNormalizer>();
+
+                var persisted = await context.Users.ToListAsync();
+
+                persisted.Should().HaveCount(result.Data.Count());
+
+                foreach (var user in persisted)
+                {
+                    user.NormalizedEmail.Should().Be(
+                        normalizer.NormalizeEmail(user.Email),
+                        "Identity's email lookup is an exact match on this column");
+
+                    user.NormalizedUserName.Should().Be(
+                        normalizer.NormalizeName(user.UserName),
+                        "Identity's user-name lookup is an exact match on this column");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Creates the system roles the seeder assigns, the way
+        /// <c>Program.cs</c> does before it seeds.
+        /// </summary>
+        private static async Task PrepareRolesAsync(ServiceProvider provider)
+        {
+            using var scope = provider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<EasyFinanceDatabaseContext>();
+            await context.Database.EnsureCreatedAsync();
+
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+            if (!await roleManager.RoleExistsAsync(SystemRoles.BetaTester))
+            {
+                await roleManager.CreateAsync(new IdentityRole<Guid>(SystemRoles.BetaTester));
+            }
+        }
+
         private static string DescribeMessages(AppResponse response) =>
             response is null
                 ? "(no response)"

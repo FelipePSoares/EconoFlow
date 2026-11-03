@@ -197,7 +197,10 @@ export const PinSetupScreen: React.FC<Props> = ({ navigation }) => {
         <LinearGradient colors={['#0f76a8', '#14c08a']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.iconWrap}>
           <MaterialCommunityIcons name="lock-outline" size={48} color="#fff" />
         </LinearGradient>
-        <Text style={[styles.title, { color: ink }]}>
+        <Text
+          style={[styles.title, { color: ink }]}
+          testID={step === 'create' ? 'pin-create-title' : 'pin-confirm-title'}
+        >
           {step === 'create' ? t('PinCreateTitle') : t('PinConfirmTitle')}
         </Text>
         <Text style={[styles.subtitle, { color: ink2 }]}>

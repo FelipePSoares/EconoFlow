@@ -59,10 +59,13 @@ export const PinEntryScreen: React.FC<Props> = ({ navigation }) => {
   const { needsOnboarding } = useAuthStore();
   const [display, setDisplay] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [attempts, setAttempts] = useState(0);
   const [entering, setEntering] = useState(false);
   const bufRef = useRef('');
   const verifyingRef = useRef(false);
+  // How many wrong PINs this mount has seen. A ref, not state: nothing renders the count
+  // itself (the message inside `error` is the one rendering of it), so a re-render per
+  // attempt would only be a way to show the same sentence twice.
+  const attemptsRef = useRef(0);
 
   const enterApp = useCallback(() => {
     setEntering(true);
@@ -124,16 +127,13 @@ export const PinEntryScreen: React.FC<Props> = ({ navigation }) => {
       return;
     }
 
-    setAttempts((prev) => {
-      const next = prev + 1;
-      if (next >= MAX_ATTEMPTS) {
-        setError(t('PinMaxAttempts'));
-        setTimeout(() => handleForgotPin(), 2000);
-      } else {
-        setError(t('PinAttemptsRemaining', { count: MAX_ATTEMPTS - next }));
-      }
-      return next;
-    });
+    attemptsRef.current += 1;
+    if (attemptsRef.current >= MAX_ATTEMPTS) {
+      setError(t('PinMaxAttempts'));
+      setTimeout(() => handleForgotPin(), 2000);
+    } else {
+      setError(t('PinAttemptsRemaining', { count: MAX_ATTEMPTS - attemptsRef.current }));
+    }
     bufRef.current = '';
     setDisplay('');
   }, [verifyPin, pinLength, enterApp, t, handleForgotPin]);
@@ -143,8 +143,6 @@ export const PinEntryScreen: React.FC<Props> = ({ navigation }) => {
     bufRef.current = bufRef.current.slice(0, -1);
     setDisplay(bufRef.current);
   }, []);
-
-  const remaining = MAX_ATTEMPTS - attempts;
 
   return (
     <GlassScreen dark={dark}>
@@ -157,12 +155,14 @@ export const PinEntryScreen: React.FC<Props> = ({ navigation }) => {
         <PinDots length={display.length} max={PIN_LENGTH_MAX} />
         {error && (
           <GlassCard dark={dark} radius={14} style={styles.errorCard}>
-            <Text style={styles.errorText}>{error}</Text>
+            <Text style={styles.errorText} testID="pin-attempts-remaining">{error}</Text>
           </GlassCard>
         )}
-        {remaining < MAX_ATTEMPTS && remaining > 0 && (
-          <Text style={[styles.attemptsText, { color: ink2 }]}>{t('PinAttemptsRemaining', { count: remaining })}</Text>
-        )}
+        {/* The count is the error card's own text above — "N attempt(s) remaining" — and it
+            used to be repeated here as a separate line, so the customer read the same
+            sentence twice and an automation assertion on the text matched two views. Do not
+            add a second rendering of `PinAttemptsRemaining`; `PinEntryScreen.test.tsx` pins
+            that it appears exactly once. */}
         <KeyPad onDigit={handleDigit} onBackspace={handleBackspace} />
         {/* Back to the sensor: it is why this screen is here, and a user whose fingerprint
             works again must not be stuck on the keypad (#1052). */}
@@ -196,7 +196,6 @@ const styles = StyleSheet.create({
   dotEmpty: { backgroundColor: 'rgba(255,255,255,0.2)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' },
   errorCard: { width: '100%', padding: 12, marginBottom: 12 },
   errorText: { color: '#e74c3c', fontSize: 14, fontWeight: '600', textAlign: 'center' },
-  attemptsText: { fontSize: 12, fontWeight: '600', marginBottom: 16, textAlign: 'center', opacity: 0.7 },
   keypad: { width: '100%', maxWidth: 280, gap: 12 },
   keypadRow: { flexDirection: 'row', justifyContent: 'space-around', gap: 12 },
   key: { width: 72, height: 56, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.10)', alignItems: 'center', justifyContent: 'center' },

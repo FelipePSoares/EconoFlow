@@ -19,11 +19,29 @@ authenticator enrolment API from the spec.
 |------|---------|
 | `jest.config.js` | Detox's Jest environment, a long timeout, and `e2e/**/*.e2e.js` as the only tests |
 | `babel.config.js` | `babel-preset-expo`, so a spec can be plain JS and still share helpers |
-| `support/cells.js` | PIN keypad (`pin-key-<digit>`), "is the app up", sign-out |
+| `support/cells.js` | PIN keypad (`pin-key-<digit>`), `passDevicePin`, `appears`/`exists`, "is the app up", sign-out |
+| `support/biometrics.js` | `offerFingerprint` (the emulator's sensor) and `declineBiometricOffer` |
 | `support/accounts.js` | Seeded account, PINs, the registration profile and a fresh e-mail per run |
 | `support/notificationPrompt.js` | Answers the post-login notification prompt if it is showing |
 | `support/urls.js` | Start URLs and the restart helpers |
 | `artifacts/` | Detox's failure screenshots and logs (git-ignored) |
+
+## Two rules the helpers exist to enforce
+
+**1. Only `adb reverse` makes the app's `localhost` the host's, and the seeded login has to work.**
+Every spec signs in as `test1@test.com`, which the dev stack seeds. When that login answers
+`401` the Login screen says *"Incorrect login information!"* — which reads like a wrong
+password and is not one. `scripts/wsl/api-login.sh` asks the API directly, and
+`scripts/wsl/fixture-user.sh` shows the row: Identity's `FindByEmailAsync` matches
+`NormalizedEmail`, so a fixture user written without it can never sign in.
+
+**2. A screen that arrives on a navigation needs a *wait*, not a check.**
+`expect(...).toExist()` samples the tree once; `waitFor(...)` polls. Every "is this screen
+here?" question in the helpers that follows a navigation uses `waitFor` (via `appears`,
+`declineBiometricOffer`, `passDevicePin`), because sampling kept reporting "nothing there"
+one frame before the screen arrived. The PIN *steps* are told apart by their ids
+(`pin-create-continue`, `pin-confirm-title`), never by their translated text.
+
 
 ## Running
 

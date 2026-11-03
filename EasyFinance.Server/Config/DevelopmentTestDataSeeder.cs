@@ -153,6 +153,29 @@ namespace EasyFinance.Server.Config
                 fixtureUser.SecurityStamp ??= Guid.NewGuid().ToString();
                 fixtureUser.ConcurrencyStamp ??= Guid.NewGuid().ToString();
                 fixtureUser.PasswordHash = userManager.PasswordHasher.HashPassword(fixtureUser, FixturePassword);
+
+                // ALSO WHAT CreateAsync WOULD HAVE FILLED IN, AND THE REASON LOGIN WORKED FOR ONE
+                // FIXTURE AND NOT THE OTHER.
+                //
+                // UserManager.CreateAsync normalizes the user name and the email into
+                // NormalizedUserName / NormalizedEmail as part of creating the row. Writing the
+                // user through the DbContext (the fix above) skips that, so both columns were
+                // written as NULL. Identity's FindByNameAsync and FindByEmailAsync query those
+                // columns and nothing else, so:
+                //
+                //   * test@test.com was normalized by AddToRoleAsync below (it updates through the
+                //     UserManager, which normalizes as a side effect) and signed in;
+                //   * test1@test.com was never touched again, stayed NULL, and
+                //     AccessControlController.ValidateSignInAsync answered 401 InvalidCredentials
+                //     for a row that exists with the right password hash.
+                //
+                // The mobile end-to-end suite signs in as test1@test.com, so every spec that did
+                // stopped on the Login screen showing "Incorrect login information!" - a message
+                // that reads like a wrong password and sent the investigation to the wrong place.
+                // Normalizing here, through Identity's own normalizer, keeps the row identical to
+                // the one CreateAsync would have written.
+                fixtureUser.NormalizedUserName = userManager.KeyNormalizer.NormalizeName(fixtureUser.UserName);
+                fixtureUser.NormalizedEmail = userManager.KeyNormalizer.NormalizeEmail(fixtureUser.Email);
             }
 
             // The users are written on their own, before anything that names them.
@@ -168,10 +191,12 @@ namespace EasyFinance.Server.Config
             // The role is the one part of the fixture that must go through Identity: it writes the
             // AspNetUserRoles join row, which nothing else may touch.
             //
-            // The user is looked up by ID. Only CreateAsync fills in the normalized user name and
-            // email, so the rows this context writes leave them empty and FindByNameAsync /
-            // FindByEmailAsync find nothing here. Identity normalizes and persists both columns as
-            // part of this update, so the account looks up normally from then on.
+            // The user is looked up by ID, which reads the primary key rather than the normalized
+            // columns: those are filled in explicitly above, because a row written through this
+            // context would otherwise leave them NULL and neither FindByNameAsync nor
+            // FindByEmailAsync would ever find it. Only the first fixture user is granted here;
+            // the second one is not, which is exactly why it had to be normalized above instead
+            // of relying on this call's side effect.
             var roleUser = await userManager.FindByIdAsync(user.Id.ToString());
             if (roleUser is null)
             {

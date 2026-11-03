@@ -283,6 +283,38 @@ describe('PinEntryScreen', () => {
     });
   });
 
+  // THE MESSAGE IS SHOWN ONCE, AND IT IS ONE SENTENCE.
+  //
+  // The screen used to render "N attempt(s) remaining" twice at the same time: once as the
+  // error inside the card (`setError(t('PinAttemptsRemaining', …))`) and once again in the
+  // line below it (`remaining < MAX_ATTEMPTS` → the same key). The customer saw the count
+  // stated twice, and the Detox suite could not assert on it at all — `by.text` matched both
+  // views and Detox fails an assertion that matches more than one element, which is what
+  // broke `e2e/auth/02-login.e2e.js` › "refuses a wrong PIN and keeps the customer out".
+  it('states the attempts left exactly once after a wrong PIN', async () => {
+    mockPinLength = 4;
+    mockVerifyPin.mockResolvedValue(false);
+    await act(async () => { render(<PinEntryScreen navigation={mockNavigation} route={mockRoute} />); });
+    await tap('1'); await tap('2'); await tap('3'); await tap('4');
+
+    await waitFor(() => expect(screen.getAllByText('PinAttemptsRemaining')).toHaveLength(1));
+  });
+
+  // ...and the remaining line must not come back on its own once the error is dismissed by
+  // the next key press: the screen would then show a count the customer has no reason to read.
+  it('does not re-show the attempts line after the next key press', async () => {
+    mockPinLength = 4;
+    mockVerifyPin.mockResolvedValue(false);
+    await act(async () => { render(<PinEntryScreen navigation={mockNavigation} route={mockRoute} />); });
+    await tap('1'); await tap('2'); await tap('3'); await tap('4');
+    await waitFor(() => expect(screen.getAllByText('PinAttemptsRemaining')).toHaveLength(1));
+
+    // `handleDigit` clears the error at the start of a new attempt.
+    await tap('1');
+
+    expect(screen.queryByText('PinAttemptsRemaining')).toBeNull();
+  });
+
   it('signs out on forgot PIN press', async () => {
     await act(async () => { render(<PinEntryScreen navigation={mockNavigation} route={mockRoute} />); });
     await act(async () => {

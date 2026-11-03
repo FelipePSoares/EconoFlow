@@ -6,11 +6,9 @@ distro**: the API stack (Docker), the emulator (KVM), Metro, the APK build and t
 is only the editor — nothing on the Windows side is needed at run time.
 
 > **Read this before you start.** Sections 1–7 were executed on this machine, in this order, and
-> work as written (re-verified end to end after the emulator was restarted). **The suite itself
-> does not pass yet: it stops at 5 passed / 22 failed, in the same place every run.** That is an
-> app/harness defect, not a setup problem — see
-> [Current state: where the suite stops](#current-state-where-the-suite-stops). Get the run
-> reproducing first, then fix it.
+> work as written (re-verified end to end after the emulator was restarted). For what used to
+> stop the suite and what was wrong with it, see
+> [Root causes found and fixed](#root-causes-found-and-fixed).
 
 **How to drive this from an agent.** Every command below is written for that agent: one
 `wsl -d Ubuntu -- bash -lc '<command>'` call per step, self-contained. Two things bite:
@@ -349,37 +347,67 @@ one number is the fastest triage signal.
 
 ---
 
-## Current state: where the suite stops
+## Root causes found and fixed
 
-Three clean runs on this machine failed identically: **5 passed / 22 failed.**
+The suite used to stop at `02-login` › "signs in and starts the session at the PIN", with
+everything after it cascading. Four separate defects were behind it; each one alone was enough
+to stop the run, and each one showed up on screen as "a wait that timed out on a screen that
+was there all along".
 
-| Spec | Result |
-|------|--------|
-| `02-login` — sign out · signed-out device · wrong password | ✅ 3 pass |
-| `02-login` — **signs in and starts the session at the PIN setup** | ❌ stops here |
-| everything after it (`02-login` rest, `03-biometricUnlock`, `01-signUp` most) | ❌ cascades |
-| `01-signUp` — starts on Login · password-confirmation rule | ✅ 2 pass |
+| # | Where | What was wrong | Evidence | Fixed by |
+|---|-------|----------------|----------|----------|
+| 1 | `EasyFinance.Server/Config/DevelopmentTestDataSeeder.cs` | The fixture users were written straight through the `DbContext`, so `NormalizedEmail` / `NormalizedUserName` stayed `NULL`. Identity's `FindByEmailAsync` — the login path — matches `NormalizedEmail`, so `test1@test.com` answered **401** for a row that exists with the right password hash. | `fixture-user.sh` printed `test1@test.com \| <NULL> \| <NULL>`; `api-login.sh` answered `HTTP 401`. After the fix: `HTTP 200`. | The seeder now normalizes both columns through `userManager.KeyNormalizer`. Pinned by `DevelopmentTestDataSeederGraphTests.SeedAsync_ShouldWriteUsersTheLoginCanFind` / `…ShouldStoreTheNormalizedNameAndEmail`. |
+| 2 | `src/screens/auth/PinEntryScreen.tsx` | "N attempt(s) remaining" was rendered **twice** — once as the error card, once as a separate `attemptsText` line with the same key. The customer read the sentence twice, and `by.text` matched two views, which Detox rejects. | Detox: `'…matches 2 views in the hierarchy'`, both `text=4 attempt(s) remaining`. | The duplicate line is gone; the error card carries `testID="pin-attempts-remaining"`. Pinned by `PinEntryScreen.test.tsx` › "states the attempts left exactly once". |
+| 3 | `src/navigation/SessionNavigator.tsx` | It subscribed to the **whole** PIN and biometric stores, so saving the PIN re-rendered it, rebuilt `<Stack.Navigator>`, and remounted the stack on `initialRouteName` — discarding the `replace('BiometricEnroll')` dispatched a moment earlier. The customer created a PIN and was put back on the keypad. | The app's own trail: `pinsetup.navigate.dispatch {"target":"BiometricEnroll"}` → `screen.unmount` → `session.mount {"entry":"PinEntry","hasPin":true}`. | The answers are read once via `getState()` in a lazy `useState`; nothing re-renders on a later store change. Pinned by `SessionNavigator.test.tsx`. |
+| 4 | `e2e/support/*.js` and the three specs | Screen transitions were probed with `expect(...).toExist()`, which samples **once** instead of polling; the PIN create/confirm steps were told apart by a **translated sentence**; and the biometric offer was declined *after* `waitForApp`, although it sits in front of the app. | `biometric-enroll-cannot-offer` never appeared in `detox.log`, i.e. the helper decided "nothing to decline" one frame before the offer arrived. | `appears()` (polling) replaces the single-sample checks, `passDevicePin()` is the one copy of the PIN steps, `pin-create-title`/`pin-confirm-title` are the step ids, and the offer is answered before the app is awaited. |
 
-Evidence at the failure — start here, do not re-derive:
+**What was NOT the problem**, so do not chase it again: the emulator, memory, `adb reverse`,
+the deep-link entry point, the password, or a 2FA prompt.
 
-1. The failure artifact `testFnFailure.png` shows the Login screen **still displaying
-   `Incorrect login information!`** after the test cleared the fields and typed the correct
-   credentials: the second submit either never happened or was rejected.
-2. The device log right after: `The action 'RESET' with payload {"routes":[{"name":"PinSetup"}]}
-   was not handled by any navigator` — a login completed somewhere, but the navigator had no
-   `PinSetup` to reset to.
-3. The emulator was **healthy** throughout (15 s watchdog: `qemu=up`, app process alive, window
-   focused, ~6.8 GB used). Not a crash, not memory, not a dropped device.
+### A fifth thing that is not the app's fault: the emulator has no fingerprint
 
-Leads, in order:
+`03-biometricUnlock` needs a finger **already enrolled** on the emulator. `adb -e emu finger
+touch 1` only *simulates a touch* — it does not create an enrolment. A freshly created
+`Pixel_7_API_35` reports `"count":0`, so `isEnrolledAsync()` answers false, the app shows its
+"nothing to offer" shape instead of the offer, and the spec waits for a sensor that nothing
+will ever open.
 
-- **`LoginScreen` error state and re-submit**: `loginError` is only cleared on submit, and the
-  button is disabled while `loginMutation.isPending`. Check whether `clearText` + `typeText` +
-  `tap` actually re-submits — a manual pass through the same taps did *not* reproduce it, so the
-  difference is in how Detox drives the form.
-- **`SessionNavigator`**: where the post-login tree is chosen, and whether a stale navigator (the
-  activity is `singleTask`, which only gets `onHostResume`) can lack `PinSetup` when a login lands.
-- **Whether the spec sequence is realistic** (sign out → failed login → login on the same screen).
+```bash
+scripts/wsl/enroll-finger.sh          # "count":N
+scripts/wsl/enroll-finger.sh enroll   # drives the system wizard, headless
+```
+
+The enrolment is **device state**: it survives `pm clear pt.econoflow.mobile`, an app
+reinstall and a Detox run, but **not** an emulator restart (`-no-snapshot` starts from the AVD's
+saved state, which now includes it, but a recreated AVD does not). Check it with `state.sh`
+before every run.
+
+### Diagnostic scripts (run these before reading `detox.log`)
+
+`detox.log` is mostly harness chatter, and the failure text is two screens of JSON. These answer
+the common questions in one call, and they live in files because an inline
+`wsl -- bash -lc '…'` loses globs and quoting:
+
+| Script | Answers |
+|--------|---------|
+| `state.sh` | is anything at all up (qemu, device, metro, api, reverse, app, instrumentation, memory) |
+| `boot.sh [status]` | start (or ask about) the headless emulator |
+| `wire.sh [reverse]` | install both APKs and/or re-create the `adb reverse` rules |
+| `api-login.sh` | does the seeded mobile login answer 200 (what the app sends) |
+| `fixture-user.sh` | the fixture rows as the database holds them, `NormalizedEmail` included |
+| `device-api-check.sh` | the same, from the device's own loopback |
+| `sync.sh` | copy the Windows checkout into `~/econoflow` |
+| `results.sh [match]` | the failing cases and the start of each failure message |
+| `artifacts.sh` | the newest run's files, with screenshot sizes (≈20 KB = blank, > 500 KB = rendered) |
+| `shot.sh <case-substring>` | copy one case's screenshot to `~` so it can be opened from Windows |
+| `devicelog.sh <case-substring>` | the app's native trail (`EconoFlowTrace`) and any JS/Java error for one case |
+| `loggrep.sh <pattern>` / `loglines.sh <start> [end]` | search / slice the newest `detox.log` |
+| `enroll-finger.sh [enroll]` | is a fingerprint enrolled on the emulator (the biometric spec cannot pass without one) |
+| `gitea-check.sh` | do the Gitea NuGet credentials still work (needed only to rebuild the dev image) |
+
+`devicelog.sh` is usually the decisive one: the trail names the screen that mounted and the
+navigation that was dispatched, which is exactly what "it timed out on a screen that was there"
+turns out to mean.
 
 ### Known issue: the window stops drawing
 

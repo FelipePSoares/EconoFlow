@@ -363,6 +363,7 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
         style={styles.fill}
         contentContainerStyle={[styles.scroll, { paddingTop: topInset + 10, paddingBottom: insets.bottom + 32 }]}
         showsVerticalScrollIndicator={false}
+        testID="profile-scroll"
       >
         {/* Avatar + name */}
         <View style={styles.heroSection}>

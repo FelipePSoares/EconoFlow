@@ -1,9 +1,10 @@
 import { by, device, element, expect, waitFor } from 'detox';
 import { PIN, SEEDED_ACCOUNT } from '../support/accounts';
-import { declineBiometricOffer, offerFingerprint } from '../support/biometrics';
+import { answerSystemSensorIfShown, declineBiometricOffer, offerFingerprint } from '../support/biometrics';
 import {
+  appears,
   TAB_OVERVIEW,
-  exists,
+  passDevicePin,
   signOutThroughProfile,
   typePin,
   waitForApp,
@@ -60,7 +61,12 @@ describe('Biometric unlock', () => {
     // First time on this device, the offer is shown after the PIN; it is accepted here
     // because the whole point of this file is the sensor that follows. A device that has
     // already answered keeps its answer, and this case then simply proves the app opens.
-    if (await exists('biometric-enroll-enable')) {
+    //
+    // The button is *waited* for, not sampled: the offer is a navigation, so an immediate
+    // `exists()` can look before the screen has arrived and skip the tap on a device that was
+    // about to show it — which is how this case used to end up waiting for an app that
+    // nothing was going to open.
+    if (await appears('biometric-enroll-enable', 15000)) {
       await element(by.id('biometric-enroll-enable')).tap();
       await offerFingerprint();
     }
@@ -76,7 +82,10 @@ describe('Biometric unlock', () => {
     await stopApp();
     await device.launchApp({ newInstance: false, permissions: { notifications: 'deny' } });
 
-    await offerFingerprint();
+    // Offered across the whole start-up window, not once: the relaunch returns before the JS
+    // bundle has run, so a single touch lands while no prompt exists yet and is dropped. The
+    // gate then asks a moment later and waits for an answer that never comes.
+    await answerSystemSensorIfShown();
     await waitForApp(60000);
     await expect(element(by.id('main-navigator'))).toBeVisible();
     await expect(element(by.id('pin-key-1'))).not.toExist();
@@ -90,7 +99,7 @@ describe('Biometric unlock', () => {
     await stopApp();
     await device.launchApp({ newInstance: false, permissions: { notifications: 'deny' } });
 
-    await offerFingerprint();
+    await answerSystemSensorIfShown();
     await waitForApp(60000);
     await expect(element(by.id('pin-key-1'))).not.toExist();
     await expect(element(by.text('Create App PIN'))).not.toExist();
@@ -124,19 +133,13 @@ describe('Biometric unlock', () => {
  * Signs the seeded account in and gets past the device's PIN — creating it when the device
  * has none, entering it when it has one. Leaves the app on whatever follows the PIN (the
  * biometrics offer, or the app itself).
+ *
+ * The PIN steps live in `support/cells.js`: three specs drive them and each used to carry
+ * its own copy, so each could get the same transition wrong on its own.
  */
 async function signInAndPassPin() {
   await element(by.id('login-email')).typeText(SEEDED_ACCOUNT.email);
   await element(by.id('login-password')).typeText(SEEDED_ACCOUNT.password);
   await element(by.id('login-submit')).tap();
-  await waitForKeypad(60000);
-
-  if (await exists('pin-create-continue')) {
-    await typePin(PIN);
-    await element(by.id('pin-create-continue')).tap();
-    await waitFor(element(by.text('Confirm your PIN'))).toBeVisible().withTimeout(15000);
-    await typePin(PIN);
-    return;
-  }
-  await typePin(PIN);
+  await passDevicePin();
 }
