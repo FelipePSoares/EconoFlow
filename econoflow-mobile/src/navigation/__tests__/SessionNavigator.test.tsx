@@ -13,7 +13,7 @@ import { act, render, screen } from '@testing-library/react-native';
  * just dispatched.
  *
  * The app's own native trail shows it happening, between two events one tenth of a second
- * apart (`scripts/wsl/trail.sh`):
+ * apart (`adb logcat -s EconoFlowTrace`):
  *
  * ```
  * 17 pinsetup.navigate.dispatch {"target":"BiometricEnroll","onScreen":true}

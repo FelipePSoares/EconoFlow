@@ -5,10 +5,3 @@
 # and the container would fail at start-up with a message that has nothing to do with the
 # script ("not found" pointing at the shebang).
 docker/*.sh text eol=lf
-
-# The WSL helper scripts are executed by bash inside the Ubuntu distro the Detox suite runs
-# in. With CRLF endings bash fails on the FIRST line with `set: -: invalid option` — an error
-# that says nothing about line endings, and that kept the whole e2e runbook behind a syntax
-# error. They were committed with CRLF and could not run at all; pin them to LF here so a
-# checkout on Windows (core.autocrlf=true) still produces files Linux can execute.
-econoflow-mobile/scripts/wsl/*.sh text eol=lf

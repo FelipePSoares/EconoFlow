@@ -306,40 +306,44 @@ known, from running it on the emulator:
 - A **debug** build contains no JavaScript bundle. React Native's debug builds load the bundle
   from a Metro dev server, and this project has no such server running, so the app starts and
   never signals ready — Detox reports `Failed to run application on the device` for every spec.
-  Embedding the bundle in the debug APK (`react { debuggableVariants = [] }`) fixes that part
-  and the bundle is then present (`assets/index.android.bundle`), but **the suite still fails**:
-  the instrumentation session dies before Detox's ready handshake (`Force stopping … start
-  instr`, then `Failure reporting to instrumentation watcher` and `System.exit status: 0`).
+  Locally, Metro is part of the setup (see [e2e/ENVIRONMENT.md](./e2e/ENVIRONMENT.md) §4): with
+  it running the specs do drive the app.
 - A **release** app cannot be used: Detox's test APK is generated for the debug variant only
   (AGP has no `assembleReleaseAndroidTest`), and pairing it with a release app crashes the
   runner with `ClassNotFoundException: kotlin.jvm.internal.Intrinsics`.
 
-Diagnosing that instrumentation failure is the prerequisite for running the suite anywhere —
-including in CI.
+CI still needs the Metro/bundle question solved before the job can come back.
 
 ### Running the suite
 
-```powershell
-# terminal 1 — the API and database the specs use
-docker compose -f docker-compose.dev.yml up -d
+The full procedure — the stack on plain HTTP, the unlocked emulator, the two APKs, Metro, the
+`adb reverse` bridges and a checklist that turns "which part is broken?" into eight questions —
+is in **[e2e/ENVIRONMENT.md](./e2e/ENVIRONMENT.md)**. In short:
 
-# terminal 2 — the emulator, and the port bridge the app's EXPO_PUBLIC_API_URL needs
-emulator -avd Pixel_7_API_35 &
+```powershell
+# terminal 1 — the API and database the specs use, on a fresh volume
+docker compose -f docker-compose.dev.yml down -v
+docker compose -f docker-compose.dev.yml up -d --build
+
+# terminal 2 — the emulator (unlocked), the port bridges, and Metro in the POSIX working copy
+# (`emulator` must be the SDK's own binary: put "$ANDROID_HOME/emulator" on PATH first)
+nohup emulator -avd Pixel_7_API_35 -no-window -gpu swiftshader_indirect > ~/emulator.log 2>&1 &
 adb reverse tcp:7003 tcp:7003
+adb reverse tcp:8081 tcp:8081
+npx expo start --port 8081
 
 # terminal 3
 cd econoflow-mobile
-npm run e2e:test                       # the whole suite
-npx detox test -c android.emu.debug e2e/auth/login.e2e.js   # one spec
-npm run e2e:build && npm run e2e:test  # after source changes
+npm run e2e:build                      # both APKs, for the emulator's ABI
+DETOX_CI=1 DETOX_CI_ADB=emulator-5554 npx detox test -c android.emu.debug --reuse --maxWorkers 1
 ```
 
 | Command | What it does |
 |---------|--------------|
 | `npm run e2e:build` | `assembleDebug` + `assembleDebugAndroidTest` for the emulator's ABI |
 | `npm run e2e:test` | builds nothing, installs both APKs and runs `e2e/**/*.e2e.js` |
+| `DETOX_CI=1 … npx detox test -c android.emu.debug --reuse` | attaches to the running emulator instead of booting one |
 | `npx detox test -c android.emu.debug --record-logs all` | keeps device logs of passing tests too |
-| `npx detox test -c android.emu.debug -r` | reuses the installed build (fastest loop) |
 
 Failure artifacts (screenshots, device log, view hierarchy) land in `e2e/artifacts/`, which is
 git-ignored. `DETOX_AVD_NAME` overrides the emulator (`Pixel_7_API_35` by default).

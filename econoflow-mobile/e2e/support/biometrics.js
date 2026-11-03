@@ -13,9 +13,9 @@ import { by, element, waitFor } from 'detox';
  *
  * `1` is the finger enrolled on the AVD (`Pixel_7_API_35`). **A fingerprint has to be enrolled
  * for any of this to work** — `adb -e emu finger touch 1` only simulates a touch, it does not
- * create an enrolment. `scripts/wsl/enroll-finger.sh` reports and creates it; with nothing
- * enrolled the app answers `isEnrolledAsync()` false, shows its "nothing to offer" shape, and
- * the sensor is never asked at all.
+ * create an enrolment. With nothing enrolled the app answers `isEnrolledAsync()` false, shows
+ * its "nothing to offer" shape, and the sensor is never asked at all; enroll one finger in the
+ * emulator's own Settings → Security → Fingerprint (see `e2e/ENVIRONMENT.md`).
  *
  * The command returns once the emulator has delivered the touch; the dialog then closes and
  * the app carries on by itself.

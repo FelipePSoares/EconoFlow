@@ -112,7 +112,7 @@ describe('Login', () => {
     // The offer is declined, so this spec's later cases see a device whose biometrics are
     // **off** and can prove "a restart asks for the PIN, not the sensor". Whether the full
     // offer or the "nothing to offer" shape appears depends on whether the emulator has a
-    // finger enrolled (`scripts/wsl/enroll-finger.sh`) — both are handled, and `false` simply
+    // finger enrolled (see `e2e/ENVIRONMENT.md`) — both are handled, and `false` simply
     // means there was nothing to answer.
     await declineBiometricOffer();
 
