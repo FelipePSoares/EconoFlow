@@ -352,6 +352,119 @@ namespace EasyFinance.Server.Tests
         }
 
         /// <summary>
+        /// The seeded password is the one the login verifies, not just the one the seeder hashes.
+        ///
+        /// <para>
+        /// The two lookups above prove the row can be <i>found</i>; they say nothing about
+        /// signing in, and that is the half that actually failed. A fresh dev stack answered
+        /// <c>401</c> for <c>test1@test.com</c> while the row existed with a password hash and
+        /// a populated <c>NormalizedEmail</c> — so the stored hash did not verify the fixture
+        /// password, and the whole mobile end-to-end suite stopped there.
+        /// </para>
+        ///
+        /// <para>
+        /// Asserted through <c>UserManager.CheckPasswordAsync</c>, which is what
+        /// <c>SignInManager.CheckPasswordSignInAsync</c> calls from
+        /// <c>AccessControlController.ValidateSignInAsync</c>. A hash written during the seed
+        /// must therefore be readable by the same manager after the write, whatever
+        /// <c>DbContext</c> wrote it.
+        /// </para>
+        /// </summary>
+        [Fact]
+        public async Task SeedAsync_ShouldStoreAHashTheSignInVerifies()
+        {
+            var databaseName = $"SeederGraph_{Guid.NewGuid():N}";
+            await using var provider = BuildSeederServices(databaseName);
+
+            await PrepareRolesAsync(provider);
+
+            var result = await EasyFinance.Server.Config.DevelopmentTestDataSeeder.SeedAsync(provider);
+
+            result.Succeeded.Should().BeTrue($"Errors: {DescribeMessages(result)}");
+
+            using (var scope = provider.CreateScope())
+            {
+                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+
+                foreach (var seeded in result.Data)
+                {
+                    // Exactly what a login does: find the row by email, then verify the password.
+                    var found = await userManager.FindByEmailAsync(seeded.Email!);
+                    found.Should().NotBeNull($"the end-to-end suite signs in as {seeded.Email}");
+
+                    var passwordOk = await userManager.CheckPasswordAsync(
+                        found!,
+                        EasyFinance.Server.Config.DevelopmentTestDataSeeder.FixturePassword);
+
+                    passwordOk.Should().BeTrue(
+                        $"{seeded.Email} has to accept the fixture password "
+                        + $"'{EasyFinance.Server.Config.DevelopmentTestDataSeeder.FixturePassword}' "
+                        + "the end-to-end suite signs in with — a row that is found but whose "
+                        + "hash does not verify answers 401, which reads like a wrong password");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Seeding twice leaves a usable fixture, instead of killing the second start.
+        ///
+        /// <para>
+        /// The seeder writes in two phases — the users, then the graph that names them — so a
+        /// start-up that fails after the first phase leaves the users behind. The container
+        /// restarts by itself (<c>restart: unless-stopped</c>), so the second attempt re-adds the
+        /// same fixed ids and PostgreSQL answers <c>23505 duplicate key value violates unique
+        /// constraint "PK_AspNetUsers"</c>, which <c>Program.cs</c> turns into a fatal start-up
+        /// error: the stack never comes up again, however many times it restarts.
+        /// </para>
+        ///
+        /// <para>
+        /// A fixture is development scaffolding with fixed identities, so the rule is "make the
+        /// database hold what the seeder describes", not "insert it once": a row that already
+        /// exists is reused, and the graph is written against it.
+        /// </para>
+        /// </summary>
+        [Fact]
+        public async Task SeedAsync_ShouldSurviveBeingRunTwice()
+        {
+            var databaseName = $"SeederGraph_{Guid.NewGuid():N}";
+            await using var provider = BuildSeederServices(databaseName);
+
+            await PrepareRolesAsync(provider);
+
+            var first = await EasyFinance.Server.Config.DevelopmentTestDataSeeder.SeedAsync(provider);
+            first.Succeeded.Should().BeTrue($"Errors: {DescribeMessages(first)}");
+
+            // The second start of the same container: the users are already stored.
+            var second = await EasyFinance.Server.Config.DevelopmentTestDataSeeder.SeedAsync(provider);
+
+            second.Succeeded.Should().BeTrue(
+                "a container restart re-runs the seeder over the rows the previous attempt left; "
+                + "failing here restarts the container forever instead of starting it. "
+                + $"Errors: {DescribeMessages(second)}");
+
+            using (var scope = provider.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<EasyFinanceDatabaseContext>();
+                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+
+                var persisted = await context.Users.ToListAsync();
+
+                persisted.Should().HaveCount(2,
+                    "the fixture is two users with fixed ids, not a new pair per start");
+
+                foreach (var seeded in second.Data)
+                {
+                    var found = await userManager.FindByEmailAsync(seeded.Email!);
+                    found.Should().NotBeNull($"{seeded.Email} is the account the suite signs in as");
+
+                    (await userManager.CheckPasswordAsync(
+                        found!, EasyFinance.Server.Config.DevelopmentTestDataSeeder.FixturePassword))
+                        .Should().BeTrue($"a second seed must not change {seeded.Email}'s password");
+                }
+            }
+        }
+
+        /// <summary>
         /// Creates the system roles the seeder assigns, the way
         /// <c>Program.cs</c> does before it seeds.
         /// </summary>
