@@ -3,6 +3,7 @@ import { AppState, AppStateStatus } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useTranslation } from 'react-i18next';
 import { useBiometricStore } from '../store/biometricStore';
+import { trace } from '../diagnostics/trace';
 
 /**
  * How many times the sensor may fail before the app stops asking and leaves the PIN as the
@@ -134,12 +135,19 @@ export const useBiometricUnlock = (
     // the mount, not by this flag, and the native module already serialises its dialogs.
     // Once the attempts are used up the PIN is the only way in; only a deliberate
     // "try biometrics again" may open one more prompt.
-    if (!explicit && failures >= MAX_BIOMETRIC_FAILURES) return;
+    trace('biometric.prompt.requested', { explicit, failures });
+    if (!explicit && failures >= MAX_BIOMETRIC_FAILURES) {
+      trace('biometric.prompt.skipped', { reason: 'exhausted', failures });
+      return;
+    }
     const attempt = ++attemptId.current;
     // Opened on the next tick: the automatic attempt runs from an effect, and the busy
     // flags it sets here must not be a synchronous state write inside one.
     await new Promise((resolve) => { setTimeout(resolve, 0); });
-    if (!mounted.current || attempt !== attemptId.current) return;
+    if (!mounted.current || attempt !== attemptId.current) {
+      trace('biometric.prompt.skipped', { reason: 'stale', mounted: mounted.current, attempt });
+      return;
+    }
     setPrompting(true);
     // The user is trying again: the next failure must be judged on its own merits.
     setLockedOut(false);
@@ -157,8 +165,12 @@ export const useBiometricUnlock = (
     } catch {
       checked = false;
     }
+    trace('biometric.device', { checked, hasHardware, isEnrolled, attempt });
     // A newer attempt owns the busy state: it must not be cleared from under it.
-    if (!mounted.current || attempt !== attemptId.current) return;
+    if (!mounted.current || attempt !== attemptId.current) {
+      trace('biometric.prompt.skipped', { reason: 'stale-after-device', attempt });
+      return;
+    }
 
     if (!checked) {
       // The lock stays and the sensor can be asked again; a real refusal below still
@@ -180,6 +192,14 @@ export const useBiometricUnlock = (
         cancelLabel: t('ButtonCancel'),
         disableDeviceFallback: false,
       });
+      // The restart path is the one that cannot be observed from outside the app: the sensor is
+      // an OS dialog, so this line is what tells "the prompt was never answered" apart from
+      // "it was answered and the callback did not open the app".
+      if (result.success) {
+        trace('biometric.result', { success: true, attempt });
+      } else {
+        trace('biometric.result', { success: false, error: result.error, attempt });
+      }
       if (!mounted.current) return;
 
       if (result.success) {
@@ -197,9 +217,10 @@ export const useBiometricUnlock = (
       interrupted.current = false;
       if (result.error === 'lockout') setLockedOut(true);
       setFailures((previous) => previous + 1);
-    } catch {
+    } catch (error) {
       // A sensor that refuses to answer is the same outcome for the user as a failure,
       // and it must not leave the screen waiting forever.
+      trace('biometric.threw', { error: String(error), attempt });
       if (mounted.current) setFailures((previous) => previous + 1);
     } finally {
       if (mounted.current && attempt === attemptId.current) setPrompting(false);

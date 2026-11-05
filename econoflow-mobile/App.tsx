@@ -2,7 +2,7 @@ import './src/i18n';
 import { initSentry, navigationIntegration } from './src/monitoring/sentry';
 import * as Sentry from '@sentry/react-native';
 import React, { useCallback, useEffect } from 'react';
-import { Linking, View, useColorScheme } from 'react-native';
+import { Linking, LogBox, View, useColorScheme } from 'react-native';
 import {
   NavigationContainer,
   DarkTheme as NavDarkTheme,
@@ -25,6 +25,25 @@ import { isE2eStartUrl } from './src/e2e/e2eStart';
 // Initialise Sentry before any React rendering.
 // Disabled in dev builds; enabled in production releases.
 initSentry();
+
+// ── The LogBox notification belongs to developers, not to the product ─────────
+//
+// A dev build opens a console warning in the LogBox: a black banner pinned over the bottom of
+// the screen. It arrives on every launch — `usePushNotifications` warns "Registration skipped
+// — not a physical device" — so it is not a warning somebody dismissed once, it is part of
+// what a debug build looks like. It is a **native overlay**, which means it covers the tab bar
+// for anything that measures what is on screen: Detox's `toBeVisible` needs 75% of a view
+// visible, and the integration suite's "the app opened on Overview" assertion failed on a
+// phone that was showing exactly that screen (the failure screenshot proves it, banner and
+// all).
+//
+// Ignoring the notification does not throw the warnings away: they still go to the console and
+// to `adb logcat`, which is what a diagnosis reads. Errors keep their red box — only the
+// dismissible notification is suppressed, and only in a dev build (a release build has no
+// LogBox at all).
+if (__DEV__) {
+  LogBox.ignoreAllLogs(true);
+}
 
 // Stable ref shared between NavigationContainer and Sentry's navigation
 // integration so that every screen transition is captured as a breadcrumb.

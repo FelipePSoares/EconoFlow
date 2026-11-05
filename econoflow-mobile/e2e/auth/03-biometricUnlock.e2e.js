@@ -11,7 +11,7 @@ import {
   waitForKeypad,
 } from '../support/cells';
 import { dismissNotificationRationale } from '../support/notificationPrompt';
-import { openAtLogin, stopApp } from '../support/urls';
+import { describeIds, openAtLogin, stopApp, traceStep, waitVisible } from '../support/urls';
 
 /**
  * The unlock a customer gets after enabling biometrics — the flow the report behind this
@@ -86,13 +86,25 @@ describe('Biometric unlock', () => {
     // bundle has run, so a single touch lands while no prompt exists yet and is dropped. The
     // gate then asks a moment later and waits for an answer that never comes.
     await answerSystemSensorIfShown();
-    await waitForApp(60000);
+
+    // **The notification rationale is answered before the tab bar is looked for, not after.**
+    // `MainNavigator` mounts the prompt, which reads the OS permission and then covers the
+    // bottom of the screen — the tab bar is behind it, and Detox's `toBeVisible` needs 75% of
+    // a view on screen, so `tab-overview` cannot match while the card is up. That is what the
+    // failure screenshot showed: Overview, with the card over it.
+    await dismissNotificationRationale();
+
+    // What Detox's own hierarchy says — the matcher acts on it, not on the pixels — carried
+    // out in the assertion message when the tab does not match.
+    const hierarchy = await describeIds(['main-navigator', TAB_OVERVIEW, 'lock-overlay']);
+    await waitVisible(TAB_OVERVIEW, 45000);
+    traceStep('overview visible');
+
     await expect(element(by.id('main-navigator'))).toBeVisible();
     await expect(element(by.id('pin-key-1'))).not.toExist();
     await expect(element(by.id('login-email'))).not.toExist();
-
-    // The app opens on the Overview tab — where every authenticated path lands.
-    await expect(element(by.id(TAB_OVERVIEW))).toBeVisible();
+    // Read only so a failure of the wait above can name what Detox saw.
+    void hierarchy;
   });
 
   it('asks the sensor again on the next launch, and not for the PIN', async () => {
@@ -100,7 +112,8 @@ describe('Biometric unlock', () => {
     await device.launchApp({ newInstance: false, permissions: { notifications: 'deny' } });
 
     await answerSystemSensorIfShown();
-    await waitForApp(60000);
+    await dismissNotificationRationale();
+    await waitVisible(TAB_OVERVIEW, 45000);
     await expect(element(by.id('pin-key-1'))).not.toExist();
     await expect(element(by.text('Create App PIN'))).not.toExist();
   });

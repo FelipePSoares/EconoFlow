@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process';
 import { by, device, element, waitFor } from 'detox';
 import { answerSystemSensorIfShown } from './biometrics';
 
@@ -50,6 +51,81 @@ export async function relaunchApp(url = START_URL) {
 /** Kills the app. */
 export async function stopApp() {
   await device.terminateApp();
+}
+
+/**
+ * Waits for an element to become visible, and says which one in the app's own trail when it
+ * does not.
+ *
+ * A Detox timeout reports the line in the helper, not the element: every "it never appeared"
+ * failure then looks identical, whichever wait it was. The failing case is reproduced with
+ * `--record-logs all`, so the trail of *that* case names the wait — which is the one fact no
+ * screenshot can give (the screen may have been right a moment later).
+ */
+export async function waitVisible(testID, timeout = 45000) {
+  try {
+    await waitFor(element(by.id(testID))).toBeVisible().withTimeout(timeout);
+  } catch (error) {
+    traceFromSpec('e2e.wait.failed', { testID, timeout });
+    throw error;
+  }
+}
+
+/**
+ * What Detox's own view hierarchy says about a few ids, as a one-line summary.
+ *
+ * A screenshot can show a screen that Detox still reports as invisible — that is exactly how
+ * the "a restart opens on Overview" case failed: the picture showed the tab bar and the
+ * hierarchy did not match it. The hierarchy is the authority the matcher acts on, and it can
+ * only be read through Detox, so its answer is returned here and carried out by whoever
+ * asserts next (a thrown assertion's message is what ends up in the report).
+ */
+export async function describeIds(testIDs) {
+  const parts = [];
+  for (const id of testIDs) {
+    try {
+      const attributes = await element(by.id(id)).getAttributes();
+      parts.push(
+        `${id}={visible:${attributes.visible}, hw:${attributes.hittable},`
+        + ` rect:${JSON.stringify(attributes.frame ?? null)}}`,
+      );
+    } catch (error) {
+      parts.push(`${id}=<${String(error).split('\n')[0].slice(0, 80)}>`);
+    }
+  }
+  return parts.join(' ');
+}
+
+/**
+ * The polling "is this on screen?" check, with its outcome in the trail.
+ *
+ * `appears` is used to *decide* things — is the offer here, is the keypad up — and a `false`
+ * it should not have returned is impossible to see afterwards. Recorded, the trail says which
+ * checks were made and how each ended.
+ */
+export async function traceAppears(testID, result, timeout) {
+  traceFromSpec('e2e.appears', { testID, result, timeout });
+}
+
+/**
+ * A named step in a spec, written to the same trail.
+ *
+ * Detox's timeout message names the helper's line, never the assertion that timed out — every
+ * "wait" failure reads the same whichever wait it was. The steps a case reaches are the only
+ * record of where it stopped, so they are written as they happen.
+ */
+export function traceStep(step) {
+  traceFromSpec('e2e.step', { step });
+}
+
+/** One trail line from the spec, read with `adb logcat -s EconoFlowTrace`. */
+function traceFromSpec(event, data) {
+  try {
+    const json = typeof data === 'undefined' ? '' : ` ${JSON.stringify(data)}`;
+    execSync(`adb -e shell log -t EconoFlowTrace "e2e ${event}${json}"`, { stdio: 'ignore' });
+  } catch {
+    // The trail is a diagnostic: a spec must never fail because it could not be written.
+  }
 }
 
 /**

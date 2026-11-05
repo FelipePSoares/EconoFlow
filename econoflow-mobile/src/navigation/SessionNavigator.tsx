@@ -1,5 +1,5 @@
 import React from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MainNavigator } from './MainNavigator';
 import { OnboardingNavigator } from './OnboardingNavigator';
@@ -11,6 +11,7 @@ import { isBiometricAnswerKnown, useBiometricStore } from '../store/biometricSto
 import { isPinAnswerKnown, usePinStore } from '../store/pinStore';
 import { sessionEntryScreen } from './sessionEntry';
 import type { StoredUnlock } from './sessionEntry';
+import { setSessionRoute } from './sessionRoute';
 import { trace } from '../diagnostics/trace';
 
 /**
@@ -65,11 +66,23 @@ export const SessionNavigator: React.FC = () => {
     answersReady() ? readStoredUnlock() : null,
   );
 
+  const entry = decided ? sessionEntryScreen(decided) : null;
+
+  // The session's current route is published for the pieces rendered outside this stack
+  // (`LockOverlay`, rendered by `App` over everything): a restart mounts both at once, and the
+  // overlay must not cover — or prompt on top of — the unlock gate (#1116).
+  //
+  // Published before the early return below, so the hook order never depends on whether the
+  // answers were ready: a `useEffect` after a conditional return is the one thing React
+  // forbids outright.
+  useEffect(() => {
+    setSessionRoute(entry);
+    return () => setSessionRoute(null);
+  }, [entry]);
+
   // Deciding before the answers arrive is the defect this navigator exists to prevent; the
   // moment between them is a frame, and `AppGate` normally covers it entirely.
-  if (!decided) return null;
-
-  const entry = sessionEntryScreen(decided);
+  if (!decided || !entry) return null;
 
   // One line per mount: the route the session opens on is the fact every blank-screen report
   // turns on, and it is only knowable from here (see `src/utils/trace.ts`).

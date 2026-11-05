@@ -20,6 +20,7 @@ import {
 } from '../../store/pinStore';
 import { useLockStore } from '../../store/lockStore';
 import { useBiometricUnlock } from '../../hooks/useBiometricUnlock';
+import { trace } from '../../diagnostics/trace';
 
 import { GlassScreen } from '../../components/common/GlassScreen';
 import { GlassCard } from '../../components/common/GlassCard';
@@ -55,8 +56,34 @@ export const BiometricGateScreen: React.FC<Props> = ({ navigation }) => {
   // *subscribed to*, not sampled — a login re-reads both stores, and the gate mounts over
   // that read, so the screen has to re-render when it lands as well as when the next one
   // starts.
-  const pinKnown = useSyncExternalStore(subscribePinAnswering, isPinAnswerKnown);
-  const biometricKnown = useSyncExternalStore(subscribeBiometricAnswering, isBiometricAnswerKnown);
+  //
+  // The hook takes a snapshot function, so the first render already sees the answer that
+  // landed *before* this screen mounted. Returning the bare `is*AnswerKnown` predicates made
+  // that first render read "not known" — and this screen then rendered nothing until the next
+  // store change, which on a relaunch never comes: the reads had already finished. The result
+  // was a black screen for the whole restart case.
+  const pinKnown = useSyncExternalStore(subscribePinAnswering, isPinAnswerKnown, isPinAnswerKnown);
+  const biometricKnown = useSyncExternalStore(
+    subscribeBiometricAnswering,
+    isBiometricAnswerKnown,
+    isBiometricAnswerKnown,
+  );
+
+  // Every render says so, before any early return: this screen is the one that is invisible to
+  // the suite when the OS sensor dialog has the focus, so its own line is what tells "the gate
+  // is up and waiting" apart from "nothing was mounted at all".
+  trace('gate.render', {
+    answersKnown: pinKnown && biometricKnown,
+    hasPin,
+  });
+
+  // The session's first screen with nothing of its own to show while the reads land: one line
+  // naming it in the trail, exactly like the other session screens (`useScreenTrace`).
+  useEffect(() => {
+    trace('screen.mount', { screen: 'BiometricGate' });
+    // Mount only: an unmount line is not what this diagnosis needs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     // The gate is the first screen of a session and cannot rely on whoever created it to
@@ -69,6 +96,9 @@ export const BiometricGateScreen: React.FC<Props> = ({ navigation }) => {
   const enterApp = useCallback(() => {
     setUnlocked();
     const target = needsOnboarding ? 'Onboarding' : 'Main';
+    // The unlock is the event every restart report turns on: it says whether the sensor was
+    // answered and which route the session was reset to.
+    trace('biometric.enter-app', { target, focused: navigation.isFocused() });
     navigation.reset({ index: 0, routes: [{ name: target }] });
   }, [setUnlocked, needsOnboarding, navigation]);
 
@@ -80,6 +110,14 @@ export const BiometricGateScreen: React.FC<Props> = ({ navigation }) => {
   const promptedOnce = useRef(false);
 
   const answersKnown = pinKnown && biometricKnown;
+
+  // The sensor is asked as soon as the screen is in front — once, and only while it is the
+  // way in. Read through a ref: the hook object is rebuilt on every render, and a prompt
+  // effect keyed on it opened the sensor twice on one mount.
+  const unlockRef = useRef(unlock);
+  useEffect(() => {
+    unlockRef.current = unlock;
+  }, [unlock]);
 
   // The sensor gave up (or this device has no usable one), or there is no PIN to fall back
   // to at all: the PIN takes over. This is a *response* — to the sensor failing, or to the
@@ -110,21 +148,37 @@ export const BiometricGateScreen: React.FC<Props> = ({ navigation }) => {
     // reading `unlock` here would re-run the handover for every render of the hook.
   }, [pinIsTheWay, hasPin, navigation]);
 
-  // The sensor is asked as soon as the screen is in front — once, and only while it is the
-  // way in. Read through a ref: the hook object is rebuilt on every render, and a prompt
-  // effect keyed on it opened the sensor twice on one mount.
-  const unlockRef = useRef(unlock);
-  useEffect(() => {
-    unlockRef.current = unlock;
-  }, [unlock]);
-
+  // The gate's own prompt can be cancelled before it reaches the sensor, and it must then be
+  // asked again (#1116 — the restart case).
+  //
+  // React runs every mount effect once, and repeats them when there is state to replay; the
+  // hook's attempt is deferred by a task (its `attemptId` ledger is reset by the cleanup that
+  // replay runs), so that first request can end as "stale" and return without opening the
+  // dialog. Measured on a relaunch: `session.mount {entry: BiometricGate}` → a black screen →
+  // the suite's 60 s timeout, with no prompt line in the trail at all.
+  //
+  // Re-arming on `unlock.prompting` covers exactly that: the hook reports the prompt it is
+  // opening, and an attempt that never got there leaves it `false`, which brings this effect
+  // back. A prompt that *is* opening sets it `true`, so this cannot loop.
   useEffect(() => {
     if (!answersKnown || pinIsTheWay) return;
+    trace('gate.prompt-effect', { answersKnown, promptedOnce: promptedOnce.current });
     if (!promptedOnce.current) {
       promptedOnce.current = true;
       void unlockRef.current.prompt();
     }
-  }, [answersKnown, pinIsTheWay]);
+  }, [answersKnown, pinIsTheWay, unlock.prompting]);
+
+  // What the gate decides, once per value that changes it.
+  useEffect(() => {
+    trace('gate.decided', {
+      answersKnown,
+      hasPin,
+      pinIsTheWay,
+      prompting: unlock.prompting,
+      unavailable: unlock.unavailable,
+    });
+  }, [answersKnown, hasPin, pinIsTheWay, unlock.prompting, unlock.unavailable]);
 
   const handleSignOut = () => {
     // No navigation call: `AppGate` renders the auth tree as soon as the store says the
