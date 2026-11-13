@@ -206,6 +206,18 @@ jobs:
         name: backend-build-debug
         path: .
 
+    # A runtimeconfig.dev.json that carries no additionalProbingPaths sends VSTest 18.7.1 (the one
+    # in .NET SDK 10.0.404) into a NullReferenceException in DotnetTestHostManager.GetTestHostPath
+    # before a single test runs: the job reports "0 passed, 1 failed" with no failing test. The
+    # build is supposed to leave the file out -- Directory.Build.props pins
+    # GenerateRuntimeConfigDevFile=false, the SDK's own post-net6.0 default -- and this drops any
+    # that a runner's SDK still put into the artifact. Without it VSTest uses the testhost.dll
+    # already copied next to the test assembly.
+    - name: Drop dev runtimeconfig files from the build outputs
+      run: |
+        echo "Removing any runtimeconfig.dev.json from the build outputs:"
+        find EasyFinance* -name '*.runtimeconfig.dev.json' -print -delete
+
     - name: Run .Net tests
       run: |
         dotnet test EasyFinance.Domain.Tests/EasyFinance.Domain.Tests.csproj --configuration Debug --no-build --no-restore --verbosity normal --logger trx --collect:"XPlat Code Coverage"

@@ -5,6 +5,20 @@
     <AnalysisLevel>latest</AnalysisLevel>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <WarningsNotAsErrors>$(WarningsNotAsErrors);CS8632;CS8625;CS8618;CS8602;CS8600;CS8601;CS8604;CS8629;CS8767;CS8616;NU1510</WarningsNotAsErrors>
+    <!--
+      Keep *.runtimeconfig.dev.json out of the build output. Turning it off is the SDK's own
+      post-net6.0 default (Microsoft.NET.Sdk.targets decides it from the target framework), so
+      this states the intent rather than changing modern builds: the Linux build of this
+      repository emitted one anyway, carrying no additionalProbingPaths. VSTest then takes its
+      testhost.dll lookup down a path that throws NullReferenceException in
+      DotnetTestHostManager.GetTestHostPath (18.7.1, shipped with .NET SDK 10.0.404) before any
+      test runs, so the job reports "0 passed, 1 failed and no failing test". Without the file
+      VSTest uses the testhost.dll copied next to the test assembly, which is present.
+      The build is not the only way in: the unit-tests job also drops the file from the
+      downloaded artifact before it runs the tests, and
+      EasyFinance.Domain.Tests/BuildOutputTests.cs fails when one lands next to the assembly.
+    -->
+    <GenerateRuntimeConfigDevFile>false</GenerateRuntimeConfigDevFile>
   </PropertyGroup>
 
   <ItemGroup>
