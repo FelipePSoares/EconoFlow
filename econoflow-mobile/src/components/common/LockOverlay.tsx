@@ -9,6 +9,7 @@ import { useBiometricStore } from '../../store/biometricStore';
 import { usePinStore } from '../../store/pinStore';
 import { useLockStore } from '../../store/lockStore';
 import { useAuthStore } from '../../store/authStore';
+import { isSessionOnUnlockScreen } from '../../navigation/sessionRoute';
 import { GlassScreen } from './GlassScreen';
 import { GlassCard } from './GlassCard';
 import { useAuroraSkin } from '../../theme/useAuroraSkin';
@@ -101,6 +102,10 @@ export const LockOverlay: React.FC = () => {
   const { biometricEnabled } = useBiometricStore();
   const { hasPin, verifyPin, clearPin } = usePinStore();
   const { setUnlocked } = useLockStore();
+  // Whether a lock is up at all. The overlay is only rendered while it is, but the *effects*
+  // run on every mount of `App`'s tree, and the unlock gate releases the lock when it hands
+  // the session over — that transition is what re-arms the effect above.
+  const isLocked = useLockStore((s) => s.isLocked);
   const { clearAuth, isAuthenticated } = useAuthStore();
   const { clearBiometric } = useBiometricStore();
 
@@ -191,6 +196,13 @@ export const LockOverlay: React.FC = () => {
   useEffect(() => {
     // Signed out: nothing to unlock, and no dialog over the Login screen.
     if (!isAuthenticated) return;
+    // The session's unlock gate owns the sensor while it is the screen in front (#1116). The
+    // overlay is mounted by `App` for the whole tree, so without this it opened its *own*
+    // prompt on a relaunch: two dialogs for one sensor, the customer's answer going to one of
+    // them, and a prompt the system cancelled for the other. The gate hands the session over
+    // by marking it unlocked, which re-runs this effect — the overlay's prompt is then the one
+    // a session that is already running gets, when it is locked again later (backgrounding).
+    if (isSessionOnUnlockScreen()) return;
     if (!biometricEnabled || !hasPin) return;
 
     const prompt = () => {
@@ -217,7 +229,7 @@ export const LockOverlay: React.FC = () => {
       subscription.remove();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, biometricEnabled, hasPin]);
+  }, [isAuthenticated, biometricEnabled, hasPin, isLocked]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -280,7 +292,15 @@ export const LockOverlay: React.FC = () => {
   // the lock store starts locked by design (so a relaunch cannot walk past the gate), and
   // this overlay is rendered for the whole app, so without this a fresh start showed a PIN
   // pad before anyone had signed in (#1052).
+  //
+  // The same rule covers the session's own unlock gate (#1116): a restart mounts the gate and
+  // this overlay at the same moment, and the gate is the screen that asks the sensor and hands
+  // the session over. Covering it — or opening a second sensor dialog on top of the gate's —
+  // is what kept a restart from ever reaching the app. The overlay is for a session that is
+  // already running; while the gate is in front, the gate is what the customer answers.
   if (!isAuthenticated) return null;
+
+  if (isSessionOnUnlockScreen()) return null;
 
   return (
     <View style={StyleSheet.absoluteFill} testID="lock-overlay">

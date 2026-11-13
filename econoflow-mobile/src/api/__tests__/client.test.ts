@@ -30,6 +30,16 @@ jest.mock('../../store/projectStore', () => ({
 jest.mock('../queryClient', () => ({
   queryClient: { clear: jest.fn() },
 }));
+
+/**
+ * Whether a lock screen is in front. A 401 whose refresh fails must not end the session while
+ * one is (see the two tests at the end of this file), so the interceptor asks this.
+ */
+const mockLockScreenVisible = jest.fn().mockReturnValue(false);
+
+jest.mock('../../navigation/sessionRoute', () => ({
+  isSessionOnUnlockScreen: () => mockLockScreenVisible(),
+}));
   
 jest.mock('../../i18n', () => ({
   __esModule: true,
@@ -270,5 +280,58 @@ describe('apiClient interceptors – auto-logout data cleanup', () => {
     await expect(apiClient.get('/api/expenses')).rejects.toBeDefined();
 
     expect(mockClearProject).toHaveBeenCalledTimes(1);
+  });
+
+  /**
+   * A failed refresh must not sign the customer out while a lock screen is in front (#1116).
+   *
+   * The mobile suite's restart cases showed why: on a relaunch the app opens the biometric gate,
+   * the gate asks the sensor, and a background request 401s meanwhile. Its refresh is refused,
+   * the interceptor calls `clearAuth()`, and the session is destroyed under the still-open
+   * sensor dialog - the gate unmounts and nothing reaches the app. In the trail:
+   *
+   *   biometric.prompt.requested
+   *   auth.clear
+   *   biometric.prompt.skipped {`reason`:`stale`,`mounted`:false}
+   *
+   * The unlock screens are the app's own "you are still signed in, prove you are the customer"
+   * state, so nothing in the background may end that session. The request still fails for its
+   * caller; the session is left for the unlock to finish.
+   */
+  it('does not clear the session when a refresh fails while a lock screen is in front', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (apiClient.defaults as any).adapter = errorAdapter(401, '/api/expenses');
+    const clearAuth = jest.fn();
+    getAuthStoreMock().getState.mockReturnValue({
+      accessToken: 'old-tok',
+      refreshToken: 'old-refresh',
+      setTokens: jest.fn(),
+      clearAuth,
+    });
+    jest.spyOn(axios, 'post').mockRejectedValueOnce(new Error('Refresh failed'));
+    mockLockScreenVisible.mockReturnValue(true);
+
+    await expect(apiClient.get('/api/expenses')).rejects.toBeDefined();
+
+    expect(clearAuth).not.toHaveBeenCalled();
+    mockLockScreenVisible.mockReturnValue(false);
+  });
+
+  it('does not clear the session when there is no refresh token while a lock screen is in front', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (apiClient.defaults as any).adapter = errorAdapter(401, '/api/categories');
+    const clearAuth = jest.fn();
+    getAuthStoreMock().getState.mockReturnValue({
+      accessToken: 'tok',
+      refreshToken: null,
+      setTokens: jest.fn(),
+      clearAuth,
+    });
+    mockLockScreenVisible.mockReturnValue(true);
+
+    await expect(apiClient.get('/api/categories')).rejects.toBeDefined();
+
+    expect(clearAuth).not.toHaveBeenCalled();
+    mockLockScreenVisible.mockReturnValue(false);
   });
 });

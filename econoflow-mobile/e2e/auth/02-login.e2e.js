@@ -1,7 +1,13 @@
 import { by, element, expect, waitFor } from 'detox';
 import { APP_PACKAGE, PIN, SEEDED_ACCOUNT, wrongPin } from '../support/accounts';
 import { declineBiometricOffer } from '../support/biometrics';
-import { signOutThroughProfile, typePin, waitForApp, waitForKeypad } from '../support/cells';
+import {
+  passDevicePin,
+  signOutThroughProfile,
+  typePin,
+  waitForApp,
+  waitForKeypad,
+} from '../support/cells';
 import { dismissNotificationRationale } from '../support/notificationPrompt';
 import { openAtLogin, relaunchApp, restartAndWaitFor, stopApp } from '../support/urls';
 
@@ -96,25 +102,22 @@ describe('Login', () => {
     // The keypad on screen is `PinSetup` on a device with no PIN and `PinEntry` on one with
     // it. This case tells them apart by what the screen offers: the create flow has the
     // confirm button, the entry flow does not. Both end the same way — the app.
-    if (await exists('pin-create-continue')) {
-      await typePin(PIN);
-      await element(by.id('pin-create-continue')).tap();
-      await waitFor(element(by.text('Confirm your PIN'))).toBeVisible().withTimeout(15000);
-      await typePin(PIN);
-    } else {
-      await typePin(PIN);
-    }
+    await passDevicePin();
+
+    // The offer comes **before** the app, not after it: on a device that has just created its
+    // PIN the app shows `BiometricEnroll`, and nothing reaches `main-navigator` until that
+    // screen is answered. Waiting for the app first is what this case used to do, and it timed
+    // out on a screen that was showing the whole time.
+    //
+    // The offer is declined, so this spec's later cases see a device whose biometrics are
+    // **off** and can prove "a restart asks for the PIN, not the sensor". Whether the full
+    // offer or the "nothing to offer" shape appears depends on whether the emulator has a
+    // finger enrolled (see `e2e/ENVIRONMENT.md`) — both are handled, and `false` simply
+    // means there was nothing to answer.
+    await declineBiometricOffer();
 
     await waitForApp(60000);
     await dismissNotificationRationale();
-
-    // The offer is declined when it appears: the app PIN is the lock, biometrics stay
-    // optional. It is *optional* in every sense — on the device this suite runs on there is
-    // no enrolled biometric, so the app shows "nothing to offer" instead of the offer, and a
-    // device that already answered is past it. Waiting for `biometric-enroll-skip` here
-    // failed whenever either of those was true; the app is what this case is about.
-    const declined = await declineBiometricOffer();
-    if (declined) await waitForApp(60000);
 
     // The seeded account already has a name: nothing to onboard.
     await expect(element(by.id('onboarding-first-name'))).not.toExist();
@@ -133,11 +136,14 @@ describe('Login', () => {
   it('refuses a wrong PIN and keeps the customer out', async () => {
     await typePin(wrongPin(PIN));
 
-    // `PinAttemptsRemaining` — "N attempt(s) remaining" — is the screen's own id for it, so
-    // the spec no longer depends on a matcher Detox 20 does not have (`by.textMatch` threw,
-    // and the two cases after it failed on the state that left behind).
-    await waitFor(element(by.text(ATTEMPTS_REMAINING))).toBeVisible().withTimeout(20000);
+    // Asserted by the screen's own id, not by the translated text: `pin-attempts-remaining`
+    // is the error the keypad shows, and ids are the suite's contract (a translated string
+    // is not). It also has to be *one* element: `by.text` matched two views while the screen
+    // rendered the same sentence twice, and Detox fails an assertion that matches more than
+    // one — see `PinEntryScreen`'s "state the attempts left exactly once" test.
+    await waitFor(element(by.id('pin-attempts-remaining'))).toBeVisible().withTimeout(20000);
     await expect(element(by.id('main-navigator'))).not.toExist();
+    await expect(element(by.id('pin-attempts-remaining'))).toHaveText(ATTEMPTS_REMAINING);
   });
 
   it('opens the app with the right PIN', async () => {

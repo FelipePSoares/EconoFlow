@@ -1,5 +1,5 @@
 import React from 'react';
-import { useSyncExternalStore } from 'react';
+import { useEffect, useState } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MainNavigator } from './MainNavigator';
 import { OnboardingNavigator } from './OnboardingNavigator';
@@ -7,13 +7,11 @@ import { BiometricGateScreen } from '../screens/auth/BiometricGateScreen';
 import { BiometricEnrollScreen } from '../screens/auth/BiometricEnrollScreen';
 import { PinSetupScreen } from '../screens/auth/PinSetupScreen';
 import { PinEntryScreen } from '../screens/auth/PinEntryScreen';
-import {
-  isBiometricAnswerKnown,
-  subscribeBiometricAnswering,
-  useBiometricStore,
-} from '../store/biometricStore';
-import { isPinAnswerKnown, subscribePinAnswering, usePinStore } from '../store/pinStore';
+import { isBiometricAnswerKnown, useBiometricStore } from '../store/biometricStore';
+import { isPinAnswerKnown, usePinStore } from '../store/pinStore';
 import { sessionEntryScreen } from './sessionEntry';
+import type { StoredUnlock } from './sessionEntry';
+import { setSessionRoute } from './sessionRoute';
 import { trace } from '../diagnostics/trace';
 
 /**
@@ -42,25 +40,53 @@ export type SessionParamList = {
 const Stack = createNativeStackNavigator<SessionParamList>();
 
 export const SessionNavigator: React.FC = () => {
-  // Subscribed, not sampled: these values are what the stack mounts on, so the render has to
-  // see the answers the moment they land (`AppGate` has already waited for them when it
-  // mounts this navigator; the subscription is what keeps the two in step if it ever
-  // re-renders).
-  const pinKnown = useSyncExternalStore(subscribePinAnswering, isPinAnswerKnown);
-  const biometricKnown = useSyncExternalStore(subscribeBiometricAnswering, isBiometricAnswerKnown);
-  const { hasPin } = usePinStore();
-  const { biometricEnabled } = useBiometricStore();
+  // Read once, from the stores' current state, and never subscribed to.
+  //
+  // This used to be two `useSyncExternalStore` subscriptions plus `usePinStore()` /
+  // `useBiometricStore()` called with no selector — i.e. the whole store. So *any* change to
+  // either store re-rendered this component: the one `setPin` makes when the customer creates
+  // their PIN, and the one the offer makes when they answer it. A re-render here is not
+  // harmless, because it rebuilds `<Stack.Navigator>`, and React Navigation then mounts the
+  // stack again on its `initialRouteName`, silently dropping the navigation that had just been
+  // dispatched. The trail shows exactly that, a tenth of a second apart:
+  //
+  //   pinsetup.navigate.dispatch {"target":"BiometricEnroll","onScreen":true}
+  //   screen.unmount {"screen":"PinSetup"}
+  //   session.mount {"entry":"PinEntry","hasPin":true,"biometricEnabled":false}
+  //
+  // Nothing here needs to *react* to those stores: the entry screen is decided once, when the
+  // session opens, and every later move through the session is made by the screens themselves
+  // (`PinSetup` → `BiometricEnroll` → `Main`, `PinEntry` → `Main`, the offer → `Main`). So the
+  // answers are read through `getState()` in a lazy initialiser, and this component never
+  // re-renders because of them.
+  //
+  // `AppGate` is what waits for the answers before mounting this navigator, so the lazy read
+  // below always finds them; the `null` case is only the frame before that.
+  const [decided] = useState<StoredUnlock | null>(() =>
+    answersReady() ? readStoredUnlock() : null,
+  );
 
-  const answersKnown = pinKnown && biometricKnown;
-  const entry = answersKnown ? sessionEntryScreen({ hasPin, biometricEnabled }) : null;
+  const entry = decided ? sessionEntryScreen(decided) : null;
+
+  // The session's current route is published for the pieces rendered outside this stack
+  // (`LockOverlay`, rendered by `App` over everything): a restart mounts both at once, and the
+  // overlay must not cover — or prompt on top of — the unlock gate (#1116).
+  //
+  // Published before the early return below, so the hook order never depends on whether the
+  // answers were ready: a `useEffect` after a conditional return is the one thing React
+  // forbids outright.
+  useEffect(() => {
+    setSessionRoute(entry);
+    return () => setSessionRoute(null);
+  }, [entry]);
 
   // Deciding before the answers arrive is the defect this navigator exists to prevent; the
   // moment between them is a frame, and `AppGate` normally covers it entirely.
-  if (!entry) return null;
+  if (!decided || !entry) return null;
 
   // One line per mount: the route the session opens on is the fact every blank-screen report
   // turns on, and it is only knowable from here (see `src/utils/trace.ts`).
-  trace('session.mount', { entry, hasPin, biometricEnabled });
+  trace('session.mount', { entry, ...decided });
 
   return (
     <Stack.Navigator initialRouteName={entry} screenOptions={{ headerShown: false }}>
@@ -73,5 +99,17 @@ export const SessionNavigator: React.FC = () => {
     </Stack.Navigator>
   );
 };
+
+/** Whether both lock stores have answered (a default is not an answer — see #1116). */
+function answersReady(): boolean {
+  return isPinAnswerKnown() && isBiometricAnswerKnown();
+}
+
+/** What the device stores, read without subscribing to it. */
+function readStoredUnlock(): StoredUnlock {
+  const { hasPin } = usePinStore.getState();
+  const { biometricEnabled } = useBiometricStore.getState();
+  return { hasPin, biometricEnabled };
+}
 
 

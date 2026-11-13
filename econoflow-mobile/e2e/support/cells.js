@@ -1,5 +1,6 @@
 import { by, element, expect, waitFor } from 'detox';
 import { PIN } from './accounts';
+import { answerSystemSensorIfShown } from './biometrics';
 import { dismissNotificationRationale } from './notificationPrompt';
 
 /**
@@ -30,6 +31,81 @@ export async function waitForKeypad(timeout = 45000) {
 /** Waits for the signed-in tree — the app a logged-in customer sees. */
 export async function waitForApp(timeout = 45000) {
   await waitFor(element(by.id('main-navigator'))).toBeVisible().withTimeout(timeout);
+}
+
+/**
+ * Gets past the device's PIN from the keypad: creating it when the device has none,
+ * entering it when it has one. Leaves the app on whatever follows the PIN (the biometrics
+ * offer, or the app itself).
+ *
+ * **The two screens are told apart by what they offer, and the difference is a wait.** The
+ * keypad is `PinSetup` on a device with no PIN and `PinEntry` on one with it; only the setup
+ * shows `pin-create-continue`. An immediate `exists()` samples the tree before the screen
+ * has settled and picks the wrong branch, so the create button is looked for with a short
+ * wait first.
+ *
+ * On the create branch the *title* is what marks the confirmation step — not a text match
+ * on a translated sentence, and not "the keypad is still there", because the keypad of both
+ * steps is the same component. `PinConfirmTitle` is the only rendering on that screen that
+ * says the customer must repeat the PIN, so waiting for it is what makes the second
+ * `typePin` land on the confirm step instead of typing the PIN a third time into `create`
+ * (where `handleContinue` ignores a second press, and the app never opens).
+ *
+ * **A device with biometrics already ON never shows a keypad here**: `sessionEntryScreen`
+ * sends it to `BiometricGate`, which asks the sensor. Waiting for the keypad alone therefore
+ * timed out on a device that was correctly asking for a fingerprint — so the gate is checked
+ * for first, and answered with the emulator's finger when it is the one on screen.
+ */
+export async function passDevicePin(pin = PIN, { createsIfMissing = true } = {}) {
+  if (await appears(PIN_KEYS.digit('1'), PIN_SCREEN_WAIT_MS)) {
+    await enterOrCreatePin(pin, createsIfMissing);
+    return;
+  }
+
+  // No keypad: biometrics are on, so the sensor is what this device asks for.
+  await answerSystemSensorIfShown();
+}
+
+/** Types the PIN on whichever keypad is up, creating the PIN when the device has none. */
+async function enterOrCreatePin(pin, createsIfMissing) {
+  await waitForKeypad();
+
+  const creates = createsIfMissing && (await appears(CREATE_CONTINUE, PIN_SCREEN_WAIT_MS));
+
+  if (!creates) {
+    await typePin(pin);
+    return;
+  }
+
+  await typePin(pin);
+  await element(by.id(CREATE_CONTINUE)).tap();
+  await waitFor(element(by.id(PIN_CONFIRM_TITLE))).toBeVisible().withTimeout(PIN_SCREEN_WAIT_MS);
+  await typePin(pin);
+}
+
+/** How long a PIN screen transition may take before the spec decides it is not coming. */
+const PIN_SCREEN_WAIT_MS = 15000;
+
+/** `PinSetupScreen`'s confirm button: present while creating a PIN, absent while entering one. */
+const CREATE_CONTINUE = 'pin-create-continue';
+
+/** The confirmation step's own id (see `PinSetupScreen`). */
+const PIN_CONFIRM_TITLE = 'pin-confirm-title';
+
+/**
+ * `true` when the element becomes visible within `timeout`; never throws.
+ *
+ * `waitFor` polls and `expect` samples once — a screen that arrives on a navigation needs the
+ * polling form. Use this, not `exists()`, whenever the element may be on its way rather than
+ * on screen already.
+ */
+export async function appears(testID, timeout = 15000) {
+  try {
+    await waitFor(element(by.id(testID))).toBeVisible().withTimeout(timeout);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /** `true` when the element exists; never throws. */
@@ -69,11 +145,46 @@ export async function signOutThroughProfile() {
     await waitForApp();
   }
 
+  // The notification rationale is *not* dismissed once and gone: it is mounted by
+  // `MainNavigator` and its own answer only becomes known after an async permission read, so
+  // it appears on top of the app a moment after `waitForApp` resolves — over the tab bar this
+  // helper is about to tap. Dismissing it once, before the wait, left the card in place and
+  // `tab-profile` never became *visible*, however long the wait (the Overview screen in the
+  // failure screenshot is the app with the card covering its tab bar).
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await dismissNotificationRationale();
+    if (await appears(TAB_PROFILE, 5000)) break;
+  }
+
   await waitFor(element(by.id(TAB_PROFILE))).toBeVisible().withTimeout(30000);
   await element(by.id(TAB_PROFILE)).tap();
+
+  // `sign-out` is the LAST child of the Profile screen's `ScrollView` (`profile-scroll`), so
+  // it sits below the fold on arrival: `toBeVisible` never matched it, whatever the timeout,
+  // while the failure screenshot showed the Profile screen scrolled to the top.
+  await scrollTo('profile-scroll', 'sign-out');
   await waitFor(element(by.id('sign-out'))).toBeVisible().withTimeout(30000);
   await element(by.id('sign-out')).tap();
   await waitFor(element(by.id('auth-hero'))).toBeVisible().withTimeout(45000);
+}
+
+/**
+ * Scrolls a named scroll view until `testID` is visible.
+ *
+ * Some controls live below the fold — `sign-out` is the last child of the Profile screen's
+ * `ScrollView` — and Detox's `toBeVisible` requires 75% of the view to be on screen, so it
+ * never matches however long the wait, even though the element exists. Swiping the *scroll
+ * view* (never the child: a swipe needs something scrollable to act on) brings it in.
+ *
+ * An element that is already visible is left alone, so this is safe to call unconditionally.
+ */
+export async function scrollTo(scrollTestID, testID, maxSwipes = 4) {
+  if (await appears(testID, 2000)) return;
+
+  for (let attempt = 0; attempt < maxSwipes; attempt++) {
+    await element(by.id(scrollTestID)).swipe('up', 'slow', 0.6, 0.5);
+    if (await appears(testID, 2000)) return;
+  }
 }
 
 /**

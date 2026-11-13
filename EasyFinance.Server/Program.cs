@@ -174,7 +174,11 @@ builder.Services.AddHttpsRedirection(options =>
         : 443;
 });
 
-if (!builder.Environment.IsDevelopment())
+// Keys are persisted in development too (#1116). They used to be created only outside
+// Development, where the ring lives in the container's filesystem and dies with it - and the
+// refresh token is a DataProtector token, so losing the keys invalidates every token a device
+// stored: the app then answers 401 on refresh and signs the customer out. The dev stack
+// re-creates the table with the same migrations, so nothing else has to change.
 {
     var keys = builder.Services.AddDataProtection()
         .PersistKeysToDbContext<MyKeysContext>();

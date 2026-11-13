@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -10,6 +11,7 @@ using EasyFinance.Domain.Shared;
 using EasyFinance.Persistence.DatabaseContext;
 using FpsSoftware.Chassis;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EasyFinance.Server.Config
@@ -99,28 +101,6 @@ namespace EasyFinance.Server.Config
                 return new DateOnly(date.Year, date.Month, safeDay);
             }
 
-            var user = new User(Guid.Parse("4f1d4a0e-8a8f-4f0f-9c4c-6b6f0f2a1c01"))
-            {
-                UserName = "test@test.com",
-                Email = "test@test.com",
-                EmailConfirmed = true
-            };
-            user.SetFirstName("Test");
-            user.SetLastName("Admin");
-            user.SetEnabled(true);
-            user.SetLanguageCode("en");
-
-            var user2 = new User(Guid.Parse("9a0c5b43-1d2e-4b57-8f4d-2c7e6a9b3d02"))
-            {
-                UserName = "test1@test.com",
-                Email = "test1@test.com",
-                EmailConfirmed = true
-            };
-            user2.SetFirstName("Second");
-            user2.SetLastName("User");
-            user2.SetEnabled(true);
-            user2.SetLanguageCode("en");
-
             // THE FIXTURE'S USERS ARE WRITTEN BY THIS CONTEXT, NOT BY userManager.CreateAsync.
             //
             // They used to be created with CreateAsync only, which saves them through the
@@ -136,10 +116,38 @@ namespace EasyFinance.Server.Config
             // Program.cs catches that as a fatal start-up error, so the dev stack's container
             // restarted forever and served 502. The in-memory store hid it: it enforces no
             // foreign keys. Ids are fixed so both contexts agree on WHO the principal is.
-            context.Add(user);
-            context.Add(user2);
+            //
+            // ... AND SEEDING A DATABASE THAT ALREADY HAS THEM HAS TO SUCCEED, NOT INSERT AGAIN.
+            //
+            // The fixture is written in two phases (the users, then the graph that names them),
+            // so a start-up that fails after the first one leaves the users stored. The container
+            // restarts by itself, the second attempt adds the same fixed ids again, and
+            // PostgreSQL answers:
+            //
+            //   Npgsql.PostgresException: 23505: duplicate key value violates unique constraint
+            //   "PK_AspNetUsers"
+            //
+            // Program.cs treats that as fatal, so the stack could never start again until the
+            // volume was dropped. A row that is already there is therefore reused as-is - with
+            // its password hash, so a restart never changes the fixture's credentials - and the
+            // graph below is written against it.
+            var user = await FindStoredFixtureUserAsync(context, userManager, "test@test.com")
+                ?? CreateFixtureUser(Guid.Parse("4f1d4a0e-8a8f-4f0f-9c4c-6b6f0f2a1c01"), "test@test.com", "Test", "Admin");
+            var user2 = await FindStoredFixtureUserAsync(context, userManager, "test1@test.com")
+                ?? CreateFixtureUser(Guid.Parse("9a0c5b43-1d2e-4b57-8f4d-2c7e6a9b3d02"), "test1@test.com", "Second", "User");
 
-            foreach (var fixtureUser in new[] { user, user2 })
+            var newUsers = new[] { user, user2 }
+                .Where(candidate => context.Entry(candidate).State == EntityState.Detached)
+                .ToArray();
+
+            // Only the rows this start created are added; a user that was already stored is
+            // reused where it is, and re-adding it is the duplicate key this seeder now avoids.
+            foreach (var newUser in newUsers)
+            {
+                context.Add(newUser);
+            }
+
+            foreach (var fixtureUser in newUsers)
             {
                 var passwordErrors = await ValidatePasswordAsync(userManager, fixtureUser);
                 if (passwordErrors.Count > 0)
@@ -153,6 +161,29 @@ namespace EasyFinance.Server.Config
                 fixtureUser.SecurityStamp ??= Guid.NewGuid().ToString();
                 fixtureUser.ConcurrencyStamp ??= Guid.NewGuid().ToString();
                 fixtureUser.PasswordHash = userManager.PasswordHasher.HashPassword(fixtureUser, FixturePassword);
+
+                // ALSO WHAT CreateAsync WOULD HAVE FILLED IN, AND THE REASON LOGIN WORKED FOR ONE
+                // FIXTURE AND NOT THE OTHER.
+                //
+                // UserManager.CreateAsync normalizes the user name and the email into
+                // NormalizedUserName / NormalizedEmail as part of creating the row. Writing the
+                // user through the DbContext (the fix above) skips that, so both columns were
+                // written as NULL. Identity's FindByNameAsync and FindByEmailAsync query those
+                // columns and nothing else, so:
+                //
+                //   * test@test.com was normalized by AddToRoleAsync below (it updates through the
+                //     UserManager, which normalizes as a side effect) and signed in;
+                //   * test1@test.com was never touched again, stayed NULL, and
+                //     AccessControlController.ValidateSignInAsync answered 401 InvalidCredentials
+                //     for a row that exists with the right password hash.
+                //
+                // The mobile end-to-end suite signs in as test1@test.com, so every spec that did
+                // stopped on the Login screen showing "Incorrect login information!" - a message
+                // that reads like a wrong password and sent the investigation to the wrong place.
+                // Normalizing here, through Identity's own normalizer, keeps the row identical to
+                // the one CreateAsync would have written.
+                fixtureUser.NormalizedUserName = userManager.KeyNormalizer.NormalizeName(fixtureUser.UserName);
+                fixtureUser.NormalizedEmail = userManager.KeyNormalizer.NormalizeEmail(fixtureUser.Email);
             }
 
             // The users are written on their own, before anything that names them.
@@ -163,25 +194,48 @@ namespace EasyFinance.Server.Config
             // users inserted ahead of the rows that reference them - then inserted a second time
             // when it reaches the users themselves and finds them Added. With the rows stored
             // first, every reference below resolves against a user that exists.
-            await context.SaveChangesAsync();
+            //
+            // Only when this start created them: a user that was already stored needs no write,
+            // and re-adding it is the duplicate key this seeder now avoids.
+            if (newUsers.Length > 0)
+            {
+                await context.SaveChangesAsync();
+            }
 
             // The role is the one part of the fixture that must go through Identity: it writes the
             // AspNetUserRoles join row, which nothing else may touch.
             //
-            // The user is looked up by ID. Only CreateAsync fills in the normalized user name and
-            // email, so the rows this context writes leave them empty and FindByNameAsync /
-            // FindByEmailAsync find nothing here. Identity normalizes and persists both columns as
-            // part of this update, so the account looks up normally from then on.
+            // The user is looked up by ID, which reads the primary key rather than the normalized
+            // columns: those are filled in explicitly above, because a row written through this
+            // context would otherwise leave them NULL and neither FindByNameAsync nor
+            // FindByEmailAsync would ever find it. Only the first fixture user is granted here;
+            // the second one is not, which is exactly why it had to be normalized above instead
+            // of relying on this call's side effect.
+            //
+            // Granting an existing role again is a no-op (Identity reports "User already in
+            // role" as a failure the seeder must not treat as fatal), so a re-run keeps the row.
             var roleUser = await userManager.FindByIdAsync(user.Id.ToString());
             if (roleUser is null)
             {
                 return AppResponse<IEnumerable<User>>.Error(nameof(User), "The fixture user was not stored.");
             }
 
-            var roleAssignment = await userManager.AddToRoleAsync(roleUser, SystemRoles.BetaTester);
-            if (!roleAssignment.Succeeded)
+            if (!await userManager.IsInRoleAsync(roleUser, SystemRoles.BetaTester))
             {
-                return AppResponse<IEnumerable<User>>.Error(ToMessages(roleAssignment));
+                var roleAssignment = await userManager.AddToRoleAsync(roleUser, SystemRoles.BetaTester);
+                if (!roleAssignment.Succeeded)
+                {
+                    return AppResponse<IEnumerable<User>>.Error(ToMessages(roleAssignment));
+                }
+            }
+
+            // The fixture graph below (notifications, expenses, incomes, plan data) is scaffolding
+            // that already exists once a previous start wrote it; writing it twice would duplicate
+            // every row. The users, the role and their normalized columns above are the part that
+            // converges, and they are what the login depends on.
+            if (await context.Set<UserProject>().IgnoreQueryFilters().AnyAsync())
+            {
+                return AppResponse<IEnumerable<User>>.Success(new[] { user, user2 });
             }
 
             var notification = new Notification(user, "WelcomeMessage", NotificationType.Information, NotificationCategory.System, limitNotificationChannels: NotificationChannels.InApp);
@@ -372,6 +426,64 @@ namespace EasyFinance.Server.Config
             await context.SaveChangesAsync();
 
             return AppResponse<IEnumerable<User>>.Success(new[] { user, user2 });
+        }
+
+        /// <summary>
+        /// The fixture user this email already names, or <c>null</c> when this start has to
+        /// create it.
+        ///
+        /// <para>
+        /// The seeder runs on every start, and a start that ended after the users were written
+        /// left them behind. Inserting the same fixed id again is a
+        /// <c>23505 duplicate key value violates unique constraint "PK_AspNetUsers"</c>, which
+        /// <c>Program.cs</c> turns into a fatal error, so the container restarted forever. Reading
+        /// the row first makes the seeder converge on what it describes instead of inserting
+        /// blindly.
+        /// </para>
+        ///
+        /// <para>
+        /// It is found through <c>UserManager</c> (the <c>NormalizedEmail</c> column) and falls
+        /// back to the primary key, so a row written by an older build without the normalized
+        /// column is reused as well — and its identity is still the fixed one.
+        /// </para>
+        /// </summary>
+        private static async Task<User?> FindStoredFixtureUserAsync(
+            EasyFinanceDatabaseContext context,
+            UserManager<User> userManager,
+            string email)
+        {
+            var byEmail = await userManager.FindByEmailAsync(email);
+            if (byEmail is not null)
+            {
+                return byEmail;
+            }
+
+            // No normalized column: read the row by its primary key, which every row has.
+            foreach (var candidate in await context.Users.ToListAsync())
+            {
+                if (string.Equals(candidate.Email, email, StringComparison.OrdinalIgnoreCase))
+                {
+                    return candidate;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>The fixture user as a new row, with the identity every other row names.</summary>
+        private static User CreateFixtureUser(Guid id, string email, string firstName, string lastName)
+        {
+            var user = new User(id)
+            {
+                UserName = email,
+                Email = email,
+                EmailConfirmed = true
+            };
+            user.SetFirstName(firstName);
+            user.SetLastName(lastName);
+            user.SetEnabled(true);
+            user.SetLanguageCode("en");
+            return user;
         }
 
         /// <summary>

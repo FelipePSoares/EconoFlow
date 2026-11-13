@@ -1,6 +1,6 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { act, render, screen, fireEvent, waitFor } from '@testing-library/react-native';
+import { act, render, screen, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { ProfileScreen } from '../ProfileScreen';
 
 /**
@@ -879,6 +879,27 @@ describe('ProfileScreen – PIN settings', () => {
   it('renders the change PIN row', async () => {
     await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
     expect(screen.getByTestId('row-ChangePin')).toBeTruthy();
+  });
+});
+
+describe('ProfileScreen – the scroll view', () => {
+  // THE SCROLL CONTAINER IS PART OF THE TEST CONTRACT.
+  //
+  // `sign-out` is the last child of this screen's `ScrollView`, so it sits below the fold.
+  // Detox's `toBeVisible` wants 75% of a view on screen, so it never matched the button —
+  // however long the wait — and the `e2e/` sign-out specs timed out on the Profile screen
+  // scrolled to the top. A swipe needs the scroll view itself as its target, so the container
+  // carries an id the suite can drive (`e2e/support/cells.js` → `scrollTo('profile-scroll',
+  // 'sign-out')`).
+  it('gives the scroll container an id so the suite can scroll to sign-out', async () => {
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    expect(screen.getByTestId('profile-scroll')).toBeTruthy();
+  });
+
+  it('renders sign out inside that scroll container', async () => {
+    await render(<ProfileScreen navigation={mockNavigation} route={mockRoute} />);
+    const scroll = screen.getByTestId('profile-scroll');
+    expect(within(scroll).getByTestId('sign-out')).toBeTruthy();
   });
 });
 

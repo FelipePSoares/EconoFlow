@@ -106,6 +106,30 @@ describe('PinSetupScreen', () => {
     expect(screen.getByTestId('pin-create-continue')).toBeTruthy();
   });
 
+  // THE TWO STEPS ARE TOLD APART BY AN ID, NOT BY A TRANSLATED SENTENCE.
+  //
+  // Both steps render the same keypad component, so "the keypad is still showing" says
+  // nothing about which step is on screen — and the `e2e/` suite used to wait for the copy
+  // "Confirm your PIN" to know it had arrived. That broke once the wording moved and, worse,
+  // a spec that missed the transition typed the PIN a third time into the create step, which
+  // `handleContinue` ignores: the app simply never opened. These ids are what the suite
+  // watches now, so they have to be stable across both steps.
+  it('marks the create step with its own id', async () => {
+    await act(async () => { render(<PinSetupScreen navigation={mockNavigation} route={mockRoute} />); });
+
+    expect(screen.getByTestId('pin-create-title')).toBeTruthy();
+    expect(screen.queryByTestId('pin-confirm-title')).toBeNull();
+  });
+
+  it('marks the confirm step with its own id once the user continues', async () => {
+    await act(async () => { render(<PinSetupScreen navigation={mockNavigation} route={mockRoute} />); });
+    await tap('1'); await tap('2'); await tap('3'); await tap('4');
+    await act(async () => { fireEvent.press(screen.getByTestId('pin-create-continue')); });
+
+    expect(screen.getByTestId('pin-confirm-title')).toBeTruthy();
+    expect(screen.queryByTestId('pin-create-title')).toBeNull();
+  });
+
   it('cannot continue with fewer than four digits', async () => {
     mockSetPin.mockResolvedValue(undefined);
     await act(async () => { render(<PinSetupScreen navigation={mockNavigation} route={mockRoute} />); });

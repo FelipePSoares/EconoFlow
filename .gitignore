@@ -66,6 +66,10 @@ econoflow-mobile/android/
 econoflow-mobile/ios/
 econoflow-mobile/dist/
 econoflow-mobile/.env
+# Local-only helpers for driving the Detox suite from a Linux/WSL machine (emulator, Metro,
+# adb bridges, scratch containers). They are machine-specific and never committed; the
+# documented procedure is econoflow-mobile/e2e/ENVIRONMENT.md.
+econoflow-mobile/scripts/wsl/
 
 # Developer-specific backend settings (contain local cert paths and passwords)
 EasyFinance.Server/appsettings.Development.json

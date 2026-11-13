@@ -6,7 +6,7 @@ import {
   SEEDED_ACCOUNT,
   newAccountEmail,
 } from '../support/accounts';
-import { exists, typePin, waitForApp, waitForKeypad } from '../support/cells';
+import { passDevicePin, typePin, waitForApp, waitForKeypad } from '../support/cells';
 import { declineBiometricOffer } from '../support/biometrics';
 import { dismissNotificationRationale } from '../support/notificationPrompt';
 import { openAtLogin, stopApp } from '../support/urls';
@@ -71,16 +71,24 @@ describe('Registration', () => {
   });
 
   it('gets the new customer past the PIN, with or without creating one', async () => {
-    // The registration above is the session this case continues (the Login screen would
-    // mean it did not happen — the PIN screen has no way back to it).
-    if (await exists('pin-create-continue')) {
-      await typePin(PIN);
-      await element(by.id('pin-create-continue')).tap();
-      await waitFor(element(by.text('Confirm your PIN'))).toBeVisible().withTimeout(15000);
-      await typePin(PIN);
-    } else {
-      await typePin(PIN);
-    }
+    // This case registers its OWN account rather than continuing the one above. `beforeEach`
+    // kills the app and re-opens the Login screen — which ends any session the previous case
+    // left — so "the registration above is my session" was never true: the app's trail showed
+    // registration reaching `PinSetup` and then `auth.clear` a tenth of a second later, and
+    // this case then waited on a Login screen for a password to open an account it had never
+    // signed in to. Detox also reorders spec files by measured duration, so a case may not
+    // depend on another one having run at all.
+    const registeredEmail = newAccountEmail();
+    await element(by.id('login-register-link')).tap();
+    await waitFor(element(by.id('register-submit'))).toBeVisible().withTimeout(15000);
+    await element(by.id('register-email')).typeText(registeredEmail);
+    await element(by.id('register-password')).typeText(REGISTRATION_PASSWORD);
+    await element(by.id('register-confirm-password')).typeText(REGISTRATION_PASSWORD);
+    await element(by.id('register-submit')).tap();
+
+    // Registration signs the customer in: the same PIN step a password login gets.
+    await waitForKeypad(60000);
+    await passDevicePin();
 
     // Whichever shape the offer takes — the full one, or "nothing to offer" on a device
     // without an enrolled biometric — declining it is what moves on to onboarding.

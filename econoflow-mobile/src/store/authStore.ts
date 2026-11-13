@@ -8,6 +8,24 @@ import { hydrateBiometricStore } from './biometricStore';
 import { hydratePinStore } from './pinStore';
 import { trace } from '../diagnostics/trace';
 
+/**
+ * Which call site is ending the session, as the first few frames of the stack (#1116).
+ *
+ * Five places call `clearAuth()` and they mean very different things — the customer's own
+ * sign-out, a "forgot PIN", an exhausted PIN attempt, the token interceptor. When the trail
+ * says only `auth.clear`, all five are equally plausible, and which one it was is the question
+ * that costs a full emulator run to re-ask. A stack is cheap to take here.
+ */
+function sessionClearCaller(): string {
+  const stack = new Error().stack ?? '';
+  return stack
+    .split('\n')
+    .slice(2, 7)
+    .map((line) => line.trim().replace(/^at\s+/, '').replace(/\(.*?\)$/, ''))
+    .join(' <- ')
+    .slice(0, 300);
+}
+
 interface SecureStorage {
   getItem(name: string): Promise<string | null>;
   setItem(name: string, value: string): Promise<void>;
@@ -64,7 +82,12 @@ export const useAuthStore = create<AuthState>()(
       clearAuth: () => {
         // The trail's one line about a session disappearing. It is written before the state
         // changes because the screen that caused it is gone by the time anyone looks (#1116).
-        trace('auth.clear');
+        //
+        // The **caller** is recorded too: five places end a session, and "the session vanished
+        // while the unlock gate was asking for the sensor" says nothing about which one did it.
+        // The first frames after this function are the answer, and this is the only place that
+        // can attribute them.
+        trace('auth.clear', { caller: sessionClearCaller() });
         clearUserContext();
         set({ accessToken: null, refreshToken: null, user: null, isAuthenticated: false, needsOnboarding: false, openCreateProjectOnStart: false });
       },

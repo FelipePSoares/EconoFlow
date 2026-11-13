@@ -40,6 +40,12 @@ export const NotificationPermissionPrompt: React.FC = () => {
   }
 
   return (
+    // The overlay is a **full-screen** box with `pointerEvents="box-none"`: it lets touches
+    // through, but it still *covers the whole app*. The integration suite proves that this
+    // matters: with the rationale up, Detox reported no matching view for the tab bar, the
+    // tab button or even the screen wrapper, on a phone showing the full Overview — the card
+    // was over all of them. The box only has to cover the card, which is anchored to the
+    // bottom, so it is bounded by that card's height instead of the window's.
     <View style={styles.overlay} pointerEvents="box-none" testID="notifications-permission-card">
       <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
         <View style={styles.row}>
@@ -113,12 +119,13 @@ export const NotificationPermissionPrompt: React.FC = () => {
 
 const styles = StyleSheet.create({
   overlay: {
+    // Anchored to the bottom and only as tall as the card (plus its margin): a full-window
+    // overlay covered the whole app for anything that measures what is on screen (see the
+    // component's comment, and the Detox suite that caught it).
     position: 'absolute',
-    top: 0,
+    left: 0,
     right: 0,
     bottom: 0,
-    left: 0,
-    justifyContent: 'flex-end',
     padding: 16,
   },
   card: {

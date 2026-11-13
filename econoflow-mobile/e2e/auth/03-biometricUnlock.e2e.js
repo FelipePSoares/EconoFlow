@@ -1,16 +1,16 @@
 import { by, device, element, expect, waitFor } from 'detox';
-import { PIN, SEEDED_ACCOUNT } from '../support/accounts';
+import { SEEDED_ACCOUNT } from '../support/accounts';
 import { declineBiometricOffer, offerFingerprint } from '../support/biometrics';
 import {
+  appears,
   TAB_OVERVIEW,
-  exists,
+  passDevicePin,
   signOutThroughProfile,
-  typePin,
   waitForApp,
   waitForKeypad,
 } from '../support/cells';
 import { dismissNotificationRationale } from '../support/notificationPrompt';
-import { openAtLogin, stopApp } from '../support/urls';
+import { openAtLogin, restartApp, stopApp, traceStep, waitVisible } from '../support/urls';
 
 /**
  * The unlock a customer gets after enabling biometrics — the flow the report behind this
@@ -60,7 +60,12 @@ describe('Biometric unlock', () => {
     // First time on this device, the offer is shown after the PIN; it is accepted here
     // because the whole point of this file is the sensor that follows. A device that has
     // already answered keeps its answer, and this case then simply proves the app opens.
-    if (await exists('biometric-enroll-enable')) {
+    //
+    // The button is *waited* for, not sampled: the offer is a navigation, so an immediate
+    // `exists()` can look before the screen has arrived and skip the tap on a device that was
+    // about to show it — which is how this case used to end up waiting for an app that
+    // nothing was going to open.
+    if (await appears('biometric-enroll-enable', 15000)) {
       await element(by.id('biometric-enroll-enable')).tap();
       await offerFingerprint();
     }
@@ -73,25 +78,37 @@ describe('Biometric unlock', () => {
   it('asks the sensor after a restart, and opens on Overview', async () => {
     // The biometric flag is on the device now (accepted above, or already accepted when it
     // was created): reopening the app asks for the sensor, on its own.
+    //
+    // **The restart names its URL** (`restartApp` → the plain start URL). A bare `launchApp`
+    // asks Android to replay the last intent, and in this spec that is the automation entry
+    // point from `beforeEach` — whose handler ends the stored session. The restart then looked
+    // like the app signing the customer out: the trail read
+    // `biometric.prompt.requested` → `auth.clear {"caller":"… <- openE2eStart"}`, the gate's
+    // attempt went stale, and the app landed on Login (see `restartApp`).
     await stopApp();
-    await device.launchApp({ newInstance: false, permissions: { notifications: 'deny' } });
+    await restartApp();
 
-    await offerFingerprint();
-    await waitForApp(60000);
+    // **The notification rationale is answered before the tab bar is looked for, not after.**
+    // `MainNavigator` mounts the prompt, which reads the OS permission and then covers the
+    // bottom of the screen — the tab bar is behind it, and Detox's `toBeVisible` needs 75% of
+    // a view on screen, so `tab-overview` cannot match while the card is up.
+    await dismissNotificationRationale();
+
+    await waitVisible(TAB_OVERVIEW, 45000);
+    traceStep('overview visible');
+
+    // The app opened on the Overview tab, and neither lock screen is in front.
     await expect(element(by.id('main-navigator'))).toBeVisible();
     await expect(element(by.id('pin-key-1'))).not.toExist();
     await expect(element(by.id('login-email'))).not.toExist();
-
-    // The app opens on the Overview tab — where every authenticated path lands.
-    await expect(element(by.id(TAB_OVERVIEW))).toBeVisible();
   });
 
   it('asks the sensor again on the next launch, and not for the PIN', async () => {
     await stopApp();
-    await device.launchApp({ newInstance: false, permissions: { notifications: 'deny' } });
+    await restartApp();
 
-    await offerFingerprint();
-    await waitForApp(60000);
+    await dismissNotificationRationale();
+    await waitVisible(TAB_OVERVIEW, 45000);
     await expect(element(by.id('pin-key-1'))).not.toExist();
     await expect(element(by.text('Create App PIN'))).not.toExist();
   });
@@ -124,19 +141,13 @@ describe('Biometric unlock', () => {
  * Signs the seeded account in and gets past the device's PIN — creating it when the device
  * has none, entering it when it has one. Leaves the app on whatever follows the PIN (the
  * biometrics offer, or the app itself).
+ *
+ * The PIN steps live in `support/cells.js`: three specs drive them and each used to carry
+ * its own copy, so each could get the same transition wrong on its own.
  */
 async function signInAndPassPin() {
   await element(by.id('login-email')).typeText(SEEDED_ACCOUNT.email);
   await element(by.id('login-password')).typeText(SEEDED_ACCOUNT.password);
   await element(by.id('login-submit')).tap();
-  await waitForKeypad(60000);
-
-  if (await exists('pin-create-continue')) {
-    await typePin(PIN);
-    await element(by.id('pin-create-continue')).tap();
-    await waitFor(element(by.text('Confirm your PIN'))).toBeVisible().withTimeout(15000);
-    await typePin(PIN);
-    return;
-  }
-  await typePin(PIN);
+  await passDevicePin();
 }
