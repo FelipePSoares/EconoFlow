@@ -10,7 +10,8 @@ namespace EasyFinance.Persistence.DatabaseContext
         public MyKeysContext(DbContextOptions<MyKeysContext> options)
             : base(options) { }
 
-        // This maps to the table that stores keys.
-        public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
+        // This maps to the table that stores keys. EF Core supplies the set at runtime, so
+        // the nullable flow analysis must not require an initialiser here.
+        public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
     }
 }
