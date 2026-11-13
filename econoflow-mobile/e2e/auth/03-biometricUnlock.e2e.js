@@ -1,17 +1,16 @@
 import { by, device, element, expect, waitFor } from 'detox';
-import { PIN, SEEDED_ACCOUNT } from '../support/accounts';
-import { answerSystemSensorIfShown, declineBiometricOffer, offerFingerprint } from '../support/biometrics';
+import { SEEDED_ACCOUNT } from '../support/accounts';
+import { declineBiometricOffer, offerFingerprint } from '../support/biometrics';
 import {
   appears,
   TAB_OVERVIEW,
   passDevicePin,
   signOutThroughProfile,
-  typePin,
   waitForApp,
   waitForKeypad,
 } from '../support/cells';
 import { dismissNotificationRationale } from '../support/notificationPrompt';
-import { describeIds, openAtLogin, stopApp, traceStep, waitVisible } from '../support/urls';
+import { openAtLogin, restartApp, stopApp, traceStep, waitVisible } from '../support/urls';
 
 /**
  * The unlock a customer gets after enabling biometrics — the flow the report behind this
@@ -79,39 +78,35 @@ describe('Biometric unlock', () => {
   it('asks the sensor after a restart, and opens on Overview', async () => {
     // The biometric flag is on the device now (accepted above, or already accepted when it
     // was created): reopening the app asks for the sensor, on its own.
+    //
+    // **The restart names its URL** (`restartApp` → the plain start URL). A bare `launchApp`
+    // asks Android to replay the last intent, and in this spec that is the automation entry
+    // point from `beforeEach` — whose handler ends the stored session. The restart then looked
+    // like the app signing the customer out: the trail read
+    // `biometric.prompt.requested` → `auth.clear {"caller":"… <- openE2eStart"}`, the gate's
+    // attempt went stale, and the app landed on Login (see `restartApp`).
     await stopApp();
-    await device.launchApp({ newInstance: false, permissions: { notifications: 'deny' } });
-
-    // Offered across the whole start-up window, not once: the relaunch returns before the JS
-    // bundle has run, so a single touch lands while no prompt exists yet and is dropped. The
-    // gate then asks a moment later and waits for an answer that never comes.
-    await answerSystemSensorIfShown();
+    await restartApp();
 
     // **The notification rationale is answered before the tab bar is looked for, not after.**
     // `MainNavigator` mounts the prompt, which reads the OS permission and then covers the
     // bottom of the screen — the tab bar is behind it, and Detox's `toBeVisible` needs 75% of
-    // a view on screen, so `tab-overview` cannot match while the card is up. That is what the
-    // failure screenshot showed: Overview, with the card over it.
+    // a view on screen, so `tab-overview` cannot match while the card is up.
     await dismissNotificationRationale();
 
-    // What Detox's own hierarchy says — the matcher acts on it, not on the pixels — carried
-    // out in the assertion message when the tab does not match.
-    const hierarchy = await describeIds(['main-navigator', TAB_OVERVIEW, 'lock-overlay']);
     await waitVisible(TAB_OVERVIEW, 45000);
     traceStep('overview visible');
 
+    // The app opened on the Overview tab, and neither lock screen is in front.
     await expect(element(by.id('main-navigator'))).toBeVisible();
     await expect(element(by.id('pin-key-1'))).not.toExist();
     await expect(element(by.id('login-email'))).not.toExist();
-    // Read only so a failure of the wait above can name what Detox saw.
-    void hierarchy;
   });
 
   it('asks the sensor again on the next launch, and not for the PIN', async () => {
     await stopApp();
-    await device.launchApp({ newInstance: false, permissions: { notifications: 'deny' } });
+    await restartApp();
 
-    await answerSystemSensorIfShown();
     await dismissNotificationRationale();
     await waitVisible(TAB_OVERVIEW, 45000);
     await expect(element(by.id('pin-key-1'))).not.toExist();

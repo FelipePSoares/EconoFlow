@@ -135,7 +135,23 @@ function traceFromSpec(event, data) {
  * is restored from what was left on the device, something returning to a backgrounded app
  * never exercises.
  */
-export async function restartApp({ url } = {}) {
+/**
+ * Restarts the app: the process is killed and started again from its root.
+ *
+ * This is the "the customer reopened the app" case the unlock specs are about — the session
+ * is restored from what was left on the device, something returning to a backgrounded app
+ * never exercises.
+ *
+ * **The start URL is not optional.** `relaunchApp()` without one asks Android to replay the
+ * last intent, and in these specs the last intent is the automation entry point
+ * (`econoflow://e2e/open`, from `openAtLogin` in `beforeEach`) — whose handler ends the stored
+ * session on purpose. The restart then looked like "the app signs the customer out while the
+ * unlock gate asks for the sensor": the trail showed `biometric.prompt.requested` followed by
+ * `auth.clear {"caller":"clearAuth <- openE2eStart"}`, the gate's attempt went stale, and the
+ * spec waited for an app that had been sent back to Login. A restart always names the plain
+ * start URL, which is what a customer's own relaunch is.
+ */
+export async function restartApp({ url = START_URL } = {}) {
   await device.relaunchApp({ url });
   // A restart is what makes the app ask for the sensor, and while that OS dialog is up the
   // app's window has no focus — every later `waitFor` would fail with

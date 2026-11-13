@@ -4,6 +4,7 @@ import { useAuthStore } from '../store/authStore';
 import { useProjectStore } from '../store/projectStore';
 import { addBreadcrumb } from '../monitoring/sentry';
 import { queryClient } from './queryClient';
+import { isSessionOnUnlockScreen } from '../navigation/sessionRoute';
 
 export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://localhost:7003';
 
@@ -78,11 +79,21 @@ apiClient.interceptors.response.use(
     const { refreshToken, setTokens, clearAuth } = useAuthStore.getState();
     const { clearProject } = useProjectStore.getState();
 
+    // A lock screen in front is the app saying "this customer is still signed in — prove it".
+    // Ending the session from under it is what the mobile end-to-end suite's restart cases hit:
+    // the biometric gate asks the sensor on a relaunch, a background request 401s meanwhile but
+    // its refresh is refused, `clearAuth()` runs, and the gate unmounts while the system dialog
+    // is still open — so the app never opens. The request still fails for its caller; the
+    // session is left for the customer to unlock, which is the only thing that can end it.
+    const keepSession = isSessionOnUnlockScreen();
+
     if (!refreshToken) {
       isRefreshing = false;
       queryClient.clear();
-      clearAuth();
-      clearProject();
+      if (!keepSession) {
+        clearAuth();
+        clearProject();
+      }
       return Promise.reject(error);
     }
 
@@ -103,8 +114,12 @@ apiClient.interceptors.response.use(
     } catch (refreshError) {
       processQueue(refreshError, null);
       queryClient.clear();
-      clearAuth();
-      clearProject();
+      // The data is stale either way, so the cache is dropped above; the *session* waits for
+      // the unlock to finish (see `keepSession`).
+      if (!keepSession) {
+        clearAuth();
+        clearProject();
+      }
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;
