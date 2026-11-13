@@ -65,7 +65,73 @@ public class JsonLogFormatterTests
         var root = document.RootElement;
 
         root.GetProperty("@mt").GetString().Should().Be(template);
-        root.GetProperty("@m").GetString().Should().Be("HTTP \"GET\" \"/api/Account/Notifications\" responded 200");
+        // Chassis 1.3.0 renders @m through Serilog.Expressions, which does not quote
+        // string properties; <=1.2.0 wrote them with quotes
+        // (docs/logging-migration-1.3.0.md §3.1 in the chassis repository).
+        root.GetProperty("@m").GetString().Should().Be("HTTP GET /api/Account/Notifications responded 200");
+    }
+
+    [Fact]
+    public void Format_RendersStructuredObjectsAsCompactJson_WithTypeTag()
+    {
+        // 1.3.0 renders destructured objects as compact JSON (not Serilog's
+        // `Person { Name: "Ada", Age: 36 }`) and keeps the structure's type tag as `$type`
+        // in both @m and the first-class property.
+        var user = new StructureValue(
+            [
+                new LogEventProperty("Name", new ScalarValue("Ada")),
+                new LogEventProperty("Age", new ScalarValue(36)),
+            ],
+            "Person");
+
+        var output = Format(CreateEvent(
+            LogEventLevel.Information,
+            "Payload {User}",
+            properties: [new("User", user)]));
+
+        using var document = JsonDocument.Parse(output);
+        var root = document.RootElement;
+
+        // @m is the prefix followed by compact JSON, not Serilog's
+        // `Person { Name: "Ada", Age: 36 }`. Parsing the rendering keeps this test from
+        // depending on the order in which Serilog.Expressions writes the fields.
+        var rendered = root.GetProperty("@m").GetString()!;
+        rendered.Should().StartWith("Payload {");
+
+        using var renderedDocument = JsonDocument.Parse(rendered["Payload ".Length..]);
+        renderedDocument.RootElement.GetProperty("Name").GetString().Should().Be("Ada");
+        renderedDocument.RootElement.GetProperty("Age").GetInt32().Should().Be(36);
+        renderedDocument.RootElement.GetProperty("$type").GetString().Should().Be("Person");
+
+        root.GetProperty("User").GetProperty("Name").GetString().Should().Be("Ada");
+        root.GetProperty("User").GetProperty("$type").GetString().Should().Be("Person");
+    }
+
+    [Fact]
+    public void Format_WritesDateTimePropertiesInRoundTripFormat()
+    {
+        // 1.3.0 writes the 7-digit round-trip format instead of the old short ISO form.
+        var when = new DateTime(2026, 11, 13, 12, 34, 56, DateTimeKind.Utc);
+
+        var output = Format(CreateEvent(
+            LogEventLevel.Information,
+            "Payload",
+            properties: [new("When", new ScalarValue(when))]));
+
+        using var document = JsonDocument.Parse(output);
+
+        document.RootElement.GetProperty("When").GetString().Should().Be("2026-11-13T12:34:56.0000000Z");
+    }
+
+    [Fact]
+    public void Format_TerminatesTheLineWithLf_NotCrLf()
+    {
+        // The template ends with `\n` on every platform; the old formatter used
+        // TextWriter.WriteLine, which is `\r\n` on Windows.
+        var output = Format(CreateEvent(LogEventLevel.Information, "Message"));
+
+        output.Should().EndWith("\n");
+        output.Should().NotContain("\r");
     }
 
     [Fact]

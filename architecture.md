@@ -917,7 +917,7 @@ one of them — see [Required secrets](#required-secrets-start-up-validation).
 | `Smtp.TimeoutSeconds` | `30` | SMTP operation timeout in seconds (overridden by `SMTP_TIMEOUT_SECONDS`) |
 | `FeatureRollout.EnabledForAllUsers` | `"WebPush"` | Feature flags available to everyone |
 | `FeatureRollout.EnabledForBetaTesters` | `"WebPush, PwaInstall"` | Additional flags for beta testers |
-| `Serilog:WriteTo[:Console/File].Args.formatter` | `EasyFinance.Server.Logging.EconoFlowJsonFormatter` | Console/File sinks use `EconoFlowJsonFormatter` (compact CLEF-like JSON) — it always writes the level (`@l`) and the fully rendered message (`@m`) beside the template (`@mt`) so log level and readable messages survive in Grafana. The stock `CompactJsonFormatter` drops both. |
+| `Serilog:WriteTo[:Console/File].Args.formatter` | `FpsSoftware.Chassis.ChassisJsonFormatter` | Console/File sinks use the chassis formatter (a Serilog.Expressions template since 1.3.0) — it always writes the level (`@l`) and the rendered message (`@m`) beside the template (`@mt`) so log level and readable messages survive in Grafana. The stock `CompactJsonFormatter` drops both. Since 1.3.0 `@m` renders string values unquoted, structured properties carry `$type`, DateTime values use the 7-digit round-trip form, and every line ends with `\n`, so dashboards and filters should use the structured properties instead of parsing `@m`. |
 
 ---
 
@@ -1045,8 +1045,10 @@ references directly**, and no project file gives an obvious place to fix those:
 | `MimeKit` (via `MailKit`) | `System.Security.Cryptography.Pkcs` | 10.0.0 …= 10.0.12 |
 | `fpssoftware.chassis` | `System.Security.Cryptography.Xml` | 10.0.0 …= 10.0.12 |
 
-`Directory.Build.targets` pins both to **10.0.13**, the first release outside every affected
-range. Two details matter and are easy to get wrong:
+`Directory.Build.targets` pins both to **10.0.15**: above the **10.0.13** floor, because
+`fpssoftware.chassis` 1.3.0 requests `System.Security.Cryptography.Xml` 10.0.15 and that
+version in turn requires `System.Security.Cryptography.Pkcs` >= 10.0.15, so pinning either
+lower is a NU1605 package downgrade. Two details matter and are easy to get wrong:
 
 - The pin must use `Include`, not `Update`. An `Update` transform only runs against an item
   that already exists, and a transitive package has no `PackageReference` item of its own, so
